@@ -1,0 +1,33 @@
+﻿@model List<GestorInventario.Domain.Models.ItemsDelCarrito>
+
+<h2>Tu Carrito de Compras</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Producto</th>
+            <th>Precio</th>
+            <th>Proveedor</th>
+            <th>Imagen del producto</th>
+            <th>Cantidad</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Producto.NombreProducto</td>
+                <td>@item.Producto.Precio</td>
+                <td>@item.Producto.IdProveedorNavigation?.NombreProveedor</td>
+                <td>
+                    <img src="@item.Producto.Imagen" alt="Imagen del producto" style="width:100px;height:100px;" />
+                </td>
+                <td>@item.Cantidad</td>
+                <td>@(item.Producto.Precio * item.Cantidad)</td>
+            </tr>
+        }
+        <a asp-action="Checkout" class="btn btn-success">Checkout</a>
+
+    </tbody>
+</table>

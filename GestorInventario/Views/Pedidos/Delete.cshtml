@@ -1,0 +1,50 @@
+﻿@model Pedido
+
+<h1>Eliminar Pedido</h1>
+
+<h3>¿Estás seguro de que quieres eliminar este pedido?</h3>
+<div>
+    <h4>@Model.NumeroPedido</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            FechaPedido:
+        </dt>
+        <dd class="col-sm-10">
+            @Model.FechaPedido
+        </dd>
+        @foreach (var detalle in Model.DetallePedidos)
+        {
+            <dt class="col-sm-2">
+                Nombre del Producto:
+            </dt>
+            <dd class="col-sm-10">
+                @detalle.Producto?.NombreProducto
+            </dd>
+            <dt class="col-sm-2">
+                Cantidad:
+            </dt>
+            <dd class="col-sm-10">
+                @detalle.Cantidad
+            </dd>
+        }
+        <dt class="col-sm-2">
+            Nombre del Cliente:
+        </dt>
+        <dd class="col-sm-10">
+            @Model.IdUsuarioNavigation?.NombreCompleto
+        </dd>
+        <dt class="col-sm-2">
+            Estado del Pedido:
+        </dt>
+        <dd class="col-sm-10">
+            @Model.EstadoPedido
+        </dd>
+    </dl>
+
+    <form asp-action="DeleteConfirmed" method="post">
+        <input type="hidden" asp-for="@Model.Id" />
+        <input type="submit" value="Eliminar" class="btn btn-danger" />
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>

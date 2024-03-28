@@ -1,0 +1,71 @@
+﻿@model List<Producto>
+<!-- Tabla para mostrar los proveedores existentes -->
+<h1>Productos</h1>
+<p>
+    <a asp-action="Create" class="btn btn-info">Crear Producto</a>
+
+</p>
+
+@* Este código renderiza una vista parcial en ASP.NET.
+
+La función Html.RenderPartial se utiliza para renderizar una vista parcial.
+El primer argumento, "_CreatePartial", es el nombre de la vista parcial que se va a renderizar.
+El segundo argumento, new ProveedorViewModel(), es el modelo que se pasa a la vista parcial.
+
+Cuando este código se ejecuta, ASP.NET renderiza la vista parcial "_CreatePartial" y le pasa un nuevo objeto
+ProveedorViewModel como modelo.
+Esto significa que cualquier lugar en tu vista donde veas este código, ASP.NET renderizará la vista parcial
+"_CreatePartial" en su lugar.
+
+Las vistas parciales son útiles para reutilizar bloques de código que se repiten en varias vistas.
+En lugar de duplicar ese código en cada vista, puedes ponerlo en una vista parcial y luego referenciar esa
+vista parcial en las vistas que necesitan ese bloque de código.
+ *@
+@* @{
+    Html.RenderPartial("_CreatePartial", new ProveedorViewModel());
+} *@
+<table class="table">
+    <thead>
+        <tr>
+            <th>NombreProducto</th>
+            <th>Imagen</th>
+            <th>Descripcion</th>
+            <th>Cantidad</th>
+            <th>Precio</th>
+            <th>Nombre Proveedor</th>
+            <!-- Agrega aquí las demás columnas de la tabla -->
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var producto in Model)
+        {
+            <tr>
+                <td>@producto.NombreProducto</td>
+                <td>
+                    <img src="@producto.Imagen" alt="Imagen del producto" style="width:100px;height:100px;" />
+                </td>
+                <td>@producto.Descripcion</td>
+                <td>@producto.Cantidad</td>
+                <td>@producto.Precio</td>
+                <td>@producto.IdProveedorNavigation?.NombreProveedor  </td>
+                <td>
+                <td>
+                    <form asp-action="AgregarAlCarrito" method="post">
+                        <input type="hidden" name="idProducto" value="@producto.Id" />
+                        <input type="number" name="cantidad" min="1" max="@producto.Cantidad" value="1" />
+                        <button type="submit" class="btn btn-primary">Agregar al carrito</button>
+                    </form>
+
+                </td>
+              
+                <td>
+                    <a asp-action="Delete" asp-route-id="@producto.Id" class="btn btn-danger">Delete</a>
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@producto.Id" class="btn btn-warning">Update</a>
+                </td>
+                <!-- Agrega aquí las demás celdas de la fila -->
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,47 @@
+﻿@model Proveedore
+
+<h1>Eliminar cerveza</h1>
+
+<h3>¿Estás seguro de que quieres eliminar esta cerveza?</h3>
+<div>
+    <h4>@Model.NombreProveedor</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            Nombre:
+        </dt>
+        <dd class="col-sm-10">
+            @Model.NombreProveedor
+        </dd>
+        <dt class="col-sm-2">
+            Contacto:
+        </dt>
+        <dd class="col-sm-10">
+            @Model.Contacto
+        </dd>
+        <dt class="col-sm-2">
+            Dirección:
+        </dt>
+        <dd class="col-sm-10">
+            @Model.Direccion
+        </dd>
+    </dl>
+
+    <form asp-action="DeleteConfirmed" method="post">
+        <!--IMPORTANTE: asp-for="@Model.Id" si tu en tu base de datos en este caso el campo se llama BeerId
+            esto lo que va al controlador a buscar algo que se llame igual para ejecutar las acciones en este caso
+            eliminar un ejemplo sencillo tu le tiras un palo a un perro y el perro lo tiene que ir a buscar pero si tu
+            le lanzas algo que no sea un palo va a buscarlo pero no lo encontrara
+        -->
+        <input type="hidden" asp-for="@Model.Id" />
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-warning">
+                @TempData["ErrorMessage"]
+            </div>
+        }
+        <input type="submit" value="Eliminar" class="btn btn-danger" />
+      
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>

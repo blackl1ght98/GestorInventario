@@ -1,0 +1,110 @@
+﻿@using GestorInventario.Domain.Models.ViewModels;
+@model PedidosViewModel
+
+<h2>Editar Pedido</h2>
+
+<form asp-action="Edit" asp-controller="Pedidos" method="post">
+    <div class="form-group">
+        <input type="hidden" asp-for="Id" />
+       
+    </div>
+    <div class="form-group">
+
+        <label for="NumeroPedido">Numero de Pedido</label>
+        <input type="text" class="form-control" id="NumeroPedido" asp-for="NumeroPedido" required>
+    </div>
+    <div class="form-group">
+
+        <label for="FechaPedido">FechaPedido</label>
+        <input type="date" class="form-control" id="Contacto" asp-for="FechaPedido" required>
+    </div>
+    <div class="form-group">
+
+        <label for="EstadoPedido">EstadoPedido</label>
+        <input type="text" class="form-control" id="EstadoPedido" asp-for="EstadoPedido" required>
+    </div>
+    <div class="form-group">
+        <!--Esto lo que hace es detectar si se ha seleccionado o no el producto,
+        para ello cojemos 2 parametros la id de ese producto y si se ha seleccionado o no
+        ViewData["Productos"] = new SelectList(_context.Productos, "Id", "NombreProducto"); esto recordemos que crea un desplegable
+        que basicamente un deplegable es una lista de objetos.
+        Con esta linea convertimos ese desplegable a una lista. La diferencia que hay entre las dos es que en el deplegable tu no puedes
+        usar el metodo Count() que es para sacar la cantidad, pero si tu ese desplegable lo transformas a una lista si puedes saber la cantidad
+            ViewBag.Productos = _context.Productos.ToList();
+        -->
+        <label asp-for="IdsProducto" class="control-label"></label>
+        <!--Esto se puede leer asi: si i es igual a 0, y ademas i  es menor que la cantidad de productos de la lista incrementa i-->
+        <!--for (inicialización; condición; incremento)
+        {
+            // Código a ejecutar en cada iteración
+        }
+
+
+        Inicialización: Aquí es donde defines tu variable de control del bucle. En tu caso, es i, que se inicializa a 0. 
+        Esta parte del bucle se ejecuta una sola vez, al principio.
+
+        Condición: Esta es la condición que se comprueba antes de cada iteración del bucle. 
+        Si la condición es verdadera, el bucle continúa; si es falsa, el bucle se detiene. 
+        En tu caso, la condición es i < ViewBag.Productos.Count, lo que significa que el bucle continuará mientras i 
+        sea menor que el número de productos.
+
+        Incremento: Esta es la operación que se realiza al final de cada iteración del bucle. 
+        En tu caso, es i++, lo que significa que i se incrementa en 1 después de cada iteración.
+        El bucle for para su iteracion cuando la condicion es falsa
+        -->
+        <!--
+          Imagina que tienes una fila de cajas y quieres revisar cada una de ellas. En este caso, las cajas son tus productos y 
+          la fila es tu lista de productos (ViewBag.Productos).
+
+        El bucle for es como un robot que empieza en la primera caja (índice 0) y se mueve a la siguiente caja después 
+        de cada revisión. La variable i es simplemente un contador que el robot usa para saber en qué caja está. 
+        Así que cuando i es 2, el robot está en la tercera caja (porque empezamos a contar desde 0).
+
+        Ahora, para cada caja (producto), el robot hace dos cosas:
+
+            Crea un checkbox para saber si el producto ha sido seleccionado o no. Esto se almacena en ProductosSeleccionados[i].
+            Guarda el ID del producto en un lugar seguro (campo oculto). Esto se almacena en IdsProducto[i].
+
+        Así que i no es el ID del producto, sino la posición del producto en la fila (lista). Y ProductosSeleccionados[i] y IdsProducto[i] son simplemente formas de rastrear el estado del checkbox y el ID del producto para cada producto en la lista.
+        
+        -->
+        <!--Vamos a poner un ejemplo sencillo de como se ejecutaria este bucle
+            si nosotros tenemos 3 productos el bucle seguira iterando hasta que sea menor que 3
+            porque el bucle for comienza en 0.
+            Por lo tanto, el bucle se ejecutará para i igual a 0 (primer producto),
+            i igual a 1 (segundo producto) e i igual a 2 (tercer producto). 
+            Cuando i sea 3, la condición del bucle for (i < ViewBag.Productos.Count) ya no se cumple, por lo que el bucle se detiene.
+        -->
+        @for (var i = 0; i < ViewBag.Productos.Count; i++)
+        {
+            //Olvidemos [i] por un momento, esto ProductosSeleccionados almacena si esta o no seleccionado el producto pero con [i] 
+            //indica la posicion de esa seleccion esta posicion comienza en 0 asi que si decimos que la id es 2 seria el tercer elemento
+            //de la lista porque iria contando asi: 0,1,2.
+            /* Si i esta en el primer producto los [i] valen 0 si estan en el sengun valen 1 y asi sucesivamente
+            Esto significa que ProductosSeleccionados[i], ViewBag.Productos[i].NombreProducto y IdsProducto[i] 
+            se refieren al estado del checkbox, al nombre del producto y al ID del producto, respectivamente, 
+            para el producto en la posición i en la lista ViewBag.Productos. El motivo por el que [i] se pone es para saber donde
+            esta cada producto.
+            */
+            <input type="checkbox" asp-for="ProductosSeleccionados[i]" /> 
+          
+            @ViewBag.Productos[i].NombreProducto
+            
+            <input type="hidden" asp-for="IdsProducto[i]" value="@ViewBag.Productos[i].Id" />
+            <br />
+        }
+    </div>
+
+    <div class="form-group">
+
+        <label asp-for="IdUsuario" class="control-label"></label>
+
+        <select asp-for="IdUsuario" class="form-select" asp-items="ViewBag.Clientes"></select>
+    </div>
+    <button type="submit" value="Save" class="btn btn-primary mt-2">Editar</button>
+</form>
+
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>

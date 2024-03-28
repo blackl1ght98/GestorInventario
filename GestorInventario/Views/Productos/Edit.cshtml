@@ -1,0 +1,44 @@
+﻿@model Producto
+
+<h2>Editar Proveedor</h2>
+
+<form asp-action="Edit" asp-controller="Productos" method="post">
+    <div class="form-group">
+        <input type="hidden" asp-for="Id" />
+        <label for="NombreProducto">Nombre</label>
+        <input type="text" class="form-control" id="NombreProducto" asp-for="NombreProducto" required>
+    </div>
+    <div class="form-group">
+
+        <label for="Descripcion">Descripcion</label>
+        <input type="text" class="form-control" id="Contacto" asp-for="Descripcion" required>
+    </div>
+    <div class="form-group">
+
+        <label for="Cantidad">Cantidad</label>
+        <input type="text" class="form-control" id="Direccion" asp-for="Cantidad" required>
+    </div>
+    <div class="form-group">
+
+        <label for="Precio">Precio</label>
+        <input type="number" class="form-control" id="Precio" asp-for="Precio" required>
+    </div>
+    <div class="form-group">
+
+        <label asp-for="IdProveedor" class="control-label"></label>
+
+        <select asp-for="IdProveedor" class="form-select" asp-items="ViewBag.Productos"></select>
+    </div>
+    <button type="submit" value="Save" class="btn btn-primary mt-2">Editar</button>
+    @*  @if (TempData["SuccessMessage"] != null)
+    {
+    <div class="alert alert-warning">
+    @TempData["SuccessMessage"]
+    </div>
+    } *@
+</form>
+
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>

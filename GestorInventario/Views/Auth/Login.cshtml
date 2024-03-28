@@ -1,0 +1,21 @@
+﻿@using GestorInventario.Models.ViewModels
+
+
+@model LoginViewModel
+
+<h2>Iniciar sesión</h2>
+<!--Esta vista se muestra cuando se le da al boton de iniciar sesion-->
+<form asp-controller="Auth"  method="post">
+    <div class="form-group">
+        <label for="Email">Correo electrónico</label>
+        <input type="email" class="form-control" asp-for="Email" required />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label for="Password">Contraseña</label>
+        <input type="password" class="form-control" asp-for="Password" required />
+        <span asp-validation-for="Password" class="text-danger"></span>
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    </div>
+    <button type="submit" class="btn btn-primary">Iniciar sesión</button>
+</form>

@@ -1,0 +1,47 @@
+﻿@model List<Pedido>
+<!-- Tabla para mostrar los pedidos existentes -->
+<h1>Pedidos</h1>
+<p>
+    <a asp-action="Create" class="btn btn-info">Crear Pedido</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Nombre del Producto</th>
+            <th>Cantidad</th>
+            <th>Numero del Pedido</th>
+            <th>Fecha del Pedido</th>
+            <th>Estado del Pedido</th>
+            <th>Nombre del Cliente</th>
+            <th>Precio del producto</th>
+            <th>Precio sin IVA</th>
+            <th>Precio con IVA (21%)</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var pedido in Model)
+        {
+            foreach (var detalle in pedido.DetallePedidos)
+            {
+                <tr>
+                    <td>@detalle.Producto?.NombreProducto</td>
+                    <td>@detalle.Cantidad</td>
+                    <td>@pedido.NumeroPedido</td>
+                    <td>@pedido.FechaPedido</td>
+                    <td>@pedido.EstadoPedido</td>
+                    <td>@pedido.IdUsuarioNavigation?.NombreCompleto</td>
+                    <td>@detalle.Producto?.Precio</td>
+                    <td>@(detalle.Cantidad * detalle.Producto?.Precio)</td>
+                    <td>@(detalle.Cantidad * (detalle.Producto?.Precio ?? 0) * 1.21)</td>
+                    <td>
+                        <a asp-action="Delete" asp-route-id="@pedido.Id" class="btn btn-danger">Eliminar</a>
+                    </td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@pedido.Id" class="btn btn-warning">Actualizar</a>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
