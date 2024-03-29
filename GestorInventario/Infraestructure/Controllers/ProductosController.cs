@@ -205,13 +205,57 @@ namespace GestorInventario.Infraestructure.Controllers
                     itemCarrito.Cantidad += cantidad;
                     _context.ItemsDelCarritos.Update(itemCarrito);
                 }
+                Producto producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == idProducto);
 
+                if (producto != null)
+                {
+                    //Una vez agregado al carrito se quita la cantidad de productos
+                    producto.Cantidad -= cantidad;                    
+                    _context.Productos.Update(producto);
+                    // Guarda los cambios en la base de datos
+                    await _context.SaveChangesAsync();
+                }
                 await _context.SaveChangesAsync();
                 return RedirectToAction("Index");
             }
             return RedirectToAction("Index");
         }
+        [HttpPost]
+        public async Task<ActionResult> Incrementar(int id)
+        {
+            // Busca el producto en la base de datos
+            Producto producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == id);
 
+            if (producto != null)
+            {
+                // Incrementa la cantidad del producto
+                producto.Cantidad++;
+                _context.Productos.Update(producto);
+                // Guarda los cambios en la base de datos
+                await _context.SaveChangesAsync();
+            }
 
+            // Redirige al usuario a la página de índice
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> Decrementar(int id)
+        {
+            // Busca el producto en la base de datos
+            Producto producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == id);
+
+            if (producto != null)
+            {
+                // Incrementa la cantidad del producto
+                producto.Cantidad--;
+                _context.Productos.Update(producto);
+                // Guarda los cambios en la base de datos
+                await _context.SaveChangesAsync();
+            }
+
+            // Redirige al usuario a la página de índice
+            return RedirectToAction("Index");
+        }
     }
 }

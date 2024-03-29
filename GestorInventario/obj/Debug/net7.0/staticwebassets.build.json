@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "ANGZETs7Fxo7bek/M0J7ywHFPyMbH/GfZU0aKM0YHEU=",
+  "Hash": "ux2slzs6SBdJMs2djSEjGXblDJtACSLciLo02WsI208=",
   "Source": "GestorInventario",
   "BasePath": "_content/GestorInventario",
   "Mode": "Default",
@@ -91,6 +91,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\favicon.ico"
+    },
+    {
+      "Identity": "C:\\Users\\guill\\OneDrive\\Escritorio\\Glucontrol NO BORRAR\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\wwwroot\\imagenes\\22994e90-9562-4245-a4c8-f5519fb0be06.jpeg",
+      "SourceId": "GestorInventario",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\guill\\OneDrive\\Escritorio\\Glucontrol NO BORRAR\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\wwwroot\\",
+      "BasePath": "_content/GestorInventario",
+      "RelativePath": "imagenes/22994e90-9562-4245-a4c8-f5519fb0be06.jpeg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\imagenes\\22994e90-9562-4245-a4c8-f5519fb0be06.jpeg"
     },
     {
       "Identity": "C:\\Users\\guill\\OneDrive\\Escritorio\\Glucontrol NO BORRAR\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\wwwroot\\imagenes\\4b5790ce-423a-403f-9407-0f15fa493e13.jpeg",

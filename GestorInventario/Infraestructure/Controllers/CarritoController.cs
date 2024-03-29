@@ -63,6 +63,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
                     _context.Pedidos.Add(pedido);
                     await _context.SaveChangesAsync();
+                    //Este bucle se va a recorrer como items existan en el carrito
                     foreach (var item in itemsDelCarrito)
                     {
                         var detallePedido = new DetallePedido
@@ -96,6 +97,42 @@ namespace GestorInventario.Infraestructure.Controllers
             return new string(Enumerable.Repeat(chars, length)
            .Select(s => s[random.Next(s.Length)]).ToArray());
         }
+        [HttpPost]
+        public async Task<ActionResult> Incrementar(int id)
+        {
+            // Busca el producto en la base de datos
+            var carrito = await _context.ItemsDelCarritos.FirstOrDefaultAsync(p => p.Id == id);
 
+            if (carrito != null)
+            {
+                // Incrementa la cantidad del producto
+                carrito.Cantidad++;
+                _context.ItemsDelCarritos.Update(carrito);
+                // Guarda los cambios en la base de datos
+                await _context.SaveChangesAsync();
+            }
+
+            // Redirige al usuario a la página de índice
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> Decrementar(int id)
+        {
+            // Busca el producto en la base de datos
+            var carrito = await _context.ItemsDelCarritos.FirstOrDefaultAsync(p => p.Id == id);
+
+            if (carrito != null)
+            {
+                // Incrementa la cantidad del producto
+                carrito.Cantidad--;
+                _context.ItemsDelCarritos.Update(carrito);
+                // Guarda los cambios en la base de datos
+                await _context.SaveChangesAsync();
+            }
+
+            // Redirige al usuario a la página de índice
+            return RedirectToAction("Index");
+        }
     }
 }

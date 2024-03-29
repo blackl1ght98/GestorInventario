@@ -23,7 +23,22 @@
                 <td>
                     <img src="@item.Producto.Imagen" alt="Imagen del producto" style="width:100px;height:100px;" />
                 </td>
+                
+                <td>
+                    <form asp-action="Incrementar" method="post">
+                        <input type="hidden" name="id" value="@item.Id" />
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-arrow-up-short"></i></button>
+                    </form>
+
+                </td>
                 <td>@item.Cantidad</td>
+                <td>
+                    <form asp-action="Decrementar" method="post">
+                        <input type="hidden" name="id" value="@item.Id" />
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-arrow-down"></i></button>
+                    </form>
+
+                </td>
                 <td>@(item.Producto.Precio * item.Cantidad)</td>
             </tr>
         }
