@@ -178,39 +178,49 @@ namespace GestorInventario.Infraestructure.Controllers
                 var carrito = _context.Carritos.FirstOrDefault(c => c.UsuarioId == usuarioActual);
                 if (carrito == null)
                 {
-                    carrito = new Carrito { 
-                        UsuarioId = usuarioActual, 
-                        FechaCreacion = DateTime.Now 
+                    carrito = new Carrito
+                    {
+                        UsuarioId = usuarioActual,
+                        FechaCreacion = DateTime.Now
                     };
                     _context.Carritos.Add(carrito);
                     // Guarda el nuevo Carrito en la base de datos
-                    await _context.SaveChangesAsync();  
+                    await _context.SaveChangesAsync();
                 }
                 //Una vez asignado el carrito al usuario ese carrito tiene una id y a ese carrito se le asignan productos los cuales
                 //tienen una id la id del producto se obtiene mediante la realacion de clave foranea en esta tabla con la tabla Productos
                 var itemCarrito = _context.ItemsDelCarritos.FirstOrDefault(i => i.CarritoId == carrito.Id && i.ProductoId == idProducto);
-                if (itemCarrito == null)
-                {
-                    // Si el producto no está en el carrito, crea un nuevo item que se podria decir un articulo ItemsDelCarrito
-                    itemCarrito = new ItemsDelCarrito { 
-                        ProductoId = idProducto, 
-                        Cantidad = cantidad, 
-                        CarritoId = carrito.Id 
-                    };
-                    _context.ItemsDelCarritos.Add(itemCarrito);
-                }
-                else
-                {
-                    // Si el producto ya está en el carrito, incrementa la cantidad del producto
-                    itemCarrito.Cantidad += cantidad;
-                    _context.ItemsDelCarritos.Update(itemCarrito);
-                }
                 Producto producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == idProducto);
 
                 if (producto != null)
                 {
+                    // Verifica si la cantidad del producto es suficiente
+                    if (producto.Cantidad < cantidad)
+                    {
+                        TempData["ErrorMessage"] = "No hay suficientes productos en stock.";
+                        return RedirectToAction("Index");
+                    }
+
+                    // Si el producto no está en el carrito, crea un nuevo item que se podria decir un articulo ItemsDelCarrito
+                    if (itemCarrito == null)
+                    {
+                        itemCarrito = new ItemsDelCarrito
+                        {
+                            ProductoId = idProducto,
+                            Cantidad = cantidad,
+                            CarritoId = carrito.Id
+                        };
+                        _context.ItemsDelCarritos.Add(itemCarrito);
+                    }
+                    else
+                    {
+                        // Si el producto ya está en el carrito, incrementa la cantidad del producto
+                        itemCarrito.Cantidad += cantidad;
+                        _context.ItemsDelCarritos.Update(itemCarrito);
+                    }
+
                     //Una vez agregado al carrito se quita la cantidad de productos
-                    producto.Cantidad -= cantidad;                    
+                    producto.Cantidad -= cantidad;
                     _context.Productos.Update(producto);
                     // Guarda los cambios en la base de datos
                     await _context.SaveChangesAsync();
@@ -220,6 +230,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             return RedirectToAction("Index");
         }
+
         [HttpPost]
         public async Task<ActionResult> Incrementar(int id)
         {

@@ -33,6 +33,7 @@ vista parcial en las vistas que necesitan ese bloque de código.
             <th class="col-2">Cantidad</th>
             <th class="col-2">Precio</th>
             <th class="col-2">Nombre Proveedor</th>
+            <th class="col-2" colspan="3">Acciones</th>
             <!-- Agrega aquí las demás columnas de la tabla -->
         </tr>
     </thead>
@@ -70,6 +71,12 @@ vista parcial en las vistas que necesitan ese bloque de código.
                         <input type="hidden" name="idProducto" value="@producto.Id" />
                         <input type="number" name="cantidad" min="1" max="@producto.Cantidad" value="1" />
                         <button type="submit" class="btn btn-primary mt-2">Agregar al carrito</button>
+                        @if (TempData["ErrorMessage"] != null)
+                    {
+                    <div class="alert alert-success">
+                                @TempData["ErrorMessage"]
+                    </div>
+                    }
                     </form>
 
                 </td>

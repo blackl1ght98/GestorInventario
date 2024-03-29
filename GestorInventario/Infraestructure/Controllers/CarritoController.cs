@@ -124,8 +124,19 @@ namespace GestorInventario.Infraestructure.Controllers
 
             if (carrito != null)
             {
-                // Incrementa la cantidad del producto
+                // Decrementa la cantidad del producto en el carrito
                 carrito.Cantidad--;
+
+                // Busca el producto correspondiente en la tabla de productos
+                var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == carrito.ProductoId);
+
+                if (producto != null)
+                {
+                    // Incrementa la cantidad del producto en la tabla de productos
+                    producto.Cantidad++;
+                    _context.Productos.Update(producto);
+                }
+
                 _context.ItemsDelCarritos.Update(carrito);
                 // Guarda los cambios en la base de datos
                 await _context.SaveChangesAsync();
@@ -134,5 +145,6 @@ namespace GestorInventario.Infraestructure.Controllers
             // Redirige al usuario a la página de índice
             return RedirectToAction("Index");
         }
+
     }
 }

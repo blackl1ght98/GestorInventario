@@ -25,12 +25,13 @@ vista parcial en las vistas que necesitan ese bloque de código.
 @* @{
     Html.RenderPartial("_CreatePartial", new ProveedorViewModel());
 } *@
-<table class="table">
+<table class="table table-striped table-bordered w-100">
     <thead>
         <tr>
-            <th>Nombre</th>
-            <th>Contacto</th>
-            <th>Dirección</th>
+            <th class="col-2">Nombre</th>
+            <th class="col-2">Contacto</th>
+            <th class="col-2">Dirección</th>
+            <th class="col-2" colspan="3">Acciones</th>
             <!-- Agrega aquí las demás columnas de la tabla -->
         </tr>
     </thead>
