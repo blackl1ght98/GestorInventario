@@ -82,3 +82,8 @@ C:\Users\guill\OneDrive\Escritorio\Glucontrol NO BORRAR\proyectos mvc\Gestor Inv
 C:\Users\guill\OneDrive\Escritorio\Glucontrol NO BORRAR\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\bin\Debug\net7.0\runtimes\win\lib\net6.0\System.Windows.Extensions.dll
 C:\Users\guill\OneDrive\Escritorio\Glucontrol NO BORRAR\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\obj\Debug\net7.0\GestorInventario.csproj.CopyComplete
 C:\Users\guill\OneDrive\Escritorio\Glucontrol NO BORRAR\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\bin\Debug\net7.0\libman.json
+C:\Users\guill\OneDrive\Escritorio\Glucontrol NO BORRAR\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\bin\Debug\net7.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Users\guill\OneDrive\Escritorio\Glucontrol NO BORRAR\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\bin\Debug\net7.0\log4net.config
+C:\Users\guill\OneDrive\Escritorio\Glucontrol NO BORRAR\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\bin\Debug\net7.0\log4net.dll
+C:\Users\guill\OneDrive\Escritorio\Glucontrol NO BORRAR\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\bin\Debug\net7.0\Microsoft.Extensions.Configuration.Binder.dll
+C:\Users\guill\OneDrive\Escritorio\Glucontrol NO BORRAR\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\bin\Debug\net7.0\Microsoft.Extensions.Logging.Log4Net.AspNetCore.dll

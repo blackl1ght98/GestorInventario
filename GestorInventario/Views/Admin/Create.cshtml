@@ -20,9 +20,13 @@
         <label for="Password">Contraseña</label>
         <input type="password" class="form-control" id="Password" asp-for="Password" required>
     </div>
-
-    <div class="form-group"><select asp-for="IdRol" class="form-select mt-2" asp-items="ViewBag.Roles" value="usuario"></select></div>
-
+     @if (User.IsInRole("administrador"))
+ {
+    <div class="form-group">
+        <label>Rol</label>
+        <select asp-for="IdRol" class="form-select mt-2" asp-items="ViewBag.Roles" value="usuario"></select>
+        </div>
+ }
     <div class="form-group">
         <label for="NombreCompleto">Nombre Completo</label>
         <input type="text" class="form-control" id="NombreCompleto" asp-for="NombreCompleto" required>

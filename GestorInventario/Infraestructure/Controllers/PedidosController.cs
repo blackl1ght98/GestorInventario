@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Domain.Models;
 using GestorInventario.Domain.Models.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +26,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
             return View(pedidos);
         }
-
+        [Authorize]
         public async Task<IActionResult> Create()
         {
             var model = new PedidosViewModel

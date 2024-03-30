@@ -8,8 +8,7 @@ namespace GestorInventario.Models.ViewModels
         public string Email { get; set; }
         [Required]
         public string Password { get; set; }
-   
-        public int IdRol {  get; set; }
+        public int IdRol { get; set; } = 1;
         [Required]
         public string NombreCompleto { get; set; }
         [Required]

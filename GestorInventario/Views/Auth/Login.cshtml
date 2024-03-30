@@ -17,5 +17,13 @@
         <span asp-validation-for="Password" class="text-danger"></span>
         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
     </div>
-    <button type="submit" class="btn btn-primary">Iniciar sesión</button>
+
+    <div class="d-flex justify-content-between mt-2">
+        <button type="submit" class="btn btn-primary">Iniciar sesión</button>
+        <a asp-action="Create" asp-controller="Admin" class="btn btn-info">Crear Usuario</a>
+    </div>
+
+
 </form>
+<p>Para recuperar la contraseña contactar con el administrador del sitio</p>
+

@@ -17,11 +17,13 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly GestorInventarioContext _context;
         private readonly HashService _hashService;
         private readonly IEmailService _emailService;
-        public AuthController(GestorInventarioContext context, HashService hashService, IEmailService emailService)
+        private readonly TokenService _tokenService;
+        public AuthController(GestorInventarioContext context, HashService hashService, IEmailService emailService, TokenService tokenService)
         {
             _context = context;
             _hashService = hashService;
             _emailService = emailService;
+            _tokenService = tokenService;
         }
 
         public IActionResult Index()
@@ -34,6 +36,61 @@ namespace GestorInventario.Infraestructure.Controllers
             return View();
         }
 
+        //[AllowAnonymous]
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Login(LoginViewModel model)
+        //{
+        //    if (ModelState.IsValid)
+        //    {
+        //        var user = await _context.Usuarios.Include(x => x.IdRolNavigation).FirstOrDefaultAsync(u => u.Email == model.Email);
+
+        //        if (user != null)
+        //        {
+        //            // Comprobar si el correo electrónico ha sido confirmado
+        //            if (!user.ConfirmacionEmail)
+        //            {
+        //                //Con esto creas un error personalizado
+        //                ModelState.AddModelError("", "Por favor, confirma tu correo electrónico antes de iniciar sesión.");
+        //                return View(model);
+        //            }
+        //            //Se llama al servicio hash service
+        //            var resultadoHash = _hashService.Hash(model.Password, user.Salt);
+        //            //Si la contraseña que se introduce es igual a la que hay en base de datos se procede al login
+        //            if (user.Password == resultadoHash.Hash)
+        //            {
+        //                // Crear una lista de reclamaciones (claims) para el usuario
+        //                var claims = new List<Claim>
+        //                 {
+        //                     new Claim(ClaimTypes.Name, user.Email),
+        //                    new Claim(ClaimTypes.Role, user.IdRolNavigation.Nombre),
+
+        //                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+        //                };
+
+        //                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+
+        //                var principal = new ClaimsPrincipal(identity);
+
+        //                // Iniciar sesión con el principal del usuario
+        //                // Esto establece la cookie de autenticación en el navegador del usuario
+        //                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+        //                return RedirectToAction("Index", "Home");
+        //            }
+        //            else
+        //            {
+        //                ModelState.AddModelError("", "El email y/o la contraseña son incorrectos.");
+        //                return View(model);
+        //            }
+        //        }
+
+        //        return View(model);
+        //    }
+
+        //    return View(model);
+        //}
         [AllowAnonymous]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -57,23 +114,17 @@ namespace GestorInventario.Infraestructure.Controllers
                     //Si la contraseña que se introduce es igual a la que hay en base de datos se procede al login
                     if (user.Password == resultadoHash.Hash)
                     {
-                        // Crear una lista de reclamaciones (claims) para el usuario
-                        var claims = new List<Claim>
-                         {
-                             new Claim(ClaimTypes.Name, user.Email),
-                            new Claim(ClaimTypes.Role, user.IdRolNavigation.Nombre),
+                        // Generar el token
+                        var tokenResponse = await _tokenService.GenerarToken(user);
+
+                        // Guardar el token en una cookie
+                        Response.Cookies.Append("auth", tokenResponse.Token, new CookieOptions { 
+                            HttpOnly = true, 
+                            SameSite= SameSiteMode.Strict,
+                            MaxAge= TimeSpan.FromMinutes(60),
+                            Secure = true,
                             
-                            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
-                        };
-                       
-                        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-
-                      
-                        var principal = new ClaimsPrincipal(identity);
-
-                        // Iniciar sesión con el principal del usuario
-                        // Esto establece la cookie de autenticación en el navegador del usuario
-                        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+                        });
 
                         return RedirectToAction("Index", "Home");
                     }
@@ -90,12 +141,20 @@ namespace GestorInventario.Infraestructure.Controllers
             return View(model);
         }
         [AllowAnonymous]
-        public async Task<IActionResult> Logout()
+        public IActionResult Logout()
         {
-            //Elimina de las cookies del navegador las cookie del usuario
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            // Elimina la cookie "auth" del navegador.
+            Response.Cookies.Delete("auth");
             return RedirectToAction("Index", "Home");
         }
+
+        //[AllowAnonymous]
+        //public async Task<IActionResult> Logout()
+        //{
+        //    //Elimina de las cookies del navegador las cookie del usuario
+        //    await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        //    return RedirectToAction("Index", "Home");
+        //}
         //Este metodo toma el email por ruta y ademas envia un email al usuario con lo que tiene que hacer para resetear la contraseña
         [Route("AuthController/ResetPassword/{email}")]
         //Esto le muestra una vista al administrador
