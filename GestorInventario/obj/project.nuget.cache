@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "x88lb4PSJpUv1iM/EX/m8UP8nOEkYKKmoM65exOM21kTaYmcgLDtCL084wdUZdGLzQWqLZ1Sp7olloZUR8Isdw==",
+  "dgSpecHash": "QONV71FlKSRLe36DaNv8NL6rofNaMl1t5knsmICklMAf7ozMU7hl5vsvUslwDEROrCwAwdipm1iNhZdLdJRH/A==",
   "success": true,
-  "projectFilePath": "C:\\Users\\guill\\OneDrive\\Escritorio\\Glucontrol NO BORRAR\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\GestorInventario.csproj",
+  "projectFilePath": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\GestorInventario.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\guill\\.nuget\\packages\\azure.core\\1.35.0\\azure.core.1.35.0.nupkg.sha512",
     "C:\\Users\\guill\\.nuget\\packages\\azure.identity\\1.10.3\\azure.identity.1.10.3.nupkg.sha512",
@@ -73,11 +73,7 @@
     "C:\\Users\\guill\\.nuget\\packages\\system.text.encodings.web\\7.0.0\\system.text.encodings.web.7.0.0.nupkg.sha512",
     "C:\\Users\\guill\\.nuget\\packages\\system.text.json\\7.0.0\\system.text.json.7.0.0.nupkg.sha512",
     "C:\\Users\\guill\\.nuget\\packages\\system.threading.tasks.extensions\\4.5.4\\system.threading.tasks.extensions.4.5.4.nupkg.sha512",
-    "C:\\Users\\guill\\.nuget\\packages\\system.windows.extensions\\6.0.0\\system.windows.extensions.6.0.0.nupkg.sha512",
-    "C:\\Users\\guill\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\7.0.17\\microsoft.windowsdesktop.app.ref.7.0.17.nupkg.sha512",
-    "C:\\Users\\guill\\.nuget\\packages\\microsoft.netcore.app.ref\\7.0.17\\microsoft.netcore.app.ref.7.0.17.nupkg.sha512",
-    "C:\\Users\\guill\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\7.0.17\\microsoft.aspnetcore.app.ref.7.0.17.nupkg.sha512",
-    "C:\\Users\\guill\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\7.0.17\\microsoft.netcore.app.host.win-x64.7.0.17.nupkg.sha512"
+    "C:\\Users\\guill\\.nuget\\packages\\system.windows.extensions\\6.0.0\\system.windows.extensions.6.0.0.nupkg.sha512"
   ],
   "logs": []
 }

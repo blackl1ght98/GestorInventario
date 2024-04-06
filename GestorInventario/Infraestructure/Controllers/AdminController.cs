@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using GestorInventario.PaginacionLogica;
 
 namespace GestorInventario.Infraestructure.Controllers
 {
@@ -30,22 +31,99 @@ namespace GestorInventario.Infraestructure.Controllers
             _logger = logger;
         }
 
-        public IActionResult Index()
+        //public IActionResult Index()
+        //{
+        //    try
+        //    {
+        //        ViewData["Roles"] = new SelectList(_context.Roles, "Id", "Nombre");
+        //        var usuarios = _context.Usuarios.Include(x => x.IdRolNavigation).ToList();
+        //        return View(usuarios);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error al mostrar la vista de administrador");
+        //        return BadRequest("En estos momentos no se ha podido llevar a cabo la visualizacion de la vista intentelo de nuevo mas tarde o cantacte con el administrador");
+
+        //    }
+
+        //}
+        public async Task<ActionResult> Index([FromQuery] Paginacion paginacion)
         {
             try
             {
-                ViewData["Roles"] = new SelectList(_context.Roles, "Id", "Nombre");
-                var usuarios = _context.Usuarios.Include(x => x.IdRolNavigation).ToList();
+                /*AsQueryable: El método AsQueryable se utiliza para convertir una colección IEnumerable en IQueryable. 
+                 * Esto es útil cuando se desea realizar operaciones de consulta (como filtrado, ordenación, etc.) 
+                 * que se ejecutarán en el servidor, en lugar de traer todos los datos a la memoria local y luego 
+                 * realizar las operaciones.*/
+                /*IEnumerable es una interfaz en .NET que representa una secuencia de objetos que se pueden enumerar. 
+                 * Esta interfaz define un método, GetEnumerator, que devuelve un objeto IEnumerator. IEnumerator 
+                 * proporciona la capacidad de iterar a través de la colección al exponer un método MoveNext y una 
+                 * propiedad Current. Y que es lo mas comun para que se itere listas y arrays*/
+                //Convertimos esta variable a IQueryable para poder acceder al metodo de extension creado
+                var queryable = _context.Usuarios.Include(x => x.IdRolNavigation).AsQueryable();
+                //Accedemos al metodo de extension creado pasandole la fuente de informacion(queryable) y las paginas a mostrar
+                await HttpContext.InsertarParametrosPaginacionRespuesta(queryable, paginacion.CantidadAMostrar);
+                //Mostramos los datos de cada pagina y numero de paginas al usuario
+                var usuarios = queryable.Paginar(paginacion).ToList();
+                //Obtiene los datos de la cabecera que hace esta peticion
+                var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
+                //Crea las paginas que el usuario ve.
+                ViewData["Paginas"] = GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
                 return View(usuarios);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al mostrar la vista de administrador");
-                return BadRequest("En estos momentos no se ha podido llevar a cabo la visualizacion de la vista intentelo de nuevo mas tarde o cantacte con el administrador");
+                _logger.LogError(ex, "Error al obtener los datos del usuario");
 
+                return BadRequest("En estos momentos no se ha podido llevar a cabo la obtención de los usuarios. Inténtelo de nuevo más tarde o contacte con el administrador.");
+            }
+        }
+        //Se declara un metodo privado que retorna una lista de PaginasModel que son las paginas que el usuario ve
+        private List<PaginasModel> GenerarListaPaginas(int totalPaginas, int paginaActual)
+        {
+            //A la variable paginas le asigna una lista de PaginasModel
+            var paginas = new List<PaginasModel>();
+
+            // Si estamos en una página que no es la primera (por ejemplo, la página 3),
+            // y queremos ir a la página anterior, comprobamos si la página actual es mayor que 1.
+            // Si es así, restamos 1 a la página actual para obtener la página anterior (3 - 1 = 2).
+            // Si ya estamos en la primera página, la página anterior sigue siendo 1.
+            var paginaAnterior = (paginaActual > 1) ? paginaActual - 1 : 1;
+
+            // Se crea un nuevo objeto PaginasModel para la página "anterior".
+            // Si la página actual no es la primera, se puede ir a la página anterior.
+            // Si ya estamos en la primera página, el botón "anterior" se desactiva.
+            // Se utiliza el constructor de PaginasModel que toma tres argumentos.
+            paginas.Add(new PaginasModel(paginaAnterior, paginaActual != 1, "Anterior"));
+
+            // Este bucle crea las páginas.
+            // Comienza con i = 1 y continúa mientras i sea menor o igual que el total de páginas.
+            for (int i = 1; i <= totalPaginas; i++)
+            {
+                // Para cada iteración, se añade una nueva página a la lista 'paginas'.
+                // Se utiliza el constructor de PaginasModel que toma un solo argumento: el número de página (i).
+                // Además, se establece la propiedad 'Activa' de la página a 'true' si la página actual es igual a i.
+                paginas.Add(new PaginasModel(i) { Activa = paginaActual == i });
             }
 
+
+            // Se calcula el número de la página "siguiente".
+            // Si aún no estamos en la última página, es simplemente la página actual más uno.
+            // Si ya estamos en la última página, la página "siguiente" sigue siendo la última página.
+            var paginaSiguiente = (paginaActual < totalPaginas) ? paginaActual + 1 : totalPaginas;
+
+            // Se añade un nuevo objeto PaginasModel para la página "siguiente" a la lista 'paginas'.
+            // Se utiliza el constructor de PaginasModel que toma tres argumentos: el número de página, el estado de habilitación y el texto.
+            // El botón "siguiente" solo está habilitado si no estamos en la última página.
+            paginas.Add(new PaginasModel(paginaSiguiente, paginaActual != totalPaginas, "Siguiente"));
+
+
+            return paginas;
         }
+
+
+
+
         [HttpPost]
         public IActionResult UpdateRole(int id, int newRole)
         {
