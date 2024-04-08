@@ -9,6 +9,7 @@ using System.Security.Claims;
 using GestorInventario.Domain.Models;
 using GestorInventario.Application.DTOs;
 using GestorInventario.Interfaces.Application;
+using GestorInventario.MetodosExtension;
 
 namespace GestorInventario.Infraestructure.Controllers
 {
@@ -160,7 +161,8 @@ namespace GestorInventario.Infraestructure.Controllers
         //Esto le muestra una vista al administrador
         public async Task<IActionResult> ResetPassword(string email)
         {
-            var usuarioDB = await _context.Usuarios.AsTracking().FirstOrDefaultAsync(x => x.Email == email);
+            var usuarioDB= await _context.Usuarios.EmailExists(email);
+            //var usuarioDB = await _context.Usuarios.AsTracking().FirstOrDefaultAsync(x => x.Email == email);
             // Generar una contraseña temporal
             await _emailService.SendEmailAsyncResetPassword(new DTOEmail
             {
@@ -176,7 +178,8 @@ namespace GestorInventario.Infraestructure.Controllers
         public async Task<IActionResult> RestorePassword(DTORestorePass cambio)
         {
             //Se busca al usuario por Id
-            var usuarioDB = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == cambio.UserId);
+            var usuarioDB= await _context.Usuarios.ExistUserId(cambio.UserId);
+            //var usuarioDB = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == cambio.UserId);
             if (usuarioDB.Email == null)
             {
                 return BadRequest("Email no encontrado");
@@ -204,8 +207,10 @@ namespace GestorInventario.Infraestructure.Controllers
         [HttpPost]
         public async Task<IActionResult> RestorePasswordUser(DTORestorePass cambio)
         {
+            var usuarioDB = await _context.Usuarios.ExistUserId(cambio.UserId);
+
             //Busca al usuario por Id
-            var usuarioDB = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == cambio.UserId);
+           //var usuarioDB = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == cambio.UserId);
             //Si la id es nula devuelve el siguiente error
             if (usuarioDB == null)
             {

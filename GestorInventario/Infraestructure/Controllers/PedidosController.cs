@@ -18,6 +18,8 @@ namespace GestorInventario.Infraestructure.Controllers
 
         public async Task<IActionResult> Index()
         {
+            //ThenInclude es usado para consultar datos de una relacion con include si tu tienes un include y 
+            //de ese include necesitas obtener datos pues usas theninclude
             var pedidos = await _context.Pedidos
                 .Include(p => p.DetallePedidos)
                     .ThenInclude(dp => dp.Producto)
@@ -71,17 +73,25 @@ namespace GestorInventario.Infraestructure.Controllers
                 Segunda iteración: i se incrementa a 1, ya que 1 < 3 es verdadero, el bucle se ejecuta para el segundo producto.
                 Tercera iteración: i se incrementa a 2, ya que 2 < 3 es verdadero, el bucle se ejecuta para el tercer producto.
                 Cuarta iteración: i se incrementa a 3, pero ya que 3 < 3 es falso, el bucle se detiene.
-
+                como el usuario ha seleccionado 3 productos el bucle se itera 3 veces por cada producto seleccionado
                  */
                 // Aquí se usa el bucle for porque se manejan dos listas. La primera, model.ProductosSeleccionados,
                 // almacena qué producto ha sido seleccionado y para ello se necesita la posición[i] de donde está.
-                // La segunda lista, model.IdsProducto, almacena los ids ya existentes y al agregar uno, se agrega al final.
+                // La segunda lista, model.IdsProducto, almacena los ids ya existentes de los productos
+                // y al agregar un producto al pedido, se agrega al final.
                 // Por ello, es necesario saber la posición.
+
                 for (var i = 0; i < model.IdsProducto.Count; i++)
                 {
-                    //Detecta que posicion tiene el producto seleccionado
+                    /*Este bucle for primero avarigua cuantos productos hay en la tabla Productos y 
+                     averigua en que posicion se encuentra cada producto.
+                    */
                     if (model.ProductosSeleccionados[i]) 
                     {
+                        /*Una vez que el bucle sabe cuantos productos hay y donde estan pues para averiguar
+                         * que producto a seleccionado el usuario para agregarlo al pedido se le pasa la posicion
+                         * del producto con esto se consigue saber que producto o productos han sido seleccionados
+                         */
                         //Agrega el producto seleccionado a DetallePedido
                         var detallePedido = new DetallePedido()
                         {
@@ -93,11 +103,11 @@ namespace GestorInventario.Infraestructure.Controllers
                         _context.Add(detallePedido);
                     }
                 }
-                //Crea un despleagable
+                //Crea un despleagable de los productos que hay en base de datos
                 ViewData["Productos"] = new SelectList(_context.Productos, "Id", "NombreProducto");
                 //Ese desplegable los transforma en una lista
                 ViewBag.Productos = _context.Productos.ToList();
-
+                //Crea un desplegable de los clientes que haya en base de datos para asignarle un pedido
                 ViewData["Clientes"] = new SelectList(_context.Usuarios, "Id", "NombreCompleto");
                 await _context.SaveChangesAsync();
 

@@ -11,6 +11,9 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using GestorInventario.PaginacionLogica;
+using GestorInventario.MetodosExtension;
+using GestorInventario.Interfaces.Infraestructure;
+using AspNetCore;
 
 namespace GestorInventario.Infraestructure.Controllers
 {
@@ -21,14 +24,16 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly HashService _hashService;
         private readonly IConfirmEmailService _confirmEmailService;
         private readonly ILogger<AdminController> _logger;
+        private readonly IAdminRepository _adminrepository;
 
-        public AdminController(GestorInventarioContext context, IEmailService emailService, HashService hashService, IConfirmEmailService confirmEmailService, ILogger<AdminController> logger)
+        public AdminController(GestorInventarioContext context, IEmailService emailService, HashService hashService, IConfirmEmailService confirmEmailService, ILogger<AdminController> logger, IAdminRepository adminRepository)
         {
             _context = context;
             _emailService = emailService;
             _hashService = hashService;
             _confirmEmailService = confirmEmailService;
             _logger = logger;
+            _adminrepository = adminRepository;
         }
 
         //public IActionResult Index()
@@ -59,16 +64,19 @@ namespace GestorInventario.Infraestructure.Controllers
                  * Esta interfaz define un método, GetEnumerator, que devuelve un objeto IEnumerator. IEnumerator 
                  * proporciona la capacidad de iterar a través de la colección al exponer un método MoveNext y una 
                  * propiedad Current. Y que es lo mas comun para que se itere listas y arrays*/
-                //Convertimos esta variable a IQueryable para poder acceder al metodo de extension creado
-                var queryable = _context.Usuarios.Include(x => x.IdRolNavigation).AsQueryable();
+                var queryable = _adminrepository.ObtenerUsuarios();
+                //var queryable = _context.Usuarios.Include(x => x.IdRolNavigation);
                 //Accedemos al metodo de extension creado pasandole la fuente de informacion(queryable) y las paginas a mostrar
                 await HttpContext.InsertarParametrosPaginacionRespuesta(queryable, paginacion.CantidadAMostrar);
-                //Mostramos los datos de cada pagina y numero de paginas al usuario
+                //Mostramos los datos de cada pagina y numero de paginas al usuario,
+                //mostraria 2 registros por pagina
                 var usuarios = queryable.Paginar(paginacion).ToList();
                 //Obtiene los datos de la cabecera que hace esta peticion
                 var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
                 //Crea las paginas que el usuario ve.
                 ViewData["Paginas"] = GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
+                ViewData["Roles"] = new SelectList(_adminrepository.ObtenerRoles(), "Id", "Nombre");
+
                 return View(usuarios);
             }
             catch (Exception ex)
@@ -78,6 +86,41 @@ namespace GestorInventario.Infraestructure.Controllers
                 return BadRequest("En estos momentos no se ha podido llevar a cabo la obtención de los usuarios. Inténtelo de nuevo más tarde o contacte con el administrador.");
             }
         }
+        //public async Task<ActionResult> Index([FromQuery] Paginacion paginacion)
+        //{
+        //    try
+        //    {
+        //        /*AsQueryable: El método AsQueryable se utiliza para convertir una colección IEnumerable en IQueryable. 
+        //         * Esto es útil cuando se desea realizar operaciones de consulta (como filtrado, ordenación, etc.) 
+        //         * que se ejecutarán en el servidor, en lugar de traer todos los datos a la memoria local y luego 
+        //         * realizar las operaciones.*/
+        //        /*IEnumerable es una interfaz en .NET que representa una secuencia de objetos que se pueden enumerar. 
+        //         * Esta interfaz define un método, GetEnumerator, que devuelve un objeto IEnumerator. IEnumerator 
+        //         * proporciona la capacidad de iterar a través de la colección al exponer un método MoveNext y una 
+        //         * propiedad Current. Y que es lo mas comun para que se itere listas y arrays*/
+        //        //Convertimos esta variable a IQueryable para poder acceder al metodo de extension creado
+                  //Esta es otra manera sin el AsQueryable(), sin este metodo al final devuelve algo de este tipo
+                  //IIncludableQueryable que si nos metemos en esta interfaz hereda de IQueryable y es por eso
+                  //que nuestros metodos de extension siguen funcionando
+        //        var queryable = _context.Usuarios.Include(x => x.IdRolNavigation);
+        //        //Accedemos al metodo de extension creado pasandole la fuente de informacion(queryable) y las paginas a mostrar
+        //        await HttpContext.InsertarParametrosPaginacionRespuesta(queryable, paginacion.CantidadAMostrar);
+        //        //Mostramos los datos de cada pagina y numero de paginas al usuario,
+        //        //mostraria 2 registros por pagina
+        //        var usuarios = queryable.Paginar(paginacion).ToList();
+        //        //Obtiene los datos de la cabecera que hace esta peticion
+        //        var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
+        //        //Crea las paginas que el usuario ve.
+        //        ViewData["Paginas"] = GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
+        //        return View(usuarios);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error al obtener los datos del usuario");
+
+        //        return BadRequest("En estos momentos no se ha podido llevar a cabo la obtención de los usuarios. Inténtelo de nuevo más tarde o contacte con el administrador.");
+        //    }
+        //}
         //Se declara un metodo privado que retorna una lista de PaginasModel que son las paginas que el usuario ve
         private List<PaginasModel> GenerarListaPaginas(int totalPaginas, int paginaActual)
         {
@@ -129,13 +172,14 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var user = _context.Usuarios.Find(id);
+                var user = _adminrepository.ObtenerPorId(id);
+                //var user = _context.Usuarios.Find(id);
                 if (user == null)
                 {
                     return NotFound("El usuario al que intenta cambiar el rol no existe");
                 }
                 //crea el desplegable
-                ViewData["Roles"] = new SelectList(_context.Roles, "Id", "Nombre");
+                ViewData["Roles"] = new SelectList(_adminrepository.ObtenerRoles(), "Id", "Nombre");
                 //Le asigna el rol al usuario
                 user.IdRol = newRole;
                 //Actualiza en base de datos 
@@ -157,7 +201,7 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
                 //Sirve para obtener los datos del desplegable
-                ViewData["Roles"] = new SelectList(_context.Roles, "Id", "Nombre");
+                ViewData["Roles"] = new SelectList(_adminrepository.ObtenerRoles(), "Id", "Nombre");
 
                 return View();
 
@@ -183,8 +227,14 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (ModelState.IsValid)
                 {
                     // Verificar si el email ya existe en la base de datos
-                    var existingUser = _context.Usuarios.FirstOrDefault(u => u.Email == model.Email);
-                    if (existingUser != null)
+                    //Aqui hemos creado un metodo de extension que ahora EmailExist ha pasado a formar parte
+                    //del contexto de base de dator
+                    var existingUser=_adminrepository.ExisteEmail(model.Email);
+                    //var existingUser = _context.Usuarios.EmailExists(model.Email);
+
+                   // var existingUser = _context.Usuarios.FirstOrDefault(u => u.Email == model.Email);
+                   //Esto se usa para comprobar booleanos si es true el email existe si es false no existe
+                    if (existingUser == null)
                     {
                         // Si el usuario ya existe, retornar a la vista con un mensaje de error
                         ModelState.AddModelError("Email", "Este email ya está registrado.");
@@ -206,7 +256,7 @@ namespace GestorInventario.Infraestructure.Controllers
                         FechaRegistro = DateTime.Now
                     };
                     //Sirve para crear el desplegable
-                    ViewData["Roles"] = new SelectList(_context.Roles, "Id", "Nombre");
+                    ViewData["Roles"] = new SelectList(_adminrepository.ObtenerRoles(), "Id", "Nombre");
                     //Agrega el usuario a base de datos
                     _context.Add(user);
                     //Guarda los cambios
@@ -234,7 +284,9 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var usuarioDB = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == confirmar.UserId);
+                var usuarioDB= _adminrepository.ObtenerPorId(confirmar.UserId);
+               // var usuarioDB = await _context.Usuarios.ExistUserId(confirmar.UserId);
+                //var usuarioDB = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == confirmar.UserId);
                 if (usuarioDB.ConfirmacionEmail != false)
                 {
                     return BadRequest("Usuario ya validado con anterioridad");
@@ -264,7 +316,13 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
                 // Obtienes el usuario de la base de datos
-                Usuario user = await _context.Usuarios.FindAsync(id);
+                var user= _adminrepository.ObtenerPorId(id);
+               // var user = await _context.Usuarios.ExistUserId(id);
+                if(user== null)
+                {
+                    return BadRequest("Usuario no encontrado");
+                }
+                //var  user = await _context.Usuarios.FirstOrDefaultAsync(x=>x.Id==id);
 
                 // Creas un nuevo ViewModel y llenas sus propiedades con los datos del usuario
                 UsuarioEditViewModel viewModel = new UsuarioEditViewModel
@@ -299,7 +357,10 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (ModelState.IsValid)
                 {
                     // Obtiene la id del usuario a editar
-                    var user = await _context.Usuarios.FindAsync(userVM.Id);
+                    var user= _adminrepository.ObtenerPorId(userVM.Id);
+                    //var user = await _context.Usuarios.ExistUserId(userVM.Id);
+
+                   // var user = await _context.Usuarios.FindAsync(userVM.Id);
 
                     if (user == null)
                     {
@@ -355,7 +416,8 @@ namespace GestorInventario.Infraestructure.Controllers
                     //A no tener los datos actuales
                     catch (DbUpdateConcurrencyException)
                     {
-                        if (!UserExists(user.Id))
+
+                        if (user.Id==null)
                         {
                             return NotFound("Usuario no encontrado");
                         }
@@ -382,18 +444,15 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             
         }
-        private bool UserExists(int Id)
-        {
-
-            return _context.Usuarios.Any(e => e.Id == Id);
-        }
+       
         
         public async Task<IActionResult> Delete(int id)
         {
             try
             {
                 //Consulta a base de datos en base a la id del usuario
-                var user = await _context.Usuarios.Include(p => p.Pedidos).FirstOrDefaultAsync(m => m.Id == id);
+                var user=  _adminrepository.UsuarioConPedido(id);
+                //var user = await _context.Usuarios.Include(p => p.Pedidos).FirstOrDefaultAsync(m => m.Id == id);
                 //Si no hay cervezas muestra el error 404
                 if (user == null)
                 {
@@ -423,7 +482,8 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
                 //Busca al usuario en base de datos
-                var user = await _context.Usuarios.Include(p => p.Pedidos).FirstOrDefaultAsync(m => m.Id == Id);
+                var user= _adminrepository.UsuarioConPedido(Id);
+                //var user = await _context.Usuarios.Include(p => p.Pedidos).FirstOrDefaultAsync(m => m.Id == Id);
                 if (user == null)
                 {
                     return BadRequest();

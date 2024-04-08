@@ -13,7 +13,7 @@ namespace GestorInventario.Domain.Models.ViewModels
 
         public double Precio { get; set; }
         [Display(Name ="Proveedor")]
-        public int IdProveedor { get; set; }
+        public int? IdProveedor { get; set; }
 
     }
 }

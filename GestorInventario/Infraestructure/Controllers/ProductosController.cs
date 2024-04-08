@@ -37,7 +37,8 @@ namespace GestorInventario.Infraestructure.Controllers
             //Esto toma en cuenta las validaciones puestas en BeerViewModel
             if (ModelState.IsValid)
             {
-                //Crea la cerveza
+                //Crear Producto
+                //Porque tenemos Imagen y Imagen1 facil Imagen almacena la ruta que es string y Imagen1 almacena la imgan en si
                 var producto = new Producto()
                 {
                     NombreProducto = model.NombreProducto,
@@ -49,11 +50,16 @@ namespace GestorInventario.Infraestructure.Controllers
                 };
                 if (producto.Imagen != null)
                 {
+                    //MemoryStream--> guarda en memoria la imagen
                     using (var memoryStream = new MemoryStream())
                     {
+                        //Realiza una copia de la imagen
                         await model.Imagen1.CopyToAsync(memoryStream);
+                        //La informacion de la imgen se convierte a un array
                         var contenido = memoryStream.ToArray();
+                        //Se obtiene el formato de la imagen .png, .jpg etc
                         var extension = Path.GetExtension(model.Imagen1.FileName);
+                        //Guarda la imagen en la carpeta imagenes
                         producto.Imagen = await _gestorArchivos.GuardarArchivo(contenido, extension, "imagenes"
                      );
                     }
@@ -120,48 +126,79 @@ namespace GestorInventario.Infraestructure.Controllers
 
         public async Task<ActionResult> Edit(int id)
         {
-            Producto producto = await _context.Productos.FindAsync(id);
+            var producto = await _context.Productos.FirstOrDefaultAsync(x=>x.Id==id);
             ViewData["Productos"] = new SelectList(_context.Proveedores, "Id", "NombreProveedor");
-
-            return View(producto);
+            ProductosViewModel viewModel = new ProductosViewModel()
+            {
+                Id = producto.Id,
+                NombreProducto = producto.NombreProducto,
+                Descripcion = producto.Descripcion,
+                Cantidad = producto.Cantidad,
+                Imagen = producto.Imagen,
+                Precio = producto.Precio,
+                IdProveedor = producto.IdProveedor
+            };
+            return View(viewModel);
         }
         [HttpPost]
-        public async Task<ActionResult> Edit(Producto producto)
+        public async Task<ActionResult> Edit(ProductosViewModel model)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
-                    //var proveedor = await _context.Proveedores.FindAsync(proveedores.Id);
+                    var producto = await _context.Productos.FirstOrDefaultAsync(x => x.Id == model.Id);
 
-                    _context.Entry(producto).State = EntityState.Modified;
-                    ViewData["Productos"] = new SelectList(_context.Proveedores, "Id", "NombreProveedor");
+                    // Actualizar las propiedades del producto
+                    producto.NombreProducto = model.NombreProducto;
+                    producto.Descripcion = model.Descripcion;
+                    producto.Cantidad = model.Cantidad;
+                    producto.Precio = model.Precio;
+                    producto.Imagen= model.Imagen;
+                    producto.IdProveedor = model.IdProveedor;
 
+                    if (model.Imagen1 != null)
+                    {
+                        using (var memoryStream = new MemoryStream())
+                        {
+                            await model.Imagen1.CopyToAsync(memoryStream);
+                            var contenido = memoryStream.ToArray();
+                            var extension = Path.GetExtension(model.Imagen1.FileName);
+
+                            // Borrar la imagen antigua
+                            await _gestorArchivos.BorrarArchivo(producto.Imagen, "imagenes");
+
+                            // Guardar la nueva imagen
+                            producto.Imagen = await _gestorArchivos.GuardarArchivo(contenido, extension, "imagenes");
+                        }
+                    }
+
+                    _context.Productos.Update(producto);
                     await _context.SaveChangesAsync();
                     TempData["SuccessMessage"] = "Los datos se han modificado con éxito.";
-
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ProveedorExist(producto.Id))
+                    if (!ProductoExist(model.Id))
                     {
-                        return NotFound();
+                        return NotFound("Producto no encontrado");
                     }
                     else
                     {
-                        _context.Entry(producto).Reload();
+                        _context.Entry(model).Reload();
 
-                        // Intenta guardar de nuevo
-                        _context.Entry(producto).State = EntityState.Modified;
+                        //Intenta guardar de nuevo
+                        _context.Entry(model).State = EntityState.Modified;
                         await _context.SaveChangesAsync();
                     }
                 }
                 return RedirectToAction("Index");
             }
-            return View(producto);
+            return View(model);
         }
 
-        private bool ProveedorExist(int Id)
+
+        private bool ProductoExist(int Id)
         {
 
             return _context.Productos.Any(e => e.Id == Id);
@@ -235,7 +272,7 @@ namespace GestorInventario.Infraestructure.Controllers
         public async Task<ActionResult> Incrementar(int id)
         {
             // Busca el producto en la base de datos
-            Producto producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == id);
+            var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == id);
 
             if (producto != null)
             {
@@ -254,7 +291,7 @@ namespace GestorInventario.Infraestructure.Controllers
         public async Task<ActionResult> Decrementar(int id)
         {
             // Busca el producto en la base de datos
-            Producto producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == id);
+            var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == id);
 
             if (producto != null)
             {

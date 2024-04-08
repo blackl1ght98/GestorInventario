@@ -1,4 +1,6 @@
 ﻿using GestorInventario.Domain.Models;
+using GestorInventario.MetodosExtension;
+using GestorInventario.MetodosExtension.Tabla_Items_Carrito;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -20,8 +22,9 @@ namespace GestorInventario.Infraestructure.Controllers
             int usuarioId;
             if (int.TryParse(existeUsuario, out usuarioId))
             {
-                
-                var carrito = await _context.Carritos.FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
+                var carrito = await _context.Carritos.FindByUserId(usuarioId);
+               // var carrito = _context.Carritos.FindByUserId(usuarioId);
+                //var carrito = await _context.Carritos.FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
                 if (carrito != null)
                 {
                     
@@ -46,7 +49,9 @@ namespace GestorInventario.Infraestructure.Controllers
             int usuarioId;
             if (int.TryParse(existeUsuario, out usuarioId))
             {
-                var carrito = await _context.Carritos.FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
+                var carrito = await _context.Carritos.FindByUserId(usuarioId);
+
+                // var carrito = await _context.Carritos.FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
                 if (carrito != null)
                 {
                     var itemsDelCarrito = await _context.ItemsDelCarritos
@@ -101,7 +106,8 @@ namespace GestorInventario.Infraestructure.Controllers
         public async Task<ActionResult> Incrementar(int id)
         {
             // Busca el producto en la base de datos
-            var carrito = await _context.ItemsDelCarritos.FirstOrDefaultAsync(p => p.Id == id);
+            var carrito = await _context.ItemsDelCarritos.ItemsCarritoIds(id);
+            //var carrito = await _context.ItemsDelCarritos.FirstOrDefaultAsync(p => p.Id == id);
 
             if (carrito != null)
             {
@@ -119,8 +125,10 @@ namespace GestorInventario.Infraestructure.Controllers
         [HttpPost]
         public async Task<ActionResult> Decrementar(int id)
         {
+            var carrito = await _context.ItemsDelCarritos.ItemsCarritoIds(id);
+
             // Busca el producto en la base de datos
-            var carrito = await _context.ItemsDelCarritos.FirstOrDefaultAsync(p => p.Id == id);
+            //var carrito = await _context.ItemsDelCarritos.FirstOrDefaultAsync(p => p.Id == id);
 
             if (carrito != null)
             {

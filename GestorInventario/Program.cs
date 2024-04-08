@@ -1,8 +1,10 @@
 ﻿using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
+using GestorInventario.Infraestructure.Repositories;
 using GestorInventario.Infrastructure.Repositories;
 using GestorInventario.Interfaces;
 using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.Interfaces.Infrastructure;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -58,6 +60,7 @@ builder.Services.AddTransient<IChangePassService, ChangePassService>();
 builder.Services.AddTransient<IConfirmEmailService, ConfirmEmailService>();
 builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.AddTransient<TokenService>();
+builder.Services.AddTransient<IAdminRepository,AdminRepository>();
 //------------------------------------------------------
 builder.Services.AddHttpContextAccessor();
 //builder.Services.AddAuthentication(options =>

@@ -88,6 +88,9 @@
         //pagina y habilitada y este constructor de dos parametros se encadena al constructor padre que recibe 3 
         //parametros el ultimo parametro el constructor padre marca que tiene que ser string pero pagina es int
         //este es el motivo por el cual a pagina se le pone ToString()
+
+
+
         public PaginasModel(int pagina, bool habilitada) : this(pagina, habilitada, pagina.ToString()) { }
         /*
 
