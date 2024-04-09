@@ -1,9 +1,11 @@
 ﻿using GestorInventario.Domain.Models;
 using GestorInventario.Domain.Models.ViewModels;
 using GestorInventario.Interfaces;
+using GestorInventario.PaginacionLogica;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System.Security.Claims;
 
 namespace GestorInventario.Infraestructure.Controllers
@@ -19,10 +21,43 @@ namespace GestorInventario.Infraestructure.Controllers
             _gestorArchivos = gestorArchivos;
         }
 
-        public async  Task<IActionResult> Index()
+        public async  Task<IActionResult> Index([FromQuery] Paginacion paginacion)
         {
-            var productos=await _context.Productos.Include(x=>x.IdProveedorNavigation).ToListAsync();
-            return View(productos);
+            var productos= _context.Productos.Include(x=>x.IdProveedorNavigation).AsQueryable();
+            await HttpContext.InsertarParametrosPaginacionRespuesta(productos, paginacion.CantidadAMostrar);
+            var productoPaginado = productos.Paginar(paginacion).ToList();
+            var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
+            ViewData["Paginas"] = GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
+
+            return View(productoPaginado);
+        }
+        private List<PaginasModel> GenerarListaPaginas(int totalPaginas, int paginaActual)
+        {
+            //A la variable paginas le asigna una lista de PaginasModel
+            var paginas = new List<PaginasModel>();
+
+          
+            var paginaAnterior = (paginaActual > 1) ? paginaActual - 1 : 1;
+
+      
+            paginas.Add(new PaginasModel(paginaAnterior, paginaActual != 1, "Anterior"));
+
+     
+            for (int i = 1; i <= totalPaginas; i++)
+            {
+             
+                paginas.Add(new PaginasModel(i) { Activa = paginaActual == i });
+            }
+
+
+        
+            var paginaSiguiente = (paginaActual < totalPaginas) ? paginaActual + 1 : totalPaginas;
+
+       
+            paginas.Add(new PaginasModel(paginaSiguiente, paginaActual != totalPaginas, "Siguiente"));
+
+
+            return paginas;
         }
         public async Task<IActionResult> Create()
         {

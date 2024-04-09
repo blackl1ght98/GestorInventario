@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Domain.Models;
 using GestorInventario.Domain.Models.ViewModels;
+using GestorInventario.PaginacionLogica;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -16,17 +17,63 @@ namespace GestorInventario.Infraestructure.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        //public async Task<IActionResult> Index()
+        //{
+        //    //ThenInclude es usado para consultar datos de una relacion con include si tu tienes un include y 
+        //    //de ese include necesitas obtener datos pues usas theninclude
+        //    var pedidos =  await _context.Pedidos
+        //        .Include(p => p.DetallePedidos)
+        //            .ThenInclude(dp => dp.Producto)
+        //        .Include(p => p.IdUsuarioNavigation)
+        //        .ToListAsync();
+
+
+
+        //    return View(pedidos);
+        //}
+        public async Task<IActionResult> Index([FromQuery] Paginacion paginacion)
         {
-            //ThenInclude es usado para consultar datos de una relacion con include si tu tienes un include y 
-            //de ese include necesitas obtener datos pues usas theninclude
-            var pedidos = await _context.Pedidos
+            var pedidos = _context.Pedidos
                 .Include(p => p.DetallePedidos)
                     .ThenInclude(dp => dp.Producto)
-                .Include(p => p.IdUsuarioNavigation)
-                .ToListAsync();
+                .Include(p => p.IdUsuarioNavigation);
 
-            return View(pedidos);
+
+            await HttpContext.InsertarParametrosPaginacionRespuesta(pedidos, paginacion.CantidadAMostrar);
+            var pedidosPaginados = await  pedidos.Paginar(paginacion).ToListAsync();
+            var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
+            ViewData["Paginas"] = GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
+
+            return View(pedidosPaginados);
+        }
+        private List<PaginasModel> GenerarListaPaginas(int totalPaginas, int paginaActual)
+        {
+
+            //A la variable paginas le asigna una lista de PaginasModel
+            var paginas = new List<PaginasModel>();
+
+
+            var paginaAnterior = (paginaActual > 1) ? paginaActual - 1 : 1;
+
+
+            paginas.Add(new PaginasModel(paginaAnterior, paginaActual != 1, "Anterior"));
+
+
+            for (int i = 1; i <= totalPaginas; i++)
+            {
+
+                paginas.Add(new PaginasModel(i) { Activa = paginaActual == i });
+            }
+
+
+
+            var paginaSiguiente = (paginaActual < totalPaginas) ? paginaActual + 1 : totalPaginas;
+
+
+            paginas.Add(new PaginasModel(paginaSiguiente, paginaActual != totalPaginas, "Siguiente"));
+
+
+            return paginas;
         }
         [Authorize]
         public async Task<IActionResult> Create()

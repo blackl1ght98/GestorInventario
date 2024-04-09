@@ -13,27 +13,28 @@ using System.Security.Claims;
 using GestorInventario.PaginacionLogica;
 using GestorInventario.MetodosExtension;
 using GestorInventario.Interfaces.Infraestructure;
-using AspNetCore;
 
 namespace GestorInventario.Infraestructure.Controllers
 {
     public class AdminController : Controller
     {
-        private readonly GestorInventarioContext _context;
+        //private readonly GestorInventarioContext _context;
         private readonly IEmailService _emailService;
         private readonly HashService _hashService;
         private readonly IConfirmEmailService _confirmEmailService;
         private readonly ILogger<AdminController> _logger;
         private readonly IAdminRepository _adminrepository;
+        private readonly IAdminCrudOperation _admincrudoperation;
 
-        public AdminController(GestorInventarioContext context, IEmailService emailService, HashService hashService, IConfirmEmailService confirmEmailService, ILogger<AdminController> logger, IAdminRepository adminRepository)
+        public AdminController( IEmailService emailService, HashService hashService, IConfirmEmailService confirmEmailService, ILogger<AdminController> logger, IAdminRepository adminRepository, IAdminCrudOperation admincrudoperation)
         {
-            _context = context;
+           
             _emailService = emailService;
             _hashService = hashService;
             _confirmEmailService = confirmEmailService;
             _logger = logger;
             _adminrepository = adminRepository;
+            _admincrudoperation = admincrudoperation;
         }
 
         //public IActionResult Index()
@@ -168,11 +169,11 @@ namespace GestorInventario.Infraestructure.Controllers
 
 
         [HttpPost]
-        public IActionResult UpdateRole(int id, int newRole)
+        public async Task<IActionResult> UpdateRole(int id, int newRole)
         {
             try
             {
-                var user = _adminrepository.ObtenerPorId(id);
+                var user = await _adminrepository.ObtenerPorId(id);
                 //var user = _context.Usuarios.Find(id);
                 if (user == null)
                 {
@@ -183,8 +184,10 @@ namespace GestorInventario.Infraestructure.Controllers
                 //Le asigna el rol al usuario
                 user.IdRol = newRole;
                 //Actualiza en base de datos 
-                _context.Usuarios.Update(user);
-                _context.SaveChanges();
+                _admincrudoperation.UpdateOperation(user);
+                //_context.UpdateEntity(user);
+                //_context.Usuarios.Update(user);
+                //_context.SaveChanges();
                 return RedirectToAction(nameof(Index));
 
             }
@@ -229,12 +232,12 @@ namespace GestorInventario.Infraestructure.Controllers
                     // Verificar si el email ya existe en la base de datos
                     //Aqui hemos creado un metodo de extension que ahora EmailExist ha pasado a formar parte
                     //del contexto de base de dator
-                    var existingUser=_adminrepository.ExisteEmail(model.Email);
+                    var existingUser=await _adminrepository.ExisteEmail(model.Email);
                     //var existingUser = _context.Usuarios.EmailExists(model.Email);
 
                    // var existingUser = _context.Usuarios.FirstOrDefault(u => u.Email == model.Email);
                    //Esto se usa para comprobar booleanos si es true el email existe si es false no existe
-                    if (existingUser == null)
+                    if (existingUser != null)
                     {
                         // Si el usuario ya existe, retornar a la vista con un mensaje de error
                         ModelState.AddModelError("Email", "Este email ya está registrado.");
@@ -258,9 +261,11 @@ namespace GestorInventario.Infraestructure.Controllers
                     //Sirve para crear el desplegable
                     ViewData["Roles"] = new SelectList(_adminrepository.ObtenerRoles(), "Id", "Nombre");
                     //Agrega el usuario a base de datos
-                    _context.Add(user);
-                    //Guarda los cambios
-                    await _context.SaveChangesAsync();
+                    _admincrudoperation.AddOperation(user);
+                    //_context.AddEntity(user);
+                    //_context.Add(user);
+                    ////Guarda los cambios
+                    //await _context.SaveChangesAsync();
                     //Envia el correo electronico al usuario para que confirme su email
                     await _emailService.SendEmailAsyncRegister(new DTOEmail
                     {
@@ -284,7 +289,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var usuarioDB= _adminrepository.ObtenerPorId(confirmar.UserId);
+                var usuarioDB= await _adminrepository.ObtenerPorId(confirmar.UserId);
                // var usuarioDB = await _context.Usuarios.ExistUserId(confirmar.UserId);
                 //var usuarioDB = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == confirmar.UserId);
                 if (usuarioDB.ConfirmacionEmail != false)
@@ -316,7 +321,7 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
                 // Obtienes el usuario de la base de datos
-                var user= _adminrepository.ObtenerPorId(id);
+                var user= await _adminrepository.ObtenerPorId(id);
                // var user = await _context.Usuarios.ExistUserId(id);
                 if(user== null)
                 {
@@ -357,7 +362,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (ModelState.IsValid)
                 {
                     // Obtiene la id del usuario a editar
-                    var user= _adminrepository.ObtenerPorId(userVM.Id);
+                    var user=  await _adminrepository.ObtenerPorId(userVM.Id);
                     //var user = await _context.Usuarios.ExistUserId(userVM.Id);
 
                    // var user = await _context.Usuarios.FindAsync(userVM.Id);
@@ -378,8 +383,10 @@ namespace GestorInventario.Infraestructure.Controllers
                         user.ConfirmacionEmail = false;
                         //El nuevo email se asigna a base de datos
                         user.Email = userVM.Email;
-                        _context.Usuarios.Update(user);
-                        await _context.SaveChangesAsync();
+                        _admincrudoperation.UpdateOperation(user);
+                        //_context.UpdateEntity(user);
+                        //_context.Usuarios.Update(user);
+                        //await _context.SaveChangesAsync();
                         //Se envia un emain para confirmar el nuevo correo
                         await _emailService.SendEmailAsyncRegister(new DTOEmail
                         {
@@ -406,8 +413,11 @@ namespace GestorInventario.Infraestructure.Controllers
                         SaveChangesAsync(), Entity Framework generará un comando SQL UPDATE que sólo actualizará las columnas de la entidad que 
                         realmente cambiaron.
     */
-                        _context.Entry(user).State = EntityState.Modified;
-                        await _context.SaveChangesAsync();
+                        //_context.Entry(user).State = EntityState.Modified;
+                        _admincrudoperation.ModifyEntityState(user, EntityState.Modified);
+                        await _admincrudoperation.SaveChangesAsync();
+
+                        //await _context.SaveChangesAsync();
                     }
                     //esta excepcion es lanzada cuando varios usuarios modifican al mismo tiempo los datos. Por ejemplo
                     //tenemos un usuario llamado A que esta modificando los datos y todavia no ha guardado esos cambios pero
@@ -424,11 +434,13 @@ namespace GestorInventario.Infraestructure.Controllers
                         else
                         {
                             // Recarga los datos del usuario desde la base de datos
-                            _context.Entry(user).Reload();
-
+                            //_context.Entry(user).Reload();
+                            _admincrudoperation.ReloadEntity(user);
                             // Intenta guardar de nuevo
-                            _context.Entry(user).State = EntityState.Modified;
-                            await _context.SaveChangesAsync();
+                            _admincrudoperation.ModifyEntityState(user, EntityState.Modified);
+                            //_context.Entry(user).State = EntityState.Modified;
+                            //await _context.SaveChangesAsync();
+                           await _admincrudoperation.SaveChangesAsync();
                         }
                     }
                     return RedirectToAction("Index");
@@ -451,7 +463,7 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
                 //Consulta a base de datos en base a la id del usuario
-                var user=  _adminrepository.UsuarioConPedido(id);
+                var user=  await _adminrepository.UsuarioConPedido(id);
                 //var user = await _context.Usuarios.Include(p => p.Pedidos).FirstOrDefaultAsync(m => m.Id == id);
                 //Si no hay cervezas muestra el error 404
                 if (user == null)
@@ -482,7 +494,7 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
                 //Busca al usuario en base de datos
-                var user= _adminrepository.UsuarioConPedido(Id);
+                var user= await _adminrepository.UsuarioConPedido(Id);
                 //var user = await _context.Usuarios.Include(p => p.Pedidos).FirstOrDefaultAsync(m => m.Id == Id);
                 if (user == null)
                 {
@@ -497,8 +509,10 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction(nameof(Delete), new { id = Id });
                 }
                 //Elimina el usuario y guarda los cambios
-                _context.Usuarios.Remove(user);
-                await _context.SaveChangesAsync();
+                _admincrudoperation.DeleteOperation(user);
+                //_context.DeleteEntity(user);
+                //_context.Usuarios.Remove(user);
+                //await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
 
             }

@@ -10,6 +10,7 @@ using GestorInventario.Domain.Models;
 using GestorInventario.Application.DTOs;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.MetodosExtension;
+using GestorInventario.Interfaces.Infraestructure;
 
 namespace GestorInventario.Infraestructure.Controllers
 {
@@ -19,12 +20,16 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly HashService _hashService;
         private readonly IEmailService _emailService;
         private readonly TokenService _tokenService;
-        public AuthController(GestorInventarioContext context, HashService hashService, IEmailService emailService, TokenService tokenService)
+        private readonly IAdminRepository _adminRepository;
+        private readonly IAdminCrudOperation _adminCrudOperation;
+        public AuthController(GestorInventarioContext context, HashService hashService, IEmailService emailService, TokenService tokenService, IAdminRepository adminRepository, IAdminCrudOperation adminCrudOperation)
         {
             _context = context;
             _hashService = hashService;
             _emailService = emailService;
             _tokenService = tokenService;
+            _adminRepository = adminRepository;
+            _adminCrudOperation = adminCrudOperation;
         }
 
         public IActionResult Index()
@@ -99,7 +104,8 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = await _context.Usuarios.Include(x => x.IdRolNavigation).FirstOrDefaultAsync(u => u.Email == model.Email);
+                var user = await _adminRepository.Login(model.Email);
+                //var user = await _context.Usuarios.Include(x => x.IdRolNavigation).FirstOrDefaultAsync(u => u.Email == model.Email);
 
                 if (user != null)
                 {
@@ -110,6 +116,13 @@ namespace GestorInventario.Infraestructure.Controllers
                         ModelState.AddModelError("", "Por favor, confirma tu correo electrónico antes de iniciar sesión.");
                         return View(model);
                     }
+                    if (User.Identity.IsAuthenticated)
+                    {
+                        // El usuario ya está autenticado
+                        ModelState.AddModelError("", "Ya has iniciado sesión. Por favor, cierra tu sesión actual antes de iniciar sesión como un usuario diferente.");
+                        return View(model);
+                    }
+
                     //Se llama al servicio hash service
                     var resultadoHash = _hashService.Hash(model.Password, user.Salt);
                     //Si la contraseña que se introduce es igual a la que hay en base de datos se procede al login
@@ -161,7 +174,8 @@ namespace GestorInventario.Infraestructure.Controllers
         //Esto le muestra una vista al administrador
         public async Task<IActionResult> ResetPassword(string email)
         {
-            var usuarioDB= await _context.Usuarios.EmailExists(email);
+            var usuarioDB = await _adminRepository.ExisteEmail(email);
+            //var usuarioDB= await _context.Usuarios.EmailExists(email);
             //var usuarioDB = await _context.Usuarios.AsTracking().FirstOrDefaultAsync(x => x.Email == email);
             // Generar una contraseña temporal
             await _emailService.SendEmailAsyncResetPassword(new DTOEmail
@@ -178,7 +192,8 @@ namespace GestorInventario.Infraestructure.Controllers
         public async Task<IActionResult> RestorePassword(DTORestorePass cambio)
         {
             //Se busca al usuario por Id
-            var usuarioDB= await _context.Usuarios.ExistUserId(cambio.UserId);
+            var usuarioDB = await _adminRepository.ObtenerPorId(cambio.UserId);
+            //var usuarioDB= await _context.Usuarios.ExistUserId(cambio.UserId);
             //var usuarioDB = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == cambio.UserId);
             if (usuarioDB.Email == null)
             {
@@ -207,10 +222,12 @@ namespace GestorInventario.Infraestructure.Controllers
         [HttpPost]
         public async Task<IActionResult> RestorePasswordUser(DTORestorePass cambio)
         {
-            var usuarioDB = await _context.Usuarios.ExistUserId(cambio.UserId);
+            var usuarioDB = await _adminRepository.ObtenerPorId(cambio.UserId);
+
+            // var usuarioDB = await _context.Usuarios.ExistUserId(cambio.UserId);
 
             //Busca al usuario por Id
-           //var usuarioDB = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == cambio.UserId);
+            //var usuarioDB = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == cambio.UserId);
             //Si la id es nula devuelve el siguiente error
             if (usuarioDB == null)
             {
@@ -235,9 +252,10 @@ namespace GestorInventario.Infraestructure.Controllers
                 return BadRequest("La contraseña temporal no es válida");
             }
             //si todo ha ido bien se actualiza con la contraseña temporal 
-            _context.Usuarios.Update(usuarioDB);
+            _adminCrudOperation.UpdateOperation(usuarioDB);
+            //_context.Usuarios.Update(usuarioDB);
             //Se guarda en base de datos
-            await _context.SaveChangesAsync();
+            //await _context.SaveChangesAsync();
             //Se usa el servicio hash service para hashear la contraseña proporcionada por el usuario
             var resultadoHash = _hashService.Hash(cambio.Password);
             //Se asigna un hash a la contraseña que proporciono el usuario
@@ -247,8 +265,10 @@ namespace GestorInventario.Infraestructure.Controllers
             usuarioDB.Salt = resultadoHash.Salt;
 
             // Guardar los cambios en la base de datos
-            _context.Usuarios.Update(usuarioDB);
-            await _context.SaveChangesAsync();
+            _adminCrudOperation.UpdateOperation(usuarioDB);
+
+            //_context.Usuarios.Update(usuarioDB);
+            //await _context.SaveChangesAsync();
 
             return RedirectToAction("Index", "Admin");
         }

@@ -1,7 +1,13 @@
-﻿@model List<GestorInventario.Domain.Models.ItemsDelCarrito>
+﻿@using GestorInventario.PaginacionLogica
+@model List<GestorInventario.Domain.Models.ItemsDelCarrito>
 
 <h2>Tu Carrito de Compras</h2>
-
+@{
+    //Hace referencia al ViewData creado en el controlador como ViewData["Paginas"] se ha llamado
+    //Paginas el ViewData el ViewBag.Paginas espera algo que se llame paginas porque es a por lo que
+    //va a ir cuando se ejecute y decimos que este ViewBag.Paginas es una lista de PaginasModel
+    var paginas = ViewBag.Paginas as List<PaginasModel>;
+}
 <table class="table">
     <thead>
         <tr>
@@ -46,3 +52,27 @@
 
     </tbody>
 </table>
+<nav aria-label="Page navigation example">
+    <ul class="pagination justify-content-center">
+        <!--Como paginas es una lista se puede iterar pues se itera obteniendo todas las paginas-->
+        @foreach (var pagina in paginas)
+        {
+            <!--
+                Creamos un elemento de lista (<li>) para cada página
+                Si la página está habilitada, no añadimos ninguna clase adicional
+                Si la página no está habilitada, añadimos la clase "disabled"
+                Si la página está activa, añadimos la clase "active"
+
+            -->
+            <li class="page-item @(pagina.Habilitada ? null :"disabled") @(pagina.Activa ? "active":null)">
+                <!--
+
+                    Creamos un enlace (<a>) para cada página
+                     El enlace lleva a la acción "Index" del controlador actual con el número de la página como parámetro
+                     El texto del enlace es el texto de la página
+                -->
+                <a class="page-link" href="@Url.Action("Index", new { Pagina = pagina.Pagina })">@pagina.Texto</a>
+            </li>
+        }
+    </ul>
+</nav>

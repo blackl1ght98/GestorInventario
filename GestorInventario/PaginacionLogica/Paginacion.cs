@@ -4,6 +4,6 @@
     {
         public int Pagina { get; set; } = 1;
         //Cuantos datos se va a mostrar por pagina
-        public int CantidadAMostrar { get; set; } = 2;
+        public int CantidadAMostrar { get; set; } = 3;
     }
 }

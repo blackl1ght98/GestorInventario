@@ -87,6 +87,14 @@ C:\Users\guill\OneDrive\Escritorio\Glucontrol NO BORRAR\proyectos mvc\Gestor Inv
 C:\Users\guill\OneDrive\Escritorio\Glucontrol NO BORRAR\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\bin\Debug\net7.0\log4net.dll
 C:\Users\guill\OneDrive\Escritorio\Glucontrol NO BORRAR\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\bin\Debug\net7.0\Microsoft.Extensions.Configuration.Binder.dll
 C:\Users\guill\OneDrive\Escritorio\Glucontrol NO BORRAR\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\bin\Debug\net7.0\Microsoft.Extensions.Logging.Log4Net.AspNetCore.dll
+C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\obj\Debug\net7.0\GestorInventario.csproj.AssemblyReference.cache
+C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\obj\Debug\net7.0\GestorInventario.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\obj\Debug\net7.0\GestorInventario.AssemblyInfoInputs.cache
+C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\obj\Debug\net7.0\GestorInventario.AssemblyInfo.cs
+C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\obj\Debug\net7.0\GestorInventario.csproj.CoreCompileInputs.cache
+C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\obj\Debug\net7.0\GestorInventario.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\obj\Debug\net7.0\GestorInventario.RazorAssemblyInfo.cache
+C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\obj\Debug\net7.0\GestorInventario.RazorAssemblyInfo.cs
 C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\bin\Debug\net7.0\log4net.config
 C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\bin\Debug\net7.0\appsettings.Development.json
 C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\bin\Debug\net7.0\appsettings.json
@@ -152,14 +160,6 @@ C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventari
 C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\bin\Debug\net7.0\runtimes\win\lib\net6.0\System.Security.Cryptography.ProtectedData.dll
 C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\bin\Debug\net7.0\runtimes\win\lib\net7.0\System.Text.Encoding.CodePages.dll
 C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\bin\Debug\net7.0\runtimes\win\lib\net6.0\System.Windows.Extensions.dll
-C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\obj\Debug\net7.0\GestorInventario.csproj.AssemblyReference.cache
-C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\obj\Debug\net7.0\GestorInventario.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\obj\Debug\net7.0\GestorInventario.AssemblyInfoInputs.cache
-C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\obj\Debug\net7.0\GestorInventario.AssemblyInfo.cs
-C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\obj\Debug\net7.0\GestorInventario.csproj.CoreCompileInputs.cache
-C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\obj\Debug\net7.0\GestorInventario.MvcApplicationPartsAssemblyInfo.cache
-C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\obj\Debug\net7.0\GestorInventario.RazorAssemblyInfo.cache
-C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\obj\Debug\net7.0\GestorInventario.RazorAssemblyInfo.cs
 C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\obj\Debug\net7.0\staticwebassets.build.json
 C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\obj\Debug\net7.0\staticwebassets.development.json
 C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\obj\Debug\net7.0\staticwebassets\msbuild.GestorInventario.Microsoft.AspNetCore.StaticWebAssets.props

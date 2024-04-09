@@ -61,6 +61,7 @@ builder.Services.AddTransient<IConfirmEmailService, ConfirmEmailService>();
 builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.AddTransient<TokenService>();
 builder.Services.AddTransient<IAdminRepository,AdminRepository>();
+builder.Services.AddTransient<IAdminCrudOperation, CrudOperation>();
 //------------------------------------------------------
 builder.Services.AddHttpContextAccessor();
 //builder.Services.AddAuthentication(options =>
