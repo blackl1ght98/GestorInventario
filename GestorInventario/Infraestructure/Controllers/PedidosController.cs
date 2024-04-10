@@ -75,6 +75,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
             return paginas;
         }
+     
         [Authorize]
         public async Task<IActionResult> Create()
         {
@@ -83,87 +84,93 @@ namespace GestorInventario.Infraestructure.Controllers
                 NumeroPedido = GenerarNumeroPedido()
             };
             ViewData["Productos"] = new SelectList(_context.Productos, "Id", "NombreProducto");
-            //Convierte el desplegable en una lista
             ViewBag.Productos = _context.Productos.ToList();
-
             ViewData["Clientes"] = new SelectList(_context.Usuarios, "Id", "NombreCompleto");
 
             return View(model);
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(PedidosViewModel model)
         {
+            // Primero, se verifica si el modelo es válido.
             if (ModelState.IsValid)
             {
-                var temporal = GenerarNumeroPedido();
-                //Crea el pedido
+                // Se crea un nuevo pedido con los datos proporcionados en el modelo.
                 var pedido = new Pedido()
                 {
-                    NumeroPedido = model.NumeroPedido = temporal,
+                    NumeroPedido = GenerarNumeroPedido(),
                     FechaPedido = model.FechaPedido,
                     EstadoPedido = model.EstadoPedido,
                     IdUsuario = model.IdUsuario,
                 };
 
+                // Se agrega el nuevo pedido al contexto de la base de datos.
                 _context.Add(pedido);
+
+                // Se guarda el pedido en la base de datos de forma asíncrona.
                 await _context.SaveChangesAsync();
 
-                // Crea los detalles del pedido
-                //Este bucle for primero inicializa i en 0, despues cuenta el numero total de id de productos que hay y como
-                //tu agregas uno ese numero de productos se incrementa, una vez incrementado el numero de productos hace lo siguiente:
-                /*
-                 * Imagina que tienes una lista de 3 productos, entonces model.IdsProducto.Count sería 3. 
-                 * La variable i en el bucle for se inicializa a 0. Aquí está cómo se ejecutaría el bucle:
-
-                Primera iteración: i = 0, ya que 0 < 3 es verdadero, el bucle se ejecuta para el primer producto.
-                Segunda iteración: i se incrementa a 1, ya que 1 < 3 es verdadero, el bucle se ejecuta para el segundo producto.
-                Tercera iteración: i se incrementa a 2, ya que 2 < 3 es verdadero, el bucle se ejecuta para el tercer producto.
-                Cuarta iteración: i se incrementa a 3, pero ya que 3 < 3 es falso, el bucle se detiene.
-                como el usuario ha seleccionado 3 productos el bucle se itera 3 veces por cada producto seleccionado
+                // Se recorre la lista de productos seleccionados.
+                /*¿Si tu seleccionas 3 productos porque se ponen 4 y no afecta a la ejecucion del bucle?
+                 El bucle for en tu acción Create recorre todos los productos porque está basado en 
+                model.IdsProducto.Count, que es el número total de productos. Sin embargo, dentro del 
+                bucle, solo se crea un DetallePedido para los productos que han sido seleccionados, 
+                gracias a la condición if (model.ProductosSeleccionados[i]). Por lo tanto, aunque el 
+                bucle recorre todos los productos, solo se procesan los productos seleccionados.
                  */
-                // Aquí se usa el bucle for porque se manejan dos listas. La primera, model.ProductosSeleccionados,
-                // almacena qué producto ha sido seleccionado y para ello se necesita la posición[i] de donde está.
-                // La segunda lista, model.IdsProducto, almacena los ids ya existentes de los productos
-                // y al agregar un producto al pedido, se agrega al final.
-                // Por ello, es necesario saber la posición.
-
+                /*En este bucle que tenemos el bucle se recorre tantas veces como productos existan en la
+                 * tabla esto es por i < model.IdsProducto.Count; porque esto cuenta el total de productos 
+                 * que hay. 
+                 * Una vez que el bucle sabe cuantos productos hay de esos productos mira cual a sido seleccionado
+                 * y cual no ha sido seleccionado con esto model.ProductosSeleccionados[i] la [i] es para indicar
+                 * la posicion de donde esta el producto seleccionado.
+                 Una vez se ahigan tomado todos los productos seleccionados ProductoId = model.IdsProducto[i] 
+                se crea un detallePedido para ese pedido
+                que este detalle pedido contiene los productos para ese pedido junto a las cantidades de
+                cada producto Cantidad = model.Cantidades[i] y la [i] es para saber la posicion de cada producto y
+                que cantidad le pertenece a cada prducto.
+                 */
                 for (var i = 0; i < model.IdsProducto.Count; i++)
                 {
-                    /*Este bucle for primero avarigua cuantos productos hay en la tabla Productos y 
-                     averigua en que posicion se encuentra cada producto.
-                    */
-                    if (model.ProductosSeleccionados[i]) 
+                    // Si el producto en la posición i fue seleccionado...
+                    if (model.ProductosSeleccionados[i])
                     {
-                        /*Una vez que el bucle sabe cuantos productos hay y donde estan pues para averiguar
-                         * que producto a seleccionado el usuario para agregarlo al pedido se le pasa la posicion
-                         * del producto con esto se consigue saber que producto o productos han sido seleccionados
-                         */
-                        //Agrega el producto seleccionado a DetallePedido
+                        // Se crea un nuevo detalle de pedido para el producto seleccionado.
                         var detallePedido = new DetallePedido()
                         {
-                            PedidoId = pedido.Id,
-                            ProductoId = model.IdsProducto[i],
-                            Cantidad = model.Cantidad, 
+                            PedidoId = pedido.Id, // Se asocia el detalle del pedido con el pedido recién creado.
+                            ProductoId = model.IdsProducto[i], // Se establece el ID del producto.
+                            Cantidad = model.Cantidades[i], // Se establece la cantidad del producto.
                         };
 
+                        // Se agrega el detalle del pedido al contexto de la base de datos.
                         _context.Add(detallePedido);
                     }
                 }
-                //Crea un despleagable de los productos que hay en base de datos
-                ViewData["Productos"] = new SelectList(_context.Productos, "Id", "NombreProducto");
-                //Ese desplegable los transforma en una lista
-                ViewBag.Productos = _context.Productos.ToList();
-                //Crea un desplegable de los clientes que haya en base de datos para asignarle un pedido
-                ViewData["Clientes"] = new SelectList(_context.Usuarios, "Id", "NombreCompleto");
+
+                // Se guardan los detalles del pedido en la base de datos de forma asíncrona.
                 await _context.SaveChangesAsync();
 
+                // Se establecen las listas de productos y clientes para la vista.
+                ViewData["Productos"] = new SelectList(_context.Productos, "Id", "NombreProducto");
+                ViewBag.Productos = _context.Productos.ToList();
+                ViewData["Clientes"] = new SelectList(_context.Usuarios, "Id", "NombreCompleto");
+
+                // Se muestra un mensaje de éxito.
                 TempData["SuccessMessage"] = "Los datos se han creado con éxito.";
 
+                // Se redirige al usuario a la vista de índice.
                 return RedirectToAction(nameof(Index));
             }
+
+            // Si el modelo no es válido, se devuelve la vista con el modelo original.
             return View(model);
         }
+
+
+
 
         private string GenerarNumeroPedido()
         {
@@ -285,5 +292,23 @@ namespace GestorInventario.Infraestructure.Controllers
 
             return _context.Pedidos.Any(e => e.Id == Id);
         }
+        //Mostrar en vista a parte los detalles de cada pedido
+        public async Task<IActionResult> DetallesPedido(int id)
+        {
+            var pedido = await _context.Pedidos
+                .Include(p => p.DetallePedidos)
+                    .ThenInclude(dp => dp.Producto)
+                .Include(p => p.IdUsuarioNavigation)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (pedido == null)
+            {
+                return NotFound();
+            }
+
+            return View(pedido);
+        }
+
+
     }
 }

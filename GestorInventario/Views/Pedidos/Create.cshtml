@@ -6,46 +6,34 @@
     <div class="col-md-4">
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <!--Los label estos con el BrandId  van a  tomar el display que hemos puesto en beerViewModel-->
             <div class="form-group">
-
                 <label asp-for="NumeroPedido" class="control-label"></label>
                 <input asp-for="NumeroPedido" class="form-control" />
             </div>
-            
             <div class="form-group">
                 <label asp-for="FechaPedido" class="control-label"></label>
                 <input asp-for="FechaPedido" class="form-control" type="date" />
             </div>
-
             <div class="form-group">
-
                 <label asp-for="EstadoPedido" class="control-label"></label>
                 <input asp-for="EstadoPedido" class="form-control" />
             </div>
-            <!--Cuando creas tu primer producto, ViewBag.Productos.Count sería 1 porque solo hay un producto en la lista. 
-                Entonces, el bucle for se ejecutará una vez porque i empieza en 0 y 0 es menor que 1.
-            En esa única iteración del bucle, se creará un checkbox y un campo oculto para ese primer producto. 
-            ProductosSeleccionados[0] se referirá al estado del checkbox (si está seleccionado o no), 
-            ViewBag.Productos[0].NombreProducto mostrará el nombre del primer producto, y IdsProducto[0] 
-            almacenará el ID del primer producto.-->
+          
             <div class="form-group">
                 <label asp-for="IdsProducto" class="control-label"></label>
+                <br/>
                 @for (var i = 0; i < ViewBag.Productos.Count; i++)
                 {
-                    <input type="checkbox" asp-for="ProductosSeleccionados[i]" /> @ViewBag.Productos[i].NombreProducto
+                    <input type="checkbox" asp-for="ProductosSeleccionados[i]" class="mt-2" /> @ViewBag.Productos[i].NombreProducto
                     <input type="hidden" asp-for="IdsProducto[i]" value="@ViewBag.Productos[i].Id" />
-                    <br />
-                }
+
+                    <input type="number" asp-for="Cantidades[i]" class="mt-2"  />
+                    <br/>
+                                   
+                    }
             </div>
-
-
-
-
             <div class="form-group">
-
                 <label asp-for="IdUsuario" class="control-label"></label>
-
                 <select asp-for="IdUsuario" class="form-select" asp-items="ViewBag.Clientes"></select>
             </div>
             <div class="form-group">
@@ -53,11 +41,44 @@
             </div>
         </form>
     </div>
-
 </div>
 
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        $(document).ready(function () {
+            // Cuando se cambia el estado de una casilla de verificación...
+            $('input[type="checkbox"]').change(function () {
+                // Encuentra el campo de cantidad correspondiente.
+                var cantidad = $(this).nextAll('input[type="number"]:first');
+
+                // Si la casilla de verificación está marcada, deja la cantidad tal como está.
+                // Si no está marcada, establece la cantidad a 0.
+                if (!$(this).prop('checked')) {
+                    cantidad.val(0);
+                }
+            });
+
+            // Cuando se envía el formulario...
+            $('form').submit(function (event) {
+                // Evita que el formulario se envíe inmediatamente.
+                event.preventDefault();
+
+                // Para cada casilla de verificación...
+                $('input[type="checkbox"]').each(function () {
+                    // Si la casilla de verificación no está marcada...
+                    if (!$(this).prop('checked')) {
+                        // Encuentra el campo de cantidad correspondiente y establece su valor a 0.
+                        var cantidad = $(this).nextAll('input[type="number"]:first');
+                        cantidad.val(0);
+                    }
+                });
+
+                // Envía el formulario manualmente.
+                this.submit();
+            });
+        });
+    </script>
 }

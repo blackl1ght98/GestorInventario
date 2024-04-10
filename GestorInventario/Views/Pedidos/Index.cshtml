@@ -1,11 +1,7 @@
 ﻿@using GestorInventario.PaginacionLogica
 @model List<Pedido>
-<!-- Tabla para mostrar los pedidos existentes -->
 <h1>Pedidos</h1>
 @{
-    //Hace referencia al ViewData creado en el controlador como ViewData["Paginas"] se ha llamado
-    //Paginas el ViewData el ViewBag.Paginas espera algo que se llame paginas porque es a por lo que
-    //va a ir cuando se ejecute y decimos que este ViewBag.Paginas es una lista de PaginasModel
     var paginas = ViewBag.Paginas as List<PaginasModel>;
 }
 <p>
@@ -15,62 +11,40 @@
 <table class="table table-striped table-bordered w-100">
     <thead>
         <tr>
-            <th class="col-2">Nombre del Producto</th>
-            <th class="col-2">Cantidad</th>
             <th class="col-2">Numero del Pedido</th>
             <th class="col-2">Fecha del Pedido</th>
             <th class="col-2">Estado del Pedido</th>
             <th class="col-2">Nombre del Cliente</th>
-            <th class="col-2">Precio del producto</th>
-            <th class ="col-2"> Precio sin IVA</th>
-            <th class="col-2">Precio con IVA (21%)</th>
+            <th class="col-2">Ver detalles</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var pedido in Model)
         {
-            foreach (var detalle in pedido.DetallePedidos)
-            {
-                <tr>
-                    <td>@detalle.Producto?.NombreProducto</td>
-                    <td>@detalle.Cantidad</td>
-                    <td>@pedido.NumeroPedido</td>
-                    <td>@pedido.FechaPedido</td>
-                    <td>@pedido.EstadoPedido</td>
-                    <td>@pedido.IdUsuarioNavigation?.NombreCompleto</td>
-                    <td>@detalle.Producto?.Precio</td>
-                    <td>@(detalle.Cantidad * detalle.Producto?.Precio)</td>
-                    <td>@(detalle.Cantidad * (detalle.Producto?.Precio ?? 0) * 1.21)</td>
-                    <td>
-                        <a asp-action="Delete" asp-route-id="@pedido.Id" class="btn btn-danger">Eliminar</a>
-                    </td>
-                    <td>
-                        <a asp-action="Edit" asp-route-id="@pedido.Id" class="btn btn-warning">Actualizar</a>
-                    </td>
-                </tr>
-            }
+            <tr>
+                <td>@pedido.NumeroPedido</td>
+                <td>@pedido.FechaPedido</td>
+                <td>@pedido.EstadoPedido</td>
+                <td>@pedido.IdUsuarioNavigation?.NombreCompleto</td>
+                <td>
+                    <a asp-action="DetallesPedido" asp-route-id="@pedido.Id" class="btn btn-info">Ver detalles</a>
+                </td>
+                <td>
+                    <a asp-action="Delete" asp-route-id="@pedido.Id" class="btn btn-danger">Eliminar</a>
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@pedido.Id" class="btn btn-warning">Actualizar</a>
+                </td>
+            </tr>
         }
     </tbody>
 </table>
+
 <nav aria-label="Page navigation example">
     <ul class="pagination justify-content-center">
-        <!--Como paginas es una lista se puede iterar pues se itera obteniendo todas las paginas-->
         @foreach (var pagina in paginas)
         {
-            <!--
-                Creamos un elemento de lista (<li>) para cada página
-                Si la página está habilitada, no añadimos ninguna clase adicional
-                Si la página no está habilitada, añadimos la clase "disabled"
-                Si la página está activa, añadimos la clase "active"
-
-            -->
             <li class="page-item @(pagina.Habilitada ? null :"disabled") @(pagina.Activa ? "active":null)">
-                <!--
-
-                    Creamos un enlace (<a>) para cada página
-                     El enlace lleva a la acción "Index" del controlador actual con el número de la página como parámetro
-                     El texto del enlace es el texto de la página
-                -->
                 <a class="page-link" href="@Url.Action("Index", new { Pagina = pagina.Pagina })">@pagina.Texto</a>
             </li>
         }
