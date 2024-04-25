@@ -6,6 +6,7 @@ using GestorInventario.Interfaces;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.Interfaces.Infrastructure;
+using GestorInventario.MetodosExtension;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -53,6 +54,8 @@ builder.Services.AddCors(options =>
 builder.Logging.AddLog4Net();
 
 //Servicios
+builder.Services.AddTransient<GenerarPaginas>();
+builder.Services.AddTransient<PaginacionMetodo>();
 builder.Services.AddTransient<IGestorArchivos, GestorArchivosService>();
 builder.Services.AddTransient<INewStringGuid, NewStringGuid>();
 builder.Services.AddTransient<HashService>();

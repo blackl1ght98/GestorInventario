@@ -1,20 +1,27 @@
-﻿using GestorInventario.Domain.Models;
+﻿using GestorInventario.Application.Services;
+using GestorInventario.Domain.Models;
 using GestorInventario.Domain.Models.ViewModels;
 using GestorInventario.PaginacionLogica;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace GestorInventario.Infraestructure.Controllers
 {
+    [Authorize]
     public class PedidosController : Controller
     {
         private readonly GestorInventarioContext _context;
+        private readonly GenerarPaginas _generarPaginas;
+        private readonly ILogger<PedidosController> _logger;
 
-        public PedidosController(GestorInventarioContext context)
+        public PedidosController(GestorInventarioContext context, GenerarPaginas generarPaginas, ILogger<PedidosController> logger)
         {
             _context = context;
+            _generarPaginas = generarPaginas;
+            _logger = logger;
         }
 
         //public async Task<IActionResult> Index()
@@ -31,142 +38,175 @@ namespace GestorInventario.Infraestructure.Controllers
 
         //    return View(pedidos);
         //}
+        //public async Task<IActionResult> Index([FromQuery] Paginacion paginacion)
+        //{
+        //    var pedidos = _context.Pedidos
+        //        .Include(p => p.DetallePedidos)
+        //            .ThenInclude(dp => dp.Producto)
+        //        .Include(p => p.IdUsuarioNavigation);
+
+
+        //    await HttpContext.InsertarParametrosPaginacionRespuesta(pedidos, paginacion.CantidadAMostrar);
+        //    var pedidosPaginados = await  pedidos.Paginar(paginacion).ToListAsync();
+        //    var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
+        //    ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
+
+        //    return View(pedidosPaginados);
+        //}
         public async Task<IActionResult> Index([FromQuery] Paginacion paginacion)
         {
-            var pedidos = _context.Pedidos
-                .Include(p => p.DetallePedidos)
-                    .ThenInclude(dp => dp.Producto)
-                .Include(p => p.IdUsuarioNavigation);
-
-
-            await HttpContext.InsertarParametrosPaginacionRespuesta(pedidos, paginacion.CantidadAMostrar);
-            var pedidosPaginados = await  pedidos.Paginar(paginacion).ToListAsync();
-            var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
-            ViewData["Paginas"] = GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
-
-            return View(pedidosPaginados);
-        }
-        private List<PaginasModel> GenerarListaPaginas(int totalPaginas, int paginaActual)
-        {
-
-            //A la variable paginas le asigna una lista de PaginasModel
-            var paginas = new List<PaginasModel>();
-
-
-            var paginaAnterior = (paginaActual > 1) ? paginaActual - 1 : 1;
-
-
-            paginas.Add(new PaginasModel(paginaAnterior, paginaActual != 1, "Anterior"));
-
-
-            for (int i = 1; i <= totalPaginas; i++)
+            try
             {
-
-                paginas.Add(new PaginasModel(i) { Activa = paginaActual == i });
+                var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int usuarioId;
+                if (int.TryParse(existeUsuario, out usuarioId))
+                {
+                    IQueryable<Pedido> pedidos;
+                    if (User.IsInRole("administrador"))
+                    {
+                        pedidos = _context.Pedidos.Include(dp => dp.DetallePedidos)
+                            .ThenInclude(p => p.Producto)
+                            .Include(u => u.IdUsuarioNavigation);
+                    }
+                    else
+                    {
+                        pedidos = _context.Pedidos.Where(p => p.IdUsuario == usuarioId)
+                            .Include(dp => dp.DetallePedidos).ThenInclude(p => p.Producto)
+                            .Include(u => u.IdUsuarioNavigation);
+                    }
+                    await HttpContext.InsertarParametrosPaginacionRespuesta(pedidos, paginacion.CantidadAMostrar);
+                    var pedidosPaginados = await pedidos.Paginar(paginacion).ToListAsync();
+                    var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
+                    ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
+                    return View(pedidosPaginados);
+                }
+                return Unauthorized("No tienes permiso para ver el contenido o no te has logueado");
             }
-
-
-
-            var paginaSiguiente = (paginaActual < totalPaginas) ? paginaActual + 1 : totalPaginas;
-
-
-            paginas.Add(new PaginasModel(paginaSiguiente, paginaActual != totalPaginas, "Siguiente"));
-
-
-            return paginas;
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener los pedidos");
+                return BadRequest("Error al obtener los pedidos intentelo de nuevo mas tarde o si el problema persiste contacte con el administrador");
+            }
+            
+            
         }
-     
-        [Authorize]
+       
         public async Task<IActionResult> Create()
         {
-            var model = new PedidosViewModel
+            try
             {
-                NumeroPedido = GenerarNumeroPedido()
-            };
-            ViewData["Productos"] = new SelectList(_context.Productos, "Id", "NombreProducto");
-            ViewBag.Productos = _context.Productos.ToList();
-            ViewData["Clientes"] = new SelectList(_context.Usuarios, "Id", "NombreCompleto");
+                var model = new PedidosViewModel
+                {
+                    NumeroPedido = GenerarNumeroPedido()
+                };
+                //Obtenemos los datos para generar los desplegables
+                ViewData["Productos"] = new SelectList(_context.Productos, "Id", "NombreProducto");
+                ViewBag.Productos = _context.Productos.ToList();
+                ViewData["Clientes"] = new SelectList(_context.Usuarios, "Id", "NombreCompleto");
 
-            return View(model);
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al mostrar la vista de creacion del pedido");
+                return BadRequest("Error al mostrar la vista de creacion del pedido intentelo de nuevo mas tarde o contacte con el administrador");
+            }
+            
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(PedidosViewModel model)
         {
-            // Primero, se verifica si el modelo es válido.
-            if (ModelState.IsValid)
+            try
             {
-                // Se crea un nuevo pedido con los datos proporcionados en el modelo.
-                var pedido = new Pedido()
+                // Primero, se verifica si el modelo es válido.
+                if (ModelState.IsValid)
                 {
-                    NumeroPedido = GenerarNumeroPedido(),
-                    FechaPedido = model.FechaPedido,
-                    EstadoPedido = model.EstadoPedido,
-                    IdUsuario = model.IdUsuario,
-                };
-
-                // Se agrega el nuevo pedido al contexto de la base de datos.
-                _context.Add(pedido);
-
-                // Se guarda el pedido en la base de datos de forma asíncrona.
-                await _context.SaveChangesAsync();
-
-                // Se recorre la lista de productos seleccionados.
-                /*¿Si tu seleccionas 3 productos porque se ponen 4 y no afecta a la ejecucion del bucle?
-                 El bucle for en tu acción Create recorre todos los productos porque está basado en 
-                model.IdsProducto.Count, que es el número total de productos. Sin embargo, dentro del 
-                bucle, solo se crea un DetallePedido para los productos que han sido seleccionados, 
-                gracias a la condición if (model.ProductosSeleccionados[i]). Por lo tanto, aunque el 
-                bucle recorre todos los productos, solo se procesan los productos seleccionados.
-                 */
-                /*En este bucle que tenemos el bucle se recorre tantas veces como productos existan en la
-                 * tabla esto es por i < model.IdsProducto.Count; porque esto cuenta el total de productos 
-                 * que hay. 
-                 * Una vez que el bucle sabe cuantos productos hay de esos productos mira cual a sido seleccionado
-                 * y cual no ha sido seleccionado con esto model.ProductosSeleccionados[i] la [i] es para indicar
-                 * la posicion de donde esta el producto seleccionado.
-                 Una vez se ahigan tomado todos los productos seleccionados ProductoId = model.IdsProducto[i] 
-                se crea un detallePedido para ese pedido
-                que este detalle pedido contiene los productos para ese pedido junto a las cantidades de
-                cada producto Cantidad = model.Cantidades[i] y la [i] es para saber la posicion de cada producto y
-                que cantidad le pertenece a cada prducto.
-                 */
-                for (var i = 0; i < model.IdsProducto.Count; i++)
-                {
-                    // Si el producto en la posición i fue seleccionado...
-                    if (model.ProductosSeleccionados[i])
+                    // Se crea un nuevo pedido con los datos proporcionados en el modelo.
+                    var pedido = new Pedido()
                     {
-                        // Se crea un nuevo detalle de pedido para el producto seleccionado.
-                        var detallePedido = new DetallePedido()
-                        {
-                            PedidoId = pedido.Id, // Se asocia el detalle del pedido con el pedido recién creado.
-                            ProductoId = model.IdsProducto[i], // Se establece el ID del producto.
-                            Cantidad = model.Cantidades[i], // Se establece la cantidad del producto.
-                        };
+                        NumeroPedido = GenerarNumeroPedido(),
+                        FechaPedido = model.FechaPedido,
+                        EstadoPedido = model.EstadoPedido,
+                        IdUsuario = model.IdUsuario,
+                    };
 
-                        // Se agrega el detalle del pedido al contexto de la base de datos.
-                        _context.Add(detallePedido);
+                    // Se agrega el nuevo pedido al contexto de la base de datos.
+                    _context.Add(pedido);
+
+                    // Se guarda el pedido en la base de datos de forma asíncrona.
+                    await _context.SaveChangesAsync();
+
+                    /*El bucle for funciona de la siguiene manera:
+                     * primero inicializa una variable i en 0
+                     * depues compara si la variable i es menor que la lista de ids de productos que hay en base
+                     * de datos si es asi el bucle se recorre tantas veces hasta que 0 se iguale a la cantidad de productos
+                     * que hay en base de datos por ejemplo en base de datos tenemos 8 productos pues 
+                     * i < model.IdsProducto.Count; se ira iterando hasta que i llegue a 8.
+                     * Dentro de este bule tenemos una condicion pero ha esta condicion se le pasa la posicion del producto
+                     * que el usuario ha seleccionado a la condicion model.ProductosSeleccionados[i] llegara solo los
+                     * productos que el usuario halla seleccionado por ejemplo de esos 8 productos el usuario ha seleccionado 4
+                     * pues ha la codicion llegan 4 y de esos 4 se creara un detalle pedido para cada producto en otras palabras
+                     * sus caracteristicas precio, cantidad... como hemos dicho no lo llega los 4 productos esos 4 productos vienen con
+                     * la posicion de cada uno en la lista la posicion comienza en 0 asi que si son 4 productos la posicio se ve 
+                     * algo asi 0,1,2,3. A productos seleccionados llega una lista de booleanos junto a la posicion se puede ver algo asi
+                     * [true,false,true,false,true,false,true,false] aqui llegarian todos los productos pero solo tiene en cuenta los que son
+                     * true 
+                     */
+                    for (var i = 0; i < model.IdsProducto.Count; i++)
+                    {
+                        // Si el producto en la posición i fue seleccionado...
+                        if (model.ProductosSeleccionados[i])
+                        {
+                            // Se crea un nuevo detalle de pedido para el producto seleccionado.
+                            var detallePedido = new DetallePedido()
+                            {
+                                PedidoId = pedido.Id, // Se asocia el detalle del pedido con el pedido recién creado.
+                                ProductoId = model.IdsProducto[i], // Se establece el ID del producto.
+                                Cantidad = model.Cantidades[i], // Se establece la cantidad del producto.
+                            };
+
+                            // Se agrega el detalle del pedido al contexto de la base de datos.
+                            _context.Add(detallePedido);
+                        }
                     }
+
+                    // Se guardan los detalles del pedido en la base de datos de forma asíncrona.
+                    await _context.SaveChangesAsync();
+
+                    // Se establecen las listas de productos y clientes para la vista.
+                    ViewData["Productos"] = new SelectList(_context.Productos, "Id", "NombreProducto");
+                    ViewBag.Productos = _context.Productos.ToList();
+                    ViewData["Clientes"] = new SelectList(_context.Usuarios, "Id", "NombreCompleto");
+
+                    // Se muestra un mensaje de éxito.
+                    TempData["SuccessMessage"] = "Los datos se han creado con éxito.";
+
+                    // Se redirige al usuario a la vista de índice.
+                    /*El operador nameof en C# se utiliza para obtener el nombre de una variable, tipo o 
+                     * miembro como una cadena constante en tiempo de compilación. En tu caso, nameof(Index)
+                     * devuelve la cadena "Index".
+
+                     La ventaja de usar nameof en lugar de una cadena literal es que ayuda a mantener tu 
+                    código seguro contra errores tipográficos y refactorizaciones. Si cambias el nombre del 
+                    método Index en tu controlador, el compilador te advertirá que nameof(Index) ya no es 
+                    válido. Sin embargo, si hubieras usado una cadena literal como "Index", el compilador 
+                    no habría detectado el problema y podrías haber terminado con un error en tiempo de 
+                    ejecución.
+                     */
+                    return RedirectToAction(nameof(Index));
                 }
 
-                // Se guardan los detalles del pedido en la base de datos de forma asíncrona.
-                await _context.SaveChangesAsync();
-
-                // Se establecen las listas de productos y clientes para la vista.
-                ViewData["Productos"] = new SelectList(_context.Productos, "Id", "NombreProducto");
-                ViewBag.Productos = _context.Productos.ToList();
-                ViewData["Clientes"] = new SelectList(_context.Usuarios, "Id", "NombreCompleto");
-
-                // Se muestra un mensaje de éxito.
-                TempData["SuccessMessage"] = "Los datos se han creado con éxito.";
-
-                // Se redirige al usuario a la vista de índice.
-                return RedirectToAction(nameof(Index));
+                // Si el modelo no es válido, se devuelve la vista con el modelo original.
+                return View(model);
             }
-
-            // Si el modelo no es válido, se devuelve la vista con el modelo original.
-            return View(model);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al crear el pedido");
+                return BadRequest("Error al crear el pedido intentelo de nuevo mas tarde o contacte con el administrador si el problema persiste");
+            }
+           
         }
 
 
@@ -182,21 +222,30 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         public async Task<IActionResult> Delete(int id)
         {
-            //Consulta a base de datos
-            var pedido = await _context.Pedidos
-                .Include(p => p.DetallePedidos)
-                    .ThenInclude(dp => dp.Producto)
-                .Include(p => p.IdUsuarioNavigation)
-                .FirstOrDefaultAsync(m => m.Id == id);
-
-            //Si no hay pedidos muestra el error 404
-            if (pedido == null)
+            try
             {
-                return NotFound("Pedido no encontrado");
-            }
+                //Consulta a base de datos
+                var pedido = await _context.Pedidos
+                    .Include(p => p.DetallePedidos)
+                        .ThenInclude(dp => dp.Producto)
+                    .Include(p => p.IdUsuarioNavigation)
+                    .FirstOrDefaultAsync(m => m.Id == id);
 
-            //Llegados ha este punto hay pedidos por lo tanto se muestran los pedidos
-            return View(pedido);
+                //Si no hay pedidos muestra el error 404
+                if (pedido == null)
+                {
+                    return NotFound("Pedido no encontrado");
+                }
+
+                //Llegados ha este punto hay pedidos por lo tanto se muestran los pedidos
+                return View(pedido);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al mostrar la vista de eliminacion del pedido");
+                return BadRequest("Error al mostrar la vista de eliminacion del pedido, intentelo de nuevo mas tarde o contacte con el administrador ");
+            }
+           
         }
 
 
@@ -204,109 +253,140 @@ namespace GestorInventario.Infraestructure.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int Id)
         {
-            var pedido = await _context.Pedidos.Include(p => p.DetallePedidos).FirstOrDefaultAsync(m => m.Id == Id);
-            if (pedido == null)
+            try
             {
-                return BadRequest();
+                var pedido = await _context.Pedidos.Include(p => p.DetallePedidos).FirstOrDefaultAsync(m => m.Id == Id);
+                if (pedido == null)
+                {
+                    return BadRequest();
+                }
+
+                // Elimina los detalles del pedido
+                _context.DetallePedidos.RemoveRange(pedido.DetallePedidos);
+
+                // Elimina el pedido
+                _context.Pedidos.Remove(pedido);
+
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "Los datos se han eliminado con éxito.";
+                return RedirectToAction(nameof(Index));
             }
-
-            // Elimina los detalles del pedido
-            _context.DetallePedidos.RemoveRange(pedido.DetallePedidos);
-
-            // Elimina el pedido
-            _context.Pedidos.Remove(pedido);
-
-            await _context.SaveChangesAsync();
-
-            TempData["SuccessMessage"] = "Los datos se han eliminado con éxito.";
-            return RedirectToAction(nameof(Index));
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al eliminar el pedido");
+                return BadRequest("Error al eliminar el pedido, intentelo de nuevo mas tarde o contacte con el administrador");
+            }
+           
         }
 
         public async Task<ActionResult> Edit(int id)
         {
-            Pedido pedido = await _context.Pedidos
-                .Include(p => p.DetallePedidos)
-                    .ThenInclude(dp => dp.Producto)
-                .Include(p => p.IdUsuarioNavigation)
+            try
+            {
+                var pedido = await _context.Pedidos
                 .FirstOrDefaultAsync(x => x.Id == id);
 
-            PedidosViewModel pedidosViewModel = new PedidosViewModel
+                EditPedidoViewModel pedidosViewModel = new EditPedidoViewModel
+                {
+                    fechaPedido = pedido.FechaPedido,
+                    estadoPedido = pedido.EstadoPedido,
+
+                };
+                return View(pedidosViewModel);
+            }
+            catch (Exception ex)
             {
-                Id = pedido.Id,
-                NumeroPedido = pedido.NumeroPedido,
-               
-                FechaPedido = pedido.FechaPedido,
-                EstadoPedido = pedido.EstadoPedido,
-                IdUsuario = pedido.IdUsuario
-            };
-
-            ViewData["Productos"] = new SelectList(_context.Productos, "Id", "NombreProducto");
-            ViewBag.Productos = _context.Productos.ToList();
-
-            ViewData["Clientes"] = new SelectList(_context.Usuarios, "Id", "NombreCompleto");
-
-            return View(pedidosViewModel);
+                _logger.LogError(ex, "Error al mostrar la vista de  editar el pedido");
+                return BadRequest("Error al mostrar la vista de edicion del pedido intentelo de nuevo mas tarde o contacte con el administrador");
+            }
+            
         }
 
         [HttpPost]
-        public async Task<ActionResult> Edit(Pedido pedido)
+        public async Task<ActionResult> Edit(EditPedidoViewModel model)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
-                    // Actualiza el pedido
-                    _context.Entry(pedido).State = EntityState.Modified;
+                    var pedido = await _context.Pedidos
+                    .FirstOrDefaultAsync(x => x.Id == model.id);
+                    pedido.FechaPedido=model.fechaPedido;
+                    pedido.EstadoPedido=model.estadoPedido;
+                    _context.Pedidos.Update(pedido);
 
-                    // Actualiza los detalles del pedido
-                    foreach (var detallePedido in pedido.DetallePedidos)
-                    {
-                        _context.Entry(detallePedido).State = EntityState.Modified;
-                    }
 
                     await _context.SaveChangesAsync();
                     TempData["SuccessMessage"] = "Los datos se han modificado con éxito.";
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (DbUpdateConcurrencyException ex)
                 {
-                    if (!PedidoExist(pedido.Id))
+                    _logger.LogError(ex, "Error de concurrencia");
+                    if (!PedidoExist(model.id))
                     {
                         return NotFound();
                     }
                     else
                     {
-                        _context.Entry(pedido).Reload();
-
+                       
+                        _context.Entry(model).Reload();
+                        var pedido = await _context.Pedidos
+                  .FirstOrDefaultAsync(x => x.Id == model.id);
                         // Intenta guardar de nuevo
-                        _context.Entry(pedido).State = EntityState.Modified;
+                        model.fechaPedido = model.fechaPedido;
+                        model.estadoPedido = model.estadoPedido;
+                        _context.Pedidos.Update(pedido);
                         await _context.SaveChangesAsync();
+                        
                     }
+                }catch(Exception ex)
+                {
+                    _logger.LogError(ex, "Error al editar el pedido");
+                    return BadRequest("Error al editar el pedido, intentelo de nuevo mas tarde o contacte con el administrador");
                 }
                 return RedirectToAction("Index");
             }
-            return View(pedido);
+            return View(model);
         }
 
         private bool PedidoExist(int Id)
         {
-
-            return _context.Pedidos.Any(e => e.Id == Id);
+            try
+            {
+                return _context.Pedidos.Any(e => e.Id == Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener el pedido");
+                return false;
+            }
+            
         }
         //Mostrar en vista a parte los detalles de cada pedido
         public async Task<IActionResult> DetallesPedido(int id)
         {
-            var pedido = await _context.Pedidos
-                .Include(p => p.DetallePedidos)
-                    .ThenInclude(dp => dp.Producto)
-                .Include(p => p.IdUsuarioNavigation)
-                .FirstOrDefaultAsync(p => p.Id == id);
-
-            if (pedido == null)
+            try
             {
-                return NotFound();
-            }
+                var pedido = await _context.Pedidos
+               .Include(p => p.DetallePedidos)
+                   .ThenInclude(dp => dp.Producto)
+               .Include(p => p.IdUsuarioNavigation)
+               .FirstOrDefaultAsync(p => p.Id == id);
 
-            return View(pedido);
+                if (pedido == null)
+                {
+                    return NotFound();
+                }
+
+                return View(pedido);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener los detalles del pedido");
+               return BadRequest("Error al obtener los detalles del pedido intentelo de nuevo mas tarde o contacte con el administrador");
+            }
+           
         }
 
 

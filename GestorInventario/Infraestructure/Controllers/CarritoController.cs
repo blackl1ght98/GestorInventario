@@ -1,4 +1,5 @@
-﻿using GestorInventario.Domain.Models;
+﻿using GestorInventario.Application.Services;
+using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.MetodosExtension.Tabla_Items_Carrito;
@@ -14,126 +15,120 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly GestorInventarioContext _context;
         private readonly IAdminRepository _adminRepository;
         private readonly IAdminCrudOperation _admincrudOperation;
-
-        public CarritoController(GestorInventarioContext context, IAdminRepository adminrepository, IAdminCrudOperation admincrudOperation)
+        private readonly GenerarPaginas _generarPaginas;
+        private readonly ILogger<CarritoController> _logger;
+        public CarritoController(GestorInventarioContext context, IAdminRepository adminrepository, IAdminCrudOperation admincrudOperation, GenerarPaginas generarPaginas, ILogger<CarritoController> logger)
         {
             _context = context;
             _adminRepository = adminrepository;
             _admincrudOperation = admincrudOperation;
+            _generarPaginas = generarPaginas;
+            _logger = logger;
         }
 
         public async Task<IActionResult> Index([FromQuery] Paginacion paginacion)
         {
-            var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            int usuarioId;
-            if (int.TryParse(existeUsuario, out usuarioId))
+            try
             {
-                var carrito = await _adminRepository.ObtenerCarrito(usuarioId);
-                //var carrito = await _context.Carritos.FindByUserId(usuarioId);
-               // var carrito = _context.Carritos.FindByUserId(usuarioId);
-                //var carrito = await _context.Carritos.FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
-                if (carrito != null)
+                var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int usuarioId;
+                if (int.TryParse(existeUsuario, out usuarioId))
                 {
-                    var itemsDelCarrito =  _context.ItemsDelCarritos
-                        .Include(i => i.Producto)
+                    var carrito = await _adminRepository.ObtenerCarrito(usuarioId);
+                    //var carrito = await _context.Carritos.FindByUserId(usuarioId);
+                    // var carrito = _context.Carritos.FindByUserId(usuarioId);
+                    //var carrito = await _context.Carritos.FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
+                    if (carrito != null)
+                    {
+                        var itemsDelCarrito = _context.ItemsDelCarritos
+                            .Include(i => i.Producto)
 
-                         .Include(i => i.Producto.IdProveedorNavigation)
+                             .Include(i => i.Producto.IdProveedorNavigation)
 
-                        .Where(i => i.CarritoId == carrito.Id);
-                        
-                    //var itemsDelCarrito = await _adminRepository.ObtenerItemsCarrito(carrito.Id);
-                    await HttpContext.InsertarParametrosPaginacionRespuesta(itemsDelCarrito, paginacion.CantidadAMostrar);
-                    var productoPaginado = itemsDelCarrito.Paginar(paginacion).ToList();
-                    var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
-                    ViewData["Paginas"] = GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
-                    
+                            .Where(i => i.CarritoId == carrito.Id);
 
-                    // Pasa los productos a la vista
-                    return View(productoPaginado);
+                        //var itemsDelCarrito = await _adminRepository.ObtenerItemsCarrito(carrito.Id);
+                        await HttpContext.InsertarParametrosPaginacionRespuesta(itemsDelCarrito, paginacion.CantidadAMostrar);
+                        var productoPaginado = itemsDelCarrito.Paginar(paginacion).ToList();
+                        var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
+                        ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
+
+
+                        // Pasa los productos a la vista
+                        return View(productoPaginado);
+                    }
                 }
+
+                return RedirectToAction("Index", "Home");
             }
-
-            return RedirectToAction("Index", "Home");
-        }
-        private List<PaginasModel> GenerarListaPaginas(int totalPaginas, int paginaActual)
-        {
-            //A la variable paginas le asigna una lista de PaginasModel
-            var paginas = new List<PaginasModel>();
-
-
-            var paginaAnterior = (paginaActual > 1) ? paginaActual - 1 : 1;
-
-
-            paginas.Add(new PaginasModel(paginaAnterior, paginaActual != 1, "Anterior"));
-
-
-            for (int i = 1; i <= totalPaginas; i++)
+            catch (Exception ex)
             {
-
-                paginas.Add(new PaginasModel(i) { Activa = paginaActual == i });
+                _logger.LogError(ex, "Error al obtener los productos del carrito");
+                return BadRequest("Error al mostrar los productos del carrito intentelo de nuevo mas tarde o si el problema persiste contacte con el administrador ");
             }
-
-
-
-            var paginaSiguiente = (paginaActual < totalPaginas) ? paginaActual + 1 : totalPaginas;
-
-
-            paginas.Add(new PaginasModel(paginaSiguiente, paginaActual != totalPaginas, "Siguiente"));
-
-
-            return paginas;
+          
         }
+       
         public async Task<IActionResult> Checkout()
         {
-            var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            int usuarioId;
-            if (int.TryParse(existeUsuario, out usuarioId))
+            try
             {
-                var carrito = await _adminRepository.ObtenerCarrito(usuarioId);
-
-                //var carrito = await _context.Carritos.FindByUserId(usuarioId);
-
-                // var carrito = await _context.Carritos.FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
-                if (carrito != null)
+                var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int usuarioId;
+                if (int.TryParse(existeUsuario, out usuarioId))
                 {
-                    var itemsDelCarrito = await _adminRepository.ConvertirItemsAPedido(carrito.Id);
-                    //var itemsDelCarrito = await _context.ItemsDelCarritos
-                    //    .Where(i => i.CarritoId == carrito.Id)
-                    //    .ToListAsync();
+                    var carrito = await _adminRepository.ObtenerCarrito(usuarioId);
 
-                    var pedido = new Pedido
+                    //var carrito = await _context.Carritos.FindByUserId(usuarioId);
+
+                    // var carrito = await _context.Carritos.FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
+                    if (carrito != null)
                     {
-                        NumeroPedido = GenerarNumeroPedido(),
-                        FechaPedido = DateTime.Now,
-                        EstadoPedido = "Pendiente",
-                        IdUsuario = usuarioId
-                    };
-                    _context.AddEntity(pedido);
-                    //_context.Pedidos.Add(pedido);
-                    //await _context.SaveChangesAsync();
-                    //Este bucle se va a recorrer como items existan en el carrito
-                    foreach (var item in itemsDelCarrito)
-                    {
-                        var detallePedido = new DetallePedido
+                        var itemsDelCarrito = await _adminRepository.ConvertirItemsAPedido(carrito.Id);
+                        //var itemsDelCarrito = await _context.ItemsDelCarritos
+                        //    .Where(i => i.CarritoId == carrito.Id)
+                        //    .ToListAsync();
+
+                        var pedido = new Pedido
                         {
-                            PedidoId = pedido.Id,
-                            ProductoId = item.ProductoId,
-                            Cantidad = item.Cantidad ?? 0
+                            NumeroPedido = GenerarNumeroPedido(),
+                            FechaPedido = DateTime.Now,
+                            EstadoPedido = "Pendiente",
+                            IdUsuario = usuarioId
                         };
-                        _context.AddEntity(detallePedido);
-                        //_context.DetallePedidos.Add(detallePedido);
+                        _context.AddEntity(pedido);
+                        //_context.Pedidos.Add(pedido);
+                        //await _context.SaveChangesAsync();
+                        //Este bucle se va a recorrer como items existan en el carrito
+                        foreach (var item in itemsDelCarrito)
+                        {
+                            var detallePedido = new DetallePedido
+                            {
+                                PedidoId = pedido.Id,
+                                ProductoId = item.ProductoId,
+                                Cantidad = item.Cantidad ?? 0
+                            };
+                            _context.AddEntity(detallePedido);
+                            //_context.DetallePedidos.Add(detallePedido);
+                        }
+                        _context.DeleteRangeEntity(itemsDelCarrito);
+                        // _context.ItemsDelCarritos.RemoveRange(itemsDelCarrito);
+                        //await _admincrudOperation.SaveChangesAsync();
+                        // await _context.SaveChangesAsync();
+
+                        TempData["SuccessMessage"] = "El pedido se ha creado con éxito.";
+                        return RedirectToAction(nameof(Index));
                     }
-                    _context.DeleteRangeEntity(itemsDelCarrito);
-                   // _context.ItemsDelCarritos.RemoveRange(itemsDelCarrito);
-                   //await _admincrudOperation.SaveChangesAsync();
-                   // await _context.SaveChangesAsync();
-
-                    TempData["SuccessMessage"] = "El pedido se ha creado con éxito.";
-                    return RedirectToAction(nameof(Index));
                 }
-            }
 
-            return RedirectToAction("Index", "Home");
+                return RedirectToAction("Index", "Home");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al realizar el checkout");
+                return BadRequest("Error al realizar el checkout intentelo de nuevo mas tarde o si el problema persiste contacte con el administrador");
+            }
+            
         }
 
 

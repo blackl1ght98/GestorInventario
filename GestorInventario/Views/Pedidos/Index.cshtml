@@ -30,10 +30,16 @@
                     <a asp-action="DetallesPedido" asp-route-id="@pedido.Id" class="btn btn-info">Ver detalles</a>
                 </td>
                 <td>
-                    <a asp-action="Delete" asp-route-id="@pedido.Id" class="btn btn-danger">Eliminar</a>
+                    @if (User.IsInRole("administrador"))
+                    {
+                        <a asp-action="Delete" asp-route-id="@pedido.Id" class="btn btn-danger">Eliminar</a>
+                    }
                 </td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@pedido.Id" class="btn btn-warning">Actualizar</a>
+                    @if (User.IsInRole("administrador"))
+                    {
+                        <a asp-action="Edit" asp-route-id="@pedido.Id" class="btn btn-warning">Actualizar</a>
+                    }
                 </td>
             </tr>
         }

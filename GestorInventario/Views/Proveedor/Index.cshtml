@@ -43,10 +43,16 @@ vista parcial en las vistas que necesitan ese bloque de código.
                 <td>@proveedor.Contacto</td>
                 <td>@proveedor.Direccion</td>
                 <td>
-                    <a asp-action="Delete" asp-route-id="@proveedor.Id" class="btn btn-danger">Delete</a>
+                    @if (User.IsInRole("administrador"))
+                    {
+                        <a asp-action="Delete" asp-route-id="@proveedor.Id" class="btn btn-danger">Delete</a>
+                    }
                 </td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@proveedor.Id" class="btn btn-warning">Update</a>
+                    @if (User.IsInRole("administrador"))
+                    {
+                        <a asp-action="Edit" asp-route-id="@proveedor.Id" class="btn btn-warning">Update</a>
+                    }
                 </td>
                 <!-- Agrega aquí las demás celdas de la fila -->
             </tr>

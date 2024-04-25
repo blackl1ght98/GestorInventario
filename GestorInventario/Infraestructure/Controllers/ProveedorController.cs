@@ -10,17 +10,28 @@ namespace GestorInventario.Infraestructure.Controllers
     public class ProveedorController : Controller
     {
         private readonly GestorInventarioContext _context;
+        private readonly ILogger<ProveedorController> _logger;
 
-        public ProveedorController(GestorInventarioContext context)
+        public ProveedorController(GestorInventarioContext context, ILogger<ProveedorController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public async Task<IActionResult> Index()
         {
-            var proveedores = await _context.Proveedores.ToListAsync();
-           
-            return View(proveedores);
+            try
+            {
+                var proveedores = await _context.Proveedores.ToListAsync();
+
+                return View(proveedores);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al mostrar los proveedores");
+                return BadRequest("Error al mostrar los proveedores, intentelo de nuevo mas tarde o contacte con el administrador");
+            }
+            
         }
         public IActionResult Create()
         {
@@ -31,37 +42,54 @@ namespace GestorInventario.Infraestructure.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ProveedorViewModel model)
         {
-            //Esto toma en cuenta las validaciones puestas en BeerViewModel
-            if (ModelState.IsValid)
+            try
             {
-                //Crea la cerveza
-                var proveedor = new Proveedore()
+                //Esto toma en cuenta las validaciones puestas en BeerViewModel
+                if (ModelState.IsValid)
                 {
-                    NombreProveedor = model.NombreProveedor,
-                    Contacto = model.Contacto,
-                    Direccion= model.Direccion,
-                };
-                _context.Add(proveedor);
-                await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Los datos se han creado con éxito.";
+                    //Crea la cerveza
+                    var proveedor = new Proveedore()
+                    {
+                        NombreProveedor = model.NombreProveedor,
+                        Contacto = model.Contacto,
+                        Direccion = model.Direccion,
+                    };
+                    _context.Add(proveedor);
+                    await _context.SaveChangesAsync();
+                    TempData["SuccessMessage"] = "Los datos se han creado con éxito.";
 
-                return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Index));
+                }
+                return View(model);
             }
-            return View(model);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al crear el pedido");
+                return BadRequest("Error al crear el proveedor intentelo de nuevo mas tarde o contacte con el administrador");
+            }
+           
 
         }
         public async Task<IActionResult> Delete(int id)
         {
-
-            //Consulta a base de datos
-            var proveedor = await _context.Proveedores.FirstOrDefaultAsync(m => m.Id == id);
-            //Si no hay cervezas muestra el error 404
-            if (proveedor == null)
+            try
             {
-                return NotFound("proveedor no encontradas");
+                //Consulta a base de datos
+                var proveedor = await _context.Proveedores.FirstOrDefaultAsync(m => m.Id == id);
+                //Si no hay cervezas muestra el error 404
+                if (proveedor == null)
+                {
+                    return NotFound("proveedor no encontradas");
+                }
+                //Llegados ha este punto hay cervezas por lo tanto se muestran las cervezas
+                return View(proveedor);
             }
-            //Llegados ha este punto hay cervezas por lo tanto se muestran las cervezas
-            return View(proveedor);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al mostrar la vista de eliminacion del proveedor");
+                return BadRequest("Error al mostrar la vista de eliminacion del proveedor intentelo de nuevo mas tarde o contacte con el administrador");
+            }
+           
         }
 
 
@@ -70,62 +98,89 @@ namespace GestorInventario.Infraestructure.Controllers
         
         public async Task<IActionResult> DeleteConfirmed(int Id)
         {
-            var proveedor = await _context.Proveedores.Include(p => p.Productos).FirstOrDefaultAsync(m => m.Id == Id);
-            if (proveedor == null)
+            try
             {
-                return BadRequest();
+                var proveedor = await _context.Proveedores.Include(p => p.Productos).FirstOrDefaultAsync(m => m.Id == Id);
+                if (proveedor == null)
+                {
+                    return BadRequest();
+                }
+                if (proveedor.Productos.Any())
+                {
+                    TempData["ErrorMessage"] = "El proveedor no se puede eliminar porque tiene productos asociados.";
+                    //En caso de que el proveedor tenga productos asociados se devuelve al usuario a la vista Delete y se
+                    //muestra el mensaje informandole.
+                    //A esta reedireccion se le pasa la vista Delete y al metodo que contiene esa vista la id del proveedor
+                    return RedirectToAction(nameof(Delete), new { id = Id });
+                }
+                _context.Proveedores.Remove(proveedor);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Los datos se han eliminado con éxito.";
+                return RedirectToAction(nameof(Index));
             }
-            if (proveedor.Productos.Any())
+            catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "El proveedor no se puede eliminar porque tiene productos asociados.";
-                //En caso de que el proveedor tenga productos asociados se devuelve al usuario a la vista Delete y se
-                //muestra el mensaje informandole.
-                //A esta reedireccion se le pasa la vista Delete y al metodo que contiene esa vista la id del proveedor
-                return RedirectToAction(nameof(Delete), new { id = Id });
+                _logger.LogError(ex, "Error al eliminar el proveedor");
+                return BadRequest("Error al eliminar el proveedor intentelo de nuevo mas tarde o contacte con el administrador del sitio");
             }
-            _context.Proveedores.Remove(proveedor);
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Los datos se han eliminado con éxito.";
-            return RedirectToAction(nameof(Index));
+            
         }
         public async Task<ActionResult> Edit(int id)
         {
-            Proveedore proveedor = await _context.Proveedores.FindAsync(id);
+            try
+            {
+                Proveedore proveedor = await _context.Proveedores.FindAsync(id);
 
-            return View(proveedor);
+                return View(proveedor);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al mostrar la vista de edicion del proveedor");
+                return BadRequest("Error al mostrar la vista de edicion del proveedor intentelo de nuevo mas tarde o contacte con el administrador del sitio");
+            }
+            
         }
         [HttpPost]
         public async Task<ActionResult> Edit(Proveedore proveedores)
         {
-            if (ModelState.IsValid)
+            try
             {
-                try
+                if (ModelState.IsValid)
                 {
-                    //var proveedor = await _context.Proveedores.FindAsync(proveedores.Id);
-                  
-                    _context.Entry(proveedores).State = EntityState.Modified;
-                    await _context.SaveChangesAsync();
-                    TempData["SuccessMessage"] = "Los datos se han modificado con éxito.";
-
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ProveedorExist(proveedores.Id))
+                    try
                     {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        _context.Entry(proveedores).Reload();
+                        //var proveedor = await _context.Proveedores.FindAsync(proveedores.Id);
 
-                        // Intenta guardar de nuevo
                         _context.Entry(proveedores).State = EntityState.Modified;
                         await _context.SaveChangesAsync();
+                        TempData["SuccessMessage"] = "Los datos se han modificado con éxito.";
+
                     }
+                    catch (DbUpdateConcurrencyException)
+                    {
+                        if (!ProveedorExist(proveedores.Id))
+                        {
+                            return NotFound("Proveedor no encontrado");
+                        }
+                        else
+                        {
+                            _context.Entry(proveedores).Reload();
+
+                            // Intenta guardar de nuevo
+                            _context.Entry(proveedores).State = EntityState.Modified;
+                            await _context.SaveChangesAsync();
+                        }
+                    }
+                    return RedirectToAction("Index");
                 }
-                return RedirectToAction("Index");
+                return View(proveedores);
             }
-            return View(proveedores);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al editar el proveedor");
+                return BadRequest("Error al editar el proveedor intentelo de nuvo mas tarde o contacte con el administrador del sitio");
+            }
+           
         }
 
         private bool ProveedorExist(int Id)

@@ -22,6 +22,25 @@
             <div class="form-group">
                 <label asp-for="IdsProducto" class="control-label"></label>
                 <br/>
+                <!--Se crea un bucle for para manejar los productos que se asignen al pedido que va a crear
+                    el usuario.
+                    El bucle for se ejecuta tantas veces como productos existan en base de datos.
+                    Esto i < ViewBag.Productos.Count; obtiene todos los productos que hay en base de datos,
+                    en un bucle for la i es para indicar la posicion de donde esta ese producto.
+                    ProductosSeleccionados[i]->almacena en una lista de booleanos los productos seleccionados
+                    en base a su posicion que podria verse algo asi [true,false,true,false] la i aqui es para
+                    saber la posicion de cada true o false dentro de la lista.
+                   ViewBag.Productos[i].NombreProducto->Muestra el nombre de cada producto al usuario en base a la 
+                   posicion de cada uno esto puede verse algo asi [melones, sandias, ordenador] siendo [i] la posicion
+                   de cada producto la posicion comienza en 0.
+                   IdsProducto[i]->almacena la id de los productos en base a su posicion puede verse asi [11,12,13]
+                   siendo i la posicion y comienza por 0.
+                   value="ViewBag.Productos[i].Id"-> asigna la id a cada producto en base a la posicion, es un campo
+                   oculto que no ve el usuario esto puede ser similar al anterior.
+                   Cantidades[i]->almacena la cantidad que corresponde a cada producto puede verse algo <a href="#"></a>
+                   [5,10,1] y la i es la posicion de cada cantidad.
+
+                -->
                 @for (var i = 0; i < ViewBag.Productos.Count; i++)
                 {
                     <input type="checkbox" asp-for="ProductosSeleccionados[i]" class="mt-2" /> @ViewBag.Productos[i].NombreProducto

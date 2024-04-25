@@ -49,7 +49,7 @@
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Productos" asp-action="Index">Productos</a>
                             </li>
                         }
-                         @if (User.IsInRole("administrador"))
+                         @if (User.IsInRole("administrador")|| User.IsInRole("usuario"))
                         {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Pedidos" asp-action="Index">Pedidos</a>
