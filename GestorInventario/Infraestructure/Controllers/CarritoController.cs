@@ -19,6 +19,7 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly GenerarPaginas _generarPaginas;
         private readonly ILogger<CarritoController> _logger;
         private readonly IUnitOfWork _unitOfWork;
+     
         public CarritoController(GestorInventarioContext context, IAdminRepository adminrepository, IAdminCrudOperation admincrudOperation, GenerarPaginas generarPaginas, ILogger<CarritoController> logger, IUnitOfWork unitOfWork)
         {
             _context = context;
@@ -27,6 +28,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _generarPaginas = generarPaginas;
             _logger = logger;
             _unitOfWork = unitOfWork;
+          
         }
 
         public async Task<IActionResult> Index([FromQuery] Paginacion paginacion)
@@ -100,47 +102,7 @@ namespace GestorInventario.Infraestructure.Controllers
                         };
                         _context.AddEntity(pedido);
 
-                        // Crear la lista de items para PayPal
-                        var items = new List<Item>();
-                        decimal totalAmount = 0;
-                        foreach (var item in itemsDelCarrito)
-                        {
-                            var producto = await _context.Productos.FindAsync(item.ProductoId);
-                            var paypalItem = new Item()
-                            {
-                                name = producto.NombreProducto,
-                                currency = "USD", // Asegúrate de usar la moneda correcta aquí
-                                price = producto.Precio.ToString("0.00"),
-                                quantity = item.Cantidad.ToString(),
-                                sku = "producto"
-                            };
-                            items.Add(paypalItem);
-
-
-                            // Calcular el precio total
-                            // Calcular el precio total
-                            totalAmount += Convert.ToDecimal(producto.Precio) * Convert.ToDecimal(item.Cantidad ?? 0);
-
-
-
-                        }
-
-                        string returnUrl = "https://localhost:7056/Payment/Success";
-                        string cancelUrl = "https://localhost:7056/Payment/Cancel";
-
-                        // Crear el pago con PayPal
-                        var createdPayment = await _unitOfWork.PaypalService.CreateOrderAsync(items,totalAmount, returnUrl, cancelUrl, "USD"); // Asegúrate de usar la moneda correcta aquí
-                                                                                                                                               // Obtener el enlace de aprobación de PayPal
-                        string approvalUrl = createdPayment.links.FirstOrDefault(x => x.rel.ToLower() == "approval_url")?.href;
-                        if (!string.IsNullOrEmpty(approvalUrl))
-                        {
-                            // Redirigir al usuario a PayPal para completar el pago
-                            return Redirect(approvalUrl);
-                        }
-                        else
-                        {
-                            TempData["error"] = "Fallo al iniciar el pago con PayPal";
-                        }
+                       
                         // Este bucle se va a recorrer como items existan en el carrito
                         foreach (var item in itemsDelCarrito)
                         {
@@ -175,8 +137,50 @@ namespace GestorInventario.Infraestructure.Controllers
                             };
                             _context.Add(detalleHistorialPedido);
                         }
-                        _context.DeleteRangeEntity(itemsDelCarrito);
 
+                        _context.DeleteRangeEntity(itemsDelCarrito);
+                        // Crear la lista de items para PayPal
+                        var items = new List<Item>();
+                        decimal totalAmount = 0;
+                        foreach (var item in itemsDelCarrito)
+                        {
+                            var producto = await _context.Productos.FindAsync(item.ProductoId);
+                            var paypalItem = new Item()
+                            {
+                                name = producto.NombreProducto,
+                                currency = "EUR",
+                                price = producto.Precio.ToString("0.00"),
+                                quantity = item.Cantidad.ToString(),
+                                sku = "producto"
+                            };
+                            items.Add(paypalItem);
+
+
+                            // Calcular el precio total
+                            // Calcular el precio total
+                            // await _divisaConverter.UpdateExchangeRates();
+                            totalAmount += Convert.ToDecimal(producto.Precio) * Convert.ToDecimal(item.Cantidad ?? 0);
+
+
+
+                        }
+
+                        string returnUrl = "https://localhost:7056/Payment/Success";
+                        string cancelUrl = "https://localhost:7056/Payment/Cancel";
+
+                        // Crear el pago con PayPal
+                        var createdPayment = await _unitOfWork.PaypalService.CreateOrderAsync(items, totalAmount, returnUrl, cancelUrl, "EUR"); // Asegúrate de usar la moneda correcta aquí
+                                                                                                                                                // Obtener el enlace de aprobación de PayPal
+                        string approvalUrl = createdPayment.links.FirstOrDefault(x => x.rel.ToLower() == "approval_url")?.href;
+                        if (!string.IsNullOrEmpty(approvalUrl))
+                        {
+                            // Redirigir al usuario a PayPal para completar el pago
+                            return Redirect(approvalUrl);
+                        }
+                        else
+                        {
+                            TempData["error"] = "Fallo al iniciar el pago con PayPal";
+                        }
                         TempData["SuccessMessage"] = "El pedido se ha creado con éxito.";
                         return RedirectToAction(nameof(Index));
                     }
