@@ -21,12 +21,14 @@
     <div class="form-group">
         <label asp-for="Imagen1" class="control-label"></label>
         <input asp-for="Imagen1" type="file" class="form-control" />
+        <img src="@Model.Imagen" alt="Imagen del producto" style="width: 100px; height: 100px;" />
     </div>
     <div class="form-group">
 
         <label for="Precio">Precio</label>
         <input type="number" class="form-control" id="Precio" asp-for="Precio" required>
     </div>
+  
     <div class="form-group">
 
         <label asp-for="IdProveedor" class="control-label"></label>

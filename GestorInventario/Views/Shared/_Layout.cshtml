@@ -55,8 +55,23 @@
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Pedidos" asp-action="Index">Pedidos</a>
                             </li>
                         }
+                        @if (User.IsInRole("administrador") || User.IsInRole("usuario"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Pedidos" asp-action="HistorialPedidos">Historial pedidos</a>
+                            </li>
+                        }
+                        @if (User.IsInRole("administrador") || User.IsInRole("usuario"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Productos" asp-action="HistorialProducto">Historial productos</a>
+                            </li>
+                        }
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Carrito" asp-action="Index">Carrito</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Payment" asp-action="Index">Pago</a>
                         </li>
                         <li class="nav-item">
                             <a asp-controller="Auth" asp-action="Login" class="btn btn-info mt-2 boton">Login</a>

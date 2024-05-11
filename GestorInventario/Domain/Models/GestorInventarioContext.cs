@@ -17,9 +17,19 @@ public partial class GestorInventarioContext : DbContext
 
     public virtual DbSet<Carrito> Carritos { get; set; }
 
+    public virtual DbSet<DetalleHistorialPedido> DetalleHistorialPedidos { get; set; }
+
+    public virtual DbSet<DetalleHistorialProducto> DetalleHistorialProductos { get; set; }
+
     public virtual DbSet<DetallePedido> DetallePedidos { get; set; }
 
+    public virtual DbSet<HistorialPedido> HistorialPedidos { get; set; }
+
+    public virtual DbSet<HistorialProducto> HistorialProductos { get; set; }
+
     public virtual DbSet<ItemsDelCarrito> ItemsDelCarritos { get; set; }
+
+    public virtual DbSet<Monedum> Moneda { get; set; }
 
     public virtual DbSet<Pedido> Pedidos { get; set; }
 
@@ -50,6 +60,37 @@ public partial class GestorInventarioContext : DbContext
                 .HasConstraintName("FK__Carrito__Usuario__1DB06A4F");
         });
 
+        modelBuilder.Entity<DetalleHistorialPedido>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__DetalleH__3214EC07C0868139");
+
+            entity.HasOne(d => d.HistorialPedido).WithMany(p => p.DetalleHistorialPedidos)
+                .HasForeignKey(d => d.HistorialPedidoId)
+                .HasConstraintName("FK__DetalleHi__Histo__3F115E1A");
+
+            entity.HasOne(d => d.Producto).WithMany(p => p.DetalleHistorialPedidos)
+                .HasForeignKey(d => d.ProductoId)
+                .HasConstraintName("FK__DetalleHi__Produ__662B2B3B");
+        });
+
+        modelBuilder.Entity<DetalleHistorialProducto>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__DetalleH__3214EC075EFAE69A");
+
+            entity.Property(e => e.NombreProducto)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.Precio).HasColumnType("decimal(18, 2)");
+
+            entity.HasOne(d => d.HistorialProducto).WithMany(p => p.DetalleHistorialProductos)
+                .HasForeignKey(d => d.HistorialProductoId)
+                .HasConstraintName("FK__DetalleHi__Histo__57DD0BE4");
+
+            entity.HasOne(d => d.Producto).WithMany(p => p.DetalleHistorialProductos)
+                .HasForeignKey(d => d.ProductoId)
+                .HasConstraintName("FK__DetalleHi__Produ__671F4F74");
+        });
+
         modelBuilder.Entity<DetallePedido>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__DetalleP__3214EC07A64B3C50");
@@ -62,7 +103,41 @@ public partial class GestorInventarioContext : DbContext
 
             entity.HasOne(d => d.Producto).WithMany(p => p.DetallePedidos)
                 .HasForeignKey(d => d.ProductoId)
-                .HasConstraintName("FK__DetallePe__Produ__2A164134");
+                .HasConstraintName("FK__DetallePe__Produ__65370702");
+        });
+
+        modelBuilder.Entity<HistorialPedido>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Historia__3214EC075C3E02EE");
+
+            entity.Property(e => e.EstadoPedido)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.FechaPedido).HasColumnType("date");
+            entity.Property(e => e.NumeroPedido)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.HistorialPedidos)
+                .HasForeignKey(d => d.IdUsuario)
+                .HasConstraintName("FK_IdUsuario_HistorialPedidos");
+        });
+
+        modelBuilder.Entity<HistorialProducto>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC07AFC517BA");
+
+            entity.Property(e => e.Accion)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.Fecha).HasColumnType("datetime");
+            entity.Property(e => e.Ip)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.Usuario).WithMany(p => p.HistorialProductos)
+                .HasForeignKey(d => d.UsuarioId)
+                .HasConstraintName("FK_UsuarioId");
         });
 
         modelBuilder.Entity<ItemsDelCarrito>(entity =>
@@ -77,7 +152,20 @@ public partial class GestorInventarioContext : DbContext
 
             entity.HasOne(d => d.Producto).WithMany(p => p.ItemsDelCarritos)
                 .HasForeignKey(d => d.ProductoId)
-                .HasConstraintName("FK__ItemsDelC__Produ__2180FB33");
+                .HasConstraintName("FK__ItemsDelC__Produ__6442E2C9");
+        });
+
+        modelBuilder.Entity<Monedum>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Moneda__3214EC0783509138");
+
+            entity.Property(e => e.Codigo)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.TasaDeCambio).HasColumnType("decimal(18, 0)");
         });
 
         modelBuilder.Entity<Pedido>(entity =>
@@ -99,15 +187,22 @@ public partial class GestorInventarioContext : DbContext
 
         modelBuilder.Entity<Producto>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC07B6B24D8E");
+            entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC074C62FFC1");
 
             entity.Property(e => e.Descripcion)
                 .HasMaxLength(200)
                 .IsUnicode(false);
+            entity.Property(e => e.FechaCreacion)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.FechaModificacion)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
             entity.Property(e => e.Imagen).IsUnicode(false);
             entity.Property(e => e.NombreProducto)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+            entity.Property(e => e.Precio).HasColumnType("decimal(18, 2)");
 
             entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.Productos)
                 .HasForeignKey(d => d.IdProveedor)

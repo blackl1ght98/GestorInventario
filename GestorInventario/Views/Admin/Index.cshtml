@@ -19,7 +19,12 @@
         //va a ir cuando se ejecute y decimos que este ViewBag.Paginas es una lista de PaginasModel
         var paginas = ViewBag.Paginas as List<PaginasModel>;
     }
-
+    <form asp-controller="Admin" asp-action="Index">
+        <p>
+            Buscar: <input type="text" name="buscar" class="form-text" />
+            <input type="submit" value="Buscar" class="btn btn-sm btn-dark" />
+        </p>
+    </form>
     <div class="container-fluid  mr-sm-0 mrl-5 me-n5">
         <h1 class="text-left">Usuarios</h1>
         <p class="text-left">

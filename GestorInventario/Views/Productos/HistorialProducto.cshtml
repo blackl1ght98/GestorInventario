@@ -1,0 +1,47 @@
+﻿@using GestorInventario.PaginacionLogica
+@model List<HistorialProducto>
+
+<h1>Historial de Productos</h1>
+@{
+    
+    var paginas = ViewBag.Paginas as List<PaginasModel>;
+}
+<a href="@Url.Action("DescargarHistorialPDF", "Productos")" target="_blank" class="btn btn-primary descargar">Descargar Historial PDF</a>
+<form asp-action="DeleteAllHistorial" asp-controller="Productos" method="post">
+    <input type="submit" value="Eliminar todo el historial" class="btn btn-danger mt-2" />
+</form>
+<form asp-controller="Productos" asp-action="HistorialProducto">
+    <p>
+        Buscar: <input type="text" name="buscar" class="form-text" />
+        <input type="submit" value="Buscar" class="btn btn-sm btn-dark" />
+    </p>
+</form>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Usuario </th>
+            <th>Fecha</th>
+            <th>Accion</th>
+            <th>Ip</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var pedido in Model)
+        {
+            <tr>
+                <td>@pedido.UsuarioId</td>
+                <td>@pedido.Fecha</td>
+                <td>@pedido.Accion</td>
+                <td>@pedido.Ip</td>
+                 <td>
+                    <a asp-action="DetallesHistorialProducto" asp-route-id="@pedido.Id" class="btn btn-info">Ver detalles</a>
+            </td>
+                <td>
+                    <a asp-action="DeleteHistorial" asp-route-id="@pedido.Id" class="btn btn-danger">Delete</a>
+                </td>
+               
+            </tr>
+        }
+    </tbody>
+</table>
+

@@ -6,6 +6,7 @@ using GestorInventario.MetodosExtension.Tabla_Items_Carrito;
 using GestorInventario.PaginacionLogica;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PayPal.Api;
 using System.Security.Claims;
 
 namespace GestorInventario.Infraestructure.Controllers
@@ -17,13 +18,15 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IAdminCrudOperation _admincrudOperation;
         private readonly GenerarPaginas _generarPaginas;
         private readonly ILogger<CarritoController> _logger;
-        public CarritoController(GestorInventarioContext context, IAdminRepository adminrepository, IAdminCrudOperation admincrudOperation, GenerarPaginas generarPaginas, ILogger<CarritoController> logger)
+        private readonly IUnitOfWork _unitOfWork;
+        public CarritoController(GestorInventarioContext context, IAdminRepository adminrepository, IAdminCrudOperation admincrudOperation, GenerarPaginas generarPaginas, ILogger<CarritoController> logger, IUnitOfWork unitOfWork)
         {
             _context = context;
             _adminRepository = adminrepository;
             _admincrudOperation = admincrudOperation;
             _generarPaginas = generarPaginas;
             _logger = logger;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<IActionResult> Index([FromQuery] Paginacion paginacion)
@@ -68,9 +71,14 @@ namespace GestorInventario.Infraestructure.Controllers
             }
           
         }
-       
+
         public async Task<IActionResult> Checkout()
         {
+            // Cambia la cultura actual del hilo a InvariantCulture
+                    System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
+
+            //        // Cambia la cultura de la interfaz de usuario actual del hilo a InvariantCulture
+                  System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
             try
             {
                 var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -79,15 +87,9 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     var carrito = await _adminRepository.ObtenerCarrito(usuarioId);
 
-                    //var carrito = await _context.Carritos.FindByUserId(usuarioId);
-
-                    // var carrito = await _context.Carritos.FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
                     if (carrito != null)
                     {
                         var itemsDelCarrito = await _adminRepository.ConvertirItemsAPedido(carrito.Id);
-                        //var itemsDelCarrito = await _context.ItemsDelCarritos
-                        //    .Where(i => i.CarritoId == carrito.Id)
-                        //    .ToListAsync();
 
                         var pedido = new Pedido
                         {
@@ -97,9 +99,49 @@ namespace GestorInventario.Infraestructure.Controllers
                             IdUsuario = usuarioId
                         };
                         _context.AddEntity(pedido);
-                        //_context.Pedidos.Add(pedido);
-                        //await _context.SaveChangesAsync();
-                        //Este bucle se va a recorrer como items existan en el carrito
+
+                        // Crear la lista de items para PayPal
+                        var items = new List<Item>();
+                        decimal totalAmount = 0;
+                        foreach (var item in itemsDelCarrito)
+                        {
+                            var producto = await _context.Productos.FindAsync(item.ProductoId);
+                            var paypalItem = new Item()
+                            {
+                                name = producto.NombreProducto,
+                                currency = "USD", // Asegúrate de usar la moneda correcta aquí
+                                price = producto.Precio.ToString("0.00"),
+                                quantity = item.Cantidad.ToString(),
+                                sku = "producto"
+                            };
+                            items.Add(paypalItem);
+
+
+                            // Calcular el precio total
+                            // Calcular el precio total
+                            totalAmount += Convert.ToDecimal(producto.Precio) * Convert.ToDecimal(item.Cantidad ?? 0);
+
+
+
+                        }
+
+                        string returnUrl = "https://localhost:7056/Payment/Success";
+                        string cancelUrl = "https://localhost:7056/Payment/Cancel";
+
+                        // Crear el pago con PayPal
+                        var createdPayment = await _unitOfWork.PaypalService.CreateOrderAsync(items,totalAmount, returnUrl, cancelUrl, "USD"); // Asegúrate de usar la moneda correcta aquí
+                                                                                                                                               // Obtener el enlace de aprobación de PayPal
+                        string approvalUrl = createdPayment.links.FirstOrDefault(x => x.rel.ToLower() == "approval_url")?.href;
+                        if (!string.IsNullOrEmpty(approvalUrl))
+                        {
+                            // Redirigir al usuario a PayPal para completar el pago
+                            return Redirect(approvalUrl);
+                        }
+                        else
+                        {
+                            TempData["error"] = "Fallo al iniciar el pago con PayPal";
+                        }
+                        // Este bucle se va a recorrer como items existan en el carrito
                         foreach (var item in itemsDelCarrito)
                         {
                             var detallePedido = new DetallePedido
@@ -109,12 +151,31 @@ namespace GestorInventario.Infraestructure.Controllers
                                 Cantidad = item.Cantidad ?? 0
                             };
                             _context.AddEntity(detallePedido);
-                            //_context.DetallePedidos.Add(detallePedido);
+                        }
+
+                        // Aquí agregamos el pedido al historial de pedidos
+                        var historialPedido = new HistorialPedido()
+                        {
+                            NumeroPedido = pedido.NumeroPedido,
+                            FechaPedido = pedido.FechaPedido,
+                            EstadoPedido = pedido.EstadoPedido,
+                            IdUsuario = pedido.IdUsuario,
+                        };
+                        _context.Add(historialPedido);
+                        await _context.SaveChangesAsync();
+
+                        // Lógica para los detalles de productos (si es necesario)
+                        foreach (var item in itemsDelCarrito)
+                        {
+                            var detalleHistorialPedido = new DetalleHistorialPedido()
+                            {
+                                HistorialPedidoId = historialPedido.Id,
+                                ProductoId = item.ProductoId,
+                                Cantidad = item.Cantidad ?? 0,
+                            };
+                            _context.Add(detalleHistorialPedido);
                         }
                         _context.DeleteRangeEntity(itemsDelCarrito);
-                        // _context.ItemsDelCarritos.RemoveRange(itemsDelCarrito);
-                        //await _admincrudOperation.SaveChangesAsync();
-                        // await _context.SaveChangesAsync();
 
                         TempData["SuccessMessage"] = "El pedido se ha creado con éxito.";
                         return RedirectToAction(nameof(Index));
@@ -128,7 +189,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 _logger.LogError(ex, "Error al realizar el checkout");
                 return BadRequest("Error al realizar el checkout intentelo de nuevo mas tarde o si el problema persiste contacte con el administrador");
             }
-            
+
         }
 
 

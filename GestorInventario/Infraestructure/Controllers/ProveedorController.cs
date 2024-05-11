@@ -18,13 +18,19 @@ namespace GestorInventario.Infraestructure.Controllers
             _logger = logger;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string buscar)
         {
             try
             {
-                var proveedores = await _context.Proveedores.ToListAsync();
+                var proveedores = from p in _context.Proveedores
+                                  select p;
 
-                return View(proveedores);
+               // var proveedores = await _context.Proveedores.ToListAsync();
+                if(!String.IsNullOrEmpty(buscar))
+                {
+                    proveedores=proveedores.Where(s=>s.NombreProveedor!.Contains(buscar));  
+                }
+                return View(await proveedores.ToListAsync());
             }
             catch (Exception ex)
             {
@@ -188,6 +194,8 @@ namespace GestorInventario.Infraestructure.Controllers
             
             return _context.Proveedores.Any(e => e.Id == Id);
         }
+       
+        
 
 
     }

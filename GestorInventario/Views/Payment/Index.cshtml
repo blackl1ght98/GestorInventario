@@ -1,0 +1,41 @@
+﻿@model PaymentViewModel
+@{
+    ViewData["Title"] = "Pagina Prueba";
+}
+<div class="container mt-5 pt5">
+    @if (TempData["error"] != null)
+    {
+        <div class=" alert alert-danger alert-dismissible">
+            @TempData["error"]
+        </div>
+    }
+    else if (TempData["success"] != null)
+    {
+        <div class=" alert alert-success alert-dismissible">
+            @TempData["success"]
+        </div>
+    }
+    <div class="row justify-content-center">
+        <div class="col-md-6 card p3">
+            <h3>Make payment</h3>
+            <hr />
+            <form method="post" asp-action="PayUsingCard">
+                <div class="mb-4">
+                    <label class="mb-2">Enter Ammount</label>
+                    <input asp-for="amount" class="form-control" />
+                </div>
+                <div class="mb-4">
+                    <label class="mb-2">Select Currency</label>
+                    <select asp-for="currency" class="form-control">
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                        <!-- Agrega más opciones de moneda según sea necesario -->
+                    </select>
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary m-50">Pay Now</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -10,8 +10,8 @@ namespace GestorInventario.Domain.Models.ViewModels
         public int Cantidad { get; set; }
         public string? Imagen { get; set; }
         public IFormFile? Imagen1 { get; set; }
-
-        public double Precio { get; set; }
+        public DateTime? FechaCreacion { get; set; }
+        public decimal Precio { get; set; }
         [Display(Name ="Proveedor")]
         public int? IdProveedor { get; set; }
 

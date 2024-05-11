@@ -18,7 +18,7 @@ namespace GestorInventario.Infraestructure.Controllers
 {
     public class AdminController : Controller
     {
-        //private readonly GestorInventarioContext _context;
+        private readonly GestorInventarioContext _context;
         private readonly IEmailService _emailService;
         private readonly HashService _hashService;
         private readonly IConfirmEmailService _confirmEmailService;
@@ -27,7 +27,7 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IAdminCrudOperation _admincrudoperation;
         private readonly GenerarPaginas _generarPaginas;  
 
-        public AdminController( IEmailService emailService, HashService hashService, IConfirmEmailService confirmEmailService, ILogger<AdminController> logger, IAdminRepository adminRepository, IAdminCrudOperation admincrudoperation, GenerarPaginas generarPaginas)
+        public AdminController( IEmailService emailService, HashService hashService, IConfirmEmailService confirmEmailService, ILogger<AdminController> logger, IAdminRepository adminRepository, IAdminCrudOperation admincrudoperation, GenerarPaginas generarPaginas, GestorInventarioContext context)
         {
            
             _emailService = emailService;
@@ -37,6 +37,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _adminrepository = adminRepository;
             _admincrudoperation = admincrudoperation;
             _generarPaginas = generarPaginas;
+            _context = context;
         }
 
         //public IActionResult Index()
@@ -55,7 +56,7 @@ namespace GestorInventario.Infraestructure.Controllers
         //    }
 
         //}
-        public async Task<ActionResult> Index([FromQuery] Paginacion paginacion)
+        public async Task<ActionResult> Index(string buscar, [FromQuery] Paginacion paginacion)
         {
             try
             {
@@ -67,8 +68,15 @@ namespace GestorInventario.Infraestructure.Controllers
                  * Esta interfaz define un método, GetEnumerator, que devuelve un objeto IEnumerator. IEnumerator 
                  * proporciona la capacidad de iterar a través de la colección al exponer un método MoveNext y una 
                  * propiedad Current. Y que es lo mas comun para que se itere listas y arrays*/
-                var queryable = _adminrepository.ObtenerUsuarios();
-                //var queryable = _context.Usuarios.Include(x => x.IdRolNavigation);
+                //var queryable = _adminrepository.ObtenerUsuarios();
+//                var queryable = _context.Usuarios.Include(x => x.IdRolNavigation);
+                var queryable = from p in _context.Usuarios.Include(x => x.IdRolNavigation)
+                                select p;
+
+                if (!String.IsNullOrEmpty(buscar))
+                {
+                    queryable = queryable.Where(s => s.NombreCompleto.Contains(buscar));
+                }
                 //Accedemos al metodo de extension creado pasandole la fuente de informacion(queryable) y las paginas a mostrar
                 await HttpContext.InsertarParametrosPaginacionRespuesta(queryable, paginacion.CantidadAMostrar);
                 //Mostramos los datos de cada pagina y numero de paginas al usuario,

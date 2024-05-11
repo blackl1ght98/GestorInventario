@@ -7,7 +7,19 @@
 <p>
     <a asp-action="Create" class="btn btn-info">Crear Pedido</a>
 </p>
-
+<form asp-controller="Pedidos" asp-action="Index">
+    <p>
+        Fecha inicio: <input type="date" name="fechaInicio" class="form-text" />
+        Fecha fin: <input type="date" name="fechaFin" class="form-text" />
+        <input type="submit" value="Buscar" class="btn btn-sm btn-dark" />
+    </p>
+</form>
+<form asp-controller="Pedidos" asp-action="Index">
+    <p>
+        Buscar: <input type="text" name="buscar" class="form-text" />
+        <input type="submit" value="Buscar" class="btn btn-sm btn-dark" />
+    </p>
+</form>
 <table class="table table-striped table-bordered w-100">
     <thead>
         <tr>

@@ -8,5 +8,7 @@
         public bool? IsHtml { get; set; }
         public string? RecoveryLink { get; set; }
         public string? TemporaryPassword { get; set; }
+        public string? NombreProducto { get; set; }
+        public int? Cantidad { get; set; }
     }
 }

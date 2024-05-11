@@ -30,6 +30,26 @@ vista parcial en las vistas que necesitan ese bloque de código.
 @* @{
     Html.RenderPartial("_CreatePartial", new ProveedorViewModel());
 } *@
+<form asp-controller="Productos" asp-action="Index">
+    <p>
+        Buscar: <input type="text" name="buscar" class="form-text" />
+        <input type="submit" value="Buscar" class="btn btn-sm btn-dark" />
+    </p>
+</form>
+<form asp-controller="Productos" asp-action="Index">
+    <p>
+        Buscar: <input type="text" name="buscar" class="form-text" />
+        <br/>
+        Ordenar por precio:
+        <select name="ordenarPorprecio" class="form-select mt-2">
+            <option value="">Seleccionar...</option>
+            <option value="asc">Menor a mayor</option>
+            <option value="desc">Mayor a menor</option>
+        </select>
+        <input type="submit" value="Buscar" class="btn btn-sm btn-dark" />
+    </p>
+</form>
+
 <table class="table table-striped table-bordered w-100">
     <thead>
         <tr>

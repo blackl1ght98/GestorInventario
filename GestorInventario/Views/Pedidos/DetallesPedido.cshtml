@@ -19,7 +19,8 @@
                 <td>@detalle.Cantidad</td>
                 <td>@detalle.Producto?.Precio</td>
                 <td>@(detalle.Cantidad * detalle.Producto?.Precio)</td>
-                <td>@(detalle.Cantidad * (detalle.Producto?.Precio ?? 0) * 1.21)</td>
+                <td>@(detalle.Cantidad * (detalle.Producto?.Precio ?? 0) * (decimal)1.21)</td>
+
             </tr>
         }
     </tbody>
