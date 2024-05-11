@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "FdJroitybgFzJXiOunV7+VD4HYi3uJ+rD20nV/+0SmCxsnYXjhdyX7FdYhH6Cm8jrCb+S39EaWSoAAGKNAEwdQ==",
+  "dgSpecHash": "pLs/7rtNCG5T89gN1M+9kdZjOlDmEvCsVZ4+H9UXiUAi25MxTpNeJkA+SPYydl564uIJuc6Cf3K3xlOaJx+dPA==",
   "success": true,
-  "projectFilePath": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\GestorInventario.csproj",
+  "projectFilePath": "C:\\Users\\guill\\OneDrive\\Escritorio\\Mis repositorios\\GestorInventario\\GestorInventario\\GestorInventario.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\guill\\.nuget\\packages\\aspose.pdf\\24.4.0\\aspose.pdf.24.4.0.nupkg.sha512",
     "C:\\Users\\guill\\.nuget\\packages\\azure.core\\1.35.0\\azure.core.1.35.0.nupkg.sha512",
