@@ -1,8 +1,13 @@
 ﻿using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models.ViewModels;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using PayPal.Api;
 using System.Globalization;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 
 namespace GestorInventario.Infraestructure.Controllers
 {
@@ -22,7 +27,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             return View();
         }
-        
+
         public async Task<IActionResult> Success(string paymentId, string PayerID)
         {
             // Obtén el contexto de la API de PayPal
@@ -43,50 +48,52 @@ namespace GestorInventario.Infraestructure.Controllers
                 return BadRequest("Error al ejecutar el pago");
             }
 
-            // Aquí puedes hacer cualquier procesamiento adicional necesario después de que el pago se haya completado con éxito
 
-            return RedirectToAction("Index", "Home");
+
+
+            return View();
         }
 
-        //    [HttpPost]
-        //    public async Task<IActionResult> PayUsingCard(PaymentViewModel model)
-        //    {
-        //        // Cambia la cultura actual del hilo a InvariantCulture
-        //        System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
 
-        //        // Cambia la cultura de la interfaz de usuario actual del hilo a InvariantCulture
-        //        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
+        [HttpPost]
+        public async Task<IActionResult> PayUsingCard(PaymentViewModel model)
+        {
+            // Cambia la cultura actual del hilo a InvariantCulture
+            System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
 
-        //        try
-        //        {
-        //            if (model.amount == 0)
-        //            {
-        //                TempData["error"] = "please enter amount";
-        //                return RedirectToAction(nameof(Index));
-        //            }
+            // Cambia la cultura de la interfaz de usuario actual del hilo a InvariantCulture
+            System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
 
-        //            string amountString = model.amount.ToString().Replace(",", ".");
-        //            decimal amount = Decimal.Parse(amountString, CultureInfo.InvariantCulture);
-        //            string returnUrl = "https://localhost:7056/Payment/Success";
-        //            string cancelUrl = "https://localhost:7056/Payment/Cancel";
-        //            var createdPayment = await _unitOfWork.PaypalService.CreateOrderAsync(amount, returnUrl, cancelUrl, model.currency);
-        //            string approvalUrl = createdPayment.links.FirstOrDefault(x => x.rel.ToLower() == "approval_url")?.href;
-        //            if (!string.IsNullOrEmpty(approvalUrl))
-        //            {
-        //                return Redirect(approvalUrl);
-        //            }
-        //            else
-        //            {
-        //                TempData["error"] = "Fallo al iniciar el pago con paypal";
-        //            }
-        //        }
-        //        catch (Exception ex)
-        //        {
+            try
+            {
+                if (model.amount == 0)
+                {
+                    TempData["error"] = "Por favor introduzca lo que va a donar";
+                    return RedirectToAction(nameof(Index));
+                }
 
-        //            TempData["error"] = ex.Message; 
+                string amountString = model.amount.ToString().Replace(",", ".");
+                decimal amount = Decimal.Parse(amountString, CultureInfo.InvariantCulture);
+                string returnUrl = "https://localhost:7056/Payment/Success";
+                string cancelUrl = "https://localhost:7056/Payment/Cancel";
+                var createdPayment = await _unitOfWork.PaypalService.CreateDonation(amount, returnUrl, cancelUrl, model.currency);
+                string approvalUrl = createdPayment.links.FirstOrDefault(x => x.rel.ToLower() == "approval_url")?.href;
+                if (!string.IsNullOrEmpty(approvalUrl))
+                {
+                    return Redirect(approvalUrl);
+                }
+                else
+                {
+                    TempData["error"] = "Fallo al iniciar el pago con paypal";
+                }
+            }
+            catch (Exception ex)
+            {
 
-        //        }
-        //        return RedirectToAction(nameof(Index));
-        //    }
+                TempData["error"] = ex.Message;
+
+            }
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

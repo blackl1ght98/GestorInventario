@@ -199,7 +199,7 @@ app.UseRouting();
 app.UseAuthentication();
 //Determina que puede hacer o no el usuario
 app.UseAuthorization();
-
+app.UseSession();
 app.Use(async (context, next) =>
 {
     try
@@ -236,6 +236,10 @@ app.Use(async (context, next) =>
             // Establece el usuario del contexto actual a partir de la información del token.
             //Detecta que usuario esta logueado, permitiendo hacer esa verificacion
             context.User = principal;
+            token = context.Session.GetString("auth") ?? context.Request.Cookies["auth"];
+            context.Session.SetString("auth", token);
+
+
         }
 
         // Pasa el control al siguiente middleware en la cadena.
@@ -250,7 +254,7 @@ app.Use(async (context, next) =>
     // Obtiene el token de la cookie "auth".
    
 });
-app.UseSession();
+
 
 
 

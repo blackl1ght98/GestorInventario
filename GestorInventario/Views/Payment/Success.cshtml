@@ -1,1 +1,59 @@
-﻿<h1>PAGO REALIZADO CON EXITO</h1>
+﻿
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Pago Realizado</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+        body {
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        .message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        h1 {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <div class="message">
+        <h1>Pago realizado con éxito</h1>
+        <p>Redirigiendo en <span id="counter">5</span> segundos...</p>
+    </div>
+    
+    <script>
+        // Espera a que el documento HTML esté completamente cargado antes de ejecutar el código JavaScript.
+        $(document).ready(function () {
+            // Inicializa un contador con el valor 5.
+            var counter = 5;
+            // Establece un intervalo que se ejecuta cada 1000 milisegundos (1 segundo).
+            setInterval(function () {
+                // Decrementa el contador en 1 cada vez que se ejecuta el intervalo.
+                counter--;
+                // Si el contador es mayor o igual a 0...
+                if (counter >= 0) {
+                    // ...actualiza el texto del elemento HTML con id "counter" con el valor actual del contador.
+                    $("#counter").text(counter);
+                }
+                // Si el contador llega a 0...
+                if (counter === 0) {
+                    // ...redirige al usuario a la página "/Productos".
+                    window.location.href = "/Productos";
+                    // ...y detiene el intervalo.
+                    clearInterval(counter);
+                }
+                // El intervalo se ejecuta cada 1000 milisegundos (1 segundo).
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -4,7 +4,7 @@ namespace GestorInventario.Application.Services
 {
     public class GenerarPaginas
     {
-        public  List<PaginasModel> GenerarListaPaginas(int totalPaginas, int paginaActual)
+        public  List<PaginasModel> GenerarListaPaginas(int totalPaginas, int paginaActual, int? radio=3)
         {
             //A la variable paginas le asigna una lista de PaginasModel
             var paginas = new List<PaginasModel>();
@@ -25,10 +25,13 @@ namespace GestorInventario.Application.Services
             // Comienza con i = 1 y continúa mientras i sea menor o igual que el total de páginas.
             for (int i = 1; i <= totalPaginas; i++)
             {
-                // Para cada iteración, se añade una nueva página a la lista 'paginas'.
-                // Se utiliza el constructor de PaginasModel que toma un solo argumento: el número de página (i).
-                // Además, se establece la propiedad 'Activa' de la página a 'true' si la página actual es igual a i.
-                paginas.Add(new PaginasModel(i) { Activa = paginaActual == i });
+                if (i >= paginaActual - radio && i <= paginaActual + radio)
+                {
+                    // Para cada iteración, se añade una nueva página a la lista 'paginas'.
+                    // Se utiliza el constructor de PaginasModel que toma un solo argumento: el número de página (i).
+                    // Además, se establece la propiedad 'Activa' de la página a 'true' si la página actual es igual a i.
+                    paginas.Add(new PaginasModel(i) { Activa = paginaActual == i });
+                }
             }
 
 

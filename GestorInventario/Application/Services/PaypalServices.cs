@@ -38,59 +38,59 @@ namespace GestorInventario.Application.Services
             };
 
         }
-        //public async Task<Payment> CreateOrderAsync(decimal amount, string returnUrl, string cancelUrl, string currency)
-        //{
-        //    var apiContext = new APIContext(new OAuthTokenCredential(_configuration["Paypal:ClientId"], _configuration["Paypal:ClientSecret"]).GetAccessToken());
-        //    var itemList = new ItemList()
-        //    {
-        //        items = new List<Item>()
-        //        {
-        //            new Item()
-        //            {
-        //                name="Membership Free",
-        //                currency=currency,
-        //                price= amount.ToString("0.00"),
-        //                quantity="1",
-        //                sku="membership"
-        //            }
+        public async Task<Payment> CreateDonation(decimal amount, string returnUrl, string cancelUrl, string currency)
+        {
+            var apiContext = new APIContext(new OAuthTokenCredential(_configuration["Paypal:ClientId"], _configuration["Paypal:ClientSecret"]).GetAccessToken());
+            var itemList = new ItemList()
+            {
+                items = new List<Item>()
+                {
+                    new Item()
+                    {
+                        name="Donacion",
+                        currency=currency,
+                        price= amount.ToString("0.00"),
+                        quantity="1",
+                        sku="donacion"
+                    }
 
-        //        }
-        //    };
-        //    var transaction = new Transaction()
-        //    {
-        //        amount = new Amount()
-        //        {
-        //            currency = currency,
-        //            total = amount.ToString("0.00"),
-        //            details = new Details()
-        //            {
-        //                subtotal = amount.ToString("0.00")
-        //            },
+                }
+            };
+            var transaction = new Transaction()
+            {
+                amount = new Amount()
+                {
+                    currency = currency,
+                    total = amount.ToString("0.00"),
+                    details = new Details()
+                    {
+                        subtotal = amount.ToString("0.00")
+                    },
 
-        //        },
+                },
 
-        //        item_list = itemList,
-        //        description = "Membership Free"
+                item_list = itemList,
+                description = "Donacion"
 
-        //    };
-        //    var payment = new Payment()
-        //    {
-        //        intent = "sale",
-        //        payer = new Payer() { payment_method = "paypal" },
-        //        redirect_urls = new RedirectUrls()
-        //        {
-        //            return_url = returnUrl,
-        //            cancel_url = cancelUrl,
-        //        },
-        //        transactions = new List<Transaction>() { transaction }
-        //    };
-        //    var settings = new JsonSerializerSettings
-        //    {
-        //        Culture = CultureInfo.InvariantCulture
-        //    };
-        //    var createdPayment = payment.Create(apiContext);
-        //    return createdPayment;
-        //}
+            };
+            var payment = new Payment()
+            {
+                intent = "sale",
+                payer = new Payer() { payment_method = "paypal" },
+                redirect_urls = new RedirectUrls()
+                {
+                    return_url = returnUrl,
+                    cancel_url = cancelUrl,
+                },
+                transactions = new List<Transaction>() { transaction }
+            };
+            var settings = new JsonSerializerSettings
+            {
+                Culture = CultureInfo.InvariantCulture
+            };
+            var createdPayment = payment.Create(apiContext);
+            return createdPayment;
+        }
         // Este es el método que se utiliza para crear un pedido en PayPal.
         public async Task<Payment> CreateOrderAsync(List<Item> items,decimal amount, string returnUrl, string cancelUrl, string currency)
         {

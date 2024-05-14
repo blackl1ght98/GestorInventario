@@ -155,16 +155,10 @@ namespace GestorInventario.Infraestructure.Controllers
                             };
                             items.Add(paypalItem);
 
-
-                            // Calcular el precio total
-                            // Calcular el precio total
-                            // await _divisaConverter.UpdateExchangeRates();
+                        
                             totalAmount += Convert.ToDecimal(producto.Precio) * Convert.ToDecimal(item.Cantidad ?? 0);
 
-
-
                         }
-
                         string returnUrl = "https://localhost:7056/Payment/Success";
                         string cancelUrl = "https://localhost:7056/Payment/Cancel";
 
