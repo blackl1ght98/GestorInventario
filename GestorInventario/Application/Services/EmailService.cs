@@ -101,9 +101,10 @@ namespace GestorInventario.Application.Services
             usuarioDB.Salt = resultadoHash.Salt;
             // Guardar los cambios en la base de datos
             await _context.SaveChangesAsync();
-            var fechaExpiracion = DateTime.UtcNow.AddHours(24); // El enlace expira después de 24 horas
+            var fechaExpiracion = DateTime.Now.AddMinutes(5); 
             // Guardar la fecha de vencimiento en la base de datos
             usuarioDB.FechaEnlaceCambioPass = fechaExpiracion;
+            usuarioDB.FechaExpiracionContrasenaTemporal= fechaExpiracion;
             // Guardar los cambios en la base de datos
             await _context.SaveChangesAsync();
             // Crear el modelo para la vista del correo electrónico

@@ -5,6 +5,7 @@ using GestorInventario.MetodosExtension;
 using GestorInventario.MetodosExtension.Tabla_Items_Carrito;
 using GestorInventario.PaginacionLogica;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PayPal.Api;
 using System.Security.Claims;
@@ -39,6 +40,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {
+
                     var carrito = await _adminRepository.ObtenerCarrito(usuarioId);
                     //var carrito = await _context.Carritos.FindByUserId(usuarioId);
                     // var carrito = _context.Carritos.FindByUserId(usuarioId);
@@ -51,13 +53,13 @@ namespace GestorInventario.Infraestructure.Controllers
                              .Include(i => i.Producto.IdProveedorNavigation)
 
                             .Where(i => i.CarritoId == carrito.Id);
-
+                    
                         //var itemsDelCarrito = await _adminRepository.ObtenerItemsCarrito(carrito.Id);
                         await HttpContext.InsertarParametrosPaginacionRespuesta(itemsDelCarrito, paginacion.CantidadAMostrar);
                         var productoPaginado = itemsDelCarrito.Paginar(paginacion).ToList();
                         var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
                         ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
-
+                        ViewData["Moneda"] = new SelectList(_context.Moneda, "Codigo", "Codigo");
 
                         // Pasa los productos a la vista
                         return View(productoPaginado);
@@ -73,8 +75,8 @@ namespace GestorInventario.Infraestructure.Controllers
             }
           
         }
-
-        public async Task<IActionResult> Checkout()
+        [HttpPost]
+        public async Task<IActionResult> Checkout(string monedaSeleccionada)
         {
             // Cambia la cultura actual del hilo a InvariantCulture
                     System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
@@ -139,7 +141,14 @@ namespace GestorInventario.Infraestructure.Controllers
                         }
 
                         _context.DeleteRangeEntity(itemsDelCarrito);
+                        ViewData["Moneda"] = new SelectList(_context.Moneda, "Codigo", "Codigo");
+
                         // Crear la lista de items para PayPal
+                        if (string.IsNullOrEmpty(monedaSeleccionada))
+                        {
+                            // Puedes establecer un valor predeterminado o devolver un error
+                            monedaSeleccionada = "EUR"; // Valor predeterminado
+                        }
                         var items = new List<Item>();
                         decimal totalAmount = 0;
                         foreach (var item in itemsDelCarrito)
@@ -148,7 +157,7 @@ namespace GestorInventario.Infraestructure.Controllers
                             var paypalItem = new Item()
                             {
                                 name = producto.NombreProducto,
-                                currency = "EUR",
+                                currency = monedaSeleccionada,
                                 price = producto.Precio.ToString("0.00"),
                                 quantity = item.Cantidad.ToString(),
                                 sku = "producto"
@@ -163,7 +172,7 @@ namespace GestorInventario.Infraestructure.Controllers
                         string cancelUrl = "https://localhost:7056/Payment/Cancel";
 
                         // Crear el pago con PayPal
-                        var createdPayment = await _unitOfWork.PaypalService.CreateOrderAsync(items, totalAmount, returnUrl, cancelUrl, "EUR"); // Asegúrate de usar la moneda correcta aquí
+                        var createdPayment = await _unitOfWork.PaypalService.CreateOrderAsync(items, totalAmount, returnUrl, cancelUrl, monedaSeleccionada); // Asegúrate de usar la moneda correcta aquí
                                                                                                                                                 // Obtener el enlace de aprobación de PayPal
                         string approvalUrl = createdPayment.links.FirstOrDefault(x => x.rel.ToLower() == "approval_url")?.href;
                         if (!string.IsNullOrEmpty(approvalUrl))

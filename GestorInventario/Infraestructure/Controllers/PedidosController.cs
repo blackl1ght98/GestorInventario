@@ -80,7 +80,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     // Aquí es donde se realiza la búsqueda por el número de pedido
                     if (!String.IsNullOrEmpty(buscar))
                     {
-                        pedidos = pedidos.Where(p => p.NumeroPedido.Contains(buscar) || p.EstadoPedido.Contains(buscar));
+                        pedidos = pedidos.Where(p => p.NumeroPedido.Contains(buscar) || p.EstadoPedido.Contains(buscar) || p.IdUsuarioNavigation.NombreCompleto.Contains(buscar));
                     }
                     if (fechaInicio.HasValue && fechaFin.HasValue)
                     {

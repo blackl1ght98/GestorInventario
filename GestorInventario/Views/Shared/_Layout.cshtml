@@ -73,9 +73,20 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Payment" asp-action="Index">Pago</a>
                         </li>
-                        <li class="nav-item">
-                            <a asp-controller="Auth" asp-action="Login" class="btn btn-info mt-2 boton">Login</a>
-                        </li>
+
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item">
+                                <a class="btn btn-info mt-2 boton" hidden></a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a asp-controller="Auth" asp-action="Login" class="btn btn-info mt-2 boton">Login</a>
+                            </li>
+                        }
+
 
                         <li class="nav-item dropdown ml-auto mr-5 desplegable mt-2">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">

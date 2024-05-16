@@ -33,7 +33,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _emailService = emailService;
         }
 
-        public async  Task<IActionResult> Index(string buscar, string ordenarPorprecio,[FromQuery] Paginacion paginacion)
+        public async  Task<IActionResult> Index(string buscar, string ordenarPorprecio,int? idProveedor,[FromQuery] Paginacion paginacion)
         {
             try
             {
@@ -55,6 +55,11 @@ namespace GestorInventario.Infraestructure.Controllers
                         productos = productos.OrderByDescending(p => p.Precio);
                     }
                 }
+                if (idProveedor.HasValue)
+                {
+                    productos = productos.Where(p => p.IdProveedor == idProveedor.Value);
+                }
+                ViewData["Proveedores"] = new SelectList(_context.Proveedores, "Id", "NombreProveedor");
                 await VerificarStock();
                 await HttpContext.InsertarParametrosPaginacionRespuesta(productos, paginacion.CantidadAMostrar);
                 var productoPaginado = productos.Paginar(paginacion).ToList();

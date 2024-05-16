@@ -57,7 +57,7 @@ public partial class GestorInventarioContext : DbContext
 
             entity.HasOne(d => d.Usuario).WithMany(p => p.Carritos)
                 .HasForeignKey(d => d.UsuarioId)
-                .HasConstraintName("FK__Carrito__Usuario__1DB06A4F");
+                .HasConstraintName("FK__Carrito__Usuario__0880433F");
         });
 
         modelBuilder.Entity<DetalleHistorialPedido>(entity =>
@@ -165,7 +165,6 @@ public partial class GestorInventarioContext : DbContext
             entity.Property(e => e.Nombre)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-            entity.Property(e => e.TasaDeCambio).HasColumnType("decimal(18, 0)");
         });
 
         modelBuilder.Entity<Pedido>(entity =>
@@ -235,7 +234,7 @@ public partial class GestorInventarioContext : DbContext
 
         modelBuilder.Entity<Usuario>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Usuarios__3214EC0759337200");
+            entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC075EC55856");
 
             entity.Property(e => e.Direccion)
                 .HasMaxLength(100)
@@ -245,6 +244,7 @@ public partial class GestorInventarioContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.EnlaceCambioPass).HasMaxLength(50);
             entity.Property(e => e.FechaEnlaceCambioPass).HasColumnType("datetime");
+            entity.Property(e => e.FechaExpiracionContrasenaTemporal).HasColumnType("datetime");
             entity.Property(e => e.FechaNacimiento).HasColumnType("date");
             entity.Property(e => e.FechaRegistro).HasColumnType("datetime");
             entity.Property(e => e.NombreCompleto).IsUnicode(false);

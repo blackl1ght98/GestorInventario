@@ -37,7 +37,12 @@ namespace GestorInventario.Infraestructure.Controllers
         [AllowAnonymous]
         public IActionResult Login()
         {
-            return View();
+           
+                if (User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+                return View();
         }
 
         //[AllowAnonymous]
@@ -104,6 +109,10 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                 if (ModelState.IsValid)
                 {
+                    if (User.Identity.IsAuthenticated)
+                    {
+                        return RedirectToAction("Index", "Home");
+                    }
                     var user = await _adminRepository.Login(model.Email);
                     //var user = await _context.Usuarios.Include(x => x.IdRolNavigation).FirstOrDefaultAsync(u => u.Email == model.Email);
 
@@ -163,12 +172,14 @@ namespace GestorInventario.Infraestructure.Controllers
            
         }
         [AllowAnonymous]
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
             try
             {
                 // Elimina la cookie "auth" del navegador.
                 Response.Cookies.Delete("auth");
+                // Cierra la sesión y elimina la cookie de sesión.
+                await HttpContext.SignOutAsync();
                 return RedirectToAction("Index", "Home");
             }
             catch (Exception ex)
@@ -232,7 +243,14 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return BadRequest("Token no valido");
                 }
-
+                if (usuarioDB.FechaEnlaceCambioPass < DateTime.Now && usuarioDB.FechaExpiracionContrasenaTemporal<DateTime.Now)
+                {
+                    TempData["error"] = "El enlace y contraseña temporal ha expirado, solicite otro";
+                    usuarioDB.FechaEnlaceCambioPass = null;
+                    usuarioDB.FechaExpiracionContrasenaTemporal = null;
+                    usuarioDB.TemporaryPassword = null;
+                    await _context.SaveChangesAsync();
+                }
                 // Crear un nuevo objeto DTORestorePass y establecer las propiedades apropiadas
                 var restorePass = new DTORestorePass
                 {
@@ -275,6 +293,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return BadRequest("La contraseña no puede estar vacía");
                 }
+               
                 //Se usa el servicio hashService para cifrar la contraseña
                 var resultadoHashTemp = _hashService.Hash(cambio.TemporaryPassword);
                 //Se genera un hash para esa contraseña

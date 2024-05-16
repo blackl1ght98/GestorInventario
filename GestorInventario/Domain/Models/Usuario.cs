@@ -23,6 +23,8 @@ public partial class Usuario
 
     public DateTime? FechaEnlaceCambioPass { get; set; }
 
+    public DateTime? FechaExpiracionContrasenaTemporal { get; set; }
+
     public string NombreCompleto { get; set; } = null!;
 
     public DateTime? FechaNacimiento { get; set; }

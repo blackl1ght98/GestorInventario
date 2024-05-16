@@ -20,7 +20,17 @@
 
     <div class="d-flex justify-content-between mt-2">
         <button type="submit" class="btn btn-primary">Iniciar sesión</button>
-        <a asp-action="Create" asp-controller="Admin" class="btn btn-info">Crear Usuario</a>
+        @if (User.Identity.IsAuthenticated)
+        {
+            <li class="nav-item" style="list-style:none">
+                <a class="btn btn-info mt-2 boton" hidden></a>
+            </li>
+        }
+        else
+        {
+            <a asp-action="Create" asp-controller="Admin" class="btn btn-info">Crear Usuario</a>
+        }
+       
     </div>
 
 

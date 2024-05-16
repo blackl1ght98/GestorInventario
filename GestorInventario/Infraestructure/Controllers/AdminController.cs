@@ -133,6 +133,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Index", "Home");
+                }
                 //Sirve para obtener los datos del desplegable
                 ViewData["Roles"] = new SelectList(_adminrepository.ObtenerRoles(), "Id", "Nombre");
 

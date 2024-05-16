@@ -10,6 +10,4 @@ public partial class Monedum
     public string Codigo { get; set; } = null!;
 
     public string Nombre { get; set; } = null!;
-
-    public decimal TasaDeCambio { get; set; }
 }
