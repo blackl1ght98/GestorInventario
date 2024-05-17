@@ -27,7 +27,7 @@ namespace GestorInventario.Application.Services
 
             var claims = new List<Claim>()
             {
-                 new Claim(ClaimTypes.Name, credencialesUsuario.Email),
+                 new Claim(ClaimTypes.Email, credencialesUsuario.Email),
                  new Claim(ClaimTypes.Role, credencialesUsuario.IdRolNavigation.Nombre),
 
                  new Claim(ClaimTypes.NameIdentifier, credencialesUsuario.Id.ToString())

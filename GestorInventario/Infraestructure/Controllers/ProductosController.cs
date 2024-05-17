@@ -78,7 +78,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         public async Task VerificarStock()
         {
-            var emailUsuario = User.FindFirstValue(ClaimTypes.Name);
+            var emailUsuario = User.FindFirstValue(ClaimTypes.Email);
 
             if (emailUsuario != null)
             {

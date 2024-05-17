@@ -88,10 +88,16 @@ builder.Services.AddHttpContextAccessor();
 //    });
 builder.Services.AddAuthentication(options =>
 {
-    // Establece el esquema de autenticación predeterminado que se utilizará para autenticar al usuario.
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    // Establece el esquema de desafío predeterminado que se utilizará para desafiar al usuario.
+    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddCookie(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+    options.LoginPath = "/Auth/Login";
+    options.LogoutPath = "/Auth/Logout";
+    options.SlidingExpiration = true;
 })
 .AddJwtBearer(options =>
 {

@@ -45,61 +45,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 return View();
         }
 
-        //[AllowAnonymous]
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Login(LoginViewModel model)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        var user = await _context.Usuarios.Include(x => x.IdRolNavigation).FirstOrDefaultAsync(u => u.Email == model.Email);
-
-        //        if (user != null)
-        //        {
-        //            // Comprobar si el correo electrónico ha sido confirmado
-        //            if (!user.ConfirmacionEmail)
-        //            {
-        //                //Con esto creas un error personalizado
-        //                ModelState.AddModelError("", "Por favor, confirma tu correo electrónico antes de iniciar sesión.");
-        //                return View(model);
-        //            }
-        //            //Se llama al servicio hash service
-        //            var resultadoHash = _hashService.Hash(model.Password, user.Salt);
-        //            //Si la contraseña que se introduce es igual a la que hay en base de datos se procede al login
-        //            if (user.Password == resultadoHash.Hash)
-        //            {
-        //                // Crear una lista de reclamaciones (claims) para el usuario
-        //                var claims = new List<Claim>
-        //                 {
-        //                     new Claim(ClaimTypes.Name, user.Email),
-        //                    new Claim(ClaimTypes.Role, user.IdRolNavigation.Nombre),
-
-        //                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
-        //                };
-
-        //                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-
-
-        //                var principal = new ClaimsPrincipal(identity);
-
-        //                // Iniciar sesión con el principal del usuario
-        //                // Esto establece la cookie de autenticación en el navegador del usuario
-        //                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
-
-        //                return RedirectToAction("Index", "Home");
-        //            }
-        //            else
-        //            {
-        //                ModelState.AddModelError("", "El email y/o la contraseña son incorrectos.");
-        //                return View(model);
-        //            }
-        //        }
-
-        //        return View(model);
-        //    }
-
-        //    return View(model);
-        //}
+      
         [AllowAnonymous]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -114,21 +60,13 @@ namespace GestorInventario.Infraestructure.Controllers
                         return RedirectToAction("Index", "Home");
                     }
                     var user = await _adminRepository.Login(model.Email);
-                    //var user = await _context.Usuarios.Include(x => x.IdRolNavigation).FirstOrDefaultAsync(u => u.Email == model.Email);
 
                     if (user != null)
                     {
                         // Comprobar si el correo electrónico ha sido confirmado
                         if (!user.ConfirmacionEmail)
                         {
-                            //Con esto creas un error personalizado
                             ModelState.AddModelError("", "Por favor, confirma tu correo electrónico antes de iniciar sesión.");
-                            return View(model);
-                        }
-                        if (User.Identity.IsAuthenticated)
-                        {
-                            // El usuario ya está autenticado
-                            ModelState.AddModelError("", "Ya has iniciado sesión. Por favor, cierra tu sesión actual antes de iniciar sesión como un usuario diferente.");
                             return View(model);
                         }
 
@@ -147,8 +85,26 @@ namespace GestorInventario.Infraestructure.Controllers
                                 SameSite = SameSiteMode.Strict,
                                 MaxAge = TimeSpan.FromMinutes(60),
                                 Secure = true,
-
                             });
+
+                            // Crear una identidad de usuario y firmar al usuario
+                            //Los claims se pueden definir como las caracteristicas de ese usuario  o como se identifica en el sistema
+                            //y cuando se identifique como se va a llamar, que email tiene etc
+                            var claims = new List<Claim>
+                            {
+                                new Claim(ClaimTypes.Email, user.Email),
+                                new Claim(ClaimTypes.Role, user.IdRolNavigation.Nombre),
+                                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+                             };
+                            //Representa la identidad del usuario logueado
+                            /*El segundo argumento del constructor ClaimsIdentity es el esquema de autenticación que se utilizó 
+                             * para autenticar al usuario. En este caso, estás utilizando 
+                             * CookieAuthenticationDefaults.AuthenticationScheme, lo que indica que el usuario fue autenticado 
+                             * usando cookies.
+                             */
+                            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                            //Marca al usuario como autenticado en base a la informacion de los claims
+                            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
                             return RedirectToAction("Index", "Home");
                         }
@@ -169,8 +125,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 _logger.LogError(ex, "Error al realizar el login");
                 return BadRequest("Error al realizar el login intentelo de nuevo mas tarde o contacte con el administrador");
             }
-           
         }
+
         [AllowAnonymous]
         public async Task<IActionResult> Logout()
         {
@@ -180,6 +136,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 Response.Cookies.Delete("auth");
                 // Cierra la sesión y elimina la cookie de sesión.
                 await HttpContext.SignOutAsync();
+               
                 return RedirectToAction("Index", "Home");
             }
             catch (Exception ex)
