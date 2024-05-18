@@ -132,11 +132,18 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                // Elimina la cookie "auth" del navegador.
-                Response.Cookies.Delete("auth");
-                // Cierra la sesión y elimina la cookie de sesión.
+                // Obtiene las cookies del navegador.
+                var cookieCollection = Request.Cookies;
+
+                // Recorre todas las cookies y las elimina.
+                foreach (var cookie in cookieCollection)
+                {
+                    Response.Cookies.Delete(cookie.Key);
+                }
+
+                // Cierra la sesión.
                 await HttpContext.SignOutAsync();
-               
+
                 return RedirectToAction("Index", "Home");
             }
             catch (Exception ex)
@@ -144,8 +151,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 _logger.LogError(ex, "Error al cerrar sesion");
                 return BadRequest("Error al cerrar sesion intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
             }
-            
         }
+
 
         //[AllowAnonymous]
         //public async Task<IActionResult> Logout()

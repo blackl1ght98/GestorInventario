@@ -10,10 +10,16 @@ using GestorInventario.MetodosExtension;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Cryptography.X509Certificates;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Serialization;
+using Aspose.Pdf.Forms;
+using Org.BouncyCastle.Asn1.X9;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -68,6 +74,7 @@ builder.Services.AddTransient<IAdminCrudOperation, CrudOperation>();
 builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
 //------------------------------------------------------
 builder.Services.AddHttpContextAccessor();
+//CONFIGURACION PARA AUTENTICACION BASADA EN COOKIES
 //builder.Services.AddAuthentication(options =>
 //{
 //    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -86,6 +93,69 @@ builder.Services.AddHttpContextAccessor();
 //        options.Cookie.SameSite = SameSiteMode.Strict;//Esta opci�n previene el env�o de la cookie en solicitudes de sitios cruzados. Esto ayuda a prevenir ataques de falsificaci�n de solicitudes entre sitios (CSRF).
 //        options.Cookie.MaxAge = TimeSpan.FromMinutes(60);//Cuanto dura la sesion al usuario
 //    });
+//---------------------------------------------------------------------------
+//CONFIGURACION PARA CLAVE SIMETRICA
+//builder.Services.AddAuthentication(options =>
+//{
+//    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+//    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+//    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+//}).AddCookie(options =>
+//{
+//    options.Cookie.HttpOnly = true;
+//    options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+//    options.LoginPath = "/Auth/Login";
+//    options.LogoutPath = "/Auth/Logout";
+//    options.SlidingExpiration = true;
+//})
+//.AddJwtBearer(options =>
+//{
+//    // Configura las opciones para la validación del token JWT.
+//    options.TokenValidationParameters = new TokenValidationParameters
+//    {
+//        // Activa la validación del emisor del token.
+//        /*En un token JWT, el emisor (o “issuer”) es quien emite el token*/
+//        /*ValidateIssuer = true: Esto verifica que el token fue creado por tu aplicación. Es como comprobar la 
+//         * firma en una carta para asegurarte de que fue escrita por la persona correcta.*/
+//        /*
+//            El emisor (Issuer) es quien crea y firma el token, similar a la persona que escribe y envía una carta.
+//            El público (Audience) es la entidad para la que se destina el token, similar a la persona que recibe la carta.
+
+//        Al habilitar ValidateIssuer y ValidateAudience, estás asegurándote de que el token fue emitido por 
+//        la entidad correcta (JwtIssuer) y está destinado a la aplicación correcta (JwtAudience). Esto es similar a verificar
+//        el remitente y el destinatario de una carta para asegurarte de que fue enviada por la persona correcta 
+//        y a la dirección correcta.
+//         */
+//        ValidateIssuer = true,
+//        // Establece el emisor válido. El emisor es quien emite el token.
+//        ValidIssuer = builder.Configuration["JwtIssuer"],
+//        // Activa la validación del público del token.
+//        /*Esto verifica que el token está destinado a ser usado con tu aplicación. Es como comprobar la dirección en un paquete para asegurarte de que fue enviado al lugar correcto.*/
+//        ValidateAudience = true,
+//        // Establece el público válido. El público es a quién está destinado el token.
+//        ValidAudience = builder.Configuration["JwtAudience"],
+//        // Activa la validación de la vida útil del token.
+//        ValidateLifetime = true,
+//        // Activa la validación de la clave de firma del emisor.
+//        ValidateIssuerSigningKey = true,
+//        // Establece la clave de firma del emisor. La clave de firma se utiliza para verificar que el emisor
+//        // del token es quien dice ser y para asegurar que el token no ha sido alterado en tránsito.
+//        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret))
+//    };
+//    // Configura los eventos que se pueden manejar durante el procesamiento del token JWT.
+//    options.Events = new JwtBearerEvents
+//    {
+//        // Maneja el evento de recepción del mensaje(token).
+//        OnMessageReceived = context =>
+//        {
+//            // Establece el token del contexto a partir de la cookie "auth".
+//            context.Token = context.Request.Cookies["auth"];
+//            // Completa la tarea.
+//            return Task.CompletedTask;
+//        },
+//    };
+//});
+//CONFIGURACION PARA CLAVE ASIMETRICA
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -101,47 +171,31 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
+    // Carga la clave pública desde la configuración
+    var publicKey = builder.Configuration["Jwt:PublicKey"];
+
+    // Convierte la clave pública a formato RSA
+    var rsa = new RSACryptoServiceProvider();
+    rsa.FromXmlString(publicKey);
+
     // Configura las opciones para la validación del token JWT.
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        // Activa la validación del emisor del token.
-        /*En un token JWT, el emisor (o “issuer”) es quien emite el token*/
-        /*ValidateIssuer = true: Esto verifica que el token fue creado por tu aplicación. Es como comprobar la 
-         * firma en una carta para asegurarte de que fue escrita por la persona correcta.*/
-        /*
-            El emisor (Issuer) es quien crea y firma el token, similar a la persona que escribe y envía una carta.
-            El público (Audience) es la entidad para la que se destina el token, similar a la persona que recibe la carta.
-
-        Al habilitar ValidateIssuer y ValidateAudience, estás asegurándote de que el token fue emitido por 
-        la entidad correcta (JwtIssuer) y está destinado a la aplicación correcta (JwtAudience). Esto es similar a verificar
-        el remitente y el destinatario de una carta para asegurarte de que fue enviada por la persona correcta 
-        y a la dirección correcta.
-         */
         ValidateIssuer = true,
-        // Establece el emisor válido. El emisor es quien emite el token.
         ValidIssuer = builder.Configuration["JwtIssuer"],
-        // Activa la validación del público del token.
-        /*Esto verifica que el token está destinado a ser usado con tu aplicación. Es como comprobar la dirección en un paquete para asegurarte de que fue enviado al lugar correcto.*/
         ValidateAudience = true,
-        // Establece el público válido. El público es a quién está destinado el token.
         ValidAudience = builder.Configuration["JwtAudience"],
-        // Activa la validación de la vida útil del token.
         ValidateLifetime = true,
-        // Activa la validación de la clave de firma del emisor.
         ValidateIssuerSigningKey = true,
-        // Establece la clave de firma del emisor. La clave de firma se utiliza para verificar que el emisor
-        // del token es quien dice ser y para asegurar que el token no ha sido alterado en tránsito.
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret))
+
+        // Establece la clave de firma del emisor
+        IssuerSigningKey = new RsaSecurityKey(rsa)
     };
-    // Configura los eventos que se pueden manejar durante el procesamiento del token JWT.
     options.Events = new JwtBearerEvents
     {
-        // Maneja el evento de recepción del mensaje(token).
         OnMessageReceived = context =>
         {
-            // Establece el token del contexto a partir de la cookie "auth".
             context.Token = context.Request.Cookies["auth"];
-            // Completa la tarea.
             return Task.CompletedTask;
         },
     };
@@ -206,64 +260,127 @@ app.UseAuthentication();
 //Determina que puede hacer o no el usuario
 app.UseAuthorization();
 app.UseSession();
+//MIDDLEWARE CONFIGURADO PARA CLAVE SIMETRICA
+//app.Use(async (context, next) =>
+//{
+//    try
+//    {
+//        var token = context.Request.Cookies["auth"];
+//        // Si el token existe...
+//        if (token != null)
+//        {
+//            // Crea un nuevo manejador de tokens JWT.
+//            var handler = new JwtSecurityTokenHandler();
+//            // Valida el token.
+//            var principal = handler.ValidateToken(token, new TokenValidationParameters
+//            {
+//                /*Esta parte se ejecuta cuando el usuario hace el login:
+//                ValidateIssuerSigningKey = true: Valida que la firma del token es correcta.
+//                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)): establece el como se tiene que validar el token
+//                ValidateIssuer = true:  activa la validación del emisor del token para comprobar que el emisor es quien dice ser.
+//                ValidIssuer = builder.Configuration["JwtIssuer"]: esto hace posible esa comprobacion de emisor
+//                ValidateAudience = true:  Activa la validación del público del token, esto es para comprobar que el usuario tiene un token valido
+//                ValidAudience = builder.Configuration["JwtAudience"]:  esto es el valor que se comprueba para ver si el token que tiene el
+//                usuario es valido
+//                */
+//                // Valida la firma del token.
+//                ValidateIssuerSigningKey = true,
+//                // Establece la clave que se debe usar para validar la firma del token.
+//                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
+//                ValidateIssuer = true,
+//                ValidIssuer = builder.Configuration["JwtIssuer"],
+//                ValidateAudience = true,
+//                ValidAudience = builder.Configuration["JwtAudience"],
+//                //Toda esta configuracion se almacena en la variable validatedToken
+//            }, out var validatedToken);
+
+//            // Establece el usuario del contexto actual a partir de la información del token.
+//            //Detecta que usuario esta logueado, permitiendo hacer esa verificacion
+//            context.User = principal;
+//            token = context.Session.GetString("auth") ?? context.Request.Cookies["auth"];
+//            context.Session.SetString("auth", token);
+
+
+//        }
+
+//        // Pasa el control al siguiente middleware en la cadena.
+//        await next.Invoke();
+//    }
+//    catch (SecurityTokenException ex)
+//    {
+
+//        var logger = log4net.LogManager.GetLogger(typeof(Program));
+//        logger.Error("Error al validar el token", ex);
+//    }
+//    // Obtiene el token de la cookie "auth".
+
+//});
+//MIDDLEWARE PARA CLAVE ASIMETRICA FIJA
 app.Use(async (context, next) =>
 {
-    try
-    {
-        var token = context.Request.Cookies["auth"];
-        // Si el token existe...
-        if (token != null)
+   
+    
+        try
         {
-            // Crea un nuevo manejador de tokens JWT.
-            var handler = new JwtSecurityTokenHandler();
-            // Valida el token.
-            var principal = handler.ValidateToken(token, new TokenValidationParameters
+            var token = context.Request.Cookies["auth"];
+            if (token == null)
             {
-                /*Esta parte se ejecuta cuando el usuario hace el login:
-                ValidateIssuerSigningKey = true: Valida que la firma del token es correcta.
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)): establece el como se tiene que validar el token
-                ValidateIssuer = true:  activa la validación del emisor del token para comprobar que el emisor es quien dice ser.
-                ValidIssuer = builder.Configuration["JwtIssuer"]: esto hace posible esa comprobacion de emisor
-                ValidateAudience = true:  Activa la validación del público del token, esto es para comprobar que el usuario tiene un token valido
-                ValidAudience = builder.Configuration["JwtAudience"]:  esto es el valor que se comprueba para ver si el token que tiene el
-                usuario es valido
-                */
-                // Valida la firma del token.
-                ValidateIssuerSigningKey = true,
-                // Establece la clave que se debe usar para validar la firma del token.
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
-                ValidateIssuer = true,
-                ValidIssuer = builder.Configuration["JwtIssuer"],
-                ValidateAudience = true,
-                ValidAudience = builder.Configuration["JwtAudience"],
-                //Toda esta configuracion se almacena en la variable validatedToken
-            }, out var validatedToken);
-
-            // Establece el usuario del contexto actual a partir de la información del token.
-            //Detecta que usuario esta logueado, permitiendo hacer esa verificacion
-            context.User = principal;
-            token = context.Session.GetString("auth") ?? context.Request.Cookies["auth"];
-            context.Session.SetString("auth", token);
+            var collectioncookies = context.Request.Cookies;
+            foreach (var cookie in collectioncookies)
+            {
+                context.Response.Cookies.Delete(cookie.Key);
+            }
+            //Comprueba si la ruta actual es distinta de /Auth/Login. Si la ruta no es /Auth/Login 
+            //reedirige a /Auth/Login
+            if (context.Request.Path != "/Auth/Login")
+            {
+                context.Response.Redirect("/Auth/Login");
+            }
 
 
         }
+        // Si el token existe...
+        if (token != null)
+            {
+                // Crea un nuevo manejador de tokens JWT.
+                var handler = new JwtSecurityTokenHandler();
 
-        // Pasa el control al siguiente middleware en la cadena.
-        await next.Invoke();
-    }
-    catch (SecurityTokenException ex)
-    {
+                // Carga la clave pública desde la configuración
+                var publicKey = builder.Configuration["Jwt:PublicKey"];
 
-        var logger = log4net.LogManager.GetLogger(typeof(Program));
-        logger.Error("Error al validar el token", ex);
-    }
-    // Obtiene el token de la cookie "auth".
-   
+                // Convierte la clave pública a formato RSA
+                var rsa = new RSACryptoServiceProvider();
+                rsa.FromXmlString(publicKey);
+
+                // Valida el token.
+                var principal = handler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    // Establece la clave que se debe usar para validar la firma del token.
+                    IssuerSigningKey = new RsaSecurityKey(rsa),
+                    ValidateIssuer = true,
+                    ValidIssuer = builder.Configuration["JwtIssuer"],
+                    ValidateAudience = true,
+                    ValidAudience = builder.Configuration["JwtAudience"],
+                }, out var validatedToken);
+
+                // Establece el usuario del contexto actual a partir de la información del token.
+                context.User = principal;
+                token = context.Session.GetString("auth") ?? context.Request.Cookies["auth"];
+                context.Session.SetString("auth", token);
+            }
+
+            // Pasa el control al siguiente middleware en la cadena.
+            await next.Invoke();
+        }
+        catch (SecurityTokenException ex)
+        {
+            var logger = log4net.LogManager.GetLogger(typeof(Program));
+            logger.Error("Error al validar el token", ex);
+
+        }
+    
 });
-
-
-
-
 
 app.MapControllerRoute(
     name: "default",
