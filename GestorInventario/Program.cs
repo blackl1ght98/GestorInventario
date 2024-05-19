@@ -20,6 +20,8 @@ using System.Text.Json.Serialization;
 using Aspose.Pdf.Forms;
 using Org.BouncyCastle.Asn1.X9;
 using System.Net;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.AspNetCore.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -74,6 +76,8 @@ builder.Services.AddTransient<IAdminCrudOperation, CrudOperation>();
 builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
 //------------------------------------------------------
 builder.Services.AddHttpContextAccessor();
+
+
 //CONFIGURACION PARA AUTENTICACION BASADA EN COOKIES
 //builder.Services.AddAuthentication(options =>
 //{
@@ -155,7 +159,52 @@ builder.Services.AddHttpContextAccessor();
 //        },
 //    };
 //});
-//CONFIGURACION PARA CLAVE ASIMETRICA
+//CONFIGURACION PARA CLAVE ASIMETRICA FIJA
+//builder.Services.AddAuthentication(options =>
+//{
+//    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+//    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+//    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+//}).AddCookie(options =>
+//{
+//    options.Cookie.HttpOnly = true;
+//    options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+//    options.LoginPath = "/Auth/Login";
+//    options.LogoutPath = "/Auth/Logout";
+//    options.SlidingExpiration = true;
+//})
+//.AddJwtBearer(options =>
+//{
+//    // Carga la clave pública desde la configuración
+//    var publicKey = builder.Configuration["Jwt:PublicKey"];
+
+//    // Convierte la clave pública a formato RSA
+//    var rsa = new RSACryptoServiceProvider();
+//    rsa.FromXmlString(publicKey);
+
+//    // Configura las opciones para la validación del token JWT.
+//    options.TokenValidationParameters = new TokenValidationParameters
+//    {
+//        ValidateIssuer = true,
+//        ValidIssuer = builder.Configuration["JwtIssuer"],
+//        ValidateAudience = true,
+//        ValidAudience = builder.Configuration["JwtAudience"],
+//        ValidateLifetime = true,
+//        ValidateIssuerSigningKey = true,
+
+//        // Establece la clave de firma del emisor
+//        IssuerSigningKey = new RsaSecurityKey(rsa)
+//    };
+//    options.Events = new JwtBearerEvents
+//    {
+//        OnMessageReceived = context =>
+//        {
+//            context.Token = context.Request.Cookies["auth"];
+//            return Task.CompletedTask;
+//        },
+//    };
+//});
+//CONFIGURACION PARA CLAVE ASIMETRICA DINAMICA SOLO MANEJA 1 SESION
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -171,35 +220,39 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    // Carga la clave pública desde la configuración
-    var publicKey = builder.Configuration["Jwt:PublicKey"];
-
-    // Convierte la clave pública a formato RSA
-    var rsa = new RSACryptoServiceProvider();
-    rsa.FromXmlString(publicKey);
-
-    // Configura las opciones para la validación del token JWT.
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidIssuer = builder.Configuration["JwtIssuer"],
-        ValidateAudience = true,
-        ValidAudience = builder.Configuration["JwtAudience"],
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-
-        // Establece la clave de firma del emisor
-        IssuerSigningKey = new RsaSecurityKey(rsa)
-    };
     options.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
         {
+           
+
+            // Carga la clave pública desde las cookies
+            var publicKey = context.HttpContext.Request.Cookies["PublicKey"];
+
+            // Convierte la clave pública a formato RSA
+            var rsa = new RSACryptoServiceProvider();
+            rsa.FromXmlString(publicKey);
+
+            // Configura las opciones para la validación del token JWT.
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidIssuer = builder.Configuration["JwtIssuer"],
+                ValidateAudience = true,
+                ValidAudience = builder.Configuration["JwtAudience"],
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+
+                // Establece la clave de firma del emisor
+                IssuerSigningKey = new RsaSecurityKey(rsa)
+            };
+
             context.Token = context.Request.Cookies["auth"];
             return Task.CompletedTask;
         },
     };
 });
+
 /*
 
     options.Preload = true;: Esta opción indica que quieres incluir tu sitio en la lista de precarga de HSTS. 
@@ -316,71 +369,136 @@ app.UseSession();
 
 //});
 //MIDDLEWARE PARA CLAVE ASIMETRICA FIJA
+//app.Use(async (context, next) =>
+//{
+
+
+//    try
+//    {
+//        var token = context.Request.Cookies["auth"];
+//        if (token == null)
+//        {
+//            var collectioncookies = context.Request.Cookies;
+//            foreach (var cookie in collectioncookies)
+//            {
+//                context.Response.Cookies.Delete(cookie.Key);
+//            }
+//            //Comprueba si la ruta actual es distinta de /Auth/Login. Si la ruta no es /Auth/Login 
+//            //reedirige a /Auth/Login
+//            if (context.Request.Path != "/Auth/Login")
+//            {
+//                context.Response.Redirect("/Auth/Login");
+//            }
+
+
+//        }
+//        // Si el token existe...
+//        if (token != null)
+//        {
+//            // Crea un nuevo manejador de tokens JWT.
+//            var handler = new JwtSecurityTokenHandler();
+
+//            // Carga la clave pública desde la configuración
+//            var publicKey = builder.Configuration["Jwt:PublicKey"];
+
+//            // Convierte la clave pública a formato RSA
+//            var rsa = new RSACryptoServiceProvider();
+//            rsa.FromXmlString(publicKey);
+
+//            // Valida el token.
+//            var principal = handler.ValidateToken(token, new TokenValidationParameters
+//            {
+//                ValidateIssuerSigningKey = true,
+//                // Establece la clave que se debe usar para validar la firma del token.
+//                IssuerSigningKey = new RsaSecurityKey(rsa),
+//                ValidateIssuer = true,
+//                ValidIssuer = builder.Configuration["JwtIssuer"],
+//                ValidateAudience = true,
+//                ValidAudience = builder.Configuration["JwtAudience"],
+//            }, out var validatedToken);
+
+//            // Establece el usuario del contexto actual a partir de la información del token.
+//            context.User = principal;
+//            token = context.Session.GetString("auth") ?? context.Request.Cookies["auth"];
+//            context.Session.SetString("auth", token);
+//        }
+
+//        // Pasa el control al siguiente middleware en la cadena.
+//        await next.Invoke();
+//    }
+//    catch (SecurityTokenException ex)
+//    {
+//        var logger = log4net.LogManager.GetLogger(typeof(Program));
+//        logger.Error("Error al validar el token", ex);
+
+//    }
+
+//});
+//MIDDLEWARE PARA MANEJO ASIMETRICO CON CLAVES DINAMICAS SOLO MANEJA 1 SESION
 app.Use(async (context, next) =>
 {
-   
-    
-        try
+    try
+    {
+        var httpContextAccessor = context.RequestServices.GetRequiredService<IHttpContextAccessor>();
+
+        var token = context.Request.Cookies["auth"];
+        if (token == null)
         {
-            var token = context.Request.Cookies["auth"];
-            if (token == null)
-            {
             var collectioncookies = context.Request.Cookies;
             foreach (var cookie in collectioncookies)
             {
                 context.Response.Cookies.Delete(cookie.Key);
             }
-            //Comprueba si la ruta actual es distinta de /Auth/Login. Si la ruta no es /Auth/Login 
-            //reedirige a /Auth/Login
-            if (context.Request.Path != "/Auth/Login")
-            {
-                context.Response.Redirect("/Auth/Login");
-            }
-
-
         }
         // Si el token existe...
         if (token != null)
-            {
-                // Crea un nuevo manejador de tokens JWT.
-                var handler = new JwtSecurityTokenHandler();
-
-                // Carga la clave pública desde la configuración
-                var publicKey = builder.Configuration["Jwt:PublicKey"];
-
-                // Convierte la clave pública a formato RSA
-                var rsa = new RSACryptoServiceProvider();
-                rsa.FromXmlString(publicKey);
-
-                // Valida el token.
-                var principal = handler.ValidateToken(token, new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    // Establece la clave que se debe usar para validar la firma del token.
-                    IssuerSigningKey = new RsaSecurityKey(rsa),
-                    ValidateIssuer = true,
-                    ValidIssuer = builder.Configuration["JwtIssuer"],
-                    ValidateAudience = true,
-                    ValidAudience = builder.Configuration["JwtAudience"],
-                }, out var validatedToken);
-
-                // Establece el usuario del contexto actual a partir de la información del token.
-                context.User = principal;
-                token = context.Session.GetString("auth") ?? context.Request.Cookies["auth"];
-                context.Session.SetString("auth", token);
-            }
-
-            // Pasa el control al siguiente middleware en la cadena.
-            await next.Invoke();
-        }
-        catch (SecurityTokenException ex)
         {
-            var logger = log4net.LogManager.GetLogger(typeof(Program));
-            logger.Error("Error al validar el token", ex);
+            // Crea un nuevo manejador de tokens JWT.
+            var handler = new JwtSecurityTokenHandler();
 
+            // Carga la clave pública desde las cookies
+            var publicKey = httpContextAccessor.HttpContext.Request.Cookies["PublicKey"];
+            if(publicKey == null)
+            {
+                var collectioncookies = context.Request.Cookies;
+                foreach (var cookie in collectioncookies)
+                {
+                    context.Response.Cookies.Delete(cookie.Key);
+                }
+
+            }
+            // Convierte la clave pública a formato RSA
+            var rsa = new RSACryptoServiceProvider();
+            rsa.FromXmlString(publicKey);
+
+            // Valida el token.
+            var principal = handler.ValidateToken(token, new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                // Establece la clave que se debe usar para validar la firma del token.
+                IssuerSigningKey = new RsaSecurityKey(rsa),
+                ValidateIssuer = true,
+                ValidIssuer = builder.Configuration["JwtIssuer"],
+                ValidateAudience = true,
+                ValidAudience = builder.Configuration["JwtAudience"],
+            }, out var validatedToken);
+
+            // Establece el usuario del contexto actual a partir de la información del token.
+            context.User = principal;
+            token = context.Session.GetString("auth") ?? context.Request.Cookies["auth"];
+            context.Session.SetString("auth", token);
         }
-    
+
+        // Pasa el control al siguiente middleware en la cadena.
+        await next.Invoke();
+    }
+    catch (SecurityTokenException ex)
+    {
+        var logger = log4net.LogManager.GetLogger(typeof(Program));
+        logger.Error("Error al validar el token", ex);
+    }
 });
+
 
 app.MapControllerRoute(
     name: "default",
