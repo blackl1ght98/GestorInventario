@@ -48,7 +48,7 @@ namespace GestorInventario.Infraestructure.Controllers
       
         [AllowAnonymous]
         [HttpPost]
-        [ValidateAntiForgeryToken]
+       
         public async Task<IActionResult> Login(LoginViewModel model)
         {
             try
@@ -83,8 +83,9 @@ namespace GestorInventario.Infraestructure.Controllers
                             {
                                 HttpOnly = true,
                                 SameSite = SameSiteMode.Strict,
-                                MaxAge = TimeSpan.FromMinutes(60),
+                               
                                 Secure = true,
+                                Expires=null
                             });
 
                             // Crear una identidad de usuario y firmar al usuario
@@ -126,9 +127,34 @@ namespace GestorInventario.Infraestructure.Controllers
                 return BadRequest("Error al realizar el login intentelo de nuevo mas tarde o contacte con el administrador");
             }
         }
-
         [AllowAnonymous]
         public async Task<IActionResult> Logout()
+        {
+            try
+            {
+                // Obtiene las cookies del navegador.
+                var cookieCollection = Request.Cookies;
+
+                // Recorre todas las cookies y las elimina.
+                foreach (var cookie in cookieCollection)
+                {
+                    Response.Cookies.Delete(cookie.Key);
+                }
+
+                // Cierra la sesión.
+                await HttpContext.SignOutAsync();
+
+                return RedirectToAction("Index", "Home");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al cerrar sesion");
+                return BadRequest("Error al cerrar sesion intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
+            }
+        }
+        [AllowAnonymous]
+        [HttpPost]
+        public async Task<IActionResult> LogoutScript()
         {
             try
             {

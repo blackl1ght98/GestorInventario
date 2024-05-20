@@ -22,6 +22,8 @@ using Org.BouncyCastle.Asn1.X9;
 using System.Net;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
+using Microsoft.Extensions.Caching.Memory;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -204,7 +206,8 @@ builder.Services.AddHttpContextAccessor();
 //        },
 //    };
 //});
-//CONFIGURACION PARA CLAVE ASIMETRICA DINAMICA SOLO MANEJA 1 SESION
+//CONFIGURACION PARA CLAVE ASIMETRICA DINAMICA MULTIUSUARIO
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -213,7 +216,6 @@ builder.Services.AddAuthentication(options =>
 }).AddCookie(options =>
 {
     options.Cookie.HttpOnly = true;
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
     options.LoginPath = "/Auth/Login";
     options.LogoutPath = "/Auth/Logout";
     options.SlidingExpiration = true;
@@ -224,10 +226,72 @@ builder.Services.AddAuthentication(options =>
     {
         OnMessageReceived = context =>
         {
-           
+            //Variable que almacena todas las cookies
+            var collectioncookies = context.Request.Cookies;
+            //Esta manera de poner las variables permite acceder a metodos creados por nosotros o metodos internos de .NET
+           //Variable que almacena la manera de acceder a IhttpcontectAccessor
+            var httpContextAccessor = context.HttpContext.RequestServices.GetRequiredService<IHttpContextAccessor>();
+            //Variable que almacena la manera de acceder a TokenService
+            var tokenservice = context.HttpContext.RequestServices.GetRequiredService<TokenService>();
+            //Variable que almacena la manera de acceder a IMemoryCache
+            var memoryCache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCache>();
 
-            // Carga la clave pública desde las cookies
-            var publicKey = context.HttpContext.Request.Cookies["PublicKey"];
+            // Carga la clave pública cifrada desde las cookies
+            var publicKeyCifrada = httpContextAccessor.HttpContext.Request.Cookies["PublicKey"];
+            //Si la clave cifrada es null...
+            //if(publicKeyCifrada == null)
+            //{
+            //     //recorre la variable que almacena todas las cookies y...
+            //    foreach (var cookie in collectioncookies)
+            //    {
+            //        //elimina todas las cookies
+            //        context.Response.Cookies.Delete(cookie.Key);
+            //    }
+            //    //Si la ruta es distinta ha "/Auth/Login"...
+            //    if (context.Request.Path != "/Auth/Login")
+            //    {
+            //        //reedirige a "/Auth/Login"
+            //        context.Response.Redirect("/Auth/Login");
+            //    }
+            //}
+            //Obtiene el id del usuario de los claims del token
+            var userId = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            // Obtiene la clave de cifrado del usuario
+            memoryCache.TryGetValue(userId, out byte[] claveCifrado);
+            //Si la claveCifrado es null....
+            if(claveCifrado == null)
+            {
+                //Recorre la variable que almacena todas las cookies y....
+                foreach (var cookie in collectioncookies)
+                {
+                    //elimina todas las cookies
+                    context.Response.Cookies.Delete(cookie.Key);
+                }
+                //Si la ruta es distinta a "/Auth/Login"....
+                if (context.Request.Path != "/Auth/Login")
+                {
+                    //redirige a "/Auth/Login"
+                    context.Response.Redirect("/Auth/Login");
+                }
+            }
+            // Descifra la clave pública
+            var publicKey = Encoding.UTF8.GetString(tokenservice.Descifrar(Convert.FromBase64String(publicKeyCifrada), claveCifrado));
+            //Si la claveCifrado es null....
+            if (claveCifrado == null)
+            {
+                //Recorre la variable que almacena todas las cookies y....
+                foreach (var cookie in collectioncookies)
+                {
+                    //elimina todas las cookies
+                    context.Response.Cookies.Delete(cookie.Key);
+                }
+                //Si la ruta es distinta a "/Auth/Login"....
+                if (context.Request.Path != "/Auth/Login")
+                {
+                    //redirige a "/Auth/Login"
+                    context.Response.Redirect("/Auth/Login");
+                }
+            }
 
             // Convierte la clave pública a formato RSA
             var rsa = new RSACryptoServiceProvider();
@@ -252,6 +316,7 @@ builder.Services.AddAuthentication(options =>
         },
     };
 });
+
 
 /*
 
@@ -368,7 +433,7 @@ app.UseSession();
 //    // Obtiene el token de la cookie "auth".
 
 //});
-//MIDDLEWARE PARA CLAVE ASIMETRICA FIJA
+//MIDDLEWARE PARA CLAVE ASIMETRICA FIJA MULTIUSUARIO
 //app.Use(async (context, next) =>
 //{
 
@@ -434,20 +499,29 @@ app.UseSession();
 //    }
 
 //});
-//MIDDLEWARE PARA MANEJO ASIMETRICO CON CLAVES DINAMICAS SOLO MANEJA 1 SESION
+//MIDDLEWARE PARA MANEJO ASIMETRICO CON CLAVES DINAMICAS MULTIUSUARIO
+
 app.Use(async (context, next) =>
 {
     try
     {
+        var collectioncookies = context.Request.Cookies;
+        
         var httpContextAccessor = context.RequestServices.GetRequiredService<IHttpContextAccessor>();
-
+        var tokenservice = context.RequestServices.GetRequiredService<TokenService>();
+        var memoryCache = context.RequestServices.GetRequiredService<IMemoryCache>();
         var token = context.Request.Cookies["auth"];
+
         if (token == null)
         {
-            var collectioncookies = context.Request.Cookies;
+
             foreach (var cookie in collectioncookies)
             {
                 context.Response.Cookies.Delete(cookie.Key);
+            }
+            if (context.Request.Path != "/Auth/Login")
+            {
+                context.Response.Redirect("/Auth/Login");
             }
         }
         // Si el token existe...
@@ -455,38 +529,78 @@ app.Use(async (context, next) =>
         {
             // Crea un nuevo manejador de tokens JWT.
             var handler = new JwtSecurityTokenHandler();
-
-            // Carga la clave pública desde las cookies
-            var publicKey = httpContextAccessor.HttpContext.Request.Cookies["PublicKey"];
-            if(publicKey == null)
+            // Carga la clave pública cifrada desde las cookies
+            var publicKeyCifrada = httpContextAccessor.HttpContext.Request.Cookies["PublicKey"];
+            if (publicKeyCifrada == null)
             {
-                var collectioncookies = context.Request.Cookies;
+                
+                
                 foreach (var cookie in collectioncookies)
                 {
                     context.Response.Cookies.Delete(cookie.Key);
                 }
+                if (context.Request.Path != "/Auth/Login")
+                {
+                    context.Response.Redirect("/Auth/Login");
+                }
+            }
+
+            // Obtiene la clave de cifrado del usuario
+            var userId = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            memoryCache.TryGetValue(userId, out byte[] claveCifrado);
+            try
+            {
+                var publicKey = Encoding.UTF8.GetString(tokenservice.Descifrar(Convert.FromBase64String(publicKeyCifrada), claveCifrado));
+
+                if (publicKey == null)
+                {
+
+                    foreach (var cookie in collectioncookies)
+                    {
+                        context.Response.Cookies.Delete(cookie.Key);
+                    }
+                    if (context.Request.Path != "/Auth/Login")
+                    {
+                        context.Response.Redirect("/Auth/Login");
+                    }
+                }
+                // Convierte la clave pública a formato RSA
+                var rsa = new RSACryptoServiceProvider();
+                rsa.FromXmlString(publicKey);
+
+                // Valida el token.
+                var principal = handler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    // Establece la clave que se debe usar para validar la firma del token.
+                    IssuerSigningKey = new RsaSecurityKey(rsa),
+                    ValidateIssuer = true,
+                    ValidIssuer = builder.Configuration["JwtIssuer"],
+                    ValidateAudience = true,
+                    ValidAudience = builder.Configuration["JwtAudience"],
+                }, out var validatedToken);
+
+                // Establece el usuario del contexto actual a partir de la información del token.
+                context.User = principal;
+                token = context.Session.GetString("auth") ?? context.Request.Cookies["auth"];
+                context.Session.SetString("auth", token);
 
             }
-            // Convierte la clave pública a formato RSA
-            var rsa = new RSACryptoServiceProvider();
-            rsa.FromXmlString(publicKey);
-
-            // Valida el token.
-            var principal = handler.ValidateToken(token, new TokenValidationParameters
+            catch (Exception ex)
             {
-                ValidateIssuerSigningKey = true,
-                // Establece la clave que se debe usar para validar la firma del token.
-                IssuerSigningKey = new RsaSecurityKey(rsa),
-                ValidateIssuer = true,
-                ValidIssuer = builder.Configuration["JwtIssuer"],
-                ValidateAudience = true,
-                ValidAudience = builder.Configuration["JwtAudience"],
-            }, out var validatedToken);
 
-            // Establece el usuario del contexto actual a partir de la información del token.
-            context.User = principal;
-            token = context.Session.GetString("auth") ?? context.Request.Cookies["auth"];
-            context.Session.SetString("auth", token);
+                foreach (var cookie in collectioncookies)
+                {
+                    context.Response.Cookies.Delete(cookie.Key);
+                }
+                if (context.Request.Path != "/Auth/Login")
+                {
+                    context.Response.Redirect("/Auth/Login");
+                }
+            }
+            
+           
+           
         }
 
         // Pasa el control al siguiente middleware en la cadena.
