@@ -99,7 +99,7 @@ namespace GestorInventario.Application.Services
         //        Rol = credencialesUsuario.IdRolNavigation.Nombre,
         //    };
         //}
-        //CONFIGURACION CLAVE ASIMETRICA DINAMICA SOLO CAPAZ DE MANEJAR 1 SESION
+        //CONFIGURACION CLAVE ASIMETRICA DINAMICA 
         public async Task<DTOLoginResponse> GenerarToken(Usuario credencialesUsuario)
         {
             var usuarioDB = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == credencialesUsuario.Id);
@@ -120,9 +120,21 @@ namespace GestorInventario.Application.Services
             var claveCifrado = GenerarClaveCifrado();
             var privateKeyCifrada = Cifrar(Encoding.UTF8.GetBytes(privateKey), claveCifrado);
             var publicKeyCifrada = Cifrar(Encoding.UTF8.GetBytes(publicKey), claveCifrado);
+            string claveCifradoString = Convert.ToBase64String(claveCifrado);
+
             // Guarda las claves en las cookies
-            _httpContextAccessor.HttpContext.Response.Cookies.Append("PrivateKey", Convert.ToBase64String(privateKeyCifrada), new CookieOptions { HttpOnly = true, IsEssential = true, Secure = true, SameSite = SameSiteMode.Strict, Expires=null });
-            _httpContextAccessor.HttpContext.Response.Cookies.Append("PublicKey", Convert.ToBase64String(publicKeyCifrada), new CookieOptions { HttpOnly = true, IsEssential = true, Secure = true, SameSite = SameSiteMode.Strict, Expires=null });
+            _httpContextAccessor.HttpContext.Response.Cookies.Append("PrivateKey", Convert.ToBase64String(privateKeyCifrada), new CookieOptions { HttpOnly = true, IsEssential = true, Secure = true, SameSite = SameSiteMode.Strict, Expires = null });
+            _httpContextAccessor.HttpContext.Response.Cookies.Append("PublicKey", Convert.ToBase64String(publicKeyCifrada), new CookieOptions { HttpOnly = true, IsEssential = true, Secure = true, SameSite = SameSiteMode.Strict, Expires = null });
+            //_httpContextAccessor.HttpContext.Response.Cookies.Append("ClaveCifrado", claveCifradoString, new CookieOptions
+            //{
+            //    // Configura la cookie para que sea segura y HttpOnly
+            //    HttpOnly = true,
+            //    IsEssential = true,
+            //    Secure = true,
+            //    SameSite = SameSiteMode.Strict,
+            //    Expires = null
+
+            //});
             // Guarda la clave de cifrado en la memoria del servidor
             _memoryCache.Set(credencialesUsuario.Id.ToString(), claveCifrado);
 

@@ -76,6 +76,8 @@ builder.Services.AddTransient<TokenService>();
 builder.Services.AddTransient<IAdminRepository,AdminRepository>();
 builder.Services.AddTransient<IAdminCrudOperation, CrudOperation>();
 builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
+
+builder.Services.AddTransient<IProductoRepository, ProductoRepository>();
 //------------------------------------------------------
 builder.Services.AddHttpContextAccessor();
 
@@ -229,37 +231,26 @@ builder.Services.AddAuthentication(options =>
             //Variable que almacena todas las cookies
             var collectioncookies = context.Request.Cookies;
             //Esta manera de poner las variables permite acceder a metodos creados por nosotros o metodos internos de .NET
-           //Variable que almacena la manera de acceder a IhttpcontectAccessor
+            //Variable que almacena la manera de acceder a IhttpcontectAccessor
             var httpContextAccessor = context.HttpContext.RequestServices.GetRequiredService<IHttpContextAccessor>();
             //Variable que almacena la manera de acceder a TokenService
             var tokenservice = context.HttpContext.RequestServices.GetRequiredService<TokenService>();
             //Variable que almacena la manera de acceder a IMemoryCache
             var memoryCache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCache>();
-
             // Carga la clave pública cifrada desde las cookies
             var publicKeyCifrada = httpContextAccessor.HttpContext.Request.Cookies["PublicKey"];
-            //Si la clave cifrada es null...
-            //if(publicKeyCifrada == null)
-            //{
-            //     //recorre la variable que almacena todas las cookies y...
-            //    foreach (var cookie in collectioncookies)
-            //    {
-            //        //elimina todas las cookies
-            //        context.Response.Cookies.Delete(cookie.Key);
-            //    }
-            //    //Si la ruta es distinta ha "/Auth/Login"...
-            //    if (context.Request.Path != "/Auth/Login")
-            //    {
-            //        //reedirige a "/Auth/Login"
-            //        context.Response.Redirect("/Auth/Login");
-            //    }
-            //}
             //Obtiene el id del usuario de los claims del token
             var userId = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             // Obtiene la clave de cifrado del usuario
-            memoryCache.TryGetValue(userId, out byte[] claveCifrado);
+             memoryCache.TryGetValue(userId, out byte[] claveCifrado);
+            //carga la clave de cifrado en las cookies
+            //var claveCifradoString = context.Request.Cookies["ClaveCifrado"];
+
+            // Convierte la cadena de la clave de cifrado a un array de bytes
+            //byte[] claveCifrado = Convert.FromBase64String(claveCifradoString);
+
             //Si la claveCifrado es null....
-            if(claveCifrado == null)
+            if (claveCifrado == null)
             {
                 //Recorre la variable que almacena todas las cookies y....
                 foreach (var cookie in collectioncookies)
@@ -437,26 +428,10 @@ app.UseSession();
 //app.Use(async (context, next) =>
 //{
 
-
 //    try
 //    {
 //        var token = context.Request.Cookies["auth"];
-//        if (token == null)
-//        {
-//            var collectioncookies = context.Request.Cookies;
-//            foreach (var cookie in collectioncookies)
-//            {
-//                context.Response.Cookies.Delete(cookie.Key);
-//            }
-//            //Comprueba si la ruta actual es distinta de /Auth/Login. Si la ruta no es /Auth/Login 
-//            //reedirige a /Auth/Login
-//            if (context.Request.Path != "/Auth/Login")
-//            {
-//                context.Response.Redirect("/Auth/Login");
-//            }
 
-
-//        }
 //        // Si el token existe...
 //        if (token != null)
 //        {
@@ -500,30 +475,15 @@ app.UseSession();
 
 //});
 //MIDDLEWARE PARA MANEJO ASIMETRICO CON CLAVES DINAMICAS MULTIUSUARIO
-
 app.Use(async (context, next) =>
 {
     try
     {
         var collectioncookies = context.Request.Cookies;
-        
         var httpContextAccessor = context.RequestServices.GetRequiredService<IHttpContextAccessor>();
         var tokenservice = context.RequestServices.GetRequiredService<TokenService>();
         var memoryCache = context.RequestServices.GetRequiredService<IMemoryCache>();
         var token = context.Request.Cookies["auth"];
-
-        if (token == null)
-        {
-
-            foreach (var cookie in collectioncookies)
-            {
-                context.Response.Cookies.Delete(cookie.Key);
-            }
-            if (context.Request.Path != "/Auth/Login")
-            {
-                context.Response.Redirect("/Auth/Login");
-            }
-        }
         // Si el token existe...
         if (token != null)
         {
@@ -533,8 +493,6 @@ app.Use(async (context, next) =>
             var publicKeyCifrada = httpContextAccessor.HttpContext.Request.Cookies["PublicKey"];
             if (publicKeyCifrada == null)
             {
-                
-                
                 foreach (var cookie in collectioncookies)
                 {
                     context.Response.Cookies.Delete(cookie.Key);
@@ -544,17 +502,22 @@ app.Use(async (context, next) =>
                     context.Response.Redirect("/Auth/Login");
                 }
             }
-
-            // Obtiene la clave de cifrado del usuario
-            var userId = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            memoryCache.TryGetValue(userId, out byte[] claveCifrado);
             try
             {
+                // Obtiene la clave de cifrado del usuario
+                var userId = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                //problema reedireccion paypal
+                 memoryCache.TryGetValue(userId, out byte[] claveCifrado);
+                /*Aqui tenemos la opcion de almacenar la clave de cifrado en las cookies, si queremos que se almacene en las cookies
+                 * quitamos los comentarios de las lineas de acontinuacion
+                // Obtiene la clave de cifrado del usuario como una cadena
+                //var claveCifradoString = context.Request.Cookies["ClaveCifrado"];
+                // Convierte la cadena de la clave de cifrado a un array de bytes
+               // byte[] claveCifrado = Convert.FromBase64String(claveCifradoString);
+                */
                 var publicKey = Encoding.UTF8.GetString(tokenservice.Descifrar(Convert.FromBase64String(publicKeyCifrada), claveCifrado));
-
                 if (publicKey == null)
                 {
-
                     foreach (var cookie in collectioncookies)
                     {
                         context.Response.Cookies.Delete(cookie.Key);
@@ -597,10 +560,10 @@ app.Use(async (context, next) =>
                 {
                     context.Response.Redirect("/Auth/Login");
                 }
+                var logger = log4net.LogManager.GetLogger(typeof(Program));
+                logger.Error("Error con las claves", ex);
             }
-            
-           
-           
+
         }
 
         // Pasa el control al siguiente middleware en la cadena.

@@ -69,7 +69,12 @@ vista parcial en las vistas que necesitan ese bloque de código.
         </div>
     </div>
 </div>
-
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-warning">
+        @TempData["ErrorMessage"]
+    </div>
+}
 
 <div class="row">
     @foreach (var producto in Model)

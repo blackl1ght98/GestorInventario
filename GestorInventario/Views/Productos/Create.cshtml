@@ -51,6 +51,12 @@
     </div>
 
 </div>
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-warning">
+        @TempData["ErrorMessage"]
+    </div>
+}
 <!--Para que funcionen las validaciones que hemos puesto tenemos que poner un section, un section es para poner algo
     en un lugar de tu pantalla principal la pantalla principal es el _Layaout.cshtml que comparten las vistas
     ¿porque se tiene que llamar Scripts? la razon es sencilla porque en el layaout principal se llama asi aqui se puede poner

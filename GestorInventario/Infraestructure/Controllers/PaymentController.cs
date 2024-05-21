@@ -8,6 +8,7 @@ using System.Globalization;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
 
 namespace GestorInventario.Infraestructure.Controllers
 {
@@ -27,7 +28,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             return View();
         }
-
+        [AllowAnonymous]
         public async Task<IActionResult> Success(string paymentId, string PayerID)
         {
             // Obtén el contexto de la API de PayPal
@@ -47,9 +48,6 @@ namespace GestorInventario.Infraestructure.Controllers
                 // Si el estado del pago no es "approved", entonces hubo un error
                 return BadRequest("Error al ejecutar el pago");
             }
-
-
-
 
             return View();
         }

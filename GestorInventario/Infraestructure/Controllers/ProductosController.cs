@@ -4,12 +4,14 @@ using GestorInventario.Domain.Models;
 using GestorInventario.Domain.Models.ViewModels;
 using GestorInventario.Interfaces;
 using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.Models.ViewModels;
 using GestorInventario.PaginacionLogica;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+
 using System.Linq;
 using System.Security.Claims;
 
@@ -23,7 +25,11 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly ILogger<ProductosController> _logger;
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly IEmailService _emailService;
-        public ProductosController(GestorInventarioContext context, IGestorArchivos gestorArchivos, PaginacionMetodo paginacionMetodo, ILogger<ProductosController> logger, IHttpContextAccessor contextAccessor, IEmailService emailService)
+        private readonly IProductoRepository _productoRepository;
+    
+        public ProductosController(GestorInventarioContext context, IGestorArchivos gestorArchivos, PaginacionMetodo paginacionMetodo, 
+        ILogger<ProductosController> logger, IHttpContextAccessor contextAccessor, IEmailService emailService, IProductoRepository producto
+       )
         {
             _context = context;
             _gestorArchivos = gestorArchivos;
@@ -31,15 +37,18 @@ namespace GestorInventario.Infraestructure.Controllers
             _logger = logger;
             _contextAccessor = contextAccessor;
             _emailService = emailService;
+            _productoRepository = producto;
+           
         }
 
         public async  Task<IActionResult> Index(string buscar, string ordenarPorprecio,int? idProveedor,[FromQuery] Paginacion paginacion)
         {
             try
             {
+                var productos = _productoRepository.ObtenerTodoProducto();
                 //var productos = _context.Productos.Include(x => x.IdProveedorNavigation).AsQueryable();
-                var productos = from p in _context.Productos.Include(x => x.IdProveedorNavigation)
-                                select p;
+                //var productos = from p in _context.Productos.Include(x => x.IdProveedorNavigation)
+                //                select p;
                 if (!String.IsNullOrEmpty(buscar))
                 {
                     productos = productos.Where(s => s.NombreProducto.Contains(buscar));
@@ -71,6 +80,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
+                TempData["ErrorMessage"] = "Tiempo de respuesta del servidor agotado";
                 _logger.LogError(ex, "Error al mostrar la vista");
                 return BadRequest("Error al mostrar la vista intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
             }
@@ -78,38 +88,46 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         public async Task VerificarStock()
         {
-            var emailUsuario = User.FindFirstValue(ClaimTypes.Email);
-
-            if (emailUsuario != null)
+            try
             {
-                var productos = await _context.Productos.ToListAsync();
+                var emailUsuario = User.FindFirstValue(ClaimTypes.Email);
 
-                foreach (var producto in productos)
+                if (emailUsuario != null)
                 {
-                    if (producto.Cantidad < 10) // Define tu propio umbral
+                    var productos = await _productoRepository.ObtenerTodos();
+                   // var productos = await _context.Productos.ToListAsync();
+
+                    foreach (var producto in productos)
                     {
-                        await _emailService.SendEmailAsyncLowStock(new DTOEmail
+                        if (producto.Cantidad < 10) // Define tu propio umbral
                         {
-                            ToEmail = emailUsuario
-                        }, producto);
+                            await _emailService.SendEmailAsyncLowStock(new DTOEmail
+                            {
+                                ToEmail = emailUsuario
+                            }, producto);
+                        }
                     }
                 }
+
             }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Tiempo de respuesta del servidor agotado";
+                _logger.LogError("Error al verificar el stock", ex);
+            }
+           
         }
-
-
-
-
         public async Task<IActionResult> Create()
         {
             try
             {
-                ViewData["Productos"] = new SelectList(_context.Proveedores, "Id", "NombreProveedor");
+                ViewData["Productos"] = new SelectList(await _productoRepository.ObtenerProveedores(), "Id", "NombreProveedor");
 
                 return View();
             }
             catch (Exception ex)
             {
+                TempData["ErrorMessage"] = "Tiempo de respuesta del servidor agotado";
                 _logger.LogError(ex, "Error al mostrar la vista de creacion del producto");
                 return BadRequest("Error al mostrar la vista intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
             }
@@ -128,88 +146,35 @@ namespace GestorInventario.Infraestructure.Controllers
                     //Esto toma en cuenta las validaciones puestas en BeerViewModel
                     if (ModelState.IsValid)
                     {
-                        //Crear Producto
-                        //Porque tenemos Imagen y Imagen1 facil Imagen almacena la ruta que es string y Imagen1 almacena la imgan en si
-                        var producto = new Producto()
-                        {
-                            NombreProducto = model.NombreProducto,
-                            Descripcion = model.Descripcion,
-                            Imagen = "",
-                            Cantidad = model.Cantidad,
-                            Precio = model.Precio,
-                            FechaCreacion=DateTime.Now,
-                            IdProveedor = model.IdProveedor,
-                        };
-                        if (producto.Imagen != null)
-                        {
-                            //MemoryStream--> guarda en memoria la imagen
-                            using (var memoryStream = new MemoryStream())
-                            {
-                                //Realiza una copia de la imagen
-                                await model.Imagen1.CopyToAsync(memoryStream);
-                                //La informacion de la imgen se convierte a un array
-                                var contenido = memoryStream.ToArray();
-                                //Se obtiene el formato de la imagen .png, .jpg etc
-                                var extension = Path.GetExtension(model.Imagen1.FileName);
-                                //Guarda la imagen en la carpeta imagenes
-                                producto.Imagen = await _gestorArchivos.GuardarArchivo(contenido, extension, "imagenes"
-                             );
-                            }
-                        }
-
-                        _context.Add(producto);
-                        ViewData["Productos"] = new SelectList(_context.Proveedores, "Id", "NombreProveedor");
-                        await _context.SaveChangesAsync();
-                        //Después de guardar el producto en la base de datos
-                        var historialProducto = new HistorialProducto()
-                        {
-                            UsuarioId = usuarioId,
-                            Fecha = DateTime.Now,
-                            Accion = _contextAccessor.HttpContext.Request.Method.ToString(),
-                            Ip = _contextAccessor.HttpContext.Connection.RemoteIpAddress?.ToString()
-                        };
-                        //var direccionIP = _contextAccessor.HttpContext.Connection.RemoteIpAddress?.ToString();
-
-                        _context.Add(historialProducto);
-                        await _context.SaveChangesAsync();
-                        var detalleHistorialProducto = new DetalleHistorialProducto
-                        {
-                            HistorialProductoId = historialProducto.Id, 
-                            ProductoId = producto.Id, 
-                            Cantidad = producto.Cantidad,
-                            NombreProducto=producto.NombreProducto,
-                            Precio=producto.Precio
-                        };
-
-                        // Guardar el detalle del historial de productos
-                        _context.Add(detalleHistorialProducto);
-                        await _context.SaveChangesAsync();
+                        var producto = await _productoRepository.CrearProducto(model);
+                        ViewData["Productos"] = new SelectList(await _productoRepository.ObtenerProveedores(), "Id", "NombreProveedor");
+                        var historialProducto=   await _productoRepository.CrearHistorial(usuarioId, producto);
+                        var detalleHistorialProducto= await _productoRepository.CrearDetalleHistorial(historialProducto,producto);
                         TempData["SuccessMessage"] = "Los datos se han creado con éxito.";
-
                         return RedirectToAction(nameof(Index));
                     }
                     return View(model);
                 }
                 return BadRequest("Error al crear el producto intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
-
             }
             catch (Exception ex)
             {
+                TempData["ErrorMessage"] = "Tiempo de respuesta del servidor agotado";
                 _logger.LogError(ex, "Error al crear el producto");
                 return BadRequest("Error al crear el producto intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
             }
-            
-
         }
         public async Task<IActionResult> Delete(int id)
         {
             try
             {
+                var producto= await _productoRepository.EliminarProductoObtencion(id);
                 //Consulta a base de datos
-                var producto = await _context.Productos.Include(p => p.IdProveedorNavigation).FirstOrDefaultAsync(m => m.Id == id);
+                //var producto = await _context.Productos.Include(p => p.IdProveedorNavigation).FirstOrDefaultAsync(m => m.Id == id);
                 //Si no hay cervezas muestra el error 404
                 if (producto == null)
                 {
+                    TempData["ErrorMessage"] = "Producto no encontrado";
                     return NotFound("Producto no encontrado");
                 }
                 //Llegados ha este punto hay cervezas por lo tanto se muestran las cervezas
@@ -217,6 +182,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
+                TempData["ErrorMessage"] = "Tiempo de respuesta del servidor agotado";
                 _logger.LogError(ex, "Error al eliminar el producto");
                 return BadRequest("Error al mostrar la vista de eliminacion intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
             }
@@ -230,21 +196,22 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                // Usamos 'Include' para cargar los datos relacionados de 'DetallePedidos' para cada producto.
-                // 'ThenInclude' se utiliza para cargar aún más datos relacionados. En este caso, los datos de 'Pedido' para cada 'DetallePedidos'.
-                // Finalmente, usamos otro 'Include' para cargar los datos del proveedor relacionados con cada producto.
+                
                 var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {
-                    var producto = await _context.Productos
-                    .Include(p => p.DetallePedidos)
-                        .ThenInclude(dp => dp.Pedido)
-                    .Include(p => p.IdProveedorNavigation).Include(x=>x.DetalleHistorialProductos)
-                    .FirstOrDefaultAsync(m => m.Id == Id);
+
+                    var producto = await _productoRepository.EliminarProducto(Id);
+                    //var producto = await _context.Productos
+                    //.Include(p => p.DetallePedidos)
+                    //    .ThenInclude(dp => dp.Pedido)
+                    //.Include(p => p.IdProveedorNavigation).Include(x=>x.DetalleHistorialProductos)
+                    //.FirstOrDefaultAsync(m => m.Id == Id);
 
                     if (producto == null)
                     {
+                        TempData["ErrorMessage"] = "No hay productos para eliminar";
                         return BadRequest("No hay productos para eliminar");
                     }
 
@@ -256,29 +223,8 @@ namespace GestorInventario.Infraestructure.Controllers
                         //A esta reedireccion se le pasa la vista Delete y al metodo que contiene esa vista la id del producto
                         return RedirectToAction(nameof(Delete), new { id = Id });
                     }
-                    //Después de guardar el producto en la base de datos
-                    //var historialProducto = new HistorialProducto
-                    //{
-                    //    Fecha = DateTime.Now,
-                    //    UsuarioId = usuarioId,
-                    //    Accion = "DELETE",
-                    //    Ip = _contextAccessor.HttpContext.Connection.RemoteIpAddress?.ToString()
-                    //};
-                    //_context.Add(historialProducto);
+                    _context.DeleteEntity(producto);
                     //await _context.SaveChangesAsync();
-                    //var detalleHistorialProducto = new DetalleHistorialProducto
-                    //{
-                    //    HistorialProductoId = historialProducto.Id,
-                    //    ProductoId = producto.Id,
-                    //    Cantidad = producto.Cantidad
-                    //};
-                    //_context.Add(detalleHistorialProducto);
-                    //await _context.SaveChangesAsync();
-
-                    _context.Productos.Remove(producto);
-
-
-                    await _context.SaveChangesAsync();
                     TempData["SuccessMessage"] = "Los datos se han eliminado con éxito.";
                     return RedirectToAction(nameof(Index));
                 }
@@ -287,6 +233,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
+                TempData["ErrorMessage"] = "Tiempo de respuesta del servidor agotado";
                 _logger.LogError(ex, "Error al eliminar el producto");
                 return BadRequest("Error al eliminar el producto intentelo de nuevo mas tarde si el problema persiste intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
             }
@@ -351,8 +298,8 @@ namespace GestorInventario.Infraestructure.Controllers
                                 Ip = _contextAccessor.HttpContext.Connection.RemoteIpAddress?.ToString()
                             };
 
-                            _context.Add(historialProducto1);
-                            await _context.SaveChangesAsync();
+                            _context.AddEntity(historialProducto1);
+                           // await _context.SaveChangesAsync();
                             // Guardar el estado original del producto en DetalleHistorialProducto
                             var detalleHistorialProducto1 = new DetalleHistorialProducto
                             {
@@ -362,8 +309,8 @@ namespace GestorInventario.Infraestructure.Controllers
                                 NombreProducto = productoOriginal.NombreProducto,
                                 Precio = productoOriginal.Precio,
                             };
-                            _context.Add(detalleHistorialProducto1);
-                            await _context.SaveChangesAsync();
+                            _context.AddEntity(detalleHistorialProducto1);
+                            //await _context.SaveChangesAsync();
                             // Obtener de nuevo el producto del contexto para poder actualizarlo
                             producto = await _context.Productos.FirstOrDefaultAsync(x => x.Id == model.Id);
                             // Después de guardar el producto en la base de datos
@@ -387,8 +334,8 @@ namespace GestorInventario.Infraestructure.Controllers
                                 }
                             }
                             
-                            _context.Productos.Update(producto);
-                            await _context.SaveChangesAsync();
+                            _context.UpdateEntity(producto);
+                            //await _context.SaveChangesAsync();
                             //Después de guardar el producto en la base de datos
                             var historialProducto = new HistorialProducto
                             {
@@ -397,8 +344,8 @@ namespace GestorInventario.Infraestructure.Controllers
                                 Accion = "Despues-PUT",
                                 Ip= _contextAccessor.HttpContext.Connection.RemoteIpAddress?.ToString()
                             };
-                            _context.Add(historialProducto);
-                            await _context.SaveChangesAsync();
+                            _context.AddEntity(historialProducto);
+                            //await _context.SaveChangesAsync();
                             var detalleHistorialProducto = new DetalleHistorialProducto
                             {
                                 HistorialProductoId = historialProducto.Id,
@@ -407,17 +354,17 @@ namespace GestorInventario.Infraestructure.Controllers
                                 NombreProducto=producto.NombreProducto,
                                 Precio=producto.Precio,
                             };
-                            _context.Add(detalleHistorialProducto);
-                            await _context.SaveChangesAsync();
+                            _context.AddEntity(detalleHistorialProducto);
+                            //await _context.SaveChangesAsync();
                             TempData["SuccessMessage"] = "Los datos se han modificado con éxito.";
-                        }
-                        
+                        }    
                     }
                     catch (DbUpdateConcurrencyException ex)
                     {
                         _logger.LogError(ex,"Error de concurrencia ");
                         if (!ProductoExist(model.Id))
                         {
+                            TempData["ErrorMessage"] = "Producto no encontrado";
                             return NotFound("Producto no encontrado");
                         }
                         else
@@ -440,8 +387,6 @@ namespace GestorInventario.Infraestructure.Controllers
             }
            
         }
-
-
         private bool ProductoExist(int Id)
         {
             try
@@ -474,9 +419,9 @@ namespace GestorInventario.Infraestructure.Controllers
                             UsuarioId = usuarioActual,
                             FechaCreacion = DateTime.Now
                         };
-                        _context.Carritos.Add(carrito);
+                        _context.AddEntity(carrito);
                         // Guarda el nuevo Carrito en la base de datos
-                        await _context.SaveChangesAsync();
+                        //await _context.SaveChangesAsync();
                     }
                     //Una vez asignado el carrito al usuario ese carrito tiene una id y a ese carrito se le asignan productos los cuales
                     //tienen una id la id del producto se obtiene mediante la realacion de clave foranea en esta tabla con la tabla Productos
@@ -501,22 +446,22 @@ namespace GestorInventario.Infraestructure.Controllers
                                 Cantidad = cantidad,
                                 CarritoId = carrito.Id
                             };
-                            _context.ItemsDelCarritos.Add(itemCarrito);
+                            _context.AddEntity(itemCarrito);
                         }
                         else
                         {
                             // Si el producto ya está en el carrito, incrementa la cantidad del producto
                             itemCarrito.Cantidad += cantidad;
-                            _context.ItemsDelCarritos.Update(itemCarrito);
+                            _context.UpdateEntity(itemCarrito);
                         }
 
                         //Una vez agregado al carrito se quita la cantidad de productos
                         producto.Cantidad -= cantidad;
-                        _context.Productos.Update(producto);
+                        _context.UpdateEntity(producto);
                         // Guarda los cambios en la base de datos
-                        await _context.SaveChangesAsync();
+                        //await _context.SaveChangesAsync();
                     }
-                    await _context.SaveChangesAsync();
+                    //await _context.SaveChangesAsync();
                     return RedirectToAction("Index");
                 }
                 return RedirectToAction("Index");
@@ -539,9 +484,9 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                 // Incrementa la cantidad del producto
                 producto.Cantidad++;
-                _context.Productos.Update(producto);
+                _context.UpdateEntity(producto);
                 // Guarda los cambios en la base de datos
-                await _context.SaveChangesAsync();
+                //await _context.SaveChangesAsync();
             }
 
             // Redirige al usuario a la página de índice
@@ -558,9 +503,9 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                 // Incrementa la cantidad del producto
                 producto.Cantidad--;
-                _context.Productos.Update(producto);
+                _context.UpdateEntity(producto);
                 // Guarda los cambios en la base de datos
-                await _context.SaveChangesAsync();
+               // await _context.SaveChangesAsync();
             }
 
             // Redirige al usuario a la página de índice
@@ -592,6 +537,7 @@ namespace GestorInventario.Infraestructure.Controllers
     
             if (historialProductos == null || historialProductos.Count == 0)
             {
+                TempData["ErrorMessage"] = "Datos de productos no encontrados";
                 return BadRequest("Datos de productos no encontrados");
             }
             // Crear un documento PDF con orientación horizontal
@@ -692,7 +638,8 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 if (historialProducto == null)
                 {
-                    return NotFound();
+                    TempData["ErrorMessage"] = "Detalles del historial no encontrado";
+                    return NotFound("Detalles del historial no encontrado");
                 }
 
                 return View(historialProducto);
@@ -712,7 +659,9 @@ namespace GestorInventario.Infraestructure.Controllers
                 //Si no hay cervezas muestra el error 404
                 if (historialProducto == null)
                 {
-                    return NotFound("Producto no encontrado");
+
+                    TempData["ErrorMessage"] = "Historial no encontrado";
+                    return NotFound("Historial no encontrado");
                 }
                 //Llegados ha este punto hay cervezas por lo tanto se muestran las cervezas
                 return View(historialProducto);
@@ -724,8 +673,6 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
-
-
         [HttpPost, ActionName("DeleteConfirmedHistorial")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmedHistorial(int Id)
@@ -742,11 +689,12 @@ namespace GestorInventario.Infraestructure.Controllers
                     var historialProducto = await _context.HistorialProductos.Include(x=>x.DetalleHistorialProductos).FirstOrDefaultAsync(x => x.Id == Id);
                     if (historialProducto == null)
                     {
-                        return BadRequest("no se puede eliminar porque es null");
+                        TempData["ErrorMessage"] = "No se puede eliminar, el historial no existe";
+                        return BadRequest("No se puede eliminar, el historial no existe");
                     }
-                    _context.DetalleHistorialProductos.RemoveRange(historialProducto.DetalleHistorialProductos);
-                    _context.HistorialProductos.Remove(historialProducto);
-                    await _context.SaveChangesAsync();
+                    _context.DeleteRangeEntity(historialProducto.DetalleHistorialProductos);
+                    _context.DeleteEntity(historialProducto);
+                    //await _context.SaveChangesAsync();
                     TempData["SuccessMessage"] = "Los datos se han eliminado con éxito.";
                     return RedirectToAction(nameof(HistorialProducto));
                 }
@@ -765,12 +713,15 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             // Obtener todos los registros del historial
             var historialProductos = await _context.HistorialProductos.ToListAsync();
-
+            if (historialProductos == null)
+            {
+                TempData["ErrorMessage"] = "No hay historial para mostrar";
+            }
             // Eliminar todos los registros
-            _context.HistorialProductos.RemoveRange(historialProductos);
+            _context.DeleteEntity(historialProductos);
 
             // Guardar los cambios en la base de datos
-            await _context.SaveChangesAsync();
+            //await _context.SaveChangesAsync();
 
             // Devolver una respuesta al cliente
             return Ok("Historial eliminado con éxito");
@@ -786,17 +737,18 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 if (historialProductos == null || historialProductos.Count == 0)
                 {
+                    TempData["ErrorMessage"] = "No hay datos en el historial para eliminar";
                     return BadRequest("No hay datos en el historial para eliminar");
                 }
 
                 // Eliminar todos los registros
                 foreach (var historialProducto in historialProductos)
                 {
-                    _context.DetalleHistorialProductos.RemoveRange(historialProducto.DetalleHistorialProductos);
-                    _context.HistorialProductos.Remove(historialProducto);
+                    _context.DeleteRangeEntity(historialProducto.DetalleHistorialProductos);
+                    _context.DeleteEntity(historialProducto);
                 }
 
-                await _context.SaveChangesAsync();
+               // await _context.SaveChangesAsync();
 
                 TempData["SuccessMessage"] = "Todos los datos del historial se han eliminado con éxito.";
                 return RedirectToAction(nameof(HistorialProducto));
