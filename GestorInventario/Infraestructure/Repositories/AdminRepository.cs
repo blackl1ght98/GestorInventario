@@ -16,9 +16,11 @@ namespace GestorInventario.Infraestructure.Repositories
         {
             _context = context;
         }
-        public IIncludableQueryable<Usuario, Role> ObtenerUsuarios()
+        public IQueryable<Usuario> ObtenerUsuarios()
         {
-            return _context.Usuarios.Include(x => x.IdRolNavigation);
+            var queryable = from p in _context.Usuarios.Include(x => x.IdRolNavigation)
+                            select p;
+            return queryable;
         }
         public async Task<Usuario> ObtenerPorId(int id)
         {

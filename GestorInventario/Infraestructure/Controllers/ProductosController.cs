@@ -1,4 +1,5 @@
 ﻿using Aspose.Pdf;
+using Aspose.Pdf.Operators;
 using GestorInventario.Application.DTOs;
 using GestorInventario.Domain.Models;
 using GestorInventario.Domain.Models.ViewModels;
@@ -203,28 +204,16 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
 
                     var producto = await _productoRepository.EliminarProducto(Id);
-                    //var producto = await _context.Productos
-                    //.Include(p => p.DetallePedidos)
-                    //    .ThenInclude(dp => dp.Pedido)
-                    //.Include(p => p.IdProveedorNavigation).Include(x=>x.DetalleHistorialProductos)
-                    //.FirstOrDefaultAsync(m => m.Id == Id);
-
                     if (producto == null)
                     {
                         TempData["ErrorMessage"] = "No hay productos para eliminar";
                         return BadRequest("No hay productos para eliminar");
                     }
-
                     if (producto.DetallePedidos.Any()||producto.DetalleHistorialProductos.Any())
                     {
                         TempData["ErrorMessage"] = "El producto no se puede eliminar porque tiene pedidos o historial asociados.";
-                        //En caso de que el proveedor tenga productos asociados se devuelve al usuario a la vista Delete y se
-                        //muestra el mensaje informandole.
-                        //A esta reedireccion se le pasa la vista Delete y al metodo que contiene esa vista la id del producto
                         return RedirectToAction(nameof(Delete), new { id = Id });
-                    }
-                    _context.DeleteEntity(producto);
-                    //await _context.SaveChangesAsync();
+                    }  
                     TempData["SuccessMessage"] = "Los datos se han eliminado con éxito.";
                     return RedirectToAction(nameof(Index));
                 }
@@ -244,8 +233,9 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var producto = await _context.Productos.FirstOrDefaultAsync(x => x.Id == id);
-                ViewData["Productos"] = new SelectList(_context.Proveedores, "Id", "NombreProveedor");
+                var producto = await _productoRepository.ObtenerPorId(id);
+                //var producto = await _context.Productos.FirstOrDefaultAsync(x => x.Id == id);
+                ViewData["Productos"] = new SelectList(await _productoRepository.ObtenerProveedores(), "Id", "NombreProveedor");
                 ProductosViewModel viewModel = new ProductosViewModel()
                 {
                     Id = producto.Id,
@@ -278,102 +268,46 @@ namespace GestorInventario.Infraestructure.Controllers
                         int usuarioId;
                         if (int.TryParse(existeUsuario, out usuarioId))
                         {
-                            var producto = await _context.Productos.FirstOrDefaultAsync(x => x.Id == model.Id);
-                            // Guardar el estado original del producto
-                            var productoOriginal = new ProductosViewModel
-                            {
-                                Id = producto.Id,
-                                NombreProducto = producto.NombreProducto,
-                                Descripcion = producto.Descripcion,
-                                Cantidad = producto.Cantidad,
-                                Precio = producto.Precio,
-                                Imagen = producto.Imagen,
-                                IdProveedor = producto.IdProveedor
-                            };
-                            var historialProducto1 = new HistorialProducto
-                            {
-                                Fecha = DateTime.Now,
-                                UsuarioId = usuarioId,
-                                Accion = "Antes-PUT",
-                                Ip = _contextAccessor.HttpContext.Connection.RemoteIpAddress?.ToString()
-                            };
-
-                            _context.AddEntity(historialProducto1);
-                           // await _context.SaveChangesAsync();
-                            // Guardar el estado original del producto en DetalleHistorialProducto
-                            var detalleHistorialProducto1 = new DetalleHistorialProducto
-                            {
-                                HistorialProductoId = historialProducto1.Id,
-                                ProductoId = productoOriginal.Id,
-                                Cantidad = productoOriginal.Cantidad,
-                                NombreProducto = productoOriginal.NombreProducto,
-                                Precio = productoOriginal.Precio,
-                            };
-                            _context.AddEntity(detalleHistorialProducto1);
-                            //await _context.SaveChangesAsync();
-                            // Obtener de nuevo el producto del contexto para poder actualizarlo
-                            producto = await _context.Productos.FirstOrDefaultAsync(x => x.Id == model.Id);
-                            // Después de guardar el producto en la base de datos
-                            producto.NombreProducto = model.NombreProducto;
-                            producto.FechaModificacion=DateTime.Now;
-                            producto.Descripcion = model.Descripcion;
-                            producto.Cantidad = model.Cantidad;
-                            producto.Precio = model.Precio;  
-                            producto.IdProveedor = model.IdProveedor;
-                            if (model.Imagen1 != null)
-                            {
-                                using (var memoryStream = new MemoryStream())
-                                {
-                                    await model.Imagen1.CopyToAsync(memoryStream);
-                                    var contenido = memoryStream.ToArray();
-                                    var extension = Path.GetExtension(model.Imagen1.FileName);
-                                    // Borrar la imagen antigua
-                                    await _gestorArchivos.BorrarArchivo(producto.Imagen, "imagenes");
-                                    // Guardar la nueva imagen
-                                    producto.Imagen = await _gestorArchivos.GuardarArchivo(contenido, extension, "imagenes");
-                                }
-                            }
-                            
-                            _context.UpdateEntity(producto);
-                            //await _context.SaveChangesAsync();
-                            //Después de guardar el producto en la base de datos
-                            var historialProducto = new HistorialProducto
-                            {
-                                Fecha = DateTime.Now,
-                                UsuarioId = usuarioId,
-                                Accion = "Despues-PUT",
-                                Ip= _contextAccessor.HttpContext.Connection.RemoteIpAddress?.ToString()
-                            };
-                            _context.AddEntity(historialProducto);
-                            //await _context.SaveChangesAsync();
-                            var detalleHistorialProducto = new DetalleHistorialProducto
-                            {
-                                HistorialProductoId = historialProducto.Id,
-                                ProductoId = producto.Id,
-                                Cantidad = producto.Cantidad,
-                                NombreProducto=producto.NombreProducto,
-                                Precio=producto.Precio,
-                            };
-                            _context.AddEntity(detalleHistorialProducto);
-                            //await _context.SaveChangesAsync();
+                            var producto = await _productoRepository.ObtenerPorId(model.Id);
+                            var productoOriginal = await _productoRepository.ProductoOriginal(producto);
+                            var historialProductoPostActualizacion = await _productoRepository.CrearHitorialAccion(usuarioId);
+                            var detalleHistorialProductoPostActualizacion = await _productoRepository.EditDetalleHistorialproducto(historialProductoPostActualizacion, productoOriginal);
+                            var actualizarProducto = await _productoRepository.ActualizarProducto(model);
+                            var historialProducto = await _productoRepository.CrearHitorialAccionEdit(usuarioId);
+                            var detalleHistorialProducto = await _productoRepository.DetalleHistorialProductoEdit(historialProducto, actualizarProducto);
                             TempData["SuccessMessage"] = "Los datos se han modificado con éxito.";
                         }    
                     }
-                    catch (DbUpdateConcurrencyException ex)
+                    catch (DbUpdateConcurrencyException)
                     {
-                        _logger.LogError(ex,"Error de concurrencia ");
-                        if (!ProductoExist(model.Id))
+                        if (!_productoRepository.ProductoExist(model.Id))
                         {
                             TempData["ErrorMessage"] = "Producto no encontrado";
                             return NotFound("Producto no encontrado");
                         }
                         else
                         {
-                            _context.Entry(model).Reload();
-
-                            //Intenta guardar de nuevo
-                            _context.Entry(model).State = EntityState.Modified;
-                            await _context.SaveChangesAsync();
+                            bool isUpdated = await _productoRepository.TryUpdateAndSaveAsync(model);
+                            if (!isUpdated)
+                            {
+                                TempData["ErrorMessage"] = "Error al actualizar";
+                            }
+                            else
+                            {
+                                var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                                int usuarioId;
+                                if (int.TryParse(existeUsuario, out usuarioId))
+                                {
+                                    var producto = await _productoRepository.ObtenerPorId(model.Id);
+                                    var productoOriginal = await _productoRepository.ProductoOriginal(producto);
+                                    var historialProductoPostActualizacion = await _productoRepository.CrearHitorialAccion(usuarioId);
+                                    var detalleHistorialProductoPostActualizacion = await _productoRepository.EditDetalleHistorialproducto(historialProductoPostActualizacion, productoOriginal);
+                                    var actualizarProducto = await _productoRepository.ActualizarProducto(model);
+                                    var historialProducto = await _productoRepository.CrearHitorialAccionEdit(usuarioId);
+                                    var detalleHistorialProducto = await _productoRepository.DetalleHistorialProductoEdit(historialProducto, actualizarProducto);
+                                    TempData["SuccessMessage"] = "Los datos se han modificado con éxito.";
+                                }
+                            }
                         }
                     }
                     return RedirectToAction("Index");
@@ -387,81 +321,27 @@ namespace GestorInventario.Infraestructure.Controllers
             }
            
         }
-        private bool ProductoExist(int Id)
-        {
-            try
-            {
-                return _context.Productos.Any(e => e.Id == Id);
-
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al obtener el producto");
-                return false;
-            }
-        }
+        [HttpPost]
         public async Task<IActionResult> AgregarAlCarrito(int idProducto, int cantidad)
         {
             try
             {
-                //Detecta el usuario logueado
                 var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {
-                    var usuarioActual = usuarioId;
-                    //Asigna un carrito al usuario logueado
-                    var carrito = _context.Carritos.FirstOrDefault(c => c.UsuarioId == usuarioActual);
-                    if (carrito == null)
-                    {
-                        carrito = new Carrito
-                        {
-                            UsuarioId = usuarioActual,
-                            FechaCreacion = DateTime.Now
-                        };
-                        _context.AddEntity(carrito);
-                        // Guarda el nuevo Carrito en la base de datos
-                        //await _context.SaveChangesAsync();
-                    }
-                    //Una vez asignado el carrito al usuario ese carrito tiene una id y a ese carrito se le asignan productos los cuales
-                    //tienen una id la id del producto se obtiene mediante la realacion de clave foranea en esta tabla con la tabla Productos
-                    var itemCarrito = _context.ItemsDelCarritos.FirstOrDefault(i => i.CarritoId == carrito.Id && i.ProductoId == idProducto);
-                    Producto producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == idProducto);
-
+                    var carrito = await _productoRepository.ObtenerCarritoUsuario(usuarioId);
+                    var producto = await _productoRepository.ObtenerPorId(idProducto);
                     if (producto != null)
                     {
-                        // Verifica si la cantidad del producto es suficiente
                         if (producto.Cantidad < cantidad)
                         {
                             TempData["ErrorMessage"] = "No hay suficientes productos en stock.";
                             return RedirectToAction("Index");
                         }
-
-                        // Si el producto no está en el carrito, crea un nuevo item que se podria decir un articulo ItemsDelCarrito
-                        if (itemCarrito == null)
-                        {
-                            itemCarrito = new ItemsDelCarrito
-                            {
-                                ProductoId = idProducto,
-                                Cantidad = cantidad,
-                                CarritoId = carrito.Id
-                            };
-                            _context.AddEntity(itemCarrito);
-                        }
-                        else
-                        {
-                            // Si el producto ya está en el carrito, incrementa la cantidad del producto
-                            itemCarrito.Cantidad += cantidad;
-                            _context.UpdateEntity(itemCarrito);
-                        }
-
-                        //Una vez agregado al carrito se quita la cantidad de productos
-                        producto.Cantidad -= cantidad;
-                        _context.UpdateEntity(producto);
-                        // Guarda los cambios en la base de datos
-                        //await _context.SaveChangesAsync();
+                        var itemCarrito = await _productoRepository.AgregarOActualizarProductoCarrito(carrito.Id, idProducto, cantidad);
+                        producto = await _productoRepository.DisminuirCantidadProducto(idProducto, cantidad);
                     }
-                    //await _context.SaveChangesAsync();
                     return RedirectToAction("Index");
                 }
                 return RedirectToAction("Index");
@@ -471,53 +351,15 @@ namespace GestorInventario.Infraestructure.Controllers
                 _logger.LogError(ex, "Error al agregar el producto al carrito");
                 return BadRequest("Error al agregar el producto al carrito intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
             }
-           
         }
 
-        [HttpPost]
-        public async Task<ActionResult> Incrementar(int id)
-        {
-            // Busca el producto en la base de datos
-            var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == id);
-
-            if (producto != null)
-            {
-                // Incrementa la cantidad del producto
-                producto.Cantidad++;
-                _context.UpdateEntity(producto);
-                // Guarda los cambios en la base de datos
-                //await _context.SaveChangesAsync();
-            }
-
-            // Redirige al usuario a la página de índice
-            return RedirectToAction("Index");
-        }
-
-        [HttpPost]
-        public async Task<ActionResult> Decrementar(int id)
-        {
-            // Busca el producto en la base de datos
-            var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == id);
-
-            if (producto != null)
-            {
-                // Incrementa la cantidad del producto
-                producto.Cantidad--;
-                _context.UpdateEntity(producto);
-                // Guarda los cambios en la base de datos
-               // await _context.SaveChangesAsync();
-            }
-
-            // Redirige al usuario a la página de índice
-            return RedirectToAction("Index");
-        }
+       
         public async Task<IActionResult> HistorialProducto(string buscar)
         {
-            //var historialProductos = await _context.HistorialProductos
-            //    .Include(hp => hp.DetalleHistorialProductos)
-            //    .ToListAsync();
-            var historialProductos = from p in _context.HistorialProductos.Include(x => x.DetalleHistorialProductos)
-                            select p;
+            var historialProductos = await _productoRepository.ObtenerTodoHistorial();
+           
+            //var historialProductos = from p in _context.HistorialProductos.Include(x => x.DetalleHistorialProductos)
+            //                select p;
             // Aquí es donde se realiza la búsqueda por el número de pedido
             if (!String.IsNullOrEmpty(buscar))
             {
@@ -528,13 +370,7 @@ namespace GestorInventario.Infraestructure.Controllers
         [HttpGet("descargarhistorialPDF")]
         public async Task<IActionResult> DescargarHistorialPDF()
         {
-         
-            var historialProductos = await _context.HistorialProductos
-     .Include(hp => hp.DetalleHistorialProductos)
-         .ThenInclude(dp => dp.Producto)
-     .ToListAsync();
-
-    
+            var historialProductos = await _productoRepository.DescargarPDF();
             if (historialProductos == null || historialProductos.Count == 0)
             {
                 TempData["ErrorMessage"] = "Datos de productos no encontrados";
@@ -607,11 +443,11 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     Aspose.Pdf.Row detalleRow = detalleTable.Rows.Add();
 
-                    detalleRow.Cells.Add($"{detalle.Producto?.NombreProducto}").Alignment = HorizontalAlignment.Center;
+                    detalleRow.Cells.Add($"{detalle.NombreProducto}").Alignment = HorizontalAlignment.Center;
                     detalleRow.Cells.Add($"{detalle.HistorialProductoId}").Alignment = HorizontalAlignment.Center;
                     detalleRow.Cells.Add($"{detalle.ProductoId}");
                     detalleRow.Cells.Add($"{detalle.Cantidad}").Alignment = HorizontalAlignment.Center;
-                    detalleRow.Cells.Add($"{detalle.Producto?.Precio}").Alignment = HorizontalAlignment.Center;
+                    detalleRow.Cells.Add($"{detalle.Precio}").Alignment = HorizontalAlignment.Center;
                 }
             }
             // Crear un flujo de memoria para guardar el documento PDF
@@ -630,12 +466,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var historialProducto = await _context.HistorialProductos
-                    .Include(hp => hp.DetalleHistorialProductos)
-                        .ThenInclude(dp => dp.Producto)
-                  
-                    .FirstOrDefaultAsync(hp => hp.Id == id);
-
+                var historialProducto= await _productoRepository.HistorialProductoPorId(id);          
                 if (historialProducto == null)
                 {
                     TempData["ErrorMessage"] = "Detalles del historial no encontrado";
@@ -654,9 +485,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                //Consulta a base de datos
-                var historialProducto = await _context.HistorialProductos.Include(x => x.DetalleHistorialProductos).FirstOrDefaultAsync(x => x.Id == id);
-                //Si no hay cervezas muestra el error 404
+                var historialProducto= await _productoRepository.EliminarHistorialPorId(id);
                 if (historialProducto == null)
                 {
 
@@ -679,22 +508,16 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                // Usamos 'Include' para cargar los datos relacionados de 'DetallePedidos' para cada producto.
-                // 'ThenInclude' se utiliza para cargar aún más datos relacionados. En este caso, los datos de 'Pedido' para cada 'DetallePedidos'.
-                // Finalmente, usamos otro 'Include' para cargar los datos del proveedor relacionados con cada producto.
                 var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {
-                    var historialProducto = await _context.HistorialProductos.Include(x=>x.DetalleHistorialProductos).FirstOrDefaultAsync(x => x.Id == Id);
+                    var historialProducto = await _productoRepository.EliminarHistorialPorIdDefinitivo(Id);
                     if (historialProducto == null)
                     {
                         TempData["ErrorMessage"] = "No se puede eliminar, el historial no existe";
                         return BadRequest("No se puede eliminar, el historial no existe");
                     }
-                    _context.DeleteRangeEntity(historialProducto.DetalleHistorialProductos);
-                    _context.DeleteEntity(historialProducto);
-                    //await _context.SaveChangesAsync();
                     TempData["SuccessMessage"] = "Los datos se han eliminado con éxito.";
                     return RedirectToAction(nameof(HistorialProducto));
                 }
@@ -706,25 +529,6 @@ namespace GestorInventario.Infraestructure.Controllers
                 _logger.LogError(ex, "Error al eliminar el producto");
                 return BadRequest("Error al eliminar el producto intentelo de nuevo mas tarde si el problema persiste intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
             }
-
-        }
-        [HttpDelete("eliminarhistorial")]
-        public async Task<IActionResult> EliminarHistorial()
-        {
-            // Obtener todos los registros del historial
-            var historialProductos = await _context.HistorialProductos.ToListAsync();
-            if (historialProductos == null)
-            {
-                TempData["ErrorMessage"] = "No hay historial para mostrar";
-            }
-            // Eliminar todos los registros
-            _context.DeleteEntity(historialProductos);
-
-            // Guardar los cambios en la base de datos
-            //await _context.SaveChangesAsync();
-
-            // Devolver una respuesta al cliente
-            return Ok("Historial eliminado con éxito");
         }
         [HttpPost, ActionName("DeleteAllHistorial")]
         [ValidateAntiForgeryToken]
@@ -732,24 +536,12 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                // Obtener todos los registros del historial
-                var historialProductos = await _context.HistorialProductos.Include(x => x.DetalleHistorialProductos).ToListAsync();
-
+                var historialProductos = await _productoRepository.EliminarTodoHistorial();
                 if (historialProductos == null || historialProductos.Count == 0)
                 {
                     TempData["ErrorMessage"] = "No hay datos en el historial para eliminar";
                     return BadRequest("No hay datos en el historial para eliminar");
                 }
-
-                // Eliminar todos los registros
-                foreach (var historialProducto in historialProductos)
-                {
-                    _context.DeleteRangeEntity(historialProducto.DetalleHistorialProductos);
-                    _context.DeleteEntity(historialProducto);
-                }
-
-               // await _context.SaveChangesAsync();
-
                 TempData["SuccessMessage"] = "Todos los datos del historial se han eliminado con éxito.";
                 return RedirectToAction(nameof(HistorialProducto));
             }

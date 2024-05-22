@@ -6,7 +6,7 @@ namespace GestorInventario.Interfaces.Infraestructure
 {
     public interface IAdminRepository
     {
-        IIncludableQueryable<Usuario, Role> ObtenerUsuarios();
+        IQueryable<Usuario> ObtenerUsuarios();
         Task<Usuario> ObtenerPorId(int id);
         IEnumerable<Role> ObtenerRoles();
         Task<Usuario> ExisteEmail(string email);
