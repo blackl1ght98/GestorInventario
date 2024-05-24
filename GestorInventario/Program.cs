@@ -24,6 +24,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using Microsoft.Extensions.Caching.Memory;
+using Polly;
+using GestorInventario.Application.Politicas_Resilencia;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -76,7 +78,9 @@ builder.Services.AddTransient<TokenService>();
 builder.Services.AddTransient<IAdminRepository,AdminRepository>();
 builder.Services.AddTransient<IAdminCrudOperation, CrudOperation>();
 builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
-
+builder.Services.AddTransient<RetryPolicyHandler>();
+builder.Services.AddTransient<PolicyHandler>();
+builder.Services.AddTransient<PolicyCircuitBreaker>();
 builder.Services.AddTransient<IProductoRepository, ProductoRepository>();
 //------------------------------------------------------
 builder.Services.AddHttpContextAccessor();
@@ -239,6 +243,7 @@ builder.Services.AddAuthentication(options =>
             var memoryCache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCache>();
             // Carga la clave pública cifrada desde las cookies
             var publicKeyCifrada = httpContextAccessor.HttpContext.Request.Cookies["PublicKey"];
+
             //Obtiene el id del usuario de los claims del token
             var userId = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             // Obtiene la clave de cifrado del usuario
@@ -265,8 +270,26 @@ builder.Services.AddAuthentication(options =>
                     context.Response.Redirect("/Auth/Login");
                 }
             }
-            // Descifra la clave pública
+            if (publicKeyCifrada == null)
+            {
+                foreach (var cookie in collectioncookies)
+                {
+                    //elimina todas las cookies
+                    context.Response.Cookies.Delete(cookie.Key);
+                }
+                //Si la ruta es distinta a "/Auth/Login"....
+                if (context.Request.Path != "/Auth/Login")
+                {
+                    //redirige a "/Auth/Login"
+                    context.Response.Redirect("/Auth/Login");
+                }
+            }
+          
+            
+             // Descifra la clave pública
             var publicKey = Encoding.UTF8.GetString(tokenservice.Descifrar(Convert.FromBase64String(publicKeyCifrada), claveCifrado));
+            
+           
             //Si la claveCifrado es null....
             if (claveCifrado == null)
             {
@@ -483,6 +506,7 @@ app.Use(async (context, next) =>
         var httpContextAccessor = context.RequestServices.GetRequiredService<IHttpContextAccessor>();
         var tokenservice = context.RequestServices.GetRequiredService<TokenService>();
         var memoryCache = context.RequestServices.GetRequiredService<IMemoryCache>();
+
         var token = context.Request.Cookies["auth"];
         // Si el token existe...
         if (token != null)
@@ -502,21 +526,12 @@ app.Use(async (context, next) =>
                     context.Response.Redirect("/Auth/Login");
                 }
             }
-            try
+            else
             {
                 // Obtiene la clave de cifrado del usuario
                 var userId = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                //problema reedireccion paypal
-                 memoryCache.TryGetValue(userId, out byte[] claveCifrado);
-                /*Aqui tenemos la opcion de almacenar la clave de cifrado en las cookies, si queremos que se almacene en las cookies
-                 * quitamos los comentarios de las lineas de acontinuacion
-                // Obtiene la clave de cifrado del usuario como una cadena
-                //var claveCifradoString = context.Request.Cookies["ClaveCifrado"];
-                // Convierte la cadena de la clave de cifrado a un array de bytes
-               // byte[] claveCifrado = Convert.FromBase64String(claveCifradoString);
-                */
-                var publicKey = Encoding.UTF8.GetString(tokenservice.Descifrar(Convert.FromBase64String(publicKeyCifrada), claveCifrado));
-                if (publicKey == null)
+                memoryCache.TryGetValue(userId, out byte[] claveCifrado);
+                if (claveCifrado == null)
                 {
                     foreach (var cookie in collectioncookies)
                     {
@@ -527,54 +542,54 @@ app.Use(async (context, next) =>
                         context.Response.Redirect("/Auth/Login");
                     }
                 }
-                // Convierte la clave pública a formato RSA
-                var rsa = new RSACryptoServiceProvider();
-                rsa.FromXmlString(publicKey);
-
-                // Valida el token.
-                var principal = handler.ValidateToken(token, new TokenValidationParameters
+                else
                 {
-                    ValidateIssuerSigningKey = true,
-                    // Establece la clave que se debe usar para validar la firma del token.
-                    IssuerSigningKey = new RsaSecurityKey(rsa),
-                    ValidateIssuer = true,
-                    ValidIssuer = builder.Configuration["JwtIssuer"],
-                    ValidateAudience = true,
-                    ValidAudience = builder.Configuration["JwtAudience"],
-                }, out var validatedToken);
+                    var publicKey = Encoding.UTF8.GetString(tokenservice.Descifrar(Convert.FromBase64String(publicKeyCifrada), claveCifrado));
+                    // Convierte la clave pública a formato RSA
+                    var rsa = new RSACryptoServiceProvider();
+                    rsa.FromXmlString(publicKey);
 
-                // Establece el usuario del contexto actual a partir de la información del token.
-                context.User = principal;
-                token = context.Session.GetString("auth") ?? context.Request.Cookies["auth"];
-                context.Session.SetString("auth", token);
+                    // Valida el token.
+                    var principal = handler.ValidateToken(token, new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        // Establece la clave que se debe usar para validar la firma del token.
+                        IssuerSigningKey = new RsaSecurityKey(rsa),
+                        ValidateIssuer = true,
+                        ValidIssuer = builder.Configuration["JwtIssuer"],
+                        ValidateAudience = true,
+                        ValidAudience = builder.Configuration["JwtAudience"],
+                    }, out var validatedToken);
 
-            }
-            catch (Exception ex)
-            {
-
-                foreach (var cookie in collectioncookies)
-                {
-                    context.Response.Cookies.Delete(cookie.Key);
+                    // Establece el usuario del contexto actual a partir de la información del token.
+                    context.User = principal;
+                    token = context.Session.GetString("auth") ?? context.Request.Cookies["auth"];
+                    context.Session.SetString("auth", token);
                 }
-                if (context.Request.Path != "/Auth/Login")
-                {
-                    context.Response.Redirect("/Auth/Login");
-                }
-                var logger = log4net.LogManager.GetLogger(typeof(Program));
-                logger.Error("Error con las claves", ex);
             }
-
         }
-
-        // Pasa el control al siguiente middleware en la cadena.
-        await next.Invoke();
     }
-    catch (SecurityTokenException ex)
+    catch (Exception ex)
     {
+        var collectioncookies = context.Request.Cookies;
+
+        foreach (var cookie in collectioncookies)
+        {
+            context.Response.Cookies.Delete(cookie.Key);
+        }
+        if (context.Request.Path != "/Auth/Login")
+        {
+            context.Response.Redirect("/Auth/Login");
+        }
         var logger = log4net.LogManager.GetLogger(typeof(Program));
-        logger.Error("Error al validar el token", ex);
+        logger.Error("Error con las claves", ex);
     }
+
+    // Pasa el control al siguiente middleware en la cadena.
+    await next.Invoke();
 });
+
+
 
 
 app.MapControllerRoute(

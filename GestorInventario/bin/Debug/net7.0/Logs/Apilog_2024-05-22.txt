@@ -2760,3 +2760,53 @@ INNER JOIN [Roles] AS [r] ON [t].[IdRol] = [r].[Id]
 INFO  2024-05-22 17:40:01 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
 SELECT [r].[Id], [r].[Nombre]
 FROM [Roles] AS [r]
+INFO  2024-05-22 22:10:47 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-05-22 22:10:47 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-05-22 22:10:47 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-05-22 22:10:47 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-05-22 22:10:47 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+FATAL 2024-05-22 22:10:54 – Clase: GestorInventario.Application.Services.TokenService - Mensaje: Error al descifrar
+ERROR 2024-05-22 22:10:54 – Clase: Program - Mensaje: Error con las claves
+System.Security.Cryptography.CryptographicException: The provided XML could not be read.
+ ---> System.Xml.XmlException: Root element is missing.
+   at System.Xml.XmlTextReaderImpl.Throw(Exception e)
+   at System.Xml.XmlTextReaderImpl.ThrowWithoutLineInfo(String res)
+   at System.Xml.XmlTextReaderImpl.ParseDocumentContent()
+   at System.Xml.Linq.XDocument.Load(XmlReader reader, LoadOptions options)
+   at System.Xml.Linq.XDocument.Parse(String text, LoadOptions options)
+   at System.Security.Cryptography.XmlKeyHelper.ParseState.Functions.ParseDocument(String xmlString)
+   at System.Security.Cryptography.XmlKeyHelper.ParseState.ParseDocument(String xmlString)
+   at System.Security.Cryptography.XmlKeyHelper.ParseDocument(String xmlString)
+   --- End of inner exception stack trace ---
+   at System.Security.Cryptography.XmlKeyHelper.ParseDocument(String xmlString)
+   at System.Security.Cryptography.RSA.FromXmlString(String xmlString)
+   at Program.<>c__DisplayClass0_0.<<<Main>$>b__8>d.MoveNext() in C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\Program.cs:line 533
+INFO  2024-05-22 22:11:06 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (647ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-05-22 22:11:06 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (23ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+INFO  2024-05-22 22:11:08 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (72ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+FROM [Productos] AS [p]
+INFO  2024-05-22 22:11:08 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (11ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Productos] AS [p]
+WARN  2024-05-22 22:11:08 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-05-22 22:11:08 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-05-22 22:11:09 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (141ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[Cantidad], [t].[Descripcion], [t].[FechaCreacion], [t].[FechaModificacion], [t].[IdProveedor], [t].[Imagen], [t].[NombreProducto], [t].[Precio], [p0].[Id], [p0].[Contacto], [p0].[Direccion], [p0].[NombreProveedor]
+FROM (
+    SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+    FROM [Productos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Proveedores] AS [p0] ON [t].[IdProveedor] = [p0].[Id]
+INFO  2024-05-22 22:11:09 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (14ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[Contacto], [p].[Direccion], [p].[NombreProveedor]
+FROM [Proveedores] AS [p]

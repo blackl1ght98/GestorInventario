@@ -14,7 +14,8 @@
           "Microsoft.EntityFrameworkCore.SqlServer": "7.0.17",
           "Microsoft.EntityFrameworkCore.Tools": "7.0.17",
           "Microsoft.Extensions.Logging.Log4Net.AspNetCore": "7.0.0",
-          "PayPal": "1.9.1"
+          "PayPal": "1.9.1",
+          "Polly": "7.2.4"
         },
         "runtime": {
           "GestorInventario.dll": {}
@@ -505,6 +506,14 @@
           "lib/net451/PayPal.dll": {
             "assemblyVersion": "1.9.1.0",
             "fileVersion": "1.9.1.0"
+          }
+        }
+      },
+      "Polly/7.2.4": {
+        "runtime": {
+          "lib/netstandard2.0/Polly.dll": {
+            "assemblyVersion": "7.0.0.0",
+            "fileVersion": "7.2.4.982"
           }
         }
       },
@@ -1085,6 +1094,13 @@
       "sha512": "sha512-b3vq6Lc9CwSooCX2tsZ02zb7E/K/cA6EILCoMynue+ZeVuitJNqt0YwxPnp7uN0Pccob02oDlpAjRLH+GRCRxA==",
       "path": "paypal/1.9.1",
       "hashPath": "paypal.1.9.1.nupkg.sha512"
+    },
+    "Polly/7.2.4": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-bw00Ck5sh6ekduDE3mnCo1ohzuad946uslCDEENu3091+6UKnBuKLo4e+yaNcCzXxOZCXWY2gV4a35+K1d4LDA==",
+      "path": "polly/7.2.4",
+      "hashPath": "polly.7.2.4.nupkg.sha512"
     },
     "System.CodeDom/4.4.0": {
       "type": "package",

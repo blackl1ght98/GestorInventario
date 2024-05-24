@@ -78,6 +78,10 @@
             "PayPal": {
               "target": "Package",
               "version": "[1.9.1, )"
+            },
+            "Polly": {
+              "target": "Package",
+              "version": "[7.2.4, )"
             }
           },
           "imports": [

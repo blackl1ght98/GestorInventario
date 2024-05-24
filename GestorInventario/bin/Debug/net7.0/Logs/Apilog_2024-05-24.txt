@@ -1,0 +1,245 @@
+INFO  2024-05-24 08:09:08 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-05-24 08:09:08 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-05-24 08:09:08 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-05-24 08:09:08 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-05-24 08:09:08 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-05-24 08:09:48 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (230ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-05-24 08:09:48 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (21ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+WARN  2024-05-24 08:09:51 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-05-24 08:09:51 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-05-24 08:09:51 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (197ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[Cantidad], [t].[Descripcion], [t].[FechaCreacion], [t].[FechaModificacion], [t].[IdProveedor], [t].[Imagen], [t].[NombreProducto], [t].[Precio], [p0].[Id], [p0].[Contacto], [p0].[Direccion], [p0].[NombreProveedor]
+FROM (
+    SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+    FROM [Productos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Proveedores] AS [p0] ON [t].[IdProveedor] = [p0].[Id]
+INFO  2024-05-24 08:09:51 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (18ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio], [p0].[Id], [p0].[Contacto], [p0].[Direccion], [p0].[NombreProveedor]
+FROM [Productos] AS [p]
+LEFT JOIN [Proveedores] AS [p0] ON [p].[IdProveedor] = [p0].[Id]
+INFO  2024-05-24 08:09:51 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (9ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Productos] AS [p]
+INFO  2024-05-24 08:09:51 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (8ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[Contacto], [p].[Direccion], [p].[NombreProveedor]
+FROM [Proveedores] AS [p]
+INFO  2024-05-24 08:09:53 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (9ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[Contacto], [p].[Direccion], [p].[NombreProveedor]
+FROM [Proveedores] AS [p]
+INFO  2024-05-24 08:10:09 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (413ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 200) (DbType = AnsiString), @p2='?' (DbType = DateTime), @p3='?' (DbType = Int32), @p4='?' (Size = 8000) (DbType = AnsiString), @p5='?' (Size = 100) (DbType = AnsiString), @p6='?' (Precision = 18) (Scale = 2) (DbType = Decimal)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [Productos] ([Cantidad], [Descripcion], [FechaCreacion], [IdProveedor], [Imagen], [NombreProducto], [Precio])
+OUTPUT INSERTED.[Id], INSERTED.[FechaModificacion]
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6);
+INFO  2024-05-24 08:10:09 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (8ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[Contacto], [p].[Direccion], [p].[NombreProveedor]
+FROM [Proveedores] AS [p]
+INFO  2024-05-24 08:10:09 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (79ms) [Parameters=[@p0='?' (Size = 100) (DbType = AnsiString), @p1='?' (DbType = DateTime), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [HistorialProductos] ([Accion], [Fecha], [Ip], [UsuarioId])
+OUTPUT INSERTED.[Id]
+VALUES (@p0, @p1, @p2, @p3);
+INFO  2024-05-24 08:10:09 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (45ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (Precision = 18) (Scale = 2) (DbType = Decimal), @p4='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [DetalleHistorialProductos] ([Cantidad], [HistorialProductoId], [NombreProducto], [Precio], [ProductoId])
+OUTPUT INSERTED.[Id]
+VALUES (@p0, @p1, @p2, @p3, @p4);
+INFO  2024-05-24 08:10:09 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (80ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[Cantidad], [t].[Descripcion], [t].[FechaCreacion], [t].[FechaModificacion], [t].[IdProveedor], [t].[Imagen], [t].[NombreProducto], [t].[Precio], [p0].[Id], [p0].[Contacto], [p0].[Direccion], [p0].[NombreProveedor]
+FROM (
+    SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+    FROM [Productos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Proveedores] AS [p0] ON [t].[IdProveedor] = [p0].[Id]
+INFO  2024-05-24 08:10:09 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio], [p0].[Id], [p0].[Contacto], [p0].[Direccion], [p0].[NombreProveedor]
+FROM [Productos] AS [p]
+LEFT JOIN [Proveedores] AS [p0] ON [p].[IdProveedor] = [p0].[Id]
+INFO  2024-05-24 08:10:12 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (447ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Productos] AS [p]
+INFO  2024-05-24 08:10:12 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[Contacto], [p].[Direccion], [p].[NombreProveedor]
+FROM [Proveedores] AS [p]
+WARN  2024-05-24 08:10:15 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-05-24 08:10:15 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-05-24 08:10:15 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (11ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[Cantidad], [t].[Descripcion], [t].[FechaCreacion], [t].[FechaModificacion], [t].[IdProveedor], [t].[Imagen], [t].[NombreProducto], [t].[Precio], [p0].[Id], [p0].[Contacto], [p0].[Direccion], [p0].[NombreProveedor]
+FROM (
+    SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+    FROM [Productos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_0 ROWS ONLY
+) AS [t]
+LEFT JOIN [Proveedores] AS [p0] ON [t].[IdProveedor] = [p0].[Id]
+INFO  2024-05-24 08:10:15 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio], [p0].[Id], [p0].[Contacto], [p0].[Direccion], [p0].[NombreProveedor]
+FROM [Productos] AS [p]
+LEFT JOIN [Proveedores] AS [p0] ON [p].[IdProveedor] = [p0].[Id]
+INFO  2024-05-24 08:10:17 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Productos] AS [p]
+INFO  2024-05-24 08:10:17 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[Contacto], [p].[Direccion], [p].[NombreProveedor]
+FROM [Proveedores] AS [p]
+INFO  2024-05-24 11:57:40 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-05-24 11:57:40 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-05-24 11:57:40 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-05-24 11:57:40 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-05-24 11:57:40 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+FATAL 2024-05-24 11:57:42 – Clase: GestorInventario.Application.Services.TokenService - Mensaje: Error al descifrar
+ERROR 2024-05-24 11:57:42 – Clase: Program - Mensaje: Error con las claves
+System.Security.Cryptography.CryptographicException: The provided XML could not be read.
+ ---> System.Xml.XmlException: Root element is missing.
+   at System.Xml.XmlTextReaderImpl.Throw(Exception e)
+   at System.Xml.XmlTextReaderImpl.ThrowWithoutLineInfo(String res)
+   at System.Xml.XmlTextReaderImpl.ParseDocumentContent()
+   at System.Xml.Linq.XDocument.Load(XmlReader reader, LoadOptions options)
+   at System.Xml.Linq.XDocument.Parse(String text, LoadOptions options)
+   at System.Security.Cryptography.XmlKeyHelper.ParseState.Functions.ParseDocument(String xmlString)
+   at System.Security.Cryptography.XmlKeyHelper.ParseState.ParseDocument(String xmlString)
+   at System.Security.Cryptography.XmlKeyHelper.ParseDocument(String xmlString)
+   --- End of inner exception stack trace ---
+   at System.Security.Cryptography.XmlKeyHelper.ParseDocument(String xmlString)
+   at System.Security.Cryptography.RSA.FromXmlString(String xmlString)
+   at Program.<>c__DisplayClass0_0.<<<Main>$>b__8>d.MoveNext() in C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\Program.cs:line 536
+INFO  2024-05-24 11:57:59 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (126ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-05-24 11:57:59 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (7ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+WARN  2024-05-24 11:58:01 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-05-24 11:58:01 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-05-24 11:58:01 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (28ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[Cantidad], [t].[Descripcion], [t].[FechaCreacion], [t].[FechaModificacion], [t].[IdProveedor], [t].[Imagen], [t].[NombreProducto], [t].[Precio], [p0].[Id], [p0].[Contacto], [p0].[Direccion], [p0].[NombreProveedor]
+FROM (
+    SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+    FROM [Productos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Proveedores] AS [p0] ON [t].[IdProveedor] = [p0].[Id]
+INFO  2024-05-24 11:58:02 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (17ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio], [p0].[Id], [p0].[Contacto], [p0].[Direccion], [p0].[NombreProveedor]
+FROM [Productos] AS [p]
+LEFT JOIN [Proveedores] AS [p0] ON [p].[IdProveedor] = [p0].[Id]
+INFO  2024-05-24 11:58:03 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (14ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Productos] AS [p]
+INFO  2024-05-24 11:58:03 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[Contacto], [p].[Direccion], [p].[NombreProveedor]
+FROM [Proveedores] AS [p]
+INFO  2024-05-24 12:10:53 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-05-24 12:10:53 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-05-24 12:10:53 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-05-24 12:10:53 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-05-24 12:10:53 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+FATAL 2024-05-24 12:10:54 – Clase: GestorInventario.Application.Services.TokenService - Mensaje: Error al descifrar
+ERROR 2024-05-24 12:10:54 – Clase: Program - Mensaje: Error con las claves
+System.Security.Cryptography.CryptographicException: The provided XML could not be read.
+ ---> System.Xml.XmlException: Root element is missing.
+   at System.Xml.XmlTextReaderImpl.Throw(Exception e)
+   at System.Xml.XmlTextReaderImpl.ThrowWithoutLineInfo(String res)
+   at System.Xml.XmlTextReaderImpl.ParseDocumentContent()
+   at System.Xml.Linq.XDocument.Load(XmlReader reader, LoadOptions options)
+   at System.Xml.Linq.XDocument.Parse(String text, LoadOptions options)
+   at System.Security.Cryptography.XmlKeyHelper.ParseState.Functions.ParseDocument(String xmlString)
+   at System.Security.Cryptography.XmlKeyHelper.ParseState.ParseDocument(String xmlString)
+   at System.Security.Cryptography.XmlKeyHelper.ParseDocument(String xmlString)
+   --- End of inner exception stack trace ---
+   at System.Security.Cryptography.XmlKeyHelper.ParseDocument(String xmlString)
+   at System.Security.Cryptography.RSA.FromXmlString(String xmlString)
+   at Program.<>c__DisplayClass0_0.<<<Main>$>b__8>d.MoveNext() in C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\Program.cs:line 555
+INFO  2024-05-24 12:11:35 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (80ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-05-24 12:11:35 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+WARN  2024-05-24 12:11:38 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-05-24 12:11:38 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-05-24 12:11:38 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (28ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[Cantidad], [t].[Descripcion], [t].[FechaCreacion], [t].[FechaModificacion], [t].[IdProveedor], [t].[Imagen], [t].[NombreProducto], [t].[Precio], [p0].[Id], [p0].[Contacto], [p0].[Direccion], [p0].[NombreProveedor]
+FROM (
+    SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+    FROM [Productos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Proveedores] AS [p0] ON [t].[IdProveedor] = [p0].[Id]
+INFO  2024-05-24 12:11:39 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio], [p0].[Id], [p0].[Contacto], [p0].[Direccion], [p0].[NombreProveedor]
+FROM [Productos] AS [p]
+LEFT JOIN [Proveedores] AS [p0] ON [p].[IdProveedor] = [p0].[Id]
+INFO  2024-05-24 12:11:40 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Productos] AS [p]
+INFO  2024-05-24 12:11:40 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[Contacto], [p].[Direccion], [p].[NombreProveedor]
+FROM [Proveedores] AS [p]
+INFO  2024-05-24 12:12:13 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-05-24 12:12:13 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-05-24 12:12:13 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-05-24 12:12:13 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-05-24 12:12:13 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+FATAL 2024-05-24 12:12:45 – Clase: GestorInventario.Application.Services.TokenService - Mensaje: Error al descifrar
+INFO  2024-05-24 12:12:58 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-05-24 12:12:58 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-05-24 12:12:58 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-05-24 12:12:58 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-05-24 12:12:58 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-05-24 12:20:35 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-05-24 12:20:35 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-05-24 12:20:35 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-05-24 12:20:35 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-05-24 12:20:35 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-05-24 12:21:01 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (198ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-05-24 12:21:01 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+INFO  2024-05-24 12:31:14 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-05-24 12:31:14 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-05-24 12:31:14 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-05-24 12:31:14 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-05-24 12:31:14 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-05-24 12:31:34 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-05-24 12:31:34 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-05-24 12:31:34 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-05-24 12:31:34 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-05-24 12:31:34 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-05-24 12:32:33 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (93ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-05-24 12:32:33 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0

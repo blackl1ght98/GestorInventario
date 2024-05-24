@@ -1,6 +1,8 @@
 ﻿using Aspose.Pdf;
 using Aspose.Pdf.Operators;
 using GestorInventario.Application.DTOs;
+using GestorInventario.Application.Politicas_Resilencia;
+using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
 using GestorInventario.Domain.Models.ViewModels;
 using GestorInventario.Interfaces;
@@ -27,9 +29,10 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly IEmailService _emailService;
         private readonly IProductoRepository _productoRepository;
-    
+        private readonly PolicyHandler _PolicyHandler;
+
         public ProductosController(GestorInventarioContext context, IGestorArchivos gestorArchivos, PaginacionMetodo paginacionMetodo, 
-        ILogger<ProductosController> logger, IHttpContextAccessor contextAccessor, IEmailService emailService, IProductoRepository producto
+        ILogger<ProductosController> logger, IHttpContextAccessor contextAccessor, IEmailService emailService, IProductoRepository producto, PolicyHandler retry
        )
         {
             _context = context;
@@ -39,42 +42,48 @@ namespace GestorInventario.Infraestructure.Controllers
             _contextAccessor = contextAccessor;
             _emailService = emailService;
             _productoRepository = producto;
-           
+           _PolicyHandler= retry;
         }
 
-        public async  Task<IActionResult> Index(string buscar, string ordenarPorprecio,int? idProveedor,[FromQuery] Paginacion paginacion)
+        public async Task<IActionResult> Index(string buscar, string ordenarPorprecio, int? idProveedor, [FromQuery] Paginacion paginacion)
         {
             try
             {
-                var productos = _productoRepository.ObtenerTodoProducto();
-                //var productos = _context.Productos.Include(x => x.IdProveedorNavigation).AsQueryable();
-                //var productos = from p in _context.Productos.Include(x => x.IdProveedorNavigation)
-                //                select p;
-                if (!String.IsNullOrEmpty(buscar))
+                var policyAsync = _PolicyHandler.GetRetryPolicyAsync();
+                var policy= _PolicyHandler.GetRetryPolicy();
+                // Obtenemos la consulta como IQueryable
+                var productos = policy.Execute(() => _productoRepository.ObtenerTodoProducto());
+                //var productos = _productoRepository.ObtenerTodoProducto();
+                //------------------------------------
+
+                // Aplicamos los filtros a la consulta
+                if (!string.IsNullOrEmpty(buscar))
                 {
                     productos = productos.Where(s => s.NombreProducto.Contains(buscar));
                 }
-                if (!String.IsNullOrEmpty(ordenarPorprecio))
+                if (!string.IsNullOrEmpty(ordenarPorprecio))
                 {
-                    if (ordenarPorprecio == "asc")
+                   //Si hay dudas mirar archivo de explicacionSwitch.txt
+                    productos = ordenarPorprecio switch
                     {
-                        productos = productos.OrderBy(p => p.Precio);
-                    }
-                    else if (ordenarPorprecio == "desc")
-                    {
-                        productos = productos.OrderByDescending(p => p.Precio);
-                    }
+                        "asc" => productos.OrderBy(p => p.Precio),//resultado o patron a evaluar.
+                        "desc" => productos.OrderByDescending(p => p.Precio),
+                        _ => productos //si no se cumplen los patrones anteriores devuelve los productos sin filtrar 
+                    };
                 }
                 if (idProveedor.HasValue)
                 {
                     productos = productos.Where(p => p.IdProveedor == idProveedor.Value);
                 }
+
+                // Materializamos la consulta aplicando la política de reintento
+                var productoPaginado = await policyAsync.ExecuteAsync(() => productos.Paginar(paginacion).ToListAsync());
+
+                // Configuración adicional
                 ViewData["Proveedores"] = new SelectList(_context.Proveedores, "Id", "NombreProveedor");
                 await VerificarStock();
                 await HttpContext.InsertarParametrosPaginacionRespuesta(productos, paginacion.CantidadAMostrar);
-                var productoPaginado = productos.Paginar(paginacion).ToList();
                 var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
-                // ViewData["Paginas"] = GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
                 ViewData["Paginas"] = _paginarMetodo.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
 
                 return View(productoPaginado);
@@ -83,10 +92,10 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                 TempData["ErrorMessage"] = "Tiempo de respuesta del servidor agotado";
                 _logger.LogError(ex, "Error al mostrar la vista");
-                return BadRequest("Error al mostrar la vista intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
+                return BadRequest("Error al mostrar la vista. Inténtelo de nuevo más tarde. Si el problema persiste, contacte con el administrador.");
             }
-            
         }
+
         public async Task VerificarStock()
         {
             try
@@ -95,8 +104,11 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 if (emailUsuario != null)
                 {
-                    var productos = await _productoRepository.ObtenerTodos();
-                   // var productos = await _context.Productos.ToListAsync();
+                    var policy = _PolicyHandler.GetRetryPolicy();
+
+                    var productos = policy.Execute(() => _productoRepository.ObtenerTodoProducto());
+                    //var productos = await _productoRepository.ObtenerTodos();
+                    // var productos = await _context.Productos.ToListAsync();
 
                     foreach (var producto in productos)
                     {
@@ -147,10 +159,13 @@ namespace GestorInventario.Infraestructure.Controllers
                     //Esto toma en cuenta las validaciones puestas en BeerViewModel
                     if (ModelState.IsValid)
                     {
-                        var producto = await _productoRepository.CrearProducto(model);
+                        var policy = _PolicyHandler.GetCombinedPolicyAsync();
+                        var producto = await policy.ExecuteAsync(() => _productoRepository.CrearProducto(model));
                         ViewData["Productos"] = new SelectList(await _productoRepository.ObtenerProveedores(), "Id", "NombreProveedor");
-                        var historialProducto=   await _productoRepository.CrearHistorial(usuarioId, producto);
-                        var detalleHistorialProducto= await _productoRepository.CrearDetalleHistorial(historialProducto,producto);
+                        var historialProducto = await policy.ExecuteAsync(() => _productoRepository.CrearHistorial(usuarioId, producto));
+                        //var historialProducto=   await _productoRepository.CrearHistorial(usuarioId, producto);
+                        var detalleHistorialProducto = await policy.ExecuteAsync(() => _productoRepository.CrearDetalleHistorial(historialProducto, producto));
+                        //var detalleHistorialProducto= await _productoRepository.CrearDetalleHistorial(historialProducto,producto);
                         TempData["SuccessMessage"] = "Los datos se han creado con éxito.";
                         return RedirectToAction(nameof(Index));
                     }
@@ -169,7 +184,9 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var producto= await _productoRepository.EliminarProductoObtencion(id);
+                var policy = _PolicyHandler.GetRetryPolicyAsync();
+                var producto = await policy.ExecuteAsync(() => _productoRepository.EliminarProductoObtencion(id));
+                //var producto= await _productoRepository.EliminarProductoObtencion(id);
                 //Consulta a base de datos
                 //var producto = await _context.Productos.Include(p => p.IdProveedorNavigation).FirstOrDefaultAsync(m => m.Id == id);
                 //Si no hay cervezas muestra el error 404
@@ -202,8 +219,9 @@ namespace GestorInventario.Infraestructure.Controllers
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {
-
-                    var producto = await _productoRepository.EliminarProducto(Id);
+                    var policy= _PolicyHandler.GetRetryPolicyAsync();
+                    var producto = await policy.ExecuteAsync(() => _productoRepository.EliminarProducto(Id));
+                   // var producto = await _productoRepository.EliminarProducto(Id);
                     if (producto == null)
                     {
                         TempData["ErrorMessage"] = "No hay productos para eliminar";
@@ -233,9 +251,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var producto = await _productoRepository.ObtenerPorId(id);
-                //var producto = await _context.Productos.FirstOrDefaultAsync(x => x.Id == id);
-                ViewData["Productos"] = new SelectList(await _productoRepository.ObtenerProveedores(), "Id", "NombreProveedor");
+                var policy = _PolicyHandler.GetRetryPolicyAsync();
+                var producto = await policy.ExecuteAsync(() => _productoRepository.ObtenerPorId(id));
+                
+                ViewData["Productos"] = new SelectList(await policy.ExecuteAsync(() => _productoRepository.ObtenerProveedores()), "Id", "NombreProveedor");
                 ProductosViewModel viewModel = new ProductosViewModel()
                 {
                     Id = producto.Id,
@@ -268,13 +287,14 @@ namespace GestorInventario.Infraestructure.Controllers
                         int usuarioId;
                         if (int.TryParse(existeUsuario, out usuarioId))
                         {
-                            var producto = await _productoRepository.ObtenerPorId(model.Id);
-                            var productoOriginal = await _productoRepository.ProductoOriginal(producto);
-                            var historialProductoPostActualizacion = await _productoRepository.CrearHitorialAccion(usuarioId);
-                            var detalleHistorialProductoPostActualizacion = await _productoRepository.EditDetalleHistorialproducto(historialProductoPostActualizacion, productoOriginal);
-                            var actualizarProducto = await _productoRepository.ActualizarProducto(model);
-                            var historialProducto = await _productoRepository.CrearHitorialAccionEdit(usuarioId);
-                            var detalleHistorialProducto = await _productoRepository.DetalleHistorialProductoEdit(historialProducto, actualizarProducto);
+                            var policy = _PolicyHandler.GetRetryPolicyAsync();
+                            var producto = await policy.ExecuteAsync(() => _productoRepository.ObtenerPorId(model.Id));
+                            var productoOriginal = await policy.ExecuteAsync(() => _productoRepository.ProductoOriginal(producto));
+                            var historialProductoPostActualizacion = await policy.ExecuteAsync(() => _productoRepository.CrearHitorialAccion(usuarioId));
+                            var detalleHistorialProductoPostActualizacion = await policy.ExecuteAsync(() => _productoRepository.EditDetalleHistorialproducto(historialProductoPostActualizacion, productoOriginal));
+                            var actualizarProducto = await policy.ExecuteAsync(() => _productoRepository.ActualizarProducto(model));
+                            var historialProducto = await policy.ExecuteAsync(() => _productoRepository.CrearHitorialAccionEdit(usuarioId));
+                            var detalleHistorialProducto = await policy.ExecuteAsync(() => _productoRepository.DetalleHistorialProductoEdit(historialProducto, actualizarProducto));
                             TempData["SuccessMessage"] = "Los datos se han modificado con éxito.";
                         }    
                     }
@@ -298,13 +318,14 @@ namespace GestorInventario.Infraestructure.Controllers
                                 int usuarioId;
                                 if (int.TryParse(existeUsuario, out usuarioId))
                                 {
-                                    var producto = await _productoRepository.ObtenerPorId(model.Id);
-                                    var productoOriginal = await _productoRepository.ProductoOriginal(producto);
-                                    var historialProductoPostActualizacion = await _productoRepository.CrearHitorialAccion(usuarioId);
-                                    var detalleHistorialProductoPostActualizacion = await _productoRepository.EditDetalleHistorialproducto(historialProductoPostActualizacion, productoOriginal);
-                                    var actualizarProducto = await _productoRepository.ActualizarProducto(model);
-                                    var historialProducto = await _productoRepository.CrearHitorialAccionEdit(usuarioId);
-                                    var detalleHistorialProducto = await _productoRepository.DetalleHistorialProductoEdit(historialProducto, actualizarProducto);
+                                    var policy = _PolicyHandler.GetRetryPolicyAsync();
+                                    var producto = await policy.ExecuteAsync(() => _productoRepository.ObtenerPorId(model.Id));
+                                    var productoOriginal = await policy.ExecuteAsync(() => _productoRepository.ProductoOriginal(producto));
+                                    var historialProductoPostActualizacion = await policy.ExecuteAsync(() => _productoRepository.CrearHitorialAccion(usuarioId));
+                                    var detalleHistorialProductoPostActualizacion = await policy.ExecuteAsync(() => _productoRepository.EditDetalleHistorialproducto(historialProductoPostActualizacion, productoOriginal));
+                                    var actualizarProducto = await policy.ExecuteAsync(() => _productoRepository.ActualizarProducto(model));
+                                    var historialProducto = await policy.ExecuteAsync(() => _productoRepository.CrearHitorialAccionEdit(usuarioId));
+                                    var detalleHistorialProducto = await policy.ExecuteAsync(() => _productoRepository.DetalleHistorialProductoEdit(historialProducto, actualizarProducto));
                                     TempData["SuccessMessage"] = "Los datos se han modificado con éxito.";
                                 }
                             }
@@ -330,8 +351,11 @@ namespace GestorInventario.Infraestructure.Controllers
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {
-                    var carrito = await _productoRepository.ObtenerCarritoUsuario(usuarioId);
-                    var producto = await _productoRepository.ObtenerPorId(idProducto);
+                    var policy = _PolicyHandler.GetRetryPolicyAsync();
+                    var carrito = await policy.ExecuteAsync(() => _productoRepository.ObtenerCarritoUsuario(usuarioId));
+                    //var carrito = await _productoRepository.ObtenerCarritoUsuario(usuarioId);
+                    var producto = await policy.ExecuteAsync(() => _productoRepository.ObtenerPorId(idProducto));
+                     //var producto = await _productoRepository.ObtenerPorId(idProducto);
                     if (producto != null)
                     {
                         if (producto.Cantidad < cantidad)
@@ -339,8 +363,10 @@ namespace GestorInventario.Infraestructure.Controllers
                             TempData["ErrorMessage"] = "No hay suficientes productos en stock.";
                             return RedirectToAction("Index");
                         }
-                        var itemCarrito = await _productoRepository.AgregarOActualizarProductoCarrito(carrito.Id, idProducto, cantidad);
-                        producto = await _productoRepository.DisminuirCantidadProducto(idProducto, cantidad);
+                        var itemCarrito = await policy.ExecuteAsync(() => _productoRepository.AgregarOActualizarProductoCarrito(carrito.Id, idProducto, cantidad));
+                        //var itemCarrito = await _productoRepository.AgregarOActualizarProductoCarrito(carrito.Id, idProducto, cantidad);
+                        producto = await policy.ExecuteAsync(() => _productoRepository.DisminuirCantidadProducto(idProducto, cantidad));
+                        //producto = await _productoRepository.DisminuirCantidadProducto(idProducto, cantidad);
                     }
                     return RedirectToAction("Index");
                 }
@@ -356,7 +382,9 @@ namespace GestorInventario.Infraestructure.Controllers
        
         public async Task<IActionResult> HistorialProducto(string buscar)
         {
-            var historialProductos = await _productoRepository.ObtenerTodoHistorial();
+            var policy = _PolicyHandler.GetRetryPolicyAsync();
+            var historialProductos = await policy.ExecuteAsync(() => _productoRepository.ObtenerTodoHistorial());
+           //var historialProductos = await _productoRepository.ObtenerTodoHistorial();
            
             //var historialProductos = from p in _context.HistorialProductos.Include(x => x.DetalleHistorialProductos)
             //                select p;
@@ -370,7 +398,9 @@ namespace GestorInventario.Infraestructure.Controllers
         [HttpGet("descargarhistorialPDF")]
         public async Task<IActionResult> DescargarHistorialPDF()
         {
-            var historialProductos = await _productoRepository.DescargarPDF();
+            var policy= _PolicyHandler.GetRetryPolicyAsync();
+            var historialProductos = await policy.ExecuteAsync(() => _productoRepository.DescargarPDF());
+           //var historialProductos = await _productoRepository.DescargarPDF();
             if (historialProductos == null || historialProductos.Count == 0)
             {
                 TempData["ErrorMessage"] = "Datos de productos no encontrados";
@@ -466,7 +496,9 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var historialProducto= await _productoRepository.HistorialProductoPorId(id);          
+                var policy = _PolicyHandler.GetRetryPolicyAsync();
+                var historialProducto = await policy.ExecuteAsync(() => _productoRepository.HistorialProductoPorId(id));
+                //var historialProducto= await _productoRepository.HistorialProductoPorId(id);          
                 if (historialProducto == null)
                 {
                     TempData["ErrorMessage"] = "Detalles del historial no encontrado";
@@ -485,7 +517,9 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var historialProducto= await _productoRepository.EliminarHistorialPorId(id);
+                var policy= _PolicyHandler.GetRetryPolicyAsync();
+                var historialProducto = await policy.ExecuteAsync(() => _productoRepository.EliminarHistorialPorId(id));
+                //var historialProducto= await _productoRepository.EliminarHistorialPorId(id);
                 if (historialProducto == null)
                 {
 
@@ -512,7 +546,9 @@ namespace GestorInventario.Infraestructure.Controllers
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {
-                    var historialProducto = await _productoRepository.EliminarHistorialPorIdDefinitivo(Id);
+                    var policy= _PolicyHandler.GetRetryPolicyAsync();
+                    var historialProducto = await policy.ExecuteAsync(() => _productoRepository.EliminarHistorialPorIdDefinitivo(Id));
+                    //var historialProducto = await _productoRepository.EliminarHistorialPorIdDefinitivo(Id);
                     if (historialProducto == null)
                     {
                         TempData["ErrorMessage"] = "No se puede eliminar, el historial no existe";
@@ -536,7 +572,9 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var historialProductos = await _productoRepository.EliminarTodoHistorial();
+                var policy= _PolicyHandler.GetRetryPolicyAsync();
+                var historialProductos = await policy.ExecuteAsync(() => _productoRepository.EliminarTodoHistorial());
+               //var historialProductos = await _productoRepository.EliminarTodoHistorial();
                 if (historialProductos == null || historialProductos.Count == 0)
                 {
                     TempData["ErrorMessage"] = "No hay datos en el historial para eliminar";

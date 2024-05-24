@@ -189,3 +189,4 @@ C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventari
 C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\bin\Debug\net7.0\out\wwwroot\lib\bootstrap-icons\font\bootstrap-icons.json
 C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\bin\Debug\net7.0\out\wwwroot\lib\jquery-validate\jquery-validation-sri.json
 C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\bin\Debug\net7.0\PayPal.dll
+C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\bin\Debug\net7.0\Polly.dll

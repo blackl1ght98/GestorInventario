@@ -25,9 +25,11 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly ILogger<AdminController> _logger;
         private readonly IAdminRepository _adminrepository;
         private readonly IAdminCrudOperation _admincrudoperation;
-        private readonly GenerarPaginas _generarPaginas;  
-
-        public AdminController( IEmailService emailService, HashService hashService, IConfirmEmailService confirmEmailService, ILogger<AdminController> logger, IAdminRepository adminRepository, IAdminCrudOperation admincrudoperation, GenerarPaginas generarPaginas, GestorInventarioContext context)
+        private readonly GenerarPaginas _generarPaginas;
+        private readonly PolicyCircuitBreaker _policyCircuitBraker;
+        public AdminController( IEmailService emailService, HashService hashService, IConfirmEmailService confirmEmailService, 
+            ILogger<AdminController> logger, IAdminRepository adminRepository, IAdminCrudOperation admincrudoperation, GenerarPaginas generarPaginas, 
+            GestorInventarioContext context, PolicyCircuitBreaker policy)
         {
            
             _emailService = emailService;
@@ -38,46 +40,23 @@ namespace GestorInventario.Infraestructure.Controllers
             _admincrudoperation = admincrudoperation;
             _generarPaginas = generarPaginas;
             _context = context;
+            _policyCircuitBraker = policy;
         }
-
-        //public IActionResult Index()
-        //{
-        //    try
-        //    {
-        //        ViewData["Roles"] = new SelectList(_context.Roles, "Id", "Nombre");
-        //        var usuarios = _context.Usuarios.Include(x => x.IdRolNavigation).ToList();
-        //        return View(usuarios);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Error al mostrar la vista de administrador");
-        //        return BadRequest("En estos momentos no se ha podido llevar a cabo la visualizacion de la vista intentelo de nuevo mas tarde o cantacte con el administrador");
-
-        //    }
-
-        //}
         public async Task<ActionResult> Index(string buscar, [FromQuery] Paginacion paginacion)
         {
             try
             {
-                /*AsQueryable: El método AsQueryable se utiliza para convertir una colección IEnumerable en IQueryable. 
-                 * Esto es útil cuando se desea realizar operaciones de consulta (como filtrado, ordenación, etc.) 
-                 * que se ejecutarán en el servidor, en lugar de traer todos los datos a la memoria local y luego 
-                 * realizar las operaciones.*/
-                /*IEnumerable es una interfaz en .NET que representa una secuencia de objetos que se pueden enumerar. 
-                 * Esta interfaz define un método, GetEnumerator, que devuelve un objeto IEnumerator. IEnumerator 
-                 * proporciona la capacidad de iterar a través de la colección al exponer un método MoveNext y una 
-                 * propiedad Current. Y que es lo mas comun para que se itere listas y arrays*/
-                var queryable = _adminrepository.ObtenerUsuarios();        
+               
+                var policy = _policyCircuitBraker.GetCircuitBreakerPolicy();
+                var queryable = policy.Execute(() => _adminrepository.ObtenerUsuarios());
+                //var queryable = _adminrepository.ObtenerUsuarios();        
                 if (!String.IsNullOrEmpty(buscar))
                 {
                     queryable = queryable.Where(s => s.NombreCompleto.Contains(buscar));
                 }
                 //Accedemos al metodo de extension creado pasandole la fuente de informacion(queryable) y las paginas a mostrar
                 await HttpContext.InsertarParametrosPaginacionRespuesta(queryable, paginacion.CantidadAMostrar);
-                //Mostramos los datos de cada pagina y numero de paginas al usuario,
-                //mostraria 2 registros por pagina
-                var usuarios = queryable.Paginar(paginacion).ToList();
+                var usuarios = policy.Execute(() => queryable.Paginar(paginacion).ToList());
                 //Obtiene los datos de la cabecera que hace esta peticion
                 var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
                 //Crea las paginas que el usuario ve.
@@ -96,13 +75,16 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var user = await _adminrepository.ObtenerPorId(id);
+                var policyAsync = _policyCircuitBraker.GetCircuitBreakerPolicyAsync();
+                var policy = _policyCircuitBraker.GetCircuitBreakerPolicy();
+                var user = await policyAsync.ExecuteAsync(() => _adminrepository.ObtenerPorId(id));
+                //var user = await _adminrepository.ObtenerPorId(id);
                 if (user == null)
                 {
                     return NotFound("El usuario al que intenta cambiar el rol no existe");
                 }
                 //crea el desplegable
-                ViewData["Roles"] = new SelectList(_adminrepository.ObtenerRoles(), "Id", "Nombre");
+                ViewData["Roles"] = new SelectList(policy.Execute(()=> _adminrepository.ObtenerRoles()), "Id", "Nombre");
                 //Le asigna el rol al usuario
                 user.IdRol = newRole;
                 //Actualiza en base de datos 
@@ -126,8 +108,9 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Index", "Home");
                 }
+                var policy = _policyCircuitBraker.GetCircuitBreakerPolicy();
                 //Sirve para obtener los datos del desplegable
-                ViewData["Roles"] = new SelectList(_adminrepository.ObtenerRoles(), "Id", "Nombre");
+                ViewData["Roles"] = new SelectList(policy.Execute(()=> _adminrepository.ObtenerRoles()), "Id", "Nombre");
                 return View();
 
             }
@@ -150,8 +133,11 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                 //Esto toma en cuenta las validaciones puestas en UserViewModel
                 if (ModelState.IsValid)
-                { 
-                    var existingUser=await _adminrepository.ExisteEmail(model.Email);
+                {
+                    var policyAsync = _policyCircuitBraker.GetCircuitBreakerPolicyAsync();
+                    var policy = _policyCircuitBraker.GetCircuitBreakerPolicy();
+                    var existingUser = await policyAsync.ExecuteAsync(() => _adminrepository.ExisteEmail(model.Email));
+                    //var existingUser=await _adminrepository.ExisteEmail(model.Email);
                     if (existingUser != null)
                     {
                         // Si el usuario ya existe, retornar a la vista con un mensaje de error
@@ -173,7 +159,7 @@ namespace GestorInventario.Infraestructure.Controllers
                         FechaRegistro = DateTime.Now
                     };
                     //Sirve para crear el desplegable
-                    ViewData["Roles"] = new SelectList(_adminrepository.ObtenerRoles(), "Id", "Nombre");
+                    ViewData["Roles"] = new SelectList(policy.Execute(()=> _adminrepository.ObtenerRoles()), "Id", "Nombre");
                     //Agrega el usuario a base de datos
                     _admincrudoperation.AddOperation(user);
                     await _emailService.SendEmailAsyncRegister(new DTOEmail
@@ -198,7 +184,9 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var usuarioDB= await _adminrepository.ObtenerPorId(confirmar.UserId);
+                var policyAsync=_policyCircuitBraker.GetCircuitBreakerPolicyAsync();
+                var usuarioDB = await policyAsync.ExecuteAsync(() => _adminrepository.ObtenerPorId(confirmar.UserId));
+               //var usuarioDB= await _adminrepository.ObtenerPorId(confirmar.UserId);
                 if (usuarioDB.ConfirmacionEmail != false)
                 {
                     return BadRequest("Usuario ya validado con anterioridad");
@@ -228,9 +216,9 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                var policyAsync = _policyCircuitBraker.GetCircuitBreakerPolicyAsync();
+                var user = await policyAsync.ExecuteAsync(() => _adminrepository.ObtenerPorId(id));
                 // Obtienes el usuario de la base de datos
-                var user= await _adminrepository.ObtenerPorId(id);
-                // var user = await _context.Usuarios.ExistUserId(id);
                 if (user == null)
                 {
                     return BadRequest("Usuario no encontrado");
@@ -266,8 +254,10 @@ namespace GestorInventario.Infraestructure.Controllers
                 //Si el modelo es valido:
                 if (ModelState.IsValid)
                 {
+                    var policyAsync = _policyCircuitBraker.GetCircuitBreakerPolicyAsync();
                     // Obtiene la id del usuario a editar
-                    var user=  await _adminrepository.ObtenerPorId(userVM.Id);
+                    var user = await policyAsync.ExecuteAsync(() => _adminrepository.ObtenerPorId(userVM.Id));
+                    //var user=  await _adminrepository.ObtenerPorId(userVM.Id);
                     if (user == null)
                     {
                         return NotFound("Usuario no encontrado");
@@ -277,15 +267,11 @@ namespace GestorInventario.Infraestructure.Controllers
                     user.FechaNacimiento = userVM.FechaNacimiento;
                     user.Telefono = userVM.Telefono;
                     user.Direccion = userVM.Direccion;
-                    //Esto ocurre cuando el usuario cambia de email 
                     if (user != null && user.Email != userVM.Email)
                     {
-                        //La confirmacion de email se le cambia a false
                         user.ConfirmacionEmail = false;
-                        //El nuevo email se asigna a base de datos
                         user.Email = userVM.Email;
                         _admincrudoperation.UpdateOperation(user);
-                        //Se envia un emain para confirmar el nuevo correo
                         await _emailService.SendEmailAsyncRegister(new DTOEmail
                         {
                             ToEmail = userVM.Email
@@ -302,29 +288,15 @@ namespace GestorInventario.Infraestructure.Controllers
                         /*
                          * El método Entry en el contexto de Entity Framework Core se utiliza para obtener un objeto 
                          * que puede usarse para configurar y realizar acciones en una entidad que está siendo rastreada por el contexto.*/
-                        /*
-
-        Update(user): Este método marca la entidad y todas sus propiedades como modificadas. Esto significa que cuando llamas a SaveChangesAsync(), 
-                        Entity Framework generará un comando SQL UPDATE que actualizará todas las columnas de la entidad en la base de datos, 
-                        independientemente de si cambiaron o no.
-
-        Entry(user).State = EntityState.Modified: Este método marca la entidad como modificada, pero no todas las propiedades. Cuando llamas a 
-                        SaveChangesAsync(), Entity Framework generará un comando SQL UPDATE que sólo actualizará las columnas de la entidad que 
-                        realmente cambiaron.
-                         */
+                    
                         _admincrudoperation.ModifyEntityState(user, EntityState.Modified);
                         await _admincrudoperation.SaveChangesAsync();
 
                         //await _context.SaveChangesAsync();
                     }
-                    //esta excepcion es lanzada cuando varios usuarios modifican al mismo tiempo los datos. Por ejemplo
-                    //tenemos un usuario llamado A que esta modificando los datos y todavia no ha guardado esos cambios pero
-                    //tenemos un usuario B que tiene que modificar los datos que esta modificando el usuario A y el usuario B 
-                    //guarda los datos antes que el A por lo tanto al usuario A tener datos antiguos se produce esta excepcion al usuario
-                    //A no tener los datos actuales
+                   
                     catch (DbUpdateConcurrencyException)
                     {
-
                         if (user.Id==null)
                         {
                             return NotFound("Usuario no encontrado");
@@ -353,8 +325,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                var policy = _policyCircuitBraker.GetCircuitBreakerPolicyAsync();
                 //Consulta a base de datos en base a la id del usuario
-                var user=  await _adminrepository.UsuarioConPedido(id);
+                var user = await policy.ExecuteAsync(() => _adminrepository.UsuarioConPedido(id));
+                //var user=  await _adminrepository.UsuarioConPedido(id);
                 //Si no hay cervezas muestra el error 404
                 if (user == null)
                 {
@@ -383,8 +357,8 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                //Busca al usuario en base de datos
-                var user= await _adminrepository.UsuarioConPedido(Id);
+                var policy = _policyCircuitBraker.GetCircuitBreakerPolicyAsync();
+                var user = await policy.ExecuteAsync(() => _adminrepository.UsuarioConPedido(Id));
                 if (user == null)
                 {
                     return BadRequest();
@@ -392,9 +366,11 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (user.Pedidos.Any())
                 {
                     TempData["ErrorMessage"] = "El usuario no se puede eliminar porque tiene pedidos asociados.";
-                    //En caso de que el proveedor tenga productos asociados se devuelve al usuario a la vista Delete y se
-                    //muestra el mensaje informandole.
-                    //A esta reedireccion se le pasa la vista Delete y al metodo que contiene esa vista la id del proveedor
+                    return RedirectToAction(nameof(Delete), new { id = Id });
+                }
+                if (user.HistorialPedidos.Any())
+                {
+                    TempData["ErrorMessage"] = "El usuario no se puede eliminar porque tiene historial de pedidos asociados.";
                     return RedirectToAction(nameof(Delete), new { id = Id });
                 }
                 //Elimina el usuario y guarda los cambios

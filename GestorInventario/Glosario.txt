@@ -1,0 +1,22 @@
+ /*AsQueryable: El método AsQueryable se utiliza para convertir una colección IEnumerable en IQueryable. 
+                 * Esto es útil cuando se desea realizar operaciones de consulta (como filtrado, ordenación, etc.) 
+                 * que se ejecutarán en el servidor, en lugar de traer todos los datos a la memoria local y luego 
+                 * realizar las operaciones.*/
+/*IEnumerable: Es una interfaz en .NET que representa una secuencia de objetos que se pueden enumerar. 
+                 * Esta interfaz define un método, GetEnumerator, que devuelve un objeto IEnumerator. IEnumerator 
+                 * proporciona la capacidad de iterar a través de la colección al exponer un método MoveNext y una 
+                 * propiedad Current. Y que es lo mas comun para que se itere listas y arrays*/
+ /*
+        Update(user): Este método marca la entidad y todas sus propiedades como modificadas. Esto significa que cuando llamas a SaveChangesAsync(), 
+                        Entity Framework generará un comando SQL UPDATE que actualizará todas las columnas de la entidad en la base de datos, 
+                        independientemente de si cambiaron o no.
+        Entry(user).State = EntityState.Modified: Este método marca la entidad como modificada, pero no todas las propiedades. Cuando llamas a 
+                        SaveChangesAsync(), Entity Framework generará un comando SQL UPDATE que sólo actualizará las columnas de la entidad que 
+                        realmente cambiaron.
+                         */
+DbUpdateConcurrencyException:
+ //esta excepcion es lanzada cuando varios usuarios modifican al mismo tiempo los datos. Por ejemplo
+                    //tenemos un usuario llamado A que esta modificando los datos y todavia no ha guardado esos cambios pero
+                    //tenemos un usuario B que tiene que modificar los datos que esta modificando el usuario A y el usuario B 
+                    //guarda los datos antes que el A por lo tanto al usuario A tener datos antiguos se produce esta excepcion al usuario
+                    //A no tener los datos actuales
