@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "vB6dO97i2UyXLxVcm+VK+HzuLYB2Pob/0dBIcMlA+mWR5PqdwVIfD6YQHpmw8G0NTltMwttP5ItFfIMXlHY4uA==",
+  "dgSpecHash": "EQQgoIHxOFDtFoqx2fHCgUxG4WxP2Lai09GVoZ8YMlaMB8NkvFluXDcEcmUU2jaORmjKd6YwFGyv+5UMqK8Gew==",
   "success": true,
   "projectFilePath": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\GestorInventario.csproj",
   "expectedPackageFiles": [
@@ -86,10 +86,10 @@
       "code": "NU1701",
       "level": "Warning",
       "warningLevel": 1,
-      "message": "El paquete \"PayPal 1.9.1\" se restauró con \".NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1\" en lugar de la plataforma de destino del proyecto \"net7.0\". Puede que el paquete no sea totalmente compatible con el proyecto.",
+      "message": "El paquete \"PayPal 1.9.1\" se restauró con \".NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1\" en lugar de la plataforma de destino del proyecto \"net8.0\". Puede que el paquete no sea totalmente compatible con el proyecto.",
       "libraryId": "PayPal",
       "targetGraphs": [
-        "net7.0"
+        "net8.0"
       ]
     }
   ]

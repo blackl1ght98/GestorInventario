@@ -10,7 +10,7 @@ public partial class GestorInventarioContext : DbContext
     {
     }
 
-    public GestorInventarioContext(DbContextOptions<GestorInventarioContext> options)
+    public GestorInventarioContext(DbContextOptions<GestorInventarioContext> options, IConfiguration config)
         : base(options)
     {
     }

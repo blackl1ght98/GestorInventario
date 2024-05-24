@@ -10,25 +10,25 @@
         y proporciona una forma de tener múltiples constructores con diferentes números de parámetros.
          */
         /*public class Ejemplo
-{
-    private int valor1;
-    private int valor2;
+        {
+            private int valor1;
+            private int valor2;
 
-    // Constructor base que inicializa todas las propiedades
-    public Ejemplo(int valor1, int valor2)
-    {
-        this.valor1 = valor1;
-        this.valor2 = valor2;
-    }
+            // Constructor base que inicializa todas las propiedades
+            public Ejemplo(int valor1, int valor2)
+            {
+                this.valor1 = valor1;
+                this.valor2 = valor2;
+            }
 
     // Constructor que llama al constructor base con 'valor1' y un valor predeterminado para 'valor2'
     public Ejemplo(int valor1) : this(valor1, 0) { }
-}
+        }
 */
         public string Texto { get; set; }
         public int Pagina { get; set; }
-        //La propiedad habilitada se refiere a la pagina de si esta o no habilitada
-        public bool Habilitada { get; set; } = true;
+        
+        public bool Habilitada { get; set; } = true;//La propiedad habilitada se refiere a la pagina de si esta o no habilitada
         public bool Activa { get; set; } = false;
         /*Para realizar el encadenamiento de constructores se necesitan cumplir unos requisitos:
          * 1.Tener unas propiedades.
@@ -42,20 +42,17 @@
          *  pagina.ToString() es que el ultimo parametro del constructor padre recibe texto y pagina es un numero.
          *    IMPORTANTE: la encadenacion de constructores
          * no puede tener mas parametros de los que tenga el constructor padre, esto se aplica a la parte del this() que si
-         * el padre tiene 3 parametros tu en la parte del this() no puedes pasar 4. Dicho esto actua como si fuese
+         * el padre tiene 3 parametros, en la parte del this() no puedes pasar 4. Dicho esto actua como si fuese
          * un constructor unico pero en realidad son como 2 constructores la primera parte del constructor 
          * puede tener mas parametros que los que ofrece el padre pero la parte del this() tiene que ser si o si el 
          * mismo numero de parametros que el padre tenga y de el mismo tipo
-         
-       
-
          */
         /*public class Ejemplo
             {
             private int valor1;
             private int valor2;
 
-    // Constructor base que inicializa todas las propiedades
+    // Constructor base(padre) que inicializa todas las propiedades
     public Ejemplo(int valor1, int valor2)
     {
         this.valor1 = valor1;
@@ -63,6 +60,8 @@
     }
 
     // Este constructor tiene un parámetro adicional, pero solo pasa 'valor1' y 'valor2' a 'this()'
+    //Ejemplo(int valor1, int valor2, int valor3) en esta parte puedes tener la cantidad de valores que quieras
+        //pero la pate que corresponde al this tiene que tener la misma cantidad de valores que el constructor padre
     public Ejemplo(int valor1, int valor2, int valor3) : this(valor1, valor2)
     {
         // Aquí puedes hacer algo con 'valor3'
@@ -84,13 +83,6 @@
             establece como la representación en cadena del número de página (pagina.ToString()). Por lo tanto, si 
             creas una instancia con este constructor, el texto se establecerá automáticamente como el número de página.     
          */
-        //Contructor que llama al constructor padre la primera parte del constructor solo se le pasan 2 parametro
-        //pagina y habilitada y este constructor de dos parametros se encadena al constructor padre que recibe 3 
-        //parametros el ultimo parametro el constructor padre marca que tiene que ser string pero pagina es int
-        //este es el motivo por el cual a pagina se le pone ToString()
-
-
-
         public PaginasModel(int pagina, bool habilitada) : this(pagina, habilitada, pagina.ToString()) { }
         /*
 
@@ -100,9 +92,6 @@
             como true. Por lo tanto, si creas una instancia con este constructor, habilitada se establecerá automáticamente
             como true y el texto se establecerá automáticamente como el número de página. 
         */
-      //Constructor que llama al constructor de 2 parametro pagina y habilitada y este constructor de 1 parametro 
-      //se encadena al constructor que recibe 2 parametros se establece pagina que es un numero y si esta habilitada que 
-      //en este caso es true
         public PaginasModel(int pagina) : this(pagina, true) { }
 
     }

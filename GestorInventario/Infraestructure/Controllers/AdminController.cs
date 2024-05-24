@@ -280,7 +280,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     else
                     {
                         //Si el usuario no cambia el email se queda igual
-                        user.Email = userVM.Email;
+                        user!.Email = userVM.Email;
                     }
                     try
                     {

@@ -20,3 +20,11 @@ DbUpdateConcurrencyException:
                     //tenemos un usuario B que tiene que modificar los datos que esta modificando el usuario A y el usuario B 
                     //guarda los datos antes que el A por lo tanto al usuario A tener datos antiguos se produce esta excepcion al usuario
                     //A no tener los datos actuales
+        // IEnumerable<T> es una interfaz que define un método (GetEnumerator) que expone un enumerador,
+        // que soporta una iteración simple sobre una colección de un tipo específico. Puedes pensar en 
+        // IEnumerable<T> como la "forma más simple" de una colección. No tiene métodos para agregar o 
+        // eliminar elementos, ni tiene índices. Solo te permite iterar sobre los elementos de la colección.
+
+        // List<T> es una clase que implementa la interfaz IEnumerable<T>, pero también proporciona 
+        // funcionalidades adicionales. List<T> representa una lista fuertemente tipada de objetos a los 
+        // que se puede acceder por índice. Proporciona métodos para buscar, ordenar y manipular listas.

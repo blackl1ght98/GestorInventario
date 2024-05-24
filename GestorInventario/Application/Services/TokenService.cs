@@ -123,8 +123,8 @@ namespace GestorInventario.Application.Services
             string claveCifradoString = Convert.ToBase64String(claveCifrado);
 
             // Guarda las claves en las cookies
-            _httpContextAccessor.HttpContext.Response.Cookies.Append("PrivateKey", Convert.ToBase64String(privateKeyCifrada), new CookieOptions { HttpOnly = true, IsEssential = true, Secure = true, SameSite = SameSiteMode.Strict, Expires = null });
-            _httpContextAccessor.HttpContext.Response.Cookies.Append("PublicKey", Convert.ToBase64String(publicKeyCifrada), new CookieOptions { HttpOnly = true, IsEssential = true, Secure = true, SameSite = SameSiteMode.Strict, Expires = null });
+            _httpContextAccessor.HttpContext?.Response.Cookies.Append("PrivateKey", Convert.ToBase64String(privateKeyCifrada), new CookieOptions { HttpOnly = true, IsEssential = true, Secure = true, SameSite = SameSiteMode.Strict, Expires = null });
+            _httpContextAccessor.HttpContext?.Response.Cookies.Append("PublicKey", Convert.ToBase64String(publicKeyCifrada), new CookieOptions { HttpOnly = true, IsEssential = true, Secure = true, SameSite = SameSiteMode.Strict, Expires = null });
             //_httpContextAccessor.HttpContext.Response.Cookies.Append("ClaveCifrado", claveCifradoString, new CookieOptions
             //{
             //    // Configura la cookie para que sea segura y HttpOnly
@@ -160,34 +160,29 @@ namespace GestorInventario.Application.Services
         {
             try
             {
-                // Crea una nueva instancia de la clase RNGCryptoServiceProvider.
-                // Esta clase proporciona un generador de números aleatorios criptográficamente seguro.
-                using (var rng = new RNGCryptoServiceProvider())
-                {
-                    // Crea un nuevo array de bytes con una longitud de 32 bytes (256 bits).
-                    // Este será el tamaño de la clave de cifrado que se va a generar.
-                    var claveCifrado = new byte[32]; // 256 bits para AES
+                // Crea un nuevo array de bytes con una longitud de 32 bytes (256 bits).
+                // Este será el tamaño de la clave de cifrado que se va a generar.
+                var claveCifrado = new byte[32]; // 256 bits para AES
 
-                    // Llena el array de bytes 'claveCifrado' con valores aleatorios generados por 'rng'.
-                    // Esto genera la clave de cifrado.
-                    rng.GetBytes(claveCifrado);
+                // Llena el array de bytes 'claveCifrado' con valores aleatorios.
+                // Esto genera la clave de cifrado.
+                RandomNumberGenerator.Fill(claveCifrado);
 
-                    // Devuelve la clave de cifrado.
-                    return claveCifrado;
-                }
+                // Devuelve la clave de cifrado.
+                return claveCifrado;
             }
             catch (Exception ex)
             {
-                var collectioncookies = _httpContextAccessor.HttpContext.Request.Cookies;
-                foreach (var cookie in collectioncookies)
+                var collectioncookies = _httpContextAccessor.HttpContext?.Request.Cookies;
+                foreach (var cookie in collectioncookies!)
                 {
-                    _httpContextAccessor.HttpContext.Response.Cookies.Delete(cookie.Key);
+                    _httpContextAccessor.HttpContext?.Response.Cookies.Delete(cookie.Key);
                 }
-                if (_httpContextAccessor.HttpContext.Request.Path != "/Auth/Login")
+                if (_httpContextAccessor.HttpContext?.Request.Path != "/Auth/Login")
                 {
-                    _httpContextAccessor.HttpContext.Response.Redirect("/Auth/Login");
+                    _httpContextAccessor.HttpContext?.Response.Redirect("/Auth/Login");
                 }
-                _logger.LogCritical("Error al generar la clave de cifrado", ex);
+                _logger.LogCritical(message: "Error al generar la clave de cifrado: ", ex);
                 return new byte[0];
             }
            
@@ -198,19 +193,17 @@ namespace GestorInventario.Application.Services
             try
             {
                 // Crea una nueva instancia de la clase AesManaged.
-                // Esta clase proporciona una implementación del Algoritmo Estándar de Cifrado Avanzado (AES).
-                using (var aes = new AesManaged
+                using (var aes = Aes.Create())
                 {
                     // Establece la clave de cifrado que se utilizará para el cifrado.
-                    Key = claveCifrado,
+                    aes.Key = claveCifrado;
 
                     // Establece el modo de cifrado en CBC (Cipher Block Chaining).
-                    Mode = CipherMode.CBC,
+                    aes.Mode = CipherMode.CBC;
 
                     // Establece el modo de relleno en PKCS7.
-                    Padding = PaddingMode.PKCS7
-                })
-                {
+                    aes.Padding = PaddingMode.PKCS7;
+
                     // Genera un nuevo Vector de Inicialización (IV) aleatorio.
                     aes.GenerateIV();
 
@@ -230,14 +223,14 @@ namespace GestorInventario.Application.Services
             catch (Exception ex)
             {
 
-                var collectioncookies = _httpContextAccessor.HttpContext.Request.Cookies;
-                foreach (var cookie in collectioncookies)
+                var collectioncookies = _httpContextAccessor.HttpContext?.Request.Cookies;
+                foreach (var cookie in collectioncookies!)
                 {
-                    _httpContextAccessor.HttpContext.Response.Cookies.Delete(cookie.Key);
+                    _httpContextAccessor.HttpContext?.Response.Cookies.Delete(cookie.Key);
                 }
-                if (_httpContextAccessor.HttpContext.Request.Path != "/Auth/Login")
+                if (_httpContextAccessor.HttpContext?.Request.Path != "/Auth/Login")
                 {
-                    _httpContextAccessor.HttpContext.Response.Redirect("/Auth/Login");
+                    _httpContextAccessor.HttpContext?.Response.Redirect("/Auth/Login");
                 }
                 _logger.LogCritical("Error al cifrar", ex);
                 return new byte[0];
@@ -253,18 +246,17 @@ namespace GestorInventario.Application.Services
             {
                 // Crea una nueva instancia de la clase AesManaged.
                 // Esta clase proporciona una implementación del Algoritmo Estándar de Cifrado Avanzado (AES).
-                using (var aes = new AesManaged
+                using (var aes = Aes.Create())
                 {
                     // Establece la clave de cifrado que se utilizará para el descifrado.
-                    Key = claveCifrado,
+                    aes.Key = claveCifrado;
 
                     // Establece el modo de cifrado en CBC (Cipher Block Chaining).
-                    Mode = CipherMode.CBC,
+                    aes.Mode = CipherMode.CBC;
 
                     // Establece el modo de relleno en PKCS7.
-                    Padding = PaddingMode.PKCS7
-                })
-                {
+                    aes.Padding = PaddingMode.PKCS7;
+
                     // Extrae el Vector de Inicialización (IV) del texto cifrado.
                     // El IV se encuentra en los primeros bytes del texto cifrado y tiene una longitud igual a la longitud de bloque de AES (en bytes).
                     var iv = data.Take(aes.BlockSize / 8).ToArray(); // Extract IV from the cipher text
@@ -287,14 +279,14 @@ namespace GestorInventario.Application.Services
             catch (Exception ex)
             {
 
-                var collectioncookies = _httpContextAccessor.HttpContext.Request.Cookies;
-                foreach (var cookie in collectioncookies)
+                var collectioncookies = _httpContextAccessor.HttpContext?.Request.Cookies;
+                foreach (var cookie in collectioncookies!)
                 {
-                    _httpContextAccessor.HttpContext.Response.Cookies.Delete(cookie.Key);
+                    _httpContextAccessor.HttpContext?.Response.Cookies.Delete(cookie.Key);
                 }
-                if (_httpContextAccessor.HttpContext.Request.Path != "/Auth/Login")
+                if (_httpContextAccessor.HttpContext?.Request.Path != "/Auth/Login")
                 {
-                    _httpContextAccessor.HttpContext.Response.Redirect("/Auth/Login");
+                    _httpContextAccessor.HttpContext?.Response.Redirect("/Auth/Login");
                 }
                 _logger.LogCritical("Error al descifrar", ex);
                 return new byte[0];

@@ -6,7 +6,6 @@ using GestorInventario.Interfaces;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.Interfaces.Infrastructure;
-using GestorInventario.MetodosExtension;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +25,7 @@ using System.Security.Claims;
 using Microsoft.Extensions.Caching.Memory;
 using Polly;
 using GestorInventario.Application.Politicas_Resilencia;
+using GestorInventario.PaginacionLogica;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,12 +40,12 @@ string secret;
 bool isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
 if (!isDevelopment)
 {
-    connectionString = builder.Configuration["CONNECTION_STRING"];
+    connectionString = builder.Configuration["ConnectionStrings:CONNECTION_STRING"];
     secret = builder.Configuration["ClaveJWT"];
 }
 else
 {
-    connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    connectionString = builder.Configuration.GetConnectionString("CONNECTION_STRING");
     secret = builder.Configuration["ClaveJWT"];
 }
 //Al igual que en un proyecto web api se pone la inyecion de dependencias

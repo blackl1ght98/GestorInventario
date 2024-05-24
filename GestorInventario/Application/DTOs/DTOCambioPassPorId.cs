@@ -3,6 +3,6 @@
     public class DTOCambioPassPorId
     {
         public int Id { get; set; }
-        public string NewPass { get; set; }
+        public string? NewPass { get; set; }
     }
 }

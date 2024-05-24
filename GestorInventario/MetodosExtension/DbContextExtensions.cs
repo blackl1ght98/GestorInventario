@@ -27,14 +27,7 @@ namespace GestorInventario.MetodosExtension
             context.Set<T>().Remove(entity);
             context.SaveChanges();
         }
-        // IEnumerable<T> es una interfaz que define un método (GetEnumerator) que expone un enumerador,
-        // que soporta una iteración simple sobre una colección de un tipo específico. Puedes pensar en 
-        // IEnumerable<T> como la "forma más simple" de una colección. No tiene métodos para agregar o 
-        // eliminar elementos, ni tiene índices. Solo te permite iterar sobre los elementos de la colección.
-
-        // List<T> es una clase que implementa la interfaz IEnumerable<T>, pero también proporciona 
-        // funcionalidades adicionales. List<T> representa una lista fuertemente tipada de objetos a los 
-        // que se puede acceder por índice. Proporciona métodos para buscar, ordenar y manipular listas.
+      
 
         public static void DeleteRangeEntity<T>(this DbContext context, IEnumerable<T> entities) where T : class
         {
