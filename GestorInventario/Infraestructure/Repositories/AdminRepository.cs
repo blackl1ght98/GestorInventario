@@ -40,10 +40,7 @@ namespace GestorInventario.Infraestructure.Repositories
         {
             return _context.Roles.ToList();
         }
-        public async Task<Usuario> ExisteEmail(string email)
-        {
-            return await _context.Usuarios.FirstOrDefaultAsync(x=>x.Email==email);
-        }
+       
         public async Task<Usuario> UsuarioConPedido(int id)
         {
             return await _context.Usuarios.Include(p => p.Pedidos).FirstOrDefaultAsync(m => m.Id == id);
@@ -71,10 +68,7 @@ namespace GestorInventario.Infraestructure.Repositories
             return (true, "Usuario eliminado con éxito");
         }
 
-        public async Task<Usuario> Login(string email)
-        {
-            return await _context.Usuarios.Include(x => x.IdRolNavigation).FirstOrDefaultAsync(u => u.Email == email);
-        }
+       
     
       
        

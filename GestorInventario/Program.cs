@@ -78,7 +78,7 @@ builder.Services.AddTransient<IConfirmEmailService, ConfirmEmailService>();
 builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.AddTransient<TokenService>();
 builder.Services.AddTransient<IAdminRepository,AdminRepository>();
-
+builder.Services.AddTransient<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
 
 builder.Services.AddTransient<PolicyHandler>();

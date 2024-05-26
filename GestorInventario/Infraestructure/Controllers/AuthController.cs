@@ -11,6 +11,7 @@ using GestorInventario.Application.DTOs;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.MetodosExtension;
 using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.Application.Politicas_Resilencia;
 
 namespace GestorInventario.Infraestructure.Controllers
 {
@@ -20,18 +21,20 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly HashService _hashService;
         private readonly IEmailService _emailService;
         private readonly TokenService _tokenService;
-        private readonly IAdminRepository _adminRepository;
-       
+        private readonly IAuthRepository _authRepository;
+        private readonly PolicyHandler _PolicyHandler;
+
+
         private readonly ILogger<AuthController> _logger;
-        public AuthController(GestorInventarioContext context, HashService hashService, IEmailService emailService, TokenService tokenService, IAdminRepository adminRepository,
-              ILogger<AuthController> logger)
+        public AuthController(GestorInventarioContext context, HashService hashService, IEmailService emailService, TokenService tokenService, IAuthRepository adminRepository,
+              ILogger<AuthController> logger, PolicyHandler policy)
         {
             _context = context;
             _hashService = hashService;
             _emailService = emailService;
             _tokenService = tokenService;
-            _adminRepository = adminRepository;
-         
+            _authRepository = adminRepository;
+            _PolicyHandler= policy;
             _logger = logger;
         }  
         [AllowAnonymous]
@@ -59,7 +62,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     {
                         return RedirectToAction("Index", "Home");
                     }
-                    var user = await _adminRepository.Login(model.Email);
+                    var user = await ExecutePolicyAsync(()=> _authRepository.Login(model.Email)) ;
 
                     if (user != null)
                     {
@@ -194,7 +197,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var usuarioDB = await _adminRepository.ExisteEmail(email);
+                var usuarioDB = await ExecutePolicyAsync(()=> _authRepository.ExisteEmail(email)) ;
                 //var usuarioDB= await _context.Usuarios.EmailExists(email);
                 //var usuarioDB = await _context.Usuarios.AsTracking().FirstOrDefaultAsync(x => x.Email == email);
                 // Generar una contraseña temporal
@@ -221,26 +224,19 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
                 //Se busca al usuario por Id
-                var usuarioDB = await _adminRepository.ObtenerPorId(cambio.UserId);
-                //var usuarioDB= await _context.Usuarios.ExistUserId(cambio.UserId);
-                //var usuarioDB = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == cambio.UserId);
-                if (usuarioDB.Email == null)
+                var usuarioDB = await ExecutePolicyAsync(()=> _authRepository.ObtenerPorId(cambio.UserId));       
+               var (success, errorMessage)= await ExecutePolicyAsync(()=>_authRepository.RestorePass(cambio)) ;
+                if (success)
                 {
-                    return BadRequest("Email no encontrado");
+                    TempData["SuccessMessage"] = "Exito";
+
                 }
-                //Si el enlace que se genero en el registro se altero ese enlace no sera valido
-                if (usuarioDB.EnlaceCambioPass != cambio.Token)
+                else 
                 {
-                    return BadRequest("Token no valido");
+                    TempData["ErrorMessage"] = errorMessage;
+
                 }
-                if (usuarioDB.FechaEnlaceCambioPass < DateTime.Now && usuarioDB.FechaExpiracionContrasenaTemporal<DateTime.Now)
-                {
-                    TempData["error"] = "El enlace y contraseña temporal ha expirado, solicite otro";
-                    usuarioDB.FechaEnlaceCambioPass = null;
-                    usuarioDB.FechaExpiracionContrasenaTemporal = null;
-                    usuarioDB.TemporaryPassword = null;
-                    await _context.SaveChangesAsync();
-                }
+
                 // Crear un nuevo objeto DTORestorePass y establecer las propiedades apropiadas
                 var restorePass = new DTORestorePass
                 {
@@ -267,54 +263,19 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var usuarioDB = await _adminRepository.ObtenerPorId(cambio.UserId);
-
-                // var usuarioDB = await _context.Usuarios.ExistUserId(cambio.UserId);
-
-                //Busca al usuario por Id
-                //var usuarioDB = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == cambio.UserId);
-                //Si la id es nula devuelve el siguiente error
-                if (usuarioDB == null)
+                
+                var (success,errorMessage) = await ExecutePolicyAsync(()=> _authRepository.ActualizarPass(cambio)) ;
+                if (success)
                 {
-                    return BadRequest("Usuario no encontrado");
+                    TempData["SuccessMessage"] = "Los datos se han eliminado con éxito.";
+
                 }
-                // Comprobar si la contraseña es nula 
-                if (string.IsNullOrEmpty(cambio.Password))
+                else
                 {
-                    return BadRequest("La contraseña no puede estar vacía");
+                    TempData["ErrorMessage"] = errorMessage;
+                    return View("RestorePassword", cambio);
                 }
-               
-                //Se usa el servicio hashService para cifrar la contraseña
-                var resultadoHashTemp = _hashService.Hash(cambio.TemporaryPassword);
-                //Se genera un hash para esa contraseña
-                usuarioDB.TemporaryPassword = resultadoHashTemp.Hash;
-                //Se genera un salt para esa contraseña
-                usuarioDB.Salt = resultadoHashTemp.Salt;
-                //Si la contraseña temporal que hay en base de datos es distinta a la que se ha proporcionado por correo o el salt es distinto
-                //al que hay en base de datos da error 
-
-                if (usuarioDB.TemporaryPassword != resultadoHashTemp.Hash || usuarioDB.Salt != resultadoHashTemp.Salt)
-                {
-                    return BadRequest("La contraseña temporal no es válida");
-                }
-                //si todo ha ido bien se actualiza con la contraseña temporal 
-               _context.UpdateEntity(usuarioDB);
-                //_context.Usuarios.Update(usuarioDB);
-                //Se guarda en base de datos
-                //await _context.SaveChangesAsync();
-                //Se usa el servicio hash service para hashear la contraseña proporcionada por el usuario
-                var resultadoHash = _hashService.Hash(cambio.Password);
-                //Se asigna un hash a la contraseña que proporciono el usuario
-                usuarioDB.Password = resultadoHash.Hash;
-                //Se asigna un salt a la contraseña que proporciono el usuario
-
-                usuarioDB.Salt = resultadoHash.Salt;
-
-                // Guardar los cambios en la base de datos
-                _context.UpdateEntity(usuarioDB);
-
-                //_context.Usuarios.Update(usuarioDB);
-                //await _context.SaveChangesAsync();
+             
 
                 return RedirectToAction("Index", "Admin");
 
@@ -324,7 +285,17 @@ namespace GestorInventario.Infraestructure.Controllers
                 _logger.LogError(ex, "Error al recuperar la contraseña");
                 return BadRequest("Error al restaurar la contraseña intentelo de nuevo mas tarde o contacte con el administrador si el problema persiste");
             }
-            
+        }
+
+        private async Task<T> ExecutePolicyAsync<T>(Func<Task<T>> operation)
+        {
+            var policy = _PolicyHandler.GetCombinedPolicyAsync<T>();
+            return await policy.ExecuteAsync(operation);
+        }
+        private T ExecutePolicy<T>(Func<T> operation)
+        {
+            var policy = _PolicyHandler.GetCombinedPolicy<T>();
+            return policy.Execute(operation);
         }
 
     }

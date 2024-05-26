@@ -10,9 +10,9 @@ namespace GestorInventario.Interfaces.Infraestructure
         IQueryable<Usuario> ObtenerUsuarios();
         Task<Usuario> ObtenerPorId(int id);
         IEnumerable<Role> ObtenerRoles();
-        Task<Usuario> ExisteEmail(string email);
+      
         Task<Usuario> UsuarioConPedido(int id);
-        Task<Usuario> Login(string email);
+      
         Task<(bool, string)> EditarUsuario(UsuarioEditViewModel userVM);
         Task<(bool, string)> EditarRol(int id, int newRole);
         Task<(bool, string)> CrearUsuario(UserViewModel model);
