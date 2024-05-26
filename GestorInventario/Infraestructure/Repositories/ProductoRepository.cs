@@ -133,16 +133,31 @@ namespace GestorInventario.Infraestructure.Repositories
             var producto = await _context.Productos.Include(p => p.IdProveedorNavigation).FirstOrDefaultAsync(m => m.Id == id);
             return producto;
         }
-        public async Task<Producto> EliminarProducto(int Id)
+        //Un metodo asincrono que recibe un booleano y un string
+        public async Task<(bool, string)> EliminarProducto(int Id)
         {
             var producto = await _context.Productos
-                   .Include(p => p.DetallePedidos)
-                       .ThenInclude(dp => dp.Pedido)
-                   .Include(p => p.IdProveedorNavigation).Include(x => x.DetalleHistorialProductos)
-                   .FirstOrDefaultAsync(m => m.Id == Id);
-           
-            return producto;
+                .Include(p => p.DetallePedidos)
+                    .ThenInclude(dp => dp.Pedido)
+                .Include(p => p.IdProveedorNavigation)
+                .Include(x => x.DetalleHistorialProductos)
+                .FirstOrDefaultAsync(m => m.Id == Id);
+            //Retorna falso si la condicion se cumple
+            if (producto == null)
+            {
+                return (false, "No hay productos para eliminar");
+            }
+
+            if (producto.DetallePedidos.Any() || producto.DetalleHistorialProductos.Any())
+            {
+                return (false, "El producto no se puede eliminar porque tiene pedidos o historial asociados.");
+            }
+            //Si las condiciones no se cumplen elimina el producto
+            _context.DeleteEntity(producto);
+
+            return (true, null);
         }
+
         public async Task<Producto> ObtenerPorId(int id)
         {
             var producto = await _context.Productos.FirstOrDefaultAsync(x => x.Id == id);
@@ -347,11 +362,19 @@ namespace GestorInventario.Infraestructure.Repositories
             var historialProducto = await _context.HistorialProductos.Include(x => x.DetalleHistorialProductos).FirstOrDefaultAsync(x => x.Id == id);
             return historialProducto;
         }
-        public async Task<HistorialProducto> EliminarHistorialPorIdDefinitivo(int Id)
+        public async Task<(bool, string)> EliminarHistorialPorIdDefinitivo(int Id)
         {
             var historialProducto = await _context.HistorialProductos.Include(x => x.DetalleHistorialProductos).FirstOrDefaultAsync(x => x.Id == Id);
-           
-            return historialProducto;
+            if(historialProducto != null)
+            {
+                _context.DeleteRangeEntity(historialProducto.DetalleHistorialProductos);
+                _context.DeleteEntity(historialProducto);
+            }
+            else
+            {
+                return (false, "No se puede eliminar, el historial no existe");
+            }
+            return (true,null);
         }
         public async Task<List<HistorialProducto>> EliminarTodoHistorial()
         {

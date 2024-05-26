@@ -2,7 +2,7 @@
 using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
-using GestorInventario.MetodosExtension.Tabla_Items_Carrito;
+
 using GestorInventario.PaginacionLogica;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -15,17 +15,17 @@ namespace GestorInventario.Infraestructure.Controllers
     public class CarritoController : Controller
     {
         private readonly GestorInventarioContext _context;
-        private readonly IAdminRepository _adminRepository;
-        private readonly IAdminCrudOperation _admincrudOperation;
+        private readonly ICarritoRepository _carritoRepository;
+        
         private readonly GenerarPaginas _generarPaginas;
         private readonly ILogger<CarritoController> _logger;
         private readonly IUnitOfWork _unitOfWork;
      
-        public CarritoController(GestorInventarioContext context, IAdminRepository adminrepository, IAdminCrudOperation admincrudOperation, GenerarPaginas generarPaginas, ILogger<CarritoController> logger, IUnitOfWork unitOfWork)
+        public CarritoController(GestorInventarioContext context, ICarritoRepository carritorepository,  GenerarPaginas generarPaginas, ILogger<CarritoController> logger, IUnitOfWork unitOfWork)
         {
             _context = context;
-            _adminRepository = adminrepository;
-            _admincrudOperation = admincrudOperation;
+            _carritoRepository = carritorepository;
+           
             _generarPaginas = generarPaginas;
             _logger = logger;
             _unitOfWork = unitOfWork;
@@ -41,7 +41,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {
 
-                    var carrito = await _adminRepository.ObtenerCarrito(usuarioId);
+                    var carrito = await _carritoRepository.ObtenerCarrito(usuarioId);
                     //var carrito = await _context.Carritos.FindByUserId(usuarioId);
                     // var carrito = _context.Carritos.FindByUserId(usuarioId);
                     //var carrito = await _context.Carritos.FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
@@ -89,11 +89,11 @@ namespace GestorInventario.Infraestructure.Controllers
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {
-                    var carrito = await _adminRepository.ObtenerCarrito(usuarioId);
+                    var carrito = await _carritoRepository.ObtenerCarrito(usuarioId);
 
                     if (carrito != null)
                     {
-                        var itemsDelCarrito = await _adminRepository.ConvertirItemsAPedido(carrito.Id);
+                        var itemsDelCarrito = await _carritoRepository.ConvertirItemsAPedido(carrito.Id);
 
                         var pedido = new Pedido
                         {
@@ -212,7 +212,7 @@ namespace GestorInventario.Infraestructure.Controllers
         public async Task<ActionResult> Incrementar(int id)
         {
             // Busca el producto en la base de datos
-            var carrito= await _adminRepository.ItemsDelCarrito(id);
+            var carrito= await _carritoRepository.ItemsDelCarrito(id);
             //var carrito = await _context.ItemsDelCarritos.ItemsCarritoIds(id);
             //var carrito = await _context.ItemsDelCarritos.FirstOrDefaultAsync(p => p.Id == id);
 
@@ -232,12 +232,12 @@ namespace GestorInventario.Infraestructure.Controllers
         [HttpPost]
         public async Task<ActionResult> Decrementar(int id)
         {
-            var carrito = await _adminRepository.ItemsDelCarrito(id);
+            var carrito = await _carritoRepository.ItemsDelCarrito(id);
 
-            //var carrito = await _context.ItemsDelCarritos.ItemsCarritoIds(id);
+          
 
             // Busca el producto en la base de datos
-            //var carrito = await _context.ItemsDelCarritos.FirstOrDefaultAsync(p => p.Id == id);
+          
 
             if (carrito != null)
             {
@@ -245,7 +245,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 carrito.Cantidad--;
 
                 // Busca el producto correspondiente en la tabla de productos
-                var producto = await _adminRepository.Decrementar(carrito.ProductoId);
+                var producto = await _carritoRepository.Decrementar(carrito.ProductoId);
                 //var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == carrito.ProductoId);
 
                 if (producto != null)

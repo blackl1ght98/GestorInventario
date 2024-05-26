@@ -34,5 +34,15 @@ namespace GestorInventario.MetodosExtension
             context.Set<T>().RemoveRange(entities);
             context.SaveChanges();
         }
+        public static void ReloadEntity<T>(this DbContext context, T entity) where T : class
+        {
+            context.Entry(entity).Reload();
+           
+        }
+        public static void EntityModified<T>(this DbContext context, T entity) where T : class
+        {
+            context.Entry(entity).State=EntityState.Modified;
+
+        }
     }
 }

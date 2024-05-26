@@ -21,9 +21,9 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IEmailService _emailService;
         private readonly TokenService _tokenService;
         private readonly IAdminRepository _adminRepository;
-        private readonly IAdminCrudOperation _adminCrudOperation;
+       
         private readonly ILogger<AuthController> _logger;
-        public AuthController(GestorInventarioContext context, HashService hashService, IEmailService emailService, TokenService tokenService, IAdminRepository adminRepository, IAdminCrudOperation adminCrudOperation,
+        public AuthController(GestorInventarioContext context, HashService hashService, IEmailService emailService, TokenService tokenService, IAdminRepository adminRepository,
               ILogger<AuthController> logger)
         {
             _context = context;
@@ -31,7 +31,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _emailService = emailService;
             _tokenService = tokenService;
             _adminRepository = adminRepository;
-            _adminCrudOperation = adminCrudOperation;
+         
             _logger = logger;
         }  
         [AllowAnonymous]
@@ -298,7 +298,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     return BadRequest("La contraseña temporal no es válida");
                 }
                 //si todo ha ido bien se actualiza con la contraseña temporal 
-                _adminCrudOperation.UpdateOperation(usuarioDB);
+               _context.UpdateEntity(usuarioDB);
                 //_context.Usuarios.Update(usuarioDB);
                 //Se guarda en base de datos
                 //await _context.SaveChangesAsync();
@@ -311,7 +311,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 usuarioDB.Salt = resultadoHash.Salt;
 
                 // Guardar los cambios en la base de datos
-                _adminCrudOperation.UpdateOperation(usuarioDB);
+                _context.UpdateEntity(usuarioDB);
 
                 //_context.Usuarios.Update(usuarioDB);
                 //await _context.SaveChangesAsync();

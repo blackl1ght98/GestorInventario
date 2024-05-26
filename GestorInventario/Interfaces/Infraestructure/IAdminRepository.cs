@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Domain.Models;
+using GestorInventario.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Query;
 
@@ -12,10 +13,11 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<Usuario> ExisteEmail(string email);
         Task<Usuario> UsuarioConPedido(int id);
         Task<Usuario> Login(string email);
-        Task<Carrito> ObtenerCarrito(int userId);
-        Task<List<ItemsDelCarrito>> ObtenerItemsCarrito(int userIdcarrito);
-        Task<List<ItemsDelCarrito>> ConvertirItemsAPedido(int userIdcarrito);
-        Task<ItemsDelCarrito> ItemsDelCarrito(int Id);
-        Task<Producto> Decrementar(int? id);
+        Task<(bool, string)> EditarUsuario(UsuarioEditViewModel userVM);
+        Task<(bool, string)> EditarRol(int id, int newRole);
+        Task<(bool, string)> CrearUsuario(UserViewModel model);
+        Task<(bool, string)> EliminarUsuario(int id);
+
+
     }
 }

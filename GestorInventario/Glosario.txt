@@ -28,3 +28,12 @@ DbUpdateConcurrencyException:
         // List<T> es una clase que implementa la interfaz IEnumerable<T>, pero también proporciona 
         // funcionalidades adicionales. List<T> representa una lista fuertemente tipada de objetos a los 
         // que se puede acceder por índice. Proporciona métodos para buscar, ordenar y manipular listas.
+
+         /*IQueryable: IQueryable y IQueryable<T> son abstracciones que encapsulan las expresiones LINQ; 
+         * estas expresiones son utilizadas por un proveedor LINQ - como el utilizado por Entity Framework - 
+         * para convertir estas expresiones en SQL que será enviado a la base de datos, IQueryable es útil cuando 
+         * se trabaja con orígenes de datos remotos como una base de datos, ya que permite construir consultas de 
+         * manera eficiente. En pocas palabras admite cualquier consulta sobre una tabla*/
+
+          /*HttpContext: HttpContext encapsula toda la información sobre una solicitud HTTP individual y su respuesta. 
+         * Una instancia de HttpContext se inicializa cuando se recibe una solicitud HTTP*/

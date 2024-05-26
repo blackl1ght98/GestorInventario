@@ -26,6 +26,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Polly;
 using GestorInventario.Application.Politicas_Resilencia;
 using GestorInventario.PaginacionLogica;
+using Microsoft.EntityFrameworkCore.Design;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -71,16 +72,17 @@ builder.Services.AddTransient<PaginacionMetodo>();
 builder.Services.AddTransient<IGestorArchivos, GestorArchivosService>();
 builder.Services.AddTransient<INewStringGuid, NewStringGuid>();
 builder.Services.AddTransient<HashService>();
+builder.Services.AddTransient<ICarritoRepository, CarritoRepository>();
 builder.Services.AddTransient<IChangePassService, ChangePassService>();
 builder.Services.AddTransient<IConfirmEmailService, ConfirmEmailService>();
 builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.AddTransient<TokenService>();
 builder.Services.AddTransient<IAdminRepository,AdminRepository>();
-builder.Services.AddTransient<IAdminCrudOperation, CrudOperation>();
+
 builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
-builder.Services.AddTransient<RetryPolicyHandler>();
+
 builder.Services.AddTransient<PolicyHandler>();
-builder.Services.AddTransient<PolicyCircuitBreaker>();
+
 builder.Services.AddTransient<IProductoRepository, ProductoRepository>();
 //------------------------------------------------------
 builder.Services.AddHttpContextAccessor();

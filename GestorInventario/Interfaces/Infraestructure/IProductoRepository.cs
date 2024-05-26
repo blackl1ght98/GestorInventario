@@ -12,7 +12,7 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<DetalleHistorialProducto> CrearDetalleHistorial(HistorialProducto historialProducto, Producto producto);
         Task<List<Proveedore>> ObtenerProveedores();
         Task<Producto> EliminarProductoObtencion(int id);
-        Task<Producto> EliminarProducto(int id);
+        Task<(bool, string)> EliminarProducto(int Id);
         Task<Producto> ObtenerPorId(int id);
         Task<ProductosViewModel> ProductoOriginal(Producto producto);
         Task<HistorialProducto> CrearHitorialAccion(int usuarioId);
@@ -30,7 +30,7 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<List<HistorialProducto>> DescargarPDF();
         Task<HistorialProducto> HistorialProductoPorId(int id);
         Task<HistorialProducto> EliminarHistorialPorId(int id);
-        Task<HistorialProducto> EliminarHistorialPorIdDefinitivo(int id);
+        Task<(bool, string)> EliminarHistorialPorIdDefinitivo(int Id);
         Task<List<HistorialProducto>> EliminarTodoHistorial();
     }
 }

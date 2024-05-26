@@ -13,23 +13,23 @@ using System.Security.Claims;
 using GestorInventario.PaginacionLogica;
 using GestorInventario.MetodosExtension;
 using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.Application.Politicas_Resilencia;
 
 namespace GestorInventario.Infraestructure.Controllers
 {
     public class AdminController : Controller
     {
-        private readonly GestorInventarioContext _context;
+      
         private readonly IEmailService _emailService;
         private readonly HashService _hashService;
         private readonly IConfirmEmailService _confirmEmailService;
         private readonly ILogger<AdminController> _logger;
         private readonly IAdminRepository _adminrepository;
-        private readonly IAdminCrudOperation _admincrudoperation;
         private readonly GenerarPaginas _generarPaginas;
-        private readonly PolicyCircuitBreaker _policyCircuitBraker;
+        private readonly PolicyHandler _PolicyHandler;
         public AdminController( IEmailService emailService, HashService hashService, IConfirmEmailService confirmEmailService, 
-            ILogger<AdminController> logger, IAdminRepository adminRepository, IAdminCrudOperation admincrudoperation, GenerarPaginas generarPaginas, 
-            GestorInventarioContext context, PolicyCircuitBreaker policy)
+            ILogger<AdminController> logger, IAdminRepository adminRepository,  GenerarPaginas generarPaginas, 
+             PolicyHandler policy)
         {
            
             _emailService = emailService;
@@ -37,18 +37,16 @@ namespace GestorInventario.Infraestructure.Controllers
             _confirmEmailService = confirmEmailService;
             _logger = logger;
             _adminrepository = adminRepository;
-            _admincrudoperation = admincrudoperation;
             _generarPaginas = generarPaginas;
-            _context = context;
-            _policyCircuitBraker = policy;
+            _PolicyHandler = policy;
         }
         public async Task<ActionResult> Index(string buscar, [FromQuery] Paginacion paginacion)
         {
             try
             {
                
-                var policy = _policyCircuitBraker.GetCircuitBreakerPolicy();
-                var queryable = policy.Execute(() => _adminrepository.ObtenerUsuarios());
+               
+                var queryable = ExecutePolicy(() => _adminrepository.ObtenerUsuarios());
                 //var queryable = _adminrepository.ObtenerUsuarios();        
                 if (!String.IsNullOrEmpty(buscar))
                 {
@@ -56,12 +54,12 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
                 //Accedemos al metodo de extension creado pasandole la fuente de informacion(queryable) y las paginas a mostrar
                 await HttpContext.InsertarParametrosPaginacionRespuesta(queryable, paginacion.CantidadAMostrar);
-                var usuarios = policy.Execute(() => queryable.Paginar(paginacion).ToList());
+                var usuarios = ExecutePolicy(() => queryable.Paginar(paginacion).ToList());
                 //Obtiene los datos de la cabecera que hace esta peticion
                 var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
                 //Crea las paginas que el usuario ve.
                 ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
-                ViewData["Roles"] = new SelectList(_adminrepository.ObtenerRoles(), "Id", "Nombre");
+                ViewData["Roles"] = new SelectList(ExecutePolicy(()=> _adminrepository.ObtenerRoles()), "Id", "Nombre");
                 return View(usuarios);
             }
             catch (Exception ex)
@@ -75,20 +73,20 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var policyAsync = _policyCircuitBraker.GetCircuitBreakerPolicyAsync();
-                var policy = _policyCircuitBraker.GetCircuitBreakerPolicy();
-                var user = await policyAsync.ExecuteAsync(() => _adminrepository.ObtenerPorId(id));
-                //var user = await _adminrepository.ObtenerPorId(id);
-                if (user == null)
+               var (success, errorMessage) = await ExecutePolicyAsync(() => _adminrepository.EditarRol(id, newRole));
+                if (success)
                 {
-                    return NotFound("El usuario al que intenta cambiar el rol no existe");
+                    TempData["SuccessMessage"] = "Rol cambiado";
+                    return RedirectToAction(nameof(Index));
+
                 }
-                //crea el desplegable
-                ViewData["Roles"] = new SelectList(policy.Execute(()=> _adminrepository.ObtenerRoles()), "Id", "Nombre");
-                //Le asigna el rol al usuario
-                user.IdRol = newRole;
-                //Actualiza en base de datos 
-                _admincrudoperation.UpdateOperation(user);
+                else
+                {
+                    TempData["ErrorMessage"] = errorMessage;
+                    
+                }
+                ViewData["Roles"] = new SelectList(ExecutePolicy(()=> _adminrepository.ObtenerRoles()), "Id", "Nombre");
+            
                 return RedirectToAction(nameof(Index));
 
             }
@@ -104,13 +102,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (User.Identity.IsAuthenticated)
-                {
-                    return RedirectToAction("Index", "Home");
-                }
-                var policy = _policyCircuitBraker.GetCircuitBreakerPolicy();
+                
+              
                 //Sirve para obtener los datos del desplegable
-                ViewData["Roles"] = new SelectList(policy.Execute(()=> _adminrepository.ObtenerRoles()), "Id", "Nombre");
+                ViewData["Roles"] = new SelectList(ExecutePolicy(()=> _adminrepository.ObtenerRoles()), "Id", "Nombre");
                 return View();
 
             }
@@ -125,47 +120,25 @@ namespace GestorInventario.Infraestructure.Controllers
 
 
         [HttpPost]
-        //Sirve para que no se altere la informacion del formulario
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(UserViewModel model)
         {
             try
             {
-                //Esto toma en cuenta las validaciones puestas en UserViewModel
                 if (ModelState.IsValid)
                 {
-                    var policyAsync = _policyCircuitBraker.GetCircuitBreakerPolicyAsync();
-                    var policy = _policyCircuitBraker.GetCircuitBreakerPolicy();
-                    var existingUser = await policyAsync.ExecuteAsync(() => _adminrepository.ExisteEmail(model.Email));
-                    //var existingUser=await _adminrepository.ExisteEmail(model.Email);
-                    if (existingUser != null)
+                    var (success, errorMessage) = await ExecutePolicyAsync(() => _adminrepository.CrearUsuario(model));
+                    if (success)
                     {
-                        // Si el usuario ya existe, retornar a la vista con un mensaje de error
-                        ModelState.AddModelError("Email", "Este email ya está registrado.");
-                        return View(model);
+                        TempData["SuccessMessage"] = "Usuario creado con exito";
+                        return RedirectToAction(nameof(Index));
                     }
-                    //Hashea la contraseña
-                    var resultadoHash = _hashService.Hash(model.Password);
-                    var user = new Usuario()
+                    else
                     {
-                        Email = model.Email,
-                        Password = resultadoHash.Hash,
-                        Salt = resultadoHash.Salt,
-                        IdRol = model.IdRol,
-                        NombreCompleto = model.NombreCompleto,
-                        FechaNacimiento = model.FechaNacimiento,
-                        Telefono = model.Telefono,
-                        Direccion = model.Direccion,
-                        FechaRegistro = DateTime.Now
-                    };
-                    //Sirve para crear el desplegable
-                    ViewData["Roles"] = new SelectList(policy.Execute(()=> _adminrepository.ObtenerRoles()), "Id", "Nombre");
-                    //Agrega el usuario a base de datos
-                    _admincrudoperation.AddOperation(user);
-                    await _emailService.SendEmailAsyncRegister(new DTOEmail
-                    {
-                        ToEmail = model.Email
-                    });
+                        TempData["ErrorMessage"] = errorMessage;
+
+                    }
+                    ViewData["Roles"] = new SelectList(ExecutePolicy(()=> _adminrepository.ObtenerRoles()), "Id", "Nombre");
                     return RedirectToAction("Login", "Auth");
                 }
                 return View(model);
@@ -184,8 +157,8 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var policyAsync=_policyCircuitBraker.GetCircuitBreakerPolicyAsync();
-                var usuarioDB = await policyAsync.ExecuteAsync(() => _adminrepository.ObtenerPorId(confirmar.UserId));
+               
+                var usuarioDB = await ExecutePolicyAsync(() => _adminrepository.ObtenerPorId(confirmar.UserId));
                //var usuarioDB= await _adminrepository.ObtenerPorId(confirmar.UserId);
                 if (usuarioDB.ConfirmacionEmail != false)
                 {
@@ -205,7 +178,6 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
-
                 _logger.LogError(ex, "Error al confirmar la cuenta del usuario");
                 return BadRequest("En estos momentos no se ha podido llevar a cabo la confirmacion de la cuenta intentelo de nuevo mas tarde o cantacte con el administrador");
             }
@@ -216,8 +188,8 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var policyAsync = _policyCircuitBraker.GetCircuitBreakerPolicyAsync();
-                var user = await policyAsync.ExecuteAsync(() => _adminrepository.ObtenerPorId(id));
+              
+                var user = await ExecutePolicyAsync(() => _adminrepository.ObtenerPorId(id));
                 // Obtienes el usuario de la base de datos
                 if (user == null)
                 {
@@ -254,65 +226,37 @@ namespace GestorInventario.Infraestructure.Controllers
                 //Si el modelo es valido:
                 if (ModelState.IsValid)
                 {
-                    var policyAsync = _policyCircuitBraker.GetCircuitBreakerPolicyAsync();
-                    // Obtiene la id del usuario a editar
-                    var user = await policyAsync.ExecuteAsync(() => _adminrepository.ObtenerPorId(userVM.Id));
-                    //var user=  await _adminrepository.ObtenerPorId(userVM.Id);
-                    if (user == null)
+
+                    var (success,errorMessage) = await _adminrepository.EditarUsuario(userVM);
+                    if (success)
                     {
-                        return NotFound("Usuario no encontrado");
-                    }
-                    // Mapea los datos del ViewModel a la entidad
-                    user.NombreCompleto = userVM.NombreCompleto;
-                    user.FechaNacimiento = userVM.FechaNacimiento;
-                    user.Telefono = userVM.Telefono;
-                    user.Direccion = userVM.Direccion;
-                    if (user != null && user.Email != userVM.Email)
-                    {
-                        user.ConfirmacionEmail = false;
-                        user.Email = userVM.Email;
-                        _admincrudoperation.UpdateOperation(user);
-                        await _emailService.SendEmailAsyncRegister(new DTOEmail
-                        {
-                            ToEmail = userVM.Email
-                        });
+                        TempData["SuccessMessage"] = "Usuario Actualizado con exito";
+                        return RedirectToAction(nameof(Index));
                     }
                     else
                     {
-                        //Si el usuario no cambia el email se queda igual
-                        user!.Email = userVM.Email;
-                    }
-                    try
-                    {
-                        //Marca la entidad Usuarios como modificada
-                        /*
-                         * El método Entry en el contexto de Entity Framework Core se utiliza para obtener un objeto 
-                         * que puede usarse para configurar y realizar acciones en una entidad que está siendo rastreada por el contexto.*/
-                    
-                        _admincrudoperation.ModifyEntityState(user, EntityState.Modified);
-                        await _admincrudoperation.SaveChangesAsync();
-
-                        //await _context.SaveChangesAsync();
-                    }
-                   
-                    catch (DbUpdateConcurrencyException)
-                    {
-                        if (user.Id==null)
-                        {
-                            return NotFound("Usuario no encontrado");
-                        }
-                        else
-                        {
-                            // Recarga los datos del usuario desde la base de datos
-                            _admincrudoperation.ReloadEntity(user);
-                            // Intenta guardar de nuevo
-                            _admincrudoperation.ModifyEntityState(user, EntityState.Modified);
-                           await _admincrudoperation.SaveChangesAsync();
-                        }
+                        TempData["ErrorMessage"] = errorMessage;
                     }
                     return RedirectToAction("Index");
                 }
+                
                 return View(userVM);
+            }
+            catch(DbUpdateConcurrencyException ex)
+            {
+                var (success, errorMessage) = await _adminrepository.EditarUsuario(userVM);
+                if (success)
+                {
+                    TempData["SuccessMessage"] = "Usuario Actualizado con exito";
+                    return RedirectToAction(nameof(Index));
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = errorMessage;
+
+                }
+                return RedirectToAction("Index");
+
             }
             catch (Exception ex)
             {
@@ -325,10 +269,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var policy = _policyCircuitBraker.GetCircuitBreakerPolicyAsync();
+                
                 //Consulta a base de datos en base a la id del usuario
-                var user = await policy.ExecuteAsync(() => _adminrepository.UsuarioConPedido(id));
-                //var user=  await _adminrepository.UsuarioConPedido(id);
+                var user = await ExecutePolicyAsync(() => _adminrepository.UsuarioConPedido(id));
+               
                 //Si no hay cervezas muestra el error 404
                 if (user == null)
                 {
@@ -347,44 +291,41 @@ namespace GestorInventario.Infraestructure.Controllers
            
         }
 
-
+        
         [HttpPost, ActionName("DeleteConfirmed")]
         [ValidateAntiForgeryToken]
-        //Para que detecte la id del usuario es necesario poner el mismo nombre que se ponga en la vista en la
-        //parte del asp-for del formulario tenemos Id por lo tanto aqui tambien hay que ponerlo
-        //El asp-for si tu ahi le pasar Id lo que va a ir a buscar es algo que sea Id si se pone en minuscula no lo encuentra
         public async Task<IActionResult> DeleteConfirmed(int Id)
         {
             try
             {
-                var policy = _policyCircuitBraker.GetCircuitBreakerPolicyAsync();
-                var user = await policy.ExecuteAsync(() => _adminrepository.UsuarioConPedido(Id));
-                if (user == null)
+                var (success, message) = await ExecutePolicyAsync(() => _adminrepository.EliminarUsuario(Id));
+                if (success)
                 {
-                    return BadRequest();
+                    TempData["SuccessMessage"] = message;
+                    return RedirectToAction(nameof(Index));
                 }
-                if (user.Pedidos.Any())
+                else
                 {
-                    TempData["ErrorMessage"] = "El usuario no se puede eliminar porque tiene pedidos asociados.";
+                    TempData["ErrorMessage"] = message;
                     return RedirectToAction(nameof(Delete), new { id = Id });
                 }
-                if (user.HistorialPedidos.Any())
-                {
-                    TempData["ErrorMessage"] = "El usuario no se puede eliminar porque tiene historial de pedidos asociados.";
-                    return RedirectToAction(nameof(Delete), new { id = Id });
-                }
-                //Elimina el usuario y guarda los cambios
-                _admincrudoperation.DeleteOperation(user);
-                return RedirectToAction(nameof(Index));
-
             }
             catch (Exception ex)
             {
-
-                _logger.LogError(ex, "Error al eliminar un  usuario");
+                _logger.LogError(ex, "Error al eliminar un usuario");
                 return BadRequest("En estos momentos no se ha podido llevar a cabo la eliminacion de los datos del usuario intentelo de nuevo mas tarde o cantacte con el administrador");
             }
-           
+        }
+
+        private async Task<T> ExecutePolicyAsync<T>(Func<Task<T>> operation)
+        {
+            var policy = _PolicyHandler.GetCombinedPolicyAsync<T>();
+            return await policy.ExecuteAsync(operation);
+        }
+        private T ExecutePolicy<T>(Func<T> operation)
+        {
+            var policy = _PolicyHandler.GetCombinedPolicy<T>();
+            return policy.Execute(operation);
         }
     }
 }

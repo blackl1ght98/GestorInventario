@@ -51,29 +51,29 @@
           "dependencies": {
             "Aspose.PDF": {
               "target": "Package",
-              "version": "[24.4.0, )"
+              "version": "[24.5.1, )"
             },
             "MailKit": {
               "target": "Package",
-              "version": "[4.4.0, )"
+              "version": "[4.6.0, )"
             },
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
               "target": "Package",
-              "version": "[7.0.17, )"
+              "version": "[8.0.0, )"
             },
             "Microsoft.EntityFrameworkCore.SqlServer": {
               "target": "Package",
-              "version": "[7.0.17, )"
+              "version": "[8.0.0, )"
             },
             "Microsoft.EntityFrameworkCore.Tools": {
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
               "suppressParent": "All",
               "target": "Package",
-              "version": "[7.0.17, )"
+              "version": "[8.0.0, )"
             },
             "Microsoft.Extensions.Logging.Log4Net.AspNetCore": {
               "target": "Package",
-              "version": "[7.0.0, )"
+              "version": "[8.0.0, )"
             },
             "PayPal": {
               "target": "Package",

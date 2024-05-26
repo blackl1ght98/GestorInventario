@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "noJOhjDOpZMppdYvwMcJy1vqmDL2RnbOINfgV7epuD8=",
+  "Hash": "Z+B88qNLVZBI6+4bwz4R55+8zmod2yDNXvb8rTxN9oU=",
   "Source": "GestorInventario",
   "BasePath": "_content/GestorInventario",
   "Mode": "Default",
@@ -340,6 +340,25 @@
       "OriginalItemSpec": "wwwroot\\imagenes\\5b152bc6-ed7f-4d12-ba33-7efea3300283.jpeg"
     },
     {
+      "Identity": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\wwwroot\\imagenes\\637fc49b-b30e-4619-8fc4-f679aa4b0a82.webp",
+      "SourceId": "GestorInventario",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\wwwroot\\",
+      "BasePath": "_content/GestorInventario",
+      "RelativePath": "imagenes/637fc49b-b30e-4619-8fc4-f679aa4b0a82.webp",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\imagenes\\637fc49b-b30e-4619-8fc4-f679aa4b0a82.webp"
+    },
+    {
       "Identity": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\wwwroot\\imagenes\\69af41a7-8969-408c-bae6-0997a26ba34f.PNG",
       "SourceId": "GestorInventario",
       "SourceType": "Discovered",
@@ -376,6 +395,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\imagenes\\6b05a571-638e-4558-a9e3-53e031e0b1f8.jpg"
+    },
+    {
+      "Identity": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\wwwroot\\imagenes\\6c1bd80a-ae9a-43a0-a316-d4d771e36a33.jpg",
+      "SourceId": "GestorInventario",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\wwwroot\\",
+      "BasePath": "_content/GestorInventario",
+      "RelativePath": "imagenes/6c1bd80a-ae9a-43a0-a316-d4d771e36a33.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\imagenes\\6c1bd80a-ae9a-43a0-a316-d4d771e36a33.jpg"
     },
     {
       "Identity": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\wwwroot\\imagenes\\6fb43148-6715-4963-901d-94b156284cfd.webp",

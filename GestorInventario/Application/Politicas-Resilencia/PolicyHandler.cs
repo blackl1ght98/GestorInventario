@@ -4,6 +4,7 @@ using Polly;
 using Polly.CircuitBreaker;
 using Polly.Fallback;
 using GestorInventario.Domain.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace GestorInventario.Application.Politicas_Resilencia
 {
@@ -133,6 +134,7 @@ namespace GestorInventario.Application.Politicas_Resilencia
       {
         var retryPolicy = Policy
             .Handle<SqlException>()
+            .Or<DbUpdateException>()
             .Or<TimeoutException>()
             .Or<HttpRequestException>()
             .WaitAndRetryAsync(
@@ -145,6 +147,7 @@ namespace GestorInventario.Application.Politicas_Resilencia
 
         var circuitBreakerPolicy = Policy
             .Handle<SqlException>()
+            .Or<DbUpdateException>()
             .Or<TimeoutException>()
             .Or<HttpRequestException>()
             .CircuitBreakerAsync(
@@ -187,6 +190,7 @@ namespace GestorInventario.Application.Politicas_Resilencia
         {
             var retryPolicy = Policy
                 .Handle<SqlException>()
+                .Or<DbUpdateException>()
                 .Or<TimeoutException>()
                 .Or<HttpRequestException>()
                 .WaitAndRetry(
@@ -199,6 +203,7 @@ namespace GestorInventario.Application.Politicas_Resilencia
 
             var circuitBreakerPolicy = Policy
                 .Handle<SqlException>()
+                .Or<DbUpdateException>()
                 .Or<TimeoutException>()
                 .Or<HttpRequestException>()
                 .CircuitBreaker(

@@ -8,7 +8,21 @@
     //va a ir cuando se ejecute y decimos que este ViewBag.Paginas es una lista de PaginasModel
     var paginas = ViewBag.Paginas as List<PaginasModel>;
 }
+<div class="alert alert-primary" role="alert">
+    Esta pagina solo admite pagos via paypal al seleccionar la moneda con la que quiere pagar, debera tener una cuenta de
+    paypal con dicha moneda si por ejemplo usted selecciono EUR pero su cuenta es de Estados unidos paypal cobra una comision
+    por el cambio de moneda. Consejo si tienes cuenta creada en españa y maneja el euro selecciona el euro para evitar comisiones
+    de paypal por el cambio de moneda
+</div>
+<div class="alert alert-primary" role="alert">
+    El precio del total de todos los productos no se especifica hasta que no  le das a <strong>Checkout</strong> y paypal te calcula
+    cuanto es el total.
+</div>
 <form asp-action="Checkout" method="post">
+    <label>Seleccione la moneda con la que desea pagar: </label>
+    <select name="monedaSeleccionada" asp-items="ViewBag.Moneda" class="form-select"></select>
+    <button type="submit" class="btn btn-success mt-3">Checkout</button>
+</form>
 <table class="table">
     <thead>
         <tr>
@@ -49,24 +63,13 @@
                 <td>@(item.Producto.Precio * item.Cantidad)</td>
             </tr>
         }
-        <label>Seleccione la moneda con la que desea pagar: </label>
-            <div class="alert alert-primary" role="alert">
-               Esta pagina solo admite pagos via paypal al seleccionar la moneda con la que quiere pagar, debera tener una cuenta de 
-               paypal con dicha moneda si por ejemplo usted selecciono EUR pero su cuenta es de Estados unidos paypal cobra una comision
-               por el cambio de moneda. Consejo si tienes cuenta creada en españa y maneja el euro selecciona el euro para evitar comisiones
-               de paypal por el cambio de moneda
-            </div>
-            <div class="alert alert-primary" role="alert">
-                El precio del total de todos los productos no se especifica hasta que no  le das a <strong>Checkout</strong> y paypal te calcula
-                cuanto es el total.
-            </div>
-            <select name="monedaSeleccionada" asp-items="ViewBag.Moneda" class="form-select" ></select>
-
+          
+           
      @*    <a asp-action="Checkout" class="btn btn-success">Checkout</a> *@
-            <button type="submit" class="btn btn-success mt-3">Checkout</button>
+           
     </tbody>
 </table>
-</form>
+
 <nav aria-label="Page navigation example">
     <ul class="pagination justify-content-center">
         <!--Como paginas es una lista se puede iterar pues se itera obteniendo todas las paginas-->
