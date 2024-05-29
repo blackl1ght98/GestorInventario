@@ -1,4 +1,5 @@
-﻿using GestorInventario.Application.Services;
+﻿using GestorInventario.Application.Politicas_Resilencia;
+using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
@@ -20,12 +21,13 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly GenerarPaginas _generarPaginas;
         private readonly ILogger<CarritoController> _logger;
         private readonly IUnitOfWork _unitOfWork;
-     
-        public CarritoController(GestorInventarioContext context, ICarritoRepository carritorepository,  GenerarPaginas generarPaginas, ILogger<CarritoController> logger, IUnitOfWork unitOfWork)
+        private readonly PolicyHandler _PolicyHandler;
+        public CarritoController(GestorInventarioContext context, ICarritoRepository carritorepository,  GenerarPaginas generarPaginas, 
+        ILogger<CarritoController> logger, IUnitOfWork unitOfWork, PolicyHandler policy)
         {
             _context = context;
             _carritoRepository = carritorepository;
-           
+           _PolicyHandler = policy;
             _generarPaginas = generarPaginas;
             _logger = logger;
             _unitOfWork = unitOfWork;
@@ -36,30 +38,25 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {
 
-                    var carrito = await _carritoRepository.ObtenerCarrito(usuarioId);
-                    //var carrito = await _context.Carritos.FindByUserId(usuarioId);
-                    // var carrito = _context.Carritos.FindByUserId(usuarioId);
-                    //var carrito = await _context.Carritos.FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
+                    var carrito = await ExecutePolicyAsync(()=> _carritoRepository.ObtenerCarrito(usuarioId)) ;
                     if (carrito != null)
                     {
-                        var itemsDelCarrito = _context.ItemsDelCarritos
-                            .Include(i => i.Producto)
-
-                             .Include(i => i.Producto.IdProveedorNavigation)
-
-                            .Where(i => i.CarritoId == carrito.Id);
-                    
-                        //var itemsDelCarrito = await _adminRepository.ObtenerItemsCarrito(carrito.Id);
+                      
+                        var itemsDelCarrito = ExecutePolicy(()=> _carritoRepository.ObtenerItems(carrito.Id)) ;
                         await HttpContext.InsertarParametrosPaginacionRespuesta(itemsDelCarrito, paginacion.CantidadAMostrar);
                         var productoPaginado = itemsDelCarrito.Paginar(paginacion).ToList();
                         var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
                         ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
-                        ViewData["Moneda"] = new SelectList(_context.Moneda, "Codigo", "Codigo");
+                        ViewData["Moneda"] = new SelectList(await ExecutePolicyAsync(()=> _carritoRepository.ObtenerMoneda()) , "Codigo", "Codigo");
 
                         // Pasa los productos a la vista
                         return View(productoPaginado);
@@ -75,118 +72,37 @@ namespace GestorInventario.Infraestructure.Controllers
             }
           
         }
+        
         [HttpPost]
         public async Task<IActionResult> Checkout(string monedaSeleccionada)
         {
             // Cambia la cultura actual del hilo a InvariantCulture
-                    System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
+               System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
 
-            //        // Cambia la cultura de la interfaz de usuario actual del hilo a InvariantCulture
+                    // Cambia la cultura de la interfaz de usuario actual del hilo a InvariantCulture
                   System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {
-                    var carrito = await _carritoRepository.ObtenerCarrito(usuarioId);
-
-                    if (carrito != null)
+                   
+                    var (success, message, approvalUrl) = await ExecutePolicyAsync(()=> _carritoRepository.Pagar(monedaSeleccionada, usuarioId))  ;
+                    if (success)
                     {
-                        var itemsDelCarrito = await _carritoRepository.ConvertirItemsAPedido(carrito.Id);
-
-                        var pedido = new Pedido
-                        {
-                            NumeroPedido = GenerarNumeroPedido(),
-                            FechaPedido = DateTime.Now,
-                            EstadoPedido = "Pendiente",
-                            IdUsuario = usuarioId
-                        };
-                        _context.AddEntity(pedido);
-
-                       
-                        // Este bucle se va a recorrer como items existan en el carrito
-                        foreach (var item in itemsDelCarrito)
-                        {
-                            var detallePedido = new DetallePedido
-                            {
-                                PedidoId = pedido.Id,
-                                ProductoId = item.ProductoId,
-                                Cantidad = item.Cantidad ?? 0
-                            };
-                            _context.AddEntity(detallePedido);
-                        }
-
-                        // Aquí agregamos el pedido al historial de pedidos
-                        var historialPedido = new HistorialPedido()
-                        {
-                            NumeroPedido = pedido.NumeroPedido,
-                            FechaPedido = pedido.FechaPedido,
-                            EstadoPedido = pedido.EstadoPedido,
-                            IdUsuario = pedido.IdUsuario,
-                        };
-                        _context.Add(historialPedido);
-                        await _context.SaveChangesAsync();
-
-                        // Lógica para los detalles de productos (si es necesario)
-                        foreach (var item in itemsDelCarrito)
-                        {
-                            var detalleHistorialPedido = new DetalleHistorialPedido()
-                            {
-                                HistorialPedidoId = historialPedido.Id,
-                                ProductoId = item.ProductoId,
-                                Cantidad = item.Cantidad ?? 0,
-                            };
-                            _context.Add(detalleHistorialPedido);
-                        }
-
-                        _context.DeleteRangeEntity(itemsDelCarrito);
-                        ViewData["Moneda"] = new SelectList(_context.Moneda, "Codigo", "Codigo");
-
-                        // Crear la lista de items para PayPal
-                        if (string.IsNullOrEmpty(monedaSeleccionada))
-                        {
-                            // Puedes establecer un valor predeterminado o devolver un error
-                            monedaSeleccionada = "EUR"; // Valor predeterminado
-                        }
-                        var items = new List<Item>();
-                        decimal totalAmount = 0;
-                        foreach (var item in itemsDelCarrito)
-                        {
-                            var producto = await _context.Productos.FindAsync(item.ProductoId);
-                            var paypalItem = new Item()
-                            {
-                                name = producto.NombreProducto,
-                                currency = monedaSeleccionada,
-                                price = producto.Precio.ToString("0.00"),
-                                quantity = item.Cantidad.ToString(),
-                                sku = "producto"
-                            };
-                            items.Add(paypalItem);
-
-                        
-                            totalAmount += Convert.ToDecimal(producto.Precio) * Convert.ToDecimal(item.Cantidad ?? 0);
-
-                        }
-                        string returnUrl = "https://localhost:7056/Payment/Success";
-                        string cancelUrl = "https://localhost:7056/Payment/Cancel";
-
-                        // Crear el pago con PayPal
-                        var createdPayment = await _unitOfWork.PaypalService.CreateOrderAsync(items, totalAmount, returnUrl, cancelUrl, monedaSeleccionada); // Asegúrate de usar la moneda correcta aquí
-                                                                                                                                                // Obtener el enlace de aprobación de PayPal
-                        string approvalUrl = createdPayment.links.FirstOrDefault(x => x.rel.ToLower() == "approval_url")?.href;
-                        if (!string.IsNullOrEmpty(approvalUrl))
-                        {
-                            // Redirigir al usuario a PayPal para completar el pago
-                            return Redirect(approvalUrl);
-                        }
-                        else
-                        {
-                            TempData["error"] = "Fallo al iniciar el pago con PayPal";
-                        }
-                        TempData["SuccessMessage"] = "El pedido se ha creado con éxito.";
-                        return RedirectToAction(nameof(Index));
+                        return Redirect(approvalUrl);
                     }
+                    else
+                    {
+                        TempData["ErrorMessage"] = message;
+                    }
+                    ViewData["Moneda"] = new SelectList(_context.Moneda, "Codigo", "Codigo");
+
                 }
 
                 return RedirectToAction("Index", "Home");
@@ -200,39 +116,42 @@ namespace GestorInventario.Infraestructure.Controllers
         }
 
 
-        private string GenerarNumeroPedido()
-        {
-            var length = 10;
-            var random = new Random();
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            return new string(Enumerable.Repeat(chars, length)
-           .Select(s => s[random.Next(s.Length)]).ToArray());
-        }
+
         [HttpPost]
         public async Task<ActionResult> Incrementar(int id)
         {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
             // Busca el producto en la base de datos
-            var carrito= await _carritoRepository.ItemsDelCarrito(id);
-            //var carrito = await _context.ItemsDelCarritos.ItemsCarritoIds(id);
-            //var carrito = await _context.ItemsDelCarritos.FirstOrDefaultAsync(p => p.Id == id);
+            var carrito = await ExecutePolicyAsync(() => _carritoRepository.ItemsDelCarrito(id));
 
             if (carrito != null)
             {
-              
                 carrito.Cantidad++;
                 _context.UpdateEntity(carrito);
-                //_context.ItemsDelCarritos.Update(carrito);
-                //await _context.SaveChangesAsync();
+
+                // Busca el producto en la tabla de productos
+                var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == carrito.ProductoId);
+                if (producto != null && producto.Cantidad > 0)
+                {
+                    // Decrementa la cantidad del producto en la tabla de productos
+                    producto.Cantidad--;
+                    _context.UpdateEntity(producto);
+                }
             }
 
             // Redirige al usuario a la página de índice
             return RedirectToAction("Index");
         }
 
+
         [HttpPost]
         public async Task<ActionResult> Decrementar(int id)
         {
-            var carrito = await _carritoRepository.ItemsDelCarrito(id);
+            
+            var carrito = await ExecutePolicyAsync(()=> _carritoRepository.ItemsDelCarrito(id)) ;
 
           
 
@@ -245,7 +164,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 carrito.Cantidad--;
 
                 // Busca el producto correspondiente en la tabla de productos
-                var producto = await _carritoRepository.Decrementar(carrito.ProductoId);
+                var producto = await  ExecutePolicyAsync(()=> _carritoRepository.Decrementar(carrito.ProductoId)) ;
                 //var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == carrito.ProductoId);
 
                 if (producto != null)
@@ -264,6 +183,15 @@ namespace GestorInventario.Infraestructure.Controllers
             // Redirige al usuario a la página de índice
             return RedirectToAction("Index");
         }
-
+        private async Task<T> ExecutePolicyAsync<T>(Func<Task<T>> operation)
+        {
+            var policy = _PolicyHandler.GetCombinedPolicyAsync<T>();
+            return await policy.ExecuteAsync(operation);
+        }
+        private T ExecutePolicy<T>(Func<T> operation)
+        {
+            var policy = _PolicyHandler.GetCombinedPolicy<T>();
+            return policy.Execute(operation);
+        }
     }
 }

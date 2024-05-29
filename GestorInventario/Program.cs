@@ -80,7 +80,7 @@ builder.Services.AddTransient<TokenService>();
 builder.Services.AddTransient<IAdminRepository,AdminRepository>();
 builder.Services.AddTransient<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
-
+builder.Services.AddTransient<IPedidoRepository,PedidoRepository>();
 builder.Services.AddTransient<PolicyHandler>();
 
 builder.Services.AddTransient<IProductoRepository, ProductoRepository>();
@@ -245,11 +245,10 @@ builder.Services.AddAuthentication(options =>
             var memoryCache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCache>();
             // Carga la clave pública cifrada desde las cookies
             var publicKeyCifrada = httpContextAccessor.HttpContext.Request.Cookies["PublicKey"];
-
             //Obtiene el id del usuario de los claims del token
             var userId = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             // Obtiene la clave de cifrado del usuario
-             memoryCache.TryGetValue(userId, out byte[] claveCifrado);
+            memoryCache.TryGetValue(userId, out byte[] claveCifrado);
             //carga la clave de cifrado en las cookies
             //var claveCifradoString = context.Request.Cookies["ClaveCifrado"];
 
@@ -257,7 +256,7 @@ builder.Services.AddAuthentication(options =>
             //byte[] claveCifrado = Convert.FromBase64String(claveCifradoString);
 
             //Si la claveCifrado es null....
-            if (claveCifrado == null)
+            if (claveCifrado == null || publicKeyCifrada==null)
             {
                 //Recorre la variable que almacena todas las cookies y....
                 foreach (var cookie in collectioncookies)
@@ -272,20 +271,20 @@ builder.Services.AddAuthentication(options =>
                     context.Response.Redirect("/Auth/Login");
                 }
             }
-            if (publicKeyCifrada == null)
-            {
-                foreach (var cookie in collectioncookies)
-                {
-                    //elimina todas las cookies
-                    context.Response.Cookies.Delete(cookie.Key);
-                }
-                //Si la ruta es distinta a "/Auth/Login"....
-                if (context.Request.Path != "/Auth/Login")
-                {
-                    //redirige a "/Auth/Login"
-                    context.Response.Redirect("/Auth/Login");
-                }
-            }
+            //if (publicKeyCifrada == null)
+            //{
+            //    foreach (var cookie in collectioncookies)
+            //    {
+            //        //elimina todas las cookies
+            //        context.Response.Cookies.Delete(cookie.Key);
+            //    }
+            //    //Si la ruta es distinta a "/Auth/Login"....
+            //    if (context.Request.Path != "/Auth/Login")
+            //    {
+            //        //redirige a "/Auth/Login"
+            //        context.Response.Redirect("/Auth/Login");
+            //    }
+            //}
           
             
              // Descifra la clave pública
@@ -293,21 +292,21 @@ builder.Services.AddAuthentication(options =>
             
            
             //Si la claveCifrado es null....
-            if (claveCifrado == null)
-            {
-                //Recorre la variable que almacena todas las cookies y....
-                foreach (var cookie in collectioncookies)
-                {
-                    //elimina todas las cookies
-                    context.Response.Cookies.Delete(cookie.Key);
-                }
-                //Si la ruta es distinta a "/Auth/Login"....
-                if (context.Request.Path != "/Auth/Login")
-                {
-                    //redirige a "/Auth/Login"
-                    context.Response.Redirect("/Auth/Login");
-                }
-            }
+            //if (claveCifrado == null)
+            //{
+            //    //Recorre la variable que almacena todas las cookies y....
+            //    foreach (var cookie in collectioncookies)
+            //    {
+            //        //elimina todas las cookies
+            //        context.Response.Cookies.Delete(cookie.Key);
+            //    }
+            //    //Si la ruta es distinta a "/Auth/Login"....
+            //    if (context.Request.Path != "/Auth/Login")
+            //    {
+            //        //redirige a "/Auth/Login"
+            //        context.Response.Redirect("/Auth/Login");
+            //    }
+            //}
 
             // Convierte la clave pública a formato RSA
             var rsa = new RSACryptoServiceProvider();

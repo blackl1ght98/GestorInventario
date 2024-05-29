@@ -121,7 +121,7 @@ vista parcial en las vistas que necesitan ese bloque de código.
         @foreach (var pagina in paginas)
         {
             <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
-                <a class="page-link" href="@Url.Action("Index", new { Pagina = pagina.Pagina })">
+                <a class="page-link" href="@Url.Action("Index", new { Pagina = pagina.Pagina, buscar= ViewData["Buscar"], ordenarPrecio=ViewData["OrdenarPorprecio"], idProveedor=ViewData["idProveedor"] })">
                     @if (pagina.Texto == "Anterior")
                     {
                         <span aria-hidden="true">«</span>

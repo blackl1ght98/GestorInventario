@@ -47,7 +47,9 @@ namespace GestorInventario.Infraestructure.Controllers
                
                
                 var queryable = ExecutePolicy(() => _adminrepository.ObtenerUsuarios());
-                //var queryable = _adminrepository.ObtenerUsuarios();        
+                //var queryable = _adminrepository.ObtenerUsuarios();
+                 ViewData["Buscar"] = buscar;
+              
                 if (!String.IsNullOrEmpty(buscar))
                 {
                     queryable = queryable.Where(s => s.NombreCompleto.Contains(buscar));
@@ -188,8 +190,12 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-              
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 var user = await ExecutePolicyAsync(() => _adminrepository.ObtenerPorId(id));
+              
                 // Obtienes el usuario de la base de datos
                 if (user == null)
                 {
@@ -201,7 +207,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     Id = user.Id,
                     Email = user.Email,
                     NombreCompleto = user.NombreCompleto,
-                    FechaNacimiento = user.FechaNacimiento,
+                    //FechaNacimiento = user.FechaNacimiento,
                     Telefono = user.Telefono,
                     Direccion = user.Direccion
                 };
@@ -226,6 +232,10 @@ namespace GestorInventario.Infraestructure.Controllers
                 //Si el modelo es valido:
                 if (ModelState.IsValid)
                 {
+                    if (!User.Identity.IsAuthenticated)
+                    {
+                        return RedirectToAction("Login", "Auth");
+                    }
 
                     var (success,errorMessage) = await _adminrepository.EditarUsuario(userVM);
                     if (success)
@@ -269,7 +279,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 //Consulta a base de datos en base a la id del usuario
                 var user = await ExecutePolicyAsync(() => _adminrepository.UsuarioConPedido(id));
                

@@ -1,9 +1,13 @@
-﻿using GestorInventario.Domain.Models;
+﻿using GestorInventario.Application.Politicas_Resilencia;
+using GestorInventario.Application.Services;
+using GestorInventario.Domain.Models;
 using GestorInventario.Domain.Models.ViewModels;
 using GestorInventario.Models.ViewModels;
+using GestorInventario.PaginacionLogica;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace GestorInventario.Infraestructure.Controllers
 {
@@ -11,26 +15,36 @@ namespace GestorInventario.Infraestructure.Controllers
     {
         private readonly GestorInventarioContext _context;
         private readonly ILogger<ProveedorController> _logger;
-
-        public ProveedorController(GestorInventarioContext context, ILogger<ProveedorController> logger)
+        private readonly GenerarPaginas _generarPaginas;
+        private readonly PolicyHandler _PolicyHandler;
+        public ProveedorController(GestorInventarioContext context, ILogger<ProveedorController> logger, GenerarPaginas generarPaginas, PolicyHandler policyHandler)
         {
             _context = context;
             _logger = logger;
+            _generarPaginas = generarPaginas;
+            _PolicyHandler = policyHandler;
         }
 
-        public async Task<IActionResult> Index(string buscar)
+        public async Task<IActionResult> Index(string buscar, [FromQuery] Paginacion paginacion)
         {
             try
             {
                 var proveedores = from p in _context.Proveedores
                                   select p;
 
-               // var proveedores = await _context.Proveedores.ToListAsync();
-                if(!String.IsNullOrEmpty(buscar))
+                // var proveedores = await _context.Proveedores.ToListAsync();
+                ViewData["Buscar"] = buscar;
+                if (!String.IsNullOrEmpty(buscar))
                 {
                     proveedores=proveedores.Where(s=>s.NombreProveedor!.Contains(buscar));  
                 }
-                return View(await proveedores.ToListAsync());
+                await HttpContext.InsertarParametrosPaginacionRespuesta(proveedores, paginacion.CantidadAMostrar);
+                var proveedor = ExecutePolicy(() => proveedores.Paginar(paginacion).ToList());
+                //Obtiene los datos de la cabecera que hace esta peticion
+                var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
+                //Crea las paginas que el usuario ve.
+                ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
+                return View(proveedor);
             }
             catch (Exception ex)
             {
@@ -41,7 +55,10 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         public IActionResult Create()
         {
-
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
             return View();
         }
         [HttpPost]
@@ -50,6 +67,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 //Esto toma en cuenta las validaciones puestas en BeerViewModel
                 if (ModelState.IsValid)
                 {
@@ -80,6 +101,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 //Consulta a base de datos
                 var proveedor = await _context.Proveedores.FirstOrDefaultAsync(m => m.Id == id);
                 //Si no hay cervezas muestra el error 404
@@ -106,6 +131,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 var proveedor = await _context.Proveedores.Include(p => p.Productos).FirstOrDefaultAsync(m => m.Id == Id);
                 if (proveedor == null)
                 {
@@ -135,6 +164,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 Proveedore proveedor = await _context.Proveedores.FindAsync(id);
 
                 return View(proveedor);
@@ -151,6 +184,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 if (ModelState.IsValid)
                 {
                     try
@@ -194,8 +231,17 @@ namespace GestorInventario.Infraestructure.Controllers
             
             return _context.Proveedores.Any(e => e.Id == Id);
         }
-       
-        
+        private async Task<T> ExecutePolicyAsync<T>(Func<Task<T>> operation)
+        {
+            var policy = _PolicyHandler.GetCombinedPolicyAsync<T>();
+            return await policy.ExecuteAsync(operation);
+        }
+        private T ExecutePolicy<T>(Func<T> operation)
+        {
+            var policy = _PolicyHandler.GetCombinedPolicy<T>();
+            return policy.Execute(operation);
+        }
+
 
 
     }

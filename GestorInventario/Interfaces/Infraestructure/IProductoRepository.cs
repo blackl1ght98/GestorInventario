@@ -14,23 +14,14 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<Producto> EliminarProductoObtencion(int id);
         Task<(bool, string)> EliminarProducto(int Id);
         Task<Producto> ObtenerPorId(int id);
-        Task<ProductosViewModel> ProductoOriginal(Producto producto);
-        Task<HistorialProducto> CrearHitorialAccion(int usuarioId);
-        Task<DetalleHistorialProducto> EditDetalleHistorialproducto(HistorialProducto historialProducto1, ProductosViewModel productoOriginal);
-        Task<Producto> ActualizarProducto(ProductosViewModel model);
-        Task<HistorialProducto> CrearHitorialAccionEdit(int usuarioId);
-        Task<DetalleHistorialProducto> DetalleHistorialProductoEdit(HistorialProducto historialProducto, Producto producto);
         bool ProductoExist(int Id);
-        Task<bool> TryUpdateAndSaveAsync(ProductosViewModel model);
-        Task<Carrito> ObtenerCarritoUsuario(int usuarioActual);
-        Task<ItemsDelCarrito> ObtenerProductosCarrito(int carrito, int idProducto);
-        Task<ItemsDelCarrito> AgregarOActualizarProductoCarrito(int carritoId, int idProducto, int cantidad);
-        Task<Producto> DisminuirCantidadProducto(int idProducto, int cantidad);
         Task<IQueryable<HistorialProducto>> ObtenerTodoHistorial();
-        Task<List<HistorialProducto>> DescargarPDF();
+        Task<(bool, string, byte[])> DescargarPDF();
         Task<HistorialProducto> HistorialProductoPorId(int id);
         Task<HistorialProducto> EliminarHistorialPorId(int id);
         Task<(bool, string)> EliminarHistorialPorIdDefinitivo(int Id);
         Task<List<HistorialProducto>> EliminarTodoHistorial();
+        Task<(bool, string)> EditarProducto(ProductosViewModel model, int usuarioId);
+        Task<(bool, string)> AgregarProductosCarrito(int idProducto, int cantidad, int usuarioId);
     }
 }

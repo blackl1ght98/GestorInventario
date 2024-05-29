@@ -44,4 +44,26 @@
         }
     </tbody>
 </table>
-
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        @foreach (var pagina in paginas)
+        {
+            <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
+                <a class="page-link" href="@Url.Action("Index", new { Pagina = pagina.Pagina, buscar= ViewData["Buscar"] })">
+                    @if (pagina.Texto == "Anterior")
+                    {
+                        <span aria-hidden="true">«</span>
+                    }
+                    else if (pagina.Texto == "Siguiente")
+                    {
+                        <span aria-hidden="true">»</span>
+                    }
+                    else
+                    {
+                        @pagina.Texto
+                    }
+                </a>
+            </li>
+        }
+    </ul>
+</nav>

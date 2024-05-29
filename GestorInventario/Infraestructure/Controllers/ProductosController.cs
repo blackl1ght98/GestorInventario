@@ -30,8 +30,8 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IEmailService _emailService;
         private readonly IProductoRepository _productoRepository;
         private readonly PolicyHandler _PolicyHandler;
-
-        public ProductosController( IGestorArchivos gestorArchivos, PaginacionMetodo paginacionMetodo, 
+        private readonly GenerarPaginas _generarPaginas;
+        public ProductosController( IGestorArchivos gestorArchivos, PaginacionMetodo paginacionMetodo, GenerarPaginas paginas,
         ILogger<ProductosController> logger, IHttpContextAccessor contextAccessor, IEmailService emailService, IProductoRepository producto, PolicyHandler retry
        )
         {
@@ -43,6 +43,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _emailService = emailService;
             _productoRepository = producto;
            _PolicyHandler= retry;
+            _generarPaginas= paginas;
         }
 
         public async Task<IActionResult> Index(string buscar, string ordenarPorprecio, int? idProveedor, [FromQuery] Paginacion paginacion)
@@ -53,6 +54,9 @@ namespace GestorInventario.Infraestructure.Controllers
                 // Obtenemos la consulta como IQueryable
                 var productos = ExecutePolicy(() => _productoRepository.ObtenerTodoProducto());
                 // Aplicamos los filtros a la consulta
+                ViewData["Buscar"] = buscar;
+                ViewData["OrdenarPorprecio"] = ordenarPorprecio;
+                ViewData["idProveedor"] = idProveedor;
                 if (!string.IsNullOrEmpty(buscar))
                 {
                     productos = productos.Where(s => s.NombreProducto.Contains(buscar));
@@ -128,6 +132,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 ViewData["Productos"] = new SelectList(await _productoRepository.ObtenerProveedores(), "Id", "NombreProveedor");
 
                 return View();
@@ -147,6 +155,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))
@@ -181,6 +193,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 var policy = _PolicyHandler.GetRetryPolicyAsync();
                 var producto = await ExecutePolicyAsync(() => _productoRepository.EliminarProductoObtencion(id));
                 //Si no hay cervezas muestra el error 404
@@ -207,6 +223,10 @@ namespace GestorInventario.Infraestructure.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int Id)
         {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
             var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
             int usuarioId;
             if (int.TryParse(existeUsuario, out usuarioId))
@@ -232,7 +252,11 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-        
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
+
                 var producto = await ExecutePolicyAsync(() => _productoRepository.ObtenerPorId(id));
                 
                 ViewData["Productos"] = new SelectList(await ExecutePolicyAsync(() => _productoRepository.ObtenerProveedores()), "Id", "NombreProveedor");
@@ -262,56 +286,30 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    try
-                    {
+                  
+                        if (!User.Identity.IsAuthenticated)
+                        {
+                            return RedirectToAction("Login", "Auth");
+                        }
                         var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
                         int usuarioId;
                         if (int.TryParse(existeUsuario, out usuarioId))
                         {
-                           
-                            var producto = await ExecutePolicyAsync(() => _productoRepository.ObtenerPorId(model.Id));
-                            var productoOriginal = await ExecutePolicyAsync(() => _productoRepository.ProductoOriginal(producto));
-                            var historialProductoPostActualizacion = await ExecutePolicyAsync(() => _productoRepository.CrearHitorialAccion(usuarioId));
-                            var detalleHistorialProductoPostActualizacion = await ExecutePolicyAsync(() => _productoRepository.EditDetalleHistorialproducto(historialProductoPostActualizacion, productoOriginal));
-                            var actualizarProducto = await ExecutePolicyAsync(() => _productoRepository.ActualizarProducto(model));
-                            var historialProducto = await ExecutePolicyAsync(() => _productoRepository.CrearHitorialAccionEdit(usuarioId));
-                            var detalleHistorialProducto = await ExecutePolicyAsync(() => _productoRepository.DetalleHistorialProductoEdit(historialProducto, actualizarProducto));
-                            TempData["SuccessMessage"] = "Los datos se han modificado con éxito.";
-                        }    
-                    }
-                    catch (DbUpdateConcurrencyException)
-                    {
-                        if (!_productoRepository.ProductoExist(model.Id))
-                        {
-                            TempData["ErrorMessage"] = "Producto no encontrado";
-                            return NotFound("Producto no encontrado");
-                        }
-                        else
-                        {
-                            bool isUpdated = await _productoRepository.TryUpdateAndSaveAsync(model);
-                            if (!isUpdated)
+
+                            var (success,errorMesage)= await ExecutePolicyAsync(()=> _productoRepository.EditarProducto(model, usuarioId))  ;
+                            if (success)
                             {
-                                TempData["ErrorMessage"] = "Error al actualizar";
+                                return RedirectToAction(nameof(Index));
                             }
                             else
                             {
-                                var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                                int usuarioId;
-                                if (int.TryParse(existeUsuario, out usuarioId))
-                                {
-                                   
-                                    var producto = await ExecutePolicyAsync(() => _productoRepository.ObtenerPorId(model.Id));
-                                    var productoOriginal = await ExecutePolicyAsync(() => _productoRepository.ProductoOriginal(producto));
-                                    var historialProductoPostActualizacion = await ExecutePolicyAsync(() => _productoRepository.CrearHitorialAccion(usuarioId));
-                                    var detalleHistorialProductoPostActualizacion = await ExecutePolicyAsync(() => _productoRepository.EditDetalleHistorialproducto(historialProductoPostActualizacion, productoOriginal));
-                                    var actualizarProducto = await ExecutePolicyAsync(() => _productoRepository.ActualizarProducto(model));
-                                    var historialProducto = await ExecutePolicyAsync(() => _productoRepository.CrearHitorialAccionEdit(usuarioId));
-                                    var detalleHistorialProducto = await ExecutePolicyAsync(() => _productoRepository.DetalleHistorialProductoEdit(historialProducto, actualizarProducto));
-                                    TempData["SuccessMessage"] = "Los datos se han modificado con éxito.";
-                                }
+                                TempData["ErrorMessage"] = errorMesage;
                             }
-                        }
-                    }
+
+                            TempData["SuccessMessage"] = "Los datos se han modificado con éxito.";
+                        }    
+                    
+                  
                     return RedirectToAction("Index");
                 }
                 return View(model);
@@ -328,28 +326,24 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {
-                  
-                    var carrito = await ExecutePolicyAsync(() => _productoRepository.ObtenerCarritoUsuario(usuarioId));
-                    //var carrito = await _productoRepository.ObtenerCarritoUsuario(usuarioId);
-                    var producto = await ExecutePolicyAsync(() => _productoRepository.ObtenerPorId(idProducto));
-                     //var producto = await _productoRepository.ObtenerPorId(idProducto);
-                    if (producto != null)
+                    var (success,errorMessage)= await ExecutePolicyAsync(()=> _productoRepository.AgregarProductosCarrito(idProducto, cantidad, usuarioId)) ;
+                    if (success) 
                     {
-                        if (producto.Cantidad < cantidad)
-                        {
-                            TempData["ErrorMessage"] = "No hay suficientes productos en stock.";
-                            return RedirectToAction("Index");
-                        }
-                        var itemCarrito = await ExecutePolicyAsync(() => _productoRepository.AgregarOActualizarProductoCarrito(carrito.Id, idProducto, cantidad));
-                        //var itemCarrito = await _productoRepository.AgregarOActualizarProductoCarrito(carrito.Id, idProducto, cantidad);
-                        producto = await ExecutePolicyAsync(() => _productoRepository.DisminuirCantidadProducto(idProducto, cantidad));
-                        //producto = await _productoRepository.DisminuirCantidadProducto(idProducto, cantidad);
+                        return RedirectToAction("Index");
+
                     }
-                    return RedirectToAction("Index");
+                    else
+                    {
+                        TempData["ErrorMessage"] = errorMessage;
+                    }
                 }
                 return RedirectToAction("Index");
             }
@@ -361,123 +355,52 @@ namespace GestorInventario.Infraestructure.Controllers
         }
 
        
-        public async Task<IActionResult> HistorialProducto(string buscar)
+        public async Task<IActionResult> HistorialProducto(string buscar, [FromQuery] Paginacion paginacion)
         {
            
             var historialProductos = await ExecutePolicyAsync(() => _productoRepository.ObtenerTodoHistorial());
-           //var historialProductos = await _productoRepository.ObtenerTodoHistorial();
-           
+            //var historialProductos = await _productoRepository.ObtenerTodoHistorial();
+
             //var historialProductos = from p in _context.HistorialProductos.Include(x => x.DetalleHistorialProductos)
             //                select p;
             // Aquí es donde se realiza la búsqueda por el número de pedido
+            ViewData["Buscar"] = buscar;
             if (!String.IsNullOrEmpty(buscar))
             {
                 historialProductos =  historialProductos.Where(p => p.Accion.Contains(buscar) || p.Ip.Contains(buscar));
             }
+            await HttpContext.InsertarParametrosPaginacionRespuesta(historialProductos, paginacion.CantidadAMostrar);
+            var usuarios = ExecutePolicy(() => historialProductos.Paginar(paginacion).ToList());
+            //Obtiene los datos de la cabecera que hace esta peticion
+            var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
+            //Crea las paginas que el usuario ve.
+            ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
             return View(await historialProductos.ToListAsync());
         }
         [HttpGet("descargarhistorialPDF")]
         public async Task<IActionResult> DescargarHistorialPDF()
         {
-            
-            var historialProductos = await ExecutePolicyAsync(() => _productoRepository.DescargarPDF());
-           //var historialProductos = await _productoRepository.DescargarPDF();
-            if (historialProductos == null || historialProductos.Count == 0)
+            if (!User.Identity.IsAuthenticated)
             {
-                TempData["ErrorMessage"] = "Datos de productos no encontrados";
-                return BadRequest("Datos de productos no encontrados");
+                return RedirectToAction("Login", "Auth");
             }
-            // Crear un documento PDF con orientación horizontal
-            Document document = new Document();
-            //Margenes y tamaño del documento
-            document.PageInfo.Width = Aspose.Pdf.PageSize.PageLetter.Width;
-            document.PageInfo.Height = Aspose.Pdf.PageSize.PageLetter.Height;
-            document.PageInfo.Margin = new MarginInfo(1, 10, 10, 10); // Ajustar márgenes
-            // Agregar una nueva página al documento con orientación horizontal
-            Page page = document.Pages.Add();
-            //Control de margenes
-            page.PageInfo.Margin.Left = 35;
-            page.PageInfo.Margin.Right = 0;
-            //Controla la horientacion actualmente es horizontal
-            page.SetPageSize(Aspose.Pdf.PageSize.PageLetter.Width, Aspose.Pdf.PageSize.PageLetter.Height);
-            // Crear una tabla para mostrar las mediciones
-            Aspose.Pdf.Table table = new Aspose.Pdf.Table();
-            table.VerticalAlignment = VerticalAlignment.Center;
-            table.Alignment = HorizontalAlignment.Left;
-            table.DefaultCellBorder = new Aspose.Pdf.BorderInfo(Aspose.Pdf.BorderSide.All, 0.1F);
-            table.Border = new Aspose.Pdf.BorderInfo(Aspose.Pdf.BorderSide.All, 1F);
-            table.ColumnWidths = "55 50 45 45 45 35 45 45 45 45 35 50"; // Ancho de cada columna
-
-            page.Paragraphs.Add(table);
-
-            // Agregar fila de encabezado a la tabla
-            Aspose.Pdf.Row headerRow = table.Rows.Add();
-            headerRow.Cells.Add("Id").Alignment = HorizontalAlignment.Center;
-            headerRow.Cells.Add("UsuarioId").Alignment = HorizontalAlignment.Center;
-            headerRow.Cells.Add("Fecha").Alignment = HorizontalAlignment.Center;
-            headerRow.Cells.Add("Accion").Alignment = HorizontalAlignment.Center;
-            headerRow.Cells.Add("Ip").Alignment = HorizontalAlignment.Center;
-            
-            // Agregar contenido de mediciones a la tabla
-            foreach (var historial in historialProductos)
+            var (success, errorMessage, pdfData) = await ExecutePolicyAsync(() => _productoRepository.DescargarPDF());
+            if (!success)
             {
-
-                Aspose.Pdf.Row dataRow = table.Rows.Add();
-                Aspose.Pdf.Text.TextFragment textFragment1 = new Aspose.Pdf.Text.TextFragment("");
-                page.Paragraphs.Add(textFragment1);
-                dataRow.Cells.Add($"{historial.Id}").Alignment = HorizontalAlignment.Center;
-                dataRow.Cells.Add($"{historial.UsuarioId}").Alignment = HorizontalAlignment.Center;
-                dataRow.Cells.Add($"{historial.Fecha}").Alignment = HorizontalAlignment.Center;
-                dataRow.Cells.Add($"{historial.Accion}").Alignment = HorizontalAlignment.Center;
-                dataRow.Cells.Add($"{historial.Ip}").Alignment = HorizontalAlignment.Center;
-
-                // Crear una segunda tabla para los detalles del producto
-                Aspose.Pdf.Table detalleTable = new Aspose.Pdf.Table();
-                detalleTable.DefaultCellBorder = new Aspose.Pdf.BorderInfo(Aspose.Pdf.BorderSide.All, 0.1F);
-                detalleTable.Border = new Aspose.Pdf.BorderInfo(Aspose.Pdf.BorderSide.All, 1F);
-                detalleTable.ColumnWidths = "100 100 100"; // Ancho de cada columna
-
-                // Agregar la segunda tabla a la página
-                page.Paragraphs.Add(detalleTable);
-                Aspose.Pdf.Text.TextFragment textFragment = new Aspose.Pdf.Text.TextFragment("");
-                page.Paragraphs.Add(textFragment);
-                // Agregar fila de encabezado a la segunda tabla
-                Aspose.Pdf.Row detalleHeaderRow = detalleTable.Rows.Add();
-                detalleHeaderRow.Cells.Add("NombreProducto").Alignment = HorizontalAlignment.Center;
-                detalleHeaderRow.Cells.Add("IdHistorial").Alignment = HorizontalAlignment.Center;
-                detalleHeaderRow.Cells.Add("ProductoId").Alignment = HorizontalAlignment.Center;
-                detalleHeaderRow.Cells.Add("Cantidad").Alignment = HorizontalAlignment.Center;
-                detalleHeaderRow.Cells.Add("Precio").Alignment = HorizontalAlignment.Center;
-
-                // Iterar sobre los DetalleHistorialProductos de cada HistorialProducto
-                foreach (var detalle in historial.DetalleHistorialProductos)
-                {
-                    Aspose.Pdf.Row detalleRow = detalleTable.Rows.Add();
-
-                    detalleRow.Cells.Add($"{detalle.NombreProducto}").Alignment = HorizontalAlignment.Center;
-                    detalleRow.Cells.Add($"{detalle.HistorialProductoId}").Alignment = HorizontalAlignment.Center;
-                    detalleRow.Cells.Add($"{detalle.ProductoId}");
-                    detalleRow.Cells.Add($"{detalle.Cantidad}").Alignment = HorizontalAlignment.Center;
-                    detalleRow.Cells.Add($"{detalle.Precio}").Alignment = HorizontalAlignment.Center;
-                }
+                TempData["ErrorMessage"] = errorMessage;
+                return BadRequest(errorMessage);
             }
-            // Crear un flujo de memoria para guardar el documento PDF
-            MemoryStream memoryStream = new MemoryStream();
-            // Guardar el documento en el flujo de memoria
-            document.Save(memoryStream);
-            // Convertir el documento a un arreglo de bytes
-            byte[] bytes = memoryStream.ToArray();
-            // Liberar los recursos de la memoria
-            memoryStream.Close();
-            memoryStream.Dispose();
-            // Devolver el archivo PDF para descargar
-            return File(bytes, "application/pdf", "historial.pdf");
+            return File(pdfData, "application/pdf", "historial.pdf"); 
         }
         public async Task<IActionResult> DetallesHistorialProducto(int id)
         {
             try
             {
-              
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
+
                 var historialProducto = await ExecutePolicyAsync(() => _productoRepository.HistorialProductoPorId(id));
                 //var historialProducto= await _productoRepository.HistorialProductoPorId(id);          
                 if (historialProducto == null)
@@ -498,7 +421,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 var historialProducto = await ExecutePolicyAsync(() => _productoRepository.EliminarHistorialPorId(id));
                 //var historialProducto= await _productoRepository.EliminarHistorialPorId(id);
                 if (historialProducto == null)
@@ -523,6 +449,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))
@@ -555,7 +485,11 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
+
                 var historialProductos = await ExecutePolicyAsync(() => _productoRepository.EliminarTodoHistorial());
                //var historialProductos = await _productoRepository.EliminarTodoHistorial();
                 if (historialProductos == null || historialProductos.Count == 0)

@@ -1,4 +1,5 @@
-﻿
+﻿@using GestorInventario.PaginacionLogica
+
 @model List<Proveedore>
 <!-- Tabla para mostrar los proveedores existentes -->
 <h1>Proveedores</h1>
@@ -6,7 +7,12 @@
     <a asp-action="Create" class="btn btn-info">Crear Proveedor</a>
 
 </p>
-
+@{
+    //Hace referencia al ViewData creado en el controlador como ViewData["Paginas"] se ha llamado
+    //Paginas el ViewData el ViewBag.Paginas espera algo que se llame paginas porque es a por lo que
+    //va a ir cuando se ejecute y decimos que este ViewBag.Paginas es una lista de PaginasModel
+    var paginas = ViewBag.Paginas as List<PaginasModel>;
+}
 @* Este código renderiza una vista parcial en ASP.NET.
 
 La función Html.RenderPartial se utiliza para renderizar una vista parcial.
@@ -67,3 +73,26 @@ vista parcial en las vistas que necesitan ese bloque de código.
         }
     </tbody>
 </table>
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        @foreach (var pagina in paginas)
+        {
+            <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
+                <a class="page-link" href="@Url.Action("Index", new { Pagina = pagina.Pagina, buscar= ViewData["Buscar"] })">
+                    @if (pagina.Texto == "Anterior")
+                    {
+                        <span aria-hidden="true">«</span>
+                    }
+                    else if (pagina.Texto == "Siguiente")
+                    {
+                        <span aria-hidden="true">»</span>
+                    }
+                    else
+                    {
+                        @pagina.Texto
+                    }
+                </a>
+            </li>
+        }
+    </ul>
+</nav>

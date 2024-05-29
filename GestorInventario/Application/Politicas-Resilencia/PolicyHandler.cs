@@ -151,7 +151,7 @@ namespace GestorInventario.Application.Politicas_Resilencia
             .Or<TimeoutException>()
             .Or<HttpRequestException>()
             .CircuitBreakerAsync(
-                exceptionsAllowedBeforeBreaking: 3,
+                exceptionsAllowedBeforeBreaking: 5,
                 durationOfBreak: TimeSpan.FromSeconds(30),
                 onBreak: (exception, timespan, context) =>
                 {
@@ -207,7 +207,7 @@ namespace GestorInventario.Application.Politicas_Resilencia
                 .Or<TimeoutException>()
                 .Or<HttpRequestException>()
                 .CircuitBreaker(
-                    exceptionsAllowedBeforeBreaking: 3,
+                    exceptionsAllowedBeforeBreaking: 5,
                     durationOfBreak: TimeSpan.FromSeconds(30),
                     onBreak: (exception, timespan) =>
                     {

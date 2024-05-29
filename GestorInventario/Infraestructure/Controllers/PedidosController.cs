@@ -2,6 +2,7 @@
 using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
 using GestorInventario.Domain.Models.ViewModels;
+using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.PaginacionLogica;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,43 +18,15 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly GestorInventarioContext _context;
         private readonly GenerarPaginas _generarPaginas;
         private readonly ILogger<PedidosController> _logger;
-
-        public PedidosController(GestorInventarioContext context, GenerarPaginas generarPaginas, ILogger<PedidosController> logger)
+        private readonly IPedidoRepository _pedidoRepository;
+        public PedidosController(GestorInventarioContext context, GenerarPaginas generarPaginas, ILogger<PedidosController> logger, IPedidoRepository pedido)
         {
             _context = context;
             _generarPaginas = generarPaginas;
             _logger = logger;
+            _pedidoRepository = pedido;
         }
 
-        //public async Task<IActionResult> Index()
-        //{
-        //    //ThenInclude es usado para consultar datos de una relacion con include si tu tienes un include y 
-        //    //de ese include necesitas obtener datos pues usas theninclude
-        //    var pedidos =  await _context.Pedidos
-        //        .Include(p => p.DetallePedidos)
-        //            .ThenInclude(dp => dp.Producto)
-        //        .Include(p => p.IdUsuarioNavigation)
-        //        .ToListAsync();
-
-
-
-        //    return View(pedidos);
-        //}
-        //public async Task<IActionResult> Index([FromQuery] Paginacion paginacion)
-        //{
-        //    var pedidos = _context.Pedidos
-        //        .Include(p => p.DetallePedidos)
-        //            .ThenInclude(dp => dp.Producto)
-        //        .Include(p => p.IdUsuarioNavigation);
-
-
-        //    await HttpContext.InsertarParametrosPaginacionRespuesta(pedidos, paginacion.CantidadAMostrar);
-        //    var pedidosPaginados = await  pedidos.Paginar(paginacion).ToListAsync();
-        //    var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
-        //    ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
-
-        //    return View(pedidosPaginados);
-        //}
         public async Task<IActionResult> Index(string buscar, DateTime? fechaInicio, DateTime? fechaFin, [FromQuery] Paginacion paginacion)
         {
             try
@@ -62,20 +35,21 @@ namespace GestorInventario.Infraestructure.Controllers
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {
-                    IQueryable<Pedido> pedidos;
-
+                    //IQueryable<Pedido> pedidos;
+                    var pedidos = _pedidoRepository.ObtenerPedidos();
                     if (User.IsInRole("administrador"))
                     {
-                        pedidos = _context.Pedidos.Include(dp => dp.DetallePedidos)
-                            .ThenInclude(p => p.Producto)
-                            .Include(u => u.IdUsuarioNavigation);
+                       
+                        pedidos = _pedidoRepository.ObtenerPedidos();
                     }
                     else
                     {
-                        pedidos = _context.Pedidos.Where(p => p.IdUsuario == usuarioId)
-                            .Include(dp => dp.DetallePedidos).ThenInclude(p => p.Producto)
-                            .Include(u => u.IdUsuarioNavigation);
+                        
+                        pedidos = _pedidoRepository.ObtenerPedidoUsuario(usuarioId);
                     }
+                    ViewData["Buscar"] = buscar;
+                    ViewData["FechaInicio"] = fechaInicio;
+                    ViewData["FechaFin"] = fechaFin;
 
                     // Aquí es donde se realiza la búsqueda por el número de pedido
                     if (!String.IsNullOrEmpty(buscar))
@@ -106,6 +80,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 var model = new PedidosViewModel
                 {
                     NumeroPedido = GenerarNumeroPedido()
@@ -131,12 +109,16 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 if (ModelState.IsValid)
                 {
                     var pedido = new Pedido()
                     {
                         NumeroPedido = GenerarNumeroPedido(),
-                        FechaPedido = model.FechaPedido,
+                       // FechaPedido = model.FechaPedido,
                         EstadoPedido = model.EstadoPedido,
                         IdUsuario = model.IdUsuario,
                     };
@@ -260,6 +242,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 //Consulta a base de datos
                 var pedido = await _context.Pedidos
                     .Include(p => p.DetallePedidos)
@@ -291,6 +277,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 var pedido = await _context.Pedidos.Include(p => p.DetallePedidos).FirstOrDefaultAsync(m => m.Id == Id);
                 if (pedido == null)
                 {
@@ -320,6 +310,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 var pedido = await _context.Pedidos
                 .FirstOrDefaultAsync(x => x.Id == id);
 
@@ -329,7 +323,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     estadoPedido = pedido.EstadoPedido,
 
                 };
-                return View(pedidosViewModel);
+                return View();
             }
             catch (Exception ex)
             {
@@ -342,6 +336,10 @@ namespace GestorInventario.Infraestructure.Controllers
         [HttpPost]
         public async Task<ActionResult> Edit(EditPedidoViewModel model)
         {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
             if (ModelState.IsValid)
             {
                 try
@@ -357,7 +355,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     var historialPedido = new HistorialPedido
                     {
                         NumeroPedido = pedidoOriginal.NumeroPedido,
-                        FechaPedido = model.fechaPedido,
+                       // FechaPedido = model.fechaPedido,
                         EstadoPedido = model.estadoPedido,
                         IdUsuario = pedidoOriginal.IdUsuario
                     };
@@ -451,6 +449,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 var pedido = await _context.Pedidos
                .Include(p => p.DetallePedidos)
                    .ThenInclude(dp => dp.Producto)
@@ -473,6 +475,10 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         public async Task<IActionResult> HistorialPedidos(string buscar,[FromQuery] Paginacion paginacion)
         {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
             var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
             int usuarioId;
             if (int.TryParse(existeUsuario, out usuarioId))
@@ -491,10 +497,12 @@ namespace GestorInventario.Infraestructure.Controllers
                         .Include(u => u.IdUsuarioNavigation);
                 }
                 // Aquí es donde se realiza la búsqueda por el número de pedido
+                
                 if (!String.IsNullOrEmpty(buscar))
                 {
                     pedidos = pedidos.Where(p => p.NumeroPedido.Contains(buscar) || p.EstadoPedido.Contains(buscar));
                 }
+                ViewData["Buscar"] = buscar;
                 await HttpContext.InsertarParametrosPaginacionRespuesta(pedidos, paginacion.CantidadAMostrar);
                 var pedidosPaginados = await pedidos.Paginar(paginacion).ToListAsync();
                 var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
@@ -509,6 +517,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 var pedido = await _context.HistorialPedidos
                .Include(p => p.DetalleHistorialPedidos)
                    .ThenInclude(dp => dp.Producto)
@@ -532,7 +544,10 @@ namespace GestorInventario.Infraestructure.Controllers
         [HttpGet("descargarhistorialpedidoPDF")]
         public async Task<IActionResult> DescargarHistorialPDF()
         {
-
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
             var historialPedido = await _context.HistorialPedidos
      .Include(hp => hp.DetalleHistorialPedidos)
          .ThenInclude(dp => dp.Producto)
@@ -634,6 +649,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 // Obtener todos los registros del historial
                 var historialPedidos = await _context.HistorialPedidos.Include(x => x.DetalleHistorialPedidos).ToListAsync();
 

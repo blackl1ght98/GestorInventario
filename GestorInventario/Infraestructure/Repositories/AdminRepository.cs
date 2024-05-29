@@ -76,6 +76,7 @@ namespace GestorInventario.Infraestructure.Repositories
         {
             try
             {
+               
                 var user = await _context.Usuarios.FirstOrDefaultAsync(x=>x.Id==userVM.Id);
                 if (user != null)
                 {

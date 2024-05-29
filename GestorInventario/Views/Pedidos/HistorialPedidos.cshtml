@@ -67,7 +67,7 @@
                      El enlace lleva a la acción "Index" del controlador actual con el número de la página como parámetro
                      El texto del enlace es el texto de la página
                 -->
-                <a class="page-link" href="@Url.Action("HistorialPedidos", new { Pagina = pagina.Pagina })">@pagina.Texto</a>
+                <a class="page-link" href="@Url.Action("HistorialPedidos", new { Pagina = pagina.Pagina, buscar=ViewData["Buscar"]  })">@pagina.Texto</a>
             </li>
         }
     </ul>

@@ -63,7 +63,7 @@
         @foreach (var pagina in paginas)
         {
             <li class="page-item @(pagina.Habilitada ? null :"disabled") @(pagina.Activa ? "active":null)">
-                <a class="page-link" href="@Url.Action("Index", new { Pagina = pagina.Pagina })">@pagina.Texto</a>
+                <a class="page-link" href="@Url.Action("Index", new { buscar = ViewData["Buscar"], fechaInicio = ViewData["FechaInicio"], fechaFin = ViewData["FechaFin"], Pagina = pagina.Pagina })">@pagina.Texto</a>
             </li>
         }
     </ul>

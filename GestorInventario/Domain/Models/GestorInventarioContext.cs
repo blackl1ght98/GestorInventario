@@ -10,7 +10,7 @@ public partial class GestorInventarioContext : DbContext
     {
     }
 
-    public GestorInventarioContext(DbContextOptions<GestorInventarioContext> options, IConfiguration config)
+    public GestorInventarioContext(DbContextOptions<GestorInventarioContext> options)
         : base(options)
     {
     }
@@ -42,7 +42,7 @@ public partial class GestorInventarioContext : DbContext
     public virtual DbSet<Usuario> Usuarios { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
         => optionsBuilder.UseSqlServer("Data Source=DESKTOP-2TL9C3O\\SQLEXPRESS;Initial Catalog=GestorInventario;Integrated Security=True;TrustServerCertificate=True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -75,8 +75,11 @@ public partial class GestorInventarioContext : DbContext
 
         modelBuilder.Entity<DetalleHistorialProducto>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__DetalleH__3214EC075EFAE69A");
+            entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC074AE05DC4");
 
+            entity.Property(e => e.Descripcion)
+                .HasMaxLength(200)
+                .IsUnicode(false);
             entity.Property(e => e.NombreProducto)
                 .HasMaxLength(100)
                 .IsUnicode(false);
@@ -84,11 +87,11 @@ public partial class GestorInventarioContext : DbContext
 
             entity.HasOne(d => d.HistorialProducto).WithMany(p => p.DetalleHistorialProductos)
                 .HasForeignKey(d => d.HistorialProductoId)
-                .HasConstraintName("FK__DetalleHi__Histo__57DD0BE4");
+                .HasConstraintName("FK__DetalleHi__Histo__1D7B6025");
 
             entity.HasOne(d => d.Producto).WithMany(p => p.DetalleHistorialProductos)
                 .HasForeignKey(d => d.ProductoId)
-                .HasConstraintName("FK__DetalleHi__Produ__671F4F74");
+                .HasConstraintName("FK__DetalleHi__Produ__1E6F845E");
         });
 
         modelBuilder.Entity<DetallePedido>(entity =>
@@ -113,7 +116,7 @@ public partial class GestorInventarioContext : DbContext
             entity.Property(e => e.EstadoPedido)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-            entity.Property(e => e.FechaPedido).HasColumnType("date");
+            entity.Property(e => e.FechaPedido).HasColumnType("datetime");
             entity.Property(e => e.NumeroPedido)
                 .HasMaxLength(20)
                 .IsUnicode(false);
@@ -174,7 +177,7 @@ public partial class GestorInventarioContext : DbContext
             entity.Property(e => e.EstadoPedido)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-            entity.Property(e => e.FechaPedido).HasColumnType("date");
+            entity.Property(e => e.FechaPedido).HasColumnType("datetime");
             entity.Property(e => e.NumeroPedido)
                 .HasMaxLength(20)
                 .IsUnicode(false);
@@ -245,7 +248,7 @@ public partial class GestorInventarioContext : DbContext
             entity.Property(e => e.EnlaceCambioPass).HasMaxLength(50);
             entity.Property(e => e.FechaEnlaceCambioPass).HasColumnType("datetime");
             entity.Property(e => e.FechaExpiracionContrasenaTemporal).HasColumnType("datetime");
-            entity.Property(e => e.FechaNacimiento).HasColumnType("date");
+            entity.Property(e => e.FechaNacimiento).HasColumnType("datetime");
             entity.Property(e => e.FechaRegistro).HasColumnType("datetime");
             entity.Property(e => e.NombreCompleto).IsUnicode(false);
             entity.Property(e => e.Password).HasMaxLength(500);

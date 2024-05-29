@@ -15,6 +15,8 @@ public partial class DetalleHistorialProducto
 
     public string? NombreProducto { get; set; }
 
+    public string? Descripcion { get; set; }
+
     public decimal? Precio { get; set; }
 
     public virtual HistorialProducto? HistorialProducto { get; set; }
