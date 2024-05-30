@@ -6,6 +6,7 @@ using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
+using System.Security.Claims;
 
 namespace GestorInventario.Infraestructure.Repositories
 {
@@ -135,30 +136,68 @@ namespace GestorInventario.Infraestructure.Repositories
             var producto = await _context.Productos.Include(p => p.IdProveedorNavigation).FirstOrDefaultAsync(m => m.Id == id);
             return producto;
         }
-        //Un metodo asincrono que recibe un booleano y un string
+        
         public async Task<(bool, string)> EliminarProducto(int Id)
         {
-            var producto = await _context.Productos
+            var existeUsuario = _contextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int usuarioId;
+            if (int.TryParse(existeUsuario, out usuarioId))
+            {
+                var producto = await _context.Productos
                 .Include(p => p.DetallePedidos)
                     .ThenInclude(dp => dp.Pedido)
                 .Include(p => p.IdProveedorNavigation)
                 .Include(x => x.DetalleHistorialProductos)
                 .FirstOrDefaultAsync(m => m.Id == Id);
-            //Retorna falso si la condicion se cumple
-            if (producto == null)
-            {
-                return (false, "No hay productos para eliminar");
-            }
 
-            if (producto.DetallePedidos.Any() || producto.DetalleHistorialProductos.Any())
-            {
-                return (false, "El producto no se puede eliminar porque tiene pedidos o historial asociados.");
-            }
-            //Si las condiciones no se cumplen elimina el producto
-            _context.DeleteEntity(producto);
+                //Retorna falso si la condicion se cumple
+                if (producto == null)
+                {
+                    return (false, "No hay productos para eliminar");
+                }
 
-            return (true, null);
+                // Crea una nueva entrada en el historial de productos con los datos del producto
+                var historialProducto = new HistorialProducto()
+                {
+                    UsuarioId = usuarioId,
+                    Fecha = DateTime.Now,
+                    Accion = "DELETE",
+                    Ip = _contextAccessor.HttpContext.Connection.RemoteIpAddress?.ToString()
+                };
+                _context.AddEntity(historialProducto);
+
+                // Guarda los detalles del producto en una lista
+                var detallesProducto = producto.DetalleHistorialProductos.ToList();
+
+                // Elimina el producto
+                _context.DeleteEntity(producto);
+
+                // Guarda los cambios en la base de datos
+               // await _context.SaveChangesAsync();
+
+                // Copia los detalles del producto al historial
+                foreach (var detalle in detallesProducto)
+                {
+                    var detalleHistorial = new DetalleHistorialProducto()
+                    {
+                        HistorialProductoId = historialProducto.Id,
+                        ProductoId = detalle.ProductoId,
+                        Cantidad = detalle.Cantidad,
+                        NombreProducto = detalle.NombreProducto,
+                        Descripcion = detalle.Descripcion,
+                        Precio = detalle.Precio
+                    };
+                    _context.AddEntity(detalleHistorial);
+                }
+
+                // Guarda los cambios en la base de datos de nuevo
+                //await _context.SaveChangesAsync();
+
+                return (true, null);
+            }
+            return (false, "Error al eliminar");
         }
+
 
         public async Task<Producto> ObtenerPorId(int id)
         {

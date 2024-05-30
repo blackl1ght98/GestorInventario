@@ -1,8 +1,10 @@
 ﻿using Aspose.Pdf;
+using Aspose.Pdf.Operators;
 using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
 using GestorInventario.Domain.Models.ViewModels;
 using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.MetodosExtension;
 using GestorInventario.PaginacionLogica;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,12 +21,15 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly GenerarPaginas _generarPaginas;
         private readonly ILogger<PedidosController> _logger;
         private readonly IPedidoRepository _pedidoRepository;
-        public PedidosController(GestorInventarioContext context, GenerarPaginas generarPaginas, ILogger<PedidosController> logger, IPedidoRepository pedido)
+        private readonly IHttpContextAccessor _contextAccessor;
+        public PedidosController(GestorInventarioContext context, GenerarPaginas generarPaginas, ILogger<PedidosController> logger, 
+            IPedidoRepository pedido, IHttpContextAccessor contextAccessor)
         {
             _context = context;
             _generarPaginas = generarPaginas;
             _logger = logger;
             _pedidoRepository = pedido;
+            _contextAccessor = contextAccessor;
         }
 
         public async Task<IActionResult> Index(string buscar, DateTime? fechaInicio, DateTime? fechaFin, [FromQuery] Paginacion paginacion)
@@ -86,12 +91,13 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
                 var model = new PedidosViewModel
                 {
-                    NumeroPedido = GenerarNumeroPedido()
+                    NumeroPedido = GenerarNumeroPedido(),
+                    FechaPedido = DateTime.Now
                 };
                 //Obtenemos los datos para generar los desplegables
-                ViewData["Productos"] = new SelectList(_context.Productos, "Id", "NombreProducto");
+                ViewData["Productos"] = new SelectList(await _pedidoRepository.ObtenerProductos(), "Id", "NombreProducto");
                 ViewBag.Productos = _context.Productos.ToList();
-                ViewData["Clientes"] = new SelectList(_context.Usuarios, "Id", "NombreCompleto");
+                ViewData["Clientes"] = new SelectList(await _pedidoRepository.ObtenerUsuarios(), "Id", "NombreCompleto");
 
                 return View(model);
             }
@@ -115,108 +121,24 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
                 if (ModelState.IsValid)
                 {
-                    var pedido = new Pedido()
+                   
+                    var (success, errorMessage) = await _pedidoRepository.CrearPedido(model);
+                    if (success)
                     {
-                        NumeroPedido = GenerarNumeroPedido(),
-                       // FechaPedido = model.FechaPedido,
-                        EstadoPedido = model.EstadoPedido,
-                        IdUsuario = model.IdUsuario,
-                    };
-
-                    _context.Add(pedido);
-
-                    await _context.SaveChangesAsync();
-                    var numeroPedidoGenerado = pedido.NumeroPedido; // Almacena el número de pedido generado
-                    var historialPedido = new HistorialPedido()
-                    {
-                        NumeroPedido = numeroPedidoGenerado,
-                        FechaPedido = pedido.FechaPedido,
-                        EstadoPedido = pedido.EstadoPedido,
-                        IdUsuario = pedido.IdUsuario,
-                    };
-                    _context.Add(historialPedido);
-                    await _context.SaveChangesAsync();
-                    /*El bucle for funciona de la siguiene manera:
-                      * primero inicializa una variable i en 0
-                      * depues compara si la variable i es menor que la lista de ids de productos que 
-                      * hay en base de datos si es asi el bucle se recorre tantas veces hasta que 0
-                      * se iguale a la cantidad de productos
-                      * que hay en base de datos por ejemplo en base de datos tenemos 8 productos pues 
-                      * i < model.IdsProducto.Count; se ira iterando hasta que i llegue a 8.
-                      * Dentro de este bule tenemos una condicion pero ha esta condicion se le pasa la 
-                      * posicion del producto que el usuario ha seleccionado a la condicion 
-                      * model.ProductosSeleccionados[i] llegara solo los productos que el usuario halla 
-                      * seleccionado por ejemplo de esos 8 productos el usuario ha seleccionado 4
-                      * pues ha la codicion llegan 4 y de esos 4 se creara un detalle pedido para cada 
-                      * producto en otras palabras sus caracteristicas precio, cantidad... como hemos dicho
-                      *  no lo llega los 4 productos esos 4 productos vienen con la posicion de cada uno en
-                      *  la lista la posicion comienza en 0 asi que si son 4 productos la posicio se ve 
-                      * algo asi 0,1,2,3. A productos seleccionados llega una lista de booleanos junto a 
-                      * la posicion se puede ver algo asi [true,false,true,false,true,false,true,false] aqui llegarian
-                      *  todos los productos pero solo tiene en cuenta los que son
-                      * true 
-                      */
-
-                    for (var i = 0; i < model.IdsProducto.Count; i++)
-                    {
-                        // Si el producto en la posición i fue seleccionado...
-                        if (model.ProductosSeleccionados[i])
-                        {
-                            // Se crea un nuevo detalle de pedido para el producto seleccionado.
-                            var detallePedido = new DetallePedido()
-                            {
-                                PedidoId = pedido.Id, // Se asocia el detalle del pedido con el pedido recién creado.
-                                ProductoId = model.IdsProducto[i], // Se establece el ID del producto.
-                                Cantidad = model.Cantidades[i], // Se establece la cantidad del producto.
-                            };
-
-                            // Se agrega el detalle del pedido al contexto de la base de datos.
-                            _context.Add(detallePedido);
-                        }
+                        // Se establecen las listas de productos y clientes para la vista.
+                        ViewData["Productos"] = new SelectList(await _pedidoRepository.ObtenerProductos(), "Id", "NombreProducto");
+                        ViewBag.Productos = _context.Productos.ToList();
+                        ViewData["Clientes"] = new SelectList(await _pedidoRepository.ObtenerUsuarios(), "Id", "NombreCompleto");
+                        // Se muestra un mensaje de éxito.
+                        TempData["SuccessMessage"] = "Los datos se han creado con éxito.";
+                        return RedirectToAction(nameof(Index));
                     }
-
-                    // Se guardan los detalles del pedido en la base de datos de forma asíncrona.
-                    await _context.SaveChangesAsync();
-                    // Lógica para los detalles de productos (si es necesario)
-                    for (var i = 0; i < model.IdsProducto.Count; i++)
+                    else
                     {
-                        if (model.ProductosSeleccionados[i])
-                        {
-                            var detalleHistorialPedido = new DetalleHistorialPedido()
-                            {
-                                HistorialPedidoId = historialPedido.Id,
-                                ProductoId = model.IdsProducto[i],
-                                Cantidad = model.Cantidades[i],
-                            };
-                            _context.Add(detalleHistorialPedido);
-                        }
+                        TempData["Error Message"] = errorMessage;
                     }
-                    await _context.SaveChangesAsync();
-                    // Se establecen las listas de productos y clientes para la vista.
-                    ViewData["Productos"] = new SelectList(_context.Productos, "Id", "NombreProducto");
-                    ViewBag.Productos = _context.Productos.ToList();
-                    ViewData["Clientes"] = new SelectList(_context.Usuarios, "Id", "NombreCompleto");
-
-                    // Se muestra un mensaje de éxito.
-                    TempData["SuccessMessage"] = "Los datos se han creado con éxito.";
-                    // Se redirige al usuario a la vista de índice.
-                    /*El operador nameof en C# se utiliza para obtener el nombre de una variable, tipo o 
-                     * miembro como una cadena constante en tiempo de compilación. En tu caso, nameof(Index)
-                     * devuelve la cadena "Index".
-
-                     La ventaja de usar nameof en lugar de una cadena literal es que ayuda a mantener tu 
-                    código seguro contra errores tipográficos y refactorizaciones. Si cambias el nombre del 
-                    método Index en tu controlador, el compilador te advertirá que nameof(Index) ya no es 
-                    válido. Sin embargo, si hubieras usado una cadena literal como "Index", el compilador 
-                    no habría detectado el problema y podrías haber terminado con un error en tiempo de 
-                    ejecución.
-                     */
-
-
-                    return RedirectToAction(nameof(Index));
+                 
                 }
-
-                // Si el modelo no es válido, se devuelve la vista con el modelo original.
                 return View(model);
             }
             catch (Exception ex)
@@ -247,12 +169,12 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
                 //Consulta a base de datos
-                var pedido = await _context.Pedidos
-                    .Include(p => p.DetallePedidos)
-                        .ThenInclude(dp => dp.Producto)
-                    .Include(p => p.IdUsuarioNavigation)
-                    .FirstOrDefaultAsync(m => m.Id == id);
-
+                //var pedido = await _context.Pedidos
+                //    .Include(p => p.DetallePedidos)
+                //        .ThenInclude(dp => dp.Producto)
+                //    .Include(p => p.IdUsuarioNavigation)
+                //    .FirstOrDefaultAsync(m => m.Id == id);
+                var pedido = await _pedidoRepository.ObtenerPedidoEliminacion(id);
                 //Si no hay pedidos muestra el error 404
                 if (pedido == null)
                 {
@@ -281,22 +203,46 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
-                var pedido = await _context.Pedidos.Include(p => p.DetallePedidos).FirstOrDefaultAsync(m => m.Id == Id);
-                if (pedido == null)
+                //var pedido = await _context.Pedidos.Include(p => p.DetallePedidos).FirstOrDefaultAsync(m => m.Id == Id);
+                //if (pedido == null)
+                //{
+                //    return BadRequest();
+                //}
+
+                //// Elimina los detalles del pedido
+                //_context.DetallePedidos.RemoveRange(pedido.DetallePedidos);
+
+                //// Elimina el pedido
+                //_context.Pedidos.Remove(pedido);
+
+                //await _context.SaveChangesAsync();
+                var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int usuarioId;
+                if (int.TryParse(existeUsuario, out usuarioId))
                 {
-                    return BadRequest();
+                    var pedido = await _context.Pedidos.FirstOrDefaultAsync(x=>x.Id==Id);
+                    _logger.LogInformation($"El pedido se esta procediendo a eliminar por el usuario  {usuarioId}, el pedido a eliminar " +
+                    $"es {pedido.NumeroPedido}, la IP del equipo que ha intentado eliminar es {_contextAccessor.HttpContext.Connection.RemoteIpAddress?.ToString()} ");
+                    var (success, errorMessage) = await _pedidoRepository.EliminarPedido(Id);
+                    if (success)
+                    {
+                       
+                        TempData["SuccessMessage"] = "Los datos se han eliminado con éxito.";
+                        return RedirectToAction(nameof(Index));
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = errorMessage;
+                        _logger.LogInformation($"El pedido se esta procediendo a eliminar por el usuario  {usuarioId}, el pedido a eliminar " +
+                  $"es {pedido.NumeroPedido}, la IP del equipo que ha intentado eliminar es {_contextAccessor.HttpContext.Connection.RemoteIpAddress?.ToString()}, se" +
+                  $"ha producido el error {errorMessage} ");
+                        return RedirectToAction(nameof(Delete), new { id = Id });
+
+                    }
+
                 }
-
-                // Elimina los detalles del pedido
-                _context.DetallePedidos.RemoveRange(pedido.DetallePedidos);
-
-                // Elimina el pedido
-                _context.Pedidos.Remove(pedido);
-
-                await _context.SaveChangesAsync();
-
-                TempData["SuccessMessage"] = "Los datos se han eliminado con éxito.";
                 return RedirectToAction(nameof(Index));
+
             }
             catch (Exception ex)
             {
@@ -319,7 +265,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 EditPedidoViewModel pedidosViewModel = new EditPedidoViewModel
                 {
-                    fechaPedido = pedido.FechaPedido,
+                    fechaPedido = DateTime.Now,
                     estadoPedido = pedido.EstadoPedido,
 
                 };
@@ -344,64 +290,24 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                 try
                 {
-                    var pedidoOriginal = await _context.Pedidos
-                  .Include(p => p.DetallePedidos) 
-                  .FirstOrDefaultAsync(x => x.Id == model.id); 
-                    pedidoOriginal.FechaPedido = model.fechaPedido;
-                    pedidoOriginal.EstadoPedido = model.estadoPedido;
-                    _context.Pedidos.Update(pedidoOriginal);
-                    await _context.SaveChangesAsync();
-                    // Crear un nuevo registro en el historial de pedidos
-                    var historialPedido = new HistorialPedido
+                    var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    int usuarioId;
+                    if (int.TryParse(existeUsuario, out usuarioId))
                     {
-                        NumeroPedido = pedidoOriginal.NumeroPedido,
-                       // FechaPedido = model.fechaPedido,
-                        EstadoPedido = model.estadoPedido,
-                        IdUsuario = pedidoOriginal.IdUsuario
-                    };
-                    _context.Add(historialPedido);
-                    await _context.SaveChangesAsync();
-                    // Clonar los detalles del pedido del pedido original al nuevo pedido
-                    foreach (var detalleOriginal in pedidoOriginal.DetallePedidos)
-                    {
-                        var nuevoDetalle = new DetalleHistorialPedido
-                        {
-                            HistorialPedidoId = historialPedido.Id,
-                            ProductoId = detalleOriginal.ProductoId,
-                            Cantidad = detalleOriginal.Cantidad
-                        };
-                        _context.Add(nuevoDetalle);
-                    }
-
-                    await _context.SaveChangesAsync();
-
-
-                    TempData["SuccessMessage"] = "Los datos se han modificado con éxito.";
-                }
-                catch (DbUpdateConcurrencyException ex)
-                {
-                    _logger.LogError(ex, "Error de concurrencia");
-                    if (!PedidoExist(model.id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-
-                        _context.Entry(model).Reload();
                         var pedidoOriginal = await _context.Pedidos
-                                      .Include(p => p.DetallePedidos) // Incluimos los detalles del pedido
-                                      .FirstOrDefaultAsync(x => x.Id == model.id); pedidoOriginal.FechaPedido = model.fechaPedido;
+                     .Include(p => p.DetallePedidos)
+                     .FirstOrDefaultAsync(x => x.Id == model.id);
+                        pedidoOriginal.FechaPedido = model.fechaPedido;
                         pedidoOriginal.EstadoPedido = model.estadoPedido;
                         _context.Pedidos.Update(pedidoOriginal);
                         await _context.SaveChangesAsync();
                         // Crear un nuevo registro en el historial de pedidos
                         var historialPedido = new HistorialPedido
                         {
-                            NumeroPedido = pedidoOriginal.NumeroPedido,
-                            FechaPedido = model.fechaPedido,
-                            EstadoPedido = model.estadoPedido,
-                            IdUsuario = pedidoOriginal.IdUsuario
+                            IdUsuario = usuarioId,
+                            Fecha = DateTime.Now,
+                            Accion = _contextAccessor.HttpContext.Request.Method.ToString(),
+                            Ip = _contextAccessor.HttpContext.Connection.RemoteIpAddress?.ToString()
                         };
                         _context.Add(historialPedido);
                         await _context.SaveChangesAsync();
@@ -418,6 +324,57 @@ namespace GestorInventario.Infraestructure.Controllers
                         }
 
                         await _context.SaveChangesAsync();
+
+
+                        TempData["SuccessMessage"] = "Los datos se han modificado con éxito.";
+                    }
+                  
+                }
+                catch (DbUpdateConcurrencyException ex)
+                {
+                    _logger.LogError(ex, "Error de concurrencia");
+                    if (!PedidoExist(model.id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                        int usuarioId;
+                        if (int.TryParse(existeUsuario, out usuarioId))
+                        {
+                            _context.Entry(model).Reload();
+                            var pedidoOriginal = await _context.Pedidos
+                                          .Include(p => p.DetallePedidos) // Incluimos los detalles del pedido
+                                          .FirstOrDefaultAsync(x => x.Id == model.id); pedidoOriginal.FechaPedido = model.fechaPedido;
+                            pedidoOriginal.EstadoPedido = model.estadoPedido;
+                            _context.Pedidos.Update(pedidoOriginal);
+                            await _context.SaveChangesAsync();
+                            // Crear un nuevo registro en el historial de pedidos
+                            var historialPedido = new HistorialPedido
+                            {
+                                IdUsuario = usuarioId,
+                                Fecha = DateTime.Now,
+                                Accion = _contextAccessor.HttpContext.Request.Method.ToString(),
+                                Ip = _contextAccessor.HttpContext.Connection.RemoteIpAddress?.ToString()
+                            };
+                            _context.Add(historialPedido);
+                            await _context.SaveChangesAsync();
+                            // Clonar los detalles del pedido del pedido original al nuevo pedido
+                            foreach (var detalleOriginal in pedidoOriginal.DetallePedidos)
+                            {
+                                var nuevoDetalle = new DetalleHistorialPedido
+                                {
+                                    HistorialPedidoId = historialPedido.Id,
+                                    ProductoId = detalleOriginal.ProductoId,
+                                    Cantidad = detalleOriginal.Cantidad
+                                };
+                                _context.Add(nuevoDetalle);
+                            }
+
+                            await _context.SaveChangesAsync();
+                        }
+                          
 
                     }
                 }
@@ -498,10 +455,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
                 // Aquí es donde se realiza la búsqueda por el número de pedido
                 
-                if (!String.IsNullOrEmpty(buscar))
-                {
-                    pedidos = pedidos.Where(p => p.NumeroPedido.Contains(buscar) || p.EstadoPedido.Contains(buscar));
-                }
+                
                 ViewData["Buscar"] = buscar;
                 await HttpContext.InsertarParametrosPaginacionRespuesta(pedidos, paginacion.CantidadAMostrar);
                 var pedidosPaginados = await pedidos.Paginar(paginacion).ToListAsync();
@@ -584,9 +538,9 @@ namespace GestorInventario.Infraestructure.Controllers
             // Agregar fila de encabezado a la tabla
             Aspose.Pdf.Row headerRow = table.Rows.Add();
             headerRow.Cells.Add("Id").Alignment = HorizontalAlignment.Center;
-            headerRow.Cells.Add("Numero Pedido").Alignment = HorizontalAlignment.Center;
+            headerRow.Cells.Add("Accion").Alignment = HorizontalAlignment.Center;
             headerRow.Cells.Add("Fecha").Alignment = HorizontalAlignment.Center;
-            headerRow.Cells.Add("Estado Pedido").Alignment = HorizontalAlignment.Center;
+            headerRow.Cells.Add("Ip").Alignment = HorizontalAlignment.Center;
             headerRow.Cells.Add("Id Usuario").Alignment = HorizontalAlignment.Center;
 
             // Agregar contenido de mediciones a la tabla
@@ -597,9 +551,9 @@ namespace GestorInventario.Infraestructure.Controllers
                 Aspose.Pdf.Text.TextFragment textFragment1 = new Aspose.Pdf.Text.TextFragment("");
                 page.Paragraphs.Add(textFragment1);
                 dataRow.Cells.Add($"{historial.Id}").Alignment = HorizontalAlignment.Center;
-                dataRow.Cells.Add($"{historial.NumeroPedido}").Alignment = HorizontalAlignment.Center;
-                dataRow.Cells.Add($"{historial.FechaPedido}").Alignment = HorizontalAlignment.Center;
-                dataRow.Cells.Add($"{historial.EstadoPedido}").Alignment = HorizontalAlignment.Center;
+                dataRow.Cells.Add($"{historial.Accion}").Alignment = HorizontalAlignment.Center;
+                dataRow.Cells.Add($"{historial.Ip}").Alignment = HorizontalAlignment.Center;
+                
                 dataRow.Cells.Add($"{historial.IdUsuario}").Alignment = HorizontalAlignment.Center;
 
                 // Crear una segunda tabla para los detalles del producto
@@ -658,17 +612,25 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 if (historialPedidos == null || historialPedidos.Count == 0)
                 {
+                    TempData["ErrorMessage"] = "No hay datos en el historial para eliminar";
                     return BadRequest("No hay datos en el historial para eliminar");
                 }
 
                 // Eliminar todos los registros
                 foreach (var historialProducto in historialPedidos)
                 {
-                    _context.DetalleHistorialPedidos.RemoveRange(historialProducto.DetalleHistorialPedidos);
-                    _context.HistorialPedidos.Remove(historialProducto);
+                    _context.DeleteRangeEntity(historialProducto.DetalleHistorialPedidos);
+                    _context.DeleteEntity(historialProducto);
+                   
+                }
+                var detallePedidos = await _context.DetallePedidos.ToListAsync();
+                foreach (var detallePedido in detallePedidos)
+                {
+                    _context.DeleteEntity(detallePedido);
                 }
 
-                await _context.SaveChangesAsync();
+
+                // await _context.SaveChangesAsync();
 
                 TempData["SuccessMessage"] = "Todos los datos del historial se han eliminado con éxito.";
                 return RedirectToAction(nameof(HistorialPedidos));

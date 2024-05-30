@@ -14,32 +14,44 @@
                 <label asp-for="FechaPedido" class="control-label"></label>
                 <input asp-for="FechaPedido" class="form-control" type="date" />
             </div>
-            <div class="form-group">
+           @*  <div class="form-group">
                 <label asp-for="EstadoPedido" class="control-label"></label>
                 <input asp-for="EstadoPedido" class="form-control" />
-            </div>
-          
+            </div> *@
+          <div class="form-group">
+                <label asp-for="EstadoPedido" class="control-label"></label>
+
+              <select asp-for="EstadoPedido" class="form-select">
+                    <option value="En Proceso">En Proceso</option>
+                    <option value="Confirmado">Confirmado</option>
+                    <option value="Preparado">Preparado</option>
+                    <option value="Enviado">Enviado</option>
+                    <option value="Entregado">Entregado</option>
+              </select>
+          </div>
             <div class="form-group">
                 <label asp-for="IdsProducto" class="control-label"></label>
                 <br/>
                 <!--Se crea un bucle for para manejar los productos que se asignen al pedido que va a crear
                     el usuario.
-                    El bucle for se ejecuta tantas veces como productos existan en base de datos.
-                    Esto i < ViewBag.Productos.Count; obtiene todos los productos que hay en base de datos,
-                    en un bucle for la i es para indicar la posicion de donde esta ese producto.
-                    ProductosSeleccionados[i]->almacena en una lista de booleanos los productos seleccionados
-                    en base a su posicion que podria verse algo asi [true,false,true,false] la i aqui es para
-                    saber la posicion de cada true o false dentro de la lista.
-                   ViewBag.Productos[i].NombreProducto->Muestra el nombre de cada producto al usuario en base a la 
-                   posicion de cada uno esto puede verse algo asi [melones, sandias, ordenador] siendo [i] la posicion
-                   de cada producto la posicion comienza en 0.
-                   IdsProducto[i]->almacena la id de los productos en base a su posicion puede verse asi [11,12,13]
-                   siendo i la posicion y comienza por 0.
-                   value="ViewBag.Productos[i].Id"-> asigna la id a cada producto en base a la posicion, es un campo
-                   oculto que no ve el usuario esto puede ser similar al anterior.
-                   Cantidades[i]->almacena la cantidad que corresponde a cada producto puede verse algo <a href="#"></a>
-                   [5,10,1] y la i es la posicion de cada cantidad.
-
+                    El bucle for se ejecuta tantas veces como productos existan en base de datos. 
+                    Esto quiere decir que se crearan checkboxs como productos existan en base de datos.
+                    Esto i < ViewBag.Productos.Count; obtiene todos los productos que hay en base de datos.
+                    La funcion de la i en este bucle for es para conocer la posicion de los productos, esta posicion enpieza en 0 
+                    porque i al iniciar el bucle vale 0. De esta manera que si el usuario por ejemplo selecciona 2 productos de 4 que hay 
+                    en base de datos primero el bucle obtiene los 4 productos y de esos 4  se almacenan en una lista temporal los productos
+                    que se hallan seleccionado, si hemos seleccionado 2 productos,lo que se almacena es el id del producto. 
+                    ¿Y entonces porque se acompaña de la i?
+                    Se acompaña para saber en que posicion esta de la lista pero no se almacena la id junto a la posicion solo la id del producto seleccionado
+                    la i averigua que posicion tiene ese producto en la lista asi que si tenemos dos productos con id [5],[7] que serian nuestros productos
+                    seleccionados, este bucle le pone como un "rastreador" para saber donde esta seria como algo asi  0 [5], 1 [7] siendo 0 y 1 la posicion
+                    que estan esos productos. Pero importante el funcionamiento real es este: ProductosSeleccionados[0] en el primer recorrido tomaria el primer
+                    producto seleccionado y en el segundo recorrido ProductosSeleccionados[1] tomaria el siguiente seleccionado y asi con todos.
+                     pues ProductosSeleccionados[i] almacena la id de esos productos
+                    y como ya esta almacenada la id se pueden operar con ellos.
+                    Esta linea Cantidades[i] almacena la cantidad de cada producto especificada por el usuario 
+                    Esta linea IdsProducto es digamos la mas importante porque almacena todos los productos seleccionados o no seleccionados sin esto el bucle
+                    no funcionaria.
                 -->
                 @for (var i = 0; i < ViewBag.Productos.Count; i++)
                 {

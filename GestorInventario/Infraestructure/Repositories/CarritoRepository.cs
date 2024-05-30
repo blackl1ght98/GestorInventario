@@ -59,7 +59,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 {
                     NumeroPedido = GenerarNumeroPedido(),
                     FechaPedido = DateTime.Now,
-                    EstadoPedido = "Pendiente",
+                    EstadoPedido = "En Proceso",
                     IdUsuario = userId
                 };
                 _context.AddEntity(pedido);
@@ -76,10 +76,10 @@ namespace GestorInventario.Infraestructure.Repositories
                 }
                 var historialPedido = new HistorialPedido()
                 {
-                    NumeroPedido = pedido.NumeroPedido,
-                    FechaPedido = pedido.FechaPedido,
-                    EstadoPedido = pedido.EstadoPedido,
                     IdUsuario = pedido.IdUsuario,
+                    Fecha = DateTime.Now,
+                    Accion = "Nuevo pedido",
+                    Ip = _contextAccessor.HttpContext.Connection.RemoteIpAddress?.ToString()
                 };
                 _context.AddEntity(historialPedido);
                 foreach (var item in itemsDelCarrito)

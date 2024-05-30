@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Domain.Models;
+using GestorInventario.Domain.Models.ViewModels;
 
 namespace GestorInventario.Interfaces.Infraestructure
 {
@@ -6,5 +7,10 @@ namespace GestorInventario.Interfaces.Infraestructure
     {
         IQueryable<Pedido> ObtenerPedidos();
         IQueryable<Pedido> ObtenerPedidoUsuario(int userId);
+        Task<(bool, string)> CrearPedido(PedidosViewModel model);
+        Task<List<Producto>> ObtenerProductos();
+        Task<List<Usuario>> ObtenerUsuarios();
+        Task<Pedido> ObtenerPedidoEliminacion(int id);
+        Task<(bool, string)> EliminarPedido(int Id);
     }
 }

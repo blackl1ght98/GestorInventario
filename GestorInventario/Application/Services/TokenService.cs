@@ -59,7 +59,6 @@ namespace GestorInventario.Application.Services
         //        Id = credencialesUsuario.Id,
         //        Token = tokenString,
         //        Rol = credencialesUsuario.IdRolNavigation.Nombre,
-
         //    };
         //}
         //CONFIGURACION CLAVE ASIMETRICA FIJA

@@ -37,3 +37,14 @@ DbUpdateConcurrencyException:
 
           /*HttpContext: HttpContext encapsula toda la información sobre una solicitud HTTP individual y su respuesta. 
          * Una instancia de HttpContext se inicializa cuando se recibe una solicitud HTTP*/
+          /*El operador nameof en C# se utiliza para obtener el nombre de una variable, tipo o 
+                     * miembro como una cadena constante en tiempo de compilación. En tu caso, nameof(Index)
+                     * devuelve la cadena "Index".
+
+                     La ventaja de usar nameof en lugar de una cadena literal es que ayuda a mantener tu 
+                    código seguro contra errores tipográficos y refactorizaciones. Si cambias el nombre del 
+                    método Index en tu controlador, el compilador te advertirá que nameof(Index) ya no es 
+                    válido. Sin embargo, si hubieras usado una cadena literal como "Index", el compilador 
+                    no habría detectado el problema y podrías haber terminado con un error en tiempo de 
+                    ejecución.
+                     */

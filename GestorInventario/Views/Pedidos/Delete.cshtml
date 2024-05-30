@@ -41,7 +41,13 @@
             @Model.EstadoPedido
         </dd>
     </dl>
-
+    <input type="hidden" asp-for="@Model.Id" />
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-warning">
+            @TempData["ErrorMessage"]
+        </div>
+    }
     <form asp-action="DeleteConfirmed" method="post">
         <input type="hidden" asp-for="@Model.Id" />
         <input type="submit" value="Eliminar" class="btn btn-danger" />

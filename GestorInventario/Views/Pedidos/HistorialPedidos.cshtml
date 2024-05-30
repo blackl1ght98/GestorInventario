@@ -21,9 +21,11 @@
 <table class="table">
     <thead>
         <tr>
-            <th>Número de Pedido</th>
-            <th>Fecha de Pedido</th>
-            <th>Estado de Pedido</th>
+            
+            <th>Fecha</th>
+            <th>Accion</th>
+            <th>Ip</th>
+            <th>IdUsuario</th>
             <th>Productos</th>
         </tr>
     </thead>
@@ -31,9 +33,10 @@
         @foreach (var pedido in Model)
         {
             <tr>
-                <td>@pedido.NumeroPedido</td>
-                <td>@pedido.FechaPedido</td>
-                <td>@pedido.EstadoPedido</td>
+                <td>@pedido.Fecha</td>
+                <td>@pedido.Accion</td>
+                <td>@pedido.Ip</td>
+                <td>@pedido.IdUsuario</td>
                 <td>
                     @foreach (var detalle in pedido.DetalleHistorialPedidos)
                     {

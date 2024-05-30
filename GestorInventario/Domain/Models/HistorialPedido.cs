@@ -7,11 +7,11 @@ public partial class HistorialPedido
 {
     public int Id { get; set; }
 
-    public string NumeroPedido { get; set; } = null!;
+    public DateTime? Fecha { get; set; }
 
-    public DateTime FechaPedido { get; set; }
+    public string? Accion { get; set; }
 
-    public string EstadoPedido { get; set; } = null!;
+    public string? Ip { get; set; }
 
     public int? IdUsuario { get; set; }
 

@@ -66,7 +66,7 @@ public partial class GestorInventarioContext : DbContext
 
             entity.HasOne(d => d.HistorialPedido).WithMany(p => p.DetalleHistorialPedidos)
                 .HasForeignKey(d => d.HistorialPedidoId)
-                .HasConstraintName("FK__DetalleHi__Histo__3F115E1A");
+                .HasConstraintName("FK__DetalleHi__Histo__2F9A1060");
 
             entity.HasOne(d => d.Producto).WithMany(p => p.DetalleHistorialPedidos)
                 .HasForeignKey(d => d.ProductoId)
@@ -111,14 +111,14 @@ public partial class GestorInventarioContext : DbContext
 
         modelBuilder.Entity<HistorialPedido>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Historia__3214EC075C3E02EE");
+            entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC0787CADD9A");
 
-            entity.Property(e => e.EstadoPedido)
+            entity.Property(e => e.Accion)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-            entity.Property(e => e.FechaPedido).HasColumnType("datetime");
-            entity.Property(e => e.NumeroPedido)
-                .HasMaxLength(20)
+            entity.Property(e => e.Fecha).HasColumnType("datetime");
+            entity.Property(e => e.Ip)
+                .HasMaxLength(100)
                 .IsUnicode(false);
 
             entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.HistorialPedidos)
