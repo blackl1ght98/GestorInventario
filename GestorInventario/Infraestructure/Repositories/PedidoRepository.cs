@@ -84,14 +84,7 @@ namespace GestorInventario.Infraestructure.Repositories
             }
             return (true, null);
         }
-        private string GenerarNumeroPedido()
-        {
-            var length = 10;
-            var random = new Random();
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            return new string(Enumerable.Repeat(chars, length)
-           .Select(s => s[random.Next(s.Length)]).ToArray());
-        }
+       
         public async Task<List<Producto>> ObtenerProductos()
         {
             var producto = await _context.Productos.ToListAsync();
@@ -118,23 +111,16 @@ namespace GestorInventario.Infraestructure.Repositories
             {
                 return (false, "No hay pedido a eliminar");
             }
-            if (pedido.DetallePedidos.Any() )
-            {
-                return (false, "El pedido no se puede eliminar porque tiene historial asociado");
-            }
             if (pedido.EstadoPedido == "Entregado")
             {
-                // Crea una nueva entrada en el historial de pedidos con los datos del pedido
                 var historialPedido = new HistorialPedido()
                 {
                     IdUsuario = pedido.IdUsuario,
                     Fecha = DateTime.Now,
-                    Accion = _contextAccessor.HttpContext.Request.Method.ToString(),
-                    Ip = _contextAccessor.HttpContext.Connection.RemoteIpAddress?.ToString()
+                    Accion = "DELETE",
+                    Ip = _contextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString()
                 };
-                _context.AddEntity(historialPedido);  // Guarda la nueva entrada en la base de datos
-
-                // Copia los detalles del pedido al historial
+                _context.AddEntity(historialPedido); 
                 foreach (var detalle in pedido.DetallePedidos)
                 {
                     var detalleHistorial = new DetalleHistorialPedido()
@@ -145,7 +131,6 @@ namespace GestorInventario.Infraestructure.Repositories
                     };
                     _context.AddEntity(detalleHistorial);  
                 }
-
                 _context.DeleteRangeEntity(pedido.DetallePedidos);
                 _context.DeleteEntity(pedido);
             }
@@ -156,7 +141,24 @@ namespace GestorInventario.Infraestructure.Repositories
 
             return (true, null);
         }
-
-
+        public async Task<HistorialPedido> EliminarHistorialPorId(int id)
+        {
+            var historialPedido = await _context.HistorialPedidos.Include(x => x.DetalleHistorialPedidos).FirstOrDefaultAsync(x => x.Id == id);
+            return historialPedido;
+        }
+        public async Task<(bool, string)> EliminarHistorialPorIdDefinitivo(int Id)
+        {
+            var historialPedido = await _context.HistorialPedidos.Include(x => x.DetalleHistorialPedidos).FirstOrDefaultAsync(x => x.Id == Id);
+            if (historialPedido != null)
+            {
+                _context.DeleteRangeEntity(historialPedido.DetalleHistorialPedidos);
+                _context.DeleteEntity(historialPedido);
+            }
+            else
+            {
+                return (false, "No se puede eliminar, el historial no existe");
+            }
+            return (true, null);
+        }
     }
 }

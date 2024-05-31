@@ -251,7 +251,68 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
+        public async Task<IActionResult> DeleteHistorial(int id)
+        {
+            try
+            {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
+                var historialProducto = await _pedidoRepository.EliminarHistorialPorId(id);
+                //var historialProducto= await _productoRepository.EliminarHistorialPorId(id);
+                if (historialProducto == null)
+                {
 
+                    TempData["ErrorMessage"] = "Historial no encontrado";
+                    return NotFound("Historial no encontrado");
+                }
+                //Llegados ha este punto hay cervezas por lo tanto se muestran las cervezas
+                return View(historialProducto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al eliminar el producto");
+                return BadRequest("Error al mostrar la vista de eliminacion intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
+            }
+
+        }
+        [HttpPost, ActionName("DeleteConfirmedHistorial")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmedHistorial(int Id)
+        {
+            try
+            {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
+                var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int usuarioId;
+                if (int.TryParse(existeUsuario, out usuarioId))
+                {
+                    var (success, errorMessage) = await  _pedidoRepository.EliminarHistorialPorIdDefinitivo(Id);
+                    if (success)
+                    {
+                        TempData["SuccessMessage"] = "Los datos se han eliminado con exito";
+                        return RedirectToAction(nameof(HistorialPedidos));
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = errorMessage;
+                        return RedirectToAction(nameof(Delete), new { id = Id });
+                    }
+
+                }
+                return BadRequest("Error al eliminar el producto intentelo de nuevo mas tarde si el problema persiste intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al eliminar el producto");
+                return BadRequest("Error al eliminar el producto intentelo de nuevo mas tarde si el problema persiste intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
+            }
+        }
         public async Task<ActionResult> Edit(int id)
         {
             try

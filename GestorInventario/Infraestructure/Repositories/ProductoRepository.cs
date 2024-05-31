@@ -107,10 +107,9 @@ namespace GestorInventario.Infraestructure.Repositories
                 var detalleHistorialProducto = new DetalleHistorialProducto
                 {
                     HistorialProductoId = historialProducto.Id,
-                    ProductoId = producto.Id,
                     Cantidad = producto.Cantidad,
                     NombreProducto = producto.NombreProducto,
-                    Descripcion= producto.Descripcion,
+                    Descripcion = producto.Descripcion,
                     Precio = producto.Precio
                 };
 
@@ -136,68 +135,60 @@ namespace GestorInventario.Infraestructure.Repositories
             var producto = await _context.Productos.Include(p => p.IdProveedorNavigation).FirstOrDefaultAsync(m => m.Id == id);
             return producto;
         }
-        
+
+  
         public async Task<(bool, string)> EliminarProducto(int Id)
         {
             var existeUsuario = _contextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            int usuarioId;
+               int usuarioId;
             if (int.TryParse(existeUsuario, out usuarioId))
             {
                 var producto = await _context.Productos
-                .Include(p => p.DetallePedidos)
-                    .ThenInclude(dp => dp.Pedido)
-                .Include(p => p.IdProveedorNavigation)
-                .Include(x => x.DetalleHistorialProductos)
-                .FirstOrDefaultAsync(m => m.Id == Id);
-
-                //Retorna falso si la condicion se cumple
+          .Include(p => p.DetallePedidos)
+              .ThenInclude(dp => dp.Pedido)
+          .Include(p => p.IdProveedorNavigation)
+          .FirstOrDefaultAsync(m => m.Id == Id);
                 if (producto == null)
                 {
                     return (false, "No hay productos para eliminar");
                 }
 
-                // Crea una nueva entrada en el historial de productos con los datos del producto
+              
+                var productoOriginal = new ProductosViewModel
+                {
+                    Id = producto.Id,
+                    NombreProducto = producto.NombreProducto,
+                    Descripcion = producto.Descripcion,
+                    Cantidad = producto.Cantidad,
+                    Precio = producto.Precio,
+
+                };
+               
                 var historialProducto = new HistorialProducto()
                 {
-                    UsuarioId = usuarioId,
+                    UsuarioId = usuarioId, 
                     Fecha = DateTime.Now,
                     Accion = "DELETE",
                     Ip = _contextAccessor.HttpContext.Connection.RemoteIpAddress?.ToString()
                 };
                 _context.AddEntity(historialProducto);
-
-                // Guarda los detalles del producto en una lista
-                var detallesProducto = producto.DetalleHistorialProductos.ToList();
-
-                // Elimina el producto
-                _context.DeleteEntity(producto);
-
-                // Guarda los cambios en la base de datos
-               // await _context.SaveChangesAsync();
-
-                // Copia los detalles del producto al historial
-                foreach (var detalle in detallesProducto)
+                var detalleHistorial = new DetalleHistorialProducto()
                 {
-                    var detalleHistorial = new DetalleHistorialProducto()
-                    {
-                        HistorialProductoId = historialProducto.Id,
-                        ProductoId = detalle.ProductoId,
-                        Cantidad = detalle.Cantidad,
-                        NombreProducto = detalle.NombreProducto,
-                        Descripcion = detalle.Descripcion,
-                        Precio = detalle.Precio
-                    };
-                    _context.AddEntity(detalleHistorial);
-                }
-
-                // Guarda los cambios en la base de datos de nuevo
-                //await _context.SaveChangesAsync();
+                    HistorialProductoId = historialProducto.Id,
+                    Cantidad = productoOriginal.Cantidad,
+                    NombreProducto = productoOriginal.NombreProducto,
+                    Descripcion = productoOriginal.Descripcion,
+                    Precio = productoOriginal.Precio
+                };
+                _context.AddEntity(detalleHistorial);
+                _context.DeleteEntity(producto);
 
                 return (true, null);
             }
-            return (false, "Error al eliminar");
+            return (true, null);
         }
 
+    
 
         public async Task<Producto> ObtenerPorId(int id)
         {
@@ -227,7 +218,7 @@ namespace GestorInventario.Infraestructure.Repositories
         {
             var historialProductos = await _context.HistorialProductos
                 .Include(hp => hp.DetalleHistorialProductos)
-            .ThenInclude(dp => dp.Producto)
+           
                 .ToListAsync();
             if(historialProductos==null || historialProductos.Count == 0)
             {
@@ -292,7 +283,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 detalleHeaderRow.Cells.Add("NombreProducto").Alignment = HorizontalAlignment.Center;
                 detalleHeaderRow.Cells.Add("Descripcion").Alignment = HorizontalAlignment.Center;
                 detalleHeaderRow.Cells.Add("IdHistorial").Alignment = HorizontalAlignment.Center;
-                detalleHeaderRow.Cells.Add("ProductoId").Alignment = HorizontalAlignment.Center;
+              
                 detalleHeaderRow.Cells.Add("Cantidad").Alignment = HorizontalAlignment.Center;
                 detalleHeaderRow.Cells.Add("Precio").Alignment = HorizontalAlignment.Center;
 
@@ -304,7 +295,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     detalleRow.Cells.Add($"{detalle.NombreProducto}").Alignment = HorizontalAlignment.Center;
                     detalleRow.Cells.Add($"{detalle.Descripcion}").Alignment = HorizontalAlignment.Center;
                     detalleRow.Cells.Add($"{detalle.HistorialProductoId}").Alignment = HorizontalAlignment.Center;
-                    detalleRow.Cells.Add($"{detalle.ProductoId}").Alignment = HorizontalAlignment.Center; ;
+                    
                     detalleRow.Cells.Add($"{detalle.Cantidad}").Alignment = HorizontalAlignment.Center;
                     detalleRow.Cells.Add($"{detalle.Precio}").Alignment = HorizontalAlignment.Center;
                 }
@@ -324,7 +315,7 @@ namespace GestorInventario.Infraestructure.Repositories
         {
             var historialProducto = await _context.HistorialProductos
                    .Include(hp => hp.DetalleHistorialProductos)
-                       .ThenInclude(dp => dp.Producto)
+                       
 
                    .FirstOrDefaultAsync(hp => hp.Id == id);
             return historialProducto;
@@ -394,7 +385,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 var detalleHistorialProductoPostActualizacion = new DetalleHistorialProducto
                 {
                     HistorialProductoId = historialProductoPostActualizacion.Id,
-                    ProductoId = productoOriginal.Id,
+                   
                     Cantidad = productoOriginal.Cantidad,
                     NombreProducto = productoOriginal.NombreProducto,
                     Descripcion= productoOriginal.Descripcion,
@@ -433,7 +424,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 var detalleHistorialProducto = new DetalleHistorialProducto
                 {
                     HistorialProductoId = historialProducto.Id,
-                    ProductoId = producto.Id,
+                  
                     Cantidad = producto.Cantidad,
                     NombreProducto = producto.NombreProducto,
                     Descripcion = producto.Descripcion,
@@ -473,7 +464,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 var detalleHistorialProductoPostActualizacion = new DetalleHistorialProducto
                 {
                     HistorialProductoId = historialProductoPostActualizacion.Id,
-                    ProductoId = productoOriginal.Id,
+                    
                     Cantidad = productoOriginal.Cantidad,
                     NombreProducto = productoOriginal.NombreProducto,
                     Precio = productoOriginal.Precio,
@@ -511,7 +502,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 var detalleHistorialProducto = new DetalleHistorialProducto
                 {
                     HistorialProductoId = historialProducto.Id,
-                    ProductoId = producto.Id,
+                 
                     Cantidad = producto.Cantidad,
                     NombreProducto = producto.NombreProducto,
                     Precio = producto.Precio,

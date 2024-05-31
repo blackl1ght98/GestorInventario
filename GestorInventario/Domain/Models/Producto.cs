@@ -25,8 +25,6 @@ public partial class Producto
 
     public virtual ICollection<DetalleHistorialPedido> DetalleHistorialPedidos { get; set; } = new List<DetalleHistorialPedido>();
 
-    public virtual ICollection<DetalleHistorialProducto> DetalleHistorialProductos { get; set; } = new List<DetalleHistorialProducto>();
-
     public virtual ICollection<DetallePedido> DetallePedidos { get; set; } = new List<DetallePedido>();
 
     public virtual Proveedore? IdProveedorNavigation { get; set; }

@@ -40,12 +40,15 @@
                 <td>
                     @foreach (var detalle in pedido.DetalleHistorialPedidos)
                     {
-                        <span>@detalle.Producto.NombreProducto</span>
+                        <span>@detalle.Producto?.NombreProducto</span>
                         <br />
                     }
                 </td>
                 <td>
                     <a asp-action="DetallesHistorialPedido" asp-route-id="@pedido.Id" class="btn btn-info">Ver detalles</a>
+                </td>
+                <td>
+                    <a asp-action="DeleteHistorial" asp-route-id="@pedido.Id" class="btn btn-danger">Delete</a>
                 </td>
             </tr>
         }

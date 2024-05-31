@@ -9,8 +9,6 @@ public partial class DetalleHistorialProducto
 
     public int? HistorialProductoId { get; set; }
 
-    public int? ProductoId { get; set; }
-
     public int? Cantidad { get; set; }
 
     public string? NombreProducto { get; set; }
@@ -20,6 +18,4 @@ public partial class DetalleHistorialProducto
     public decimal? Precio { get; set; }
 
     public virtual HistorialProducto? HistorialProducto { get; set; }
-
-    public virtual Producto? Producto { get; set; }
 }

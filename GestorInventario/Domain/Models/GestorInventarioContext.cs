@@ -70,7 +70,7 @@ public partial class GestorInventarioContext : DbContext
 
             entity.HasOne(d => d.Producto).WithMany(p => p.DetalleHistorialPedidos)
                 .HasForeignKey(d => d.ProductoId)
-                .HasConstraintName("FK__DetalleHi__Produ__662B2B3B");
+                .HasConstraintName("FK__DetalleHi__Produ__3FD07829");
         });
 
         modelBuilder.Entity<DetalleHistorialProducto>(entity =>
@@ -88,10 +88,6 @@ public partial class GestorInventarioContext : DbContext
             entity.HasOne(d => d.HistorialProducto).WithMany(p => p.DetalleHistorialProductos)
                 .HasForeignKey(d => d.HistorialProductoId)
                 .HasConstraintName("FK__DetalleHi__Histo__1D7B6025");
-
-            entity.HasOne(d => d.Producto).WithMany(p => p.DetalleHistorialProductos)
-                .HasForeignKey(d => d.ProductoId)
-                .HasConstraintName("FK__DetalleHi__Produ__1E6F845E");
         });
 
         modelBuilder.Entity<DetallePedido>(entity =>
