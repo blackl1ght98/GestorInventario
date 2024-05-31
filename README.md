@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Guía de instalación para usar el proyecto Gestor Inventario</title>
-</head>
+
 <body>
     <h1>Guía de instalación para usar el proyecto Gestor Inventario</h1>
     <h2>Restaurar la copia de seguridad</h2>
