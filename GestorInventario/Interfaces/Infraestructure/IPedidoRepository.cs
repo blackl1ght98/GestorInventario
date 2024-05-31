@@ -14,5 +14,12 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<(bool, string)> EliminarPedido(int Id);
         Task<HistorialPedido> EliminarHistorialPorId(int id);
         Task<(bool, string)> EliminarHistorialPorIdDefinitivo(int Id);
+        Task<Pedido> ObtenerPedidoId(int id);
+        Task<(bool, string)> EditarPedido(EditPedidoViewModel model);
+        IQueryable<HistorialPedido> ObtenerPedidosHistorial();
+        IQueryable<HistorialPedido> ObtenerPedidosHistorialUsuario(int usuarioId);
+        Task<HistorialPedido> DetallesHistorial(int id);
+        Task<(bool, string, byte[])> DescargarPDF();
+        Task<(bool, string)> EliminarHitorial();
     }
 }
