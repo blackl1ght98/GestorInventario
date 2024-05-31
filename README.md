@@ -1,8 +1,8 @@
 <h1>Guia de intalacion para usar el proyecto Gestor Inventario</h1>
 <p>Primero  restaurar la copia de seguridad <strong>GestorInventarioDB</strong> usando Microsoft SQL Server si no disponen de este programa tendran que descargarlo de la pagina
-  web de Microsoft, descargaremos este <a href="https://www.microsoft.com/es-es/sql-server/sql-server-downloads" target="_blank"> si bajamos hacia abajo en esta pagina veremos
+  web de Microsoft, descargaremos este <a href="https://www.microsoft.com/es-es/sql-server/sql-server-downloads" target="_blank"/> si bajamos hacia abajo en esta pagina veremos
   dos versiones Developer y Express pues instalamos la versión <strong>Express</strong> seguiremos los pasos de instalacion del instalador y una vez se complete tendremos que
-  intalar esto otro que es la interfaz grafica de SQL Server <a href="https://learn.microsoft.com/es-es/sql/ssms/download-sql-server-management-studio-ssms?view=sql-server-ver16" target="_blank">
+  intalar esto otro que es la interfaz grafica de SQL Server <a href="https://learn.microsoft.com/es-es/sql/ssms/download-sql-server-management-studio-ssms?view=sql-server-ver16" target="_blank"/>
   una vez instalado procedemos ha habrirlo y nos aparecera una ventana que podra el tipo de servidor, nombre del servidor, autenticacion esto lo dejaremos tal y como viene sin
   poner contraseña. Una vez alcanzado este punto le damos a <strong>Conectar</strong> una vez que le hemos dado nos dirigimos a la parte izquierda de la pantalla y veremos
   que pone al como esto <strong>Servidores registrados</strong> pues le damos clic ahi, una vez que le hemos dado nos aparecera un solo servidor nuestro equipo si no esta 
