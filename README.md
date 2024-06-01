@@ -33,5 +33,20 @@
     <p><strong>IMPORTANTE</strong>: Las claves de encriptación y JWT tienen que ser largas, mínimo 38 dígitos para que no de fallo. Para obtener la clave privada y pública he dejado en el repositorio un archivo con el código llamado generarpardeclaves. Este código lo ejecutan en una aplicación de consola para que puedan ver las claves, las copian y pegan. Luejo <strong>JwtIssuer y JwtAudience </strong> aqui pueden colocar por ejemplo en JwtIssuer: <strong>EjemploEmisorApp</strong> y en <strong>JwtAudience</strong>
 pueden poner EjemploReceptorApp.</p> 
     <p>Una vez hecho todo esto, el proyecto debería arrancar sin problemas.</p>
+<h2>Características con las que cuenta el proyecto</h2>
+    <p>CRUD de usuarios, proveedores, productos, pedidos, historial de productos y pedidos</p>
+    <p>Autenticación mediante generación de tokens, dispone de los siguientes metodos de autenticacion
+    <li>Autenticación simetrica</li>
+    <li>Autenticación asimetrica con clave publica y privada fija</li>
+    <li>Autenticacion asimetrica con clave publica y privada dinamica</li>
+    </p>
+    <p>Descargar PDF de historial de pedidos y productos</p>
+    <p>Notificación de stock bajo via email</p>
+    <p>Registro y login de usuarios</p>
+    <p>Cuando un usuario nuevo se registra se le manda un correo electronico el cual tiene que confirmar</p>
+    <p>Panel de administración de usuario</p>
+    <p>Sistema basado en roles para lo diferentes niveles de acceso</p>
+    <p>Implemetacion de pasarela de pago paypal</p>
+    <p>Los modos de autenticacion puedes cambiar de uno a otro de manera efectiva comentando el codigo y descomentar el metodo a usar, evidentemente comentar el metodo que no uses ya que solo puede haber un metodo de autenticación con esto me refiero a que no puedes tener activado simetrico y asimetrico, tienes que elegir uno</p>
 </body>
 </html>
