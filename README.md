@@ -34,21 +34,18 @@
 pueden poner EjemploReceptorApp.</p> 
     <p>Una vez hecho todo esto, el proyecto debería arrancar sin problemas.</p>
 <h2>Características con las que cuenta el proyecto</h2>
-    <p>CRUD de usuarios, proveedores, productos, pedidos, historial de productos y pedidos</p>
-    <p>Autenticación mediante generación de tokens, dispone de los siguientes metodos de autenticacion
-    <li>Autenticación simetrica</li>
-    <li>Autenticación asimetrica con clave publica y privada fija</li>
-    <li>Autenticacion asimetrica con clave publica y privada dinamica</li>
-    </p>
-    <p>Descargar PDF de historial de pedidos y productos</p>
-    <p>Notificación de stock bajo via email</p>
-    <p>Registro y login de usuarios</p>
-    <p>Cuando un usuario nuevo se registra se le manda un correo electronico el cual tiene que confirmar</p>
-    <p>Panel de administración de usuario</p>
-    <p>Sistema basado en roles para lo diferentes niveles de acceso</p>
-    <p>Implemetacion de pasarela de pago paypal</p>
-    <p>Restablecimiento de contraseña mediante panel de administrador, el restablecimiento se le envia un correo electronico al usuario seleccionado el cual se le asigna
-    una contraseña temporal la cual se le envia un correo con la contraseña y un enlace para que la cambie</p>
-    <p>Los modos de autenticacion puedes cambiar de uno a otro de manera efectiva comentando el codigo y descomentar el metodo a usar, evidentemente comentar el metodo que no uses ya que solo puede haber un metodo de autenticación con esto me refiero a que no puedes tener activado simetrico y asimetrico, tienes que elegir uno</p>
+    <p>El proyecto Gestor Inventario ofrece una amplia gama de características para gestionar eficientemente el inventario:</p>
+    <ul>
+        <li>Gestión de Datos: Permite realizar operaciones CRUD (Crear, Leer, Actualizar, Eliminar) en usuarios, proveedores, productos, pedidos, y el historial de productos y pedidos.</li>
+        <li>Autenticación Robusta: El sistema de autenticación se basa en la generación de tokens y ofrece tres métodos de autenticación: Autenticación simétrica, Autenticación asimétrica con clave pública y privada fija, Autenticación asimétrica con clave pública y privada dinámica.</li>
+        <li>Generación de Informes: Los usuarios pueden descargar informes en formato PDF del historial de pedidos y productos.</li>
+        <li>Notificaciones por Correo Electrónico: El sistema envía notificaciones por correo electrónico cuando el stock de un producto está bajo.</li>
+        <li>Registro y Acceso de Usuarios: Los usuarios pueden registrarse y acceder al sistema. Cuando un nuevo usuario se registra, se le envía un correo electrónico de confirmación.</li>
+        <li>Panel de Administración de Usuarios: El proyecto incluye un panel de administración de usuarios para gestionar las cuentas de usuario.</li>
+        <li>Sistema Basado en Roles: El acceso a diferentes niveles del sistema se controla mediante un sistema basado en roles.</li>
+        <li>Pasarela de Pago PayPal: El proyecto incluye la implementación de una pasarela de pago PayPal.</li>
+        <li>Restablecimiento de Contraseña: Los usuarios pueden restablecer su contraseña a través del panel de administrador. Se envía un correo electrónico al usuario seleccionado con una contraseña temporal y un enlace para cambiarla.</li>
+        <li>Flexibilidad en la Autenticación: Los usuarios pueden cambiar entre los modos de autenticación de manera efectiva comentando y descomentando el código correspondiente.</li>
+    </ul>
 </body>
 </html>
