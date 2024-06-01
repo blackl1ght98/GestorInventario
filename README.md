@@ -47,6 +47,8 @@ pueden poner EjemploReceptorApp.</p>
     <p>Panel de administración de usuario</p>
     <p>Sistema basado en roles para lo diferentes niveles de acceso</p>
     <p>Implemetacion de pasarela de pago paypal</p>
+    <p>Restablecimiento de contraseña mediante panel de administrador, el restablecimiento se le envia un correo electronico al usuario seleccionado el cual se le asigna
+    una contraseña temporal la cual se le envia un correo con la contraseña y un enlace para que la cambie</p>
     <p>Los modos de autenticacion puedes cambiar de uno a otro de manera efectiva comentando el codigo y descomentar el metodo a usar, evidentemente comentar el metodo que no uses ya que solo puede haber un metodo de autenticación con esto me refiero a que no puedes tener activado simetrico y asimetrico, tienes que elegir uno</p>
 </body>
 </html>
