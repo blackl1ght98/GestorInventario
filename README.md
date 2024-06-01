@@ -30,7 +30,8 @@
     "PublicKey": ""
   }
 }</code></pre>
-    <p><strong>IMPORTANTE</strong>: Las claves de encriptación y JWT tienen que ser largas, mínimo 38 dígitos para que no de fallo. Para obtener la clave privada y pública he dejado en el repositorio un archivo con el código llamado generarpardeclaves. Este código lo ejecutan en una aplicación de consola para que puedan ver las claves, las copian y pegan.</p>
+    <p><strong>IMPORTANTE</strong>: Las claves de encriptación y JWT tienen que ser largas, mínimo 38 dígitos para que no de fallo. Para obtener la clave privada y pública he dejado en el repositorio un archivo con el código llamado generarpardeclaves. Este código lo ejecutan en una aplicación de consola para que puedan ver las claves, las copian y pegan. Luejo <strong>JwtIssuer y JwtAudience </strong></p> aqui pueden colocar por ejemplo en JwtIssuer: <strong>EjemploEmisorApp</strong> y en <strong>JwtAudience</strong>
+pueden poner EjemploReceptorApp.
     <p>Una vez hecho todo esto, el proyecto debería arrancar sin problemas.</p>
 </body>
 </html>
