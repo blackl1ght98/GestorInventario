@@ -17,7 +17,7 @@ namespace GestorInventario.Infraestructure.Controllers
 {
     public class AuthController : Controller
     {
-        private readonly GestorInventarioContext _context;
+      
         private readonly HashService _hashService;
         private readonly IEmailService _emailService;
         private readonly TokenService _tokenService;
@@ -26,10 +26,10 @@ namespace GestorInventario.Infraestructure.Controllers
 
 
         private readonly ILogger<AuthController> _logger;
-        public AuthController(GestorInventarioContext context, HashService hashService, IEmailService emailService, TokenService tokenService, IAuthRepository adminRepository,
+        public AuthController( HashService hashService, IEmailService emailService, TokenService tokenService, IAuthRepository adminRepository,
               ILogger<AuthController> logger, PolicyHandler policy)
         {
-            _context = context;
+           
             _hashService = hashService;
             _emailService = emailService;
             _tokenService = tokenService;

@@ -61,6 +61,18 @@
                     </div>
                 </td>
                 <td>@(item.Producto.Precio * item.Cantidad)</td>
+                <!--La diferencia entre hacer la solicitud al endpoint mediante enlace o fomulario radica que el enlace
+                    es si quieres mostrar al usuario informacion sobre lo que se va a eliminar y si no quieres mostrar informacion
+                    relevante de lo que se va a eliminar se emplea formulario. Aunque una vez que muestre esa informacion relevante
+                    se usa el formulario para hacer la solicitud de eliminacion al enspoint
+                -->
+                  @*   <td><a asp-action="EliminiarProductoCarrito" asp-route-id="@item.Id" class="btn btn-warning">Eliminar</a></td> *@
+                <td>
+                    <form asp-action="EliminiarProductoCarrito" method="post">
+                        <input type="hidden" asp-for="@item.Id" name="id" />
+                        <input type="submit" value="Eliminar" class="btn btn-warning" />
+                    </form>
+                </td>
             </tr>
         }
           

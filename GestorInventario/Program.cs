@@ -83,6 +83,7 @@ builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
 builder.Services.AddTransient<IPedidoRepository,PedidoRepository>();
 builder.Services.AddTransient<PolicyHandler>();
 builder.Services.AddTransient<IProductoRepository, ProductoRepository>();
+builder.Services.AddTransient<IProveedorRepository,ProveedorRepository>();  
 //------------------------------------------------------
 builder.Services.AddHttpContextAccessor();
 

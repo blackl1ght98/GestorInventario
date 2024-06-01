@@ -1,4 +1,5 @@
-﻿using GestorInventario.Application.Politicas_Resilencia;
+﻿using Aspose.Pdf.Text;
+using GestorInventario.Application.Politicas_Resilencia;
 using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Infraestructure;
@@ -15,17 +16,17 @@ namespace GestorInventario.Infraestructure.Controllers
 {
     public class CarritoController : Controller
     {
-        private readonly GestorInventarioContext _context;
+       
         private readonly ICarritoRepository _carritoRepository;
         
         private readonly GenerarPaginas _generarPaginas;
         private readonly ILogger<CarritoController> _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly PolicyHandler _PolicyHandler;
-        public CarritoController(GestorInventarioContext context, ICarritoRepository carritorepository,  GenerarPaginas generarPaginas, 
+        public CarritoController( ICarritoRepository carritorepository,  GenerarPaginas generarPaginas, 
         ILogger<CarritoController> logger, IUnitOfWork unitOfWork, PolicyHandler policy)
         {
-            _context = context;
+           
             _carritoRepository = carritorepository;
            _PolicyHandler = policy;
             _generarPaginas = generarPaginas;
@@ -76,11 +77,11 @@ namespace GestorInventario.Infraestructure.Controllers
         [HttpPost]
         public async Task<IActionResult> Checkout(string monedaSeleccionada)
         {
-            // Cambia la cultura actual del hilo a InvariantCulture
+               // Cambia la cultura actual del hilo a InvariantCulture
                System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
 
-                    // Cambia la cultura de la interfaz de usuario actual del hilo a InvariantCulture
-                  System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
+               // Cambia la cultura de la interfaz de usuario actual del hilo a InvariantCulture
+               System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
             try
             {
                 if (!User.Identity.IsAuthenticated)
@@ -101,7 +102,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     {
                         TempData["ErrorMessage"] = message;
                     }
-                    ViewData["Moneda"] = new SelectList(_context.Moneda, "Codigo", "Codigo");
+                    ViewData["Moneda"] = new SelectList(await _carritoRepository.ObtenerMoneda(), "Codigo", "Codigo");
 
                 }
 
@@ -124,24 +125,15 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                 return RedirectToAction("Login", "Auth");
             }
-            // Busca el producto en la base de datos
-            var carrito = await ExecutePolicyAsync(() => _carritoRepository.ItemsDelCarrito(id));
-
-            if (carrito != null)
+            var (success, errorMessage)= await _carritoRepository.Incremento(id);
+            if (success)
             {
-                carrito.Cantidad++;
-                _context.UpdateEntity(carrito);
-
-                // Busca el producto en la tabla de productos
-                var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == carrito.ProductoId);
-                if (producto != null && producto.Cantidad > 0)
-                {
-                    // Decrementa la cantidad del producto en la tabla de productos
-                    producto.Cantidad--;
-                    _context.UpdateEntity(producto);
-                }
+                return RedirectToAction("Index");
             }
-
+            else
+            {
+                TempData["ErrorMessage"]=errorMessage;
+            }
             // Redirige al usuario a la página de índice
             return RedirectToAction("Index");
         }
@@ -150,37 +142,34 @@ namespace GestorInventario.Infraestructure.Controllers
         [HttpPost]
         public async Task<ActionResult> Decrementar(int id)
         {
-            
-            var carrito = await ExecutePolicyAsync(()=> _carritoRepository.ItemsDelCarrito(id)) ;
-
-          
-
-            // Busca el producto en la base de datos
-          
-
-            if (carrito != null)
+           
+            var (success,errorMessage)= await _carritoRepository.Decremento(id);
+            if (success)
             {
-                // Decrementa la cantidad del producto en el carrito
-                carrito.Cantidad--;
+                return RedirectToAction("Index");
 
-                // Busca el producto correspondiente en la tabla de productos
-                var producto = await  ExecutePolicyAsync(()=> _carritoRepository.Decrementar(carrito.ProductoId)) ;
-                //var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == carrito.ProductoId);
-
-                if (producto != null)
-                {
-                    // Incrementa la cantidad del producto en la tabla de productos
-                    producto.Cantidad++;
-                    //_context.Productos.Update(producto);
-                    _context.UpdateEntity(producto);
-                }
-                _context.UpdateEntity(carrito);
-
-                //_context.ItemsDelCarritos.Update(carrito);
-                //await _context.SaveChangesAsync();
             }
-
+            else
+            {
+                TempData["ErrorMessage"] = errorMessage;
+            }
             // Redirige al usuario a la página de índice
+            return RedirectToAction("Index");
+        }
+       
+        [HttpPost]
+        public async Task<IActionResult> EliminiarProductoCarrito(int id)
+        {
+          
+            var (success, errorMessage)=await _carritoRepository.EliminarProductoCarrito(id);
+            if (success)
+            {
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                TempData["ErrorMessage"]= errorMessage;
+            }
             return RedirectToAction("Index");
         }
         private async Task<T> ExecutePolicyAsync<T>(Func<Task<T>> operation)

@@ -124,16 +124,7 @@ namespace GestorInventario.Application.Services
             // Guarda las claves en las cookies
             _httpContextAccessor.HttpContext?.Response.Cookies.Append("PrivateKey", Convert.ToBase64String(privateKeyCifrada), new CookieOptions { HttpOnly = true, IsEssential = true, Secure = true, SameSite = SameSiteMode.Strict, Expires = null });
             _httpContextAccessor.HttpContext?.Response.Cookies.Append("PublicKey", Convert.ToBase64String(publicKeyCifrada), new CookieOptions { HttpOnly = true, IsEssential = true, Secure = true, SameSite = SameSiteMode.Strict, Expires = null });
-            //_httpContextAccessor.HttpContext.Response.Cookies.Append("ClaveCifrado", claveCifradoString, new CookieOptions
-            //{
-            //    // Configura la cookie para que sea segura y HttpOnly
-            //    HttpOnly = true,
-            //    IsEssential = true,
-            //    Secure = true,
-            //    SameSite = SameSiteMode.Strict,
-            //    Expires = null
-
-            //});
+          
             // Guarda la clave de cifrado en la memoria del servidor
             _memoryCache.Set(credencialesUsuario.Id.ToString(), claveCifrado);
 
@@ -203,7 +194,7 @@ namespace GestorInventario.Application.Services
                     // Establece el modo de relleno en PKCS7.
                     aes.Padding = PaddingMode.PKCS7;
 
-                    // Genera un nuevo Vector de Inicialización (IV) aleatorio.
+                    // Genera un nuevo Vector de Inicialización (IV) aleatorio, esto es un valor aleatorio.
                     aes.GenerateIV();
 
                     // Crea un objeto de cifrado que se utiliza para transformar los datos.
@@ -212,7 +203,7 @@ namespace GestorInventario.Application.Services
                         // Cifra los datos.
                         var cipherText = encryptor.TransformFinalBlock(data, 0, data.Length);
 
-                        // Prepende el IV al texto cifrado y devuelve el resultado.
+                       
                         // Esto es necesario porque el IV debe ser conocido para descifrar los datos más tarde,
                         // pero no necesita mantenerse en secreto.
                         return aes.IV.Concat(cipherText).ToArray(); // Prepend IV to the cipher text

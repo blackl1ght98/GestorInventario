@@ -115,24 +115,7 @@ namespace GestorInventario.Infraestructure.Repositories
             }
             if (pedido.EstadoPedido == "Entregado")
             {
-                var historialPedido = new HistorialPedido()
-                {
-                    IdUsuario = pedido.IdUsuario,
-                    Fecha = DateTime.Now,
-                    Accion = "DELETE",
-                    Ip = _contextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString()
-                };
-                _context.AddEntity(historialPedido);
-                foreach (var detalle in pedido.DetallePedidos)
-                {
-                    var detalleHistorial = new DetalleHistorialPedido()
-                    {
-                        HistorialPedidoId = historialPedido.Id,
-                        ProductoId = detalle.ProductoId,
-                        Cantidad = detalle.Cantidad,
-                    };
-                    _context.AddEntity(detalleHistorial);
-                }
+               
                 _context.DeleteRangeEntity(pedido.DetallePedidos);
                 _context.DeleteEntity(pedido);
             }
@@ -266,9 +249,9 @@ namespace GestorInventario.Infraestructure.Repositories
             Aspose.Pdf.Row headerRow = table.Rows.Add();
             headerRow.Cells.Add("Id").Alignment = HorizontalAlignment.Center;
             headerRow.Cells.Add("Accion").Alignment = HorizontalAlignment.Center;
-            headerRow.Cells.Add("Fecha").Alignment = HorizontalAlignment.Center;
             headerRow.Cells.Add("Ip").Alignment = HorizontalAlignment.Center;
             headerRow.Cells.Add("Id Usuario").Alignment = HorizontalAlignment.Center;
+            headerRow.Cells.Add("Fecha").Alignment = HorizontalAlignment.Center;
 
             // Agregar contenido de mediciones a la tabla
             foreach (var historial in historialPedido)
@@ -280,8 +263,8 @@ namespace GestorInventario.Infraestructure.Repositories
                 dataRow.Cells.Add($"{historial.Id}").Alignment = HorizontalAlignment.Center;
                 dataRow.Cells.Add($"{historial.Accion}").Alignment = HorizontalAlignment.Center;
                 dataRow.Cells.Add($"{historial.Ip}").Alignment = HorizontalAlignment.Center;
-
-                dataRow.Cells.Add($"{historial.IdUsuario}").Alignment = HorizontalAlignment.Center;
+                dataRow.Cells.Add($"{historial.IdUsuario}").Alignment = HorizontalAlignment.Center; 
+                dataRow.Cells.Add($"{historial.Fecha}").Alignment = HorizontalAlignment.Center;
 
                 // Crear una segunda tabla para los detalles del producto
                 Aspose.Pdf.Table detalleTable = new Aspose.Pdf.Table();

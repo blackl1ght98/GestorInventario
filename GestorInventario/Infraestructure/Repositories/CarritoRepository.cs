@@ -42,14 +42,11 @@ namespace GestorInventario.Infraestructure.Repositories
         {
             return await _context.ItemsDelCarritos.FirstOrDefaultAsync(x => x.Id == Id);
         }
-        public async Task<Producto> Decrementar(int? id)
-        {
-            return await _context.Productos.FirstOrDefaultAsync(p => p.Id == id);
-        }
+
         //Esto no esta como se suele poner Task<(bool, string) porque paypal necesita un valor que esta en uno de esos string que es la url de
         //aprobacion esta url ya contiene el paymentId, entonces porque 2 string y no solo 1, la respuesta es que uno de ellos es la respuesta de exito
         //o fracaso y el otro contiene la url de aprobacion
-        public async Task<(bool, string,string)> Pagar(string moneda, int userId)
+        public async Task<(bool, string, string)> Pagar(string moneda, int userId)
         {
             var carrito = await ObtenerCarrito(userId);
             if (carrito != null)
@@ -134,7 +131,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     return (false, "Fallo al iniciar el pago con paypal", null);
                 }
             }
-            return (true, null,null);
+            return (true, null, null);
         }
         private string GenerarNumeroPedido()
         {
@@ -144,18 +141,75 @@ namespace GestorInventario.Infraestructure.Repositories
             return new string(Enumerable.Repeat(chars, length)
            .Select(s => s[random.Next(s.Length)]).ToArray());
         }
-        public  IQueryable<ItemsDelCarrito> ObtenerItems(int id)
+        public IQueryable<ItemsDelCarrito> ObtenerItems(int id)
         {
-           
-            var items= _context.ItemsDelCarritos
+
+            var items = _context.ItemsDelCarritos
                             .Include(i => i.Producto)
                              .Include(i => i.Producto.IdProveedorNavigation)
                             .Where(i => i.CarritoId == id);
             return items;
 
         }
-        public async  Task<List<Monedum>>  ObtenerMoneda()
+        public async Task<List<Monedum>> ObtenerMoneda()
         {
             return await _context.Moneda.ToListAsync();
         }
-    } }
+        public async Task<(bool, string)> Incremento(int id)
+        {
+            var carrito = await ItemsDelCarrito(id);
+            if (carrito != null)
+            {
+                carrito.Cantidad++;
+                _context.UpdateEntity(carrito);
+                var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == carrito.ProductoId);
+                if (producto != null && producto.Cantidad > 0)
+                {
+                    // Decrementa la cantidad del producto en la tabla de productos
+                    producto.Cantidad--;
+                    _context.UpdateEntity(producto);
+                }
+            }
+            return (true, null);
+        }
+        public async Task<(bool, string)> Decremento(int id)
+        {
+            var carrito = await ItemsDelCarrito(id);
+
+            if (carrito != null)
+            {
+                // Decrementa la cantidad del producto en el carrito
+                carrito.Cantidad--;
+                var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == carrito.ProductoId);
+                if (producto != null)
+                {
+                    // Incrementa la cantidad del producto en la tabla de productos
+                    producto.Cantidad++;
+                    //_context.Productos.Update(producto);
+                    _context.UpdateEntity(producto);
+                }
+                _context.UpdateEntity(carrito);
+
+            }
+            return (true, null);
+        }
+        public async Task<(bool, string)> EliminarProductoCarrito(int id)
+        {
+            var itemsCarrito = await _context.ItemsDelCarritos.FirstOrDefaultAsync(x => x.Id == id);
+            if (itemsCarrito == null)
+            {
+                return (false, "No se puede eliminar porque no hay productos");
+            }
+            _context.DeleteEntity(itemsCarrito);
+            var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == itemsCarrito.ProductoId);
+            if (producto != null)
+            {
+                // Incrementa la cantidad del producto en la tabla de productos
+                producto.Cantidad++;
+                //_context.Productos.Update(producto);
+                _context.UpdateEntity(producto);
+            }
+            return (true, null);
+        }
+    }
+}

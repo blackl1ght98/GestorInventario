@@ -2,6 +2,8 @@
 using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
 using GestorInventario.Domain.Models.ViewModels;
+using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.MetodosExtension;
 using GestorInventario.Models.ViewModels;
 using GestorInventario.PaginacionLogica;
 using Microsoft.AspNetCore.Mvc;
@@ -13,25 +15,28 @@ namespace GestorInventario.Infraestructure.Controllers
 {
     public class ProveedorController : Controller
     {
-        private readonly GestorInventarioContext _context;
+        
         private readonly ILogger<ProveedorController> _logger;
         private readonly GenerarPaginas _generarPaginas;
         private readonly PolicyHandler _PolicyHandler;
-        public ProveedorController(GestorInventarioContext context, ILogger<ProveedorController> logger, GenerarPaginas generarPaginas, PolicyHandler policyHandler)
+        private readonly IProveedorRepository _proveedorRepository;
+        public ProveedorController( ILogger<ProveedorController> logger, GenerarPaginas generarPaginas, 
+            PolicyHandler policyHandler, IProveedorRepository proveedor)
         {
-            _context = context;
+            
             _logger = logger;
             _generarPaginas = generarPaginas;
             _PolicyHandler = policyHandler;
+            _proveedorRepository= proveedor;
         }
 
         public async Task<IActionResult> Index(string buscar, [FromQuery] Paginacion paginacion)
         {
             try
             {
-                var proveedores = from p in _context.Proveedores
-                                  select p;
-
+                //var proveedores = from p in _context.Proveedores
+                //                  select p;
+                var proveedores =ExecutePolicy(()=> _proveedorRepository.ObtenerProveedores()) ;
                 // var proveedores = await _context.Proveedores.ToListAsync();
                 ViewData["Buscar"] = buscar;
                 if (!String.IsNullOrEmpty(buscar))
@@ -74,16 +79,13 @@ namespace GestorInventario.Infraestructure.Controllers
                 //Esto toma en cuenta las validaciones puestas en BeerViewModel
                 if (ModelState.IsValid)
                 {
-                    //Crea la cerveza
-                    var proveedor = new Proveedore()
+                   
+                    var (success,errorMessage)= await ExecutePolicyAsync(()=> _proveedorRepository.CrearProveedor(model)) ;
+                    if (success)
                     {
-                        NombreProveedor = model.NombreProveedor,
-                        Contacto = model.Contacto,
-                        Direccion = model.Direccion,
-                    };
-                    _context.Add(proveedor);
-                    await _context.SaveChangesAsync();
-                    TempData["SuccessMessage"] = "Los datos se han creado con éxito.";
+                        TempData["SuccessMessage"] = "Los datos se han creado con éxito.";
+                    }
+                   
 
                     return RedirectToAction(nameof(Index));
                 }
@@ -105,8 +107,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
-                //Consulta a base de datos
-                var proveedor = await _context.Proveedores.FirstOrDefaultAsync(m => m.Id == id);
+           
+                var proveedor= await ExecutePolicyAsync(()=> _proveedorRepository.ObtenerProveedorId(id));
                 //Si no hay cervezas muestra el error 404
                 if (proveedor == null)
                 {
@@ -135,23 +137,19 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
-                var proveedor = await _context.Proveedores.Include(p => p.Productos).FirstOrDefaultAsync(m => m.Id == Id);
-                if (proveedor == null)
+               
+                var (success,errorMessagee)=await ExecutePolicyAsync(()=> _proveedorRepository.EliminarProveedor(Id)) ;
+                if (success)
                 {
-                    return BadRequest();
+                    TempData["SuccessMessage"] = "Los datos se han eliminado con éxito.";
+                    return RedirectToAction(nameof(Index));
                 }
-                if (proveedor.Productos.Any())
+                else
                 {
-                    TempData["ErrorMessage"] = "El proveedor no se puede eliminar porque tiene productos asociados.";
-                    //En caso de que el proveedor tenga productos asociados se devuelve al usuario a la vista Delete y se
-                    //muestra el mensaje informandole.
-                    //A esta reedireccion se le pasa la vista Delete y al metodo que contiene esa vista la id del proveedor
+                    TempData["ErrorMessage"]=errorMessagee;
                     return RedirectToAction(nameof(Delete), new { id = Id });
                 }
-                _context.Proveedores.Remove(proveedor);
-                await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Los datos se han eliminado con éxito.";
-                return RedirectToAction(nameof(Index));
+              
             }
             catch (Exception ex)
             {
@@ -168,8 +166,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
-                Proveedore proveedor = await _context.Proveedores.FindAsync(id);
-
+               var proveedor= await ExecutePolicyAsync(() => _proveedorRepository.ObtenerProveedorId(id));
                 return View(proveedor);
             }
             catch (Exception ex)
@@ -180,7 +177,7 @@ namespace GestorInventario.Infraestructure.Controllers
             
         }
         [HttpPost]
-        public async Task<ActionResult> Edit(Proveedore proveedores)
+        public async Task<ActionResult> Edit(ProveedorViewModel model)
         {
             try
             {
@@ -190,33 +187,19 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
                 if (ModelState.IsValid)
                 {
-                    try
+                    var (success,errorMessage)=await ExecutePolicyAsync(()=> _proveedorRepository.EditarProveedor(model)) ;
+                    if (success)
                     {
-                        //var proveedor = await _context.Proveedores.FindAsync(proveedores.Id);
-
-                        _context.Entry(proveedores).State = EntityState.Modified;
-                        await _context.SaveChangesAsync();
-                        TempData["SuccessMessage"] = "Los datos se han modificado con éxito.";
-
+                        return RedirectToAction("Index");
                     }
-                    catch (DbUpdateConcurrencyException)
+                    else
                     {
-                        if (!ProveedorExist(proveedores.Id))
-                        {
-                            return NotFound("Proveedor no encontrado");
-                        }
-                        else
-                        {
-                            _context.Entry(proveedores).Reload();
-
-                            // Intenta guardar de nuevo
-                            _context.Entry(proveedores).State = EntityState.Modified;
-                            await _context.SaveChangesAsync();
-                        }
+                        TempData["ErrorMessage"] = errorMessage;
                     }
+                      
                     return RedirectToAction("Index");
                 }
-                return View(proveedores);
+                return View(model);
             }
             catch (Exception ex)
             {
@@ -226,11 +209,7 @@ namespace GestorInventario.Infraestructure.Controllers
            
         }
 
-        private bool ProveedorExist(int Id)
-        {
-            
-            return _context.Proveedores.Any(e => e.Id == Id);
-        }
+       
         private async Task<T> ExecutePolicyAsync<T>(Func<Task<T>> operation)
         {
             var policy = _PolicyHandler.GetCombinedPolicyAsync<T>();
