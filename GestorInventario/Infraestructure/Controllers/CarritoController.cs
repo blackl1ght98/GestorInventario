@@ -1,4 +1,5 @@
-﻿using Aspose.Pdf.Text;
+﻿using Aspose.Pdf.Operators;
+using Aspose.Pdf.Text;
 using GestorInventario.Application.Politicas_Resilencia;
 using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
@@ -68,10 +69,11 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al obtener los productos del carrito");
-                return BadRequest("Error al mostrar los productos del carrito intentelo de nuevo mas tarde o si el problema persiste contacte con el administrador ");
+                return RedirectToAction("Error", "Home");
             }
-          
+
         }
         
         [HttpPost]
@@ -110,8 +112,9 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al realizar el checkout");
-                return BadRequest("Error al realizar el checkout intentelo de nuevo mas tarde o si el problema persiste contacte con el administrador");
+                return RedirectToAction("Error", "Home");
             }
 
         }
@@ -160,17 +163,28 @@ namespace GestorInventario.Infraestructure.Controllers
         [HttpPost]
         public async Task<IActionResult> EliminiarProductoCarrito(int id)
         {
-          
-            var (success, errorMessage)=await _carritoRepository.EliminarProductoCarrito(id);
-            if (success)
+            try
             {
+                var (success, errorMessage) = await _carritoRepository.EliminarProductoCarrito(id);
+                if (success)
+                {
+                    return RedirectToAction("Index");
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = errorMessage;
+                }
                 return RedirectToAction("Index");
+
             }
-            else
+            catch (Exception ex)
             {
-                TempData["ErrorMessage"]= errorMessage;
+
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
+                _logger.LogError(ex, "Error al realizar el checkout");
+                return RedirectToAction("Error", "Home");
             }
-            return RedirectToAction("Index");
+
         }
         private async Task<T> ExecutePolicyAsync<T>(Func<Task<T>> operation)
         {

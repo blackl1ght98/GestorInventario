@@ -126,8 +126,9 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al realizar el login");
-                return BadRequest("Error al realizar el login intentelo de nuevo mas tarde o contacte con el administrador");
+                return RedirectToAction("Error", "Home");
             }
         }
         [AllowAnonymous]
@@ -151,8 +152,9 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al cerrar sesion");
-                return BadRequest("Error al cerrar sesion intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
+                return RedirectToAction("Error", "Home");
             }
         }
         [AllowAnonymous]
@@ -177,19 +179,11 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al cerrar sesion");
-                return BadRequest("Error al cerrar sesion intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
+                return RedirectToAction("Error", "Home");
             }
         }
-
-
-        //[AllowAnonymous]
-        //public async Task<IActionResult> Logout()
-        //{
-        //    //Elimina de las cookies del navegador las cookie del usuario
-        //    await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        //    return RedirectToAction("Index", "Home");
-        //}
         //Este metodo toma el email por ruta y ademas envia un email al usuario con lo que tiene que hacer para resetear la contraseña
         [Route("AuthController/ResetPassword/{email}")]
         //Esto le muestra una vista al administrador
@@ -198,8 +192,6 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
                 var usuarioDB = await ExecutePolicyAsync(()=> _authRepository.ExisteEmail(email)) ;
-                //var usuarioDB= await _context.Usuarios.EmailExists(email);
-                //var usuarioDB = await _context.Usuarios.AsTracking().FirstOrDefaultAsync(x => x.Email == email);
                 // Generar una contraseña temporal
                 await _emailService.SendEmailAsyncResetPassword(new DTOEmail
                 {
@@ -209,10 +201,11 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al obtener y enviar el email");
-                return BadRequest("Error al mostrar la vista de restauracion de contraseña intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
+                return RedirectToAction("Error", "Home");
             }
-           
+
         }
         //De ese email que se ha enviado del enlace tomamos el id de usuario y el token que no es token lo que genera es un
         //identificador unico, este identificador se genero cuando el usuario se registro, con esto nos asguramos de que la contraseña
@@ -250,10 +243,11 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al mostrar el formulario de restauracion de contraseña");
-                return BadRequest("Error al mostrar el formulario intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
+                return RedirectToAction("Error", "Home");
             }
-           
+
         }
         //En la vista para restaurar la contraseña llamamos a este metodo para que la contraseña sea restaurada
         //esto es la logica que hay detras del formulario para restaurar la contraseña
@@ -282,8 +276,9 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al recuperar la contraseña");
-                return BadRequest("Error al restaurar la contraseña intentelo de nuevo mas tarde o contacte con el administrador si el problema persiste");
+                return RedirectToAction("Error", "Home");
             }
         }
 

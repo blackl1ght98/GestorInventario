@@ -31,25 +31,36 @@ namespace GestorInventario.Infraestructure.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Success(string paymentId, string PayerID)
         {
-            // Obtén el contexto de la API de PayPal
-            var apiContext = new APIContext(new OAuthTokenCredential(_configuration["Paypal:ClientId"], _configuration["Paypal:ClientSecret"]).GetAccessToken());
-
-            // Crea un objeto PaymentExecution para ejecutar la transacción
-            var paymentExecution = new PaymentExecution() { payer_id = PayerID };
-
-            // Obtén el pago que se va a ejecutar
-            var paymentToExecute = new Payment() { id = paymentId };
-
-            // Ejecuta el pago
-            var executedPayment = paymentToExecute.Execute(apiContext, paymentExecution);
-
-            if (executedPayment.state.ToLower() != "approved")
+            try
             {
-                // Si el estado del pago no es "approved", entonces hubo un error
-                return BadRequest("Error al ejecutar el pago");
-            }
+                // Obtén el contexto de la API de PayPal
+                var apiContext = new APIContext(new OAuthTokenCredential(_configuration["Paypal:ClientId"], _configuration["Paypal:ClientSecret"]).GetAccessToken());
 
-            return View();
+                // Crea un objeto PaymentExecution para ejecutar la transacción
+                var paymentExecution = new PaymentExecution() { payer_id = PayerID };
+
+                // Obtén el pago que se va a ejecutar
+                var paymentToExecute = new Payment() { id = paymentId };
+
+                // Ejecuta el pago
+                var executedPayment = paymentToExecute.Execute(apiContext, paymentExecution);
+
+                if (executedPayment.state.ToLower() != "approved")
+                {
+                    // Si el estado del pago no es "approved", entonces hubo un error
+                    return BadRequest("Error al ejecutar el pago");
+                }
+
+                return View();
+            }
+            catch (Exception ex)
+            {
+
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
+                _logger.LogError(ex, "Error al realizar el pago");
+                return RedirectToAction("Error", "Home");
+            }
+           
         }
 
 
@@ -88,7 +99,9 @@ namespace GestorInventario.Infraestructure.Controllers
             catch (Exception ex)
             {
 
-                TempData["error"] = ex.Message;
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
+                _logger.LogError(ex, "Error al realizar el pago");
+                return RedirectToAction("Error", "Home");
 
             }
             return RedirectToAction(nameof(Index));

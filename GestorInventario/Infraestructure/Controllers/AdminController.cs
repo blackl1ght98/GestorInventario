@@ -1,17 +1,12 @@
 ﻿using GestorInventario.Application.DTOs;
 using GestorInventario.Application.Services;
-using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Models.ViewModels;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using GestorInventario.PaginacionLogica;
-using GestorInventario.MetodosExtension;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.Application.Politicas_Resilencia;
 
@@ -47,6 +42,7 @@ namespace GestorInventario.Infraestructure.Controllers
                
                
                 var queryable = ExecutePolicy(() => _adminrepository.ObtenerUsuarios());
+               
                 //var queryable = _adminrepository.ObtenerUsuarios();
                  ViewData["Buscar"] = buscar;
               
@@ -66,8 +62,10 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al obtener los datos del usuario");
-                return BadRequest("En estos momentos no se ha podido llevar a cabo la obtención de los usuarios. Inténtelo de nuevo más tarde o contacte con el administrador.");
+                return RedirectToAction("Error", "Home"); 
+
             }
         }
         [HttpPost]
@@ -80,32 +78,27 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     TempData["SuccessMessage"] = "Rol cambiado";
                     return RedirectToAction(nameof(Index));
-
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = errorMessage;
-                    
+                    TempData["ErrorMessage"] = errorMessage;           
                 }
-                ViewData["Roles"] = new SelectList(ExecutePolicy(()=> _adminrepository.ObtenerRoles()), "Id", "Nombre");
-            
+                ViewData["Roles"] = new SelectList(ExecutePolicy(()=> _adminrepository.ObtenerRoles()), "Id", "Nombre");          
                 return RedirectToAction(nameof(Index));
 
             }
             catch (Exception ex)
             {
-
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al actualizar el rol");
-                return BadRequest("En estos momentos no se ha podido llevar a cabo la actualizacion del rol intentelo de nuevo mas tarde o cantacte con el administrador");
+                return RedirectToAction("Error", "Home");
             }
            
         }
         public IActionResult Create()
         {
             try
-            {
-                
-              
+            {         
                 //Sirve para obtener los datos del desplegable
                 ViewData["Roles"] = new SelectList(ExecutePolicy(()=> _adminrepository.ObtenerRoles()), "Id", "Nombre");
                 return View();
@@ -113,9 +106,9 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
-
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al visualizar la vista de creacion de usuario");
-                return BadRequest("En estos momentos no se ha podido llevar a cabo la visualizacion de la vista de creacion de usuario intentelo de nuevo mas tarde o cantacte con el administrador");
+                return RedirectToAction("Error", "Home");
             }
           
         }
@@ -138,7 +131,6 @@ namespace GestorInventario.Infraestructure.Controllers
                     else
                     {
                         TempData["ErrorMessage"] = errorMessage;
-
                     }
                     ViewData["Roles"] = new SelectList(ExecutePolicy(()=> _adminrepository.ObtenerRoles()), "Id", "Nombre");
                     return RedirectToAction("Login", "Auth");
@@ -147,20 +139,18 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
-
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al realizar el registro del usuario");
-                return BadRequest("En estos momentos no se ha podido llevar a cabo el registro del usuario intentelo de nuevo mas tarde o cantacte con el administrador");
-            }
-            
+                return RedirectToAction("Error", "Home");
+            }         
         }
         [AllowAnonymous]
         [Route("AdminController/ConfirmRegistration/{UserId}/{Token}")]
         public async Task<IActionResult> ConfirmRegistration(DTOConfirmRegistration confirmar)
         {
             try
-            {
-               
-                var usuarioDB = await ExecutePolicyAsync(() => _adminrepository.ObtenerPorId(confirmar.UserId));
+            {        
+               var usuarioDB = await ExecutePolicyAsync(() => _adminrepository.ObtenerPorId(confirmar.UserId));
                //var usuarioDB= await _adminrepository.ObtenerPorId(confirmar.UserId);
                 if (usuarioDB.ConfirmacionEmail != false)
                 {
@@ -180,8 +170,9 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al confirmar la cuenta del usuario");
-                return BadRequest("En estos momentos no se ha podido llevar a cabo la confirmacion de la cuenta intentelo de nuevo mas tarde o cantacte con el administrador");
+                return RedirectToAction("Error", "Home");
             }
             
         }
@@ -216,9 +207,9 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
-
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al visualizar la vista de edicion de usuario");
-                return BadRequest("En estos momentos no se ha podido llevar a cabo la visualizacion de la vista de edicion de usuario intentelo de nuevo mas tarde o cantacte con el administrador");
+                return RedirectToAction("Error", "Home");
             }
            
         }
@@ -270,9 +261,9 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
-
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al editar la informacion del usuario");
-                return BadRequest("En estos momentos no se ha podido llevar a cabo la edicion de los datos del usuario intentelo de nuevo mas tarde o cantacte con el administrador");
+                return RedirectToAction("Error", "Home");
             }  
         }
         public async Task<IActionResult> Delete(int id)
@@ -285,7 +276,6 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
                 //Consulta a base de datos en base a la id del usuario
                 var user = await ExecutePolicyAsync(() => _adminrepository.UsuarioConPedido(id));
-               
                 //Si no hay cervezas muestra el error 404
                 if (user == null)
                 {
@@ -297,9 +287,9 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
-
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al visualizar la vista de eliminacion del usuario");
-                return BadRequest("En estos momentos no se ha podido llevar a cabo la visualizacion de la vista de  eliminacion de los datos del usuario intentelo de nuevo mas tarde o cantacte con el administrador");
+                return RedirectToAction("Error", "Home");
             }
            
         }
@@ -325,8 +315,9 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al eliminar un usuario");
-                return BadRequest("En estos momentos no se ha podido llevar a cabo la eliminacion de los datos del usuario intentelo de nuevo mas tarde o cantacte con el administrador");
+                return RedirectToAction("Error", "Home");
             }
         }
 

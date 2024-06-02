@@ -53,10 +53,11 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al mostrar los proveedores");
-                return BadRequest("Error al mostrar los proveedores, intentelo de nuevo mas tarde o contacte con el administrador");
+                return RedirectToAction("Error", "Home");
             }
-            
+
         }
         public IActionResult Create()
         {
@@ -93,10 +94,11 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al crear el pedido");
-                return BadRequest("Error al crear el proveedor intentelo de nuevo mas tarde o contacte con el administrador");
+                return RedirectToAction("Error", "Home");
             }
-           
+
 
         }
         public async Task<IActionResult> Delete(int id)
@@ -119,10 +121,11 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al mostrar la vista de eliminacion del proveedor");
-                return BadRequest("Error al mostrar la vista de eliminacion del proveedor intentelo de nuevo mas tarde o contacte con el administrador");
+                return RedirectToAction("Error", "Home");
             }
-           
+
         }
 
 
@@ -153,10 +156,11 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al eliminar el proveedor");
-                return BadRequest("Error al eliminar el proveedor intentelo de nuevo mas tarde o contacte con el administrador del sitio");
+                return RedirectToAction("Error", "Home");
             }
-            
+
         }
         public async Task<ActionResult> Edit(int id)
         {
@@ -171,10 +175,11 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al mostrar la vista de edicion del proveedor");
-                return BadRequest("Error al mostrar la vista de edicion del proveedor intentelo de nuevo mas tarde o contacte con el administrador del sitio");
+                return RedirectToAction("Error", "Home");
             }
-            
+
         }
         [HttpPost]
         public async Task<ActionResult> Edit(ProveedorViewModel model)
@@ -203,10 +208,11 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al editar el proveedor");
-                return BadRequest("Error al editar el proveedor intentelo de nuvo mas tarde o contacte con el administrador del sitio");
+                return RedirectToAction("Error", "Home");
             }
-           
+
         }
 
        

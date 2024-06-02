@@ -271,42 +271,9 @@ builder.Services.AddAuthentication(options =>
                     context.Response.Redirect("/Auth/Login");
                 }
             }
-            //if (publicKeyCifrada == null)
-            //{
-            //    foreach (var cookie in collectioncookies)
-            //    {
-            //        //elimina todas las cookies
-            //        context.Response.Cookies.Delete(cookie.Key);
-            //    }
-            //    //Si la ruta es distinta a "/Auth/Login"....
-            //    if (context.Request.Path != "/Auth/Login")
-            //    {
-            //        //redirige a "/Auth/Login"
-            //        context.Response.Redirect("/Auth/Login");
-            //    }
-            //}
-          
-            
+
              // Descifra la clave pública
             var publicKey = Encoding.UTF8.GetString(tokenservice.Descifrar(Convert.FromBase64String(publicKeyCifrada), claveCifrado));
-            
-           
-            //Si la claveCifrado es null....
-            //if (claveCifrado == null)
-            //{
-            //    //Recorre la variable que almacena todas las cookies y....
-            //    foreach (var cookie in collectioncookies)
-            //    {
-            //        //elimina todas las cookies
-            //        context.Response.Cookies.Delete(cookie.Key);
-            //    }
-            //    //Si la ruta es distinta a "/Auth/Login"....
-            //    if (context.Request.Path != "/Auth/Login")
-            //    {
-            //        //redirige a "/Auth/Login"
-            //        context.Response.Redirect("/Auth/Login");
-            //    }
-            //}
 
             // Convierte la clave pública a formato RSA
             var rsa = new RSACryptoServiceProvider();

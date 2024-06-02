@@ -17,6 +17,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             return View();
         }
+        public IActionResult Error()
+        {
+            return View();
+        }
 
 
     }

@@ -89,9 +89,9 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Tiempo de respuesta del servidor agotado";
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al mostrar la vista");
-                return BadRequest("Error al mostrar la vista. Inténtelo de nuevo más tarde. Si el problema persiste, contacte con el administrador.");
+                return RedirectToAction("Error", "Home");
             }
         }
 
@@ -123,7 +123,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Tiempo de respuesta del servidor agotado";
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError("Error al verificar el stock", ex);
             }
            
@@ -142,11 +142,11 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Tiempo de respuesta del servidor agotado";
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al mostrar la vista de creacion del producto");
-                return BadRequest("Error al mostrar la vista intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
+                return RedirectToAction("Error", "Home");
             }
-           
+
         }
        
         [HttpPost]
@@ -177,13 +177,13 @@ namespace GestorInventario.Infraestructure.Controllers
                     }
                     return View(model);
                 }
-                return BadRequest("Error al crear el producto intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
+                return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Tiempo de respuesta del servidor agotado";
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al crear el producto");
-                return BadRequest("Error al crear el producto intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
+                return RedirectToAction("Error", "Home");
             }
         }
        
@@ -210,11 +210,11 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Tiempo de respuesta del servidor agotado";
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al eliminar el producto");
-                return BadRequest("Error al mostrar la vista de eliminacion intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
+                return RedirectToAction("Error", "Home");
             }
-            
+
         }
 
 
@@ -223,29 +223,43 @@ namespace GestorInventario.Infraestructure.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int Id)
         {
-            if (!User.Identity.IsAuthenticated)
+            try
             {
-                return RedirectToAction("Login", "Auth");
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
+                var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int usuarioId;
+                if (int.TryParse(existeUsuario, out usuarioId))
+                {
+                    //Lo que vemos aqui es una carcateristica de c# llamada desestructuración de tuplas.
+                    //Una tupla es una forma de agrupar múltiples valores en un solo objeto.
+                    var (success, errorMessage) = await ExecutePolicyAsync(() => _productoRepository.EliminarProducto(Id));
+                    if (success)
+                    {
+                        TempData["SuccessMessage"] = "Los datos se han eliminado con éxito.";
+                        return RedirectToAction(nameof(Index));
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = errorMessage;
+                        return RedirectToAction(nameof(Delete), new { id = Id });
+                    }
+                }
+                return RedirectToAction("Index");
             }
-            var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            int usuarioId;
-            if (int.TryParse(existeUsuario, out usuarioId))
+            catch (Exception ex)
             {
-                //Lo que vemos aqui es una carcateristica de c# llamada desestructuración de tuplas.
-                //Una tupla es una forma de agrupar múltiples valores en un solo objeto.
-                var (success, errorMessage) = await ExecutePolicyAsync(() => _productoRepository.EliminarProducto(Id));
-                if (success)
-                {
-                    TempData["SuccessMessage"] = "Los datos se han eliminado con éxito.";
-                    return RedirectToAction(nameof(Index));
-                }
-                else
-                {
-                    TempData["ErrorMessage"] = errorMessage;
-                    return RedirectToAction(nameof(Delete), new { id = Id });
-                }
+
+
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
+                _logger.LogError("Error al eliminar el producto", ex);
+                return RedirectToAction("Error", "Home");
             }
-            return BadRequest("Error al eliminar el producto intentelo de nuevo mas tarde si el problema persiste intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
+           
+          
+
         }
 
         public async Task<ActionResult> Edit(int id)
@@ -274,10 +288,11 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al editar el producto");
-                return BadRequest("Error al mostrar la vista de edicion del producto intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
+                return RedirectToAction("Error", "Home");
             }
-           
+
         }
         [HttpPost]
         public async Task<ActionResult> Edit(ProductosViewModel model)
@@ -316,10 +331,11 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al editar el producto");
-                return BadRequest("Error al editar el producto intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
+                return RedirectToAction("Error", "Home");
             }
-           
+
         }
         [HttpPost]
         public async Task<IActionResult> AgregarAlCarrito(int idProducto, int cantidad)
@@ -349,48 +365,65 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al agregar el producto al carrito");
-                return BadRequest("Error al agregar el producto al carrito intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
+                return RedirectToAction("Error", "Home");
             }
         }
 
        
         public async Task<IActionResult> HistorialProducto(string buscar, [FromQuery] Paginacion paginacion)
         {
-           
-            var historialProductos = await ExecutePolicyAsync(() => _productoRepository.ObtenerTodoHistorial());
-            //var historialProductos = await _productoRepository.ObtenerTodoHistorial();
-
-            //var historialProductos = from p in _context.HistorialProductos.Include(x => x.DetalleHistorialProductos)
-            //                select p;
-            // Aquí es donde se realiza la búsqueda por el número de pedido
-            ViewData["Buscar"] = buscar;
-            if (!String.IsNullOrEmpty(buscar))
+            try
             {
-                historialProductos =  historialProductos.Where(p => p.Accion.Contains(buscar) || p.Ip.Contains(buscar));
+                var historialProductos = await ExecutePolicyAsync(() => _productoRepository.ObtenerTodoHistorial());
+                ViewData["Buscar"] = buscar;
+                if (!String.IsNullOrEmpty(buscar))
+                {
+                    historialProductos = historialProductos.Where(p => p.Accion.Contains(buscar) || p.Ip.Contains(buscar));
+                }
+                await HttpContext.InsertarParametrosPaginacionRespuesta(historialProductos, paginacion.CantidadAMostrar);
+                var usuarios = ExecutePolicy(() => historialProductos.Paginar(paginacion).ToList());
+                //Obtiene los datos de la cabecera que hace esta peticion
+                var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
+                //Crea las paginas que el usuario ve.
+                ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
+                return View(await historialProductos.ToListAsync());
             }
-            await HttpContext.InsertarParametrosPaginacionRespuesta(historialProductos, paginacion.CantidadAMostrar);
-            var usuarios = ExecutePolicy(() => historialProductos.Paginar(paginacion).ToList());
-            //Obtiene los datos de la cabecera que hace esta peticion
-            var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
-            //Crea las paginas que el usuario ve.
-            ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
-            return View(await historialProductos.ToListAsync());
+            catch (Exception ex)
+            {
+
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
+                _logger.LogError(ex, "Error al obtener el historial de producto");
+                return RedirectToAction("Error", "Home");
+            }
+           
         }
         [HttpGet("descargarhistorialPDF")]
         public async Task<IActionResult> DescargarHistorialPDF()
         {
-            if (!User.Identity.IsAuthenticated)
+            try
             {
-                return RedirectToAction("Login", "Auth");
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
+                var (success, errorMessage, pdfData) = await ExecutePolicyAsync(() => _productoRepository.DescargarPDF());
+                if (!success)
+                {
+                    TempData["ErrorMessage"] = errorMessage;
+                    return BadRequest(errorMessage);
+                }
+                return File(pdfData, "application/pdf", "historial.pdf");
             }
-            var (success, errorMessage, pdfData) = await ExecutePolicyAsync(() => _productoRepository.DescargarPDF());
-            if (!success)
+            catch (Exception ex)
             {
-                TempData["ErrorMessage"] = errorMessage;
-                return BadRequest(errorMessage);
+
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
+                _logger.LogError(ex, "Error al descargar el pdf");
+                return RedirectToAction("Error", "Home");
             }
-            return File(pdfData, "application/pdf", "historial.pdf"); 
+
         }
         public async Task<IActionResult> DetallesHistorialProducto(int id)
         {
@@ -413,8 +446,9 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al obtener los detalles del historial de productos");
-                return BadRequest("Error al obtener los detalles del historial de productos. Inténtelo de nuevo más tarde o contacte con el administrador.");
+                return RedirectToAction("Error", "Home");
             }
         }
         public async Task<IActionResult> DeleteHistorial(int id)
@@ -438,8 +472,9 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al eliminar el producto");
-                return BadRequest("Error al mostrar la vista de eliminacion intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
+                return RedirectToAction("Error", "Home");
             }
 
         }
@@ -470,13 +505,14 @@ namespace GestorInventario.Infraestructure.Controllers
                     }
                    
                 }
-                return BadRequest("Error al eliminar el producto intentelo de nuevo mas tarde si el problema persiste intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
+                return RedirectToAction("Index");
 
             }
             catch (Exception ex)
             {
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al eliminar el producto");
-                return BadRequest("Error al eliminar el producto intentelo de nuevo mas tarde si el problema persiste intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
+                return RedirectToAction("Error", "Home");
             }
         }
         [HttpPost, ActionName("DeleteAllHistorial")]
@@ -502,8 +538,9 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al eliminar los datos del historial");
-                return BadRequest("Error al eliminar los datos del historial, inténtelo de nuevo más tarde. Si el problema persiste, contacte con el administrador");
+                return RedirectToAction("Error", "Home");
             }
         }
         //Task<T>-->Representa una operacion asincrona que puede devolver un valor, la <T> quiere decir que admite cualquier tipo de dato.
@@ -521,8 +558,6 @@ namespace GestorInventario.Infraestructure.Controllers
             var policy = _PolicyHandler.GetCombinedPolicyAsync<Producto>();
             return await policy.ExecuteAsync(operation);
         }
-         
-         
          */
         private async Task<T> ExecutePolicyAsync<T>(Func<Task<T>> operation)
         {
