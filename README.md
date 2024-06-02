@@ -12,6 +12,7 @@
     <p>Una vez la base de datos ha sido restaurada, en Visual Studio en la parte inferior si está activo veremos el administrador de paquetes. Si no está activo hay que activarlo. En esta consola ponemos el siguiente comando:</p>
     <pre><code>Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=NOMBREBASEDATOS;Integrated Security=True;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -force -project NOMBREPROYECTO</code></pre>
     <p>Estos campos se obtienen:
+        <br/>
     - <strong>NOMBRESERVIDORBASEDEDATOS</strong>: Se obtiene al abrir el programa SQL Server.
         <br/>
     - <strong>NOMBREBASEDATOS</strong>: En el programa de SQL Server vemos qué nombre tiene nuestra base de datos.
