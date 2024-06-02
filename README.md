@@ -12,9 +12,9 @@
     <p>Una vez la base de datos ha sido restaurada, en Visual Studio en la parte inferior si está activo veremos el administrador de paquetes. Si no está activo hay que activarlo. En esta consola ponemos el siguiente comando:</p>
     <pre><code>Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=NOMBREBASEDATOS;Integrated Security=True;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -force -project NOMBREPROYECTO</code></pre>
     <p>Estos campos se obtienen:
-    - <strong>NOMBRESERVIDORBASEDEDATOS</strong>: Se obtiene al abrir el programa SQL Server.
-    - <strong>NOMBREBASEDATOS</strong>: En el programa de SQL Server vemos qué nombre tiene nuestra base de datos.
-    - <strong>NOMBREPROYECTO</strong>: El nombre que tenga nuestro proyecto en SQL Server.</p>
+    - <p><strong>NOMBRESERVIDORBASEDEDATOS</strong>: Se obtiene al abrir el programa SQL Server.</p>
+    -<p> <strong>NOMBREBASEDATOS</strong>: En el programa de SQL Server vemos qué nombre tiene nuestra base de datos.</p>
+    -<p> <strong>NOMBREPROYECTO</strong>: El nombre que tenga nuestro proyecto en SQL Server.</p></p>
     <h2>Administrar secretos de usuario</h2>
     <p>Dentro de Visual Studio 2022 hacemos clic derecho en el proyecto nos vamos a donde dice <strong>Administrar secretos de usuario</strong>. Dentro de ese archivo ponemos los valores:</p>
     <pre><code>{
