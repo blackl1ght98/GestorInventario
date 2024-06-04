@@ -25,6 +25,12 @@
     </style>
 </head>
 <body>
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-warning">
+            @TempData["ErrorMessage"]
+        </div>
+    }
     <div class="message">
         <h1>Pago realizado con éxito</h1>
         <p>Redirigiendo en <span id="counter">5</span> segundos...</p>

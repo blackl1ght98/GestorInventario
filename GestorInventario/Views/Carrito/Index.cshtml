@@ -3,9 +3,7 @@
 
 <h2>Tu Carrito de Compras</h2>
 @{
-    //Hace referencia al ViewData creado en el controlador como ViewData["Paginas"] se ha llamado
-    //Paginas el ViewData el ViewBag.Paginas espera algo que se llame paginas porque es a por lo que
-    //va a ir cuando se ejecute y decimos que este ViewBag.Paginas es una lista de PaginasModel
+
     var paginas = ViewBag.Paginas as List<PaginasModel>;
 }
 <div class="alert alert-primary" role="alert">
@@ -34,6 +32,12 @@
             <th>Total</th>
         </tr>
     </thead>
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-warning">
+            @TempData["ErrorMessage"]
+        </div>
+    }
     <tbody>
         @foreach (var item in Model)
         {

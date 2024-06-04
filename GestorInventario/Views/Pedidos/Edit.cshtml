@@ -19,7 +19,12 @@
         <label for="EstadoPedido">EstadoPedido</label>
         <input type="text" class="form-control" id="EstadoPedido" asp-for="estadoPedido" required>
     </div>
-  
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-warning">
+            @TempData["ErrorMessage"]
+        </div>
+    }
     <button type="submit" value="Save" class="btn btn-primary mt-2">Editar</button>
 </form>
 

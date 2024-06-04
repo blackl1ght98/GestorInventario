@@ -1,4 +1,6 @@
-﻿namespace GestorInventario.Application.Services
+﻿using GestorInventario.Interfaces.Infraestructure;
+
+namespace GestorInventario.Application.Services
 {
     public class UnitOfWork : IUnitOfWork
     {

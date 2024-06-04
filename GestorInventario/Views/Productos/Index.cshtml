@@ -3,33 +3,19 @@
 <!-- Tabla para mostrar los proveedores existentes -->
 <h1>Productos</h1>
 <p>
-    <a asp-action="Create" class="btn btn-info">Crear Producto</a>
+    @if (User.IsInRole("administrador"))
+    {
+        <a asp-action="Create" class="btn btn-info">Crear Producto</a>
+    }
 
+   
+      
 </p>
 @{
-    //Hace referencia al ViewData creado en el controlador como ViewData["Paginas"] se ha llamado
-    //Paginas el ViewData el ViewBag.Paginas espera algo que se llame paginas porque es a por lo que
-    //va a ir cuando se ejecute y decimos que este ViewBag.Paginas es una lista de PaginasModel
+  
     var paginas = ViewBag.Paginas as List<PaginasModel>;
 }
-@* Este código renderiza una vista parcial en ASP.NET.
 
-La función Html.RenderPartial se utiliza para renderizar una vista parcial.
-El primer argumento, "_CreatePartial", es el nombre de la vista parcial que se va a renderizar.
-El segundo argumento, new ProveedorViewModel(), es el modelo que se pasa a la vista parcial.
-
-Cuando este código se ejecuta, ASP.NET renderiza la vista parcial "_CreatePartial" y le pasa un nuevo objeto
-ProveedorViewModel como modelo.
-Esto significa que cualquier lugar en tu vista donde veas este código, ASP.NET renderizará la vista parcial
-"_CreatePartial" en su lugar.
-
-Las vistas parciales son útiles para reutilizar bloques de código que se repiten en varias vistas.
-En lugar de duplicar ese código en cada vista, puedes ponerlo en una vista parcial y luego referenciar esa
-vista parcial en las vistas que necesitan ese bloque de código.
- *@
-@* @{
-    Html.RenderPartial("_CreatePartial", new ProveedorViewModel());
-} *@
 <div class="alert alert-primary" role="alert">
  El precio de todos los productos no se especifica hasta que no estas en el carrito le das a <strong>Checkout</strong> y paypal te calcula
  cuanto es el total.
@@ -94,7 +80,12 @@ vista parcial en las vistas que necesitan ese bloque de código.
                     <!-- Botones de acción en la parte inferior de la tarjeta -->
                     <div class="mt-auto">
                         <!-- mt-auto empuja el contenido hacia abajo -->
-                        <a href="@Url.Action("Edit", new { id = producto.Id })" class="btn btn-primary w-100 mb-2">Editar</a>
+                        @if (User.IsInRole("administrador"))
+                        {
+                            <a href="@Url.Action("Edit", new { id = producto.Id })" class="btn btn-primary w-100 mb-2">Editar</a>
+                        }
+
+                       
                         <form asp-action="AgregarAlCarrito" method="post" class="mb-2">
                             <input type="hidden" name="idProducto" value="@producto.Id" />
                             <div class="input-group">
@@ -108,7 +99,11 @@ vista parcial en las vistas que necesitan ese bloque de código.
                                 </div>
                             }
                         </form>
-                        <a href="@Url.Action("Delete", new { id = producto.Id })" class="btn btn-danger w-100">Eliminar</a>
+                        @if (User.IsInRole("administrador"))
+                        {
+                            <a href="@Url.Action("Delete", new { id = producto.Id })" class="btn btn-danger w-100">Eliminar</a>
+                        }
+                       
                     </div>
                 </div>
             </div>

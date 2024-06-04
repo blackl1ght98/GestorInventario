@@ -35,13 +35,19 @@
 
         <select asp-for="IdProveedor" class="form-select" asp-items="ViewBag.Productos"></select>
     </div>
-    <button type="submit" value="Save" class="btn btn-primary mt-2">Editar</button>
-    @*  @if (TempData["SuccessMessage"] != null)
+    @if (TempData["ErrorMessage"] != null)
     {
-    <div class="alert alert-warning">
-    @TempData["SuccessMessage"]
-    </div>
-    } *@
+        <div class="alert alert-warning">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+    <button type="submit" value="Save" class="btn btn-primary mt-2">Editar</button>
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-warning">
+            @TempData["SuccessMessage"]
+        </div>
+    }
 </form>
 
 

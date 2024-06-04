@@ -1,5 +1,4 @@
-﻿using GestorInventario.Application.Services;
-using GestorInventario.Domain.Models.ViewModels;
+﻿using GestorInventario.Domain.Models.ViewModels;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
+using GestorInventario.Interfaces.Infraestructure;
 
 namespace GestorInventario.Infraestructure.Controllers
 {
@@ -47,8 +47,8 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 if (executedPayment.state.ToLower() != "approved")
                 {
-                    // Si el estado del pago no es "approved", entonces hubo un error
-                    return BadRequest("Error al ejecutar el pago");
+
+                    TempData["ErrorMessage"] = "Error en el pago del pedido";
                 }
 
                 return View();

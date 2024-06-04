@@ -6,36 +6,24 @@
     <div class="col-md-4">
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <!--Los label estos con el BrandId  van a  tomar el display que hemos puesto en beerViewModel-->
             <div class="form-group">
-                <!--asp-for es para decir con que se va a relacionar-->
-                <!--con esto asp-for="Name" conseguimos el binding con nuestro modelo-->
                 <label asp-for="NombreProveedor" class="control-label"></label>
                 <input asp-for="NombreProveedor" class="form-control" />
                 <span asp-validation-for="NombreProveedor" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <!--asp-for es para decir con que se va a relacionar-->
-                <!--con esto asp-for="Name" conseguimos el binding con nuestro modelo-->
                 <label asp-for="Contacto" class="control-label"></label>
                 <input asp-for="Contacto" class="form-control" />
                 <span asp-validation-for="Contacto" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <!--asp-for es para decir con que se va a relacionar-->
-                <!--con esto asp-for="Name" conseguimos el binding con nuestro modelo-->
                 <label asp-for="Direccion" class="control-label"></label>
                 <input asp-for="Direccion" class="form-control" />
                 <span asp-validation-for="Direccion" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Crear" class="btn btn-primary" />
-               @*  @if (TempData["SuccessMessage"] != null)
-                {
-                    <div class="alert alert-success">
-                        @TempData["SuccessMessage"]
-                    </div>
-                } *@
+
             </div>
         </form>
     </div>

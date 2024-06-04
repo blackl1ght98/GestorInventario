@@ -38,6 +38,12 @@
             <label for="Direccion">Dirección</label>
             <input type="text" class="form-control" id="Direccion" asp-for="Direccion" required>
         </div>
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-warning">
+                @TempData["ErrorMessage"]
+            </div>
+        }
         <button type="submit" class="btn btn-primary mt-2">Editar</button>
     </form>
 

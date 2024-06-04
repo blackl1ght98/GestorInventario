@@ -3,7 +3,12 @@
 @model UserViewModel
 
 <h2>Crear Usuario</h2>
-
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-warning">
+        @TempData["ErrorMessage"]
+    </div>
+}
 <form asp-action="Create" method="post">
     <div class="form-group">
         <label for="Email">Email</label>

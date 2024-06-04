@@ -1,7 +1,6 @@
 ﻿@model List<Usuario>
 @using GestorInventario.PaginacionLogica
 @using Microsoft.AspNetCore.Mvc.Rendering
-<!--Esto es la vista principal cuando tu le das a usuarios esta vista contiene botones que van a otras vistas-->
 <html>
 <head>
     <style>
@@ -9,17 +8,24 @@
             text-align: center !important;
             margin-left: 1rem;
         }
+
+        .btn-group > .btn {
+            margin-right: 10px; 
+        }
     </style>
 </head>
 <body>
 
     @{
-        //Hace referencia al ViewData creado en el controlador como ViewData["Paginas"] se ha llamado
-        //Paginas el ViewData el ViewBag.Paginas espera algo que se llame paginas porque es a por lo que
-        //va a ir cuando se ejecute y decimos que este ViewBag.Paginas es una lista de PaginasModel
+       
         var paginas = ViewBag.Paginas as List<PaginasModel>;
     }
-  
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-warning">
+            @TempData["ErrorMessage"]
+        </div>
+    }
     <form asp-controller="Admin" asp-action="Index">
         <p>
             Buscar: <input type="text" name="buscar" class="form-text" />
@@ -67,12 +73,12 @@
                                         <input type="submit" class="btn btn-info mt-2" value="Actualizar Rol" />
                                     </form>
                                 </td>
-                                <td rowspan="1"><a asp-action="Delete" asp-route-id="@user.Id" class="btn btn-danger">Delete</a></td>
-                                <td rowspan="1">
-                                    <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-warning">Update</a>
-                                </td>
-                                <td rowspan="1">
-                                    <a asp-action="ResetPassword" asp-controller="Auth" asp-route-email="@user.Email" class="btn btn-warning">Restaurar Password</a>
+                                <td>
+                                    <div class="btn-group" role="group" aria-label="Acciones">
+                                        <a asp-action="Delete" asp-route-id="@user.Id" class="btn btn-danger">Eliminar</a>
+                                        <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-warning">Actualizar</a>
+                                        <a asp-action="ResetPassword" asp-controller="Auth" asp-route-email="@user.Email" class="btn btn-warning">Recuperar contraseña</a>
+                                        </div>                             
                                 </td>
                             </tr>
                         }

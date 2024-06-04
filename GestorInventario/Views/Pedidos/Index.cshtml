@@ -1,11 +1,21 @@
 ﻿@using GestorInventario.PaginacionLogica
 @model List<Pedido>
+<style>
+    .btn-group > .btn {
+        margin-right: 10px; 
+    }
+
+</style>
 <h1>Pedidos</h1>
 @{
     var paginas = ViewBag.Paginas as List<PaginasModel>;
 }
 <p>
-    <a asp-action="Create" class="btn btn-info">Crear Pedido</a>
+    @if (User.IsInRole("administrador"))
+    {
+        <a asp-action="Create" class="btn btn-info">Crear Pedido</a>
+    }
+    
 </p>
 <form asp-controller="Pedidos" asp-action="Index">
     <p>
@@ -28,6 +38,7 @@
             <th class="col-2">Estado del Pedido</th>
             <th class="col-2">Nombre del Cliente</th>
             <th class="col-2">Ver detalles</th>
+            <th class="col-2">Acciones</th>
         </tr>
     </thead>
     <tbody>
@@ -44,15 +55,13 @@
                 <td>
                     @if (User.IsInRole("administrador"))
                     {
-                        <a asp-action="Delete" asp-route-id="@pedido.Id" class="btn btn-danger">Eliminar</a>
+                        <div class="btn-group" role="group" aria-label="Acciones">
+                            <a asp-action="Delete" asp-route-id="@pedido.Id" class="btn btn-danger">Eliminar</a>
+                            <a asp-action="Edit" asp-route-id="@pedido.Id" class="btn btn-warning">Actualizar</a>
+                        </div>
                     }
                 </td>
-                <td>
-                    @if (User.IsInRole("administrador"))
-                    {
-                        <a asp-action="Edit" asp-route-id="@pedido.Id" class="btn btn-warning">Actualizar</a>
-                    }
-                </td>
+
             </tr>
         }
     </tbody>

@@ -140,7 +140,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     }
                     else
                     {
-                        TempData["Error Message"] = errorMessage;
+                        TempData["ErrorMessage"] = errorMessage;
                     }
                  
                 }
@@ -176,7 +176,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 //Si no hay pedidos muestra el error 404
                 if (pedido == null)
                 {
-                    return NotFound("Pedido no encontrado");
+                    TempData["ErrorMessage"] = "Pedido no encontrado";
                 }
 
                 //Llegados ha este punto hay pedidos por lo tanto se muestran los pedidos
@@ -247,7 +247,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
 
                     TempData["ErrorMessage"] = "Historial no encontrado";
-                    return NotFound("Historial no encontrado");
+                   
                 }
                 return View(historialProducto);
             }
@@ -457,7 +457,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 var pedido = await ExecutePolicyAsync(()=> _pedidoRepository.DetallesHistorial(id)) ;
                 if (pedido == null)
                 {
-                    return NotFound();
+                    TempData["ErrorMessage"] = "detalle del historial del pedido no encontrado";
                 }
 
                 return View(pedido);

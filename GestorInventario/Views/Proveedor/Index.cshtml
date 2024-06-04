@@ -1,36 +1,23 @@
 ﻿@using GestorInventario.PaginacionLogica
 
 @model List<Proveedore>
-<!-- Tabla para mostrar los proveedores existentes -->
+<style>
+    .btn-group > .btn {
+        margin-right: 10px; /* Ajusta este valor a la separación que desees */
+    }
+</style>
 <h1>Proveedores</h1>
 <p>
     <a asp-action="Create" class="btn btn-info">Crear Proveedor</a>
 
 </p>
 @{
-    //Hace referencia al ViewData creado en el controlador como ViewData["Paginas"] se ha llamado
-    //Paginas el ViewData el ViewBag.Paginas espera algo que se llame paginas porque es a por lo que
-    //va a ir cuando se ejecute y decimos que este ViewBag.Paginas es una lista de PaginasModel
+   
     var paginas = ViewBag.Paginas as List<PaginasModel>;
-}
-@* Este código renderiza una vista parcial en ASP.NET.
+    
+} 
 
-La función Html.RenderPartial se utiliza para renderizar una vista parcial.
-El primer argumento, "_CreatePartial", es el nombre de la vista parcial que se va a renderizar.
-El segundo argumento, new ProveedorViewModel(), es el modelo que se pasa a la vista parcial.
 
-Cuando este código se ejecuta, ASP.NET renderiza la vista parcial "_CreatePartial" y le pasa un nuevo objeto 
-ProveedorViewModel como modelo.
-Esto significa que cualquier lugar en tu vista donde veas este código, ASP.NET renderizará la vista parcial 
-"_CreatePartial" en su lugar.
-
-Las vistas parciales son útiles para reutilizar bloques de código que se repiten en varias vistas.
-En lugar de duplicar ese código en cada vista, puedes ponerlo en una vista parcial y luego referenciar esa 
-vista parcial en las vistas que necesitan ese bloque de código.
- *@
-@* @{
-    Html.RenderPartial("_CreatePartial", new ProveedorViewModel());
-} *@
 
 <form asp-controller="Proveedor" asp-action="Index">
     <p>
@@ -45,8 +32,8 @@ vista parcial en las vistas que necesitan ese bloque de código.
             <th class="col-2">Nombre</th>
             <th class="col-2">Contacto</th>
             <th class="col-2">Dirección</th>
-            <th class="col-2" colspan="3">Acciones</th>
-            <!-- Agrega aquí las demás columnas de la tabla -->
+            <th class="col-2" >Acciones</th>
+         
         </tr>
     </thead>
     <tbody>
@@ -57,18 +44,13 @@ vista parcial en las vistas que necesitan ese bloque de código.
                 <td>@proveedor.Contacto</td>
                 <td>@proveedor.Direccion</td>
                 <td>
-                    @if (User.IsInRole("administrador"))
-                    {
-                        <a asp-action="Delete" asp-route-id="@proveedor.Id" class="btn btn-danger">Delete</a>
-                    }
+                        @if(User.IsInRole("administrador"))
+                        {
+                        <a asp-action="Delete" asp-route-id="@proveedor.Id" class="btn btn-danger">Eliminar</a>
+                        <a asp-action="Edit" asp-route-id="@proveedor.Id" class="btn btn-warning">Actualizar</a>
+                        }
                 </td>
-                <td>
-                    @if (User.IsInRole("administrador"))
-                    {
-                        <a asp-action="Edit" asp-route-id="@proveedor.Id" class="btn btn-warning">Update</a>
-                    }
-                </td>
-                <!-- Agrega aquí las demás celdas de la fila -->
+               
             </tr>
         }
     </tbody>

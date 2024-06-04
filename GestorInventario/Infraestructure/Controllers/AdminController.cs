@@ -39,8 +39,11 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-               
-               
+
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 var queryable = ExecutePolicy(() => _adminrepository.ObtenerUsuarios());
                
                 //var queryable = _adminrepository.ObtenerUsuarios();
@@ -154,13 +157,14 @@ namespace GestorInventario.Infraestructure.Controllers
                //var usuarioDB= await _adminrepository.ObtenerPorId(confirmar.UserId);
                 if (usuarioDB.ConfirmacionEmail != false)
                 {
-                    return BadRequest("Usuario ya validado con anterioridad");
+                    TempData["ErrorMessage"] = "Usuario ya validado con anterioridad";
+                    _logger.LogInformation($"El usuario con email {usuarioDB.Email} ha intentado confirmar su correo estando confirmado");
                 }
 
                 if (usuarioDB.EnlaceCambioPass != confirmar.Token)
                 {
                     _logger.LogCritical("Intento de manipulacion del token por el usuario: " + usuarioDB.Id);
-                    return BadRequest("Token no valido");
+                   
                 }
                 await _confirmEmailService.ConfirmEmail(new DTOConfirmRegistration
                 {
@@ -190,7 +194,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 // Obtienes el usuario de la base de datos
                 if (user == null)
                 {
-                    return BadRequest("Usuario no encontrado");
+                    TempData["ErrorMessage"] = "Usuario no encontrado";
                 }
                 // Creas un nuevo ViewModel y llenas sus propiedades con los datos del usuario
                 UsuarioEditViewModel viewModel = new UsuarioEditViewModel
@@ -279,7 +283,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 //Si no hay cervezas muestra el error 404
                 if (user == null)
                 {
-                    return NotFound("Usuario no encontrado");
+                    TempData["ErrorMessage"] = "Usuario no encontrado";
                 }
                 //Llegados ha este punto hay cervezas por lo tanto se muestran las cervezas
                 return View(user);

@@ -203,7 +203,6 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (producto == null)
                 {
                     TempData["ErrorMessage"] = "Producto no encontrado";
-                    return NotFound("Producto no encontrado");
                 }
                 //Llegados ha este punto hay cervezas por lo tanto se muestran las cervezas
                 return View(producto);
@@ -439,7 +438,6 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (historialProducto == null)
                 {
                     TempData["ErrorMessage"] = "Detalles del historial no encontrado";
-                    return NotFound("Detalles del historial no encontrado");
                 }
 
                 return View(historialProducto);
@@ -465,7 +463,6 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
 
                     TempData["ErrorMessage"] = "Historial no encontrado";
-                    return NotFound("Historial no encontrado");
                 }
                 //Llegados ha este punto hay cervezas por lo tanto se muestran las cervezas
                 return View(historialProducto);

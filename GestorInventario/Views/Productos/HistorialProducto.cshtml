@@ -6,6 +6,12 @@
     
     var paginas = ViewBag.Paginas as List<PaginasModel>;
 }
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-warning">
+        @TempData["ErrorMessage"]
+    </div>
+}
 <a href="@Url.Action("DescargarHistorialPDF", "Productos")" target="_blank" class="btn btn-primary descargar">Descargar Historial PDF</a>
 <form asp-action="DeleteAllHistorial" asp-controller="Productos" method="post">
     <input type="submit" value="Eliminar todo el historial" class="btn btn-danger mt-2" />
@@ -37,7 +43,11 @@
                     <a asp-action="DetallesHistorialProducto" asp-route-id="@pedido.Id" class="btn btn-info">Ver detalles</a>
             </td>
                 <td>
-                    <a asp-action="DeleteHistorial" asp-route-id="@pedido.Id" class="btn btn-danger">Delete</a>
+                    @if (User.IsInRole("administrador"))
+                    {
+                        <a asp-action="DeleteHistorial" asp-route-id="@pedido.Id" class="btn btn-danger">Delete</a>
+
+                    }
                 </td>
                
             </tr>

@@ -48,3 +48,20 @@ DbUpdateConcurrencyException:
                     no habría detectado el problema y podrías haber terminado con un error en tiempo de 
                     ejecución.
                      */
+-------------------------------------------------------
+La función Html.RenderPartial se utiliza para renderizar una vista parcial.
+El primer argumento, "_CreatePartial", es el nombre de la vista parcial que se va a renderizar.
+El segundo argumento, new ProveedorViewModel(), es el modelo que se pasa a la vista parcial.
+
+Cuando este código se ejecuta, ASP.NET renderiza la vista parcial "_CreatePartial" y le pasa un nuevo objeto 
+ProveedorViewModel como modelo.
+Esto significa que cualquier lugar en tu vista donde veas este código, ASP.NET renderizará la vista parcial 
+"_CreatePartial" en su lugar.
+
+Las vistas parciales son útiles para reutilizar bloques de código que se repiten en varias vistas.
+En lugar de duplicar ese código en cada vista, puedes ponerlo en una vista parcial y luego referenciar esa 
+vista parcial en las vistas que necesitan ese bloque de código.
+ *@
+@* @{
+    Html.RenderPartial("_CreatePartial", new ProveedorViewModel());
+} *@

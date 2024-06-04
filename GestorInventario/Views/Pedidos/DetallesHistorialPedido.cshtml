@@ -12,6 +12,12 @@
             <th class="col-2">Precio con IVA (21%)</th>
         </tr>
     </thead>
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-warning">
+            @TempData["ErrorMessage"]
+        </div>
+    }
     <tbody>
         @foreach (var detalle in Model.DetalleHistorialPedidos)
         {

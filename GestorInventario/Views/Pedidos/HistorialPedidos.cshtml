@@ -3,9 +3,7 @@
 
 <h1>Historial de Pedidos</h1>
 @{
-    //Hace referencia al ViewData creado en el controlador como ViewData["Paginas"] se ha llamado
-    //Paginas el ViewData el ViewBag.Paginas espera algo que se llame paginas porque es a por lo que
-    //va a ir cuando se ejecute y decimos que este ViewBag.Paginas es una lista de PaginasModel
+  
     var paginas = ViewBag.Paginas as List<PaginasModel>;
 }
 <a href="@Url.Action("DescargarHistorialPDF", "Pedidos")" target="_blank" class="btn btn-primary descargar">Descargar Historial PDF</a>
@@ -18,6 +16,12 @@
         <input type="submit" value="Buscar" class="btn btn-sm btn-dark" />
     </p>
 </form>
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-warning">
+        @TempData["ErrorMessage"]
+    </div>
+}
 <table class="table">
     <thead>
         <tr>
@@ -48,7 +52,11 @@
                     <a asp-action="DetallesHistorialPedido" asp-route-id="@pedido.Id" class="btn btn-info">Ver detalles</a>
                 </td>
                 <td>
-                    <a asp-action="DeleteHistorial" asp-route-id="@pedido.Id" class="btn btn-danger">Delete</a>
+                    @if (User.IsInRole("administrador"))
+                    {
+                        <a asp-action="DeleteHistorial" asp-route-id="@pedido.Id" class="btn btn-danger">Delete</a>
+                    }
+                   
                 </td>
             </tr>
         }
