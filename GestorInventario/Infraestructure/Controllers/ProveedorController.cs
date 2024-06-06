@@ -34,6 +34,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 //var proveedores = from p in _context.Proveedores
                 //                  select p;
                 var proveedores =ExecutePolicy(()=> _proveedorRepository.ObtenerProveedores()) ;

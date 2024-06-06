@@ -76,7 +76,11 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-               var (success, errorMessage) = await ExecutePolicyAsync(() => _adminrepository.EditarRol(id, newRole));
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
+                var (success, errorMessage) = await ExecutePolicyAsync(() => _adminrepository.EditarRol(id, newRole));
                 if (success)
                 {
                     TempData["SuccessMessage"] = "Rol cambiado";
@@ -101,7 +105,11 @@ namespace GestorInventario.Infraestructure.Controllers
         public IActionResult Create()
         {
             try
-            {         
+            {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 //Sirve para obtener los datos del desplegable
                 ViewData["Roles"] = new SelectList(ExecutePolicy(()=> _adminrepository.ObtenerRoles()), "Id", "Nombre");
                 return View();
@@ -123,6 +131,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 if (ModelState.IsValid)
                 {
                     var (success, errorMessage) = await ExecutePolicyAsync(() => _adminrepository.CrearUsuario(model));
@@ -152,8 +164,12 @@ namespace GestorInventario.Infraestructure.Controllers
         public async Task<IActionResult> ConfirmRegistration(DTOConfirmRegistration confirmar)
         {
             try
-            {        
-               var usuarioDB = await ExecutePolicyAsync(() => _adminrepository.ObtenerPorId(confirmar.UserId));
+            {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
+                var usuarioDB = await ExecutePolicyAsync(() => _adminrepository.ObtenerPorId(confirmar.UserId));
                //var usuarioDB= await _adminrepository.ObtenerPorId(confirmar.UserId);
                 if (usuarioDB.ConfirmacionEmail != false)
                 {
@@ -224,6 +240,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 //Si el modelo es valido:
                 if (ModelState.IsValid)
                 {
@@ -274,6 +294,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+
                 if (!User.Identity.IsAuthenticated)
                 {
                     return RedirectToAction("Login", "Auth");
@@ -305,6 +326,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 var (success, message) = await ExecutePolicyAsync(() => _adminrepository.EliminarUsuario(Id));
                 if (success)
                 {

@@ -50,7 +50,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 // Obtenemos la consulta como IQueryable
                 var productos = ExecutePolicy(() => _productoRepository.ObtenerTodoProducto());
                 // Aplicamos los filtros a la consulta
@@ -375,6 +378,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 var historialProductos = await ExecutePolicyAsync(() => _productoRepository.ObtenerTodoHistorial());
                 ViewData["Buscar"] = buscar;
                 if (!String.IsNullOrEmpty(buscar))

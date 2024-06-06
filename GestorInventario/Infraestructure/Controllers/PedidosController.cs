@@ -38,6 +38,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))
@@ -405,6 +409,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))

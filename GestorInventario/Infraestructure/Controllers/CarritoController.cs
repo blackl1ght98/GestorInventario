@@ -145,7 +145,11 @@ namespace GestorInventario.Infraestructure.Controllers
         [HttpPost]
         public async Task<ActionResult> Decrementar(int id)
         {
-           
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
             var (success,errorMessage)= await _carritoRepository.Decremento(id);
             if (success)
             {
@@ -165,6 +169,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
                 var (success, errorMessage) = await _carritoRepository.EliminarProductoCarrito(id);
                 if (success)
                 {
