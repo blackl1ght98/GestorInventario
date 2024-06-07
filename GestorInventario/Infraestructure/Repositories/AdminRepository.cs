@@ -46,12 +46,9 @@ namespace GestorInventario.Infraestructure.Repositories
             return await _context.Usuarios.Include(p => p.Pedidos).FirstOrDefaultAsync(m => m.Id == id);
 
         }
-
-
-
         public async Task<(bool, string)> EliminarUsuario(int id)
         {
-            var user = await UsuarioConPedido(id);
+            var user = await _context.Usuarios.Include(x => x.Pedidos).Include(x => x.Carritos).FirstOrDefaultAsync(m => m.Id == id);
             if (user == null)
             {
                 return (false, "Usuario no encontrado");

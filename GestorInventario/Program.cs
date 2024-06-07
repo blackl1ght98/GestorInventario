@@ -86,8 +86,8 @@ builder.Services.AddHttpContextAccessor();
      la asimétrica.
  */
 //builder.ConfiguracionSimetrica(builder.Configuration);
-builder.ConfiguracionAsimetricaFija(builder.Configuration);
-//builder.ConfiguracionAsimetricaDinamica(builder.Configuration);
+//builder.ConfiguracionAsimetricaFija(builder.Configuration);
+builder.ConfiguracionAsimetricaDinamica(builder.Configuration);
 
 
 /*
@@ -153,8 +153,8 @@ app.UseSession();
 
 
 //app.MiddlewareAutenticacionSimetrica(builder);
-app.MiddlewareAutenticacionAsimetricaFija(builder);
-//app.MiddlewareAutenticacionAsimetricaDinamica(builder);
+//app.MiddlewareAutenticacionAsimetricaFija(builder);
+app.MiddlewareAutenticacionAsimetricaDinamica(builder);
 
 
 

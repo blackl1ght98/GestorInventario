@@ -62,6 +62,18 @@ namespace GestorInventario.Infraestructure.Controllers
                     {
                         return RedirectToAction("Index", "Home");
                     }
+                    if (!User.Identity.IsAuthenticated)
+                    {
+                        // Obtiene las cookies del navegador.
+                        var cookieCollection = Request.Cookies;
+
+                        // Recorre todas las cookies y las elimina.
+                        foreach (var cookie in cookieCollection)
+                        {
+                            Response.Cookies.Delete(cookie.Key);
+                        }
+                        
+                    }
                     var user = await ExecutePolicyAsync(()=> _authRepository.Login(model.Email)) ;
 
                     if (user != null)

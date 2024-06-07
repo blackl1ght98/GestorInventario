@@ -26,15 +26,15 @@ namespace GestorInventario.Application.Services
         //    return await _tokenService.GenerarTokenSimetrico(credencialesUsuario);
         //}
 
-        public async Task<DTOLoginResponse> GenerarToken(Usuario credencialesUsuario)
-        {
-            return await _tokenService.GenerarTokenAsimetricoFijo(credencialesUsuario);
-        }
-
         //public async Task<DTOLoginResponse> GenerarToken(Usuario credencialesUsuario)
         //{
-        //    return await _tokenService.GenerarTokenAsimetricoDinamico(credencialesUsuario);
+        //    return await _tokenService.GenerarTokenAsimetricoFijo(credencialesUsuario);
         //}
+
+        public async Task<DTOLoginResponse> GenerarToken(Usuario credencialesUsuario)
+        {
+            return await _tokenService.GenerarTokenAsimetricoDinamico(credencialesUsuario);
+        }
 
     }
 }

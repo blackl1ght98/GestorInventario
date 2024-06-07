@@ -15,6 +15,18 @@ namespace GestorInventario.Infraestructure.Controllers
 
         public IActionResult Index()
         {
+            if (!User.Identity.IsAuthenticated) 
+            {
+                // Obtiene las cookies del navegador.
+                var cookieCollection = Request.Cookies;
+
+                // Recorre todas las cookies y las elimina.
+                foreach (var cookie in cookieCollection)
+                {
+                    Response.Cookies.Delete(cookie.Key);
+                }
+
+            }
             return View();
         }
         public IActionResult Error()
