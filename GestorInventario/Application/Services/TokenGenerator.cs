@@ -114,9 +114,12 @@ namespace GestorInventario.Application.Services
             var publicKeyCifrada = Cifrar(Encoding.UTF8.GetBytes(publicKey), claveCifrado);
             string claveCifradoString = Convert.ToBase64String(claveCifrado);
 
-            // Guarda las claves en las cookies
-            _httpContextAccessor.HttpContext?.Response.Cookies.Append("PrivateKey", Convert.ToBase64String(privateKeyCifrada), new CookieOptions { HttpOnly = true, IsEssential = true, Secure = true, SameSite = SameSiteMode.Strict, Expires = null });
-            _httpContextAccessor.HttpContext?.Response.Cookies.Append("PublicKey", Convert.ToBase64String(publicKeyCifrada), new CookieOptions { HttpOnly = true, IsEssential = true, Secure = true, SameSite = SameSiteMode.Strict, Expires = null });
+            //// Guarda las claves en las cookies
+            //_httpContextAccessor.HttpContext?.Response.Cookies.Append("PrivateKey", Convert.ToBase64String(privateKeyCifrada), new CookieOptions { HttpOnly = true, IsEssential = true, Secure = true, SameSite = SameSiteMode.Strict, Expires = null });
+            //_httpContextAccessor.HttpContext?.Response.Cookies.Append("PublicKey", Convert.ToBase64String(publicKeyCifrada), new CookieOptions { HttpOnly = true, IsEssential = true, Secure = true, SameSite = SameSiteMode.Strict, Expires = null });
+            // Guarda las claves en la memoria del servidor
+            _memoryCache.Set(credencialesUsuario.Id.ToString() + "PrivateKey", privateKeyCifrada);
+            _memoryCache.Set(credencialesUsuario.Id.ToString() + "PublicKey", publicKeyCifrada);
 
             // Guarda la clave de cifrado en la memoria del servidor
             _memoryCache.Set(credencialesUsuario.Id.ToString(), claveCifrado);

@@ -106,10 +106,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+              
                 //Sirve para obtener los datos del desplegable
                 ViewData["Roles"] = new SelectList(ExecutePolicy(()=> _adminrepository.ObtenerRoles()), "Id", "Nombre");
                 return View();
@@ -131,10 +128,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+               
                 if (ModelState.IsValid)
                 {
                     var (success, errorMessage) = await ExecutePolicyAsync(() => _adminrepository.CrearUsuario(model));
@@ -165,10 +159,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+                
                 var usuarioDB = await ExecutePolicyAsync(() => _adminrepository.ObtenerPorId(confirmar.UserId));
                //var usuarioDB= await _adminrepository.ObtenerPorId(confirmar.UserId);
                 if (usuarioDB.ConfirmacionEmail != false)

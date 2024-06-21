@@ -22,7 +22,7 @@
 //});
 
 
-var tiempoDeInactividad = 3000; // Tiempo de inactividad (en milisegundos)
+var tiempoDeInactividad = 300000; // Tiempo de inactividad (en milisegundos)
 var temporizador;
 
 // Reinicia el temporizador cuando el usuario realiza una acción

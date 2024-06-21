@@ -42,11 +42,14 @@ namespace GestorInventario.Configuracion
                     //Variable que almacena la manera de acceder a IMemoryCache
                     var memoryCache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCache>();
                     // Carga la clave pública cifrada desde las cookies
-                    var publicKeyCifrada = httpContextAccessor.HttpContext.Request.Cookies["PublicKey"];
+                    //var publicKeyCifrada = httpContextAccessor.HttpContext.Request.Cookies["PublicKey"];
                     //Obtiene el id del usuario de los claims del token
                     var userId = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                     // Obtiene la clave de cifrado del usuario
                     memoryCache.TryGetValue(userId, out byte[] claveCifrado);
+                    // Carga la clave pública cifrada desde la memoria del servidor
+                    memoryCache.TryGetValue(userId + "PublicKey", out byte[] publicKeyCifrada);
+
                     //carga la clave de cifrado en las cookies
                     //var claveCifradoString = context.Request.Cookies["ClaveCifrado"];
 
@@ -71,7 +74,7 @@ namespace GestorInventario.Configuracion
                     }
 
                     // Descifra la clave pública
-                    var publicKey = Encoding.UTF8.GetString(tokenservice.Descifrar(Convert.FromBase64String(publicKeyCifrada), claveCifrado));
+                    var publicKey = Encoding.UTF8.GetString(tokenservice.Descifrar(publicKeyCifrada, claveCifrado));
 
                     // Convierte la clave pública a formato RSA
                     var rsa = new RSACryptoServiceProvider();

@@ -113,15 +113,15 @@ namespace GestorInventario.Infraestructure.Repositories
             {
                 return (false, "No hay pedido a eliminar");
             }
-            if (pedido.EstadoPedido == "Entregado")
+            if (pedido.EstadoPedido != "Entregado" && pedido.DetallePedidos.Any())
             {
+                return (false, "El pedido tiene que tener el estado Entregado para ser eliminado y no tener historial asociado");
                
-                _context.DeleteRangeEntity(pedido.DetallePedidos);
-                _context.DeleteEntity(pedido);
             }
             else
             {
-                return (false, "El pedido tiene que tener el estado Entregado para ser eliminado");
+                _context.DeleteRangeEntity(pedido.DetallePedidos);
+                _context.DeleteEntity(pedido);
             }
 
             return (true, null);

@@ -30,7 +30,8 @@
             <th>Accion</th>
             <th>Ip</th>
             <th>IdUsuario</th>
-            <th>Productos</th>
+            <th>Acciones</th>
+            
         </tr>
     </thead>
     <tbody>
@@ -41,13 +42,7 @@
                 <td>@pedido.Accion</td>
                 <td>@pedido.Ip</td>
                 <td>@pedido.IdUsuario</td>
-                <td>
-                    @foreach (var detalle in pedido.DetalleHistorialPedidos)
-                    {
-                        <span>@detalle.Producto?.NombreProducto</span>
-                        <br />
-                    }
-                </td>
+               
                 <td>
                     <a asp-action="DetallesHistorialPedido" asp-route-id="@pedido.Id" class="btn btn-info">Ver detalles</a>
                 </td>

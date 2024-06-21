@@ -32,7 +32,12 @@ namespace GestorInventario.Middlewares
                         // Crea un nuevo manejador de tokens JWT.
                         var handler = new JwtSecurityTokenHandler();
                         // Carga la clave pública cifrada desde las cookies
-                        var publicKeyCifrada = httpContextAccessor.HttpContext.Request.Cookies["PublicKey"];
+                        // var publicKeyCifrada = httpContextAccessor.HttpContext.Request.Cookies["PublicKey"];
+                        // Carga la clave pública cifrada desde la memoria del servidor
+                        var userId2 = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                        memoryCache.TryGetValue(userId2 + "PublicKey", out byte[] publicKeyCifrada);
+
                         if (publicKeyCifrada == null)
                         {
                             foreach (var cookie in collectioncookies)
@@ -62,7 +67,7 @@ namespace GestorInventario.Middlewares
                             }
                             else
                             {
-                                var publicKey = Encoding.UTF8.GetString(tokenservice.Descifrar(Convert.FromBase64String(publicKeyCifrada), claveCifrado));
+                                var publicKey = Encoding.UTF8.GetString(tokenservice.Descifrar(publicKeyCifrada, claveCifrado));
                                 // Convierte la clave pública a formato RSA
                                 var rsa = new RSACryptoServiceProvider();
                                 rsa.FromXmlString(publicKey);
