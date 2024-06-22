@@ -10,6 +10,9 @@
             <th class="col-2">Precio del producto</th>
             <th class="col-2"> Precio sin IVA</th>
             <th class="col-2">Precio con IVA (21%)</th>
+            <th class="col-2">Estado pedido</th>
+            <th class="col-2">Numero Pedido</th>
+            <th class="col-2">Fecha pedido</th>
         </tr>
     </thead>
     @if (TempData["ErrorMessage"] != null)
@@ -24,10 +27,13 @@
             <tr>
                 <td>@detalle.Producto?.NombreProducto</td>
                 <td>@detalle.Cantidad</td>
-
                 <td>@detalle.Producto?.Precio</td>
                 <td>@(detalle.Cantidad * detalle.Producto?.Precio)</td>
                 <td>@(detalle.Cantidad * (detalle.Producto?.Precio ?? 0) * (decimal)1.21)</td>
+                <td>@detalle.EstadoPedido</td>
+                <td>@detalle.NumeroPedido</td>
+                <td>@detalle.FechaPedido</td>
+                
 
             </tr>
         }

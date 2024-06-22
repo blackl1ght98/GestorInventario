@@ -64,6 +64,14 @@ public partial class GestorInventarioContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__DetalleH__3214EC07C0868139");
 
+            entity.Property(e => e.EstadoPedido)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.FechaPedido).HasColumnType("datetime");
+            entity.Property(e => e.NumeroPedido)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+
             entity.HasOne(d => d.HistorialPedido).WithMany(p => p.DetalleHistorialPedidos)
                 .HasForeignKey(d => d.HistorialPedidoId)
                 .HasConstraintName("FK__DetalleHi__Histo__2F9A1060");

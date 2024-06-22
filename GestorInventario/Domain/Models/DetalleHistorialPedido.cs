@@ -13,6 +13,12 @@ public partial class DetalleHistorialPedido
 
     public int? Cantidad { get; set; }
 
+    public string? EstadoPedido { get; set; }
+
+    public string? NumeroPedido { get; set; }
+
+    public DateTime? FechaPedido { get; set; }
+
     public virtual HistorialPedido? HistorialPedido { get; set; }
 
     public virtual Producto? Producto { get; set; }

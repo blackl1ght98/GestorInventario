@@ -80,6 +80,9 @@ namespace GestorInventario.Infraestructure.Repositories
                         HistorialPedidoId = historialPedido.Id,
                         ProductoId = model.IdsProducto[i],
                         Cantidad = model.Cantidades[i],
+                        EstadoPedido=model.EstadoPedido,
+                        FechaPedido=model.FechaPedido,
+                        NumeroPedido=model.NumeroPedido
                     };
                     _context.AddEntity(detalleHistorialPedido);
                 }
@@ -182,7 +185,10 @@ namespace GestorInventario.Infraestructure.Repositories
                     {
                         HistorialPedidoId = historialPedido.Id,
                         ProductoId = detalleOriginal.ProductoId,
-                        Cantidad = detalleOriginal.Cantidad
+                        Cantidad = detalleOriginal.Cantidad,
+                        EstadoPedido = pedidoOriginal.EstadoPedido,
+                        FechaPedido = pedidoOriginal.FechaPedido,
+                        NumeroPedido = pedidoOriginal.NumeroPedido
                     };
                     _context.AddEntity(nuevoDetalle);
                 }
@@ -270,7 +276,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 Aspose.Pdf.Table detalleTable = new Aspose.Pdf.Table();
                 detalleTable.DefaultCellBorder = new Aspose.Pdf.BorderInfo(Aspose.Pdf.BorderSide.All, 0.1F);
                 detalleTable.Border = new Aspose.Pdf.BorderInfo(Aspose.Pdf.BorderSide.All, 1F);
-                detalleTable.ColumnWidths = "100 100 100"; // Ancho de cada columna
+                detalleTable.ColumnWidths = "60 60 60 60 60 60 60"; // Ancho de cada columna
 
                 // Agregar la segunda tabla a la página
                 page.Paragraphs.Add(detalleTable);
@@ -281,9 +287,10 @@ namespace GestorInventario.Infraestructure.Repositories
                 detalleHeaderRow.Cells.Add("Id Historial Ped.").Alignment = HorizontalAlignment.Center;
                 detalleHeaderRow.Cells.Add("Id Producto").Alignment = HorizontalAlignment.Center;
                 detalleHeaderRow.Cells.Add("Nombre Producto").Alignment = HorizontalAlignment.Center;
-
                 detalleHeaderRow.Cells.Add("Cantidad").Alignment = HorizontalAlignment.Center;
-
+                detalleHeaderRow.Cells.Add("Estado Pedido").Alignment = HorizontalAlignment.Center;
+                detalleHeaderRow.Cells.Add("Numero Pedido").Alignment = HorizontalAlignment.Center;
+                detalleHeaderRow.Cells.Add("Fecha Pedido").Alignment = HorizontalAlignment.Center;
                 // Iterar sobre los DetalleHistorialProductos de cada HistorialProducto
                 foreach (var detalle in historial.DetalleHistorialPedidos)
                 {
@@ -293,6 +300,9 @@ namespace GestorInventario.Infraestructure.Repositories
                     detalleRow.Cells.Add($"{detalle.ProductoId}");
                     detalleRow.Cells.Add($"{detalle.Producto?.NombreProducto}");
                     detalleRow.Cells.Add($"{detalle.Cantidad}").Alignment = HorizontalAlignment.Center;
+                    detalleRow.Cells.Add($"{detalle.EstadoPedido}").Alignment = HorizontalAlignment.Center;
+                    detalleRow.Cells.Add($"{detalle.NumeroPedido}").Alignment = HorizontalAlignment.Center;
+                    detalleRow.Cells.Add($"{detalle.FechaPedido}").Alignment = HorizontalAlignment.Center;
                 }
             }
             // Crear un flujo de memoria para guardar el documento PDF
