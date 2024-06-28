@@ -1,0 +1,120 @@
+NOTA IMPORTANTE: SI NOSOTROS TENEMOS UN GET Y UNA ACCION NO SE PUEDEN COMBINAR DEBIDO A QUE EL GET HACE UNA COSA Y LA ACCION OTRA 
+
+ public async Task<Producto> EliminarProductoObtencion(int id)
+        {
+            var producto = await _context.Productos.Include(p => p.IdProveedorNavigation).FirstOrDefaultAsync(m => m.Id == id);
+            return producto;
+        }
+ public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                var policy = _PolicyHandler.GetRetryPolicyAsync();
+                ESTE METODO ES EL REPRESENTADO ARRIBA Y NO TIENE DESESTRUCTURACION LO CUAL SOLO SIRVE PARA OBTENER EL PRODUCTO Y YA.
+                var producto = await ExecutePolicyAsync(() => _productoRepository.EliminarProductoObtencion(id)); 
+                //Si no hay cervezas muestra el error 404
+                if (producto == null)
+                {
+                    TempData["ErrorMessage"] = "Producto no encontrado";
+                    return NotFound("Producto no encontrado");
+                }
+                //Llegados ha este punto hay cervezas por lo tanto se muestran las cervezas
+                return View(producto);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Tiempo de respuesta del servidor agotado";
+                _logger.LogError(ex, "Error al eliminar el producto");
+                return BadRequest("Error al mostrar la vista de eliminacion intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
+            }
+            
+        }
+
+
+En este metodo estamos aplicando la deconstrucción de tuplas, esto se usa para mantener la limpieza del codigo y poder pasar todo lo que tenga que
+ver con el contexto de datos a un servicio y que el contexto no este en el controlador. En este caso este metodo devuelve un booleano y un string y espera
+lo mismo. ¿porque bool y string? la razon es por su facilidad de gestionar porque si tu quieres devolver un mesaje de fallo con poner esto
+return (false, "No hay productos para eliminar"); ya se sabe que es de fallo cuando pasa todas las comprobaciones _context.DeleteEntity(producto); se hace la 
+operacion y devolvemos true como exito.
+CONTINUACION DE IMPORTANTE: Y AQUI ESTA LA ACCION QUE ESPERA Y DEVUELVE ALGO DE TIPO BOOL Y STRING, CLARO PERO NUESTRO ENDPOINT DE ELIMINAR LA ACCION PUEDE 
+DEVOLVER ESO O USUARIO ES POR ESTE MOTIVO POR EL QUE NO SE PUEDE COMBINAR PORQUE A VECES PUEDE DEVOLVER UNA COSA U OTRA
+        public async Task<(bool, string)> EliminarProducto(int Id)
+        {
+            var producto = await _context.Productos
+                .Include(p => p.DetallePedidos)
+                    .ThenInclude(dp => dp.Pedido)
+                .Include(p => p.IdProveedorNavigation)
+                .Include(x => x.DetalleHistorialProductos)
+                .FirstOrDefaultAsync(m => m.Id == Id);
+            //Retorna falso si la condicion se cumple
+            if (producto == null)
+            {
+                return (false, "No hay productos para eliminar");
+            }
+
+            if (producto.DetallePedidos.Any() || producto.DetalleHistorialProductos.Any())
+            {
+                return (false, "El producto no se puede eliminar porque tiene pedidos o historial asociados.");
+            }
+            //Si las condiciones no se cumplen elimina el producto
+            _context.DeleteEntity(producto);
+
+            return (true, null);
+        }
+En el controlado se pone de esta manera:
+  public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                var policy = _PolicyHandler.GetRetryPolicyAsync();
+                En esta parte solo llamamos al get y no realizamos mas acciones y devolvemos el resultado de esa get
+                var producto = await ExecutePolicyAsync(() => _productoRepository.EliminarProductoObtencion(id));
+                //Si no hay cervezas muestra el error 404
+                if (producto == null)
+                {
+                    TempData["ErrorMessage"] = "Producto no encontrado";
+                    return NotFound("Producto no encontrado");
+                }
+                //Llegados ha este punto hay cervezas por lo tanto se muestran las cervezas
+                return View(producto);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Tiempo de respuesta del servidor agotado";
+                _logger.LogError(ex, "Error al eliminar el producto");
+                return BadRequest("Error al mostrar la vista de eliminacion intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
+            }
+            
+        }
+
+
+     
+        [HttpPost, ActionName("DeleteConfirmed")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int Id)
+        {
+            var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int usuarioId;
+            if (int.TryParse(existeUsuario, out usuarioId))
+            {
+                //Lo que vemos aqui es una carcateristica de c# llamada desestructuración de tuplas.
+                //Una tupla es una forma de agrupar múltiples valores en un solo objeto.
+        Aqui es cuando ya realiza la accion de eliminacion del producto para eliminar un producto necesita la Id de ese producto pues como el metodo
+        EliminarProducto necesita una Id pues se le pasa.
+        Como se ha dicho en los comentarios una tupla es una forma de agrupar multiples valores en un solo objeto: var (success, errorMessage)
+        Aqui success seria el booleano y errorMessage seria nuestro string.
+        Primero evaluamos positivamente que el producto se ha eliminado correctamente y despues negativamente y retornamos el mensaje de error al usuario
+                var (success, errorMessage) = await ExecutePolicyAsync(() => _productoRepository.EliminarProducto(Id));
+                if (success)
+                {
+                    TempData["SuccessMessage"] = "Los datos se han eliminado con éxito.";
+                    return RedirectToAction(nameof(Index));
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = errorMessage;
+                    return RedirectToAction(nameof(Delete), new { id = Id });
+                }
+            }
+            return BadRequest("Error al eliminar el producto intentelo de nuevo mas tarde si el problema persiste intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
+        }
