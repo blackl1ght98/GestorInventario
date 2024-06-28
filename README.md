@@ -17,7 +17,7 @@
         <br/>
     - <strong>NOMBREBASEDATOS</strong>: En el programa de SQL Server vemos qué nombre tiene nuestra base de datos.
         <br/>
-    - <strong>NOMBREPROYECTO</strong>: El nombre que tenga nuestro proyecto en SQL Server.</p>
+    - <strong>NOMBREPROYECTO</strong>: El nombre que tenga nuestro proyecto en visual studio.</p>
     <h2>Administrar secretos de usuario</h2>
     <p>Dentro de Visual Studio 2022 hacemos clic derecho en el proyecto nos vamos a donde dice <strong>Administrar secretos de usuario</strong>. Dentro de ese archivo ponemos los valores:</p>
     <pre><code>{
