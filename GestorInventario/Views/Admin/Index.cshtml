@@ -78,8 +78,10 @@
                                         <a asp-action="Delete" asp-route-id="@user.Id" class="btn btn-danger">Eliminar</a>
                                         <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-warning">Actualizar</a>
                                         <a asp-action="ResetPassword" asp-controller="Auth" asp-route-email="@user.Email" class="btn btn-warning">Recuperar contraseña</a>
+                                       
                                         </div>                             
                                 </td>
+                              
                             </tr>
                         }
                     }

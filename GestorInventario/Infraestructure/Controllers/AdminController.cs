@@ -9,6 +9,8 @@ using Microsoft.EntityFrameworkCore;
 using GestorInventario.PaginacionLogica;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.Application.Politicas_Resilencia;
+using GestorInventario.Domain.Models.ViewModels;
+using System.Security.Claims;
 
 namespace GestorInventario.Infraestructure.Controllers
 {
@@ -280,6 +282,110 @@ namespace GestorInventario.Infraestructure.Controllers
                 _logger.LogError(ex, "Error al editar la informacion del usuario");
                 return RedirectToAction("Error", "Home");
             }  
+        }
+        public async Task<IActionResult> EditUserActual(int id)
+        {
+            try
+            {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
+
+                var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int usuarioId;
+                if (int.TryParse(existeUsuario, out usuarioId))
+                {
+                    var user = await ExecutePolicyAsync(() => _adminrepository.ObtenerPorId(usuarioId));
+
+                    if (user == null)
+                    {
+                        TempData["ErrorMessage"] = "Usuario no encontrado";
+                        return BadRequest("Usuario no encontrado");
+                    }
+
+                    // Crear el ViewModel
+                    var viewModel = new EditarUsuarioActual
+                    {
+                        Email = user.Email,
+                        NombreCompleto = user.NombreCompleto,
+                        //FechaNacimiento = user.FechaNacimiento,
+                        Telefono = user.Telefono,
+                        Direccion = user.Direccion
+                    };
+
+                    // Pasar el ViewModel a la vista
+                    return View(viewModel);
+                }
+
+                // Si no se pudo obtener el usuario
+                TempData["ErrorMessage"] = "Error al obtener el usuario";
+                return BadRequest("Error al obtener el usuario");
+            }
+            catch (Exception ex)
+            {
+                TempData["ConectionError"] = "El servidor ha tardado mucho en responder. Inténtalo de nuevo más tarde.";
+                _logger.LogError(ex, "Error al visualizar la vista de edición de usuario");
+                return RedirectToAction("Error", "Home");
+            }
+        }
+
+        //Cuando quieres editar algo de tu modelo de base de datos pero no quieres que se puedan editar determinados campos
+        //lo que se realiza es una vista del modelo para especificar que campos se quieren cambiar (UsuarioEditViewModel)
+        [HttpPost]
+        public async Task<ActionResult> EditUserActual(EditarUsuarioActual userVM)
+        {
+            try
+            {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
+                //Si el modelo es valido:
+                if (ModelState.IsValid)
+                {
+                    if (!User.Identity.IsAuthenticated)
+                    {
+                        return RedirectToAction("Login", "Auth");
+                    }
+
+                    var (success, errorMessage) = await _adminrepository.EditarUsuarioActual(userVM);
+                    if (success)
+                    {
+                        TempData["SuccessMessage"] = "Usuario Actualizado con exito";
+                        return RedirectToAction(nameof(Index));
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = errorMessage;
+                    }
+                    return RedirectToAction("Index");
+                }
+
+                return View(userVM);
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                var (success, errorMessage) = await _adminrepository.EditarUsuarioActual(userVM);
+                if (success)
+                {
+                    TempData["SuccessMessage"] = "Usuario Actualizado con exito";
+                    return RedirectToAction(nameof(Index));
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = errorMessage;
+
+                }
+                return RedirectToAction("Index");
+
+            }
+            catch (Exception ex)
+            {
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
+                _logger.LogError(ex, "Error al editar la informacion del usuario");
+                return RedirectToAction("Error", "Home");
+            }
         }
         public async Task<IActionResult> Delete(int id)
         {

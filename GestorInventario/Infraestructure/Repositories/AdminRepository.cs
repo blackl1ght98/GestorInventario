@@ -1,6 +1,7 @@
 ﻿using GestorInventario.Application.DTOs;
 using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
+using GestorInventario.Domain.Models.ViewModels;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
@@ -9,6 +10,7 @@ using GestorInventario.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+using System.Security.Claims;
 
 namespace GestorInventario.Infraestructure.Repositories
 {
@@ -17,13 +19,15 @@ namespace GestorInventario.Infraestructure.Repositories
        private readonly GestorInventarioContext _context;
         private readonly IEmailService _emailService;
        private readonly HashService _hashService;
-       
-        public AdminRepository(GestorInventarioContext context, IEmailService email, HashService hash )
+        private readonly IHttpContextAccessor _contextAccessor;
+
+
+        public AdminRepository(GestorInventarioContext context, IEmailService email, HashService hash, IHttpContextAccessor accessor )
         {
             _context = context;
             _emailService = email;
             _hashService = hash;
-          
+          _contextAccessor = accessor;
         }
         public IQueryable<Usuario> ObtenerUsuarios()
         {
@@ -129,6 +133,81 @@ namespace GestorInventario.Infraestructure.Repositories
                 {
                     //Si el usuario no cambia el email se queda igual
                     user!.Email = userVM.Email;
+                }
+
+            }
+
+            return (true, null);
+        }
+        public async Task<(bool, string)> EditarUsuarioActual(EditarUsuarioActual userVM)
+        {
+            try
+            {
+                var existeUsuario = _contextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int usuarioId;
+                if (int.TryParse(existeUsuario, out usuarioId))
+                {
+                    var user = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == usuarioId);
+                    if (user != null)
+                    {
+                        // Mapea los datos del ViewModel a la entidad
+                        user.NombreCompleto = userVM.NombreCompleto;
+                        user.FechaNacimiento = userVM.FechaNacimiento;
+                        user.Telefono = userVM.Telefono;
+                        user.Direccion = userVM.Direccion;
+                        if (user != null && user.Email != userVM.Email)
+                        {
+                            user.ConfirmacionEmail = false;
+                            user.Email = userVM.Email;
+                            _context.UpdateEntity(user);
+                            await _emailService.SendEmailAsyncRegister(new DTOEmail
+                            {
+                                ToEmail = userVM.Email
+                            });
+                        }
+                        else
+                        {
+                            //Si el usuario no cambia el email se queda igual
+                            user!.Email = userVM.Email;
+                        }
+                    }
+                    _context.Entry(user).State = EntityState.Modified;
+                    _context.UpdateEntity(user);
+                }
+                  
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                var existeUsuario = _contextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int usuarioId;
+                if (int.TryParse(existeUsuario, out usuarioId))
+                {
+                    var user = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == usuarioId);
+                    if (user != null)
+                    {
+                        // Mapea los datos del ViewModel a la entidad
+                        user.NombreCompleto = userVM.NombreCompleto;
+                        user.FechaNacimiento = userVM.FechaNacimiento;
+                        user.Telefono = userVM.Telefono;
+                        user.Direccion = userVM.Direccion;
+                        if (user != null && user.Email != userVM.Email)
+                        {
+                            user.ConfirmacionEmail = false;
+                            user.Email = userVM.Email;
+                            _context.UpdateEntity(user);
+                            await _emailService.SendEmailAsyncRegister(new DTOEmail
+                            {
+                                ToEmail = userVM.Email
+                            });
+                        }
+                        else
+                        {
+                            //Si el usuario no cambia el email se queda igual
+                            user!.Email = userVM.Email;
+                        }
+                    }
+                    _context.Entry(user).State = EntityState.Modified;
+                    _context.UpdateEntity(user);
                 }
 
             }

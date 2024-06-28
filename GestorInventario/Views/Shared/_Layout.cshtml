@@ -86,6 +86,12 @@
                                 <a asp-controller="Auth" asp-action="Login" class="btn btn-info mt-2 boton">Login</a>
                             </li>
                         }
+                          @if (User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item">
+                                <a asp-action="EditUserActual" asp-controller="Admin" >Actualizar Usuario Actual</a>
+                            </li>
+                        }
 
 
                         <li class="nav-item dropdown ml-auto mr-5 desplegable mt-2">

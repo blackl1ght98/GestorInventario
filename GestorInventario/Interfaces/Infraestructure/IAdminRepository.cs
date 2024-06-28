@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Domain.Models;
+using GestorInventario.Domain.Models.ViewModels;
 using GestorInventario.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Query;
@@ -17,7 +18,7 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<(bool, string)> EditarRol(int id, int newRole);
         Task<(bool, string)> CrearUsuario(UserViewModel model);
         Task<(bool, string)> EliminarUsuario(int id);
-
+        Task<(bool, string)> EditarUsuarioActual(EditarUsuarioActual userVM);
 
     }
 }
