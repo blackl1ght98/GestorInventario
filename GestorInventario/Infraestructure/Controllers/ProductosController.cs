@@ -189,9 +189,35 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-       
-       
 
+
+
+        //public async Task<IActionResult> Delete(int id)
+        //{
+        //    try
+        //    {
+        //        if (!User.Identity.IsAuthenticated)
+        //        {
+        //            return RedirectToAction("Login", "Auth");
+        //        }
+        //        var policy = _PolicyHandler.GetRetryPolicyAsync();
+        //        var producto = await ExecutePolicyAsync(() => _productoRepository.EliminarProductoObtencion(id));
+        //        //Si no hay cervezas muestra el error 404
+        //        if (producto == null)
+        //        {
+        //            TempData["ErrorMessage"] = "Producto no encontrado";
+        //        }
+        //        //Llegados ha este punto hay cervezas por lo tanto se muestran las cervezas
+        //        return View(producto);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
+        //        _logger.LogError(ex, "Error al eliminar el producto");
+        //        return RedirectToAction("Error", "Home");
+        //    }
+
+        //}
         public async Task<IActionResult> Delete(int id)
         {
             try
@@ -220,7 +246,6 @@ namespace GestorInventario.Infraestructure.Controllers
         }
 
 
-     
         [HttpPost, ActionName("DeleteConfirmed")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int Id)
@@ -240,7 +265,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     var (success, errorMessage) = await ExecutePolicyAsync(() => _productoRepository.EliminarProducto(Id));
                     if (success)
                     {
-                        TempData["SuccessMessage"] = "Los datos se han eliminado con éxito.";
+                       
                         return RedirectToAction(nameof(Index));
                     }
                     else

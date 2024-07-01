@@ -47,6 +47,21 @@ namespace GestorInventario.Configuracion
                     var userId = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
                     // Obtiene la clave de cifrado del usuario
                     memoryCache.TryGetValue(userId, out byte[] claveCifrado);
+                    if (claveCifrado == null )
+                    {
+                        //Recorre la variable que almacena todas las cookies y....
+                        foreach (var cookie in collectioncookies)
+                        {
+                            //elimina todas las cookies
+                            context.Response.Cookies.Delete(cookie.Key);
+                        }
+                        //Si la ruta es distinta a "/Auth/Login"....
+                        if (context.Request.Path != "/Auth/Login")
+                        {
+                            //redirige a "/Auth/Login"
+                            context.Response.Redirect("/Auth/Login");
+                        }
+                    }
                     // Carga la clave pública cifrada desde la memoria del servidor
                     memoryCache.TryGetValue(userId + "PublicKey", out byte[] publicKeyCifrada);
 

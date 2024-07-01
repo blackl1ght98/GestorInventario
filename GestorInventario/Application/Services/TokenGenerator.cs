@@ -91,57 +91,123 @@ namespace GestorInventario.Application.Services
                 Rol = credencialesUsuario.IdRolNavigation.Nombre,
             };
         }
+        //public async Task<DTOLoginResponse> GenerarTokenAsimetricoDinamico(Usuario credencialesUsuario)
+        //{
+        //    var usuarioDB = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == credencialesUsuario.Id);
+
+        //    var claims = new List<Claim>()
+        //        {
+        //            new Claim(ClaimTypes.Email, credencialesUsuario.Email),
+        //            new Claim(ClaimTypes.Role, credencialesUsuario.IdRolNavigation.Nombre),
+        //            new Claim(ClaimTypes.NameIdentifier, credencialesUsuario.Id.ToString())
+
+        //        };
+
+        //    // Genera un nuevo par de claves RSA
+        //    var rsa = new RSACryptoServiceProvider(2048);
+        //    var privateKey = rsa.ToXmlString(true);
+        //    var publicKey = rsa.ToXmlString(false);
+
+        //    //Generacion de la clave de cifrado
+        //    var claveCifrado = GenerarClaveCifrado();
+        //    var privateKeyCifrada = Cifrar(Encoding.UTF8.GetBytes(privateKey), claveCifrado);
+        //    var publicKeyCifrada = Cifrar(Encoding.UTF8.GetBytes(publicKey), claveCifrado);
+        //    string claveCifradoString = Convert.ToBase64String(claveCifrado);
+
+        //    //// Guarda las claves en las cookies
+        //    //_httpContextAccessor.HttpContext?.Response.Cookies.Append("PrivateKey", Convert.ToBase64String(privateKeyCifrada), new CookieOptions { HttpOnly = true, IsEssential = true, Secure = true, SameSite = SameSiteMode.Strict, Expires = null });
+        //    //_httpContextAccessor.HttpContext?.Response.Cookies.Append("PublicKey", Convert.ToBase64String(publicKeyCifrada), new CookieOptions { HttpOnly = true, IsEssential = true, Secure = true, SameSite = SameSiteMode.Strict, Expires = null });
+        //    // Guarda las claves en la memoria del servidor
+        //    _memoryCache.Set(credencialesUsuario.Id.ToString() + "PrivateKey", privateKeyCifrada);
+        //    _memoryCache.Set(credencialesUsuario.Id.ToString() + "PublicKey", publicKeyCifrada);
+
+        //    // Guarda la clave de cifrado en la memoria del servidor
+        //    _memoryCache.Set(credencialesUsuario.Id.ToString(), claveCifrado);
+
+        //    // Crea las credenciales de firma con la clave privada
+        //    var signinCredentials = new SigningCredentials(new RsaSecurityKey(rsa), SecurityAlgorithms.RsaSha256);
+
+        //    var securityToken = new JwtSecurityToken(
+        //        issuer: _configuration["JwtIssuer"],
+        //        audience: _configuration["JwtAudience"],
+        //        claims: claims,
+        //        expires: DateTime.Now.AddMinutes(1),
+        //        signingCredentials: signinCredentials);
+        //    var tokenString = new JwtSecurityTokenHandler().WriteToken(securityToken);
+
+        //    return new DTOLoginResponse()
+        //    {
+        //        Id = credencialesUsuario.Id,
+        //        Token = tokenString,
+        //        Rol = credencialesUsuario.IdRolNavigation.Nombre,
+        //    };
+        //}
         public async Task<DTOLoginResponse> GenerarTokenAsimetricoDinamico(Usuario credencialesUsuario)
         {
             var usuarioDB = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == credencialesUsuario.Id);
 
             var claims = new List<Claim>()
-                {
-                    new Claim(ClaimTypes.Email, credencialesUsuario.Email),
-                    new Claim(ClaimTypes.Role, credencialesUsuario.IdRolNavigation.Nombre),
-                    new Claim(ClaimTypes.NameIdentifier, credencialesUsuario.Id.ToString())
-                    
-                };
-
-            // Genera un nuevo par de claves RSA
-            var rsa = new RSACryptoServiceProvider(2048);
-            var privateKey = rsa.ToXmlString(true);
-            var publicKey = rsa.ToXmlString(false);
-
-            //Generacion de la clave de cifrado
-            var claveCifrado = GenerarClaveCifrado();
-            var privateKeyCifrada = Cifrar(Encoding.UTF8.GetBytes(privateKey), claveCifrado);
-            var publicKeyCifrada = Cifrar(Encoding.UTF8.GetBytes(publicKey), claveCifrado);
-            string claveCifradoString = Convert.ToBase64String(claveCifrado);
-
-            //// Guarda las claves en las cookies
-            //_httpContextAccessor.HttpContext?.Response.Cookies.Append("PrivateKey", Convert.ToBase64String(privateKeyCifrada), new CookieOptions { HttpOnly = true, IsEssential = true, Secure = true, SameSite = SameSiteMode.Strict, Expires = null });
-            //_httpContextAccessor.HttpContext?.Response.Cookies.Append("PublicKey", Convert.ToBase64String(publicKeyCifrada), new CookieOptions { HttpOnly = true, IsEssential = true, Secure = true, SameSite = SameSiteMode.Strict, Expires = null });
-            // Guarda las claves en la memoria del servidor
-            _memoryCache.Set(credencialesUsuario.Id.ToString() + "PrivateKey", privateKeyCifrada);
-            _memoryCache.Set(credencialesUsuario.Id.ToString() + "PublicKey", publicKeyCifrada);
-
-            // Guarda la clave de cifrado en la memoria del servidor
-            _memoryCache.Set(credencialesUsuario.Id.ToString(), claveCifrado);
-
-            // Crea las credenciales de firma con la clave privada
-            var signinCredentials = new SigningCredentials(new RsaSecurityKey(rsa), SecurityAlgorithms.RsaSha256);
-
-            var securityToken = new JwtSecurityToken(
-                issuer: _configuration["JwtIssuer"],
-                audience: _configuration["JwtAudience"],
-                claims: claims,
-                expires: DateTime.Now.AddMinutes(1),
-                signingCredentials: signinCredentials);
-            var tokenString = new JwtSecurityTokenHandler().WriteToken(securityToken);
-
-            return new DTOLoginResponse()
             {
-                Id = credencialesUsuario.Id,
-                Token = tokenString,
-                Rol = credencialesUsuario.IdRolNavigation.Nombre,
+                new Claim(ClaimTypes.Email, credencialesUsuario.Email),
+                new Claim(ClaimTypes.Role, credencialesUsuario.IdRolNavigation.Nombre),
+                new Claim(ClaimTypes.NameIdentifier, credencialesUsuario.Id.ToString())
             };
+
+            /*Hacemos una llamada al servicio "RSACryptoServiceProvider" encargado de la gestion y configuracion de la claves rsa o clave
+             asimetrica, el motivo por el que se poner "RSACryptoServiceProvider(2048)" es para decir que longitud va a tener nuestra clave
+            rsa en este caso va a tener una longitud de 2048 bits que es la longitud estandar para claves rsa*/
+            using (var rsa = new RSACryptoServiceProvider(2048))
+            {
+                /*Para el cifrado que vamos a realizar primero creamos las 2 claves asimetricas de manera dinamica 
+                 1 clave privada "privateKey" y 1 clave publica "publicKey"*/
+                var privateKey = rsa.ExportParameters(true);
+                var publicKey = rsa.ExportParameters(false);
+                /*Despues generamos de manera dinamica nuestra clave aes o clave simetrica, en la primera variable 
+                 " var aes = Aes.Create()" esto crea el objeto criptográfico que almacenara la clave simetrica,
+                para generar dicha clave ponemos esto " aes.GenerateKey();" y por ultimo guardamos en una variable
+                el valor de esa clave "var aesKey = aes.Key;"*/
+                var aes = Aes.Create();
+                aes.GenerateKey();
+                var aesKey = aes.Key;
+                /*Una vez creadas ambas claves aes(simetrico) y rsa(asimetrico), lo primero que hacemos es hacer uso del valor
+                 de la clave publica que hemos generado de esta manera "rsa.ImportParameters(publicKey);"*/
+                rsa.ImportParameters(publicKey);
+                /*Haciendo uso del valor de la clave publica rsa(asimetrica) ciframos nuestra clave aes(simetrica) haciendo uso del 
+                 * metodo Encrypt de rsa, por lo tanto la clave aes queda cifrada con la clave publica rsa(asimetrica)*/
+                var encryptedAesKey = rsa.Encrypt(aesKey, false);
+
+              
+                /*Aqui usamos nuestro metodo Cifrar que hemos creado el metodo que hemos echo el tipo de cifrado que hace es simetrico o aes,
+                 pues aqui lo que se cifra es el Modulus de la clave publica con aes. ¿Que es Modulus en una clave publica asimetrica?
+                Es un numero muy grande  este numero es el que aporta seguridad a la clave publica. Al cifrarlo agregamos mas seguridad.*/
+                var publicKeyCifrada = Cifrar(publicKey.Modulus, aesKey); 
+               
+
+                // Guarda la clave AES cifrada y la clave pública cifrada en el caché en memoria
+                _memoryCache.Set(credencialesUsuario.Id.ToString() + "PrivateKey", privateKey);
+                _memoryCache.Set(credencialesUsuario.Id.ToString() + "EncryptedAesKey", encryptedAesKey);
+                _memoryCache.Set(credencialesUsuario.Id.ToString() + "PublicKey", publicKeyCifrada);
+                //Esto es como nuestro token es firmado
+                var signinCredentials = new SigningCredentials(new RsaSecurityKey(privateKey), SecurityAlgorithms.RsaSha256);
+
+                var securityToken = new JwtSecurityToken(
+                    issuer: _configuration["JwtIssuer"],
+                    audience: _configuration["JwtAudience"],
+                    claims: claims,
+                    expires: DateTime.Now.AddHours(24),
+                    signingCredentials: signinCredentials);
+                var tokenString = new JwtSecurityTokenHandler().WriteToken(securityToken);
+
+                return new DTOLoginResponse()
+                {
+                    Id = credencialesUsuario.Id,
+                    Token = tokenString,
+                    Rol = credencialesUsuario.IdRolNavigation.Nombre,
+                };
+            }
         }
+
+
         public byte[] GenerarClaveCifrado()
         {
             try
@@ -174,95 +240,120 @@ namespace GestorInventario.Application.Services
 
         }
 
-        public byte[] Cifrar(byte[] data, byte[] claveCifrado)
+      /*Nuestro metodo cifrar devuelve un array de bytes este metodo se compone de lo que se va a cifrar que es el "data" y con que se va a 
+       cifrar.*/
+        public byte[] Cifrar(byte[] data, byte[] aesKey)
         {
             try
             {
-                // Crea una nueva instancia de la clase AesManaged.
+                /*En este caso usamos aes para cifrar, la manera de inicializarlo es asi "var aes = Aes.Create()" pero primero hay que poner
+                 un using.*/
                 using (var aes = Aes.Create())
                 {
-                    // Establece la clave de cifrado que se utilizará para el cifrado.
-                    aes.Key = claveCifrado;
-
-                    // Establece el modo de cifrado en CBC (Cipher Block Chaining).
+                    //Le pasamo la llave con la que va a cifrar
+                    aes.Key = aesKey;
+                    //El modo de cifrado en este caso es CBC esto es que va tomando parte a parte de los datos y los va cifrando
                     aes.Mode = CipherMode.CBC;
-
-                    // Establece el modo de relleno en PKCS7.
+                    //Cuando llega al final y no tiene datos suficientes ha cifrar usa este metodo de relleno
                     aes.Padding = PaddingMode.PKCS7;
-
-                    // Genera un nuevo Vector de Inicialización (IV) aleatorio, esto es un valor aleatorio.
+                    //Generamos un vector de inicializacion que es un valor aleatorio
                     aes.GenerateIV();
-
-                    // Crea un objeto de cifrado que se utiliza para transformar los datos.
+                    /*Esto es lo que realmente cifra los datos, aqui creamos el objeto encargado de cifrar "var encryptor = aes.CreateEncryptor()"
+                     esta variable tiene que ir dentro de un using
+                     */
                     using (var encryptor = aes.CreateEncryptor())
                     {
-                        // Cifra los datos.
+                       
+                        /*El metodo TransformFinalBlock dentro de encryptor recibe 3 parametros el primero son los datos, despues se dice 
+                         como se inicializa el array y se obtiene la longitud de los datos y se cifra*/
                         var cipherText = encryptor.TransformFinalBlock(data, 0, data.Length);
-
-
-                        // Esto es necesario porque el IV debe ser conocido para descifrar los datos más tarde,
-                        // pero no necesita mantenerse en secreto.
-                        return aes.IV.Concat(cipherText).ToArray(); // Prepend IV to the cipher text
+                        //Concatena el vector de inicializacion con el valor cifrado y lo convierte a un array
+                        return aes.IV.Concat(cipherText).ToArray(); 
                     }
                 }
             }
             catch (Exception ex)
             {
-
-                var collectioncookies = _httpContextAccessor.HttpContext?.Request.Cookies;
-                foreach (var cookie in collectioncookies!)
-                {
-                    _httpContextAccessor.HttpContext?.Response.Cookies.Delete(cookie.Key);
-                }
-                if (_httpContextAccessor.HttpContext?.Request.Path != "/Auth/Login")
-                {
-                    _httpContextAccessor.HttpContext?.Response.Redirect("/Auth/Login");
-                }
+                
                 _logger.LogCritical("Error al cifrar", ex);
-                return new byte[0];
+                throw;
             }
-
-
         }
-        public byte[] Descifrar(byte[] data, byte[] claveCifrado)
+    
+
+
+    //public byte[] Descifrar(byte[] data, byte[] claveCifrado)
+    //{
+    //    try
+    //    {
+    //        // Crea una nueva instancia de la clase AesManaged.
+    //        // Esta clase proporciona una implementación del Algoritmo Estándar de Cifrado Avanzado (AES).
+    //        using (var aes = Aes.Create())
+    //        {
+    //            // Establece la clave de cifrado que se utilizará para el descifrado.
+    //            aes.Key = claveCifrado;
+
+    //            // Establece el modo de cifrado en CBC (Cipher Block Chaining).
+    //            aes.Mode = CipherMode.CBC;
+
+    //            // Establece el modo de relleno en PKCS7.
+    //            aes.Padding = PaddingMode.PKCS7;
+
+    //            // Extrae el Vector de Inicialización (IV) del texto cifrado.
+    //            // El IV se encuentra en los primeros bytes del texto cifrado y tiene una longitud igual a la longitud de bloque de AES (en bytes).
+    //            var iv = data.Take(aes.BlockSize / 8).ToArray(); // Extract IV from the cipher text
+
+    //            // Extrae el texto cifrado real, que comienza después del IV.
+    //            var cipherText = data.Skip(aes.BlockSize / 8).ToArray();
+
+    //            // Establece el IV que se utilizará para el descifrado.
+    //            aes.IV = iv;
+
+    //            // Crea un objeto de descifrado que se utiliza para transformar los datos.
+    //            using (var decryptor = aes.CreateDecryptor())
+    //            {
+    //                // Descifra el texto cifrado y devuelve los datos originales.
+    //                return decryptor.TransformFinalBlock(cipherText, 0, cipherText.Length);
+    //            }
+    //        }
+
+    //    }
+    //    catch (Exception ex)
+    //    {
+
+    //        var collectioncookies = _httpContextAccessor.HttpContext?.Request.Cookies;
+    //        foreach (var cookie in collectioncookies!)
+    //        {
+    //            _httpContextAccessor.HttpContext?.Response.Cookies.Delete(cookie.Key);
+    //        }
+    //        if (_httpContextAccessor.HttpContext?.Request.Path != "/Auth/Login")
+    //        {
+    //            _httpContextAccessor.HttpContext?.Response.Redirect("/Auth/Login");
+    //        }
+    //        _logger.LogCritical("Error al descifrar", ex);
+    //        return new byte[0];
+    //    }
+
+    //}
+    /*Aqui tenemos nuestro metodo descrifrar que devuelve un array de bytes y recibe 2 parametros el primero la informacion cifrada
+     y el segundo unos valores especiales de la clave privada*/
+    public byte[] Descifrar(byte[] encryptedData, RSAParameters privateKeyParams)
         {
             try
             {
-                // Crea una nueva instancia de la clase AesManaged.
-                // Esta clase proporciona una implementación del Algoritmo Estándar de Cifrado Avanzado (AES).
-                using (var aes = Aes.Create())
+                //Llamamos al servicio que ha encriptado nuestros datos
+                using (var rsa = new RSACryptoServiceProvider())
                 {
-                    // Establece la clave de cifrado que se utilizará para el descifrado.
-                    aes.Key = claveCifrado;
-
-                    // Establece el modo de cifrado en CBC (Cipher Block Chaining).
-                    aes.Mode = CipherMode.CBC;
-
-                    // Establece el modo de relleno en PKCS7.
-                    aes.Padding = PaddingMode.PKCS7;
-
-                    // Extrae el Vector de Inicialización (IV) del texto cifrado.
-                    // El IV se encuentra en los primeros bytes del texto cifrado y tiene una longitud igual a la longitud de bloque de AES (en bytes).
-                    var iv = data.Take(aes.BlockSize / 8).ToArray(); // Extract IV from the cipher text
-
-                    // Extrae el texto cifrado real, que comienza después del IV.
-                    var cipherText = data.Skip(aes.BlockSize / 8).ToArray();
-
-                    // Establece el IV que se utilizará para el descifrado.
-                    aes.IV = iv;
-
-                    // Crea un objeto de descifrado que se utiliza para transformar los datos.
-                    using (var decryptor = aes.CreateDecryptor())
-                    {
-                        // Descifra el texto cifrado y devuelve los datos originales.
-                        return decryptor.TransformFinalBlock(cipherText, 0, cipherText.Length);
-                    }
+                    //Extrae el valor de la clave privada
+                    rsa.ImportParameters(privateKeyParams);
+                    //Haciendo uso de la clave privada descifra los datos
+                    var decryptedAesKey = rsa.Decrypt(encryptedData, false);
+                    //retorna los datos descifrados
+                    return decryptedAesKey;
                 }
-
             }
             catch (Exception ex)
             {
-
                 var collectioncookies = _httpContextAccessor.HttpContext?.Request.Cookies;
                 foreach (var cookie in collectioncookies!)
                 {
@@ -275,7 +366,58 @@ namespace GestorInventario.Application.Services
                 _logger.LogCritical("Error al descifrar", ex);
                 return new byte[0];
             }
-
         }
+/*Aqui tenemos otro metodo descifrar pero este descifra la clave asimetrica recibe los datos y la clave*/
+        public byte[] Descifrar(byte[] data, byte[] aesKey)
+        {
+            try
+            {
+                // Descifra los datos con la clave AES
+                using (var aes = Aes.Create())
+                {
+                    //Se pasa la clave aes
+                    aes.Key = aesKey;
+                    //Se dice con que metodo se cifro
+                    aes.Mode = CipherMode.CBC;
+                    //Que relleno se uso para el cifrado
+                    aes.Padding = PaddingMode.PKCS7;
+                    //De los datos cifrados primero obtine el valor de la clave lo divide entre 8 y lo convierte a un array
+                    var iv = data.Take(aes.BlockSize / 8).ToArray();
+                    //Aqui salta a los siguientes datos cifrados y hace igual que el anterior
+                    var cipherText = data.Skip(aes.BlockSize / 8).ToArray();
+                    //Se facilita el vector de inicializacion usado
+                    aes.IV = iv;
+                    //Esto es lo que realmente descifra los datos
+                    using (var decryptor = aes.CreateDecryptor())
+                    {
+                        //se pasa el valor cifrado como se inicializo y se obtiene la longitud del valor por ultimo se descifra
+                        return decryptor.TransformFinalBlock(cipherText, 0, cipherText.Length);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var collectioncookies = _httpContextAccessor.HttpContext?.Request.Cookies;
+                foreach (var cookie in collectioncookies!)
+                {
+                    _httpContextAccessor.HttpContext?.Response.Cookies.Delete(cookie.Key);
+                }
+                if (_httpContextAccessor.HttpContext?.Request.Path != "/Auth/Login")
+                {
+                    _httpContextAccessor.HttpContext?.Response.Redirect("/Auth/Login");
+                }
+                _logger.LogCritical("Error al descifrar", ex);
+                return new byte[0];
+            }
+        }
+
+
+
+
+
+
+
+
+
     }
 }

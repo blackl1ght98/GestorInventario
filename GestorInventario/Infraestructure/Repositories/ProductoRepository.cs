@@ -139,53 +139,28 @@ namespace GestorInventario.Infraestructure.Repositories
   
         public async Task<(bool, string)> EliminarProducto(int Id)
         {
-            var existeUsuario = _contextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-               int usuarioId;
-            if (int.TryParse(existeUsuario, out usuarioId))
-            {
+          
                 var producto = await _context.Productos
           .Include(p => p.DetallePedidos)
               .ThenInclude(dp => dp.Pedido)
-          .Include(p => p.IdProveedorNavigation)
+          .Include(p => p.IdProveedorNavigation).Include(x=>x.ItemsDelCarritos)
           .FirstOrDefaultAsync(m => m.Id == Id);
-                if (producto == null)
+                if (producto == null )
                 {
                     return (false, "No hay productos para eliminar");
                 }
-
+            if (producto.ItemsDelCarritos.Count()!=0) 
+            {
+                return (false, "el producto no se puede eliminar porque esta en el carrito");
+            }
               
-                var productoOriginal = new ProductosViewModel
-                {
-                    Id = producto.Id,
-                    NombreProducto = producto.NombreProducto,
-                    Descripcion = producto.Descripcion,
-                    Cantidad = producto.Cantidad,
-                    Precio = producto.Precio,
-
-                };
                
-                var historialProducto = new HistorialProducto()
-                {
-                    UsuarioId = usuarioId, 
-                    Fecha = DateTime.Now,
-                    Accion = "DELETE",
-                    Ip = _contextAccessor.HttpContext.Connection.RemoteIpAddress?.ToString()
-                };
-                _context.AddEntity(historialProducto);
-                var detalleHistorial = new DetalleHistorialProducto()
-                {
-                    HistorialProductoId = historialProducto.Id,
-                    Cantidad = productoOriginal.Cantidad,
-                    NombreProducto = productoOriginal.NombreProducto,
-                    Descripcion = productoOriginal.Descripcion,
-                    Precio = productoOriginal.Precio
-                };
-                _context.AddEntity(detalleHistorial);
+               
+               
                 _context.DeleteEntity(producto);
 
                 return (true, null);
-            }
-            return (true, null);
+            
         }
 
     

@@ -39,12 +39,7 @@
             @Model.IdProveedorNavigation?.NombreProveedor
         </dd>
     </dl>
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-warning">
-            @TempData["ErrorMessage"]
-        </div>
-    }
+  
     <form asp-action="DeleteConfirmed" method="post">
        
         <input type="hidden" asp-for="@Model.Id" />
@@ -54,10 +49,11 @@
       
         <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
     </form>
-    @if (TempData["SuccessMessage"] != null)
+    @if (TempData["ErrorMessage"] != null)
     {
         <div class="alert alert-warning">
-            @TempData["SuccessMessage"]
+            @TempData["ErrorMessage"]
         </div>
     }
+  
 </div>
