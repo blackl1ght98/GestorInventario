@@ -86,24 +86,22 @@
                                 <a asp-controller="Auth" asp-action="Login" class="btn btn-info mt-2 boton">Login</a>
                             </li>
                         }
-                          @if (User.Identity.IsAuthenticated)
+                          
+                            
+                        
+
+                        @if (User.Identity.IsAuthenticated)
                         {
-                            <li class="nav-item">
-                                <a asp-action="EditUserActual" asp-controller="Admin" >Actualizar Usuario Actual</a>
+                            <li class="nav-item dropdown ml-auto mr-5 desplegable mt-2">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-person-gear"></i>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                    <li> <a asp-controller="Auth" asp-action="Logout" class="dropdown-item">Cerrar sesion</a></li>
+                                    <li><a asp-action="EditUserActual" asp-controller="Admin" class="dropdown-item">Actualizar Usuario Actual</a></li>
+                                </ul>
                             </li>
                         }
-
-
-                        <li class="nav-item dropdown ml-auto mr-5 desplegable mt-2">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-person-gear"></i>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                <li> <a asp-controller="Auth" asp-action="Logout" class="dropdown-item">Cerrar sesion</a></li>
-                               
-                            </ul>
-                        </li>
-
                     </ul>
                 </div>
             </div>
