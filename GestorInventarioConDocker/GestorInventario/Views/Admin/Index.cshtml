@@ -1,0 +1,122 @@
+﻿@model List<Usuario>
+@using GestorInventario.PaginacionLogica
+@using Microsoft.AspNetCore.Mvc.Rendering
+<html>
+<head>
+    <style>
+        .container {
+            text-align: center !important;
+            margin-left: 1rem;
+        }
+
+        .btn-group > .btn {
+            margin-right: 10px; 
+        }
+    </style>
+</head>
+<body>
+
+    @{
+       
+        var paginas = ViewBag.Paginas as List<PaginasModel>;
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-warning">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+    <form asp-controller="Admin" asp-action="Index">
+        <p>
+            Buscar: <input type="text" name="buscar" class="form-text" />
+            <input type="submit" value="Buscar" class="btn btn-sm btn-dark" />
+        </p>
+    </form>
+    <div class="container-fluid  mr-sm-0 mrl-5 me-n5">
+        <h1 class="text-left">Usuarios</h1>
+        <p class="text-left">
+            <a asp-action="Create" class="btn btn-info">Crear</a>
+        </p>
+        <div class="table ">
+            <table class="table table-striped table-bordered w-100">
+                <thead>
+                    <tr>
+                        <th class="col-2">Nombre Completo</th>
+                        <th class="col-2">Email</th>
+                        <th class="col-2">Telefono</th>
+                        <th class="col-2">Direccion</th>
+                        <th class="col-2">FechaRegistro</th>
+                        <th class="col-2">Fecha Nacimiento</th>
+                        <th class="col-2"> Rol</th>
+                        <th class="col-2" colspan="3">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var user in Model)
+                        {
+                            <tr>
+                                <td>@Html.DisplayFor(m => user.NombreCompleto)</td>
+                                <td>@Html.DisplayFor(m => user.Email)</td>
+                                <td>@Html.DisplayFor(m => user.Telefono)</td>
+                                <td>@Html.DisplayFor(m => user.Direccion)</td>
+                                <td>@Html.DisplayFor(m => user.FechaRegistro)</td>
+                                <td>@(user.FechaNacimiento.HasValue ? user.FechaNacimiento.Value.ToString("dd/MM/yyyy") : "")</td>
+                                <td>
+                                    <form asp-action="UpdateRole" class="form-control" method="post">
+                                        <input type="hidden" name="id" value="@user.Id" />
+                                        <select name="newRole" asp-items="ViewBag.Roles">
+                                            <option>Selecciona un rol</option>
+                                        </select>
+                                        @Html.DisplayFor(m => user.IdRolNavigation.Nombre)
+                                        <input type="submit" class="btn btn-info mt-2" value="Actualizar Rol" />
+                                    </form>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group" aria-label="Acciones">
+                                        <a asp-action="Delete" asp-route-id="@user.Id" class="btn btn-danger">Eliminar</a>
+                                        <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-warning">Actualizar</a>
+                                        <a asp-action="ResetPassword" asp-controller="Auth" asp-route-email="@user.Email" class="btn btn-warning">Recuperar contraseña</a>
+                                       
+                                        </div>                             
+                                </td>
+                              
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="9">No hay usuarios para mostrar.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-center">
+                <!--Como paginas es una lista se puede iterar pues se itera obteniendo todas las paginas-->
+                @foreach (var pagina in paginas!)
+                {
+                    <!--
+                        Creamos un elemento de lista (<li>) para cada página
+                        Si la página está habilitada, no añadimos ninguna clase adicional
+                        Si la página no está habilitada, añadimos la clase "disabled"
+                        Si la página está activa, añadimos la clase "active"
+
+                    -->
+                    <li class="page-item @(pagina.Habilitada ? null :"disabled") @(pagina.Activa ? "active":null)">
+                        <!--
+
+                            Creamos un enlace (<a>) para cada página
+                             El enlace lleva a la acción "Index" del controlador actual con el número de la página como parámetro
+                             El texto del enlace es el texto de la página
+                        -->
+                        <a class="page-link" href="@Url.Action("Index", new { Pagina = pagina.Pagina, buscar=ViewData["Buscar"] })">@pagina.Texto</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </div>
+</body>

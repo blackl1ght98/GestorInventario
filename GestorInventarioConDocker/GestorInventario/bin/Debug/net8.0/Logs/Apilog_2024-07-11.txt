@@ -1,0 +1,349 @@
+INFO  2024-07-11 08:17:13 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-07-11 08:17:13 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-07-11 08:17:13 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-07-11 08:17:13 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-07-11 08:17:13 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-07-11 08:25:20 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (200ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-07-11 08:25:20 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (11ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+INFO  2024-07-11 08:25:23 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Usuarios] AS [u]
+WARN  2024-07-11 08:25:23 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-07-11 08:25:23 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-07-11 08:25:23 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (24ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[BajaUsuario], [t].[ConfirmacionEmail], [t].[Direccion], [t].[Email], [t].[EnlaceCambioPass], [t].[FechaEnlaceCambioPass], [t].[FechaExpiracionContrasenaTemporal], [t].[FechaNacimiento], [t].[FechaRegistro], [t].[IdRol], [t].[NombreCompleto], [t].[Password], [t].[Salt], [t].[Telefono], [t].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM (
+    SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+    FROM [Usuarios] AS [u]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+INNER JOIN [Roles] AS [r] ON [t].[IdRol] = [r].[Id]
+INFO  2024-07-11 08:25:23 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-07-11 08:48:18 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-07-11 08:48:18 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-07-11 08:48:18 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-07-11 08:48:18 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-07-11 08:48:18 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-07-11 08:48:33 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (177ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-07-11 08:48:33 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (11ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+INFO  2024-07-11 08:48:35 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (9ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Usuarios] AS [u]
+WARN  2024-07-11 08:48:35 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-07-11 08:48:35 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-07-11 08:48:35 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (5ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[BajaUsuario], [t].[ConfirmacionEmail], [t].[Direccion], [t].[Email], [t].[EnlaceCambioPass], [t].[FechaEnlaceCambioPass], [t].[FechaExpiracionContrasenaTemporal], [t].[FechaNacimiento], [t].[FechaRegistro], [t].[IdRol], [t].[NombreCompleto], [t].[Password], [t].[Salt], [t].[Telefono], [t].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM (
+    SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+    FROM [Usuarios] AS [u]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+INNER JOIN [Roles] AS [r] ON [t].[IdRol] = [r].[Id]
+INFO  2024-07-11 08:48:35 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+WARN  2024-07-11 07:20:34 – Clase: Microsoft.AspNetCore.DataProtection.Repositories.FileSystemXmlRepository - Mensaje: Storing keys in a directory '/root/.aspnet/DataProtection-Keys' that may not be persisted outside of the container. Protected data will be unavailable when container is destroyed. For more information go to https://aka.ms/aspnet/dataprotectionwarning
+WARN  2024-07-11 07:20:34 – Clase: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager - Mensaje: No XML encryptor configured. Key {cd34780d-dc97-4ea0-9766-3ef0a4f93720} may be persisted to storage in unencrypted form.
+INFO  2024-07-11 07:20:35 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://[::]:8080
+INFO  2024-07-11 07:20:35 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://[::]:8081
+INFO  2024-07-11 07:20:35 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-07-11 07:20:35 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-07-11 07:20:35 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: /app
+WARN  2024-07-11 07:20:37 – Clase: Microsoft.AspNetCore.Session.SessionMiddleware - Mensaje: Error unprotecting the session cookie.
+System.Security.Cryptography.CryptographicException: The key {815355ad-6f12-49ab-9a8f-83a671e97a79} was not found in the key ring. For more information go to https://aka.ms/aspnet/dataprotectionwarning
+   at Microsoft.AspNetCore.DataProtection.KeyManagement.KeyRingBasedDataProtector.UnprotectCore(Byte[] protectedData, Boolean allowOperationsOnRevokedKeys, UnprotectStatus& status)
+   at Microsoft.AspNetCore.DataProtection.KeyManagement.KeyRingBasedDataProtector.Unprotect(Byte[] protectedData)
+   at Microsoft.AspNetCore.Session.CookieProtection.Unprotect(IDataProtector protector, String protectedText, ILogger logger)
+ERROR 2024-07-11 07:21:08 – Clase: Microsoft.EntityFrameworkCore.Database.Connection - Mensaje: An error occurred using the connection to database 'GestorInventario' on server 'DESKTOP-2TL9C3O\SQLEXPRESS'.
+ERROR 2024-07-11 07:21:08 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: An exception occurred while iterating over the results of a query for context type 'GestorInventario.Domain.Models.GestorInventarioContext'.
+System.Exception: Cannot connect to SQL Server Browser. Ensure SQL Server Browser has been started.
+ ---> System.Net.Sockets.SocketException (00000005, 0xFFFDFFFF): Name or service not known
+   at System.Net.Dns.GetHostEntryOrAddressesCore(String hostName, Boolean justAddresses, AddressFamily addressFamily, Nullable`1 startingTimestamp)
+   at System.Net.Dns.GetHostAddresses(String hostNameOrAddress, AddressFamily family)
+   at Microsoft.Data.SqlClient.SNI.SNICommon.GetDnsIpAddresses(String serverName)
+   at Microsoft.Data.SqlClient.SNI.SSRP.SendUDPRequest(String browserHostname, Int32 port, Byte[] requestPacket, Int64 timerExpire, Boolean allIPsInParallel, SqlConnectionIPAddressPreference ipPreference)
+   at Microsoft.Data.SqlClient.SNI.SSRP.GetPortByInstanceName(String browserHostName, String instanceName, Int64 timerExpire, Boolean allIPsInParallel, SqlConnectionIPAddressPreference ipPreference)
+   --- End of inner exception stack trace ---
+   at Microsoft.Data.SqlClient.SNI.SSRP.GetPortByInstanceName(String browserHostName, String instanceName, Int64 timerExpire, Boolean allIPsInParallel, SqlConnectionIPAddressPreference ipPreference)
+   at Microsoft.Data.SqlClient.SNI.SNIProxy.CreateTcpHandle(DataSource details, Int64 timerExpire, Boolean parallel, SqlConnectionIPAddressPreference ipPreference, String cachedFQDN, SQLDNSInfo& pendingDNSInfo, Boolean tlsFirst, String hostNameInCertificate, String serverCertificateFilename)
+   at Microsoft.Data.SqlClient.SNI.SNIProxy.CreateConnectionHandle(String fullServerName, Boolean ignoreSniOpenTimeout, Int64 timerExpire, Byte[]& instanceName, Byte[][]& spnBuffer, String serverSPN, Boolean flushCache, Boolean async, Boolean parallel, Boolean isIntegratedSecurity, SqlConnectionIPAddressPreference ipPreference, String cachedFQDN, SQLDNSInfo& pendingDNSInfo, Boolean tlsFirst, String hostNameInCertificate, String serverCertificateFilename)
+   at Microsoft.Data.SqlClient.SNI.TdsParserStateObjectManaged.CreatePhysicalSNIHandle(String serverName, Boolean ignoreSniOpenTimeout, Int64 timerExpire, Byte[]& instanceName, Byte[][]& spnBuffer, Boolean flushCache, Boolean async, Boolean parallel, SqlConnectionIPAddressPreference iPAddressPreference, String cachedFQDN, SQLDNSInfo& pendingDNSInfo, String serverSPN, Boolean isIntegratedSecurity, Boolean tlsFirst, String hostNameInCertificate, String serverCertificateFilename)
+   at Microsoft.Data.SqlClient.TdsParser.Connect(ServerInfo serverInfo, SqlInternalConnectionTds connHandler, Boolean ignoreSniOpenTimeout, Int64 timerExpire, SqlConnectionString connectionOptions, Boolean withFailover)
+   at Microsoft.Data.SqlClient.SqlInternalConnectionTds.AttemptOneLogin(ServerInfo serverInfo, String newPassword, SecureString newSecurePassword, Boolean ignoreSniOpenTimeout, TimeoutTimer timeout, Boolean withFailover)
+   at Microsoft.Data.SqlClient.SqlInternalConnectionTds.LoginNoFailover(ServerInfo serverInfo, String newPassword, SecureString newSecurePassword, Boolean redirectedUserInstance, SqlConnectionString connectionOptions, SqlCredential credential, TimeoutTimer timeout)
+   at Microsoft.Data.SqlClient.SqlInternalConnectionTds.OpenLoginEnlist(TimeoutTimer timeout, SqlConnectionString connectionOptions, SqlCredential credential, String newPassword, SecureString newSecurePassword, Boolean redirectedUserInstance)
+   at Microsoft.Data.SqlClient.SqlInternalConnectionTds..ctor(DbConnectionPoolIdentity identity, SqlConnectionString connectionOptions, SqlCredential credential, Object providerInfo, String newPassword, SecureString newSecurePassword, Boolean redirectedUserInstance, SqlConnectionString userConnectionOptions, SessionData reconnectSessionData, Boolean applyTransientFaultHandling, String accessToken, DbConnectionPool pool)
+   at Microsoft.Data.SqlClient.SqlConnectionFactory.CreateConnection(DbConnectionOptions options, DbConnectionPoolKey poolKey, Object poolGroupProviderInfo, DbConnectionPool pool, DbConnection owningConnection, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.CreatePooledConnection(DbConnectionPool pool, DbConnection owningObject, DbConnectionOptions options, DbConnectionPoolKey poolKey, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionPool.CreateObject(DbConnection owningObject, DbConnectionOptions userOptions, DbConnectionInternal oldConnection)
+   at Microsoft.Data.ProviderBase.DbConnectionPool.UserCreateRequest(DbConnection owningObject, DbConnectionOptions userOptions, DbConnectionInternal oldConnection)
+   at Microsoft.Data.ProviderBase.DbConnectionPool.TryGetConnection(DbConnection owningObject, UInt32 waitForMultipleObjectsTimeout, Boolean allowCreate, Boolean onlyOneCheckConnection, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionPool.TryGetConnection(DbConnection owningObject, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open(SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open()
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerConnection.OpenDbConnection(Boolean errorsExpected)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalConnection.OpenInternal(Boolean errorsExpected)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalConnection.Open(Boolean errorsExpected)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReader(RelationalCommandParameterObject parameterObject)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.Enumerator.InitializeReader(Enumerator enumerator)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.Enumerator.<>c.<MoveNext>b__21_0(DbContext _, Enumerator enumerator)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.Execute[TState,TResult](TState state, Func`3 operation, Func`3 verifySucceeded)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.Enumerator.MoveNext()
+System.Exception: Cannot connect to SQL Server Browser. Ensure SQL Server Browser has been started.
+ ---> System.Net.Sockets.SocketException (00000005, 0xFFFDFFFF): Name or service not known
+   at System.Net.Dns.GetHostEntryOrAddressesCore(String hostName, Boolean justAddresses, AddressFamily addressFamily, Nullable`1 startingTimestamp)
+   at System.Net.Dns.GetHostAddresses(String hostNameOrAddress, AddressFamily family)
+   at Microsoft.Data.SqlClient.SNI.SNICommon.GetDnsIpAddresses(String serverName)
+   at Microsoft.Data.SqlClient.SNI.SSRP.SendUDPRequest(String browserHostname, Int32 port, Byte[] requestPacket, Int64 timerExpire, Boolean allIPsInParallel, SqlConnectionIPAddressPreference ipPreference)
+   at Microsoft.Data.SqlClient.SNI.SSRP.GetPortByInstanceName(String browserHostName, String instanceName, Int64 timerExpire, Boolean allIPsInParallel, SqlConnectionIPAddressPreference ipPreference)
+   --- End of inner exception stack trace ---
+   at Microsoft.Data.SqlClient.SNI.SSRP.GetPortByInstanceName(String browserHostName, String instanceName, Int64 timerExpire, Boolean allIPsInParallel, SqlConnectionIPAddressPreference ipPreference)
+   at Microsoft.Data.SqlClient.SNI.SNIProxy.CreateTcpHandle(DataSource details, Int64 timerExpire, Boolean parallel, SqlConnectionIPAddressPreference ipPreference, String cachedFQDN, SQLDNSInfo& pendingDNSInfo, Boolean tlsFirst, String hostNameInCertificate, String serverCertificateFilename)
+   at Microsoft.Data.SqlClient.SNI.SNIProxy.CreateConnectionHandle(String fullServerName, Boolean ignoreSniOpenTimeout, Int64 timerExpire, Byte[]& instanceName, Byte[][]& spnBuffer, String serverSPN, Boolean flushCache, Boolean async, Boolean parallel, Boolean isIntegratedSecurity, SqlConnectionIPAddressPreference ipPreference, String cachedFQDN, SQLDNSInfo& pendingDNSInfo, Boolean tlsFirst, String hostNameInCertificate, String serverCertificateFilename)
+   at Microsoft.Data.SqlClient.SNI.TdsParserStateObjectManaged.CreatePhysicalSNIHandle(String serverName, Boolean ignoreSniOpenTimeout, Int64 timerExpire, Byte[]& instanceName, Byte[][]& spnBuffer, Boolean flushCache, Boolean async, Boolean parallel, SqlConnectionIPAddressPreference iPAddressPreference, String cachedFQDN, SQLDNSInfo& pendingDNSInfo, String serverSPN, Boolean isIntegratedSecurity, Boolean tlsFirst, String hostNameInCertificate, String serverCertificateFilename)
+   at Microsoft.Data.SqlClient.TdsParser.Connect(ServerInfo serverInfo, SqlInternalConnectionTds connHandler, Boolean ignoreSniOpenTimeout, Int64 timerExpire, SqlConnectionString connectionOptions, Boolean withFailover)
+   at Microsoft.Data.SqlClient.SqlInternalConnectionTds.AttemptOneLogin(ServerInfo serverInfo, String newPassword, SecureString newSecurePassword, Boolean ignoreSniOpenTimeout, TimeoutTimer timeout, Boolean withFailover)
+   at Microsoft.Data.SqlClient.SqlInternalConnectionTds.LoginNoFailover(ServerInfo serverInfo, String newPassword, SecureString newSecurePassword, Boolean redirectedUserInstance, SqlConnectionString connectionOptions, SqlCredential credential, TimeoutTimer timeout)
+   at Microsoft.Data.SqlClient.SqlInternalConnectionTds.OpenLoginEnlist(TimeoutTimer timeout, SqlConnectionString connectionOptions, SqlCredential credential, String newPassword, SecureString newSecurePassword, Boolean redirectedUserInstance)
+   at Microsoft.Data.SqlClient.SqlInternalConnectionTds..ctor(DbConnectionPoolIdentity identity, SqlConnectionString connectionOptions, SqlCredential credential, Object providerInfo, String newPassword, SecureString newSecurePassword, Boolean redirectedUserInstance, SqlConnectionString userConnectionOptions, SessionData reconnectSessionData, Boolean applyTransientFaultHandling, String accessToken, DbConnectionPool pool)
+   at Microsoft.Data.SqlClient.SqlConnectionFactory.CreateConnection(DbConnectionOptions options, DbConnectionPoolKey poolKey, Object poolGroupProviderInfo, DbConnectionPool pool, DbConnection owningConnection, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.CreatePooledConnection(DbConnectionPool pool, DbConnection owningObject, DbConnectionOptions options, DbConnectionPoolKey poolKey, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionPool.CreateObject(DbConnection owningObject, DbConnectionOptions userOptions, DbConnectionInternal oldConnection)
+   at Microsoft.Data.ProviderBase.DbConnectionPool.UserCreateRequest(DbConnection owningObject, DbConnectionOptions userOptions, DbConnectionInternal oldConnection)
+   at Microsoft.Data.ProviderBase.DbConnectionPool.TryGetConnection(DbConnection owningObject, UInt32 waitForMultipleObjectsTimeout, Boolean allowCreate, Boolean onlyOneCheckConnection, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionPool.TryGetConnection(DbConnection owningObject, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open(SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open()
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerConnection.OpenDbConnection(Boolean errorsExpected)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalConnection.OpenInternal(Boolean errorsExpected)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalConnection.Open(Boolean errorsExpected)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReader(RelationalCommandParameterObject parameterObject)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.Enumerator.InitializeReader(Enumerator enumerator)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.Enumerator.<>c.<MoveNext>b__21_0(DbContext _, Enumerator enumerator)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.Execute[TState,TResult](TState state, Func`3 operation, Func`3 verifySucceeded)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.Enumerator.MoveNext()
+ERROR 2024-07-11 07:21:45 – Clase: GestorInventario.Application.Politicas_Resilencia.PolicyHandler - Mensaje: Error: Cannot connect to SQL Server Browser. Ensure SQL Server Browser has been started.. Se ha ejecutado la acción de fallback.
+ERROR 2024-07-11 07:21:45 – Clase: GestorInventario.Application.Politicas_Resilencia.PolicyHandler - Mensaje: Se ha producido un error. Se está ejecutando la acción de fallback.
+ERROR 2024-07-11 07:21:45 – Clase: GestorInventario.Infraestructure.Controllers.AdminController - Mensaje: Error al visualizar la vista de creacion de usuario
+System.ArgumentNullException: Value cannot be null. (Parameter 'items')
+   at System.ArgumentNullException.Throw(String paramName)
+   at System.ArgumentNullException.ThrowIfNull(Object argument, String paramName)
+   at Microsoft.AspNetCore.Mvc.Rendering.MultiSelectList..ctor(IEnumerable items, String dataValueField, String dataTextField, IEnumerable selectedValues, String dataGroupField)
+   at Microsoft.AspNetCore.Mvc.Rendering.SelectList..ctor(IEnumerable items, String dataValueField, String dataTextField)
+   at GestorInventario.Infraestructure.Controllers.AdminController.Create() in C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\Infraestructure\Controllers\AdminController.cs:line 113
+WARN  2024-07-11 07:42:05 – Clase: Microsoft.AspNetCore.DataProtection.Repositories.FileSystemXmlRepository - Mensaje: Storing keys in a directory '/root/.aspnet/DataProtection-Keys' that may not be persisted outside of the container. Protected data will be unavailable when container is destroyed. For more information go to https://aka.ms/aspnet/dataprotectionwarning
+WARN  2024-07-11 07:42:06 – Clase: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager - Mensaje: No XML encryptor configured. Key {f57b2131-11b2-46d2-88ef-65defb97ab66} may be persisted to storage in unencrypted form.
+INFO  2024-07-11 07:42:08 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://[::]:8080
+INFO  2024-07-11 07:42:08 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://[::]:8081
+INFO  2024-07-11 07:42:08 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-07-11 07:42:08 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-07-11 07:42:08 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: /app
+ERROR 2024-07-11 07:42:20 – Clase: Microsoft.EntityFrameworkCore.Database.Connection - Mensaje: An error occurred using the connection to database 'GestorInventario' on server 'DESKTOP-2TL9C3O\SQLEXPRESS'.
+ERROR 2024-07-11 07:42:21 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: An exception occurred while iterating over the results of a query for context type 'GestorInventario.Domain.Models.GestorInventarioContext'.
+System.Exception: Cannot connect to SQL Server Browser. Ensure SQL Server Browser has been started.
+ ---> System.Net.Sockets.SocketException (00000005, 0xFFFDFFFF): Name or service not known
+   at System.Net.Dns.GetHostEntryOrAddressesCore(String hostName, Boolean justAddresses, AddressFamily addressFamily, Nullable`1 startingTimestamp)
+   at System.Net.Dns.GetHostAddresses(String hostNameOrAddress, AddressFamily family)
+   at Microsoft.Data.SqlClient.SNI.SNICommon.GetDnsIpAddresses(String serverName)
+   at Microsoft.Data.SqlClient.SNI.SSRP.SendUDPRequest(String browserHostname, Int32 port, Byte[] requestPacket, Int64 timerExpire, Boolean allIPsInParallel, SqlConnectionIPAddressPreference ipPreference)
+   at Microsoft.Data.SqlClient.SNI.SSRP.GetPortByInstanceName(String browserHostName, String instanceName, Int64 timerExpire, Boolean allIPsInParallel, SqlConnectionIPAddressPreference ipPreference)
+   --- End of inner exception stack trace ---
+   at Microsoft.Data.SqlClient.SNI.SSRP.GetPortByInstanceName(String browserHostName, String instanceName, Int64 timerExpire, Boolean allIPsInParallel, SqlConnectionIPAddressPreference ipPreference)
+   at Microsoft.Data.SqlClient.SNI.SNIProxy.CreateTcpHandle(DataSource details, Int64 timerExpire, Boolean parallel, SqlConnectionIPAddressPreference ipPreference, String cachedFQDN, SQLDNSInfo& pendingDNSInfo, Boolean tlsFirst, String hostNameInCertificate, String serverCertificateFilename)
+   at Microsoft.Data.SqlClient.SNI.SNIProxy.CreateConnectionHandle(String fullServerName, Boolean ignoreSniOpenTimeout, Int64 timerExpire, Byte[]& instanceName, Byte[][]& spnBuffer, String serverSPN, Boolean flushCache, Boolean async, Boolean parallel, Boolean isIntegratedSecurity, SqlConnectionIPAddressPreference ipPreference, String cachedFQDN, SQLDNSInfo& pendingDNSInfo, Boolean tlsFirst, String hostNameInCertificate, String serverCertificateFilename)
+   at Microsoft.Data.SqlClient.SNI.TdsParserStateObjectManaged.CreatePhysicalSNIHandle(String serverName, Boolean ignoreSniOpenTimeout, Int64 timerExpire, Byte[]& instanceName, Byte[][]& spnBuffer, Boolean flushCache, Boolean async, Boolean parallel, SqlConnectionIPAddressPreference iPAddressPreference, String cachedFQDN, SQLDNSInfo& pendingDNSInfo, String serverSPN, Boolean isIntegratedSecurity, Boolean tlsFirst, String hostNameInCertificate, String serverCertificateFilename)
+   at Microsoft.Data.SqlClient.TdsParser.Connect(ServerInfo serverInfo, SqlInternalConnectionTds connHandler, Boolean ignoreSniOpenTimeout, Int64 timerExpire, SqlConnectionString connectionOptions, Boolean withFailover)
+   at Microsoft.Data.SqlClient.SqlInternalConnectionTds.AttemptOneLogin(ServerInfo serverInfo, String newPassword, SecureString newSecurePassword, Boolean ignoreSniOpenTimeout, TimeoutTimer timeout, Boolean withFailover)
+   at Microsoft.Data.SqlClient.SqlInternalConnectionTds.LoginNoFailover(ServerInfo serverInfo, String newPassword, SecureString newSecurePassword, Boolean redirectedUserInstance, SqlConnectionString connectionOptions, SqlCredential credential, TimeoutTimer timeout)
+   at Microsoft.Data.SqlClient.SqlInternalConnectionTds.OpenLoginEnlist(TimeoutTimer timeout, SqlConnectionString connectionOptions, SqlCredential credential, String newPassword, SecureString newSecurePassword, Boolean redirectedUserInstance)
+   at Microsoft.Data.SqlClient.SqlInternalConnectionTds..ctor(DbConnectionPoolIdentity identity, SqlConnectionString connectionOptions, SqlCredential credential, Object providerInfo, String newPassword, SecureString newSecurePassword, Boolean redirectedUserInstance, SqlConnectionString userConnectionOptions, SessionData reconnectSessionData, Boolean applyTransientFaultHandling, String accessToken, DbConnectionPool pool)
+   at Microsoft.Data.SqlClient.SqlConnectionFactory.CreateConnection(DbConnectionOptions options, DbConnectionPoolKey poolKey, Object poolGroupProviderInfo, DbConnectionPool pool, DbConnection owningConnection, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.CreatePooledConnection(DbConnectionPool pool, DbConnection owningObject, DbConnectionOptions options, DbConnectionPoolKey poolKey, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionPool.CreateObject(DbConnection owningObject, DbConnectionOptions userOptions, DbConnectionInternal oldConnection)
+   at Microsoft.Data.ProviderBase.DbConnectionPool.UserCreateRequest(DbConnection owningObject, DbConnectionOptions userOptions, DbConnectionInternal oldConnection)
+   at Microsoft.Data.ProviderBase.DbConnectionPool.TryGetConnection(DbConnection owningObject, UInt32 waitForMultipleObjectsTimeout, Boolean allowCreate, Boolean onlyOneCheckConnection, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionPool.TryGetConnection(DbConnection owningObject, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open(SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open()
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerConnection.OpenDbConnection(Boolean errorsExpected)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalConnection.OpenInternal(Boolean errorsExpected)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalConnection.Open(Boolean errorsExpected)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReader(RelationalCommandParameterObject parameterObject)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.Enumerator.InitializeReader(Enumerator enumerator)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.Enumerator.<>c.<MoveNext>b__21_0(DbContext _, Enumerator enumerator)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.Execute[TState,TResult](TState state, Func`3 operation, Func`3 verifySucceeded)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.Enumerator.MoveNext()
+System.Exception: Cannot connect to SQL Server Browser. Ensure SQL Server Browser has been started.
+ ---> System.Net.Sockets.SocketException (00000005, 0xFFFDFFFF): Name or service not known
+   at System.Net.Dns.GetHostEntryOrAddressesCore(String hostName, Boolean justAddresses, AddressFamily addressFamily, Nullable`1 startingTimestamp)
+   at System.Net.Dns.GetHostAddresses(String hostNameOrAddress, AddressFamily family)
+   at Microsoft.Data.SqlClient.SNI.SNICommon.GetDnsIpAddresses(String serverName)
+   at Microsoft.Data.SqlClient.SNI.SSRP.SendUDPRequest(String browserHostname, Int32 port, Byte[] requestPacket, Int64 timerExpire, Boolean allIPsInParallel, SqlConnectionIPAddressPreference ipPreference)
+   at Microsoft.Data.SqlClient.SNI.SSRP.GetPortByInstanceName(String browserHostName, String instanceName, Int64 timerExpire, Boolean allIPsInParallel, SqlConnectionIPAddressPreference ipPreference)
+   --- End of inner exception stack trace ---
+   at Microsoft.Data.SqlClient.SNI.SSRP.GetPortByInstanceName(String browserHostName, String instanceName, Int64 timerExpire, Boolean allIPsInParallel, SqlConnectionIPAddressPreference ipPreference)
+   at Microsoft.Data.SqlClient.SNI.SNIProxy.CreateTcpHandle(DataSource details, Int64 timerExpire, Boolean parallel, SqlConnectionIPAddressPreference ipPreference, String cachedFQDN, SQLDNSInfo& pendingDNSInfo, Boolean tlsFirst, String hostNameInCertificate, String serverCertificateFilename)
+   at Microsoft.Data.SqlClient.SNI.SNIProxy.CreateConnectionHandle(String fullServerName, Boolean ignoreSniOpenTimeout, Int64 timerExpire, Byte[]& instanceName, Byte[][]& spnBuffer, String serverSPN, Boolean flushCache, Boolean async, Boolean parallel, Boolean isIntegratedSecurity, SqlConnectionIPAddressPreference ipPreference, String cachedFQDN, SQLDNSInfo& pendingDNSInfo, Boolean tlsFirst, String hostNameInCertificate, String serverCertificateFilename)
+   at Microsoft.Data.SqlClient.SNI.TdsParserStateObjectManaged.CreatePhysicalSNIHandle(String serverName, Boolean ignoreSniOpenTimeout, Int64 timerExpire, Byte[]& instanceName, Byte[][]& spnBuffer, Boolean flushCache, Boolean async, Boolean parallel, SqlConnectionIPAddressPreference iPAddressPreference, String cachedFQDN, SQLDNSInfo& pendingDNSInfo, String serverSPN, Boolean isIntegratedSecurity, Boolean tlsFirst, String hostNameInCertificate, String serverCertificateFilename)
+   at Microsoft.Data.SqlClient.TdsParser.Connect(ServerInfo serverInfo, SqlInternalConnectionTds connHandler, Boolean ignoreSniOpenTimeout, Int64 timerExpire, SqlConnectionString connectionOptions, Boolean withFailover)
+   at Microsoft.Data.SqlClient.SqlInternalConnectionTds.AttemptOneLogin(ServerInfo serverInfo, String newPassword, SecureString newSecurePassword, Boolean ignoreSniOpenTimeout, TimeoutTimer timeout, Boolean withFailover)
+   at Microsoft.Data.SqlClient.SqlInternalConnectionTds.LoginNoFailover(ServerInfo serverInfo, String newPassword, SecureString newSecurePassword, Boolean redirectedUserInstance, SqlConnectionString connectionOptions, SqlCredential credential, TimeoutTimer timeout)
+   at Microsoft.Data.SqlClient.SqlInternalConnectionTds.OpenLoginEnlist(TimeoutTimer timeout, SqlConnectionString connectionOptions, SqlCredential credential, String newPassword, SecureString newSecurePassword, Boolean redirectedUserInstance)
+   at Microsoft.Data.SqlClient.SqlInternalConnectionTds..ctor(DbConnectionPoolIdentity identity, SqlConnectionString connectionOptions, SqlCredential credential, Object providerInfo, String newPassword, SecureString newSecurePassword, Boolean redirectedUserInstance, SqlConnectionString userConnectionOptions, SessionData reconnectSessionData, Boolean applyTransientFaultHandling, String accessToken, DbConnectionPool pool)
+   at Microsoft.Data.SqlClient.SqlConnectionFactory.CreateConnection(DbConnectionOptions options, DbConnectionPoolKey poolKey, Object poolGroupProviderInfo, DbConnectionPool pool, DbConnection owningConnection, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.CreatePooledConnection(DbConnectionPool pool, DbConnection owningObject, DbConnectionOptions options, DbConnectionPoolKey poolKey, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionPool.CreateObject(DbConnection owningObject, DbConnectionOptions userOptions, DbConnectionInternal oldConnection)
+   at Microsoft.Data.ProviderBase.DbConnectionPool.UserCreateRequest(DbConnection owningObject, DbConnectionOptions userOptions, DbConnectionInternal oldConnection)
+   at Microsoft.Data.ProviderBase.DbConnectionPool.TryGetConnection(DbConnection owningObject, UInt32 waitForMultipleObjectsTimeout, Boolean allowCreate, Boolean onlyOneCheckConnection, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionPool.TryGetConnection(DbConnection owningObject, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open(SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open()
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerConnection.OpenDbConnection(Boolean errorsExpected)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalConnection.OpenInternal(Boolean errorsExpected)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalConnection.Open(Boolean errorsExpected)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReader(RelationalCommandParameterObject parameterObject)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.Enumerator.InitializeReader(Enumerator enumerator)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.Enumerator.<>c.<MoveNext>b__21_0(DbContext _, Enumerator enumerator)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.Execute[TState,TResult](TState state, Func`3 operation, Func`3 verifySucceeded)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.Enumerator.MoveNext()
+INFO  2024-07-11 09:59:13 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-07-11 09:59:13 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-07-11 09:59:13 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-07-11 09:59:13 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-07-11 09:59:13 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-07-11 09:59:48 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (1,256ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-07-11 09:59:48 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (19ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+INFO  2024-07-11 09:59:50 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (58ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Usuarios] AS [u]
+WARN  2024-07-11 09:59:50 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-07-11 09:59:50 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-07-11 09:59:50 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (97ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[BajaUsuario], [t].[ConfirmacionEmail], [t].[Direccion], [t].[Email], [t].[EnlaceCambioPass], [t].[FechaEnlaceCambioPass], [t].[FechaExpiracionContrasenaTemporal], [t].[FechaNacimiento], [t].[FechaRegistro], [t].[IdRol], [t].[NombreCompleto], [t].[Password], [t].[Salt], [t].[Telefono], [t].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM (
+    SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+    FROM [Usuarios] AS [u]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+INNER JOIN [Roles] AS [r] ON [t].[IdRol] = [r].[Id]
+INFO  2024-07-11 09:59:50 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-07-11 09:59:52 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (59ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Proveedores] AS [p]
+WARN  2024-07-11 09:59:52 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-07-11 09:59:52 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-07-11 09:59:52 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (8ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[Contacto], [p].[Direccion], [p].[NombreProveedor]
+FROM [Proveedores] AS [p]
+ORDER BY (SELECT 1)
+OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+INFO  2024-07-11 10:06:44 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-07-11 10:06:44 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-07-11 10:06:44 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-07-11 10:06:44 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-07-11 10:06:44 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-07-11 10:06:51 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (41ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-07-11 10:07:26 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (78ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-07-11 10:07:26 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+INFO  2024-07-11 10:07:28 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Usuarios] AS [u]
+WARN  2024-07-11 10:07:29 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-07-11 10:07:29 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-07-11 10:07:29 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[BajaUsuario], [t].[ConfirmacionEmail], [t].[Direccion], [t].[Email], [t].[EnlaceCambioPass], [t].[FechaEnlaceCambioPass], [t].[FechaExpiracionContrasenaTemporal], [t].[FechaNacimiento], [t].[FechaRegistro], [t].[IdRol], [t].[NombreCompleto], [t].[Password], [t].[Salt], [t].[Telefono], [t].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM (
+    SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+    FROM [Usuarios] AS [u]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+INNER JOIN [Roles] AS [r] ON [t].[IdRol] = [r].[Id]
+INFO  2024-07-11 10:07:29 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-07-11 10:07:29 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Proveedores] AS [p]
+WARN  2024-07-11 10:07:29 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-07-11 10:07:29 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-07-11 10:07:29 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[Contacto], [p].[Direccion], [p].[NombreProveedor]
+FROM [Proveedores] AS [p]
+ORDER BY (SELECT 1)
+OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+INFO  2024-07-11 10:07:33 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (16ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [p].[Id], [p].[Contacto], [p].[Direccion], [p].[NombreProveedor]
+FROM [Proveedores] AS [p]
+WHERE [p].[Id] = @__id_0
+INFO  2024-07-11 10:07:36 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[@__model_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [p].[Id], [p].[Contacto], [p].[Direccion], [p].[NombreProveedor]
+FROM [Proveedores] AS [p]
+WHERE [p].[Id] = @__model_Id_0
+INFO  2024-07-11 10:07:37 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (99ms) [Parameters=[@p3='?' (DbType = Int32), @p0='?' (Size = 100) (DbType = AnsiString), @p1='?' (Size = 100) (DbType = AnsiString), @p2='?' (Size = 100) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Proveedores] SET [Contacto] = @p0, [Direccion] = @p1, [NombreProveedor] = @p2
+OUTPUT 1
+WHERE [Id] = @p3;
+INFO  2024-07-11 10:07:37 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Proveedores] AS [p]
+INFO  2024-07-11 10:07:37 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[Contacto], [p].[Direccion], [p].[NombreProveedor]
+FROM [Proveedores] AS [p]
+ORDER BY (SELECT 1)
+OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
