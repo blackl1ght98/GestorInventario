@@ -58,7 +58,7 @@
         <li>Flexibilidad en la Autenticación: Los usuarios pueden cambiar entre los modos de autenticación de manera efectiva comentando y descomentando el código correspondiente.</li>
     </ul>
 <h2>Novedades</h2>
-    *Docker
-    *Redis
+   <p>Docker</p>
+    <p>Redis</p>
 </body>
 </html>
