@@ -1,0 +1,5 @@
+INFO  2024-05-02 18:58:01 – Clase: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager - Mensaje: User profile is available. Using 'C:\Users\guill\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+INFO  2024-05-02 18:58:01 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5000
+INFO  2024-05-02 18:58:01 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-05-02 18:58:01 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Production
+INFO  2024-05-02 18:58:01 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario
