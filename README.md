@@ -20,7 +20,7 @@
     - <strong>NOMBREPROYECTO</strong>: El nombre que tenga nuestro proyecto en visual studio.</p>
     <h2>Administrar secretos de usuario</h2>
     <p>Dentro de Visual Studio 2022 hacemos clic derecho en el proyecto nos vamos a donde dice <strong>Administrar secretos de usuario</strong>. Dentro de ese archivo ponemos los valores:</p>
-    <pre><code>
+    <code>
          "Redis": {
    "ConnectionString": "redis:6379"
  },
@@ -31,8 +31,8 @@
         "PrivateKey":""
     },
     "ClaveJWT":"",
-   
-    </code></pre>
+   </code>
+    
 <p>El valor de <strong>JwtIssuer: </strong>puede ser este GestorInvetarioEjemplo u otro este es un valor de ejemplo</p>
 <p>El valor de <strong>JwtAudience:</strong> puede ser este GestorInventarioCliente u otro este es un valor de ejemplo</p>
 <p>Los valores de <strong>PublicKey y PrivateKey</strong> dejare en este mismo respositorio el codigo necesario para obtener estos valores</p>
