@@ -20,22 +20,29 @@
     - <strong>NOMBREPROYECTO</strong>: El nombre que tenga nuestro proyecto en visual studio.</p>
     <h2>Administrar secretos de usuario</h2>
     <p>Dentro de Visual Studio 2022 hacemos clic derecho en el proyecto nos vamos a donde dice <strong>Administrar secretos de usuario</strong>. Dentro de ese archivo ponemos los valores:</p>
-    <pre><code>{
-  "ConnectionStrings": {
-    "CONNECTION_STRING": "Data Source=NOMBRESERVIDORBASEDEDATOS--;Initial Catalog=GestorInventario;Integrated Security=True;TrustServerCertificate=True"
-  },
-  "ClaveEncriptacion": "",
-  "ClaveJWT": "",
-  "JwtIssuer": "",
-  "JwtAudience": "",
-  "Jwt": {
-    "PrivateKey": "",
-    "PublicKey": ""
-  }
-}</code></pre>
-    <p><strong>IMPORTANTE</strong>: Las claves de encriptación y JWT tienen que ser largas, mínimo 38 dígitos para que no de fallo. Para obtener la clave privada y pública he dejado en el repositorio un archivo con el código llamado generarpardeclaves. Este código lo ejecutan en una aplicación de consola para que puedan ver las claves, las copian y pegan. Luejo <strong>JwtIssuer y JwtAudience </strong> aqui pueden colocar por ejemplo en JwtIssuer: <strong>EjemploEmisorApp</strong> y en <strong>JwtAudience</strong>
-pueden poner EjemploReceptorApp.</p> 
-    <p>Una vez hecho todo esto, el proyecto debería arrancar sin problemas.</p>
+    <pre><code>
+         "Redis": {
+   "ConnectionString": "redis:6379"
+ },
+    "JwtIssuer":"",
+   "JwtAudience":"",
+    "JWT":{
+        "PublicKey":"",
+        "PrivateKey":""
+    },
+    "ClaveJWT":"",
+   
+    </code></pre>
+<p>El valor de <strong>JwtIssuer: </strong>puede ser este GestorInvetarioEjemplo u otro este es un valor de ejemplo</p>
+<p>El valor de <strong>JwtAudience:</strong> puede ser este GestorInventarioCliente u otro este es un valor de ejemplo</p>
+<p>Los valores de <strong>PublicKey y PrivateKey</strong> dejare en este mismo respositorio el codigo necesario para obtener estos valores</p>
+<p>El valor de <strong>ClaveJWT</strong> tiene que ser un valor largo ya que es el valor que se usa para cifrar y descifrar minimo una logitud de 38 digitos</p>
+<h2>Generar certificado https</h2>
+<code> dotnet dev-certs https -ep C:\Users\guill\.aspnet\https\aspnetapp.pfx -p password</code>
+<p>La ruta la tendran que adaptar a como tengan el nombre de usuario en el pc</p>
+<p>Para confiar en el certificado se usa el comando: <code>dotnet dev-certs https --trust</code></p>
+<h2>Establecer las variables de entorno</h2>
+<p>Ejecutar el archivo SetEnvironmentVariables.ps1 con el comando: <code>./SetEnvironmentVariables.ps1</code> </p>
 <h2>Características con las que cuenta el proyecto</h2>
     <p>El proyecto Gestor Inventario ofrece una amplia gama de características para gestionar eficientemente el inventario:</p>
     <ul>
