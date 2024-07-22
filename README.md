@@ -57,5 +57,8 @@
         <li>Restablecimiento de Contraseña: Los usuarios pueden restablecer su contraseña a través del panel de administrador. Se envía un correo electrónico al usuario seleccionado con una contraseña temporal y un enlace para cambiarla.</li>
         <li>Flexibilidad en la Autenticación: Los usuarios pueden cambiar entre los modos de autenticación de manera efectiva comentando y descomentando el código correspondiente.</li>
     </ul>
+<h2>Novedades</h2>
+    *Docker
+    *Redis
 </body>
 </html>
