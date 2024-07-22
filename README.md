@@ -35,7 +35,7 @@
     </pre>
 <p>El valor de <strong>JwtIssuer: </strong>puede ser este GestorInvetarioEjemplo u otro este es un valor de ejemplo</p>
 <p>El valor de <strong>JwtAudience:</strong> puede ser este GestorInventarioCliente u otro este es un valor de ejemplo</p>
-<p>Los valores de <strong>PublicKey y PrivateKey</strong> dejare en este mismo respositorio el codigo necesario para obtener estos valores</p>
+<p>Los valores de <strong>PublicKey y PrivateKey</strong> dejare en este mismo respositorio el codigo necesario para obtener estos valores, esta en la carpeta llamada GeneracionClaves</p>
 <p>El valor de <strong>ClaveJWT</strong> tiene que ser un valor largo ya que es el valor que se usa para cifrar y descifrar minimo una logitud de 38 digitos</p>
 <h2>Generar certificado https</h2>
 <pre><code> dotnet dev-certs https -ep C:\Users\guill\.aspnet\https\aspnetapp.pfx -p password</code></pre>
