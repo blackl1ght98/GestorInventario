@@ -1,9 +1,0 @@
-$secretJsonPath = "C:\Users\guill\AppData\Roaming\Microsoft\UserSecrets\1e6d9d2a-9d51-467e-b611-b6db2e3b055e\secrets.json"
-$secrets = Get-Content $secretJsonPath | ConvertFrom-Json
-$env:ClaveJWT=$secrets.ClaveJWT
-$env:REDIS_CONNECTION_STRING=$secrets.Redis.ConnectionString
-$env:JwtIssuer=$secrets.JwtIssuer
-$env:JwtAudience=$secrets.JwtAudience
-$env:ClaveEncriptacion=$secrets.ClaveEncriptacion
-$env:PublicKey=$secrets.JWT.PublicKey
-$env:PrivateKey=$secrets.JWT.PrivateKey
