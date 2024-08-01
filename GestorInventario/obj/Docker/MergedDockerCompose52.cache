@@ -1,0 +1,86 @@
+name: dockercompose3658952660992744161
+services:
+  gestorinventario:
+    build:
+      context: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario
+      dockerfile: GestorInventario/Dockerfile
+    container_name: gestor-inventario
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: "8080"
+      ASPNETCORE_HTTPS_PORTS: "8081"
+      ASPNETCORE_Kestrel__Certificates__Default__Password: password
+      ASPNETCORE_Kestrel__Certificates__Default__Path: /https/aspnetapp.pfx
+      ClaveJWT: ""
+      DB_HOST: SQL-Server-Local
+      DB_NAME: GestorInventario
+      DB_SA_PASSWORD: SQL#1234
+      IS_DOCKER: "true"
+      JWT_PrivateKey: ""
+      JWT_PublicKey: ""
+      JwtAudience: ""
+      JwtIssuer: ""
+      REDIS_CONNECTION_STRING: ""
+      USE_REDIS: "true"
+    image: gestorinventario
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 8080
+        published: "28907"
+        protocol: tcp
+      - mode: ingress
+        target: 8080
+        published: "8080"
+        protocol: tcp
+      - mode: ingress
+        target: 8081
+        published: "8081"
+        protocol: tcp
+      - mode: ingress
+        target: 8081
+        published: "28908"
+        protocol: tcp
+      - mode: ingress
+        target: 8080
+        protocol: tcp
+      - mode: ingress
+        target: 8081
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: /c/Users/guill/.aspnet/https
+        target: /https
+        read_only: true
+        bind:
+          create_host_path: true
+      - type: volume
+        source: appdata
+        target: /app/data
+        volume: {}
+  redis:
+    container_name: redis
+    image: redis:latest
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 6379
+        published: "6379"
+        protocol: tcp
+    volumes:
+      - type: volume
+        source: redisdata
+        target: /data
+        volume: {}
+networks:
+  default:
+    name: dockercompose3658952660992744161_default
+volumes:
+  appdata:
+    name: dockercompose3658952660992744161_appdata
+    driver: local
+  redisdata:
+    name: dockercompose3658952660992744161_redisdata
+    driver: local

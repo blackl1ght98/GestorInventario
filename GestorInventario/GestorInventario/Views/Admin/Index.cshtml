@@ -1,0 +1,133 @@
+﻿@model List<Usuario>
+@using GestorInventario.PaginacionLogica
+@using Microsoft.AspNetCore.Mvc.Rendering
+<html>
+<head>
+    <style>
+        .container {
+            text-align: center !important;
+            margin-left: 1rem;
+        }
+
+        .btn-group > .btn {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+@{
+    var paginas = ViewBag.Paginas as List<PaginasModel>;
+}
+<body>
+    
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-warning">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+    <form asp-controller="Admin" asp-action="Index">
+        <p>
+            Buscar: <input type="text" name="buscar" class="form-text" />
+            <input type="submit" value="Buscar" class="btn btn-sm btn-dark" />
+        </p>
+    </form>
+    <div class="container-fluid  mr-sm-0 mrl-5 me-n5">
+        <h1 class="text-left">Usuarios</h1>
+        <p class="text-left">
+            <a asp-action="Create" class="btn btn-info">Crear</a>
+        </p>
+        <div class="table">
+            <table class="table table-striped table-bordered w-100">
+                <thead>
+                    <tr>
+                        <th class="col-2">Nombre Completo</th>
+                        <th class="col-2">Email</th>
+
+
+                        <th class="col-2">FechaRegistro</th>
+
+                        <th class="col-2"> Rol</th>
+                        <th class="col-2">Baja Usuario</th>
+                        <th class="col-2" colspan="3">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var user in Model)
+                        {
+                            <tr>
+                                <td>@Html.DisplayFor(m => user.NombreCompleto)</td>
+                                <td>@Html.DisplayFor(m => user.Email)</td>
+
+
+                                <td>@Html.DisplayFor(m => user.FechaRegistro)</td>
+
+
+                            
+                                <td> @Html.DisplayFor(m => user.IdRolNavigation.Nombre)</td>
+                                <td>@(user.BajaUsuario ? "Baja" : "Alta")</td>
+
+                              
+
+
+                                <td>
+                                    <div class="btn-group" role="group" aria-label="Acciones">
+                                        <a asp-action="Delete" asp-route-id="@user.Id" class="btn btn-danger">Eliminar</a>
+                                        <a asp-action="AltaUsuario" asp-route-id="@user.Id" class="btn btn-warning">Alta</a>
+                                        <a asp-action="BajaUsuario" asp-route-id="@user.Id" class="btn btn-danger">Baja</a>
+                                        <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-warning">Actualizar</a>
+                                        <a asp-action="ResetPassword" asp-controller="Auth" asp-route-email="@user.Email" class="btn btn-warning">Recuperar contraseña</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="9">No hay usuarios para mostrar.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+        </div>
+
+       
+    </div>
+    <nav aria-label="Page navigation example">
+        <ul class="pagination justify-content-center">
+            @foreach (var pagina in paginas!)
+            {
+                <li class="page-item @(pagina.Habilitada ? null : "disabled") @(pagina.Activa ? "active" : null)">
+                    <a class="page-link" href="@Url.Action("Index", new { Pagina = pagina.Pagina, buscar = ViewData["Buscar"] })">@pagina.Texto</a>
+                </li>
+            }
+        </ul>
+    </nav>
+    @section Scripts {
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script>
+            /*
+                Cuando queremos manipular el comportamiento de una petición al servidor, podemos usar AJAX de jQuery para cambiarlo.
+
+                Primero, declaramos una función 'bajaUsuario' con el parámetro 'userId'.
+                Dentro de esta función, usamos ' $.ajax({});' para cambiar el comportamiento de la petición.
+
+                Configuramos el tipo de petición como 'POST', la URL a la que se envía ('/Admin/BajaUsuario'),
+                y los datos que necesita (id del usuario).
+
+                Si la solicitud es exitosa, llamamos a 'actualizarTablaUsuarios()', que hace una nueva solicitud AJAX para obtener
+                la tabla de usuarios actualizada desde el servidor y reemplaza el contenido del div 'usuariosTable' con los nuevos datos.
+
+                La razón para colocar el script en la vista principal en lugar de la vista parcial es que la vista parcial solo contiene
+                la tabla de datos y puede ser reutilizada. El script maneja la lógica de actualización y se ejecuta en la vista principal,
+                donde se integra la vista parcial.
+                */
+            
+          
+        </script>
+    }
+</body>
+</html>

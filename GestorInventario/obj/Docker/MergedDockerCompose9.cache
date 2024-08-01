@@ -1,0 +1,61 @@
+name: dockercompose3658952660992744161
+services:
+  gestorInventariodb:
+    container_name: app-db
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: P@ssw0rd12345
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    networks:
+      gestorInventarionetwork: null
+    ports:
+      - mode: ingress
+        target: 1433
+        published: "8002"
+        protocol: tcp
+  gestorinventario:
+    build:
+      context: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario
+      dockerfile: GestorInventario/Dockerfile
+    container_name: gestor-inventario
+    depends_on:
+      gestorInventariodb:
+        condition: service_started
+        required: true
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: "8080"
+      ASPNETCORE_HTTPS_PORTS: "8081"
+      DB_HOST: gestorInventariodb
+      DB_NAME: GestorInventario
+      DB_SA_PASSWORD: P@ssw0rd12345
+    image: gestorinventario
+    networks:
+      gestorInventarionetwork: null
+    ports:
+      - mode: ingress
+        target: 80
+        published: "8001"
+        protocol: tcp
+      - mode: ingress
+        target: 8080
+        protocol: tcp
+      - mode: ingress
+        target: 8081
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: C:\Users\guill\AppData\Roaming/Microsoft/UserSecrets
+        target: /home/app/.microsoft/usersecrets
+        read_only: true
+        bind:
+          create_host_path: true
+      - type: bind
+        source: C:\Users\guill\AppData\Roaming/ASP.NET/Https
+        target: /home/app/.aspnet/https
+        read_only: true
+        bind:
+          create_host_path: true
+networks:
+  gestorInventarionetwork:
+    name: dockercompose3658952660992744161_gestorInventarionetwork

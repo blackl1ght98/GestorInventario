@@ -1,0 +1,68 @@
+INFO  2024-07-09 13:57:11 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-07-09 13:57:11 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-07-09 13:57:11 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-07-09 13:57:11 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-07-09 13:57:11 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+ERROR 2024-07-09 17:15:31 – Clase: Microsoft.Extensions.Hosting.Internal.Host - Mensaje: Hosting failed to start
+System.IO.IOException: Failed to bind to address http://[::]:5024: address already in use.
+ ---> Microsoft.AspNetCore.Connections.AddressInUseException: Solo se permite un uso de cada dirección de socket (protocolo/dirección de red/puerto)
+ ---> System.Net.Sockets.SocketException (10048): Solo se permite un uso de cada dirección de socket (protocolo/dirección de red/puerto)
+   at System.Net.Sockets.Socket.UpdateStatusAfterSocketErrorAndThrowException(SocketError error, Boolean disconnectOnFailure, String callerName)
+   at System.Net.Sockets.Socket.DoBind(EndPoint endPointSnapshot, SocketAddress socketAddress)
+   at System.Net.Sockets.Socket.Bind(EndPoint localEP)
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketTransportOptions.CreateDefaultBoundListenSocket(EndPoint endpoint)
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketConnectionListener.Bind()
+   --- End of inner exception stack trace ---
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketConnectionListener.Bind()
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketTransportFactory.BindAsync(EndPoint endpoint, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure.TransportManager.BindAsync(EndPoint endPoint, ConnectionDelegate connectionDelegate, EndpointConfig endpointConfig, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.<>c__DisplayClass28_0`1.<<StartAsync>g__OnBind|0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindEndpointAsync(ListenOptions endpoint, AddressBindContext context, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindEndpointAsync(ListenOptions endpoint, AddressBindContext context, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.ListenOptions.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.AnyIPListenOptions.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.AddressesStrategy.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindAsync(ListenOptions[] listenOptions, AddressBindContext context, Func`2 useHttps, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.BindAsync(CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.StartAsync[TContext](IHttpApplication`1 application, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Hosting.GenericWebHostService.StartAsync(CancellationToken cancellationToken)
+   at Microsoft.Extensions.Hosting.Internal.Host.<StartAsync>b__15_1(IHostedService service, CancellationToken token)
+   at Microsoft.Extensions.Hosting.Internal.Host.ForeachService[T](IEnumerable`1 services, CancellationToken token, Boolean concurrent, Boolean abortOnFirstException, List`1 exceptions, Func`3 operation)
+INFO  2024-07-09 17:17:16 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://[::]:5024
+INFO  2024-07-09 17:17:16 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-07-09 17:17:16 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-07-09 17:17:16 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-07-09 17:17:49 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://[::]:5024
+INFO  2024-07-09 17:17:49 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-07-09 17:17:49 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-07-09 17:17:49 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-07-09 17:18:35 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-07-09 17:18:35 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-07-09 17:18:35 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-07-09 17:18:35 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-07-09 17:18:35 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-07-09 17:19:15 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://[::]:7056
+INFO  2024-07-09 17:19:15 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-07-09 17:19:15 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-07-09 17:19:15 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-07-09 17:19:45 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://[::]:5024
+INFO  2024-07-09 17:19:45 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-07-09 17:19:45 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-07-09 17:19:45 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+WARN  2024-07-09 17:19:50 – Clase: Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware - Mensaje: Failed to determine the https port for redirect.
+INFO  2024-07-09 17:20:34 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (1,160ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-07-09 17:20:34 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (44ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+INFO  2024-07-09 17:21:07 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-07-09 17:21:07 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-07-09 17:21:07 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-07-09 17:21:07 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+WARN  2024-07-09 17:21:08 – Clase: Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware - Mensaje: Failed to determine the https port for redirect.
