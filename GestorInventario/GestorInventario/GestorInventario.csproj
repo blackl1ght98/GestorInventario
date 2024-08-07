@@ -10,10 +10,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <_ContentIncludedByDefault Remove="secretos.json" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Aspose.PDF" Version="24.5.1" />
     <PackageReference Include="MailKit" Version="4.6.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />

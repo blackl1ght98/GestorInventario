@@ -1,7 +1,7 @@
 ﻿@model List<Usuario>
 @using GestorInventario.PaginacionLogica
 @using Microsoft.AspNetCore.Mvc.Rendering
-<html>
+@* <html>
 <head>
     <style>
         .container {
@@ -42,10 +42,7 @@
                     <tr>
                         <th class="col-2">Nombre Completo</th>
                         <th class="col-2">Email</th>
-
-
                         <th class="col-2">FechaRegistro</th>
-
                         <th class="col-2"> Rol</th>
                         <th class="col-2">Baja Usuario</th>
                         <th class="col-2" colspan="3">Acciones</th>
@@ -59,18 +56,9 @@
                             <tr>
                                 <td>@Html.DisplayFor(m => user.NombreCompleto)</td>
                                 <td>@Html.DisplayFor(m => user.Email)</td>
-
-
                                 <td>@Html.DisplayFor(m => user.FechaRegistro)</td>
-
-
-                            
                                 <td> @Html.DisplayFor(m => user.IdRolNavigation.Nombre)</td>
                                 <td>@(user.BajaUsuario ? "Baja" : "Alta")</td>
-
-                              
-
-
                                 <td>
                                     <div class="btn-group" role="group" aria-label="Acciones">
                                         <a asp-action="Delete" asp-route-id="@user.Id" class="btn btn-danger">Eliminar</a>
@@ -92,9 +80,7 @@
                 </tbody>
             </table>
 
-        </div>
-
-       
+        </div>      
     </div>
     <nav aria-label="Page navigation example">
         <ul class="pagination justify-content-center">
@@ -107,27 +93,202 @@
         </ul>
     </nav>
     @section Scripts {
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <script>
-            /*
-                Cuando queremos manipular el comportamiento de una petición al servidor, podemos usar AJAX de jQuery para cambiarlo.
-
-                Primero, declaramos una función 'bajaUsuario' con el parámetro 'userId'.
-                Dentro de esta función, usamos ' $.ajax({});' para cambiar el comportamiento de la petición.
-
-                Configuramos el tipo de petición como 'POST', la URL a la que se envía ('/Admin/BajaUsuario'),
-                y los datos que necesita (id del usuario).
-
-                Si la solicitud es exitosa, llamamos a 'actualizarTablaUsuarios()', que hace una nueva solicitud AJAX para obtener
-                la tabla de usuarios actualizada desde el servidor y reemplaza el contenido del div 'usuariosTable' con los nuevos datos.
-
-                La razón para colocar el script en la vista principal en lugar de la vista parcial es que la vista parcial solo contiene
-                la tabla de datos y puede ser reutilizada. El script maneja la lógica de actualización y se ejecuta en la vista principal,
-                donde se integra la vista parcial.
-                */
-            
-          
-        </script>
+        
     }
 </body>
-</html>
+</html> *@
+<div class="container-fluid">
+    <h1 class="text-left">Usuarios</h1>
+    <p class="text-left">
+        <a asp-action="Create" class="btn btn-info">Crear</a>
+    </p>
+    @{
+        var paginas = ViewBag.Paginas as List<PaginasModel>;
+    }
+    <div class="table">
+        <table class="table table-striped table-bordered w-100">
+            <thead>
+                <tr>
+                    <th class="col-2">Nombre Completo</th>
+                    <th class="col-2">Email</th>
+                    <th class="col-2">FechaRegistro</th>
+                    <th class="col-2">Rol</th>
+                    <th class="col-2">Baja Usuario</th>
+                    <th class="col-2">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model)
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(m => user.NombreCompleto)</td>
+                        <td>@Html.DisplayFor(m => user.Email)</td>
+                        <td>@Html.DisplayFor(m => user.FechaRegistro)</td>
+                        <td>@Html.DisplayFor(m => user.IdRolNavigation.Nombre)</td>
+                        <td>@(user.BajaUsuario ? "Baja" : "Alta")</td>
+                       
+                        <td>
+                            <div class="btn-group" role="group" aria-label="Acciones">
+                                <a asp-action="Delete" asp-route-id="@user.Id" class="btn btn-danger mt-2">Eliminar</a>
+                                @* <a asp-action="AltaUsuario" asp-route-id="@user.Id" class="btn btn-warning">Alta</a>
+                                <a asp-action="BajaUsuario" asp-route-id="@user.Id" class="btn btn-danger">Baja</a> *@
+                                @*Con data-target="#confirmModal" Especifica el ID del modal que se abrirá cuando se haga clic en el botón. En este caso, el modal tiene el ID #confirmModal. *@
+                                @*data-toggle="modal": Indica a Bootstrap que este botón debe activar un modal cuando se haga clic en él.*@
+                                @*Evento de clic: El evento de clic activa el comportamiento definido por data-toggle="modal".
+
+                                Atributo data-target: Bootstrap busca el modal cuyo ID coincida con el valor de data-target (#confirmModal en este caso). 
+                                Esto es parte del funcionamiento estándar de Bootstrap.
+
+                                Mostrar el Modal: Bootstrap automáticamente muestra el modal especificado. Esto implica que el evento show.bs.modal es disparado.*@
+                                <button type="button" class="btn btn-warning mt-2"
+                                        data-toggle="modal" data-target="#confirmModal"
+                                        data-user-id="@user.Id"
+                                        data-user-action="@((user.BajaUsuario) ? "Alta" : "Baja")">
+                                    @(user.BajaUsuario ? "Reactivar" : "Desactivar")
+                                </button>
+                                <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-warning mt-2">Actualizar</a>
+                                <a asp-action="ResetPassword" asp-controller="Auth" asp-route-email="@user.Email" class="btn btn-warning mt-2">Recuperar contraseña</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<nav aria-label="Page navigation example">
+    <ul class="pagination justify-content-center">
+        @foreach (var pagina in paginas!)
+        {
+            <li class="page-item @(pagina.Habilitada ? null : "disabled") @(pagina.Activa ? "active" : null)">
+                <a class="page-link" href="@Url.Action("Index", new { Pagina = pagina.Pagina, buscar = ViewData["Buscar"] })">@pagina.Texto</a>
+            </li>
+        }
+    </ul>
+</nav>
+<!-- Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Confirmación</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">¿Estás seguro de que deseas realizar esta acción?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmActionBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <!-- Para más detalles, ir a la carpeta teoria->Explicacion_JQuery_Script.md -->
+    <!-- Incluimos las librerías de jQuery y Bootstrap necesarias para el funcionamiento del modal -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+
+
+   
+    <script>
+        /*
+        Cuando el DOM está completamente cargado se ejecuta esta función $(document).ready(function () {}).
+        $(document).ready() es una función de jQuery que asegura que el código dentro de ella se ejecute
+        solo después de que todos los elementos del DOM estén disponibles. Esto previene errores que pueden
+        ocurrir si intentamos manipular elementos que aún no han sido cargados.
+        $(document) selecciona el objeto document del DOM.
+        */
+        $(document).ready(function () {
+            /* Declaración de variables:
+            `userId` almacena la ID del usuario sobre el cual se realizará la acción.
+            `actionType` almacena el tipo de acción a realizar, ya sea "Alta" o "Baja".
+            */
+            var userId, actionType;
+
+            /*
+            La constante '$' selecciona un elemento en el DOM. Aquí, $('#confirmModal') selecciona el elemento
+            con el ID 'confirmModal'. Luego, se añade un manejador de eventos con el método .on() de jQuery.
+            El evento 'show.bs.modal' es un evento de Bootstrap que se dispara cuando el modal está a punto de mostrarse.
+            La función proporcionada como segundo argumento se ejecuta en ese momento y recibe el objeto event.
+            */
+            $('#confirmModal').on('show.bs.modal', function (event) {
+                /*
+                $(event.relatedTarget) selecciona el botón que fue clicado para abrir el modal.
+                Esto nos permite acceder a los datos asociados con ese botón. Los atributos data-*
+                (como data-user-id y data-user-action) se utilizan para almacenar información personalizada.
+                La función .data('user-id') extrae el valor de data-user-id del botón.
+                */
+                var button = $(event.relatedTarget);
+
+                // Extrae la ID del usuario del atributo `data-user-id` del botón.
+                userId = button.data('user-id');
+
+                // Extrae el tipo de acción del atributo `data-user-action` del botón (puede ser "Alta" o "Baja").
+                actionType = button.data('user-action');
+
+                // Hace referencia al modal actual que se está mostrando.
+                var modal = $(this);
+
+                // Define el texto de la acción en función del tipo de acción ("Alta" o "Baja").
+                // Si actionType es "Alta", entonces actionText es "reactivar"; de lo contrario, es "desactivar".
+                var actionText = actionType === 'Alta' ? 'reactivar' : 'desactivar';
+
+                // Cambia el texto del título del modal a "Confirmación".
+                modal.find('.modal-title').text('Confirmación');
+
+                // Cambia el mensaje dentro del modal para reflejar la acción que se realizará y el ID del usuario.
+                modal.find('#confirmMessage').text(`¿Estás seguro de que deseas ${actionText} al usuario con ID ${userId}?`);
+            });
+
+            /*
+            Aquí, se añade un manejador de eventos click al botón con ID #confirmActionBtn.
+            Cuando se hace clic en este botón, se ejecuta la función proporcionada.
+            */
+            $('#confirmActionBtn').click(function () {
+                // Cierra el modal.
+                $('#confirmModal').modal('hide');
+
+                // Dependiendo del tipo de acción (valor de actionType), llama a la función `cambiarEstadoUsuario`
+                // con la acción apropiada ("AltaUsuarioPost" o "BajaUsuarioPost").
+                if (actionType === 'Alta') {
+                    cambiarEstadoUsuario(userId, "AltaUsuarioPost");
+                } else {
+                    cambiarEstadoUsuario(userId, "BajaUsuarioPost");
+                }
+            });
+
+            // Función para cambiar el estado de un usuario, ya sea a través de un alta o una baja.
+            // Se realiza una petición AJAX para comunicar la acción al servidor.
+            function cambiarEstadoUsuario(id, action) {
+                // `$.ajax` es una función de jQuery que realiza una solicitud AJAX.
+                // Se configura para realizar una petición POST a la URL `/Admin/{action}`.
+                $.ajax({
+                    type: "POST", // Especifica que la solicitud será de tipo POST.
+                    url: `/Admin/${action}`, // URL del servidor a la que se enviará la solicitud, con la acción específica (AltaUsuarioPost o BajaUsuarioPost).
+                    data: { id: id }, // Datos que se envían con la solicitud, en este caso, el ID del usuario.
+                    success: function (response) {
+                        // Si la solicitud es exitosa y la respuesta del servidor indica éxito,
+                        // recarga la página para reflejar los cambios.
+                        if (response.success) {
+                            location.reload(); // Recarga la página actual.
+                        } else {
+                            // Si hubo un error en la solicitud, muestra un mensaje de alerta con el mensaje de error.
+                            alert(response.errorMessage);
+                        }
+                    },
+                    error: function () {
+                        // Si ocurre un error en la solicitud AJAX (como problemas de red o un error del servidor),
+                        // se registra un mensaje de error en la consola.
+                        console.log('Error al procesar la solicitud');
+                    }
+                });
+            }
+        });
+    </script>
+
+
+}

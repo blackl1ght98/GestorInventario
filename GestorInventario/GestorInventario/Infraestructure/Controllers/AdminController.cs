@@ -447,58 +447,85 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-        public async Task<IActionResult> BajaUsuario(int id)
-        {
-            var user = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == id);
-            if (user == null)
-            {
-                // Manejo del caso en el que el usuario no se encuentra
-                return NotFound();
-            }
-            return View(user);
-        }
+        //public async Task<IActionResult> BajaUsuario(int id)
+        //{
+        //    var user = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == id);
+        //    if (user == null)
+        //    {
+        //        // Manejo del caso en el que el usuario no se encuentra
+        //        return NotFound();
+        //    }
+        //    return View(user);
+        //}
+        //[HttpPost]
+        //public async Task<IActionResult> BajaUsuarioPost(int id)
+        //{
+
+        //    var (success, errorMessage) = await ExecutePolicyAsync(() => _adminrepository.BajaUsuario(id));
+        //    if (success)
+        //    {
+
+        //        return RedirectToAction("Index"); 
+        //    }
+        //    else
+        //    {
+
+        //        return Json(new { success, errorMessage });
+        //    }
+        //}
+        //public async Task<IActionResult> AltaUsuario(int id)
+        //{
+
+        //    var user = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == id);
+        //    if (user == null)
+        //    {
+
+        //        return NotFound();
+        //    }
+        //    return View(user);
+        //}
+
+        //[HttpPost]
+        //public async Task<IActionResult> AltaUsuarioPost(int id)
+        //{
+
+        //    var (success, errorMessage) = await ExecutePolicyAsync(() => _adminrepository.AltaUsuario(id));
+        //    if (success)
+        //    {
+
+        //        return RedirectToAction("Index"); 
+        //    }
+        //    else
+        //    {
+
+        //        return Json(new { success, errorMessage });
+        //    }
+        //}
         [HttpPost]
         public async Task<IActionResult> BajaUsuarioPost(int id)
         {
-            // Acción POST para realizar alguna operación sobre el usuario
             var (success, errorMessage) = await ExecutePolicyAsync(() => _adminrepository.BajaUsuario(id));
             if (success)
             {
-                // Redirigir a una vista de éxito o a la lista de usuarios, por ejemplo
-                return RedirectToAction("Index"); // Cambia "Index" a la acción que desees
+                return Json(new { success = true });
             }
             else
             {
-                // Puedes retornar un mensaje de error a una vista o devolver un JSON con el error
-                return Json(new { success, errorMessage });
+                return Json(new { success = false, errorMessage = errorMessage });
             }
-        }
-        public async Task<IActionResult> AltaUsuario(int id)
-        {
-            // Acción GET para mostrar el usuario
-            var user = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == id);
-            if (user == null)
-            {
-                // Manejo del caso en el que el usuario no se encuentra
-                return NotFound();
-            }
-            return View(user);
         }
 
         [HttpPost]
         public async Task<IActionResult> AltaUsuarioPost(int id)
         {
-            // Acción POST para realizar alguna operación sobre el usuario
             var (success, errorMessage) = await ExecutePolicyAsync(() => _adminrepository.AltaUsuario(id));
             if (success)
             {
-                // Redirigir a una vista de éxito o a la lista de usuarios, por ejemplo
-                return RedirectToAction("Index"); // Cambia "Index" a la acción que desees
+                return Json(new { success = true });
             }
             else
             {
-                // Puedes retornar un mensaje de error a una vista o devolver un JSON con el error
-                return Json(new { success, errorMessage });
+                return Json(new { success = false, errorMessage = errorMessage });
             }
         }
 

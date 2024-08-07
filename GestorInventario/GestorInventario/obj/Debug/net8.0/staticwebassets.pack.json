@@ -8493,6 +8493,42 @@
       "PackagePath": "staticwebassets\\lib\\bootstrap-icons\\icons\\zoom-out.svg"
     },
     {
+      "Id": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\wwwroot\\lib\\bootstrap-modal\\css\\bootstrap-modal-bs3patch.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap-modal\\css\\bootstrap-modal-bs3patch.css"
+    },
+    {
+      "Id": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\wwwroot\\lib\\bootstrap-modal\\css\\bootstrap-modal-bs3patch.min.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap-modal\\css\\bootstrap-modal-bs3patch.min.css"
+    },
+    {
+      "Id": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\wwwroot\\lib\\bootstrap-modal\\css\\bootstrap-modal.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap-modal\\css\\bootstrap-modal.css"
+    },
+    {
+      "Id": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\wwwroot\\lib\\bootstrap-modal\\css\\bootstrap-modal.min.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap-modal\\css\\bootstrap-modal.min.css"
+    },
+    {
+      "Id": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\wwwroot\\lib\\bootstrap-modal\\img\\ajax-loader.gif",
+      "PackagePath": "staticwebassets\\lib\\bootstrap-modal\\img\\ajax-loader.gif"
+    },
+    {
+      "Id": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\wwwroot\\lib\\bootstrap-modal\\js\\bootstrap-modal.js",
+      "PackagePath": "staticwebassets\\lib\\bootstrap-modal\\js\\bootstrap-modal.js"
+    },
+    {
+      "Id": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\wwwroot\\lib\\bootstrap-modal\\js\\bootstrap-modal.min.js",
+      "PackagePath": "staticwebassets\\lib\\bootstrap-modal\\js\\bootstrap-modal.min.js"
+    },
+    {
+      "Id": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\wwwroot\\lib\\bootstrap-modal\\js\\bootstrap-modalmanager.js",
+      "PackagePath": "staticwebassets\\lib\\bootstrap-modal\\js\\bootstrap-modalmanager.js"
+    },
+    {
+      "Id": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\wwwroot\\lib\\bootstrap-modal\\js\\bootstrap-modalmanager.min.js",
+      "PackagePath": "staticwebassets\\lib\\bootstrap-modal\\js\\bootstrap-modalmanager.min.js"
+    },
+    {
       "Id": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\wwwroot\\lib\\bootstrap\\LICENSE",
       "PackagePath": "staticwebassets\\lib\\bootstrap"
     },
