@@ -55,7 +55,7 @@
 <p>Para ello ponemos el comando: <pre><code> dotnet dev-certs https -ep C:\Users\guill\.aspnet\https\aspnetapp.pfx -p password</code></pre></p>
 <p>La ruta la tendran que adaptar a como tengan el nombre de usuario en el pc</p>
 <p>Para confiar en el certificado se usa el comando: <pre><code>dotnet dev-certs https --trust</code></pre></p>
-
+<h2>Modificar archivo </h2>
 <h2>Establecer las variables de entorno</h2>
 <p>Este comando lo ejecutaremos si usamos docker. IMPORTANTE: este comando solo funcionara si hemos puesto previamente los valores correctos en el archivo de secretos</p>
 <p>Ejecutar el archivo SetEnvironmentVariables.ps1 con el comando: <pre><code>./SetEnvironmentVariables.ps1</code></pre> </p>
