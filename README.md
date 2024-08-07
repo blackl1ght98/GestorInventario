@@ -32,7 +32,8 @@
     <p>Dentro de Visual Studio 2022 hacemos clic derecho en el proyecto nos vamos a donde dice <strong>Administrar secretos de usuario</strong>. Dentro de ese archivo ponemos los valores:</p><pre>
     <code>
          "Redis": {
-   "ConnectionString": "redis:6379"
+       "ConnectionString": "redis:6379"
+       "ConnectionStringLocal": "127.0.0.1:6379"
  },
     "JwtIssuer":"",
    "JwtAudience":"",
@@ -46,15 +47,19 @@
 <p>El valor de <strong>JwtIssuer: </strong>puede ser este GestorInvetarioEjemplo u otro este es un valor de ejemplo</p>
 <p>El valor de <strong>JwtAudience:</strong> puede ser este GestorInventarioCliente u otro este es un valor de ejemplo</p>
 <p>Los valores de <strong>PublicKey y PrivateKey</strong> dejare en este mismo respositorio el codigo necesario para obtener estos valores, esta en la carpeta llamada GeneracionClaves</p>
-<p>El valor de <strong>ClaveJWT</strong> tiene que ser un valor largo ya que es el valor que se usa para cifrar y descifrar minimo una logitud de 38 digitos</p>
+<p>El valor de <strong>ClaveJWT</strong> tiene que ser un valor largo ya que es el valor que se usa para cifrar y descifrar minimo una logitud de 38 digitos. Por ejemplo
+<pre><code> "ClaveJWT": "Curso@.net#2023_Arelance_MiClaveSecretaMuyLarga"</code></pre>
+</p>
     
 <h2>Generar certificado https</h2>
 <p>Para ello ponemos el comando: <pre><code> dotnet dev-certs https -ep C:\Users\guill\.aspnet\https\aspnetapp.pfx -p password</code></pre></p>
-
 <p>La ruta la tendran que adaptar a como tengan el nombre de usuario en el pc</p>
 <p>Para confiar en el certificado se usa el comando: <pre><code>dotnet dev-certs https --trust</code></pre></p>
+
 <h2>Establecer las variables de entorno</h2>
+<p>Este comando lo ejecutaremos si usamos docker. IMPORTANTE: este comando solo funcionara si hemos puesto previamente los valores correctos en el archivo de secretos</p>
 <p>Ejecutar el archivo SetEnvironmentVariables.ps1 con el comando: <pre><code>./SetEnvironmentVariables.ps1</code></pre> </p>
+
 <h2>Características con las que cuenta el proyecto</h2>
     <p>El proyecto Gestor Inventario ofrece una amplia gama de características para gestionar eficientemente el inventario:</p>
     <ul>
@@ -68,9 +73,9 @@
         <li>Pasarela de Pago PayPal: El proyecto incluye la implementación de una pasarela de pago PayPal.</li>
         <li>Restablecimiento de Contraseña: Los usuarios pueden restablecer su contraseña a través del panel de administrador. Se envía un correo electrónico al usuario seleccionado con una contraseña temporal y un enlace para cambiarla.</li>
         <li>Flexibilidad en la Autenticación: Los usuarios pueden cambiar entre los modos de autenticación de manera efectiva comentando y descomentando el código correspondiente.</li>
+        <li>Docker: configuración necesaria para integrar en docker</li>
+        <li>Redis: configuración necesaria para que funcione correctamente en redis.</li>
     </ul>
-<h2>Novedades</h2>
-   <p>Docker</p>
-    <p>Redis</p>
+
 </body>
 </html>
