@@ -44,8 +44,8 @@
     "ClaveJWT":"",
    </code>
     </pre>
-<p>El valor de <strong>JwtIssuer: </strong>puede ser este GestorInvetarioEjemplo u otro este es un valor de ejemplo</p>
-<p>El valor de <strong>JwtAudience:</strong> puede ser este GestorInventarioCliente u otro este es un valor de ejemplo</p>
+<p>El valor de <strong>JwtIssuer: </strong>este valor es para verificar el token. Por ejemplo <pre><code>"JwtIssuer": "GestorInvetarioEmisor"</code></pre></p>
+<p>El valor de <strong>JwtAudience:</strong> este valor es para verificar el token. Por ejemplo <pre><code>"JwtAudience": "GestorInventarioCliente",</code></pre></p>
 <p>Los valores de <strong>PublicKey y PrivateKey</strong> dejare en este mismo respositorio el codigo necesario para obtener estos valores, esta en la carpeta llamada GeneracionClaves</p>
 <p>El valor de <strong>ClaveJWT</strong> tiene que ser un valor largo ya que es el valor que se usa para cifrar y descifrar minimo una logitud de 38 digitos. Por ejemplo
 <pre><code> "ClaveJWT": "Curso@.net#2023_Arelance_MiClaveSecretaMuyLarga"</code></pre>
