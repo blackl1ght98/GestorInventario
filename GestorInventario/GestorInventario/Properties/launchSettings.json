@@ -21,7 +21,8 @@
         "DB_HOST": "DESKTOP-2TL9C3O\\SQLEXPRESS",
         "DB_NAME": "GestorInventario",
         "USE_REDIS": "false",
-        "DB_SA_PASSWORD": "your_password",
+        "DB_USERNAME": "sa",
+        "DB_SA_PASSWORD": "SQL#1234",
         "IS_DOCKER": "false"
       },
       "dotnetRunMessages": true,
@@ -34,6 +35,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development",
         "DB_HOST": "DESKTOP-2TL9C3O\\SQLEXPRESS",
         "DB_NAME": "GestorInventario",
+        "DB_USERNAME": "sa",
         "DB_SA_PASSWORD": "SQL#1234",
         "IS_DOCKER": "false"
       }
@@ -47,6 +49,7 @@
         "ASPNETCORE_HTTP_PORTS": "8080",
         "DB_HOST": "sql-server-local",
         "DB_NAME": "GestorInventario",
+        "DB_USERNAME": "sa",
         "DB_SA_PASSWORD": "SQL#1234",
         "IS_DOCKER": "true"
       },

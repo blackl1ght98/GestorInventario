@@ -212,7 +212,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     Id = user.Id,
                     Email = user.Email,
                     NombreCompleto = user.NombreCompleto,
-                    //FechaNacimiento = user.FechaNacimiento,
+                    FechaNacimiento = user.FechaNacimiento,
                     Telefono = user.Telefono,
                     IdRol=user.IdRol,
                     Direccion = user.Direccion
@@ -314,7 +314,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     {
                         Email = user.Email,
                         NombreCompleto = user.NombreCompleto,
-                        //FechaNacimiento = user.FechaNacimiento,
+                        FechaNacimiento = user.FechaNacimiento,
                         Telefono = user.Telefono,
                         Direccion = user.Direccion
                     };

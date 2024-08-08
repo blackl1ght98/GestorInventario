@@ -33,8 +33,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+                var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
+                var clientSeecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
                 // Obtén el contexto de la API de PayPal
-                var apiContext = new APIContext(new OAuthTokenCredential(_configuration["Paypal:ClientId"], _configuration["Paypal:ClientSecret"]).GetAccessToken());
+                var apiContext = new APIContext(new OAuthTokenCredential(clientId, clientSeecret).GetAccessToken());
 
                 // Crea un objeto PaymentExecution para ejecutar la transacción
                 var paymentExecution = new PaymentExecution() { payer_id = PayerID };

@@ -6,13 +6,15 @@ namespace GestorInventario.Domain.Models;
 
 public partial class GestorInventarioContext : DbContext
 {
+    private readonly IConfiguration _configuration;
     public GestorInventarioContext()
     {
     }
 
-    public GestorInventarioContext(DbContextOptions<GestorInventarioContext> options)
+    public GestorInventarioContext(DbContextOptions<GestorInventarioContext> options, IConfiguration configuration)
         : base(options)
     {
+        _configuration = configuration;
     }
 
     public virtual DbSet<Carrito> Carritos { get; set; }
@@ -49,9 +51,10 @@ public partial class GestorInventarioContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER") == "true";
-        var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
-        var dbName = Environment.GetEnvironmentVariable("DB_NAME");
-        var dbPassword = Environment.GetEnvironmentVariable("DB_SA_PASSWORD");
+        var dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? _configuration["DataBaseConection:DBHost"];
+        var dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? _configuration["DataBaseConection:DBName"];
+        var dbUserName = Environment.GetEnvironmentVariable("DB_USERNAME") ?? _configuration["DataBaseConection:DBUserName"];
+        var dbPassword = Environment.GetEnvironmentVariable("DB_SA_PASSWORD") ?? _configuration["DataBaseConection:DBPassword"];
 
         string connectionString;
 
@@ -61,7 +64,8 @@ public partial class GestorInventarioContext : DbContext
         }
         else
         {
-            connectionString = $"Data Source={dbHost};Initial Catalog={dbName};Integrated Security=True;TrustServerCertificate=True";
+            // connectionString = $"Data Source={dbHost};Initial Catalog={dbName};Integrated Security=True;TrustServerCertificate=True";
+            connectionString = $"Data Source={dbHost};Initial Catalog={dbName};User ID={dbUserName};Password={dbPassword};TrustServerCertificate=True";
         }
 
         optionsBuilder.UseSqlServer(connectionString);

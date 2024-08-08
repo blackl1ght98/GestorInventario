@@ -17,9 +17,9 @@ namespace GestorInventario.Application.Services
             // Aquí se asigna la configuración pasada al constructor a la variable privada _configuration.
             _configuration = configuration;
             // Aquí se obtienen los valores de configuración de PayPal del archivo de configuración.
-            var clientId = configuration["Paypal:ClientId"];
-            var clientSeecret = configuration["Paypal:ClientSecret"];
-            var mode = configuration["Paypal:Mode"];
+            var clientId = configuration["Paypal:ClientId"]??Environment.GetEnvironmentVariable("Paypal_ClientId");
+            var clientSeecret = configuration["Paypal:ClientSecret"]??Environment.GetEnvironmentVariable("Paypal_ClientSecret");
+            var mode = configuration["Paypal:Mode"]??Environment.GetEnvironmentVariable("Paypal_Mode");
             // Aquí se crea un diccionario con la configuración de PayPal.
             var config = new Dictionary<string, string>
             {
@@ -41,7 +41,9 @@ namespace GestorInventario.Application.Services
         }
         public async Task<Payment> CreateDonation(decimal amount, string returnUrl, string cancelUrl, string currency)
         {
-            var apiContext = new APIContext(new OAuthTokenCredential(_configuration["Paypal:ClientId"], _configuration["Paypal:ClientSecret"]).GetAccessToken());
+            var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
+            var clientSeecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
+            var apiContext = new APIContext(new OAuthTokenCredential(clientId, clientSeecret).GetAccessToken());
             var itemList = new ItemList()
             {
                 items = new List<Item>()
@@ -95,8 +97,10 @@ namespace GestorInventario.Application.Services
         // Este es el método que se utiliza para crear un pedido en PayPal.
         public async Task<Payment> CreateOrderAsync(List<Item> items,decimal amount, string returnUrl, string cancelUrl, string currency)
         {
+            var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
+            var clientSeecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
             // Aquí se crea una nueva instancia de APIContext con el token de acceso.
-            var apiContext = new APIContext(new OAuthTokenCredential(_configuration["Paypal:ClientId"], _configuration["Paypal:ClientSecret"]).GetAccessToken());
+            var apiContext = new APIContext(new OAuthTokenCredential(clientId, clientSeecret).GetAccessToken());
             // Aquí se crea una nueva instancia de ItemList con los items pasados al método.
             var itemList = new ItemList()
             {

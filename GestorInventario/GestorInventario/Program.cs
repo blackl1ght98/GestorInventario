@@ -15,34 +15,30 @@ using GestorInventario.Configuracion;
 using StackExchange.Redis;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.AspNetCore.DataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
 // Agregar variables de entorno a la configuración
 builder.Configuration.AddEnvironmentVariables();
 
-string secret = builder.Configuration["ClaveJWT"];
+string secret = Environment.GetEnvironmentVariable("ClaveJWT")?? builder.Configuration["ClaveJWT"];
 builder.Services.AddControllersWithViews().AddJsonOptions(options => options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
-
 var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER") == "true";
-var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
-var dbName = Environment.GetEnvironmentVariable("DB_NAME");
-var dbPassword = Environment.GetEnvironmentVariable("DB_SA_PASSWORD");
-string connectionString;
+var dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? builder.Configuration["DataBaseConection:DBHost"];
+var dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? builder.Configuration["DataBaseConection:DBName"];
+var dbUserName = Environment.GetEnvironmentVariable("DB_USERNAME") ?? builder.Configuration["DataBaseConection:DBUserName"];
+var dbPassword = Environment.GetEnvironmentVariable("DB_SA_PASSWORD") ?? builder.Configuration["DataBaseConection:DBPassword"];
 
-if (isDocker)
-{
-    connectionString = $"Data Source={dbHost};Initial Catalog={dbName};User ID=sa;Password={dbPassword};TrustServerCertificate=True";
-}
-else
-{
-    connectionString = $"Data Source={dbHost};Initial Catalog={dbName};Integrated Security=True;TrustServerCertificate=True";
-}
+string connectionString=isDocker ? $"Data Source={dbHost};Initial Catalog={dbName};User ID=sa;Password={dbPassword};TrustServerCertificate=True" 
+                                 : $"Data Source={dbHost};Initial Catalog={dbName};User ID={dbUserName};Password={dbPassword};TrustServerCertificate=True";
 builder.Services.AddDbContext<GestorInventarioContext>(options =>
 {
     options.UseSqlServer(connectionString);
     options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
 });
+
 builder.Services.AddMvc();
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(builder =>
@@ -51,8 +47,7 @@ builder.Services.AddCors(options =>
     });
 });
 builder.Logging.AddLog4Net();
-
-// Servicios
+builder.Services.AddAntiforgery();
 // Servicio usado para peticiones HTTP
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<GenerarPaginas>();
@@ -85,22 +80,20 @@ if (useRedis)
 
     // Comprobamos qué cadena de conexión se está usando
     Console.WriteLine($"Attempting to use Redis connection string: {redisConnectionString}");
-
+   
     try
     {
         // Intenta crear la conexión con Redis
         var connectionMultiplexer = ConnectionMultiplexer.Connect(redisConnectionString);
-
         // Llama al servicio de Redis y configura la conexión
         builder.Services.AddStackExchangeRedisCache(options =>
         {
             options.Configuration = redisConnectionString;
             options.InstanceName = "SampleInstance";
         });
-
+        builder.Services.AddDataProtection().PersistKeysToStackExchangeRedis(ConnectionMultiplexer.Connect("redis:6379"), "DataProtection-Keys");
         // Al servicio IConnectionMultiplexer se le pasa la conexión creada con Redis
         builder.Services.AddSingleton<IConnectionMultiplexer>(provider => connectionMultiplexer);
-
         // Se muestra la cadena de conexión que se ha usado
         Console.WriteLine($"Using Redis connection string: {redisConnectionString}");
     }
@@ -108,36 +101,26 @@ if (useRedis)
     {
         // Si la conexión falla, muestra la cadena de conexión y el error producido
         Console.WriteLine($"Failed to connect using Redis connection string: {redisConnectionString}. Error: {ex.Message}");
-
         // Usa la cadena de conexión local como alternativa
         string redisConnectionStringLocal = builder.Configuration["Redis:ConnectionStringLocal"];
-
         // Muestra la cadena de conexión local que se va a usar
         Console.WriteLine($"Attempting to use local Redis connection string: {redisConnectionStringLocal}");
-
         // Intenta crear la conexión con la cadena de conexión local
         var connectionMultiplexerLocal = ConnectionMultiplexer.Connect(redisConnectionStringLocal);
-
         // Configura el servicio de Redis con la cadena de conexión local
         builder.Services.AddStackExchangeRedisCache(options =>
         {
             options.Configuration = redisConnectionStringLocal;
             options.InstanceName = "SampleInstance";
         });
-
         // Al servicio IConnectionMultiplexer se le pasa la conexión local creada
         builder.Services.AddSingleton<IConnectionMultiplexer>(provider => connectionMultiplexerLocal);
-
         // Se muestra la cadena de conexión local que se ha usado
         Console.WriteLine($"Using local Redis connection string: {redisConnectionStringLocal}");
     }
 }
-
 // Servicio usado para guardar datos en memoria
 builder.Services.AddMemoryCache();
-
-
-
 // Se configura el servicio ITokenGenerator con sus dependencias
 builder.Services.AddTransient<ITokenGenerator, TokenGenerator>(provider =>
 {
@@ -148,24 +131,17 @@ builder.Services.AddTransient<ITokenGenerator, TokenGenerator>(provider =>
     var context = provider.GetRequiredService<GestorInventarioContext>();
     var logger = provider.GetRequiredService<ILogger<TokenGenerator>>();
     var httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
-
     // Inicialmente se establece en null ya que el valor se asignará si se está usando Redis
     IConnectionMultiplexer connectionMultiplexer = null;
-
     // Si se está usando Redis...
     if (useRedis)
     {
         // Se obtiene la conexión de Redis del proveedor de servicios
         connectionMultiplexer = provider.GetService<IConnectionMultiplexer>();
     }
-
     // Devuelve una nueva instancia de TokenGenerator con sus dependencias
     return new TokenGenerator(context, configuration, httpContextAccessor, memoryCache, logger, redis, connectionMultiplexer);
 });
-
-
-
-
 /* ¿Como cambiar el metodo de autenticación?
  * 1º Cerrar todas las sesiones activas
  * 2º Comentar la obción actual y descomantar la deseada
@@ -176,9 +152,6 @@ builder.Services.AddTransient<ITokenGenerator, TokenGenerator>(provider =>
 //builder.ConfiguracionSimetrica(builder.Configuration);
 //builder.ConfiguracionAsimetricaFija(builder.Configuration);
 builder.ConfiguracionAsimetricaDinamica(builder.Configuration);
-
-
-
 /*
 
     * options.Preload = true;: Esta opción indica que quieres incluir tu sitio en la lista de precarga de HSTS. 
@@ -201,8 +174,6 @@ builder.Services.AddHsts(options =>
     //options.ExcludedHosts.Add("example.com");
     //options.ExcludedHosts.Add("www.example.com");
 });
-
-
 builder.Services.AddMvc();
 builder.Services.AddSession(options =>
 {
@@ -227,7 +198,6 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseCors();
@@ -237,16 +207,10 @@ app.UseAuthentication();
 //Determina que puede hacer o no el usuario
 app.UseAuthorization();
 app.UseSession();
-
-
 //app.MiddlewareAutenticacionSimetrica(builder);
 //app.MiddlewareAutenticacionAsimetricaFija(builder);
 app.MiddlewareAutenticacionAsimetricaDinamica(builder);
-
-
-
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
 app.Run();

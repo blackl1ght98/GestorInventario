@@ -68,105 +68,7 @@ namespace GestorInventario.Infraestructure.Repositories
            await _context.DeleteEntityAsync(user);
             return (true, "Usuario eliminado con éxito");
         }
-        //public async Task<(bool,string?)> EditarUsuario(UsuarioEditViewModel userVM )
-        //{
-        //    try
-        //    {
-        //        if (_contextAccessor.HttpContext.User.Identity.IsAuthenticated) 
-        //        {
-
-        //            if (_contextAccessor.HttpContext.User.IsInRole("administrador"))
-        //            {
-        //                var user = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == userVM.Id);
-        //                if (user != null)
-        //                {
-        //                    // Mapea los datos del ViewModel a la entidad
-        //                    user.NombreCompleto = userVM.NombreCompleto;
-        //                    user.FechaNacimiento = userVM.FechaNacimiento;
-        //                    user.Telefono = userVM.Telefono;
-        //                    user.Direccion = userVM.Direccion;
-        //                    if (user != null && user.Email != userVM.Email)
-        //                    {
-        //                        user.ConfirmacionEmail = false;
-        //                        user.Email = userVM.Email;
-        //                        _context.UpdateEntity(user);
-        //                        await _emailService.SendEmailAsyncRegister(new DTOEmail
-        //                        {
-        //                            ToEmail = userVM.Email
-        //                        });
-        //                    }
-        //                    else
-        //                    {
-        //                        //Si el usuario no cambia el email se queda igual
-        //                        user!.Email = userVM.Email;
-        //                    }
-        //                    _context.EntityModified(user);
-        //                    await _context.UpdateEntityAsync(user);
-        //                }
-        //            }
-        //            else
-        //            {
-        //                return (false, "El rol que tiene no tiene permitida esta operacion");
-        //            }
-
-        //        }
-        //        else
-        //        {
-        //            return (false, "Usuario no logueado");
-        //        }
-
-
-        //    }
-        //    catch (DbUpdateConcurrencyException ex)
-        //    {
-        //        if (_contextAccessor.HttpContext.User.Identity.IsAuthenticated)
-        //        {
-
-        //            if (_contextAccessor.HttpContext.User.IsInRole("administrador"))
-        //            {
-        //                var user = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == userVM.Id);
-        //                if (user == null)
-        //                {
-        //                    return (false, "Usuario no encontrado");
-
-        //                }
-        //                _context.ReloadEntity(user);
-        //                // Mapea los datos del ViewModel a la entidad
-        //                user.NombreCompleto = userVM.NombreCompleto;
-        //                user.FechaNacimiento = userVM.FechaNacimiento;
-        //                user.Telefono = userVM.Telefono;
-        //                user.Direccion = userVM.Direccion;
-        //                if (user != null && user.Email != userVM.Email)
-        //                {
-        //                    user.ConfirmacionEmail = false;
-        //                    user.Email = userVM.Email;
-        //                    await _context.UpdateEntityAsync(user);
-        //                    await _emailService.SendEmailAsyncRegister(new DTOEmail
-        //                    {
-        //                        ToEmail = userVM.Email
-        //                    });
-        //                }
-        //                else
-        //                {
-        //                    //Si el usuario no cambia el email se queda igual
-        //                    user!.Email = userVM.Email;
-        //                }
-        //            }
-        //            else
-        //            {
-        //                return (false, "El rol que tiene no tiene permitida esta operacion");
-        //            }
-        //        }
-        //        else
-        //        {
-        //            return (false, "Usuario no logueado");
-        //        }
-
-
-        //    }
-
-        //    return (true, null);
-        //}
+       
         public async Task<(bool, string?)> EditarUsuario(UsuarioEditViewModel userVM)
         {
             try
@@ -178,9 +80,12 @@ namespace GestorInventario.Infraestructure.Repositories
                         var user = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == userVM.Id);
                         if (user != null)
                         {
-                            // Mapea los datos del ViewModel a la entidad
+                           
                             user.NombreCompleto = userVM.NombreCompleto;
-                            user.FechaNacimiento = userVM.FechaNacimiento;
+                            if (user.FechaNacimiento != userVM.FechaNacimiento) 
+                            { 
+                            user.FechaNacimiento=userVM.FechaNacimiento;
+                            }
                             user.Telefono = userVM.Telefono;
                             user.Direccion = userVM.Direccion;
 

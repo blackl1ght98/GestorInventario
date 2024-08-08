@@ -75,13 +75,21 @@ namespace GestorInventario.Application.Services
                 Text = await RenderViewToStringAsync("ViewsEmailService/ViewRegisterEmail", model)
             };
 
+            //using var smtp = new SmtpClient();
+            //var hostEmail = _config["Email:Host"]??Environment.GetEnvironmentVariable("Email_Host");
+            //var portEmail = _config["Email:Port"]??Environment.GetEnvironmentVariable("Email_Port");
+            //await smtp.ConnectAsync(hostEmail,Convert.ToInt32(portEmail),SecureSocketOptions.StartTls);
+            //var userNameEmail = _config["Email:UserName"]??Environment.GetEnvironmentVariable("Email_UserName");
+            //var passwordEmail = _config["Email:PassWord"]??Environment.GetEnvironmentVariable("Email_Password");
+            //await smtp.AuthenticateAsync(userNameEmail, passwordEmail);
+            //await smtp.SendAsync(email);
+            //await smtp.DisconnectAsync(true);
             using var smtp = new SmtpClient();
             await smtp.ConnectAsync(
                 _config.GetSection("Email:Host").Value,
                 Convert.ToInt32(_config.GetSection("Email:Port").Value),
                 SecureSocketOptions.StartTls
             );
-
             await smtp.AuthenticateAsync(_config.GetSection("Email:UserName").Value, _config.GetSection("Email:PassWord").Value);
             await smtp.SendAsync(email);
             await smtp.DisconnectAsync(true);

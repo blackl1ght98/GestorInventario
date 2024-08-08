@@ -1,4 +1,4 @@
-version: '3.4'
+
 
 services:
   gestorinventario:
@@ -13,9 +13,9 @@ services:
       - "8081:8081"
       - "28908:8081"
     environment:
-      - DB_HOST=SQL-Server-Local
-      - DB_NAME=GestorInventario
-      - DB_SA_PASSWORD=SQL#1234
+      - DB_HOST=${DB_HOST}
+      - DB_NAME=${DB_NAME}
+      - DB_SA_PASSWORD=${DB_SA_PASSWORD}
       - IS_DOCKER=true
       - USE_REDIS=true 
       - ASPNETCORE_Kestrel__Certificates__Default__Password=password
@@ -26,6 +26,13 @@ services:
       - JwtAudience=${JwtAudience}
       - PublicKey=${PublicKey}
       - PrivateKey=${PrivateKey} 
+      - DB_USERNAME=${DB_USERNAME} 
+      - Paypal_ClientId=${Paypal_ClientId}
+      - Paypal_ClientSecret=${Paypal_ClientSecret}
+      - Paypal_Mode=${Paypal_Mode}
+      - Paypal_returnUrlConDocker=${Paypal_returnUrlConDocker}
+      - Paypal_returnUrlSinDocker=${Paypal_returnUrlSinDocker} 
+    
     volumes:
       - /c/Users/guill/.aspnet/https:/https:ro
       - appdata:/app/data
