@@ -92,7 +92,8 @@ Dentro de Visual Studio 2022 para acceder al archivo de **Secretos del usuario**
 ```sh
 "JwtAudience": "GestorInventarioCliente"
 ````
-- **PublicKey y PrivateKey**: para obtener estos valores he dejado en el repositorio el codigo necesario para obtener estos valores, para ello vamos a la carpeta **GeneracionClaves**
+-**JWT**: para los tokens con valor fijo:
+    - **PublicKey y PrivateKey**: para obtener estos valores he dejado en el repositorio el codigo necesario para obtener estos valores, para ello vamos a la carpeta **GeneracionClaves**
 - **ClaveJWT**: tiene que ser un valor largo ya que ese valor se usa para cifrar y descifrar minimo una longitud de **38 digitos alfanumericos**. Por ejemplo:
 ```sh
 "ClaveJWT": "Curso@.net#2023_Arelance_MiClaveSecretaMuyLarga"
@@ -103,3 +104,54 @@ Dentro de Visual Studio 2022 para acceder al archivo de **Secretos del usuario**
     - **DBName**: Aquí ponemos el nombre de base de datos.
     - **DBUserName**: Aquí ponemos el nombre de usuario para acceder a esa base de datos.
     - **DBPassword**: Aquí ponemos la contraseña del usuario para acceder a base de datos.
+-**Paypal**: Agregar función de pago:
+    - **ClientId y ClientSecret**: Para obtener estos datos primero tenemos que tener una cuenta de paypal y despues ir a esta dirección [aqui](https://developer.paypal.com/home) una vez que hemos realizado el login en esta pagina podemos obtener estos valores.
+    - **Mode**: este modo se quedara tal y como esta en **sandbox** este modo es el modo prueba de paypal para hacer transacciones.
+    - **returnUrlSinDocker**: esta url es cuando paypal nos reedirige a nuestra aplicación esta url es para cuando no estamos usando docker.
+    - **returnUrlConDocker**: esta url es para cuando estamos usando docker cumple lo mismo que la anterior redirigir de paypal a la aplicación.
+- **Email**: Para el envio de correo electronicos
+    - **Host**: servidor de correo electronico.
+    - **Port**: puerto del servidor de correo electronico.
+    - **UserName**: usuario del correo electronico.
+    - **Password**: contraseña del correo electronico.
+## Modificación del archivo GestorInventarioContext.cs 
+Una vez que hemos ejecutado el comando que realiza el scaffold pues tenemos que modificar este archivo agregando lo siguiente lo primero que pondremos en el constructor es:
+```sh
+ private readonly IConfiguration _configuration;
+  public GestorInventarioContext()
+  {
+  }
+
+  public GestorInventarioContext(DbContextOptions<GestorInventarioContext> options, IConfiguration configuration)
+      : base(options)
+  {
+      _configuration = configuration;
+  }
+````
+Esto es necesario ya que lo usaremos para acceder a los valores que estan en el archivo de secretos de usuario.
+Una vez puesto el valor en el constructor vamos a modificar el metodo llamado **OnConfiguring** y lo reemplazamos por esto:
+```sh
+ protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+ {
+     var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER") == "true";
+ var dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? _configuration["DataBaseConection:DBHost"];
+ var dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? _configuration["DataBaseConection:DBName"];
+ var dbUserName = Environment.GetEnvironmentVariable("DB_USERNAME") ?? _configuration["DataBaseConection:DBUserName"];
+ var dbPassword = Environment.GetEnvironmentVariable("DB_SA_PASSWORD") ?? _configuration["DataBaseConection:DBPassword"];
+
+ string connectionString;
+
+ if (isDocker)
+ {
+     connectionString = $"Data Source={dbHost};Initial Catalog={dbName};User ID=sa;Password={dbPassword};TrustServerCertificate=True";
+ }
+ else
+ {
+     // connectionString = $"Data Source={dbHost};Initial Catalog={dbName};Integrated Security=True;TrustServerCertificate=True";
+     connectionString = $"Data Source={dbHost};Initial Catalog={dbName};User ID={dbUserName};Password={dbPassword};TrustServerCertificate=True";
+ }
+
+ optionsBuilder.UseSqlServer(connectionString);
+ }
+````
+
