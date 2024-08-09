@@ -75,22 +75,17 @@ namespace GestorInventario.Application.Services
                 Text = await RenderViewToStringAsync("ViewsEmailService/ViewRegisterEmail", model)
             };
 
-            //using var smtp = new SmtpClient();
-            //var hostEmail = _config["Email:Host"]??Environment.GetEnvironmentVariable("Email_Host");
-            //var portEmail = _config["Email:Port"]??Environment.GetEnvironmentVariable("Email_Port");
-            //await smtp.ConnectAsync(hostEmail,Convert.ToInt32(portEmail),SecureSocketOptions.StartTls);
-            //var userNameEmail = _config["Email:UserName"]??Environment.GetEnvironmentVariable("Email_UserName");
-            //var passwordEmail = _config["Email:PassWord"]??Environment.GetEnvironmentVariable("Email_Password");
-            //await smtp.AuthenticateAsync(userNameEmail, passwordEmail);
-            //await smtp.SendAsync(email);
-            //await smtp.DisconnectAsync(true);
+           
             using var smtp = new SmtpClient();
-            await smtp.ConnectAsync(
-                _config.GetSection("Email:Host").Value,
-                Convert.ToInt32(_config.GetSection("Email:Port").Value),
-                SecureSocketOptions.StartTls
-            );
-            await smtp.AuthenticateAsync(_config.GetSection("Email:UserName").Value, _config.GetSection("Email:PassWord").Value);
+            var emailHost =  Environment.GetEnvironmentVariable("Email__Host") ?? _config.GetSection("Email:Host").Value;
+
+            // var emailPort = Convert.ToInt32(_config.GetSection("Email:Port").Value);
+            var emailPortString =  Environment.GetEnvironmentVariable("Email__Port")?? _config.GetSection("Email:Port").Value;
+            int emailPort=int.Parse(emailPortString);
+            await smtp.ConnectAsync(emailHost,emailPort,SecureSocketOptions.StartTls);
+            var emailUserName = Environment.GetEnvironmentVariable("Email__Username")?? _config.GetSection("Email:UserName").Value;
+            var emailPassWord = Environment.GetEnvironmentVariable("Email__Password")?? _config.GetSection("Email:PassWord").Value;
+            await smtp.AuthenticateAsync(emailUserName, emailPassWord);
             await smtp.SendAsync(email);
             await smtp.DisconnectAsync(true);
         }

@@ -32,7 +32,10 @@ services:
       - Paypal_Mode=${Paypal_Mode}
       - Paypal_returnUrlConDocker=${Paypal_returnUrlConDocker}
       - Paypal_returnUrlSinDocker=${Paypal_returnUrlSinDocker} 
-    
+      - Email__Host=${Email__Host}
+      - Email__Port=${Email__Port}
+      - Email__Username=${Email__Username}
+      - Email__Password=${Email__Password} 
     volumes:
       - /c/Users/guill/.aspnet/https:/https:ro
       - appdata:/app/data

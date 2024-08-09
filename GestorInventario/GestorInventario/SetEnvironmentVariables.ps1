@@ -15,3 +15,7 @@ $env:Paypal_ClientSecret=$secrets.Paypal.ClientSecret
 $env:Paypal_Mode=$secrets.Paypal.Mode
 $env:Paypal_returnUrlConDocker=$secrets.Paypal.returnUrlConDocker
 $env:Paypal_returnUrlSinDocker=$secrets.Paypal.returnUrlSinDocker
+$env:Email__Host=$secrets.Email.Host
+$env:Email__Port=$secrets.Email.Port
+$env:Email__Username=$secrets.Email.UserName
+$env:Email__Password=$secrets.Email.PassWord

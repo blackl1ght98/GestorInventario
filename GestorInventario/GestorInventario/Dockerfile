@@ -26,7 +26,7 @@ EXPOSE  8080 8081 28908 28907
 	    #docker network connect <nombre de la red> <nombre del contenedor> --> Para obtener el nombre de un contenedor se pone el comando docker ps
 #Para ver la información de la red ponemos el comando docker network inspect <nombre de la red> --> Para obtener las redes existentes ponemos el comando docker network ls
 #Para testear la conexion con base de datos ponemos docker exec -it SQL-Server-Local /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P SQL#1234 -d GestorInventario -Q "SELECT * FROM Usuarios;"
-#Admas el comando anterior permite hacer consultas desde la terminal docker exec -it SQL-Server-Local /opt/mssql-tools/bin/sqlcmd -S localhost -U pepe -P pepe#1234  -d GestorInventario -Q "SELECT * FROM Usuarios;"
+#Ademas el comando anterior permite hacer consultas desde la terminal docker exec -it SQL-Server-Local /opt/mssql-tools/bin/sqlcmd -S localhost -U pepe -P pepe#1234  -d GestorInventario -Q "SELECT * FROM Usuarios;"
 #Para generar el certificado https y ponerlo en un directorio en concreto se usa el comando: dotnet dev-certs https -ep C:\Users\guill\.aspnet\https\aspnetapp.pfx -p password
 #Para confiar en el certificado generado se pone el comando: dotnet dev-certs https --trust
 #Para que nuestra app de .net tenga acceso a ese certificado ponemos en el app.development.json:
