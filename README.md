@@ -138,8 +138,32 @@
 <p>Para ello ponemos el comando: <pre><code> dotnet dev-certs https -ep C:\Users\guill\.aspnet\https\aspnetapp.pfx -p password</code></pre></p>
 <p>La ruta la tendran que adaptar a como tengan el nombre de usuario en el pc</p>
 <p>Para confiar en el certificado se usa el comando: <pre><code>dotnet dev-certs https --trust</code></pre></p>
-
-<h2>Establecer las variables de entorno</h2>
+<h2>¿Cómo hacer que funcione en docker?</h2>
+<p>Para que este proyecto funcione en docker vamos a seguir unos pasos previos antes:
+<ul>
+    <li>Primero: Si no tenemos un contenedor que contenga una base de datos en docker ejecutamos este comando. <pre><code>
+    docker run --name "SQL-Server-Local" -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=SQL#1234" -p 1433:1433 -d mcr.microsoft.com/mssql/server</code></pre> este comando creara y accedera a la base de datos de docker</li>
+    <li>Segundo: Creamos el archivo .back en donde tengamos nuestra base de datos si la tenemos en SQL server, los pasos para crear este archivo son:
+        <p>
+        - Primero: Nos logueamos y desplegamos la carpeta llamada base de datos.
+        - Segundo: En esta carpeta tendremos nuestras bases de datos, pues localizamos de la que queremos hacer el archivo .back
+        - Tercero: Una vez localizada la base de datos hacemos clic derecho sobre ella y vamos a <strong>Tareas</strong> y dentro de Tareas le hacemos clic en 
+        <strong>Copia de seguridad</strong>
+        - Cuarto: Se nos abrira una ventana en esa ventana le damos al botón que dice <strong>Agregar</strong>
+        - Quinto: Se nos abrira una ventana mas para seleccionar el destino de donde se almacenara nuestra copia de seguridad, tiene este aspecto <strong>
+            D:\SQL Server\MSSQL16.SQLEXPRESS\MSSQL\Backup\</strong> en nuestro caso se va ha almacenar en esta ruta en esta ventana al lado de la ruta aparecera un boton con 
+        <strong>...</strong> pues le damos a este boton.
+        - Sexto: Se abrira otra ventana mas que nos mostrara los directorios que puede "ver" el programa lo recomendable es no cambiar el directorio y dejarlo en el que pone las copias de seguridad por defecto, en esta ventana nos pedira que pongamos el nombre del archivo pues lo ponemos y una vez puesto le ponemos .back esto es importante para poder pasarlo a la base de datos de docker. Una vez puesto el nombre le damos a <strong>Aceptar</strong> esa ventana se cerrara y nos mostrara la ventana que esta debajo de esa ventana pues nuevamente le damos a <strong>Aceptar</strong> y por ultimo le damos otra vez a <strong>Aceptar</strong> con esto habremos creado nuestro archivo .back.
+            </p>
+        <li>Tercero: Una vez creado el archivo .back ejecutamos el comando: <pre><code>
+            docker cp "D:\SQL Server\MSSQL16.SQLEXPRESS\MSSQL\Backup\GestorInventario-2024710-18-27-46.bak" SQL-Server-Local:/var/opt/mssql/data</code></pre> la primera parte de este comando es donde esta nuestro archivo .back, la segunda parte la dejamos tal y como esta que es <strong>SQL-Server-Local:/var/opt/mssql/data</strong></li>
+    <li>Cuarto: Creamos una red en docker para que base de datos y el contenedor que este nuesta aplicacion se puedan comunicar, para ello ejecutamos el comando:
+    <pre><code>docker network create --attachable <nombre de la red></code></pre> siendo nombre de la red el nombre que nosotros pongamos a esa red. </li>
+    </li>
+</ul>
+</p>
+<h2>Establecer las variables de entorno </h2>
+<p>Es necesario solo si usamos docker. Si no usamos docker se puede establecer para observar el como trabaja una variable de entorno</p>
 <p>Para ello ejecutamos el comando:<pre><code>./SetEnvironmentVariables.ps1</code></pre> </p>
 
 
