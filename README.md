@@ -20,7 +20,7 @@
     - <strong>NOMBREBASEDATOS</strong>: En el programa de SQL Server vemos qué nombre tiene nuestra base de datos. 
         <br/>
     - <strong>NOMBREPROYECTO</strong>: El nombre que tenga nuestro proyecto en visual studio.
-        <h2>Cadena de Conexion con usuario y contraseña en base datos. (uso recomendado)</h2>
+        <h2>Cadena de Conexion con usuario y contraseña en base datos (uso recomendado)</h2>
         <pre><code>Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=NOMBREBASEDATOS;User ID=NOMBREUSUARIO;Password=CONTRASEÑAUSUARIO;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -force -project NOMBREPROYECTO</code></pre>
     <p>Aquí los unicos campos nuevos que se agregan es:
     <br/>
@@ -31,17 +31,45 @@
     <h2>Secretos de usuario</h2>
     <p>Dentro de Visual Studio 2022 hacemos clic derecho en el proyecto nos vamos a donde dice <strong>Administrar secretos de usuario</strong>. Dentro de ese archivo ponemos los valores:</p><pre>
     <code>
-         "Redis": {
-       "ConnectionString": "redis:6379"
-       "ConnectionStringLocal": "127.0.0.1:6379"
- },
-    "JwtIssuer":"",
-   "JwtAudience":"",
-    "JWT":{
-        "PublicKey":"",
-        "PrivateKey":""
-    },
-    "ClaveJWT":"",
+{
+  "Redis": {
+    "ConnectionString": "redis:6379",
+    "ConnectionStringLocal": "127.0.0.1:6379"
+
+  },
+
+  "JwtIssuer": "",
+  "JwtAudience": "",
+  "JWT": {
+    "PublicKey": "",
+    "PrivateKey": ""
+
+  },
+   "ClaveJWT": "",
+  "DataBaseConection": {
+    "DBHost": "",
+    "DockerDbHost": "",
+    "DBName": "",
+    "DBUserName": "",
+    "DBPassword": "SQL#1234"
+  },
+ 
+  "Paypal": {
+    "ClientId": "",
+    "ClientSecret": "",
+    "Mode": "sandbox",
+    "returnUrlSinDocker": "https://localhost:7056/Payment/Success",
+    "returnUrlConDocker": "https://localhost:8081/Payment/Success"
+  },
+  "Email": {
+    "Host": "smtp.gmail.com",
+    "Port": "587",
+    "UserName": "",
+    "PassWord": ""
+  }
+
+
+}
    </code>
     </pre>
 <p>El valor de <strong>JwtIssuer: </strong>este valor es para verificar el token. Por ejemplo <pre><code>"JwtIssuer": "GestorInvetarioEmisor"</code></pre></p>
@@ -49,6 +77,19 @@
 <p>Los valores de <strong>PublicKey y PrivateKey</strong> dejare en este mismo respositorio el codigo necesario para obtener estos valores, esta en la carpeta llamada GeneracionClaves</p>
 <p>El valor de <strong>ClaveJWT</strong> tiene que ser un valor largo ya que es el valor que se usa para cifrar y descifrar minimo una logitud de 38 digitos. Por ejemplo
 <pre><code> "ClaveJWT": "Curso@.net#2023_Arelance_MiClaveSecretaMuyLarga"</code></pre>
+<p>Los valores de <strong>DataBaseConection</strong> tienen que establecerse de esta manera:
+  <ul>
+      <li><strong>DBHost</strong>: Esta linea tendra como valor la conexión a nuestra base de datos, este dato ya hemos dicho como obtenerlo en donde se explica como obtener los valores de la cadena de conexión, una vez que tengamos puesto el valor en esta linea queda asi <pre><code>"DBHost":"DESKTOP-2TL9C3O\\SQLEXPRESS",</code></pre> este es un valor de ejemplo, tendremos que colocar el valor correspondiente. Si nuestra base de datos esta en Azure Data Studio el valor de este campo y de el primer valor de la cadena de conexión sera <strong>localhost</strong> si por el contrario usamos SQL Server tendra un aspecto similar al ejemplo.</li>
+      <li><strong>DockerDbHost</strong>: Como el nombre indica esta es la cadena de conexión para docker este valor sera el nombre que tenga nuestro contenedor que contenga la base de datos en este caso es: <pre><code>"DockerDbHost": "SQL-Server-Local",</code></pre></li>.
+      <li><strong>DBName</strong>: como el nombre indica esta linea contendra el nombre de nuestra base de datos.</li>
+      <li><strong>DBUserName</strong>: como el nombre indica aqui pondremos el nombre de usuario de nuestra base de datos.</li>
+      <li><strong>DBPassword</strong>: como el nombre indica aqui pondremos la contraseña de nuestra base de datos.</li>
+      <li><strong>ClientId y ClientSecret</strong>: Para obtener estos valores primero tendremos que tener una cuenta de paypal una vez que la tengamos nos dirigimos a esta pagina <a href="https://developer.paypal.com/home" target="_blank">Ir a paypal developer</a> en esta pagina obtendremos estos 2 datos</li>
+      <li><strong>Mode</strong>: esto lo dejaremos tal y como esta. <pre><code>"Mode": "sandbox",</code></pre></li>
+      <li><strong>returnUrlSinDocker y returnUrlConDocker</strong>: aqui manejamos las url de retorno de paypal a nuestra pagina web  aqui el motivo por el cual tenemos 2 es por los puertos ya que visual studio le asigna un puerto y docker otro puerto pues con ajustarlo basta</li>
+      <li><strong>UserName y PassWord </strong>: aqui pondremos el usuario y contraseña del correo electronico que vayamos a usar</li>
+  </ul>
+</p>
 </p>
     
 <h2>Generar certificado https</h2>
