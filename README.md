@@ -154,17 +154,27 @@
             D:\SQL Server\MSSQL16.SQLEXPRESS\MSSQL\Backup\</strong> en nuestro caso se va ha almacenar en esta ruta en esta ventana al lado de la ruta aparecera un boton con 
         <strong>...</strong> pues le damos a este boton.
         - Sexto: Se abrira otra ventana mas que nos mostrara los directorios que puede "ver" el programa lo recomendable es no cambiar el directorio y dejarlo en el que pone las copias de seguridad por defecto, en esta ventana nos pedira que pongamos el nombre del archivo pues lo ponemos y una vez puesto le ponemos .back esto es importante para poder pasarlo a la base de datos de docker. Una vez puesto el nombre le damos a <strong>Aceptar</strong> esa ventana se cerrara y nos mostrara la ventana que esta debajo de esa ventana pues nuevamente le damos a <strong>Aceptar</strong> y por ultimo le damos otra vez a <strong>Aceptar</strong> con esto habremos creado nuestro archivo .back.
-            </p>
+            </p></li>
         <li>Tercero: Una vez creado el archivo .back ejecutamos el comando: <pre><code>
             docker cp "D:\SQL Server\MSSQL16.SQLEXPRESS\MSSQL\Backup\GestorInventario-2024710-18-27-46.bak" SQL-Server-Local:/var/opt/mssql/data</code></pre> la primera parte de este comando es donde esta nuestro archivo .back, la segunda parte la dejamos tal y como esta que es <strong>SQL-Server-Local:/var/opt/mssql/data</strong></li>
     <li>Cuarto: Creamos una red en docker para que base de datos y el contenedor que este nuesta aplicacion se puedan comunicar, para ello ejecutamos el comando:
     <pre><code>docker network create --attachable <nombre de la red></code></pre> siendo nombre de la red el nombre que nosotros pongamos a esa red. </li>
-    </li>
+    <li>Quinto: Nos conectamos a esa red con este comando: <pre><code>docker network connect <nombre de la red> <nombre del contenedor></code></pre> </li>
+  <li>Sexto: Para ver si el contenedor esta conectado a la red creada ponemos el comando: <pre><code>docker network inspect <nombre de la red></code></pre></li>
+    <li>Septimo: generamos el certificado https si no lo hemos generado con los comandos: <pre><code>
+        dotnet dev-certs https -ep C:\Users\guill\.aspnet\https\aspnetapp.pfx -p password
+    dotnet dev-certs https --trust
+    </code></pre> </li>
+    <li>Octavo: Establecemos las variables de entorno ejecutando los comandos: <pre><code>
+        cd .\GestorInventario
+        ./SetEnvironmentVariables.ps1</code></pre></li>
 </ul>
 </p>
 <h2>Establecer las variables de entorno </h2>
 <p>Es necesario solo si usamos docker. Si no usamos docker se puede establecer para observar el como trabaja una variable de entorno</p>
-<p>Para ello ejecutamos el comando:<pre><code>./SetEnvironmentVariables.ps1</code></pre> </p>
+<p>Para ello ejecutamos el comando:<pre><code> 
+    cd .\GestorInventario  
+    ./SetEnvironmentVariables.ps1</code></pre> </p>
 
 
 <h2>Características con las que cuenta el proyecto</h2>
