@@ -12,9 +12,10 @@ En la ventana que se abre, seleccionamos **Dispositivo** y, al final a la derech
 
 ## Scaffold-DbContext
 
-Una vez la base de datos ha sido restaurada, en Visual Studio, si está activo, veremos el administrador de paquetes. Si no está activo, debemos activarlo: `Ver > Otras ventanas > Consola del Administrador de paquetes`.
-
-En esta consola, ejecutamos el siguiente comando:
+Una vez la base de datos ha sido restaurada, en Visual Studio, si está activo, veremos la **Consola del administrador de paquetes**. Si no está activo, debemos activarlo: `Ver > Otras ventanas > Consola del Administrador de paquetes`.
+En la consola del **Consola del Administrador de paquetes**, ejecutamos el siguiente comando:
 
 ```sh
 Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=NOMBREBASEDATOS;Integrated Security=True;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -force -project NOMBREPROYECTO
+```sh
+### Significado
