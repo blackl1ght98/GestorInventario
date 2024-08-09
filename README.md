@@ -86,7 +86,9 @@
       <li><strong>DBPassword</strong>: como el nombre indica aqui pondremos la contraseña de nuestra base de datos.</li>
       <li><strong>ClientId y ClientSecret</strong>: Para obtener estos valores primero tendremos que tener una cuenta de paypal una vez que la tengamos nos dirigimos a esta pagina <a href="https://developer.paypal.com/home" target="_blank">Ir a paypal developer</a> en esta pagina obtendremos estos 2 datos</li>
       <li><strong>Mode</strong>: esto lo dejaremos tal y como esta. <pre><code>"Mode": "sandbox",</code></pre></li>
-      <li><strong>returnUrlSinDocker y returnUrlConDocker</strong>: aqui manejamos las url de retorno de paypal a nuestra pagina web  aqui el motivo por el cual tenemos 2 es por los puertos ya que visual studio le asigna un puerto y docker otro puerto pues con ajustarlo basta</li>
+      <li><strong>returnUrlSinDocker y returnUrlConDocker</strong>: aqui manejamos las url de retorno de paypal a nuestra pagina web  aqui el motivo por el cual tenemos 2 es por los puertos ya que visual studio le asigna un puerto y docker otro puerto pues con ajustarlo basta. <pre><code>
+   "returnUrlSinDocker": "https://localhost:7056/Payment/Success",
+   "returnUrlConDocker": "https://localhost:8081/Payment/Success"</code></pre></li>
       <li><strong>UserName y PassWord </strong>: aqui pondremos el usuario y contraseña del correo electronico que vayamos a usar</li>
   </ul>
 </p>
