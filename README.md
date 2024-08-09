@@ -1,5 +1,11 @@
 # Guía de instalación para usar el proyecto Gestor Inventario
-
+## Requisitos
+- Visual Studio 2022 en su ultima version
+- SQL Server en su ultima version
+- Azure Data Studio (para docker)
+- Redis (si usas docker)
+- Docker
+- Tener instalado .NET
 ## Restaurar la copia de seguridad
 
 Primero, restaurar la copia de seguridad **GestorInventarioDB** usando Microsoft SQL Server. Si no disponen de este programa tendrán que descargarlo de la página web de Microsoft. Puedes descargarlo desde [aquí](https://www.microsoft.com/es-es/sql-server/sql-server-downloads). Instalamos la versión **Express** y seguimos los pasos de instalación del instalador. Una vez se complete, tendremos que instalar la interfaz gráfica de SQL Server, que puedes descargar desde [aquí](https://learn.microsoft.com/es-es/sql/ssms/download-sql-server-management-studio-ssms?view=sql-server-ver16).
