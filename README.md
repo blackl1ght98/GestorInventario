@@ -93,15 +93,63 @@
   </ul>
 </p>
 </p>
-    
+ <h2>Modificación del archivo GestorInventarioContext.cs <h2>
+     <p>Cuando hallamos ejecutado el comando del scaffold nos modificara los modelos de base de datos y este archivo que es parate de los modelos de base de datos la modificación que tenemos que hacer es:
+     <p>Primero poner esto:
+     <pre>
+         <code>
+              private readonly IConfiguration _configuration;
+ public GestorInventarioContext()
+ {
+ }
+
+ public GestorInventarioContext(DbContextOptions<GestorInventarioContext> options, IConfiguration configuration)
+     : base(options)
+ {
+     _configuration = configuration;
+ }
+         </code>
+     </pre>
+     </p>
+     <p>
+      Una vez puesto lo anterior en el constructor vamos al primer metodo llamado <strong>OnConfiguring</strong> y lo reemplazamos por:
+      <pre>
+      <code>
+       protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+ {
+     var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER") == "true";
+     var dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? _configuration["DataBaseConection:DBHost"];
+     var dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? _configuration["DataBaseConection:DBName"];
+     var dbUserName = Environment.GetEnvironmentVariable("DB_USERNAME") ?? _configuration["DataBaseConection:DBUserName"];
+     var dbPassword = Environment.GetEnvironmentVariable("DB_SA_PASSWORD") ?? _configuration["DataBaseConection:DBPassword"];
+
+     string connectionString;
+
+     if (isDocker)
+     {
+         connectionString = $"Data Source={dbHost};Initial Catalog={dbName};User ID=sa;Password={dbPassword};TrustServerCertificate=True";
+     }
+     else
+     {
+         // connectionString = $"Data Source={dbHost};Initial Catalog={dbName};Integrated Security=True;TrustServerCertificate=True";
+         connectionString = $"Data Source={dbHost};Initial Catalog={dbName};User ID={dbUserName};Password={dbPassword};TrustServerCertificate=True";
+     }
+
+     optionsBuilder.UseSqlServer(connectionString);
+ }
+
+      </code>
+      </pre>
+     </p>
+     </p>
 <h2>Generar certificado https</h2>
 <p>Para ello ponemos el comando: <pre><code> dotnet dev-certs https -ep C:\Users\guill\.aspnet\https\aspnetapp.pfx -p password</code></pre></p>
 <p>La ruta la tendran que adaptar a como tengan el nombre de usuario en el pc</p>
 <p>Para confiar en el certificado se usa el comando: <pre><code>dotnet dev-certs https --trust</code></pre></p>
-<h2>Modificar archivo </h2>
+
 <h2>Establecer las variables de entorno</h2>
-<p>Este comando lo ejecutaremos si usamos docker. IMPORTANTE: este comando solo funcionara si hemos puesto previamente los valores correctos en el archivo de secretos</p>
-<p>Ejecutar el archivo SetEnvironmentVariables.ps1 con el comando: <pre><code>./SetEnvironmentVariables.ps1</code></pre> </p>
+<p>Para ello ejecutamos el comando:<pre><code>./SetEnvironmentVariables.ps1</code></pre> </p>
+
 
 <h2>Características con las que cuenta el proyecto</h2>
     <p>El proyecto Gestor Inventario ofrece una amplia gama de características para gestionar eficientemente el inventario:</p>
