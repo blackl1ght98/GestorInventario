@@ -154,4 +154,73 @@ Una vez puesto el valor en el constructor vamos a modificar el metodo llamado **
  optionsBuilder.UseSqlServer(connectionString);
  }
 ````
+## Generar certificado https
+Para generar el certificado https ponemos el comando:
+```sh
+dotnet dev-certs https -ep C:\Users\guill\.aspnet\https\aspnetapp.pfx -p password
+````
+La ruta solo tendran que cambiar el nombre de usuario.
+Para confiar en el certificado generado ponemos el comando:
+```sh
+dotnet dev-certs https --trust
+````
+## ¿Como configurar docker?
+Para que docker funcione en este proyecto tenemos que hacer estos pasos:
+- **Primero**:Si no tenemos un contenedor que contenga una base de datos en docker ejecutamos este comando:
+```sh
+ docker run --name "SQL-Server-Local" -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=SQL#1234" -p 1433:1433 -d mcr.microsoft.com/mssql/server
+`````
+este comando creara y arrancara el contenedor de base de datos
+- **Segundo**: Creamos el archivo **.back**. Si estamos usando el programa **SQL Server** los pasos para crear este archivo son los siguientes:
+    - **Primero**:Abrimos el programa **SQL Server** y nos logueamos.
+    - **Segundo**:Una vez que nos hemos logueado veremos en el lado izquierdo el servidor de base de datos pues le hacemos clic y le damos a la carpeta **Base de datos**.
+    - **Tercero**:Localizamos la base de datos de la que queremos el archivo **.back** y hacemos clic derecho sobre esta y hacemos clic en `Tareas > Copia de seguridad`.
+    - **Cuarto**:Cuando hemos realizado el paso anterior se abrira una ventana y en esa ventana hacemos clic en **Agregar**.
+    - **Quinto**:Una vez echo el paso anterior se nos abrira otra ventana esta ventana muestra la ruta donde se guardan las copias de seguridad de base de datos y al lado de la ruta ahi un botón con el aspecto siguiente **...** pues le damos a este botón.
+    - **Sexto**: Una vez que le hemos hecho clic al boton anterior se nos abrira una ventana en la que tendremos que poner el nombre con el que se guarda la copia de seguridad ponemos el nombre que queramos lo recomendable es poner el mismo nombre que el de la base de datos y este nombre terminara en .back por ejemplo: `GestorInventario.back`.
+    - **Septimo**: Le damos a **Aceptar** y asi hasta que se cierren las ventanas abiertas
+- **Tercero**:Una vez realizado el paso anterior y los pasos dentro del paso anterior ejecutamos el comando:
+```sh
+docker cp "D:\SQL Server\MSSQL16.SQLEXPRESS\MSSQL\Backup\GestorInventario-2024710-18-27-46.bak" SQL-Server-Local:/var/opt/mssql/data
+````
+la primera parte del comando la tendremos que ajustar porque la primera parte del comando `"D:\SQL Server\MSSQL16.SQLEXPRESS\MSSQL\Backup\GestorInventario-2024710-18-27-46.bak"` es donde se ubica nuestra copia de seguridad y la segunda parte `SQL-Server-Local:/var/opt/mssql/data` se mantiene igual.
+- **Cuarto**: Creamos la red en docker para permitir la comunicacion entre la base de datos y el contenedor que contenga nuestra aplicación y los servicios que necesite para ello seguimos los pasos siguientes:
+    - **Creación de la red**: Para ello ejecutamos el comando:
+    ```sh
+      docker network create --attachable <nombre de la red>
+    ```
+    - **Conexión de contenedores a la red**: Para ello ejecutamos el comando:
+    ```sh
+    docker network connect <nombre de la red> <nombre del contenedor>
+    ````
+    - **Comprobar que los contenedores esten en la misma red**: para ello ejecutamos el comando:
+    ```sh
+    docker network inspect <nombre de la red>
+- **Quinto**: Establecemos las variables de entorno con los comandos:
+  ```sh
+  cd .\GestorInventario
+  ./SetEnvironmentVariables.ps1
+  ````
+## Establecer variables de entorno (opcional si no usas docker)
+Para ello ejecutamos estos comandos:
+ ```sh
+  cd .\GestorInventario
+  ./SetEnvironmentVariables.ps1
+  ````
+  ## Características con las que cuenta el proyecto
 
+El proyecto **Gestor Inventario** ofrece una amplia gama de características para gestionar eficientemente el inventario:
+
+- **Gestión de Datos**: Permite realizar operaciones CRUD (Crear, Leer, Actualizar, Eliminar) en usuarios, proveedores, productos, pedidos, y el historial de productos y pedidos.
+- **Autenticación Robusta**: El sistema de autenticación se basa en la generación de tokens y ofrece tres métodos de autenticación: Autenticación simétrica, Autenticación asimétrica con clave pública y privada fija, Autenticación asimétrica con clave pública y privada dinámica.
+- **Generación de Informes**: Los usuarios pueden descargar informes en formato PDF del historial de pedidos y productos.
+- **Notificaciones por Correo Electrónico**: El sistema envía notificaciones por correo electrónico cuando el stock de un producto está bajo.
+- **Registro y Acceso de Usuarios**: Los usuarios pueden registrarse y acceder al sistema. Cuando un nuevo usuario se registra, se le envía un correo electrónico de confirmación.
+- **Panel de Administración de Usuarios**: El proyecto incluye un panel de administración de usuarios para gestionar las cuentas de usuario.
+- **Sistema Basado en Roles**: El acceso a diferentes niveles del sistema se controla mediante un sistema basado en roles.
+- **Pasarela de Pago PayPal**: El proyecto incluye la implementación de una pasarela de pago PayPal.
+- **Restablecimiento de Contraseña**: Los usuarios pueden restablecer su contraseña a través del panel de administrador. Se envía un correo electrónico al usuario seleccionado con una contraseña temporal y un enlace para cambiarla.
+- **Flexibilidad en la Autenticación**: Los usuarios pueden cambiar entre los modos de autenticación de manera efectiva comentando y descomentando el código correspondiente.
+- **Docker**: Configuración necesaria para integrar en Docker.
+- **Redis**: Configuración necesaria para que funcione correctamente en Redis.
+   
