@@ -105,8 +105,9 @@ Dentro de Visual Studio 2022 para acceder al archivo de **Secretos del usuario**
 ```sh
 "JwtAudience": "GestorInventarioCliente"
 ````
--**JWT**: 
-    - **PublicKey y PrivateKey**: para obtener estos valores he dejado en el repositorio el codigo necesario para obtener estos valores, para ello vamos a la carpeta **GeneracionClaves**
+- **JWT**: 
+  - **PublicKey y PrivateKey**: para obtener estos valores he dejado en el repositorio el código necesario para obtener estos valores, para ello vamos a la carpeta **GeneracionClaves**.
+**GeneracionClaves**
 - **ClaveJWT**: tiene que ser un valor largo ya que ese valor se usa para cifrar y descifrar minimo una longitud de **38 digitos alfanumericos**. Por ejemplo:
 ```sh
 "ClaveJWT": "Curso@.net#2023_Arelance_MiClaveSecretaMuyLarga"
