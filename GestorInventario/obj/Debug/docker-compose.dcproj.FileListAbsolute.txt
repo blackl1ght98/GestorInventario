@@ -47,10 +47,10 @@ C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventari
 C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\obj\Debug\docker-compose.dcproj.AssemblyReference.cache
 C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\obj\Debug\docker-compose.dcproj.CoreCompileInputs.cache
 C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\obj\Debug\docker-c.35A3FFBA.Up2Date
-C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\bin\Debug\secretos.json
 C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\bin\Debug\Microsoft.Extensions.Logging.Abstractions.dll
 C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\bin\Debug\StackExchange.Redis.dll
 C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\bin\Debug\Microsoft.Extensions.Caching.StackExchangeRedis.dll
 C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\bin\Debug\Microsoft.Extensions.DependencyInjection.Abstractions.dll
 C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\bin\Debug\Microsoft.Extensions.Options.dll
 C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\bin\Debug\Pipelines.Sockets.Unofficial.dll
+C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\bin\Debug\Microsoft.AspNetCore.DataProtection.StackExchangeRedis.dll

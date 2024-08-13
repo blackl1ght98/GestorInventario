@@ -79,10 +79,10 @@ namespace GestorInventario.Infraestructure.Controllers
         [HttpPost]
         public async Task<IActionResult> Checkout(string monedaSeleccionada)
         {
-               // Cambia la cultura actual del hilo a InvariantCulture
+               //Necesario para que paypal entienda el precio
                System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
 
-               // Cambia la cultura de la interfaz de usuario actual del hilo a InvariantCulture
+               
                System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
             try
             {

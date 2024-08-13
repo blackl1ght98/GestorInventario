@@ -82,7 +82,11 @@ namespace GestorInventario.Infraestructure.Controllers
                             ModelState.AddModelError("", "Por favor, confirma tu correo electrónico antes de iniciar sesión.");
                             return View(model);
                         }
-
+                        if (user.BajaUsuario == true)
+                        {
+                            ModelState.AddModelError("", "Su usuario a sido dado de baja, contacte con el administrador para darse de alta");
+                            return View(model);
+                        }
                         //Se llama al servicio hash service
                         var resultadoHash = _hashService.Hash(model.Password, user.Salt);
                         //Si la contraseña que se introduce es igual a la que hay en base de datos se procede al login

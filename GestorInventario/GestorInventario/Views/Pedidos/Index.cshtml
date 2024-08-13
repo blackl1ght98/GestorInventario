@@ -2,9 +2,8 @@
 @model List<Pedido>
 <style>
     .btn-group > .btn {
-        margin-right: 10px; 
+        margin-right: 10px;
     }
-
 </style>
 <h1>Pedidos</h1>
 @{
@@ -14,8 +13,8 @@
     @if (User.IsInRole("administrador"))
     {
         <a asp-action="Create" class="btn btn-info">Crear Pedido</a>
+       
     }
-    
 </p>
 <form asp-controller="Pedidos" asp-action="Index">
     <p>
@@ -27,7 +26,7 @@
 <form asp-controller="Pedidos" asp-action="Index">
     <p>
         Buscar: <input type="text" name="buscar" class="form-text" placeholder="Número de pedido, Estado, Nombre del cliente..." />
-        <input type="submit" value="Buscar" class="btn btn-sm btn-dark"  />
+        <input type="submit" value="Buscar" class="btn btn-sm btn-dark" />
     </p>
 </form>
 <table class="table table-striped table-bordered w-100">
@@ -44,6 +43,7 @@
     <tbody>
         @foreach (var pedido in Model)
         {
+
             <tr>
                 <td>@pedido.NumeroPedido</td>
                 <td>@pedido.FechaPedido</td>
@@ -53,14 +53,28 @@
                     <a asp-action="DetallesPedido" asp-route-id="@pedido.Id" class="btn btn-info">Ver detalles</a>
                 </td>
                 <td>
+                    @{
+                        bool isRefunded = pedido.EstadoPedido == "Reembolsado"; 
+                    }
                     @if (User.IsInRole("administrador"))
                     {
                         <div class="btn-group" role="group" aria-label="Acciones">
                             <a asp-action="Delete" asp-route-id="@pedido.Id" class="btn btn-danger">Eliminar</a>
                             <a asp-action="Edit" asp-route-id="@pedido.Id" class="btn btn-warning">Actualizar</a>
+                            <button type="button" class="btn btn-info mt-2 refund-button"
+                                    data-toggle="modal"
+                                    data-target="#confirmModal"
+                                    data-pedido-id="@pedido.Id"
+                            @if (isRefunded)
+                            {
+                                <text>disabled</text>
+                            }>
+                    Reembolsar
+                </button>
                         </div>
                     }
                 </td>
+          
 
             </tr>
         }
@@ -77,3 +91,73 @@
         }
     </ul>
 </nav>
+<!-- Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Confirmación</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">¿Estás seguro de que deseas realizar esta acción?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmActionBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+ 
+    <script>
+        $(document).ready(function () {
+            var pedidoId; // Variable para almacenar el ID del pedido
+
+            // Mostrar el modal de confirmación
+            $(".refund-button").click(function (event) {
+                event.preventDefault();
+                pedidoId = $(this).data("pedido-id");
+               
+                $("#confirmModal").modal("show");
+               
+
+                // Cambia el mensaje dentro del modal para reflejar la acción que se realizará y el ID del usuario.
+                $("#confirmMessage").text(`¿Estás seguro de que deseas reembolsar el pedido ${pedidoId}?`);
+            });
+
+            // Confirmar el reembolso
+            $("#confirmActionBtn").click(function () {
+                var refundAmount = 0; 
+                var currency = "EUR";
+                // Deshabilitar el botón para evitar múltiples clics
+                $(this).prop('disabled', true);
+                $.ajax({
+                    url: '@Url.Action("RefundSale", "Payment")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        PedidoId: pedidoId,
+                        RefundAmount: refundAmount,
+                        Currency: currency
+                    }),
+                    success: function (response) {
+                        console.log("Reembolso realizado con éxito");
+                        location.reload(); 
+                    },
+                    error: function (xhr, status, error) {
+                        alert("Error al realizar el reembolso: " + xhr.responseText);
+                    }
+                });
+
+                // Ocultar el modal después de confirmar
+                $("#confirmModal").modal("hide");
+            });
+        });
+    </script>
+}
+

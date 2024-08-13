@@ -11,9 +11,7 @@ using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.Application.Politicas_Resilencia;
 using GestorInventario.Domain.Models.ViewModels;
 using System.Security.Claims;
-using Polly;
-using GestorInventario.Domain.Models;
-using System.Linq;
+
 
 namespace GestorInventario.Infraestructure.Controllers
 {
@@ -27,10 +25,10 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IAdminRepository _adminrepository;
         private readonly GenerarPaginas _generarPaginas;
         private readonly PolicyHandler _PolicyHandler;   
-        private readonly GestorInventarioContext _context;
+       
         public AdminController( IEmailService emailService, HashService hashService, IConfirmEmailService confirmEmailService, 
             ILogger<AdminController> logger, IAdminRepository adminRepository,  GenerarPaginas generarPaginas, 
-             PolicyHandler policy, GestorInventarioContext context)
+             PolicyHandler policy)
         {
            
             _emailService = emailService;
@@ -40,7 +38,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _adminrepository = adminRepository;
             _generarPaginas = generarPaginas;
             _PolicyHandler = policy;
-           _context = context;
+          
         }
         public async Task<ActionResult> Index(string buscar, [FromQuery] Paginacion paginacion)
         {
@@ -78,6 +76,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
             }
         }
+      
         [HttpPost]
         public async Task<IActionResult> UpdateRole(int id, int newRole)
         {
@@ -447,6 +446,9 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
+        /*Si desean usar una vista en vez de un modal descomentar estas lineas y comentar las actualmente descomentadas, tambien es necesario descomentar en la
+         vista*/
+
         //public async Task<IActionResult> BajaUsuario(int id)
         //{
         //    var user = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == id);
@@ -465,7 +467,7 @@ namespace GestorInventario.Infraestructure.Controllers
         //    if (success)
         //    {
 
-        //        return RedirectToAction("Index"); 
+        //        return RedirectToAction("Index");
         //    }
         //    else
         //    {
@@ -493,7 +495,7 @@ namespace GestorInventario.Infraestructure.Controllers
         //    if (success)
         //    {
 
-        //        return RedirectToAction("Index"); 
+        //        return RedirectToAction("Index");
         //    }
         //    else
         //    {

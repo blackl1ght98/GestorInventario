@@ -9,6 +9,10 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.Domain.Models;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using GestorInventario.Application.Classes;
 
 namespace GestorInventario.Infraestructure.Controllers
 {
@@ -17,11 +21,13 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly ILogger<PaymentController> _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _configuration;
-        public PaymentController(ILogger<PaymentController> logger, IUnitOfWork unitOfWork, IConfiguration configuration)
+        private readonly GestorInventarioContext _context;
+        public PaymentController(ILogger<PaymentController> logger, IUnitOfWork unitOfWork, IConfiguration configuration, GestorInventarioContext context)
         {
             _logger = logger;
             _unitOfWork = unitOfWork;
             _configuration = configuration;
+            _context = context;
         }
 
         public IActionResult Index()
@@ -37,7 +43,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 var clientSeecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
                 // Obtén el contexto de la API de PayPal
                 var apiContext = new APIContext(new OAuthTokenCredential(clientId, clientSeecret).GetAccessToken());
-
+          
                 // Crea un objeto PaymentExecution para ejecutar la transacción
                 var paymentExecution = new PaymentExecution() { payer_id = PayerID };
 
@@ -52,7 +58,28 @@ namespace GestorInventario.Infraestructure.Controllers
 
                     TempData["ErrorMessage"] = "Error en el pago del pedido";
                 }
+                var saleId = executedPayment.transactions[0].related_resources[0].sale.id;
+                var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int usuarioId;
+                if (int.TryParse(existeUsuario, out usuarioId))
+                {
+                    // Aquí puedes almacenar el saleId en tu base de datos asociado al pedido
+                    var pedido = await _context.Pedidos
+                    .Where(p => p.IdUsuario == usuarioId && p.EstadoPedido == "En Proceso")
+                    .OrderByDescending(p => p.FechaPedido)
+                    .FirstOrDefaultAsync();
 
+                    if (pedido != null)
+                    {
+                        pedido.SaleId = saleId;
+                        pedido.EstadoPedido = "Pagado";
+                        _context.Update(pedido);
+                        await _context.SaveChangesAsync();
+                    }
+                }
+                   
+                // Aquí puedes almacenar el saleId en tu base de datos asociado al pedido
+                // Ejemplo: GuardarSaleIdEnBaseDeDatos(pedidoId, saleId);
                 return View();
             }
             catch (Exception ex)
@@ -64,7 +91,26 @@ namespace GestorInventario.Infraestructure.Controllers
             }
            
         }
+      
+        [HttpPost]
+        public async Task<IActionResult> RefundSale([FromBody] RefundRequestModel request)
+        {
+            if (request == null || request.PedidoId <= 0)
+            {
+                return BadRequest("Solicitud inválida.");
+            }
 
+            try
+            {
+                var refund = await _unitOfWork.PaypalService.RefundSaleAsync(request.PedidoId, request.RefundAmount, request.Currency);
+                return Ok(refund);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error al realizar el reembolso: {ex.Message}");
+            }
+        }
+      
 
         [HttpPost]
         public async Task<IActionResult> PayUsingCard(PaymentViewModel model)
