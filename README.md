@@ -6,7 +6,7 @@
 - **SQL Server** en su última versión.
 - **Azure Data Studio** (para Docker).
 - **Redis** (si usas Docker).
-- **Docker**.
+- **Docker**.(opcional)
 - **.NET 8.0** instalado.
 - **Sistema operativo**: Windows 10 (verificado).
 
@@ -105,8 +105,9 @@ Dentro de Visual Studio 2022 para acceder al archivo de **Secretos del usuario**
 ```sh
 "JwtAudience": "GestorInventarioCliente"
 ````
--**JWT**: para los tokens con valor fijo:
-    - **PublicKey y PrivateKey**: para obtener estos valores he dejado en el repositorio el codigo necesario para obtener estos valores, para ello vamos a la carpeta **GeneracionClaves**
+- **JWT**: 
+  - **PublicKey y PrivateKey**: para obtener estos valores he dejado en el repositorio el código necesario para obtener estos valores, para ello vamos a la carpeta **GeneracionClaves**.
+**GeneracionClaves**
 - **ClaveJWT**: tiene que ser un valor largo ya que ese valor se usa para cifrar y descifrar minimo una longitud de **38 digitos alfanumericos**. Por ejemplo:
 ```sh
 "ClaveJWT": "Curso@.net#2023_Arelance_MiClaveSecretaMuyLarga"
@@ -234,6 +235,7 @@ El proyecto **Gestor Inventario** ofrece una amplia gama de características par
 - **Pasarela de Pago PayPal**: El proyecto incluye la implementación de una pasarela de pago PayPal.
 - **Restablecimiento de Contraseña**: Los usuarios pueden restablecer su contraseña a través del panel de administrador. Se envía un correo electrónico al usuario seleccionado con una contraseña temporal y un enlace para cambiarla.
 - **Flexibilidad en la Autenticación**: Los usuarios pueden cambiar entre los modos de autenticación de manera efectiva comentando y descomentando el código correspondiente.
+- **Alta y baja de usuarios**: El administrador puede dar de alta o baja a un usuario o varios usuarios.
 - **Docker**: Configuración necesaria para integrar en Docker.
 - **Redis**: Configuración necesaria para que funcione correctamente en Redis.
    
