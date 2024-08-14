@@ -238,4 +238,5 @@ El proyecto **Gestor Inventario** ofrece una amplia gama de características par
 - **Alta y baja de usuarios**: El administrador puede dar de alta o baja a un usuario o varios usuarios.
 - **Docker**: Configuración necesaria para integrar en Docker.
 - **Redis**: Configuración necesaria para que funcione correctamente en Redis.
+- **Función de reembolso**: Ahora cuenta con la función de reembolsar un pedido
    
