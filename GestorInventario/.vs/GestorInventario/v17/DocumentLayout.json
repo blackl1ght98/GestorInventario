@@ -1,0 +1,253 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{E2F2198E-0D35-4F40-94BF-F27498B73586}|GestorInventario\\GestorInventario.csproj|c:\\users\\guill\\onedrive\\escritorio\\proyectos .net\\proyectos mvc\\gestor inventario\\gestorinventario\\gestorinventario\\infraestructure\\controllers\\proveedorcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E2F2198E-0D35-4F40-94BF-F27498B73586}|GestorInventario\\GestorInventario.csproj|solutionrelative:gestorinventario\\infraestructure\\controllers\\proveedorcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E2F2198E-0D35-4F40-94BF-F27498B73586}|GestorInventario\\GestorInventario.csproj|c:\\users\\guill\\onedrive\\escritorio\\proyectos .net\\proyectos mvc\\gestor inventario\\gestorinventario\\gestorinventario\\infraestructure\\controllers\\productoscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E2F2198E-0D35-4F40-94BF-F27498B73586}|GestorInventario\\GestorInventario.csproj|solutionrelative:gestorinventario\\infraestructure\\controllers\\productoscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E2F2198E-0D35-4F40-94BF-F27498B73586}|GestorInventario\\GestorInventario.csproj|c:\\users\\guill\\onedrive\\escritorio\\proyectos .net\\proyectos mvc\\gestor inventario\\gestorinventario\\gestorinventario\\infraestructure\\controllers\\pedidoscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E2F2198E-0D35-4F40-94BF-F27498B73586}|GestorInventario\\GestorInventario.csproj|solutionrelative:gestorinventario\\infraestructure\\controllers\\pedidoscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E2F2198E-0D35-4F40-94BF-F27498B73586}|GestorInventario\\GestorInventario.csproj|c:\\users\\guill\\onedrive\\escritorio\\proyectos .net\\proyectos mvc\\gestor inventario\\gestorinventario\\gestorinventario\\infraestructure\\controllers\\paymentcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E2F2198E-0D35-4F40-94BF-F27498B73586}|GestorInventario\\GestorInventario.csproj|solutionrelative:gestorinventario\\infraestructure\\controllers\\paymentcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E2F2198E-0D35-4F40-94BF-F27498B73586}|GestorInventario\\GestorInventario.csproj|c:\\users\\guill\\onedrive\\escritorio\\proyectos .net\\proyectos mvc\\gestor inventario\\gestorinventario\\gestorinventario\\infraestructure\\controllers\\carritocontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E2F2198E-0D35-4F40-94BF-F27498B73586}|GestorInventario\\GestorInventario.csproj|solutionrelative:gestorinventario\\infraestructure\\controllers\\carritocontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E2F2198E-0D35-4F40-94BF-F27498B73586}|GestorInventario\\GestorInventario.csproj|c:\\users\\guill\\onedrive\\escritorio\\proyectos .net\\proyectos mvc\\gestor inventario\\gestorinventario\\gestorinventario\\infraestructure\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E2F2198E-0D35-4F40-94BF-F27498B73586}|GestorInventario\\GestorInventario.csproj|solutionrelative:gestorinventario\\infraestructure\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E2F2198E-0D35-4F40-94BF-F27498B73586}|GestorInventario\\GestorInventario.csproj|c:\\users\\guill\\onedrive\\escritorio\\proyectos .net\\proyectos mvc\\gestor inventario\\gestorinventario\\gestorinventario\\infraestructure\\controllers\\admincontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E2F2198E-0D35-4F40-94BF-F27498B73586}|GestorInventario\\GestorInventario.csproj|solutionrelative:gestorinventario\\infraestructure\\controllers\\admincontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E2F2198E-0D35-4F40-94BF-F27498B73586}|GestorInventario\\GestorInventario.csproj|c:\\users\\guill\\onedrive\\escritorio\\proyectos .net\\proyectos mvc\\gestor inventario\\gestorinventario\\gestorinventario\\infraestructure\\repositories\\adminrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E2F2198E-0D35-4F40-94BF-F27498B73586}|GestorInventario\\GestorInventario.csproj|solutionrelative:gestorinventario\\infraestructure\\repositories\\adminrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|ViewDataWindow_MSSQL__/DESKTOP_2TL9C3O_SQLEXPRESS/GestorInventario/True/SqlTable/dbo.Usuarios.sql||{0058A1F7-65F3-4DB9-B3D0-CA7E64DD73CD}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E2F2198E-0D35-4F40-94BF-F27498B73586}|GestorInventario\\GestorInventario.csproj|c:\\users\\guill\\onedrive\\escritorio\\proyectos .net\\proyectos mvc\\gestor inventario\\gestorinventario\\gestorinventario\\interfaces\\infraestructure\\iadminrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E2F2198E-0D35-4F40-94BF-F27498B73586}|GestorInventario\\GestorInventario.csproj|solutionrelative:gestorinventario\\interfaces\\infraestructure\\iadminrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E2F2198E-0D35-4F40-94BF-F27498B73586}|GestorInventario\\GestorInventario.csproj|c:\\users\\guill\\onedrive\\escritorio\\proyectos .net\\proyectos mvc\\gestor inventario\\gestorinventario\\gestorinventario\\paginacionlogica\\queryableextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E2F2198E-0D35-4F40-94BF-F27498B73586}|GestorInventario\\GestorInventario.csproj|solutionrelative:gestorinventario\\paginacionlogica\\queryableextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E2F2198E-0D35-4F40-94BF-F27498B73586}|GestorInventario\\GestorInventario.csproj|c:\\users\\guill\\onedrive\\escritorio\\proyectos .net\\proyectos mvc\\gestor inventario\\gestorinventario\\gestorinventario\\paginacionlogica\\httpcontextextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E2F2198E-0D35-4F40-94BF-F27498B73586}|GestorInventario\\GestorInventario.csproj|solutionrelative:gestorinventario\\paginacionlogica\\httpcontextextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E2F2198E-0D35-4F40-94BF-F27498B73586}|GestorInventario\\GestorInventario.csproj|c:\\users\\guill\\onedrive\\escritorio\\proyectos .net\\proyectos mvc\\gestor inventario\\gestorinventario\\gestorinventario\\application\\politicas-resilencia\\policyhandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E2F2198E-0D35-4F40-94BF-F27498B73586}|GestorInventario\\GestorInventario.csproj|solutionrelative:gestorinventario\\application\\politicas-resilencia\\policyhandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 4,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{e1b7d1f8-9b3c-49b1-8f4f-bfc63a88835d}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{74946827-37a0-11d2-a273-00c04f8ef4ff}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{0ad07096-bba9-4900-a651-0598d26f6d24}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ProveedorController.cs",
+              "DocumentMoniker": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\Infraestructure\\Controllers\\ProveedorController.cs",
+              "RelativeDocumentMoniker": "GestorInventario\\Infraestructure\\Controllers\\ProveedorController.cs",
+              "ToolTip": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\Infraestructure\\Controllers\\ProveedorController.cs",
+              "RelativeToolTip": "GestorInventario\\Infraestructure\\Controllers\\ProveedorController.cs",
+              "ViewState": "AQIAANIAAAAAAAAAAAAIwNoAAAAJAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-08-30T15:28:55.991Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ProductosController.cs",
+              "DocumentMoniker": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\Infraestructure\\Controllers\\ProductosController.cs",
+              "RelativeDocumentMoniker": "GestorInventario\\Infraestructure\\Controllers\\ProductosController.cs",
+              "ToolTip": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\Infraestructure\\Controllers\\ProductosController.cs",
+              "RelativeToolTip": "GestorInventario\\Infraestructure\\Controllers\\ProductosController.cs",
+              "ViewState": "AQIAAPgBAAAAAAAAAAAzwBACAAAJAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-08-30T15:26:27.801Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "PedidosController.cs",
+              "DocumentMoniker": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\Infraestructure\\Controllers\\PedidosController.cs",
+              "RelativeDocumentMoniker": "GestorInventario\\Infraestructure\\Controllers\\PedidosController.cs",
+              "ToolTip": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\Infraestructure\\Controllers\\PedidosController.cs",
+              "RelativeToolTip": "GestorInventario\\Infraestructure\\Controllers\\PedidosController.cs",
+              "ViewState": "AQIAAI8BAAAAAAAAAAAmwAsCAAAJAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-08-30T15:24:37.719Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "PaymentController.cs",
+              "DocumentMoniker": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\Infraestructure\\Controllers\\PaymentController.cs",
+              "RelativeDocumentMoniker": "GestorInventario\\Infraestructure\\Controllers\\PaymentController.cs",
+              "ToolTip": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\Infraestructure\\Controllers\\PaymentController.cs",
+              "RelativeToolTip": "GestorInventario\\Infraestructure\\Controllers\\PaymentController.cs",
+              "ViewState": "AQIAAIAAAAAAAAAAAAAAwAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-08-30T15:24:26.016Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "CarritoController.cs",
+              "DocumentMoniker": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\Infraestructure\\Controllers\\CarritoController.cs",
+              "RelativeDocumentMoniker": "GestorInventario\\Infraestructure\\Controllers\\CarritoController.cs",
+              "ToolTip": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\Infraestructure\\Controllers\\CarritoController.cs",
+              "RelativeToolTip": "GestorInventario\\Infraestructure\\Controllers\\CarritoController.cs",
+              "ViewState": "AQIAAJgAAAAAAAAAAAAAwJcAAAANAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-08-30T15:23:52.938Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "AuthController.cs",
+              "DocumentMoniker": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\Infraestructure\\Controllers\\AuthController.cs",
+              "RelativeDocumentMoniker": "GestorInventario\\Infraestructure\\Controllers\\AuthController.cs",
+              "ToolTip": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\Infraestructure\\Controllers\\AuthController.cs",
+              "RelativeToolTip": "GestorInventario\\Infraestructure\\Controllers\\AuthController.cs",
+              "ViewState": "AQIAANAAAAAAAAAAAAAiwAIBAAAIAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-08-30T15:22:50.082Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "QueryableExtensions.cs",
+              "DocumentMoniker": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\PaginacionLogica\\QueryableExtensions.cs",
+              "RelativeDocumentMoniker": "GestorInventario\\PaginacionLogica\\QueryableExtensions.cs",
+              "ToolTip": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\PaginacionLogica\\QueryableExtensions.cs",
+              "RelativeToolTip": "GestorInventario\\PaginacionLogica\\QueryableExtensions.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABEAAAAxAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-08-30T15:14:02.66Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "HttpContextExtensions.cs",
+              "DocumentMoniker": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\PaginacionLogica\\HttpContextExtensions.cs",
+              "RelativeDocumentMoniker": "GestorInventario\\PaginacionLogica\\HttpContextExtensions.cs",
+              "ToolTip": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\PaginacionLogica\\HttpContextExtensions.cs",
+              "RelativeToolTip": "GestorInventario\\PaginacionLogica\\HttpContextExtensions.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABsAAABBAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-08-30T15:10:23.754Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "IAdminRepository.cs",
+              "DocumentMoniker": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\Interfaces\\Infraestructure\\IAdminRepository.cs",
+              "RelativeDocumentMoniker": "GestorInventario\\Interfaces\\Infraestructure\\IAdminRepository.cs",
+              "ToolTip": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\Interfaces\\Infraestructure\\IAdminRepository.cs",
+              "RelativeToolTip": "GestorInventario\\Interfaces\\Infraestructure\\IAdminRepository.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAqwAgAAAAKAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-08-30T14:38:22.285Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "PolicyHandler.cs",
+              "DocumentMoniker": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\Application\\Politicas-Resilencia\\PolicyHandler.cs",
+              "RelativeDocumentMoniker": "GestorInventario\\Application\\Politicas-Resilencia\\PolicyHandler.cs",
+              "ToolTip": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\Application\\Politicas-Resilencia\\PolicyHandler.cs",
+              "RelativeToolTip": "GestorInventario\\Application\\Politicas-Resilencia\\PolicyHandler.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-08-30T14:36:06.759Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "dbo.Usuarios [Datos]",
+              "DocumentMoniker": "ViewDataWindow_MSSQL__/DESKTOP_2TL9C3O_SQLEXPRESS/GestorInventario/True/SqlTable/dbo.Usuarios.sql",
+              "ToolTip": "dbo.Usuarios [Datos]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
+              "WhenOpened": "2024-08-30T14:30:47.183Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "AdminRepository.cs",
+              "DocumentMoniker": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\Infraestructure\\Repositories\\AdminRepository.cs",
+              "RelativeDocumentMoniker": "GestorInventario\\Infraestructure\\Repositories\\AdminRepository.cs",
+              "ToolTip": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\Infraestructure\\Repositories\\AdminRepository.cs",
+              "RelativeToolTip": "GestorInventario\\Infraestructure\\Repositories\\AdminRepository.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAACcAAAARAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-08-30T14:13:45.525Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "AdminController.cs",
+              "DocumentMoniker": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\Infraestructure\\Controllers\\AdminController.cs",
+              "RelativeDocumentMoniker": "GestorInventario\\Infraestructure\\Controllers\\AdminController.cs",
+              "ToolTip": "C:\\Users\\guill\\OneDrive\\Escritorio\\Proyectos .NET\\proyectos mvc\\Gestor Inventario\\GestorInventario\\GestorInventario\\Infraestructure\\Controllers\\AdminController.cs",
+              "RelativeToolTip": "GestorInventario\\Infraestructure\\Controllers\\AdminController.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAMYBAAAHAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-08-30T14:13:40.739Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+﻿@model List<SubscriptionDetail>
+@using GestorInventario.PaginacionLogica
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+<div class="container-fluid">
+    <h1 class="text-left">Suscripciones</h1>
+ 
+
+    @{
+        var paginas = ViewBag.Paginas as List<PaginasModel>;
+    }
+    <div class="table">
+        <table class="table table-striped table-bordered w-100">
+            <thead>
+                <tr>
+                    <th class="col-2">Id Suscripcion</th>
+                    <th class="col-2">Plan Id</th>
+                   
+                    <th class="col-2">Estado</th>
+                    <th class="col-2">Pagador Id</th>
+                    <th class="col-2">Dias de Prueba</th>
+                    <th class="col-2">Nombre Suscriptor</th>
+                    <th class="col-2">Email Suscriptor</th>
+                    <th class="col-2">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model)
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(m => user.SubscriptionId)</td>
+                        <td>@Html.DisplayFor(m => user.PlanId)</td>
+                        <td>@Html.DisplayFor(m => user.Status)</td>
+                        <td>@Html.DisplayFor(m => user.PayerId)</td>
+
+                        <td id="dias-prueba-@user.SubscriptionId">
+                            @if (user.TrialIntervalCount > 0)
+                            {
+                                @user.TrialIntervalCount
+                            }
+                            else
+                            {
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            }
+                        </td>
+                        <td>@Html.DisplayFor(m => user.SubscriberName)</td>
+                        <td>@Html.DisplayFor(m => user.SubscriberEmail)</td>
+                        <td> <a asp-action="DetallesSuscripcion" asp-controller="SuscriptionProduct" asp-route-id="@user.SubscriptionId" class="btn btn-warning mt-2">Mostrar detalles suscripcion</a></td>
+                    </tr>
+
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<nav aria-label="Page navigation example">
+    <ul class="pagination justify-content-center">
+        @foreach (var pagina in paginas!)
+        {
+            <li class="page-item @(pagina.Habilitada ? null : "disabled") @(pagina.Activa ? "active" : null)">
+                <a class="page-link" href="@Url.Action("TodasSuscripciones", new { Pagina = pagina.Pagina })">@pagina.Texto</a>
+            </li>
+        }
+    </ul>
+</nav>
+@section Scripts{
+    <script>
+        $(document).ready(function () {
+            $("tr").each(function () {
+                var subscriptionId = $(this).find("td:first").text().trim();
+                var trialDaysCell = $(this).find("#dias-prueba-" + subscriptionId);
+
+                if (trialDaysCell.find(".spinner-border").length > 0) {
+                    $.ajax({
+                        url: '@Url.Action("GetPlanDetailsIfNotExists", "SuscriptionProduct")',
+                        type: 'GET',
+                        data: { subscriptionId: subscriptionId },
+                        success: function (response) {
+                            trialDaysCell.html(response.trialDays);
+                        },
+                        error: function () {
+                            trialDaysCell.html('Error');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+
+}

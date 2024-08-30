@@ -1,0 +1,77 @@
+﻿@using GestorInventario.Domain.Models.ViewModels.Paypal
+@model ProductosPaginadosViewModel
+
+@{
+    ViewBag.Title = "Productos de PayPal";
+}
+
+<h2>Productos de PayPal</h2>
+<p class="text-left">
+    <a asp-action="CrearProducto" class="btn btn-info">Crear Producto PayPal</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var producto in Model.Productos)
+        {
+            <tr>
+                <td>@producto.id</td>
+           
+                <td>@producto.name</td>
+                <td>@producto.description</td>
+                <td>
+                <td>
+                    <form asp-action="DesactivarProducto" method="post">
+                      
+
+                       
+                        <input type="hidden" name="id" value="@producto.id" />
+
+                        <button type="submit" class="btn btn-danger">Desactivar producto</button>
+                    </form>
+                </td>
+                <td>
+
+                    <a asp-action="EditarProductoPaypal" asp-route-id="@producto.id" class="btn btn-info">Editar producto</a>
+                  
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Navegación de paginación -->
+<nav aria-label="Page navigation example">
+    <ul class="pagination justify-content-center">
+        <!-- Link a la página anterior -->
+        <li class="page-item @(Model.TienePaginaAnterior ? "" : "disabled")">
+            <a class="page-link" href="@Url.Action("MostrarProductos", new { pagina = Model.PaginaActual - 1 })" aria-label="Anterior">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+
+        <!-- Links a las páginas específicas.
+        Páginas específicas: La paginación se genera en función de las páginas disponibles en Model.Paginas. Se marca la página actual como active en la interfaz.
+                -->
+        @foreach (var pagina in Model.Paginas)
+        {
+            <li class="page-item @(pagina.Activa ? "active" : "")">
+                <a class="page-link" href="@Url.Action("MostrarProductos", new { pagina = pagina.Pagina })">@pagina.Texto</a>
+            </li>
+        }
+
+        <!-- Link a la página siguiente -->
+        <li class="page-item @(Model.TienePaginaSiguiente ? "" : "disabled")">
+            <a class="page-link" href="@Url.Action("MostrarProductos", new { pagina = Model.PaginaActual + 1 })" aria-label="Siguiente">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+    </ul>
+</nav>

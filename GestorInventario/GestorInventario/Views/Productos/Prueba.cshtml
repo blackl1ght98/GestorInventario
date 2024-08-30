@@ -1,0 +1,27 @@
+﻿<h1>Prueba de Creación de Planes de Suscripción</h1>
+
+<button id="pruebaButton">Crear Plan de Suscripción</button>
+
+<div id="result"></div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#pruebaButton").click(function () {
+                $.ajax({
+                    url: '@Url.Action("Pruebas", "Productos")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    success: function (result) {
+                        // $("#result").text("Plan creado con éxito: " + JSON.stringify(result));
+                        $("#result").text("Plan creado con éxito");
+                    },
+                    error: function (xhr, status, error) {
+                        $("#result").text("Error: " + xhr.responseText);
+                    }
+                });
+            });
+        });
+    </script>
+}

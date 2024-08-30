@@ -1,0 +1,760 @@
+INFO  2024-05-09 11:15:08 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-05-09 11:15:08 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-05-09 11:15:08 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-05-09 11:15:08 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-05-09 11:15:08 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-05-09 11:25:57 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (96ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-05-09 11:25:57 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (6ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+INFO  2024-05-09 11:25:59 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (14ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Pedidos] AS [p]
+WARN  2024-05-09 11:25:59 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-05-09 11:25:59 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-05-09 11:25:59 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (127ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[EstadoPedido], [t].[FechaPedido], [t].[IdUsuario], [t].[NumeroPedido], [u].[Id], [t0].[Id], [t0].[Cantidad], [t0].[PedidoId], [t0].[ProductoId], [t0].[Id0], [t0].[Cantidad0], [t0].[Descripcion], [t0].[IdProveedor], [t0].[Imagen], [t0].[NombreProducto], [t0].[Precio], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM (
+    SELECT [p].[Id], [p].[EstadoPedido], [p].[FechaPedido], [p].[IdUsuario], [p].[NumeroPedido]
+    FROM [Pedidos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Usuarios] AS [u] ON [t].[IdUsuario] = [u].[Id]
+LEFT JOIN (
+    SELECT [d].[Id], [d].[Cantidad], [d].[PedidoId], [d].[ProductoId], [p0].[Id] AS [Id0], [p0].[Cantidad] AS [Cantidad0], [p0].[Descripcion], [p0].[IdProveedor], [p0].[Imagen], [p0].[NombreProducto], [p0].[Precio]
+    FROM [DetallePedido] AS [d]
+    LEFT JOIN [Productos] AS [p0] ON [d].[ProductoId] = [p0].[Id]
+) AS [t0] ON [t].[Id] = [t0].[PedidoId]
+ORDER BY [t].[Id], [u].[Id], [t0].[Id]
+INFO  2024-05-09 11:26:05 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (7ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Pedidos] AS [p]
+WARN  2024-05-09 11:26:05 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-05-09 11:26:05 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-05-09 11:26:05 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (10ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[EstadoPedido], [t].[FechaPedido], [t].[IdUsuario], [t].[NumeroPedido], [u].[Id], [t0].[Id], [t0].[Cantidad], [t0].[PedidoId], [t0].[ProductoId], [t0].[Id0], [t0].[Cantidad0], [t0].[Descripcion], [t0].[IdProveedor], [t0].[Imagen], [t0].[NombreProducto], [t0].[Precio], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM (
+    SELECT [p].[Id], [p].[EstadoPedido], [p].[FechaPedido], [p].[IdUsuario], [p].[NumeroPedido]
+    FROM [Pedidos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_0 ROWS ONLY
+) AS [t]
+LEFT JOIN [Usuarios] AS [u] ON [t].[IdUsuario] = [u].[Id]
+LEFT JOIN (
+    SELECT [d].[Id], [d].[Cantidad], [d].[PedidoId], [d].[ProductoId], [p0].[Id] AS [Id0], [p0].[Cantidad] AS [Cantidad0], [p0].[Descripcion], [p0].[IdProveedor], [p0].[Imagen], [p0].[NombreProducto], [p0].[Precio]
+    FROM [DetallePedido] AS [d]
+    LEFT JOIN [Productos] AS [p0] ON [d].[ProductoId] = [p0].[Id]
+) AS [t0] ON [t].[Id] = [t0].[PedidoId]
+ORDER BY [t].[Id], [u].[Id], [t0].[Id]
+INFO  2024-05-09 11:26:09 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Pedidos] AS [p]
+INFO  2024-05-09 11:26:09 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (10ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[EstadoPedido], [t].[FechaPedido], [t].[IdUsuario], [t].[NumeroPedido], [u].[Id], [t0].[Id], [t0].[Cantidad], [t0].[PedidoId], [t0].[ProductoId], [t0].[Id0], [t0].[Cantidad0], [t0].[Descripcion], [t0].[IdProveedor], [t0].[Imagen], [t0].[NombreProducto], [t0].[Precio], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM (
+    SELECT [p].[Id], [p].[EstadoPedido], [p].[FechaPedido], [p].[IdUsuario], [p].[NumeroPedido]
+    FROM [Pedidos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Usuarios] AS [u] ON [t].[IdUsuario] = [u].[Id]
+LEFT JOIN (
+    SELECT [d].[Id], [d].[Cantidad], [d].[PedidoId], [d].[ProductoId], [p0].[Id] AS [Id0], [p0].[Cantidad] AS [Cantidad0], [p0].[Descripcion], [p0].[IdProveedor], [p0].[Imagen], [p0].[NombreProducto], [p0].[Precio]
+    FROM [DetallePedido] AS [d]
+    LEFT JOIN [Productos] AS [p0] ON [d].[ProductoId] = [p0].[Id]
+) AS [t0] ON [t].[Id] = [t0].[PedidoId]
+ORDER BY [t].[Id], [u].[Id], [t0].[Id]
+INFO  2024-05-09 11:26:15 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [p].[Id], [p].[EstadoPedido], [p].[FechaPedido], [p].[IdUsuario], [p].[NumeroPedido]
+FROM [Pedidos] AS [p]
+WHERE [p].[Id] = @__id_0
+INFO  2024-05-09 11:26:25 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (9ms) [Parameters=[@__model_id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[EstadoPedido], [t].[FechaPedido], [t].[IdUsuario], [t].[NumeroPedido], [d].[Id], [d].[Cantidad], [d].[PedidoId], [d].[ProductoId]
+FROM (
+    SELECT TOP(1) [p].[Id], [p].[EstadoPedido], [p].[FechaPedido], [p].[IdUsuario], [p].[NumeroPedido]
+    FROM [Pedidos] AS [p]
+    WHERE [p].[Id] = @__model_id_0
+) AS [t]
+LEFT JOIN [DetallePedido] AS [d] ON [t].[Id] = [d].[PedidoId]
+ORDER BY [t].[Id]
+INFO  2024-05-09 11:26:25 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (119ms) [Parameters=[@p3='?' (DbType = Int32), @p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = Int32), @p8='?' (DbType = Int32), @p4='?' (Size = 100) (DbType = AnsiString), @p5='?' (DbType = Date), @p6='?' (DbType = Int32), @p7='?' (Size = 20) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SET NOCOUNT ON;
+UPDATE [DetallePedido] SET [Cantidad] = @p0, [PedidoId] = @p1, [ProductoId] = @p2
+OUTPUT 1
+WHERE [Id] = @p3;
+UPDATE [Pedidos] SET [EstadoPedido] = @p4, [FechaPedido] = @p5, [IdUsuario] = @p6, [NumeroPedido] = @p7
+OUTPUT 1
+WHERE [Id] = @p8;
+INFO  2024-05-09 11:26:25 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (116ms) [Parameters=[@p0='?' (Size = 100) (DbType = AnsiString), @p1='?' (DbType = Date), @p2='?' (DbType = Int32), @p3='?' (Size = 20) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [HistorialPedidos] ([EstadoPedido], [FechaPedido], [IdUsuario], [NumeroPedido])
+OUTPUT INSERTED.[Id]
+VALUES (@p0, @p1, @p2, @p3);
+INFO  2024-05-09 11:26:25 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (34ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [DetalleHistorialPedidos] ([Cantidad], [HistorialPedidoId], [ProductoId])
+OUTPUT INSERTED.[Id]
+VALUES (@p0, @p1, @p2);
+INFO  2024-05-09 11:26:25 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Pedidos] AS [p]
+INFO  2024-05-09 11:26:25 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (1ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[EstadoPedido], [t].[FechaPedido], [t].[IdUsuario], [t].[NumeroPedido], [u].[Id], [t0].[Id], [t0].[Cantidad], [t0].[PedidoId], [t0].[ProductoId], [t0].[Id0], [t0].[Cantidad0], [t0].[Descripcion], [t0].[IdProveedor], [t0].[Imagen], [t0].[NombreProducto], [t0].[Precio], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM (
+    SELECT [p].[Id], [p].[EstadoPedido], [p].[FechaPedido], [p].[IdUsuario], [p].[NumeroPedido]
+    FROM [Pedidos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Usuarios] AS [u] ON [t].[IdUsuario] = [u].[Id]
+LEFT JOIN (
+    SELECT [d].[Id], [d].[Cantidad], [d].[PedidoId], [d].[ProductoId], [p0].[Id] AS [Id0], [p0].[Cantidad] AS [Cantidad0], [p0].[Descripcion], [p0].[IdProveedor], [p0].[Imagen], [p0].[NombreProducto], [p0].[Precio]
+    FROM [DetallePedido] AS [d]
+    LEFT JOIN [Productos] AS [p0] ON [d].[ProductoId] = [p0].[Id]
+) AS [t0] ON [t].[Id] = [t0].[PedidoId]
+ORDER BY [t].[Id], [u].[Id], [t0].[Id]
+INFO  2024-05-09 11:26:39 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (1ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [p].[Id], [p].[EstadoPedido], [p].[FechaPedido], [p].[IdUsuario], [p].[NumeroPedido]
+FROM [Pedidos] AS [p]
+WHERE [p].[Id] = @__id_0
+INFO  2024-05-09 11:26:46 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (1ms) [Parameters=[@__model_id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[EstadoPedido], [t].[FechaPedido], [t].[IdUsuario], [t].[NumeroPedido], [d].[Id], [d].[Cantidad], [d].[PedidoId], [d].[ProductoId]
+FROM (
+    SELECT TOP(1) [p].[Id], [p].[EstadoPedido], [p].[FechaPedido], [p].[IdUsuario], [p].[NumeroPedido]
+    FROM [Pedidos] AS [p]
+    WHERE [p].[Id] = @__model_id_0
+) AS [t]
+LEFT JOIN [DetallePedido] AS [d] ON [t].[Id] = [d].[PedidoId]
+ORDER BY [t].[Id]
+INFO  2024-05-09 11:26:46 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (1ms) [Parameters=[@p3='?' (DbType = Int32), @p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = Int32), @p8='?' (DbType = Int32), @p4='?' (Size = 100) (DbType = AnsiString), @p5='?' (DbType = Date), @p6='?' (DbType = Int32), @p7='?' (Size = 20) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SET NOCOUNT ON;
+UPDATE [DetallePedido] SET [Cantidad] = @p0, [PedidoId] = @p1, [ProductoId] = @p2
+OUTPUT 1
+WHERE [Id] = @p3;
+UPDATE [Pedidos] SET [EstadoPedido] = @p4, [FechaPedido] = @p5, [IdUsuario] = @p6, [NumeroPedido] = @p7
+OUTPUT 1
+WHERE [Id] = @p8;
+INFO  2024-05-09 11:26:46 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (1ms) [Parameters=[@p0='?' (Size = 100) (DbType = AnsiString), @p1='?' (DbType = Date), @p2='?' (DbType = Int32), @p3='?' (Size = 20) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [HistorialPedidos] ([EstadoPedido], [FechaPedido], [IdUsuario], [NumeroPedido])
+OUTPUT INSERTED.[Id]
+VALUES (@p0, @p1, @p2, @p3);
+INFO  2024-05-09 11:26:46 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (1ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [DetalleHistorialPedidos] ([Cantidad], [HistorialPedidoId], [ProductoId])
+OUTPUT INSERTED.[Id]
+VALUES (@p0, @p1, @p2);
+INFO  2024-05-09 11:26:46 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Pedidos] AS [p]
+INFO  2024-05-09 11:26:46 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (1ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[EstadoPedido], [t].[FechaPedido], [t].[IdUsuario], [t].[NumeroPedido], [u].[Id], [t0].[Id], [t0].[Cantidad], [t0].[PedidoId], [t0].[ProductoId], [t0].[Id0], [t0].[Cantidad0], [t0].[Descripcion], [t0].[IdProveedor], [t0].[Imagen], [t0].[NombreProducto], [t0].[Precio], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM (
+    SELECT [p].[Id], [p].[EstadoPedido], [p].[FechaPedido], [p].[IdUsuario], [p].[NumeroPedido]
+    FROM [Pedidos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Usuarios] AS [u] ON [t].[IdUsuario] = [u].[Id]
+LEFT JOIN (
+    SELECT [d].[Id], [d].[Cantidad], [d].[PedidoId], [d].[ProductoId], [p0].[Id] AS [Id0], [p0].[Cantidad] AS [Cantidad0], [p0].[Descripcion], [p0].[IdProveedor], [p0].[Imagen], [p0].[NombreProducto], [p0].[Precio]
+    FROM [DetallePedido] AS [d]
+    LEFT JOIN [Productos] AS [p0] ON [d].[ProductoId] = [p0].[Id]
+) AS [t0] ON [t].[Id] = [t0].[PedidoId]
+ORDER BY [t].[Id], [u].[Id], [t0].[Id]
+INFO  2024-05-09 11:27:15 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (5ms) [Parameters=[@__fechaInicio_Value_0='?' (DbType = Date), @__fechaFin_Value_1='?' (DbType = Date)], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Pedidos] AS [p]
+WHERE [p].[FechaPedido] >= @__fechaInicio_Value_0 AND [p].[FechaPedido] <= @__fechaFin_Value_1
+WARN  2024-05-09 11:27:15 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-05-09 11:27:15 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-05-09 11:27:15 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (8ms) [Parameters=[@__fechaInicio_Value_0='?' (DbType = Date), @__fechaFin_Value_1='?' (DbType = Date), @__p_2='?' (DbType = Int32), @__p_3='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[EstadoPedido], [t].[FechaPedido], [t].[IdUsuario], [t].[NumeroPedido], [u].[Id], [t0].[Id], [t0].[Cantidad], [t0].[PedidoId], [t0].[ProductoId], [t0].[Id0], [t0].[Cantidad0], [t0].[Descripcion], [t0].[IdProveedor], [t0].[Imagen], [t0].[NombreProducto], [t0].[Precio], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM (
+    SELECT [p].[Id], [p].[EstadoPedido], [p].[FechaPedido], [p].[IdUsuario], [p].[NumeroPedido]
+    FROM [Pedidos] AS [p]
+    WHERE [p].[FechaPedido] >= @__fechaInicio_Value_0 AND [p].[FechaPedido] <= @__fechaFin_Value_1
+    ORDER BY (SELECT 1)
+    OFFSET @__p_2 ROWS FETCH NEXT @__p_3 ROWS ONLY
+) AS [t]
+LEFT JOIN [Usuarios] AS [u] ON [t].[IdUsuario] = [u].[Id]
+LEFT JOIN (
+    SELECT [d].[Id], [d].[Cantidad], [d].[PedidoId], [d].[ProductoId], [p0].[Id] AS [Id0], [p0].[Cantidad] AS [Cantidad0], [p0].[Descripcion], [p0].[IdProveedor], [p0].[Imagen], [p0].[NombreProducto], [p0].[Precio]
+    FROM [DetallePedido] AS [d]
+    LEFT JOIN [Productos] AS [p0] ON [d].[ProductoId] = [p0].[Id]
+) AS [t0] ON [t].[Id] = [t0].[PedidoId]
+ORDER BY [t].[Id], [u].[Id], [t0].[Id]
+INFO  2024-05-09 11:27:24 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Pedidos] AS [p]
+INFO  2024-05-09 11:27:24 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (10ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[EstadoPedido], [t].[FechaPedido], [t].[IdUsuario], [t].[NumeroPedido], [u].[Id], [t0].[Id], [t0].[Cantidad], [t0].[PedidoId], [t0].[ProductoId], [t0].[Id0], [t0].[Cantidad0], [t0].[Descripcion], [t0].[IdProveedor], [t0].[Imagen], [t0].[NombreProducto], [t0].[Precio], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM (
+    SELECT [p].[Id], [p].[EstadoPedido], [p].[FechaPedido], [p].[IdUsuario], [p].[NumeroPedido]
+    FROM [Pedidos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Usuarios] AS [u] ON [t].[IdUsuario] = [u].[Id]
+LEFT JOIN (
+    SELECT [d].[Id], [d].[Cantidad], [d].[PedidoId], [d].[ProductoId], [p0].[Id] AS [Id0], [p0].[Cantidad] AS [Cantidad0], [p0].[Descripcion], [p0].[IdProveedor], [p0].[Imagen], [p0].[NombreProducto], [p0].[Precio]
+    FROM [DetallePedido] AS [d]
+    LEFT JOIN [Productos] AS [p0] ON [d].[ProductoId] = [p0].[Id]
+) AS [t0] ON [t].[Id] = [t0].[PedidoId]
+ORDER BY [t].[Id], [u].[Id], [t0].[Id]
+INFO  2024-05-09 11:28:28 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-05-09 11:28:28 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-05-09 11:28:28 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-05-09 11:28:28 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-05-09 11:28:28 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-05-09 11:28:33 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (30ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Pedidos] AS [p]
+WARN  2024-05-09 11:28:33 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-05-09 11:28:33 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-05-09 11:28:33 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (26ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[EstadoPedido], [t].[FechaPedido], [t].[IdUsuario], [t].[NumeroPedido], [u].[Id], [t0].[Id], [t0].[Cantidad], [t0].[PedidoId], [t0].[ProductoId], [t0].[Id0], [t0].[Cantidad0], [t0].[Descripcion], [t0].[IdProveedor], [t0].[Imagen], [t0].[NombreProducto], [t0].[Precio], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM (
+    SELECT [p].[Id], [p].[EstadoPedido], [p].[FechaPedido], [p].[IdUsuario], [p].[NumeroPedido]
+    FROM [Pedidos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Usuarios] AS [u] ON [t].[IdUsuario] = [u].[Id]
+LEFT JOIN (
+    SELECT [d].[Id], [d].[Cantidad], [d].[PedidoId], [d].[ProductoId], [p0].[Id] AS [Id0], [p0].[Cantidad] AS [Cantidad0], [p0].[Descripcion], [p0].[IdProveedor], [p0].[Imagen], [p0].[NombreProducto], [p0].[Precio]
+    FROM [DetallePedido] AS [d]
+    LEFT JOIN [Productos] AS [p0] ON [d].[ProductoId] = [p0].[Id]
+) AS [t0] ON [t].[Id] = [t0].[PedidoId]
+ORDER BY [t].[Id], [u].[Id], [t0].[Id]
+INFO  2024-05-09 11:28:35 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Productos] AS [p]
+WARN  2024-05-09 11:28:35 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-05-09 11:28:35 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-05-09 11:28:35 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (34ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[Cantidad], [t].[Descripcion], [t].[IdProveedor], [t].[Imagen], [t].[NombreProducto], [t].[Precio], [p0].[Id], [p0].[Contacto], [p0].[Direccion], [p0].[NombreProveedor]
+FROM (
+    SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+    FROM [Productos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Proveedores] AS [p0] ON [t].[IdProveedor] = [p0].[Id]
+INFO  2024-05-09 11:42:20 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-05-09 11:42:20 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-05-09 11:42:20 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-05-09 11:42:20 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-05-09 11:42:20 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-05-09 11:43:06 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (452ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Productos] AS [p]
+WARN  2024-05-09 11:43:06 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-05-09 11:43:06 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-05-09 11:43:06 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (220ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[Cantidad], [t].[Descripcion], [t].[IdProveedor], [t].[Imagen], [t].[NombreProducto], [t].[Precio], [p0].[Id], [p0].[Contacto], [p0].[Direccion], [p0].[NombreProveedor]
+FROM (
+    SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+    FROM [Productos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Proveedores] AS [p0] ON [t].[IdProveedor] = [p0].[Id]
+INFO  2024-05-09 11:43:13 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Productos] AS [p]
+INFO  2024-05-09 11:43:13 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (33ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[Cantidad], [t].[Descripcion], [t].[IdProveedor], [t].[Imagen], [t].[NombreProducto], [t].[Precio], [p0].[Id], [p0].[Contacto], [p0].[Direccion], [p0].[NombreProveedor]
+FROM (
+    SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+    FROM [Productos] AS [p]
+    ORDER BY [p].[Precio]
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Proveedores] AS [p0] ON [t].[IdProveedor] = [p0].[Id]
+ORDER BY [t].[Precio]
+INFO  2024-05-09 11:43:18 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Productos] AS [p]
+INFO  2024-05-09 11:43:18 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[Cantidad], [t].[Descripcion], [t].[IdProveedor], [t].[Imagen], [t].[NombreProducto], [t].[Precio], [p0].[Id], [p0].[Contacto], [p0].[Direccion], [p0].[NombreProveedor]
+FROM (
+    SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+    FROM [Productos] AS [p]
+    ORDER BY [p].[Precio] DESC
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Proveedores] AS [p0] ON [t].[IdProveedor] = [p0].[Id]
+ORDER BY [t].[Precio] DESC
+INFO  2024-05-09 11:43:22 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Productos] AS [p]
+INFO  2024-05-09 11:43:22 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (1ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[Cantidad], [t].[Descripcion], [t].[IdProveedor], [t].[Imagen], [t].[NombreProducto], [t].[Precio], [p0].[Id], [p0].[Contacto], [p0].[Direccion], [p0].[NombreProveedor]
+FROM (
+    SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+    FROM [Productos] AS [p]
+    ORDER BY [p].[Precio]
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Proveedores] AS [p0] ON [t].[IdProveedor] = [p0].[Id]
+ORDER BY [t].[Precio]
+INFO  2024-05-09 11:43:25 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Productos] AS [p]
+INFO  2024-05-09 11:43:25 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (1ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[Cantidad], [t].[Descripcion], [t].[IdProveedor], [t].[Imagen], [t].[NombreProducto], [t].[Precio], [p0].[Id], [p0].[Contacto], [p0].[Direccion], [p0].[NombreProveedor]
+FROM (
+    SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+    FROM [Productos] AS [p]
+    ORDER BY [p].[Precio] DESC
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Proveedores] AS [p0] ON [t].[IdProveedor] = [p0].[Id]
+ORDER BY [t].[Precio] DESC
+INFO  2024-05-09 11:44:12 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-05-09 11:44:12 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-05-09 11:44:12 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-05-09 11:44:12 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-05-09 11:44:12 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-05-09 11:47:08 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (63ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Productos] AS [p]
+WARN  2024-05-09 11:47:08 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-05-09 11:47:08 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-05-09 11:47:09 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (31ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[Cantidad], [t].[Descripcion], [t].[IdProveedor], [t].[Imagen], [t].[NombreProducto], [t].[Precio], [p0].[Id], [p0].[Contacto], [p0].[Direccion], [p0].[NombreProveedor]
+FROM (
+    SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+    FROM [Productos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Proveedores] AS [p0] ON [t].[IdProveedor] = [p0].[Id]
+INFO  2024-05-09 11:47:18 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (8ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Productos] AS [p]
+INFO  2024-05-09 11:47:18 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (5ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[Cantidad], [t].[Descripcion], [t].[IdProveedor], [t].[Imagen], [t].[NombreProducto], [t].[Precio], [p0].[Id], [p0].[Contacto], [p0].[Direccion], [p0].[NombreProveedor]
+FROM (
+    SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+    FROM [Productos] AS [p]
+    ORDER BY [p].[Precio]
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Proveedores] AS [p0] ON [t].[IdProveedor] = [p0].[Id]
+ORDER BY [t].[Precio]
+INFO  2024-05-09 11:47:20 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Productos] AS [p]
+INFO  2024-05-09 11:47:20 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (5ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[Cantidad], [t].[Descripcion], [t].[IdProveedor], [t].[Imagen], [t].[NombreProducto], [t].[Precio], [p0].[Id], [p0].[Contacto], [p0].[Direccion], [p0].[NombreProveedor]
+FROM (
+    SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+    FROM [Productos] AS [p]
+    ORDER BY [p].[Precio] DESC
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Proveedores] AS [p0] ON [t].[IdProveedor] = [p0].[Id]
+ORDER BY [t].[Precio] DESC
+INFO  2024-05-09 19:18:36 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-05-09 19:18:36 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-05-09 19:18:36 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-05-09 19:18:36 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-05-09 19:18:36 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-05-09 19:22:39 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-05-09 19:22:39 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-05-09 19:22:39 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-05-09 19:22:39 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-05-09 19:22:39 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-05-09 19:23:13 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (53ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-05-09 19:23:13 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+INFO  2024-05-09 19:23:16 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (30ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Productos] AS [p]
+WARN  2024-05-09 19:23:16 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-05-09 19:23:16 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-05-09 19:23:16 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (5ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[Cantidad], [t].[Descripcion], [t].[FechaCreacion], [t].[FechaModificacion], [t].[IdProveedor], [t].[Imagen], [t].[NombreProducto], [t].[Precio], [p0].[Id], [p0].[Contacto], [p0].[Direccion], [p0].[NombreProveedor]
+FROM (
+    SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+    FROM [Productos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Proveedores] AS [p0] ON [t].[IdProveedor] = [p0].[Id]
+INFO  2024-05-09 19:23:20 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (5ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+FROM [Productos] AS [p]
+WHERE [p].[Id] = @__id_0
+INFO  2024-05-09 19:23:20 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[Contacto], [p].[Direccion], [p].[NombreProveedor]
+FROM [Proveedores] AS [p]
+INFO  2024-05-09 19:23:51 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-05-09 19:23:51 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-05-09 19:23:51 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-05-09 19:23:51 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-05-09 19:23:51 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-05-09 19:23:56 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (73ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Productos] AS [p]
+WARN  2024-05-09 19:23:56 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-05-09 19:23:56 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-05-09 19:23:56 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (36ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[Cantidad], [t].[Descripcion], [t].[FechaCreacion], [t].[FechaModificacion], [t].[IdProveedor], [t].[Imagen], [t].[NombreProducto], [t].[Precio], [p0].[Id], [p0].[Contacto], [p0].[Direccion], [p0].[NombreProveedor]
+FROM (
+    SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+    FROM [Productos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Proveedores] AS [p0] ON [t].[IdProveedor] = [p0].[Id]
+INFO  2024-05-09 19:23:57 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+FROM [Productos] AS [p]
+WHERE [p].[Id] = @__id_0
+INFO  2024-05-09 19:23:57 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[Contacto], [p].[Direccion], [p].[NombreProveedor]
+FROM [Proveedores] AS [p]
+INFO  2024-05-09 19:24:23 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[@__model_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+FROM [Productos] AS [p]
+WHERE [p].[Id] = @__model_Id_0
+INFO  2024-05-09 19:24:23 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (169ms) [Parameters=[@p0='?' (Size = 100) (DbType = AnsiString), @p1='?' (DbType = DateTime), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [HistorialProductos] ([Accion], [Fecha], [Ip], [UsuarioId])
+OUTPUT INSERTED.[Id]
+VALUES (@p0, @p1, @p2, @p3);
+INFO  2024-05-09 19:24:23 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (18ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (DbType = Double), @p4='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [DetalleHistorialProductos] ([Cantidad], [HistorialProductoId], [NombreProducto], [Precio], [ProductoId])
+OUTPUT INSERTED.[Id]
+VALUES (@p0, @p1, @p2, @p3, @p4);
+INFO  2024-05-09 19:24:23 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[@__model_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+FROM [Productos] AS [p]
+WHERE [p].[Id] = @__model_Id_0
+INFO  2024-05-09 19:24:23 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (31ms) [Parameters=[@p8='?' (DbType = Int32), @p0='?' (DbType = Int32), @p1='?' (Size = 200) (DbType = AnsiString), @p2='?' (DbType = DateTime), @p3='?' (DbType = DateTime), @p4='?' (DbType = Int32), @p5='?' (Size = 8000) (DbType = AnsiString), @p6='?' (Size = 100) (DbType = AnsiString), @p7='?' (DbType = Double)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Productos] SET [Cantidad] = @p0, [Descripcion] = @p1, [FechaCreacion] = @p2, [FechaModificacion] = @p3, [IdProveedor] = @p4, [Imagen] = @p5, [NombreProducto] = @p6, [Precio] = @p7
+OUTPUT 1
+WHERE [Id] = @p8;
+INFO  2024-05-09 19:24:24 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (5ms) [Parameters=[@p0='?' (Size = 100) (DbType = AnsiString), @p1='?' (DbType = DateTime), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [HistorialProductos] ([Accion], [Fecha], [Ip], [UsuarioId])
+OUTPUT INSERTED.[Id]
+VALUES (@p0, @p1, @p2, @p3);
+INFO  2024-05-09 19:24:24 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (DbType = Double), @p4='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [DetalleHistorialProductos] ([Cantidad], [HistorialProductoId], [NombreProducto], [Precio], [ProductoId])
+OUTPUT INSERTED.[Id]
+VALUES (@p0, @p1, @p2, @p3, @p4);
+INFO  2024-05-09 19:24:24 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Productos] AS [p]
+INFO  2024-05-09 19:24:24 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[Cantidad], [t].[Descripcion], [t].[FechaCreacion], [t].[FechaModificacion], [t].[IdProveedor], [t].[Imagen], [t].[NombreProducto], [t].[Precio], [p0].[Id], [p0].[Contacto], [p0].[Direccion], [p0].[NombreProveedor]
+FROM (
+    SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+    FROM [Productos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Proveedores] AS [p0] ON [t].[IdProveedor] = [p0].[Id]
+INFO  2024-05-09 19:32:05 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-05-09 19:32:05 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-05-09 19:32:05 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-05-09 19:32:05 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-05-09 19:32:05 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-05-09 19:35:14 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (98ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [h].[Id], [h].[Accion], [h].[Fecha], [h].[Ip], [h].[UsuarioId], [d].[Id], [d].[Cantidad], [d].[HistorialProductoId], [d].[NombreProducto], [d].[Precio], [d].[ProductoId]
+FROM [HistorialProductos] AS [h]
+LEFT JOIN [DetalleHistorialProductos] AS [d] ON [h].[Id] = [d].[HistorialProductoId]
+ORDER BY [h].[Id]
+INFO  2024-05-09 19:35:18 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (63ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[Accion], [t].[Fecha], [t].[Ip], [t].[UsuarioId], [t0].[Id], [t0].[Cantidad], [t0].[HistorialProductoId], [t0].[NombreProducto], [t0].[Precio], [t0].[ProductoId], [t0].[Id0], [t0].[Cantidad0], [t0].[Descripcion], [t0].[FechaCreacion], [t0].[FechaModificacion], [t0].[IdProveedor], [t0].[Imagen], [t0].[NombreProducto0], [t0].[Precio0]
+FROM (
+    SELECT TOP(1) [h].[Id], [h].[Accion], [h].[Fecha], [h].[Ip], [h].[UsuarioId]
+    FROM [HistorialProductos] AS [h]
+    WHERE [h].[Id] = @__id_0
+) AS [t]
+LEFT JOIN (
+    SELECT [d].[Id], [d].[Cantidad], [d].[HistorialProductoId], [d].[NombreProducto], [d].[Precio], [d].[ProductoId], [p].[Id] AS [Id0], [p].[Cantidad] AS [Cantidad0], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto] AS [NombreProducto0], [p].[Precio] AS [Precio0]
+    FROM [DetalleHistorialProductos] AS [d]
+    LEFT JOIN [Productos] AS [p] ON [d].[ProductoId] = [p].[Id]
+) AS [t0] ON [t].[Id] = [t0].[HistorialProductoId]
+ORDER BY [t].[Id], [t0].[Id]
+INFO  2024-05-09 19:35:22 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [h].[Id], [h].[Accion], [h].[Fecha], [h].[Ip], [h].[UsuarioId], [d].[Id], [d].[Cantidad], [d].[HistorialProductoId], [d].[NombreProducto], [d].[Precio], [d].[ProductoId]
+FROM [HistorialProductos] AS [h]
+LEFT JOIN [DetalleHistorialProductos] AS [d] ON [h].[Id] = [d].[HistorialProductoId]
+ORDER BY [h].[Id]
+INFO  2024-05-09 19:35:24 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (6ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[Accion], [t].[Fecha], [t].[Ip], [t].[UsuarioId], [t0].[Id], [t0].[Cantidad], [t0].[HistorialProductoId], [t0].[NombreProducto], [t0].[Precio], [t0].[ProductoId], [t0].[Id0], [t0].[Cantidad0], [t0].[Descripcion], [t0].[FechaCreacion], [t0].[FechaModificacion], [t0].[IdProveedor], [t0].[Imagen], [t0].[NombreProducto0], [t0].[Precio0]
+FROM (
+    SELECT TOP(1) [h].[Id], [h].[Accion], [h].[Fecha], [h].[Ip], [h].[UsuarioId]
+    FROM [HistorialProductos] AS [h]
+    WHERE [h].[Id] = @__id_0
+) AS [t]
+LEFT JOIN (
+    SELECT [d].[Id], [d].[Cantidad], [d].[HistorialProductoId], [d].[NombreProducto], [d].[Precio], [d].[ProductoId], [p].[Id] AS [Id0], [p].[Cantidad] AS [Cantidad0], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto] AS [NombreProducto0], [p].[Precio] AS [Precio0]
+    FROM [DetalleHistorialProductos] AS [d]
+    LEFT JOIN [Productos] AS [p] ON [d].[ProductoId] = [p].[Id]
+) AS [t0] ON [t].[Id] = [t0].[HistorialProductoId]
+ORDER BY [t].[Id], [t0].[Id]
+INFO  2024-05-09 19:35:27 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [h].[Id], [h].[Accion], [h].[Fecha], [h].[Ip], [h].[UsuarioId], [d].[Id], [d].[Cantidad], [d].[HistorialProductoId], [d].[NombreProducto], [d].[Precio], [d].[ProductoId]
+FROM [HistorialProductos] AS [h]
+LEFT JOIN [DetalleHistorialProductos] AS [d] ON [h].[Id] = [d].[HistorialProductoId]
+ORDER BY [h].[Id]
+INFO  2024-05-09 19:35:37 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (52ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [HistorialPedidos] AS [h]
+WARN  2024-05-09 19:35:37 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-05-09 19:35:37 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-05-09 19:35:37 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (47ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[EstadoPedido], [t].[FechaPedido], [t].[IdUsuario], [t].[NumeroPedido], [u].[Id], [t0].[Id], [t0].[Cantidad], [t0].[HistorialPedidoId], [t0].[ProductoId], [t0].[Id0], [t0].[Cantidad0], [t0].[Descripcion], [t0].[FechaCreacion], [t0].[FechaModificacion], [t0].[IdProveedor], [t0].[Imagen], [t0].[NombreProducto], [t0].[Precio], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM (
+    SELECT [h].[Id], [h].[EstadoPedido], [h].[FechaPedido], [h].[IdUsuario], [h].[NumeroPedido]
+    FROM [HistorialPedidos] AS [h]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Usuarios] AS [u] ON [t].[IdUsuario] = [u].[Id]
+LEFT JOIN (
+    SELECT [d].[Id], [d].[Cantidad], [d].[HistorialPedidoId], [d].[ProductoId], [p].[Id] AS [Id0], [p].[Cantidad] AS [Cantidad0], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+    FROM [DetalleHistorialPedidos] AS [d]
+    LEFT JOIN [Productos] AS [p] ON [d].[ProductoId] = [p].[Id]
+) AS [t0] ON [t].[Id] = [t0].[HistorialPedidoId]
+ORDER BY [t].[Id], [u].[Id], [t0].[Id]
+INFO  2024-05-09 19:35:39 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [HistorialPedidos] AS [h]
+WARN  2024-05-09 19:35:39 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-05-09 19:35:39 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-05-09 19:35:39 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (8ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[EstadoPedido], [t].[FechaPedido], [t].[IdUsuario], [t].[NumeroPedido], [u].[Id], [t0].[Id], [t0].[Cantidad], [t0].[HistorialPedidoId], [t0].[ProductoId], [t0].[Id0], [t0].[Cantidad0], [t0].[Descripcion], [t0].[FechaCreacion], [t0].[FechaModificacion], [t0].[IdProveedor], [t0].[Imagen], [t0].[NombreProducto], [t0].[Precio], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM (
+    SELECT [h].[Id], [h].[EstadoPedido], [h].[FechaPedido], [h].[IdUsuario], [h].[NumeroPedido]
+    FROM [HistorialPedidos] AS [h]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_0 ROWS ONLY
+) AS [t]
+LEFT JOIN [Usuarios] AS [u] ON [t].[IdUsuario] = [u].[Id]
+LEFT JOIN (
+    SELECT [d].[Id], [d].[Cantidad], [d].[HistorialPedidoId], [d].[ProductoId], [p].[Id] AS [Id0], [p].[Cantidad] AS [Cantidad0], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+    FROM [DetalleHistorialPedidos] AS [d]
+    LEFT JOIN [Productos] AS [p] ON [d].[ProductoId] = [p].[Id]
+) AS [t0] ON [t].[Id] = [t0].[HistorialPedidoId]
+ORDER BY [t].[Id], [u].[Id], [t0].[Id]
+INFO  2024-05-09 19:35:40 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [HistorialPedidos] AS [h]
+INFO  2024-05-09 19:35:40 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (1ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[EstadoPedido], [t].[FechaPedido], [t].[IdUsuario], [t].[NumeroPedido], [u].[Id], [t0].[Id], [t0].[Cantidad], [t0].[HistorialPedidoId], [t0].[ProductoId], [t0].[Id0], [t0].[Cantidad0], [t0].[Descripcion], [t0].[FechaCreacion], [t0].[FechaModificacion], [t0].[IdProveedor], [t0].[Imagen], [t0].[NombreProducto], [t0].[Precio], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM (
+    SELECT [h].[Id], [h].[EstadoPedido], [h].[FechaPedido], [h].[IdUsuario], [h].[NumeroPedido]
+    FROM [HistorialPedidos] AS [h]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Usuarios] AS [u] ON [t].[IdUsuario] = [u].[Id]
+LEFT JOIN (
+    SELECT [d].[Id], [d].[Cantidad], [d].[HistorialPedidoId], [d].[ProductoId], [p].[Id] AS [Id0], [p].[Cantidad] AS [Cantidad0], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+    FROM [DetalleHistorialPedidos] AS [d]
+    LEFT JOIN [Productos] AS [p] ON [d].[ProductoId] = [p].[Id]
+) AS [t0] ON [t].[Id] = [t0].[HistorialPedidoId]
+ORDER BY [t].[Id], [u].[Id], [t0].[Id]
+INFO  2024-05-09 20:14:11 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-05-09 20:14:11 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-05-09 20:14:11 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-05-09 20:14:11 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-05-09 20:14:11 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-05-09 20:39:06 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-05-09 20:39:06 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-05-09 20:39:06 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-05-09 20:39:06 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-05-09 20:39:06 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-05-09 20:40:43 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (352ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-05-09 20:40:43 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (8ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+INFO  2024-05-09 20:40:51 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (204ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE 0 = 1
+INFO  2024-05-09 20:40:56 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (60ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+FROM [Productos] AS [p]
+INFO  2024-05-09 20:40:56 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE 0 = 1
+INFO  2024-05-09 20:44:46 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-05-09 20:44:46 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-05-09 20:44:46 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-05-09 20:44:46 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-05-09 20:44:46 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-05-09 20:45:07 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (155ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Productos] AS [p]
+WARN  2024-05-09 20:45:08 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-05-09 20:45:08 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-05-09 20:45:08 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (133ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[Cantidad], [t].[Descripcion], [t].[FechaCreacion], [t].[FechaModificacion], [t].[IdProveedor], [t].[Imagen], [t].[NombreProducto], [t].[Precio], [p0].[Id], [p0].[Contacto], [p0].[Direccion], [p0].[NombreProveedor]
+FROM (
+    SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+    FROM [Productos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Proveedores] AS [p0] ON [t].[IdProveedor] = [p0].[Id]
+INFO  2024-05-09 20:45:33 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (35ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-05-09 20:45:34 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+INFO  2024-05-09 20:45:49 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (21ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Productos] AS [p]
+INFO  2024-05-09 20:45:49 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[Cantidad], [t].[Descripcion], [t].[FechaCreacion], [t].[FechaModificacion], [t].[IdProveedor], [t].[Imagen], [t].[NombreProducto], [t].[Precio], [p0].[Id], [p0].[Contacto], [p0].[Direccion], [p0].[NombreProveedor]
+FROM (
+    SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+    FROM [Productos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Proveedores] AS [p0] ON [t].[IdProveedor] = [p0].[Id]
+INFO  2024-05-09 20:47:14 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-05-09 20:47:14 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-05-09 20:47:14 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-05-09 20:47:14 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-05-09 20:47:14 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-05-09 20:47:33 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (166ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-05-09 20:47:33 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (5ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+INFO  2024-05-09 20:47:47 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (40ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+FROM [Productos] AS [p]
+INFO  2024-05-09 20:48:08 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Productos] AS [p]
+WARN  2024-05-09 20:48:08 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-05-09 20:48:08 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-05-09 20:48:08 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (13ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[Cantidad], [t].[Descripcion], [t].[FechaCreacion], [t].[FechaModificacion], [t].[IdProveedor], [t].[Imagen], [t].[NombreProducto], [t].[Precio], [p0].[Id], [p0].[Contacto], [p0].[Direccion], [p0].[NombreProveedor]
+FROM (
+    SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+    FROM [Productos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Proveedores] AS [p0] ON [t].[IdProveedor] = [p0].[Id]
+INFO  2024-05-09 20:48:13 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+FROM [Productos] AS [p]
+WHERE [p].[Id] = @__id_0
+INFO  2024-05-09 20:48:13 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[Contacto], [p].[Direccion], [p].[NombreProveedor]
+FROM [Proveedores] AS [p]
+INFO  2024-05-09 20:48:18 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[@__model_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+FROM [Productos] AS [p]
+WHERE [p].[Id] = @__model_Id_0
+INFO  2024-05-09 20:48:18 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (376ms) [Parameters=[@p0='?' (Size = 100) (DbType = AnsiString), @p1='?' (DbType = DateTime), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [HistorialProductos] ([Accion], [Fecha], [Ip], [UsuarioId])
+OUTPUT INSERTED.[Id]
+VALUES (@p0, @p1, @p2, @p3);
+INFO  2024-05-09 20:48:18 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (32ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (DbType = Double), @p4='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [DetalleHistorialProductos] ([Cantidad], [HistorialProductoId], [NombreProducto], [Precio], [ProductoId])
+OUTPUT INSERTED.[Id]
+VALUES (@p0, @p1, @p2, @p3, @p4);
+INFO  2024-05-09 20:48:18 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[@__model_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+FROM [Productos] AS [p]
+WHERE [p].[Id] = @__model_Id_0
+INFO  2024-05-09 20:48:18 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (48ms) [Parameters=[@p8='?' (DbType = Int32), @p0='?' (DbType = Int32), @p1='?' (Size = 200) (DbType = AnsiString), @p2='?' (DbType = DateTime), @p3='?' (DbType = DateTime), @p4='?' (DbType = Int32), @p5='?' (Size = 8000) (DbType = AnsiString), @p6='?' (Size = 100) (DbType = AnsiString), @p7='?' (DbType = Double)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Productos] SET [Cantidad] = @p0, [Descripcion] = @p1, [FechaCreacion] = @p2, [FechaModificacion] = @p3, [IdProveedor] = @p4, [Imagen] = @p5, [NombreProducto] = @p6, [Precio] = @p7
+OUTPUT 1
+WHERE [Id] = @p8;
+INFO  2024-05-09 20:48:18 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[@p0='?' (Size = 100) (DbType = AnsiString), @p1='?' (DbType = DateTime), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [HistorialProductos] ([Accion], [Fecha], [Ip], [UsuarioId])
+OUTPUT INSERTED.[Id]
+VALUES (@p0, @p1, @p2, @p3);
+INFO  2024-05-09 20:48:18 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (DbType = Double), @p4='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [DetalleHistorialProductos] ([Cantidad], [HistorialProductoId], [NombreProducto], [Precio], [ProductoId])
+OUTPUT INSERTED.[Id]
+VALUES (@p0, @p1, @p2, @p3, @p4);
+INFO  2024-05-09 20:48:44 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (26ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+FROM [Productos] AS [p]
+INFO  2024-05-09 20:56:03 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-05-09 20:56:03 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-05-09 20:56:03 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-05-09 20:56:03 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-05-09 20:56:03 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-05-09 20:56:16 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (278ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+FROM [Productos] AS [p]
+INFO  2024-05-09 20:56:19 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (1,290ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Productos] AS [p]
+WARN  2024-05-09 20:56:19 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-05-09 20:56:19 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-05-09 20:56:19 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (106ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[Cantidad], [t].[Descripcion], [t].[FechaCreacion], [t].[FechaModificacion], [t].[IdProveedor], [t].[Imagen], [t].[NombreProducto], [t].[Precio], [p0].[Id], [p0].[Contacto], [p0].[Direccion], [p0].[NombreProveedor]
+FROM (
+    SELECT [p].[Id], [p].[Cantidad], [p].[Descripcion], [p].[FechaCreacion], [p].[FechaModificacion], [p].[IdProveedor], [p].[Imagen], [p].[NombreProducto], [p].[Precio]
+    FROM [Productos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Proveedores] AS [p0] ON [t].[IdProveedor] = [p0].[Id]

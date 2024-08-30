@@ -1,0 +1,67 @@
+ /*AsQueryable: El método AsQueryable se utiliza para convertir una colección IEnumerable en IQueryable. 
+                 * Esto es útil cuando se desea realizar operaciones de consulta (como filtrado, ordenación, etc.) 
+                 * que se ejecutarán en el servidor, en lugar de traer todos los datos a la memoria local y luego 
+                 * realizar las operaciones.*/
+/*IEnumerable: Es una interfaz en .NET que representa una secuencia de objetos que se pueden enumerar. 
+                 * Esta interfaz define un método, GetEnumerator, que devuelve un objeto IEnumerator. IEnumerator 
+                 * proporciona la capacidad de iterar a través de la colección al exponer un método MoveNext y una 
+                 * propiedad Current. Y que es lo mas comun para que se itere listas y arrays*/
+ /*
+        Update(user): Este método marca la entidad y todas sus propiedades como modificadas. Esto significa que cuando llamas a SaveChangesAsync(), 
+                        Entity Framework generará un comando SQL UPDATE que actualizará todas las columnas de la entidad en la base de datos, 
+                        independientemente de si cambiaron o no.
+        Entry(user).State = EntityState.Modified: Este método marca la entidad como modificada, pero no todas las propiedades. Cuando llamas a 
+                        SaveChangesAsync(), Entity Framework generará un comando SQL UPDATE que sólo actualizará las columnas de la entidad que 
+                        realmente cambiaron.
+                         */
+DbUpdateConcurrencyException:
+ //esta excepcion es lanzada cuando varios usuarios modifican al mismo tiempo los datos. Por ejemplo
+                    //tenemos un usuario llamado A que esta modificando los datos y todavia no ha guardado esos cambios pero
+                    //tenemos un usuario B que tiene que modificar los datos que esta modificando el usuario A y el usuario B 
+                    //guarda los datos antes que el A por lo tanto al usuario A tener datos antiguos se produce esta excepcion al usuario
+                    //A no tener los datos actuales
+        // IEnumerable<T> es una interfaz que define un método (GetEnumerator) que expone un enumerador,
+        // que soporta una iteración simple sobre una colección de un tipo específico. Puedes pensar en 
+        // IEnumerable<T> como la "forma más simple" de una colección. No tiene métodos para agregar o 
+        // eliminar elementos, ni tiene índices. Solo te permite iterar sobre los elementos de la colección.
+
+        // List<T> es una clase que implementa la interfaz IEnumerable<T>, pero también proporciona 
+        // funcionalidades adicionales. List<T> representa una lista fuertemente tipada de objetos a los 
+        // que se puede acceder por índice. Proporciona métodos para buscar, ordenar y manipular listas.
+
+         /*IQueryable: IQueryable y IQueryable<T> son abstracciones que encapsulan las expresiones LINQ; 
+         * estas expresiones son utilizadas por un proveedor LINQ - como el utilizado por Entity Framework - 
+         * para convertir estas expresiones en SQL que será enviado a la base de datos, IQueryable es útil cuando 
+         * se trabaja con orígenes de datos remotos como una base de datos, ya que permite construir consultas de 
+         * manera eficiente. En pocas palabras admite cualquier consulta sobre una tabla*/
+
+          /*HttpContext: HttpContext encapsula toda la información sobre una solicitud HTTP individual y su respuesta. 
+         * Una instancia de HttpContext se inicializa cuando se recibe una solicitud HTTP*/
+          /*El operador nameof en C# se utiliza para obtener el nombre de una variable, tipo o 
+                     * miembro como una cadena constante en tiempo de compilación. En tu caso, nameof(Index)
+                     * devuelve la cadena "Index".
+
+                     La ventaja de usar nameof en lugar de una cadena literal es que ayuda a mantener tu 
+                    código seguro contra errores tipográficos y refactorizaciones. Si cambias el nombre del 
+                    método Index en tu controlador, el compilador te advertirá que nameof(Index) ya no es 
+                    válido. Sin embargo, si hubieras usado una cadena literal como "Index", el compilador 
+                    no habría detectado el problema y podrías haber terminado con un error en tiempo de 
+                    ejecución.
+                     */
+-------------------------------------------------------
+La función Html.RenderPartial se utiliza para renderizar una vista parcial.
+El primer argumento, "_CreatePartial", es el nombre de la vista parcial que se va a renderizar.
+El segundo argumento, new ProveedorViewModel(), es el modelo que se pasa a la vista parcial.
+
+Cuando este código se ejecuta, ASP.NET renderiza la vista parcial "_CreatePartial" y le pasa un nuevo objeto 
+ProveedorViewModel como modelo.
+Esto significa que cualquier lugar en tu vista donde veas este código, ASP.NET renderizará la vista parcial 
+"_CreatePartial" en su lugar.
+
+Las vistas parciales son útiles para reutilizar bloques de código que se repiten en varias vistas.
+En lugar de duplicar ese código en cada vista, puedes ponerlo en una vista parcial y luego referenciar esa 
+vista parcial en las vistas que necesitan ese bloque de código.
+ *@
+@* @{
+    Html.RenderPartial("_CreatePartial", new ProveedorViewModel());
+} *@

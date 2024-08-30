@@ -1,0 +1,92 @@
+
+ Encadenación de Constructores en C#
+
+La encadenación de constructores es una técnica en la programación orientada a objetos donde un constructor en una clase llama a otro constructor 
+en la misma clase para inicializar la instancia de la clase. En C#, esto se hace utilizando la palabra clave `this` seguida de los argumentos del 
+constructor que se quiere invocar. Esto permite reutilizar el código de inicialización en varios constructores y proporciona una forma de tener 
+múltiples constructores con diferentes números de parámetros.
+
+ Ejemplo:
+
+public class Ejemplo
+{
+    private int valor1;
+    private int valor2;
+
+    // Este es el constructor base o constructor padre
+    public Ejemplo(int valor1, int valor2)
+    {
+        this.valor1 = valor1;
+        this.valor2 = valor2;
+    }
+
+    // Constructor que llama al constructor base o padre usando la palabra clave "this" con 'valor1' y un valor predeterminado para 'valor2'
+    public Ejemplo(int valor1) : this(valor1, 0) { }
+}
+
+
+ Requisitos para Realizar la Encadenación de Constructores:
+1. Tener unas propiedades**: Definir las propiedades necesarias en la clase.
+2. Realizar el constructor base o padre**: Crear el constructor principal que inicializa todas las propiedades necesarias.
+3. Realizar la encadenación de constructores**: Crear constructores adicionales que llamen al constructor base utilizando la palabra 
+clave `this`.
+
+ Ejemplo Aplicado a `PaginasModel`:
+public class PaginasModel
+{
+    public string Texto { get; set; }
+    public int Pagina { get; set; }
+    public bool Habilitada { get; set; } = true;
+    public bool Activa { get; set; } = false;
+
+    // Constructor base
+    public PaginasModel(int pagina, bool habilitada, string texto)
+    {
+        Pagina = pagina;
+        Habilitada = habilitada;
+        Texto = texto;
+    }
+
+    // Constructor encadenado que llama al constructor base
+    public PaginasModel(int pagina, bool habilitada) : this(pagina, habilitada, pagina.ToString()) { }
+
+    // Otro constructor encadenado que llama al constructor con dos parámetros
+    public PaginasModel(int pagina) : this(pagina, true) { }
+}
+```
+
+ Explicación:
+
+1. Constructor Base:
+  
+   public PaginasModel(int pagina, bool habilitada, string texto)
+   {
+       Pagina = pagina;
+       Habilitada = habilitada;
+       Texto = texto;
+   }
+
+   Este constructor inicializa todas las propiedades de la clase.
+
+2. **Constructor Encadenado con Dos Parámetros**:
+
+   public PaginasModel(int pagina, bool habilitada) : this(pagina, habilitada, pagina.ToString()) { }
+
+   Este constructor llama al constructor base, pasando `pagina`, `habilitada` y una representación de `pagina` como texto.
+
+3. Constructor Encadenado con Un Parámetro:
+
+   public PaginasModel(int pagina) : this(pagina, true) { }
+
+   Este constructor llama al constructor con dos parámetros, pasando `pagina` y `true` como valores.
+
+ Notas Adicionales:
+
+- La primera parte del constructor puede tener los parámetros que queramos, pero la segunda parte (la llamada a `this(...)`) debe tener los 
+mismos valores que el constructor padre.
+- Cuando se encadenan constructores, algunos valores pueden no estar presentes en el constructor padre y quedar como valores opcionales para el 
+futuro.
+- El valor `Activa`  no se usa actualmente, pero puede considerarse un valor para uso futuro.
+
+
+

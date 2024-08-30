@@ -1,0 +1,86 @@
+﻿@using GestorInventario.Domain.Models.ViewModels.Paypal
+
+@model PlanesPaginadosViewModel
+
+@{
+    ViewBag.Title = "Planes de Suscripción de PayPal";
+}
+
+<h2>Planes de Suscripción de PayPal</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Product ID</th>
+            <th>Planid</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Estado</th>
+            <th>Tipo de Uso</th>
+            <th>Fecha de Creación</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var plan in Model.Planes)
+        {
+            <tr>
+                <td>@plan.id</td>
+               
+                <td>@plan.productId</td>
+                <td>@plan.name</td>
+                <td>@plan.description</td>
+                <td>@plan.status</td>
+                <td>@plan.usage_type</td>
+               <td>@plan.createTime</td>
+                <td>
+                    <form asp-action="DesactivarPlan" method="post">
+                        <!-- Asegúrate de que `productId` tiene el valor del ID del producto -->
+                        <input type="hidden" name="productId" value="@plan.productId" />
+
+                        <!-- Asegúrate de que `planId` tiene el valor del ID del plan -->
+                        <input type="hidden" name="planId" value="@plan.id" />
+
+                        <button type="submit" class="btn btn-danger">Desactivar plan</button>
+                    </form>
+                </td>
+                <td>
+                    <form asp-action="IniciarSuscripcion" method="post">
+                        <input type="hidden" name="plan_id" value="@plan.id" />
+                        <input type="hidden" name="brand_name" value="@plan.name" />
+                        <button type="submit">Suscribirse</button>
+                    </form>
+                </td>
+
+            </tr>
+        }
+    </tbody>
+</table>
+<!-- Navegación de paginación -->
+<nav aria-label="Page navigation example">
+    <ul class="pagination justify-content-center">
+        <!-- Link a la página anterior -->
+        <li class="page-item @(Model.TienePaginaAnterior ? "" : "disabled")">
+            <a class="page-link" href="@Url.Action("MostrarPlanes", new { pagina = Model.PaginaActual - 1 })" aria-label="Anterior">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+
+        <!-- Links a las páginas específicas.
+        Páginas específicas: La paginación se genera en función de las páginas disponibles en Model.Paginas. Se marca la página actual como active en la interfaz.
+                -->
+        @foreach (var pagina in Model.Paginas)
+        {
+            <li class="page-item @(pagina.Activa ? "active" : "")">
+                <a class="page-link" href="@Url.Action("MostrarPlanes", new { pagina = pagina.Pagina })">@pagina.Texto</a>
+            </li>
+        }
+
+        <!-- Link a la página siguiente -->
+        <li class="page-item @(Model.TienePaginaSiguiente ? "" : "disabled")">
+            <a class="page-link" href="@Url.Action("MostrarPlanes", new { pagina = Model.PaginaActual + 1 })" aria-label="Siguiente">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+    </ul>
+</nav>
