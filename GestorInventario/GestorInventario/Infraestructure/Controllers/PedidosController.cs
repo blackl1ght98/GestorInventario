@@ -41,7 +41,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _pdfservice= pdf;
             _unitOfWork = unitOfWork;
         }
-
+        //Metodo que muestra todos los pedidos
         public async Task<IActionResult> Index(string buscar, DateTime? fechaInicio, DateTime? fechaFin, [FromQuery] Paginacion paginacion)
         {
             try
@@ -77,7 +77,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     {
                         pedidos = pedidos.Where(s => s.FechaPedido >= fechaInicio.Value && s.FechaPedido <= fechaFin.Value);
                     }
-                    await HttpContext.InsertarParametrosPaginacionRespuesta(pedidos, paginacion.CantidadAMostrar);
+                    await HttpContext.TotalPaginas(pedidos, paginacion.CantidadAMostrar);
                     var pedidosPaginados = await pedidos.Paginar(paginacion).ToListAsync();
                     var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
                     ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
@@ -92,6 +92,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
+        //Metodo que muestra la informacion necesaria para crear el pedido
         public async Task<IActionResult> Create()
         {
             try
@@ -121,9 +122,8 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
-
+        //Metodo que crea el pedido
         [HttpPost]
-        
         public async Task<IActionResult> Create(PedidosViewModel model)
         {
             try
@@ -170,6 +170,7 @@ namespace GestorInventario.Infraestructure.Controllers
             return new string(Enumerable.Repeat(chars, length)
            .Select(s => s[random.Next(s.Length)]).ToArray());
         }
+        //Metodo que obtiene la informacion necesaria para eliminar un pedido
         public async Task<IActionResult> Delete(int id)
         {
             try
@@ -195,9 +196,8 @@ namespace GestorInventario.Infraestructure.Controllers
 
         }
 
-
+        //Metodo que elimina un pedido
         [HttpPost, ActionName("DeleteConfirmed")]
-       
         public async Task<IActionResult> DeleteConfirmed(int Id)
         {
             try
@@ -215,7 +215,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     if (success)
                     {
                        
-                        TempData["SuccessMessage"] = "Los datos se han eliminado con éxito.";
+                        
                         return RedirectToAction(nameof(Index));
                     }
                     else
@@ -238,6 +238,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
+        //Metodo que obtiene los datos necesarios para eliminar el historial
         public async Task<IActionResult> DeleteHistorial(int id)
         {
             try
@@ -263,8 +264,8 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
+        //Metodo que elimina el historial
         [HttpPost, ActionName("DeleteConfirmedHistorial")]
-    
         public async Task<IActionResult> DeleteConfirmedHistorial(int Id)
         {
             try
@@ -280,7 +281,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     var (success, errorMessage) = await ExecutePolicyAsync(()=> _pedidoRepository.EliminarHistorialPorIdDefinitivo(Id));
                     if (success)
                     {
-                        TempData["SuccessMessage"] = "Los datos se han eliminado con exito";
+                       
                         return RedirectToAction(nameof(HistorialPedidos));
                     }
                     else
@@ -300,6 +301,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
+        //Metodo que obtiene los datos para editar un pedido
         public async Task<ActionResult> Edit(int id)
         {
             try
@@ -325,7 +327,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
-
+        //Metodo que edita el pedido
         [HttpPost]
         public async Task<ActionResult> Edit(EditPedidoViewModel model)
         {
@@ -374,7 +376,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Index");
             }
             return View(model);
-        }        
+        }   
+        //Metodo para obtener los detalles del pedido
         public async Task<IActionResult> DetallesPedido(int id)
         {
             try
@@ -400,6 +403,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
+        //Metodo para obtener el historial del pedido
         public async Task<IActionResult> HistorialPedidos(string buscar,[FromQuery] Paginacion paginacion)
         {
             try
@@ -425,7 +429,7 @@ namespace GestorInventario.Infraestructure.Controllers
                         pedidos = ExecutePolicy(() => _pedidoRepository.ObtenerPedidosHistorialUsuario(usuarioId));
                     }                   
                     ViewData["Buscar"] = buscar;
-                    await HttpContext.InsertarParametrosPaginacionRespuesta(pedidos, paginacion.CantidadAMostrar);
+                    await HttpContext.TotalPaginas(pedidos, paginacion.CantidadAMostrar);
                     var pedidosPaginados = await pedidos.Paginar(paginacion).ToListAsync();
                     var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
                     ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
@@ -441,6 +445,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
+        //Metodo para obtener los detalles del historial del pedido
         public async Task<IActionResult> DetallesHistorialPedido(int id)
         {
             try
@@ -465,6 +470,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
+        //Metodo para descargar en pdf el historial
         [HttpGet("descargarhistorialpedidoPDF")]
         public async Task<IActionResult> DescargarHistorialPDF()
         {
@@ -490,10 +496,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 _logger.LogError(ex, "Error al descargar el pdf");
                 return RedirectToAction("Error", "Home");
             }
-
-
-
-        }       
+        } 
+        //Metodo para eliminar el historial
         [HttpPost, ActionName("DeleteAllHistorial")]       
         public async Task<IActionResult> DeleteAllHistorial()
         {
@@ -509,10 +513,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     TempData["ErrorMessage"] = errorMessage;
                     return RedirectToAction(nameof(HistorialPedidos));
-                }
-               
-
-                TempData["SuccessMessage"] = "Todos los datos del historial se han eliminado con éxito.";
+                }                       
                 return RedirectToAction(nameof(HistorialPedidos));
             }
             catch (Exception ex)
@@ -521,7 +522,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 _logger.LogError(ex, "Error al eliminar los datos del historial");
                 return RedirectToAction("Error", "Home");
             }
-        }            
+        }        
+        //Metodo para obtener los detalles del pago
         public async Task<IActionResult> DetallesPagoEjecutado(string id)
         {
             var (detallepago,success,errorMessage)= await ExecutePolicyAsync(()=> _pedidoRepository.ObtenerDetallePagoEjecutado(id));

@@ -35,7 +35,10 @@ namespace GestorInventario.Application.Services
         {
             return await _tokenService.GenerarTokenAsimetricoDinamico(credencialesUsuario);
         }
-
+        //public async Task<DTOLoginResponse> GenerarToken(Usuario credencialesUsuario)
+        //{
+        //    return await _tokenService.GenerarTokenAsimetrico(credencialesUsuario);
+        //}
 
     }
 }

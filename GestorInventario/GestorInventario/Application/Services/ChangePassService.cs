@@ -14,8 +14,7 @@ namespace GestorInventario.Application.Services
         {
             _hashService = hashService;
             _context = context;
-        }
-     
+        }   
         public async Task ChangePassId(Usuario usuarioDB, string newPass)
         {
             var resultadoHash = _hashService.Hash(newPass);

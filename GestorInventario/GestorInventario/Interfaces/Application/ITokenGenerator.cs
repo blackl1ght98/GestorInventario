@@ -9,9 +9,14 @@ namespace GestorInventario.Interfaces.Application
         Task<DTOLoginResponse> GenerarTokenSimetrico(Usuario credencialesUsuario);
         Task<DTOLoginResponse> GenerarTokenAsimetricoFijo(Usuario credencialesUsuario);
         Task<DTOLoginResponse> GenerarTokenAsimetricoDinamico(Usuario credencialesUsuario);
+        Task<DTOLoginResponse> GenerarTokenAsimetrico(Usuario credencialesUsuario);
         byte[] Cifrar(byte[] data, byte[] aesKey);
         byte[] Descifrar(byte[] encryptedData, RSAParameters privateKeyParams);
         byte[] Descifrar(byte[] data, byte[] aesKey);
-       
+        void HandleDecryptionError(Exception ex);
+        //byte[] DescifrarDatosAES(byte[] data, byte[] aesKey);
+        //byte[] DescifrarClaveAES(byte[] encryptedData, RSAParameters privateKeyParams);
+
+
     }
 }

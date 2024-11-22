@@ -151,50 +151,7 @@ namespace GestorInventario.Application.Services
             var createdPayment = payment.Create(_apiContext);
             return createdPayment;
         }
-        /*
-         * SINTAXIS ANTIGUA PARA REALIZAR UN REEMBOLSO
-        public async Task<Refund> RefundSaleAsync(int pedidoId, decimal refundAmount = 0, string currency = "EUR")
-        {
-            try
-            {
-                // Recuperar el pedido de la base de datos
-                var pedido = await _context.Pedidos.FindAsync(pedidoId);
-
-                if (pedido == null || string.IsNullOrEmpty(pedido.SaleId))
-                {
-                    throw new ArgumentException("Pedido no encontrado o SaleId no disponible.");
-                }
-                var saleId = pedido.SaleId;
-
-                // Crear la solicitud de reembolso
-                var refundRequest = new RefundRequest();
-                if (refundAmount > 0)
-                {
-                    refundRequest.amount = new Amount
-                    {
-                        total = refundAmount.ToString("0.00"),
-                        currency = currency
-                    };
-                }
-                // Ejecutar el reembolso utilizando RefundTransaction
-                var refund = new Refund();
-                var sale = new Sale() { id = saleId };
-                var response = sale.Refund(_apiContext, refund);
-
-                // Actualizar el estado del pedido a "Reembolsado"
-                pedido.EstadoPedido = "Reembolsado";
-                _context.Update(pedido);
-                await _context.SaveChangesAsync();
-
-                return refund;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al realizar el reembolso");
-                throw new InvalidOperationException("No se pudo realizar el reembolso", ex);
-            }
-        }
-        */
+       
         public async Task<Refund> RefundSaleAsync(int pedidoId, string currency)
         {
             try
@@ -214,10 +171,6 @@ namespace GestorInventario.Application.Services
                 // Calcular el monto total del pedido
 
                 decimal totalAmount = pedido.DetallePedidos.Sum(d => (d.Producto.Precio * (d.Cantidad ?? 0)));
-
-
-
-
                 var saleId = pedido.SaleId;
 
                 // Crear la solicitud de reembolso
@@ -323,7 +276,7 @@ namespace GestorInventario.Application.Services
             {
                 httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
+                //Asi es como se construlle manualmente una peticion a un servidor
                 try
                 {
                     var billingCycles = new List<object>();
@@ -751,6 +704,108 @@ namespace GestorInventario.Application.Services
             }
         }
 
+        public async Task<(string ProductsResponse, bool HasNextPage)> GetProductsAsync(int page = 1, int pageSize = 10)
+        {
+            // Obtenemos el AccessToken desde PayPal
+            var authToken = await GetAccessTokenAsync();
+
+            using (var httpClient = new HttpClient())
+            {
+                // Agregamos el token de autenticación a la cabecera de la petición
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+                // Especificamos el tipo de contenido que esperamos recibir de PayPal (JSON)
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                // Construimos la URL para la solicitud, incluyendo la paginación
+                string url = $"https://api.sandbox.paypal.com/v1/catalogs/products?page_size={pageSize}&page={page}";
+
+                // Realizamos la solicitud GET a la API de PayPal
+                var response = await httpClient.GetAsync(url);
+
+                // Si la respuesta de PayPal es exitosa...
+                if (response.IsSuccessStatusCode)
+                {
+                    // Leemos y almacenamos el contenido de la respuesta como una cadena JSON
+                    var responseContent = await response.Content.ReadAsStringAsync();
+
+                    // Convertimos el JSON a un objeto dinámico para poder manipular sus propiedades durante la ejecución
+                    dynamic jsonResponse = JsonConvert.DeserializeObject(responseContent);
+
+                    // Como jsonResponse es de tipo dynamic, realizamos una conversión explícita a IEnumerable para manejar listas o arrays,
+                    // en este caso, la lista de enlaces ("links") que devuelve la API de PayPal
+                    var links = ((IEnumerable<dynamic>)jsonResponse.links).ToList();
+
+                    // Verificamos si existe un enlace que indique la presencia de una página siguiente ("next")
+                    bool hasNextPage = links.Any(link => link.rel == "next");
+
+                    // Devolvemos el contenido de la respuesta y el indicador de paginación
+                    return (responseContent, hasNextPage);
+                }
+                else
+                {
+                    // Si la respuesta no es exitosa, leemos el contenido del error y lanzamos una excepción con el mensaje correspondiente
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    throw new Exception($"Error al obtener productos: {response.StatusCode} - {errorContent}");
+                }
+            }
+        }
+        public async Task<(string planResponse, bool HasNextPage)> GetSubscriptionPlansAsync(int page = 1, int pageSize = 10)
+        {
+            var authToken = await GetAccessTokenAsync();
+
+            using (var httpClient = new HttpClient())
+            {
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                string url = $"https://api.sandbox.paypal.com/v1/billing/plans?page_size={pageSize}&page={page}";
+                var response = await httpClient.GetAsync(url);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    dynamic jsonResponse = JsonConvert.DeserializeObject(responseContent);
+                    var links = ((IEnumerable<dynamic>)jsonResponse.links).ToList();
+                    bool hasNextPage = links.Any(link => link.rel == "next");
+                    return (responseContent, hasNextPage);
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+
+                    throw new Exception($"Error al obtener planes: {response.StatusCode} - {errorContent}");
+                }
+
+            }
+        }
+       
+
+        public async Task<string> CancelarSuscripcion(string subscription_id, string reason)
+        {
+            var authToken = await GetAccessTokenAsync(); // Obtén el token de acceso
+
+            using (var httpClient = new HttpClient())
+            {
+                // Configurar el encabezado de autorización
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                // Crea el contenido JSON con la razón de la cancelación
+                var content = new StringContent(JsonConvert.SerializeObject(new { reason }), Encoding.UTF8, "application/json");
+
+                // Realiza la solicitud POST a PayPal para cancelar la suscripción
+                var response = await httpClient.PostAsync($"https://api-m.sandbox.paypal.com/v1/billing/subscriptions/{subscription_id}/cancel", content);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                // Verifica si la solicitud fue exitosa
+                if (response.IsSuccessStatusCode)
+                {
+                    await ObtenerDetallesSuscripcion(subscription_id);
+                    return "Suscripción cancelada exitosamente";
+                }
+
+                throw new Exception($"Error al cancelar la suscripción: {responseContent}");
+            }
+        }
 
 
 

@@ -21,7 +21,11 @@
                     <th class="col-2">Dias de Prueba</th>
                     <th class="col-2">Nombre Suscriptor</th>
                     <th class="col-2">Email Suscriptor</th>
+                     @if (User.IsInRole("administrador"))
+                        {
                     <th class="col-2">Acciones</th>
+                        }
+                        
                 </tr>
             </thead>
             <tbody>
@@ -45,7 +49,23 @@
                         </td>
                         <td>@Html.DisplayFor(m => user.SubscriberName)</td>
                         <td>@Html.DisplayFor(m => user.SubscriberEmail)</td>
-                        <td> <a asp-action="DetallesSuscripcion" asp-controller="SuscriptionProduct" asp-route-id="@user.SubscriptionId" class="btn btn-warning mt-2">Mostrar detalles suscripcion</a></td>
+                        @if (User.IsInRole("administrador"))
+                        {
+                            <td> <a asp-action="DetallesSuscripcion" asp-controller="SuscriptionProduct" asp-route-id="@user.SubscriptionId" class="btn btn-warning mt-2">Mostrar detalles suscripcion</a></td>
+                        
+
+                        <td>
+                            <button class="btn btn-danger user-action-button mt-2" data-suscription-id="@user.SubscriptionId">
+                                Cancelar
+                            </button>
+                        </td>
+                        }
+                        @if (TempData["ErrorMessage"] != null)
+                        {
+                            <div class="alert alert-warning">
+                                @TempData["ErrorMessage"]
+                            </div>
+                        }
                     </tr>
 
                 }
@@ -53,6 +73,27 @@
         </table>
     </div>
 </div>
+<!-- Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Confirmación</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">¿Estás seguro de que deseas realizar esta acción?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmActionBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <nav aria-label="Page navigation example">
     <ul class="pagination justify-content-center">
         @foreach (var pagina in paginas!)
@@ -84,6 +125,55 @@
                     });
                 }
             });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            var subscriptionId;
+
+            // Mostrar el modal de confirmación
+            $(".user-action-button").click(function (event) {
+                event.preventDefault();
+
+                // Obtener los valores del botón que fue clicado
+                subscriptionId = $(this).data("suscription-id");
+
+                // Muestra el modal de confirmación
+                $("#confirmModal").modal("show");
+
+                // Cambia el mensaje dentro del modal para reflejar la acción que se realizará.
+                $("#confirmMessage").text(`¿Estás seguro de que deseas cancelar la suscripción ${subscriptionId}?`);
+            });
+
+            // Confirmar la acción del usuario
+            $("#confirmActionBtn").click(function () {
+                // Ocultar el modal después de confirmar
+                $("#confirmModal").modal("hide");
+
+                // Llama a la función `cancelarSuscripcion` para cancelar la suscripción.
+                cancelarSuscripcion(subscriptionId);
+            });
+
+            // Función para cancelar la suscripción
+            function cancelarSuscripcion(id) {
+                $.ajax({
+                    type: "POST",
+                    url: `/SuscriptionProduct/CancelarSuscripcion`,  // URL actualizada
+                    data: { subscription_id: id },  // Parámetro corregido
+                    success: function (response) {
+                        if (response.success) {
+                            // Recarga la página actual.
+                            
+                            window.location.reload();
+                        } else {
+                            console.log(response.errorMessage);
+                        }
+                    },
+                    error: function () {
+                        console.log('Error al procesar la solicitud');
+                    }
+                });
+            }
         });
     </script>
 

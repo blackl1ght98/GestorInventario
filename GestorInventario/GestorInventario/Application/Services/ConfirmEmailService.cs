@@ -13,16 +13,16 @@ namespace GestorInventario.Application.Services
         {
             _context = context;
 
-        }
-        
-
+        }   
         public async Task ConfirmEmail(DTOConfirmRegistration confirm)
         {
           
             var usuarioUpdate = _context.Usuarios.AsTracking().FirstOrDefault(x => x.Id == confirm.UserId);
-
-            usuarioUpdate.ConfirmacionEmail = true;
-           await _context.UpdateEntityAsync(usuarioUpdate);
+            if (usuarioUpdate != null)
+            {
+                usuarioUpdate.ConfirmacionEmail = true;
+                await _context.UpdateEntityAsync(usuarioUpdate);
+            }
         }
     }
 }

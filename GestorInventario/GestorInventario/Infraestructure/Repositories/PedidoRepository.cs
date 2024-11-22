@@ -24,7 +24,7 @@ namespace GestorInventario.Infraestructure.Repositories
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
-      
+      //Estos metodos de aqui estan en PedidoController
         public IQueryable<Pedido> ObtenerPedidos()=>
             from p in _context.Pedidos.Include(dp => dp.DetallePedidos).ThenInclude(p => p.Producto).Include(u => u.IdUsuarioNavigation)
             select p;

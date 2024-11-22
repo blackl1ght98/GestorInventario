@@ -18,7 +18,12 @@
         <input asp-for="description" class="form-control" />
         <span asp-validation-for="description" class="text-danger"></span>
     </div>
-  
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-warning">
+            @TempData["ErrorMessage"]
+        </div>
+    }
     <button type="submit" class="btn btn-primary">Crear Producto</button>
 </form>
 

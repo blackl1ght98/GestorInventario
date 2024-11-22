@@ -37,11 +37,16 @@ namespace GestorInventario.Application.Services
             _serviceProvider = serviceProvider;
             _hashService = hashService;
         }
+        //En este servicio esta la logica para enviar correo electronico
         public async Task SendEmailAsyncRegister(DTOEmail userDataRegister)
         {
+            //Busca el usuario en base de datos
             var usuarioDB = await _context.Usuarios.AsTracking().FirstOrDefaultAsync(x => x.Email == userDataRegister.ToEmail);
+            //Genera un id aleatorio
             Guid miGuid = Guid.NewGuid();
+            //El id generado aleatoriamente lo convierte a base 64 y esta tranformacion la transforma a un array de bytes
             string textoEnlace = Convert.ToBase64String(miGuid.ToByteArray());
+            //Quita los caracteres especiales del id que se ha convertido en base 64
             textoEnlace = textoEnlace.Replace("=", "").Replace("+", "").Replace("/", "").Replace("?", "").Replace("&", "").Replace("!", "").Replace("¡", "");
             usuarioDB.EnlaceCambioPass = textoEnlace;         
             var model = new DTOEmail
@@ -79,14 +84,12 @@ namespace GestorInventario.Application.Services
             // Hashear la contraseña temporal y guardarla en la base de datos
             var resultadoHash = _hashService.Hash(contrasenaTemporal);
             usuarioDB.TemporaryPassword = resultadoHash.Hash;
-            usuarioDB.Salt = resultadoHash.Salt;
-            // Guardar los cambios en la base de datos
+            usuarioDB.Salt = resultadoHash.Salt;      
             await  _context.UpdateEntityAsync(usuarioDB);
             var fechaExpiracion = DateTime.Now.AddMinutes(5); 
             // Guardar la fecha de vencimiento en la base de datos
             usuarioDB.FechaEnlaceCambioPass = fechaExpiracion;
-            usuarioDB.FechaExpiracionContrasenaTemporal= fechaExpiracion;
-            // Guardar los cambios en la base de datos
+            usuarioDB.FechaExpiracionContrasenaTemporal= fechaExpiracion;     
             await _context.UpdateEntityAsync(usuarioDB);
             // Crear el modelo para la vista del correo electrónico
             var model = new DTOEmail
@@ -94,8 +97,7 @@ namespace GestorInventario.Application.Services
                 //Cuando el usuario hace clic en el enlace que se le envia al correo electronico es dirigido la endpoint de restaurar la contraseña(RestorePassword)
                 RecoveryLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/AuthController/RestorePassword/{usuarioDB.Id}/{usuarioDB.EnlaceCambioPass}?redirect=true",
                 TemporaryPassword = contrasenaTemporal
-            };
-            // Renderizar la vista del correo electrónico
+            };          
             var ruta = await RenderViewToStringAsync("ViewsEmailService/ViewResetPasswordEmail", model);
             // Crear el correo electrónico
             var email = new MimeMessage();
@@ -105,9 +107,7 @@ namespace GestorInventario.Application.Services
             email.Body = new TextPart(TextFormat.Html)
             {
                 Text = await RenderViewToStringAsync("ViewsEmailService/ViewResetPasswordEmail", model)
-            };
-
-            // Enviar el correo electrónico
+            };          
             using var smtp = new SmtpClient();
             await smtp.ConnectAsync(
                 _config.GetSection("Email:Host").Value,
@@ -146,7 +146,7 @@ namespace GestorInventario.Application.Services
                 Text = await RenderViewToStringAsync("ViewsEmailService/ViewLowStock", model)
             };
 
-            // Enviar el correo electrónico
+            
             using var smtp = new SmtpClient();
             await smtp.ConnectAsync(
                 _config.GetSection("Email:Host").Value,
@@ -165,7 +165,6 @@ namespace GestorInventario.Application.Services
             {
                 NombreProducto = productName
                
-
             };
             // Crear el correo electrónico
             var email = new MimeMessage();

@@ -9,6 +9,7 @@
         public string? Email { get; set; }
         public string? Direccion { get; set; }
         public string? Telefono { get; set; }
+        public string? RefreshToken { get; set; }
         public DateTime? FechaNacimiento { get; set; }
         public DateTime? FechaRegistro { get; set; }
     }

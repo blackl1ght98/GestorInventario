@@ -20,6 +20,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
 
 string secret = Environment.GetEnvironmentVariable("ClaveJWT")?? builder.Configuration["ClaveJWT"];
+//Para que no salte una excepcion en consultas que son recursivas
 builder.Services.AddControllersWithViews().AddJsonOptions(options => options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER") == "true";
 var dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? builder.Configuration["DataBaseConection:DBHost"];
@@ -150,6 +151,7 @@ builder.Services.AddTransient<ITokenGenerator, TokenGenerator>(provider =>
 //builder.ConfiguracionSimetrica(builder.Configuration);
 //builder.ConfiguracionAsimetricaFija(builder.Configuration);
 builder.ConfiguracionAsimetricaDinamica(builder.Configuration);
+//builder.ConfiguracionAsimetricaV1(builder.Configuration);
 /*
 
     * options.Preload = true;: Esta opción indica que quieres incluir tu sitio en la lista de precarga de HSTS. 
@@ -208,6 +210,7 @@ app.UseSession();
 //app.MiddlewareAutenticacionSimetrica(builder);
 //app.MiddlewareAutenticacionAsimetricaFija(builder);
 app.MiddlewareAutenticacionAsimetricaDinamica(builder);
+//app.MiddlewareAutenticacionAsimetrica(builder);
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

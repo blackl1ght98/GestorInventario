@@ -6,6 +6,7 @@ using GestorInventario.Domain.Models.ViewModels;
 using GestorInventario.Domain.Models.ViewModels.Paypal;
 using GestorInventario.enums;
 using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.MetodosExtension;
 using GestorInventario.PaginacionLogica;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -13,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Globalization;
 using System.Net.Http.Headers;
+using System.Security.Claims;
 
 namespace GestorInventario.Infraestructure.Controllers
 {
@@ -32,74 +34,22 @@ namespace GestorInventario.Infraestructure.Controllers
             _logger = logger;
         }
 
-
-     
-
-        public async Task<(string ProductsResponse, bool HasNextPage)> GetProductsAsync(int page = 1, int pageSize = 10)
-        {
-            // Obtenemos el AccessToken desde PayPal
-            var authToken = await _unitOfWork.PaypalService.GetAccessTokenAsync();
-
-            using (var httpClient = new HttpClient())
-            {
-                // Agregamos el token de autenticación a la cabecera de la petición
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-                // Especificamos el tipo de contenido que esperamos recibir de PayPal (JSON)
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                // Construimos la URL para la solicitud, incluyendo la paginación
-                string url = $"https://api.sandbox.paypal.com/v1/catalogs/products?page_size={pageSize}&page={page}";
-
-                // Realizamos la solicitud GET a la API de PayPal
-                var response = await httpClient.GetAsync(url);
-
-                // Si la respuesta de PayPal es exitosa...
-                if (response.IsSuccessStatusCode)
-                {
-                    // Leemos y almacenamos el contenido de la respuesta como una cadena JSON
-                    var responseContent = await response.Content.ReadAsStringAsync();
-
-                    // Convertimos el JSON a un objeto dinámico para poder manipular sus propiedades durante la ejecución
-                    dynamic jsonResponse = JsonConvert.DeserializeObject(responseContent);
-
-                    // Como jsonResponse es de tipo dynamic, realizamos una conversión explícita a IEnumerable para manejar listas o arrays,
-                    // en este caso, la lista de enlaces ("links") que devuelve la API de PayPal
-                    var links = ((IEnumerable<dynamic>)jsonResponse.links).ToList();
-
-                    // Verificamos si existe un enlace que indique la presencia de una página siguiente ("next")
-                    bool hasNextPage = links.Any(link => link.rel == "next");
-
-                    // Devolvemos el contenido de la respuesta y el indicador de paginación
-                    return (responseContent, hasNextPage);
-                }
-                else
-                {
-                    // Si la respuesta no es exitosa, leemos el contenido del error y lanzamos una excepción con el mensaje correspondiente
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    throw new Exception($"Error al obtener productos: {response.StatusCode} - {errorContent}");
-                }
-            }
-        }
-
-
-       
+      //Metodo que muestra al usuario a los productos que se ha suscrito
         public async Task<IActionResult> MostrarProductos(int pagina = 1)
         {
-            // Establece el número de productos por página. En este caso, se fija en 10, ya que PayPal devuelve 10 productos por página por defecto.
+            // Establece el número de productos por página.
             int pageSize = 10;
 
-            // Llama al método GetProductsAsync, que obtiene los productos y verifica si hay una página siguiente.
-            // productsResponse contiene los productos obtenidos, y hasNextPage indica si existe una página siguiente.
-            var (productsResponse, hasNextPage) = await GetProductsAsync(pagina, pageSize);
+            // Llama al método GetProductsAsync para obtener los productos y verificar si hay una página siguiente.
+            var (productsResponse, hasNextPage) = await _unitOfWork.PaypalService.GetProductsAsync(pagina, pageSize);
 
-            // Deserializa la respuesta JSON del servidor y la almacena en una variable dynamic para poder manipular sus propiedades en tiempo de ejecución.
+            // Deserializa la respuesta JSON del servidor.
             dynamic productsJson = JsonConvert.DeserializeObject(productsResponse);
 
             // Crea una lista para almacenar los productos mapeados al modelo ProductoViewModel.
             var productos = new List<ProductoViewModel>();
 
-            // Recorre el array de productos en la respuesta JSON. 
-            // "productsJson.products" accede al array de productos devuelto por PayPal.
+            // Recorre el array de productos en la respuesta JSON.
             foreach (var product in productsJson.products)
             {
                 // Mapea cada producto al modelo ProductoViewModel y lo agrega a la lista productos.
@@ -111,12 +61,18 @@ namespace GestorInventario.Infraestructure.Controllers
                 });
             }
 
-            // Genera la lista de páginas para la paginación.
-            // Si hay más páginas disponibles, incrementa el número total de páginas.
-            var totalPages = hasNextPage ? pagina + 1 : pagina;
-            var paginacion = new PaginacionMetodo();
-            var paginas = paginacion.GenerarListaPaginas(totalPages, pagina);
-        
+            // Construye el objeto Paginacion con los valores adecuados.
+            var paginacion = new Paginacion
+            {
+                TotalPaginas = hasNextPage ? pagina + 1 : pagina,
+                PaginaActual = pagina,
+                Radio = 3 // Ajusta el radio según tus necesidades.
+            };
+
+            // Genera las páginas usando el objeto Paginacion.
+            var paginacionMetodo = new PaginacionMetodo();
+            var paginas = paginacionMetodo.GenerarListaPaginas(paginacion);
+
             // Crea un modelo que contiene los productos paginados y la información de la paginación.
             var model = new ProductosPaginadosViewModel
             {
@@ -130,75 +86,57 @@ namespace GestorInventario.Infraestructure.Controllers
             // Retorna la vista con el modelo que contiene los productos y la información de paginación.
             return View(model);
         }
-
-
-      
-        public async Task<(string planResponse, bool HasNextPage)> GetSubscriptionPlansAsync(int page=1, int pageSize=10)
-        {
-            var authToken = await _unitOfWork.PaypalService.GetAccessTokenAsync();
-
-            using (var httpClient = new HttpClient())
-            {
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-              
-                string url = $"https://api.sandbox.paypal.com/v1/billing/plans?page_size={pageSize}&page={page}";
-                var response = await httpClient.GetAsync(url);
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent= await response.Content.ReadAsStringAsync();
-                    dynamic jsonResponse= JsonConvert.DeserializeObject(responseContent);
-                    var links= ((IEnumerable<dynamic>)jsonResponse.links).ToList();
-                    bool hasNextPage = links.Any(link=>link.rel=="next");
-                    return (responseContent, hasNextPage);
-                }
-                else
-                {
-                    var errorContent= await response.Content.ReadAsStringAsync();
-               
-                    throw new Exception($"Error al obtener planes: {response.StatusCode} - {errorContent}");
-                }
-
-            }
-        }
-      
-        public async Task<IActionResult> MostrarPlanes(int pagina=1)
+        //Metodo que muestra los planes disponibles al usuario
+        public async Task<IActionResult> MostrarPlanes(int pagina = 1)
         {
             int pageSize = 10;
-            var (planesResponse, hasNextPage) = await GetSubscriptionPlansAsync(pagina, pageSize);
-            dynamic planesJson= JsonConvert.DeserializeObject(planesResponse);
+            var (planesResponse, hasNextPage) = await _unitOfWork.PaypalService.GetSubscriptionPlansAsync(pagina, pageSize);
+            dynamic planesJson = JsonConvert.DeserializeObject(planesResponse);
+
             var planes = new List<PlanesViewModel>();
-            foreach(var plans in planesJson.plans)
+            foreach (var plan in planesJson.plans)
             {
-                planes.Add(new PlanesViewModel 
-                { 
-                id= plans.id,
-                productId= plans.product_id,
-                name= plans.name,
-                description= plans.description,
-                status= plans.status,
-                usage_type= plans.usage_type,
-                createTime=plans.create_time
+                planes.Add(new PlanesViewModel
+                {
+                    id = plan.id,
+                    productId = plan.product_id,
+                    name = plan.name,
+                    description = plan.description,
+                    status = plan.status,
+                    usage_type = plan.usage_type,
+                    createTime = plan.create_time
                 });
             }
-            var totalPages = hasNextPage ? pagina + 1 : pagina;
-            var paginacion = new PaginacionMetodo();
-            var paginas = paginacion.GenerarListaPaginas(totalPages, pagina);
+
+            // Construye el objeto Paginacion con los valores adecuados
+            var paginacion = new Paginacion
+            {
+                TotalPaginas = hasNextPage ? pagina + 1 : pagina,
+                PaginaActual = pagina,
+                Radio = 3 // Ajusta el radio según tus necesidades
+            };
+
+            // Genera las páginas usando el objeto Paginacion
+            var paginacionMetodo = new PaginacionMetodo();
+            var paginas = paginacionMetodo.GenerarListaPaginas(paginacion);
+
             var model = new PlanesPaginadosViewModel
             {
-                Planes=planes,
-                Paginas= paginas,
-                TienePaginaSiguiente=hasNextPage,
-                TienePaginaAnterior=pagina>1
+                Planes = planes,
+                Paginas = paginas,
+                TienePaginaSiguiente = hasNextPage,
+                TienePaginaAnterior = pagina > 1
             };
+
             return View(model);
         }
+
         // Método para crear la lista de categorías a partir de la enumeración
         private List<string> GetCategoriesFromEnum()
         {
             return Enum.GetNames(typeof(Category)).ToList();
         }
-
+        //Metodo que obtiene los datos necesarios antes de crear el producto al que se suscribira
         public IActionResult CrearProducto()
         {
             // Crear una instancia del modelo
@@ -210,7 +148,7 @@ namespace GestorInventario.Infraestructure.Controllers
             return View(model);
         }
 
-      
+      //metodo que crea el producto al que se suscribira
         [HttpPost]
         public async Task<IActionResult> CrearProducto(ProductViewModelPaypal model)
         {
@@ -258,7 +196,7 @@ namespace GestorInventario.Infraestructure.Controllers
             return View(model);
         }
 
-
+        //Metodo para desactivar el plan
         [HttpPost]
         public async Task<IActionResult> DesactivarPlan(string productId, string planId)
         {
@@ -276,8 +214,8 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
 
-        
-            [HttpPost]
+        //Metodo para desactivar el producto
+        [HttpPost]
         public async Task<IActionResult> DesactivarProducto(string id)
         {
             try
@@ -293,10 +231,12 @@ namespace GestorInventario.Infraestructure.Controllers
                 return StatusCode(500, $"Error al eliminar el producto y el plan: {ex.Message}");
             }
         }
+        //Metodo que muestra la vista para editar
         public IActionResult EditarProductoPaypal()
         {
             return View();
         }
+        //Metodo que edita el producto de paypal
         [HttpPost]
         public async Task<IActionResult> EditarProductoPaypal( string id, EditProductPaypal model)
         {
@@ -335,6 +275,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
             return View(model);
         }
+        //Metodo que inicia el proceso de suscripcion
         [HttpPost]
         public async Task<IActionResult> IniciarSuscripcion( string plan_id, string planName)
         {
@@ -347,7 +288,7 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
                 // Llama al método Subscribirse para obtener la URL de aprobación
-                string approvalUrl = await _unitOfWork.PaypalService .Subscribirse(plan_id, returnUrl, cancelUrl, planName);
+                string approvalUrl = await _unitOfWork.PaypalService.Subscribirse(plan_id, returnUrl, cancelUrl, planName);
 
                 // Redirige al usuario a la URL de aprobación de PayPal
                 return Redirect(approvalUrl);
@@ -359,7 +300,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-
+        //Metodo para confirmar la suscripcion
         public async Task<IActionResult> ConfirmarSuscripcion(string subscription_id, string token, string ba_token)
         {
             try
@@ -385,15 +326,41 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
 
-
-        public IActionResult CancelarSuscripcion()
+        //Metodo que cancela la suscripcion
+        public async Task<IActionResult> CancelarSuscripcion(string subscription_id)
         {
-         //PENDIENTE HACER ALGUNA VISTA PARA CUANDO CANCELAS
-            return RedirectToAction(nameof (MostrarPlanes));
+          
+        
+            try
+            {
+                //ver si una suscripcion cancelada se puede reactivar
+                string result = await _unitOfWork.PaypalService.CancelarSuscripcion(subscription_id,"No satisfecho");
+                var actualizar = await _context.SubscriptionDetails.FirstOrDefaultAsync(x=>x.SubscriptionId==subscription_id);
+                if (actualizar != null)
+                {
+                    if (actualizar.Status == "ACTIVE" || actualizar.Status == "SUSPEND")
+                    {
+                        actualizar.Status = "CANCELLED";
+                        await _context.UpdateEntityAsync(actualizar);
+                    }
+                }
+                // Redirige al usuario a la URL de aprobación de PayPal
+                return RedirectToAction(nameof(TodasSuscripciones)); 
+            }
+            catch (Exception ex)
+            {
+                // Manejar la excepción y mostrar un mensaje de error
+                TempData["ErrorMessage"] = $"Error al iniciar la suscripción: {ex.Message}";
+                return RedirectToAction("Error", "Home");
+            }
         }
-
+        //Metodo para obtener los detalles del plan
         private async Task DetallesPlan(string id)
         {
+            /**
+             * IMPORTANTE:
+             * NO CAMBIAR ESTRUCTURA ES COMO TIENE QUE ESTAR PARA QUE SE MUESTRE BIEN LA INFORMACION
+             * */
             try
             {
                 var existingPlan = await _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == id);
@@ -461,9 +428,10 @@ namespace GestorInventario.Infraestructure.Controllers
                
             }
         }
-
         public async Task<IActionResult> DetallesSuscripcion(string id)
         {
+            System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
+            System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
             try
             {
                 // Obtener detalles de la suscripción desde PayPal
@@ -477,7 +445,6 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 if (plan == null)
                 {
-
                     await DetallesPlan(planId);
                 }
 
@@ -573,39 +540,114 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-      
 
-        public async Task<ActionResult> TodasSuscripciones( [FromQuery] Paginacion paginacion)
+
+        //Metodo que muestra todas la suscricpciones
+        //public async Task<ActionResult> TodasSuscripciones( [FromQuery] Paginacion paginacion)
+        //{
+        //    try
+        //    {
+
+        //        if (!User.Identity.IsAuthenticated)
+        //        {
+        //            return RedirectToAction("Login", "Auth");
+        //        }
+        //        var queryable = from p in _context.SubscriptionDetails select p;
+
+
+        //        //Accedemos al metodo de extension creado pasandole la fuente de informacion(queryable) y las paginas a mostrar
+        //        await HttpContext.TotalPaginas(queryable, paginacion.CantidadAMostrar);
+        //        var usuarios = ExecutePolicy(() => queryable.Paginar(paginacion).ToList());
+        //        //Obtiene los datos de la cabecera que hace esta peticion
+        //        var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
+        //        //Crea las paginas que el usuario ve.
+        //        ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
+
+        //        return View(usuarios);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
+        //        _logger.LogError(ex, "Error al obtener los datos del usuario");
+        //        return RedirectToAction("Error", "Home");
+
+        //    }
+        //}
+        public async Task<ActionResult> TodasSuscripciones([FromQuery] Paginacion paginacion)
         {
             try
             {
-
+                // Verifica si el usuario está autenticado
                 if (!User.Identity.IsAuthenticated)
                 {
                     return RedirectToAction("Login", "Auth");
                 }
+
+                // Consulta inicial para obtener los detalles de suscripción
                 var queryable = from p in _context.SubscriptionDetails select p;
 
-               
-                //Accedemos al metodo de extension creado pasandole la fuente de informacion(queryable) y las paginas a mostrar
-                await HttpContext.InsertarParametrosPaginacionRespuesta(queryable, paginacion.CantidadAMostrar);
+                // Llamada al método de extensión para obtener el total de páginas disponibles
+                await HttpContext.TotalPaginas(queryable, paginacion.CantidadAMostrar);
+
+                // Obtiene los usuarios con la paginación aplicada
                 var usuarios = ExecutePolicy(() => queryable.Paginar(paginacion).ToList());
-                //Obtiene los datos de la cabecera que hace esta peticion
+
+                // Obtiene el número total de páginas para la paginación
                 var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
-                //Crea las paginas que el usuario ve.
+
+                // Genera las páginas que se deben mostrar en la vista
                 ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
-              
+
+                // Verifica la existencia del usuario en la base de datos
+                var existeUsuario = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int usuarioId;
+
+                if (int.TryParse(existeUsuario, out usuarioId))
+                {
+                    // Itera sobre las suscripciones obtenidas para verificar o crear relaciones de suscripción
+                    foreach (var detallesSuscripcion in usuarios)
+                    {
+                        var usuario = await _context.Usuarios.FirstOrDefaultAsync(x => x.NombreCompleto == detallesSuscripcion.SubscriberName);
+
+                        if (usuario != null)
+                        {
+                            // Verifica si ya existe una relación de suscripción para este usuario
+                            var existeRelacion = await _context.UserSubscriptions
+                                .FirstOrDefaultAsync(us => us.UserId == usuarioId && us.SubscriptionId == detallesSuscripcion.SubscriptionId);
+
+                            if (existeRelacion == null)
+                            {
+                                // Si no existe la relación, la crea
+                                var userSubscription = new UserSubscription
+                                {
+                                    UserId = usuarioId,  // Asocia el ID del usuario
+                                    SubscriptionId = detallesSuscripcion.SubscriptionId,
+                                    NombreSusbcriptor = detallesSuscripcion.SubscriberName
+                                };
+
+                                // Guarda la relación en la tabla intermedia
+                                _context.UserSubscriptions.Add(userSubscription);
+                                await _context.SaveChangesAsync();
+                            }
+                        }
+                       
+                    }
+                }
+
+                // Devuelve la vista con los usuarios paginados
                 return View(usuarios);
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
+                // Manejo de errores
+                TempData["ConectionError"] = "El servidor ha tardado mucho en responder. Inténtelo de nuevo más tarde.";
                 _logger.LogError(ex, "Error al obtener los datos del usuario");
                 return RedirectToAction("Error", "Home");
-
             }
         }
 
+
+        //Metodo para obtener los detalles del plan
         public async Task<IActionResult> GetPlanDetailsIfNotExists(string subscriptionId)
         {
             // Primero, obtener la suscripción desde la base de datos

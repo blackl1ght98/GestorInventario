@@ -29,7 +29,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _PolicyHandler = policyHandler;
             _proveedorRepository= proveedor;
         }
-
+        //Metodo que muestra todos los proveedores
         public async Task<IActionResult> Index(string buscar, [FromQuery] Paginacion paginacion)
         {
             try
@@ -46,7 +46,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     proveedores=proveedores.Where(s=>s.NombreProveedor!.Contains(buscar));  
                 }
-                await HttpContext.InsertarParametrosPaginacionRespuesta(proveedores, paginacion.CantidadAMostrar);
+                await HttpContext.TotalPaginas(proveedores, paginacion.CantidadAMostrar);
                 var proveedor = ExecutePolicy(() => proveedores.Paginar(paginacion).ToList());
                 
                 var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
@@ -62,6 +62,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
+        //Metodo que muestra la vista para crear el proveedor
         public IActionResult Create()
         {
             if (!User.Identity.IsAuthenticated)
@@ -70,8 +71,8 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             return View();
         }
+        //Metodo que crea el proveedor
         [HttpPost]
-      
         public async Task<IActionResult> Create(ProveedorViewModel model)
         {
             try
@@ -104,6 +105,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
 
         }
+        //Metodo encargado de obtener los datos necesarios para eliminar el proveedor
         public async Task<IActionResult> Delete(int id)
         {
             try
@@ -131,10 +133,8 @@ namespace GestorInventario.Infraestructure.Controllers
 
         }
 
-
+        //Metodo que elimina el proveedor
         [HttpPost, ActionName("DeleteConfirmed")]
-       
-        
         public async Task<IActionResult> DeleteConfirmed(int Id)
         {
             try
@@ -165,6 +165,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
+        //Metodo que obtiene la informacion necesaria para editar el proveedor
         public async Task<ActionResult> Edit(int id)
         {
             try
@@ -184,6 +185,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
+        //Metodo encargado de editar el proveedor
         [HttpPost]
         public async Task<ActionResult> Edit(ProveedorViewModel model)
         {

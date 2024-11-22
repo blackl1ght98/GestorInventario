@@ -8,8 +8,7 @@ namespace GestorInventario.Interfaces.Infraestructure
         IQueryable<Producto> ObtenerTodoProducto();
 
         Task<Producto> CrearProducto(ProductosViewModel model);
-        Task<HistorialProducto> CrearHistorial(int usuarioId, Producto producto);
-        Task<DetalleHistorialProducto> CrearDetalleHistorial(HistorialProducto historialProducto, Producto producto);
+      
         Task<List<Proveedore>> ObtenerProveedores();
         Task<Producto> EliminarProductoObtencion(int id);
         Task<(bool, string)> EliminarProducto(int Id);

@@ -31,6 +31,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _logger = logger;
             _unitOfWork = unitOfWork;        
         }
+        //Metodo que muestra los items del carrito
         public async Task<IActionResult> Index([FromQuery] Paginacion paginacion)
         {
             try
@@ -49,7 +50,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     {
                       
                         var itemsDelCarrito = ExecutePolicy(()=> _carritoRepository.ObtenerItems(carrito.Id)) ;
-                        await HttpContext.InsertarParametrosPaginacionRespuesta(itemsDelCarrito, paginacion.CantidadAMostrar);
+                        await HttpContext.TotalPaginas(itemsDelCarrito, paginacion.CantidadAMostrar);
                         var productoPaginado = itemsDelCarrito.Paginar(paginacion).ToList();
                         var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
                         ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
@@ -70,7 +71,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
-        
+        //Metodo que realiza el pago
         [HttpPost]
         public async Task<IActionResult> Checkout(string monedaSeleccionada)
         {
@@ -113,6 +114,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
+        //Metodo para incrementar  productos
         [HttpPost]
         public async Task<ActionResult> Incrementar(int id)
         {
@@ -132,6 +134,7 @@ namespace GestorInventario.Infraestructure.Controllers
             // Redirige al usuario a la página de índice
             return RedirectToAction("Index");
         }
+        //Metodo para decrementar producto
         [HttpPost]
         public async Task<ActionResult> Decrementar(int id)
         {
@@ -152,7 +155,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }          
             return RedirectToAction("Index");
         }
-       
+       //Metodo para eliminar un producto
         [HttpPost]
         public async Task<IActionResult> EliminiarProductoCarrito(int id)
         {

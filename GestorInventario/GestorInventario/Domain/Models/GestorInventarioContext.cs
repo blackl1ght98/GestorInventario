@@ -6,15 +6,13 @@ namespace GestorInventario.Domain.Models;
 
 public partial class GestorInventarioContext : DbContext
 {
-    private readonly IConfiguration _configuration;
     public GestorInventarioContext()
     {
     }
 
-    public GestorInventarioContext(DbContextOptions<GestorInventarioContext> options, IConfiguration configuration)
+    public GestorInventarioContext(DbContextOptions<GestorInventarioContext> options)
         : base(options)
     {
-        _configuration = configuration;
     }
 
     public virtual DbSet<Carrito> Carritos { get; set; }
@@ -49,30 +47,13 @@ public partial class GestorInventarioContext : DbContext
 
     public virtual DbSet<SubscriptionDetail> SubscriptionDetails { get; set; }
 
+    public virtual DbSet<UserSubscription> UserSubscriptions { get; set; }
+
     public virtual DbSet<Usuario> Usuarios { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER") == "true";
-        var dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? _configuration["DataBaseConection:DBHost"];
-        var dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? _configuration["DataBaseConection:DBName"];
-        var dbUserName = Environment.GetEnvironmentVariable("DB_USERNAME") ?? _configuration["DataBaseConection:DBUserName"];
-        var dbPassword = Environment.GetEnvironmentVariable("DB_SA_PASSWORD") ?? _configuration["DataBaseConection:DBPassword"];
-
-        string connectionString;
-
-        if (isDocker)
-        {
-            connectionString = $"Data Source={dbHost};Initial Catalog={dbName};User ID=sa;Password={dbPassword};TrustServerCertificate=True";
-        }
-        else
-        {
-            // connectionString = $"Data Source={dbHost};Initial Catalog={dbName};Integrated Security=True;TrustServerCertificate=True";
-            connectionString = $"Data Source={dbHost};Initial Catalog={dbName};User ID={dbUserName};Password={dbPassword};TrustServerCertificate=True";
-        }
-
-        optionsBuilder.UseSqlServer(connectionString);
-    }
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Data Source=DESKTOP-2TL9C3O\\SQLEXPRESS;Initial Catalog=GestorInventario;User ID=sa;Password=SQL#1234;TrustServerCertificate=True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -573,6 +554,30 @@ public partial class GestorInventarioContext : DbContext
             entity.Property(e => e.TrialIntervalUnit)
                 .HasMaxLength(10)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<UserSubscription>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC077E0B3350");
+
+            entity.ToTable("UserSubscription");
+
+            entity.Property(e => e.NombreSusbcriptor)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.SubscriptionId)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("SubscriptionID");
+
+            entity.HasOne(d => d.Subscription).WithMany(p => p.UserSubscriptions)
+                .HasForeignKey(d => d.SubscriptionId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_SuscriptionID");
+
+            entity.HasOne(d => d.User).WithMany(p => p.UserSubscriptions)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK_UserId");
         });
 
         modelBuilder.Entity<Usuario>(entity =>

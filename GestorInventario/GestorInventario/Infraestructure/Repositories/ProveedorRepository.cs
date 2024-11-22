@@ -15,6 +15,7 @@ namespace GestorInventario.Infraestructure.Repositories
             _context = context;
             _logger = logger;
         }
+        //Los metodos de aqui se llaman en proveedorRepository
         public IQueryable<Proveedore> ObtenerProveedores()=>from p in _context.Proveedores select p;             
         public async Task<(bool, string)> CrearProveedor(ProveedorViewModel model)
         {

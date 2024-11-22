@@ -72,6 +72,7 @@
                 -->
                   @*   <td><a asp-action="EliminiarProductoCarrito" asp-route-id="@item.Id" class="btn btn-warning">Eliminar</a></td> *@
                 <td>
+
                     <form asp-action="EliminiarProductoCarrito" method="post">
                         <input type="hidden" asp-for="@item.Id" name="id" />
                         <input type="submit" value="Eliminar" class="btn btn-warning" />

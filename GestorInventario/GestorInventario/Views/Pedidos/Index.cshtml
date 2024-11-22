@@ -98,15 +98,14 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="confirmModalLabel">Confirmación</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+               
             </div>
             <div class="modal-body">
                 <p id="confirmMessage">¿Estás seguro de que deseas realizar esta acción?</p>
+                <p id="loadingMessage"></p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+               
                 <button type="button" class="btn btn-primary" id="confirmActionBtn">Confirmar</button>
             </div>
         </div>
@@ -117,45 +116,38 @@
  
     <script>
         $(document).ready(function () {
-            var pedidoId; // Variable para almacenar el ID del pedido
+            var pedidoId; 
 
-            // Mostrar el modal de confirmación
+            
             $(".refund-button").click(function (event) {
                 event.preventDefault();
-                pedidoId = $(this).data("pedido-id");
-               
+                pedidoId = $(this).data("pedido-id");               
                 $("#confirmModal").modal("show");
-               
-
-                // Cambia el mensaje dentro del modal para reflejar la acción que se realizará y el ID del usuario.
                 $("#confirmMessage").text(`¿Estás seguro de que deseas reembolsar el pedido ${pedidoId}?`);
-            });
-
-            // Confirmar el reembolso
-            $("#confirmActionBtn").click(function () {
+            });         
+            $("#confirmActionBtn").click(function () {                           
                
-              
-                // Deshabilitar el botón para evitar múltiples clics
+                $('#confirmModal').modal({
+                    backdrop: true,
+                    keyboard: true  
+                });
+                $("#loadingMessage").text("Procesando...").show();
                 $(this).prop('disabled', true);
                 $.ajax({
-                    url: '@Url.Action("RefundSale", "Payment")',
+                    url: `/Payment/RefundSale`,
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({
-                        PedidoId: pedidoId,
-                      
-                       
+                        PedidoId: pedidoId,                                        
                     }),
                     success: function (response) {
                         console.log("Reembolso realizado con éxito");
                         location.reload(); 
                     },
                     error: function (xhr, status, error) {
-                        alert("Error al realizar el reembolso: " + xhr.responseText);
+                        console.log("Error al realizar el reembolso: " + xhr.responseText);
                     }
                 });
-
-                // Ocultar el modal después de confirmar
                 $("#confirmModal").modal("hide");
             });
         });

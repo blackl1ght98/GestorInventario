@@ -17,7 +17,7 @@ namespace GestorInventario.Infraestructure.Controllers
 {
     public class AdminController : Controller
     {
-      
+      //Al usar la modularización se queda todo mas separado y el codigo se queda mas limpio
         private readonly IEmailService _emailService;
         private readonly HashService _hashService;
         private readonly IConfirmEmailService _confirmEmailService;
@@ -40,15 +40,39 @@ namespace GestorInventario.Infraestructure.Controllers
             _PolicyHandler = policy;
           
         }
+        /* Explicación de cómo se crea la paginación:
+          * 1º Pasamos los datos que se van a paginar: 
+          *    var queryable = await ExecutePolicyAsync(() => _adminrepository.ObtenerUsuarios());
+          *    En esta variable se almacena la fuente de información, que es una consulta que aún no se ha ejecutado completamente.
+          * 
+          * 2º Calculamos el número total de páginas usando el método de extensión que hemos creado:
+          *    HttpContext.TotalPaginas(queryable, paginacion.CantidadAMostrar); 
+          *    Este método necesita dos parámetros: la fuente de información (`queryable`) y la cantidad de registros a mostrar por página (`paginacion.CantidadAMostrar`). 
+          *    Calcula el total de páginas usando `Math.Ceiling` para redondear hacia arriba, y almacena el resultado en la cabecera de la respuesta HTTP bajo el nombre "totalPaginas".
+          *    Para recuperar este valor, usamos: 
+          *    var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString(); 
+          * 
+          * 3º Aplicamos la paginación llamando al método de extensión creado:
+          *    var usuarios = ExecutePolicy(() => queryable.PaginarLista(paginacion).ToList());
+          *    Este método se encarga de omitir (`Skip`) y tomar (`Take`) los registros necesarios para la página actual. Se nutre de la consulta inicial `queryable`, 
+          *    que devuelve un `IQueryable<T>`, permitiendo que la paginación se ejecute eficientemente en la base de datos.
+          * 
+          * 4º Generamos la lista de páginas para la navegación llamando a otro método de extensión:
+          *    ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina); 
+          *    Este método toma dos parámetros: el número total de páginas y la página actual, y genera la lista de páginas que se mostrará en la interfaz de usuario.
+          * 
+          * 5º Finalmente, devolvemos los datos paginados:
+          *    var usuarios = ExecutePolicy(() => queryable.PaginarLista(paginacion).ToList());
+          *    Este es el resultado final que se pasa a la vista, mostrando los registros correspondientes a la página seleccionada.
+          */
+        [Authorize(Roles ="administrador")]
+        
         public async Task<ActionResult> Index(string buscar, [FromQuery] Paginacion paginacion)
         {
             try
             {
 
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+               
                 var queryable =  await ExecutePolicyAsync(() => _adminrepository.ObtenerUsuarios());
                
                 //var queryable = _adminrepository.ObtenerUsuarios();
@@ -58,11 +82,12 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     queryable = queryable.Where(s => s.NombreCompleto.Contains(buscar));
                 }
-                //Accedemos al metodo de extension creado pasandole la fuente de informacion(queryable) y las paginas a mostrar
-                 HttpContext.InsertarParametrosPaginacionRespuestaLista(queryable, paginacion.CantidadAMostrar);
+               
+                 HttpContext.TotalPaginasLista(queryable, paginacion.CantidadAMostrar);
+                var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
                 var usuarios = ExecutePolicy(() => queryable.PaginarLista(paginacion).ToList());
                 //Obtiene los datos de la cabecera que hace esta peticion
-                var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
+                
                 //Crea las paginas que el usuario ve.
                 ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
                 var roles = await ExecutePolicyAsync(() => _adminrepository.ObtenerRoles());
@@ -78,16 +103,15 @@ namespace GestorInventario.Infraestructure.Controllers
 
             }
         }
-      
+      //Metodo que actualiza el rol del usuario
         [HttpPost]
+        [Authorize(Roles = "administrador")]
         public async Task<IActionResult> UpdateRole(int id, int newRole)
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+                
+                //Uso de la separacion de tuplas
                 var (success, errorMessage) = await ExecutePolicyAsync(() => _adminrepository.EditarRol(id, newRole));
                 if (success)
                 {
@@ -112,12 +136,15 @@ namespace GestorInventario.Infraestructure.Controllers
             }
            
         }
+       
+
         public async Task<IActionResult> Create()
         {
             try
             {
-                // Sirve para obtener los datos del desplegable
+                //Obtener los datos del desplegable
                 var roles = await ExecutePolicyAsync(() => _adminrepository.ObtenerRoles());
+                
                 ViewData["Roles"] = new SelectList(roles, "Id", "Nombre");
 
                 return View();
@@ -129,8 +156,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-
-        [HttpPost]      
+        //Metodo que crea el usuario
+        [HttpPost]
         public async Task<IActionResult> Create(UserViewModel model)
         {
             try
@@ -162,6 +189,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }         
         }
+        //Metodo que se encarga de confirmar la cuenta del usuario
         [AllowAnonymous]
         [Route("AdminController/ConfirmRegistration/{UserId}/{Token}")]
         public async Task<IActionResult> ConfirmRegistration(DTOConfirmRegistration confirmar)
@@ -195,21 +223,20 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
             
-        }      
+        }
+        //Metodo para obtener los datos del usuario a editar
+        [Authorize(Roles = "administrador")]
         public async Task<ActionResult> Edit(int id)
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+               
                 var user = await ExecutePolicyAsync(() => _adminrepository.ObtenerPorId(id));                          
                 if (user == null)
                 {
                     TempData["ErrorMessage"] = "Usuario no encontrado";
                 }
-                // Creas un nuevo ViewModel y llenas sus propiedades con los datos del usuario
+              
                 UsuarioEditViewModel viewModel = new UsuarioEditViewModel
                 {
                     Id = user.Id,
@@ -224,7 +251,6 @@ namespace GestorInventario.Infraestructure.Controllers
                 ViewData["Roles"] = new SelectList(roles, "Id", "Nombre");
 
 
-                // Pasas el ViewModel a la vista
                 return View(viewModel);
             }
             catch (Exception ex)
@@ -235,16 +261,14 @@ namespace GestorInventario.Infraestructure.Controllers
             }
            
         }
-        
+        //Metodo encargado de editar el usuario
         [HttpPost]
+        [Authorize(Roles = "administrador")]
         public async Task<ActionResult> Edit(UsuarioEditViewModel userVM)
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+                
                 //Si el modelo es valido:
                 if (ModelState.IsValid)
                 {
@@ -294,14 +318,13 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }  
         }
+        //Metodo para obtener los datos a editar del usuario actual
+        [Authorize]
         public async Task<IActionResult> EditUserActual(int id)
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+               
 
                 var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int usuarioId;
@@ -340,16 +363,14 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-      
+      //Metodo que edita el usuario actual
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult> EditUserActual(EditarUsuarioActual userVM)
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+                
                 //Si el modelo es valido:
                 if (ModelState.IsValid)
                 {
@@ -396,15 +417,14 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
+        //Metodo que obtiene los datos del usuario a editar
+        [Authorize(Roles = "administrador")]
         public async Task<IActionResult> Delete(int id)
         {
             try
             {
 
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+               
                 
                 var user = await ExecutePolicyAsync(() => _adminrepository.UsuarioConPedido(id));
               
@@ -423,16 +443,15 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
            
-        }     
+        }    
+        //Metodo que elimina el usuario
         [HttpPost, ActionName("DeleteConfirmed")]
+        [Authorize(Roles = "administrador")]
         public async Task<IActionResult> DeleteConfirmed(int Id)
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+               
                 var (success, message) = await ExecutePolicyAsync(() => _adminrepository.EliminarUsuario(Id));
                 if (success)
                 {
@@ -452,8 +471,9 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-       
+       //Metodo que da de baja el usuario
         [HttpPost]
+      
         public async Task<IActionResult> BajaUsuarioPost(int id)
         {
             var (success, errorMessage) = await ExecutePolicyAsync(() => _adminrepository.BajaUsuario(id));
@@ -463,11 +483,13 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             else
             {
+                TempData["ErrorMessage"] = errorMessage;
                 return Json(new { success = false, errorMessage = errorMessage });
             }
         }
-
+        //Metodo que da de alta el usuario
         [HttpPost]
+       
         public async Task<IActionResult> AltaUsuarioPost(int id)
         {
             var (success, errorMessage) = await ExecutePolicyAsync(() => _adminrepository.AltaUsuario(id));
@@ -477,6 +499,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             else
             {
+                TempData["ErrorMessage"] = errorMessage;
                 return Json(new { success = false, errorMessage = errorMessage });
             }
         }

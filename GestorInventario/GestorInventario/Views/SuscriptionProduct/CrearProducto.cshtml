@@ -91,7 +91,12 @@
         </div>
     </div>
 
-
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-warning">
+            @TempData["ErrorMessage"]
+        </div>
+    }
     <button type="submit" class="btn btn-primary">Crear Producto</button>
 </form>
 

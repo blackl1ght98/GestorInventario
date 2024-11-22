@@ -6,11 +6,12 @@ services:
       dockerfile: GestorInventario/Dockerfile
       args:
         BUILD_CONFIGURATION: Debug
+        LAUNCHING_FROM_VS: "true"
       labels:
         com.microsoft.created-by: visual-studio
         com.microsoft.visual-studio.project-name: GestorInventario
       target: build
-    container_name: GestorInventario
+    container_name: gestor-inventario
     entrypoint:
       - dotnet
       - --roll-forward
@@ -21,9 +22,32 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_HTTP_PORTS: "8080"
       ASPNETCORE_HTTPS_PORTS: "8081"
+      ASPNETCORE_Kestrel__Certificates__Default__Password: password
+      ASPNETCORE_Kestrel__Certificates__Default__Path: /https/aspnetapp.pfx
       ASPNETCORE_LOGGING__CONSOLE__DISABLECOLORS: "true"
+      ClaveJWT: ""
+      DB_HOST: ""
+      DB_NAME: ""
+      DB_SA_PASSWORD: ""
+      DB_USERNAME: ""
       DOTNET_USE_POLLING_FILE_WATCHER: "1"
+      Email__Host: ""
+      Email__Password: ""
+      Email__Port: ""
+      Email__Username: ""
+      IS_DOCKER: "true"
+      JwtAudience: ""
+      JwtIssuer: ""
       NUGET_FALLBACK_PACKAGES: /.nuget/fallbackpackages
+      Paypal_ClientId: ""
+      Paypal_ClientSecret: ""
+      Paypal_Mode: ""
+      Paypal_returnUrlConDocker: ""
+      Paypal_returnUrlSinDocker: ""
+      PrivateKey: ""
+      PublicKey: ""
+      REDIS_CONNECTION_STRING: ""
+      USE_REDIS: "true"
     image: gestorinventario:dev
     labels:
       com.microsoft.visualstudio.debuggee.arguments: ' --additionalProbingPath /.nuget/packages --additionalProbingPath /.nuget/fallbackpackages  "/app/bin/Debug/net8.0/GestorInventario.dll"'
@@ -35,6 +59,22 @@ services:
     ports:
       - mode: ingress
         target: 8080
+        published: "28907"
+        protocol: tcp
+      - mode: ingress
+        target: 8080
+        published: "8080"
+        protocol: tcp
+      - mode: ingress
+        target: 8081
+        published: "8081"
+        protocol: tcp
+      - mode: ingress
+        target: 8081
+        published: "28908"
+        protocol: tcp
+      - mode: ingress
+        target: 8080
         protocol: tcp
       - mode: ingress
         target: 8081
@@ -42,17 +82,15 @@ services:
     tty: true
     volumes:
       - type: bind
-        source: C:\Users\guill\AppData\Roaming\Microsoft\UserSecrets
-        target: /home/app/.microsoft/usersecrets
+        source: /c/Users/guill/.aspnet/https
+        target: /https
         read_only: true
         bind:
           create_host_path: true
-      - type: bind
-        source: C:\Users\guill\AppData\Roaming\ASP.NET\Https
-        target: /home/app/.aspnet/https
-        read_only: true
-        bind:
-          create_host_path: true
+      - type: volume
+        source: appdata
+        target: /app/data
+        volume: {}
       - type: bind
         source: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
         target: /app
@@ -87,8 +125,20 @@ services:
         bind:
           create_host_path: true
       - type: bind
+        source: C:\Users\guill\AppData\Roaming\ASP.NET\Https
+        target: /home/app/.aspnet/https
+        read_only: true
+        bind:
+          create_host_path: true
+      - type: bind
         source: C:\Users\guill\AppData\Roaming\Microsoft\UserSecrets
         target: /root/.microsoft/usersecrets
+        read_only: true
+        bind:
+          create_host_path: true
+      - type: bind
+        source: C:\Users\guill\AppData\Roaming\Microsoft\UserSecrets
+        target: /home/app/.microsoft/usersecrets
         read_only: true
         bind:
           create_host_path: true
@@ -104,6 +154,28 @@ services:
         read_only: true
         bind:
           create_host_path: true
+  redis:
+    container_name: redis
+    image: redis:latest
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 6379
+        published: "6379"
+        protocol: tcp
+    volumes:
+      - type: volume
+        source: redisdata
+        target: /data
+        volume: {}
 networks:
   default:
     name: dockercompose3658952660992744161_default
+volumes:
+  appdata:
+    name: dockercompose3658952660992744161_appdata
+    driver: local
+  redisdata:
+    name: dockercompose3658952660992744161_redisdata
+    driver: local

@@ -48,4 +48,6 @@ public partial class SubscriptionDetail
     public int? TrialTotalCycles { get; set; }
 
     public decimal? TrialFixedPrice { get; set; }
+
+    public virtual ICollection<UserSubscription> UserSubscriptions { get; set; } = new List<UserSubscription>();
 }

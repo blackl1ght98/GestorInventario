@@ -22,7 +22,7 @@ namespace GestorInventario.Infraestructure.Repositories
             _configuration = configuration;
             _logger = logger;
         }
-      
+      //Los metodos que estan aqui esta en CarritoController
         public async Task<Carrito> ObtenerCarritoUsuario(int userId)=>await _context.Carritos.FirstOrDefaultAsync(x => x.UsuarioId == userId);
         public async Task<List<ItemsDelCarrito>> ObtenerItemsDelCarritoUsuario(int userIdcarrito)=>await _context.ItemsDelCarritos.Where(i => i.CarritoId == userIdcarrito).ToListAsync();
         public async Task<ItemsDelCarrito> ItemsDelCarrito(int Id)=>await _context.ItemsDelCarritos.FirstOrDefaultAsync(x => x.Id == Id);      

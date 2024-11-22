@@ -83,7 +83,10 @@
                                     Operaciones
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                    <li><a asp-area="" asp-controller="SuscriptionProduct" asp-action="MostrarProductos" class="dropdown-item">Productos paypal</a></li>
+                                    @if (User.IsInRole("administrador") )
+                                    {
+                                        <li><a asp-area="" asp-controller="SuscriptionProduct" asp-action="MostrarProductos" class="dropdown-item">Productos paypal</a></li>
+                                    }
                                     <li><a asp-area="" asp-controller="SuscriptionProduct" asp-action="MostrarPlanes" class="dropdown-item">Planes paypal</a></li>
                                     <li><a asp-area="" asp-controller="SuscriptionProduct" asp-action="TodasSuscripciones" class="dropdown-item">Suscriptores</a></li>
                                  
@@ -141,10 +144,15 @@
         </div>
     </footer>
        <!-- Ensure jQuery is loaded before Bootstrap JS -->
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/lib/bootstrap-modal/js/bootstrap-modal.js"></script>
-    <script src="~/lib/bootstrap-modal/js/bootstrap-modalmanager.js"></script>
+ 
+
+    <!-- Incluir jQuery -->
+    <script src="~/lib/jquery/jquery.min.js"></script>
+
+    <!-- Incluir Bootstrap JS (que incluye Popper.js) -->
+    <script src="~/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    
 
 
     <script src="~/js/site.js" asp-append-version="true"></script>

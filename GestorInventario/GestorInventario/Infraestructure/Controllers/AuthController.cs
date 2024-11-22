@@ -4,12 +4,10 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using GestorInventario.Domain.Models;
 using GestorInventario.Application.DTOs;
 using GestorInventario.Interfaces.Application;
-using GestorInventario.MetodosExtension;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.Application.Politicas_Resilencia;
 
@@ -24,9 +22,10 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IAuthRepository _authRepository;
         private readonly PolicyHandler _PolicyHandler;
         private readonly GestorInventarioContext _context;
+        private readonly ITokenGenerator _generarToken;
         private readonly ILogger<AuthController> _logger;
         public AuthController( HashService hashService, IEmailService emailService, TokenService tokenService, IAuthRepository adminRepository,
-              ILogger<AuthController> logger, PolicyHandler policy, GestorInventarioContext context)
+              ILogger<AuthController> logger, PolicyHandler policy, GestorInventarioContext context, ITokenGenerator token)
         {
            
             _hashService = hashService;
@@ -36,7 +35,9 @@ namespace GestorInventario.Infraestructure.Controllers
             _PolicyHandler= policy;
             _logger = logger;
             _context = context;
+            _generarToken = token;
         }  
+        //Metodo para mostrar la vista de login
         [AllowAnonymous]
         public IActionResult Login()
         {
@@ -47,6 +48,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
                 return View();
         }
+        //Metodo que realiza el login
         [AllowAnonymous]
         [HttpPost]      
         public async Task<IActionResult> Login(LoginViewModel model)
@@ -97,10 +99,10 @@ namespace GestorInventario.Infraestructure.Controllers
                             Response.Cookies.Append("auth", tokenResponse.Token, new CookieOptions
                             {
                                 HttpOnly = true,
-                                SameSite = SameSiteMode.None,
+                                SameSite = SameSiteMode.Lax,
                                 Domain="localhost",
-                                Secure = true,  // Asegúrate de que esto esté configurado correctamente
-                                Expires = null  // Opcionalmente, puedes establecer una fecha de caducidad
+                                Secure = true,  
+                                Expires = DateTime.Now.AddHours(1)
                             });
                             // Crear una identidad de usuario y firmar al usuario
                             //Los claims se pueden definir como las caracteristicas de ese usuario  o como se identifica en el sistema
@@ -141,6 +143,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
+        //Metodo que cierra sesion
         [AllowAnonymous]
         public async Task<IActionResult> Logout()
         {
@@ -194,7 +197,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-        //Este metodo toma el email por ruta y ademas envia un email al usuario con lo que tiene que hacer para resetear la contraseña
+        //Conjunto de 3 metodos que es para restablecer la contraseña del usuario este metodo envia el email
         [Route("AuthController/ResetPassword/{email}")]
         public async Task<IActionResult> ResetPassword(string email)
         {
@@ -216,7 +219,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
-        
+        //Conjunto de 3 metodos que es para restablecer la contraseña del usuario este metodo  comprueba que los datos esten bien
         [AllowAnonymous]
         [Route("AuthController/RestorePassword/{UserId}/{Token}")]
         public async Task<IActionResult> RestorePassword(DTORestorePass cambio)
@@ -228,25 +231,20 @@ namespace GestorInventario.Infraestructure.Controllers
                var (success, errorMessage)= await ExecutePolicyAsync(()=>_authRepository.RestorePass(cambio)) ;
                 if (success)
                 {
-                    TempData["SuccessMessage"] = "Exito";
+                    var restorePass = new DTORestorePass
+                    {
+                        UserId = usuarioDB.Id,
+                        Token = usuarioDB.EnlaceCambioPass,
 
+                    };
+                    return View(restorePass);
                 }
                 else 
                 {
                     TempData["ErrorMessage"] = errorMessage;
+                    return RedirectToAction(nameof(RestorePassword), new { UserId = usuarioDB.Id, Token = usuarioDB.EnlaceCambioPass });
 
-                }
-
-                // Crear un nuevo objeto DTORestorePass y establecer las propiedades apropiadas
-                var restorePass = new DTORestorePass
-                {
-                    UserId = usuarioDB.Id,
-                    Token = usuarioDB.EnlaceCambioPass,
-                    // Puedes establecer otras propiedades aquí si es necesario
-                };
-
-                // Pasar el objeto DTORestorePass a la vista
-                return View(restorePass);
+                }                                                   
             }
             catch (Exception ex)
             {
@@ -256,7 +254,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
-        
+        //Conjunto de 3 metodos que es para restablecer la contraseña del usuario este metodo es el que restablece la constraseña
         [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> RestorePasswordUser(DTORestorePass cambio)
@@ -267,18 +265,14 @@ namespace GestorInventario.Infraestructure.Controllers
                 var (success,errorMessage) = await ExecutePolicyAsync(()=> _authRepository.ActualizarPass(cambio)) ;
                 if (success)
                 {
-                    TempData["SuccessMessage"] = "Los datos se han eliminado con éxito.";
 
+                    return RedirectToAction("Index", "Admin");
                 }
                 else
                 {
                     TempData["ErrorMessage"] = errorMessage;
                     return View("RestorePassword", cambio);
-                }
-             
-
-                return RedirectToAction("Index", "Admin");
-
+                }                   
             }
             catch (Exception ex)
             {
@@ -287,6 +281,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
+        //Metodo que permite cambiar la constraseña al usuario
         public async Task<IActionResult> ChangePassword()
         {
             return View();
@@ -302,10 +297,13 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             else
             {
+                TempData["ErrorMessage"] = errorMessage;
                 return View(nameof(ChangePassword));
             }
             
         }
+        
+
         /*
              Func<Task<T>>:   encapsula un método que no tiene parámetros y devuelve un valor del tipo especificado por Task<T>
          */

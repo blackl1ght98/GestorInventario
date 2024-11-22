@@ -1,9 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
-using Polly.Retry;
 using Polly;
-using Polly.CircuitBreaker;
-using Polly.Fallback;
-using GestorInventario.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace GestorInventario.Application.Politicas_Resilencia
@@ -43,7 +39,7 @@ namespace GestorInventario.Application.Politicas_Resilencia
                 durationOfBreak: TimeSpan.FromSeconds(30),
                 onBreak: (exception, timespan, context) =>
                 {
-                    _logger.LogError(exception, "Circuito abierto debido a una excepción: {Exception}. Duración: {Timespan}", exception.Message, timespan);
+                    _logger.LogError(exception, $"Circuito abierto debido a una excepción: {exception.Message}. Duración: {timespan}", exception.Message, timespan);
                 },
                 onReset: (context) =>
                 {
@@ -59,15 +55,16 @@ namespace GestorInventario.Application.Politicas_Resilencia
             .FallbackAsync(
                 fallbackAction: async (context, cancellationToken) =>
                 {
-                    // Acción a realizar en caso de fallo
+                    
                     _logger.LogError("Se ha producido un error. Se está ejecutando la acción de fallback.");
-                    return default(T); // Devolver un valor predeterminado del tipo T
+                    return Activator.CreateInstance<T>(); // Devuelve una nueva instancia del tipo T
+
                 },
                 onFallbackAsync: async (delegateResult, context) =>
                 {
-                    // Registro del error
+                    
                     _logger.LogError($"Error: {delegateResult.Exception.Message}. Se ha ejecutado la acción de fallback.");
-                    await Task.CompletedTask; // Si no hay ninguna operación asíncrona, usa Task.CompletedTask
+                    await Task.CompletedTask; 
                 });
 
         var combinedNonGenericPolicy = Policy.WrapAsync(retryPolicy, circuitBreakerPolicy);
@@ -99,7 +96,7 @@ namespace GestorInventario.Application.Politicas_Resilencia
                     durationOfBreak: TimeSpan.FromSeconds(30),
                     onBreak: (exception, timespan) =>
                     {
-                        _logger.LogError(exception, "Circuito abierto debido a una excepción: {Exception}. Duración: {Timespan}", exception.Message, timespan);
+                        _logger.LogError(exception, $"Circuito abierto debido a una excepción: {exception.Message}. Duración: {timespan}", exception.Message, timespan);
                     },
                     onReset: () =>
                     {
@@ -115,13 +112,14 @@ namespace GestorInventario.Application.Politicas_Resilencia
                 .Fallback(
                     fallbackAction: context =>
                     {
-                        // Acción a realizar en caso de fallo
+                        
                         _logger.LogError("Se ha producido un error. Se está ejecutando la acción de fallback.");
-                        return default(T); // Devolver un valor predeterminado del tipo T
+                        return Activator.CreateInstance<T>(); // Devuelve una nueva instancia del tipo T
+
                     },
                     onFallback: (delegateResult, context) =>
                     {
-                        // Registro del error
+                        
                         _logger.LogError($"Error: {delegateResult.Exception.Message}. Se ha ejecutado la acción de fallback.");
                     });
 
@@ -130,24 +128,6 @@ namespace GestorInventario.Application.Politicas_Resilencia
             return combinedPolicy;
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
 
 }
-
-

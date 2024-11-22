@@ -13,12 +13,12 @@
         <tr>
             <th>ID</th>
             <th>Product ID</th>
-            <th>Planid</th>
+            <th>Tematica</th>
             <th>Nombre</th>
-            <th>Descripción</th>
             <th>Estado</th>
-            <th>Tipo de Uso</th>
+            <th>Tipo</th>
             <th>Fecha de Creación</th>
+            <th>Acciones</th>
         </tr>
     </thead>
     <tbody>
@@ -48,7 +48,7 @@
                     <form asp-action="IniciarSuscripcion" method="post">
                         <input type="hidden" name="plan_id" value="@plan.id" />
                         <input type="hidden" name="brand_name" value="@plan.name" />
-                        <button type="submit">Suscribirse</button>
+                        <button type="submit" class="btn btn-success">Suscribirse</button>
                     </form>
                 </td>
 

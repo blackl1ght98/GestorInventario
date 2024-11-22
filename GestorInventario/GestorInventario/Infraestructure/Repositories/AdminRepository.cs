@@ -25,11 +25,12 @@ namespace GestorInventario.Infraestructure.Repositories
           _contextAccessor = accessor;
             _logger = logger;
         }
-        //public IQueryable<Usuario> ObtenerUsuarios()=>from p in _context.Usuarios.Include(x => x.IdRolNavigation)select p;
+       //Todos los metodos que hay aquí se llaman en AdminController
         public async Task<IEnumerable<Usuario>> ObtenerUsuarios() => await _context.Usuarios.Include(x=>x.IdRolNavigation).ToListAsync();
         public async Task<Usuario> ObtenerPorId(int id)=>await _context.Usuarios.FindAsync(id);
         public  async Task<IEnumerable<Role>> ObtenerRoles()=> await _context.Roles.ToListAsync();
         public async Task<Usuario> UsuarioConPedido(int id)=>await _context.Usuarios.Include(p => p.Pedidos).FirstOrDefaultAsync(m => m.Id == id); 
+        //Metodo que implementa la separación de tuplas para manejar 2 valores
         public async Task<(bool, string)> EliminarUsuario(int id)
         {
             using var transaction= await _context.Database.BeginTransactionAsync();

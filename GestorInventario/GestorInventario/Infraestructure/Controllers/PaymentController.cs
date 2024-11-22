@@ -34,6 +34,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             return View();
         }
+        //Si el pago es exitoso viene a este metodo
         [AllowAnonymous]
         public async Task<IActionResult> Success(string paymentId, string PayerID)
         {
@@ -100,7 +101,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
            
         }
-    
+    //Si el pago es rechazado viene aqui
         [HttpPost]
         public async Task<IActionResult> RefundSale([FromBody] RefundRequestModel request)
         {

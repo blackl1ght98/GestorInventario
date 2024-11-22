@@ -21,11 +21,13 @@ namespace GestorInventario.Infraestructure.Repositories
             _contextAccessor = httpcontextAccessor;
             _logger = logger;
         }
+        //Los metodos que hay aqui estan todos en AuthController
         public async Task<Usuario> Login(string email)=>await _context.Usuarios.Include(x => x.IdRolNavigation).FirstOrDefaultAsync(u => u.Email == email);
         public async Task<Usuario> ExisteEmail(string email)=>await _context.Usuarios.FirstOrDefaultAsync(x => x.Email == email);
         public async Task<Usuario> ObtenerPorId(int id)=>await _context.Usuarios.FindAsync(id);
         public async Task<(bool, string)> RestorePass(DTORestorePass cambio)
         {
+            //El motivo por el que se usa transacciones es para que la operacion se haga correctamente si hay algun error el cambio en base de datos se revierte
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {

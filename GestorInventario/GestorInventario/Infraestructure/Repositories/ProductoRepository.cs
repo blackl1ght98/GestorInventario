@@ -5,6 +5,7 @@ using GestorInventario.Interfaces;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 namespace GestorInventario.Infraestructure.Repositories
 {
     public class ProductoRepository : IProductoRepository
@@ -23,6 +24,7 @@ namespace GestorInventario.Infraestructure.Repositories
             _logger = logger;      
             _configuration = configuration;
         }    
+        //Los metodos de aqui estan en productoController
         public IQueryable<Producto> ObtenerTodoProducto()=>from p in _context.Productos.Include(x => x.IdProveedorNavigation)orderby p.Id  select p;             
       
         public async Task<Producto> CrearProducto(ProductosViewModel model)
@@ -57,6 +59,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     }
                 }
                await _context.AddEntityAsync(producto);
+                await CrearHistorial(producto);
                 await transaction.CommitAsync();
                 return producto;
 
@@ -70,56 +73,44 @@ namespace GestorInventario.Infraestructure.Repositories
             }
 
         }   
-        public async Task<HistorialProducto> CrearHistorial(int usuarioId, Producto producto)
+        private async Task CrearHistorial(Producto producto)
         {
-            using var transaction= await _context.Database.BeginTransactionAsync();
+         
             try
             {
-                var historialProducto = new HistorialProducto()
+                var existeUsuario = _contextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int usuarioId;
+                if (int.TryParse(existeUsuario, out usuarioId))
                 {
-                    UsuarioId = usuarioId,
-                    Fecha = DateTime.Now,
-                    Accion = _contextAccessor.HttpContext.Request.Method.ToString(),
-                    Ip = _contextAccessor.HttpContext.Connection.RemoteIpAddress?.ToString()
-                };
+                    var historialProducto = new HistorialProducto()
+                    {
+                        UsuarioId = usuarioId,
+                        Fecha = DateTime.Now,
+                        Accion = _contextAccessor.HttpContext.Request.Method.ToString(),
+                        Ip = _contextAccessor.HttpContext.Connection.RemoteIpAddress?.ToString()
+                    };
 
-              await  _context.AddEntityAsync(historialProducto);
-                await transaction.CommitAsync();
-                return historialProducto;
+                    await _context.AddEntityAsync(historialProducto);
+                    var detalleHistorialProducto = new DetalleHistorialProducto
+                    {
+                        HistorialProductoId = historialProducto.Id,
+                        Cantidad = producto.Cantidad,
+                        NombreProducto = producto.NombreProducto,
+                        Descripcion = producto.Descripcion,
+                        Precio = producto.Precio
+                    };
+                    await _context.AddEntityAsync(detalleHistorialProducto);
+               
+                }
+               
             }
             catch (Exception ex)
             {
 
-                _logger.LogError("Error al crear el historial ", ex);
-                await transaction.RollbackAsync();
-                return null;
+                _logger.LogError("Error al crear el historial");
             }
-
         }
-        public async Task<DetalleHistorialProducto> CrearDetalleHistorial(HistorialProducto historialProducto, Producto producto)
-        {
-            using var transaction= await _context.Database.BeginTransactionAsync();
-            try
-            {
-                var detalleHistorialProducto = new DetalleHistorialProducto
-                {
-                    HistorialProductoId = historialProducto.Id,
-                    Cantidad = producto.Cantidad,
-                    NombreProducto = producto.NombreProducto,
-                    Descripcion = producto.Descripcion,
-                    Precio = producto.Precio
-                };        
-                await  _context.AddEntityAsync(detalleHistorialProducto);
-                await transaction.CommitAsync();
-                return detalleHistorialProducto;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Error al crear el detalle del producto en el historial", ex);
-                await transaction.RollbackAsync();
-                return null;
-            }
-        }    
+         
         public async Task<List<Proveedore>> ObtenerProveedores()=>await _context.Proveedores.ToListAsync();      
         public async Task<Producto> EliminarProductoObtencion(int id)=>await _context.Productos.Include(p => p.IdProveedorNavigation).FirstOrDefaultAsync(m => m.Id == id);           
         public async Task<(bool, string)> EliminarProducto(int Id)
