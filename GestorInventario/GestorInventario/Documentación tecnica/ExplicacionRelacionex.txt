@@ -1,0 +1,44 @@
+Expicación de las Relaciones:
+
+    Pedido - Usuario: Esta es una relación de uno a muchos. Un usuario puede tener muchos pedidos, 
+    pero cada pedido pertenece a un solo usuario.
+
+    Pedido - DetallePedido: Esta es una relación de uno a muchos. Un pedido puede tener muchos 
+    detalles de pedido, pero cada detalle de pedido pertenece a un solo pedido.
+
+    ItemsDelCarrito - Carrito: Esta es una relación de muchos a uno. Un carrito puede tener muchos items, 
+    pero cada item pertenece a un solo carrito.
+
+    ItemsDelCarrito - Producto: Esta es una relación de muchos a uno. Un producto puede estar en muchos 
+    items del carrito, pero cada item del carrito solo tiene un producto.
+
+    DetallePedido - Pedido: Esta es una relación de muchos a uno. Un pedido puede tener muchos detalles de 
+    pedido, pero cada detalle de pedido pertenece a un solo pedido.
+
+    DetallePedido - Producto: Esta es una relación de muchos a uno. Un producto puede estar en muchos 
+    detalles de pedido, pero cada detalle de pedido solo tiene un producto.
+
+    Carrito - Usuario: Esta es una relación de muchos a uno. Un usuario puede tener muchos carritos, pero 
+    cada carrito pertenece a un solo usuario.
+
+    Carrito - ItemsDelCarrito: Esta es una relación de uno a muchos. Un carrito puede tener muchos items, 
+    pero cada item pertenece a un solo carrito.
+
+
+
+    Carrito - Producto a través de ItemsDelCarrito: Un carrito puede tener muchos productos y 
+    un producto puede estar en muchos carritos. La entidad ItemsDelCarrito actúa como la tabla de 
+    unión que resuelve esta relación de muchos a muchos. Cada fila en ItemsDelCarrito representa un 
+    producto específico en un carrito específico.
+
+    Pedido - Producto a través de DetallePedido: Un pedido puede tener muchos productos y un producto 
+    puede estar en muchos pedidos. La entidad DetallePedido actúa como la tabla de unión que resuelve 
+    esta relación de muchos a muchos. Cada fila en DetallePedido representa un producto específico en 
+    un pedido específico.
+
+
+
+
+
+
+

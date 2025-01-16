@@ -1,0 +1,68 @@
+{
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DB_HOST": "DESKTOP-2TL9C3O\\SQLEXPRESS",
+        "DB_NAME": "GestorInventario",
+        "DB_SA_PASSWORD": "your_password",
+        "IS_DOCKER": "false"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:5196"
+    },
+    "https": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DB_HOST": "DESKTOP-2TL9C3O\\SQLEXPRESS",
+        "DB_NAME": "GestorInventario",
+        "USE_REDIS": "false",
+        "DB_USERNAME": "sa",
+        "DB_SA_PASSWORD": "SQL#1234",
+        "IS_DOCKER": "false"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:7056;http://localhost:5196"
+    },
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DB_HOST": "DESKTOP-2TL9C3O\\SQLEXPRESS",
+        "DB_NAME": "GestorInventario",
+        "DB_USERNAME": "sa",
+        "DB_SA_PASSWORD": "SQL#1234",
+        "IS_DOCKER": "false"
+      }
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker",
+      "launchBrowser": true,
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "environmentVariables": {
+        "ASPNETCORE_HTTPS_PORTS": "8081",
+        "ASPNETCORE_HTTP_PORTS": "8080",
+        "DB_HOST": "sql-server-local",
+        "DB_NAME": "GestorInventario",
+        "DB_USERNAME": "sa",
+        "DB_SA_PASSWORD": "SQL#1234",
+        "IS_DOCKER": "true"
+      },
+      "publishAllPorts": true,
+      "useSSL": true
+    }
+  },
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:18388",
+      "sslPort": 44333
+    }
+  }
+}

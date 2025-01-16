@@ -1,0 +1,167 @@
+ Documentación sobre el Nuevo Switch en C#
+
+En programación, una expresión es cualquier combinación de valores, variables, operadores y funciones que se evalúan para producir un nuevo valor.
+C# introdujo una característica denominada "switch de expresión" en la versión 8.0. Esta nueva forma de switch permite evaluar una expresión y 
+devolver un valor basado en patrones.
+
+ Switch de Expresión
+
+El switch de expresión funciona evaluando una variable y devolviendo un valor en función de la coincidencia con los patrones definidos. 
+La sintaxis es más concisa y directa en comparación con el switch de control de flujo tradicional.
+
+ Ejemplo:
+
+int day = 3;
+
+string dayName = day switch
+{
+    1 => "Monday", // patrón
+    2 => "Tuesday",
+    3 => "Wednesday",
+    _ => "Unknown" // patrón por defecto
+};
+// dayName será "Wednesday" porque day vale 3
+En este ejemplo, `day switch` evalúa el valor de `day` y devuelve "Wednesday" porque `day` vale 3.
+
+Diferencias entre Switch de Control de Flujo y Switch de Expresión
+
+ Switch de Control de Flujo:
+
+El switch de control de flujo es una declaración que no devuelve un valor y se utiliza principalmente para ejecutar diferentes bloques de código 
+en función de una condición.
+
+Ejemplo:
+
+int day = 3;
+string dayName;
+switch (day)
+{
+    case 1:
+        dayName = "Monday";
+        break;
+    case 2:
+        dayName = "Tuesday";
+        break;
+    case 3:
+        dayName = "Wednesday";
+        break;
+    default:
+        dayName = "Unknown";
+        break;
+}
+// dayName será "Wednesday" porque day vale 3
+
+Switch de Expresión:
+
+El switch de expresión es una expresión que evalúa y devuelve un valor basado en patrones. Esto permite su uso en asignaciones y otros contextos 
+donde se espera un valor.
+
+ Ejemplo:
+
+int day = 3;
+
+string dayName = day switch
+{
+    1 => "Monday",
+    2 => "Tuesday",
+    3 => "Wednesday",
+    _ => "Unknown"
+};
+// dayName será "Wednesday" porque day vale 3
+
+
+Diferencias Clave:
+
+1. Declaración vs. Expresión:
+    - Switch de Control de Flujo: Es una declaración que no devuelve un valor y se utiliza para ejecutar bloques de código.
+    - Switch de Expresión: Es una expresión que evalúa y devuelve un valor basado en patrones.
+
+2. Sintaxis:
+    - Switch de Control de Flujo: Utiliza `case` y `break` para definir bloques de código.
+    - Switch de Expresión: Utiliza `=>` para asociar valores con resultados y no requiere `break`.
+
+3. Uso:
+    - Switch de Control de Flujo: Se utiliza cuando es necesario ejecutar diferentes bloques de código.
+    - Switch de Expresión: Se utiliza para evaluar una condición y obtener un valor de manera concisa.
+
+Resumen:
+
+- Switch de Control de Flujo: 
+    - Realiza una serie de comprobaciones de casos (case) y ejecuta bloques de código.
+    - Utiliza `case`, `break` y `default`.
+    - No devuelve directamente un valor.
+
+- Switch de Expresión:
+    - Evalúa una expresión y devuelve un valor basado en patrones.
+    - Utiliza `=>` para definir los patrones.
+    - Devuelve directamente un valor, lo que permite su uso en asignaciones.
+
+ Ejemplo Comparativo:
+
+Switch de Control de Flujo:
+
+int day = 3;
+string dayName;
+switch (day)
+{
+    case 1:
+        dayName = "Monday";
+        break;
+    case 2:
+        dayName = "Tuesday";
+        break;
+    case 3:
+        dayName = "Wednesday";
+        break;
+    default:
+        dayName = "Unknown";
+        break;
+}
+
+
+Switch de Expresión:
+
+int day = 3;
+string dayName = day switch
+{
+    1 => "Monday",
+    2 => "Tuesday",
+    3 => "Wednesday",
+    _ => "Unknown"
+};
+
+
+El switch de expresión simplifica y limpia el código, haciéndolo más legible y fácil de mantener, especialmente cuando se necesita devolver un 
+valor basado en condiciones.
+
+ Conclusión
+
+El switch de expresión en C# 8.0 es una poderosa herramienta que permite evaluar expresiones y devolver valores basados en patrones de una manera 
+concisa y directa. Comparado con el switch de control de flujo, ofrece una sintaxis más limpia y es más adecuado para situaciones donde se necesita
+una evaluación concisa de condiciones y devolución de valores.
+
+¿Por Qué se Dice que el Switch de Expresión Está Basado en Patrones?
+
+El término "basado en patrones" se refiere a la capacidad de evaluar no solo valores directos, sino también patrones más complejos, 
+incluidos tipos, propiedades y combinaciones de valores. Aunque en el ejemplo sencillo solo se evalúan valores enteros, el switch de expresión 
+puede manejar casos más avanzados.
+
+object es usado en c# cuando no se sabe el tipo de dato que vamos a manejar.
+Tipo object:
+
+    Se usa cuando no se sabe de antemano el tipo específico de dato que se va a manejar.
+    Permite almacenar cualquier tipo de dato.
+object obj = 5;
+
+string result = obj switch
+{
+    int i when i < 0 => "Negative number",
+    int i when i > 0 => "Positive number",
+    int i => "Zero",
+    string s => "String",
+    null => "Null",
+    _ => "Unknown type"
+};
+
+En este ejemplo, se evalúan diferentes patrones: enteros con condiciones adicionales (when), tipos (string), y valores nulos (null). 
+Esto demuestra la flexibilidad del switch de expresión para manejar una variedad de patrones más allá de simples valores directos.
