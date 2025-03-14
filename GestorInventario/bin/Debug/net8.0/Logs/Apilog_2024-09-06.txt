@@ -1,0 +1,1231 @@
+INFO  2024-09-06 08:27:13 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-09-06 08:27:13 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-09-06 08:27:13 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-09-06 08:27:13 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-09-06 08:27:13 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-09-06 08:32:10 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (229ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-09-06 08:32:18 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (6ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+INFO  2024-09-06 08:32:23 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (8ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 08:32:23 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 08:32:27 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__id_0
+INFO  2024-09-06 08:32:27 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (87ms) [Parameters=[@p15='?' (DbType = Int32), @p0='?' (DbType = Boolean), @p1='?' (DbType = Boolean), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (Size = 500) (DbType = AnsiString), @p4='?' (Size = 50), @p5='?' (DbType = DateTime), @p6='?' (DbType = DateTime), @p7='?' (DbType = DateTime), @p8='?' (DbType = DateTime), @p9='?' (DbType = Int32), @p10='?' (Size = 8000) (DbType = AnsiString), @p11='?' (Size = 500), @p12='?' (Size = 8000) (DbType = Binary), @p13='?' (Size = 20) (DbType = AnsiString), @p14='?' (Size = 8000) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Usuarios] SET [BajaUsuario] = @p0, [ConfirmacionEmail] = @p1, [Direccion] = @p2, [Email] = @p3, [EnlaceCambioPass] = @p4, [FechaEnlaceCambioPass] = @p5, [FechaExpiracionContrasenaTemporal] = @p6, [FechaNacimiento] = @p7, [FechaRegistro] = @p8, [IdRol] = @p9, [NombreCompleto] = @p10, [Password] = @p11, [Salt] = @p12, [Telefono] = @p13, [TemporaryPassword] = @p14
+OUTPUT 1
+WHERE [Id] = @p15;
+INFO  2024-09-06 08:32:27 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 08:32:27 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 08:32:29 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (8ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__id_0
+INFO  2024-09-06 08:32:29 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (5ms) [Parameters=[@p15='?' (DbType = Int32), @p0='?' (DbType = Boolean), @p1='?' (DbType = Boolean), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (Size = 500) (DbType = AnsiString), @p4='?' (Size = 50), @p5='?' (DbType = DateTime), @p6='?' (DbType = DateTime), @p7='?' (DbType = DateTime), @p8='?' (DbType = DateTime), @p9='?' (DbType = Int32), @p10='?' (Size = 8000) (DbType = AnsiString), @p11='?' (Size = 500), @p12='?' (Size = 8000) (DbType = Binary), @p13='?' (Size = 20) (DbType = AnsiString), @p14='?' (Size = 8000) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Usuarios] SET [BajaUsuario] = @p0, [ConfirmacionEmail] = @p1, [Direccion] = @p2, [Email] = @p3, [EnlaceCambioPass] = @p4, [FechaEnlaceCambioPass] = @p5, [FechaExpiracionContrasenaTemporal] = @p6, [FechaNacimiento] = @p7, [FechaRegistro] = @p8, [IdRol] = @p9, [NombreCompleto] = @p10, [Password] = @p11, [Salt] = @p12, [Telefono] = @p13, [TemporaryPassword] = @p14
+OUTPUT 1
+WHERE [Id] = @p15;
+INFO  2024-09-06 08:32:29 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 08:32:29 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 08:32:35 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (42ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__id_0
+INFO  2024-09-06 08:32:35 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (14ms) [Parameters=[@p15='?' (DbType = Int32), @p0='?' (DbType = Boolean), @p1='?' (DbType = Boolean), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (Size = 500) (DbType = AnsiString), @p4='?' (Size = 50), @p5='?' (DbType = DateTime), @p6='?' (DbType = DateTime), @p7='?' (DbType = DateTime), @p8='?' (DbType = DateTime), @p9='?' (DbType = Int32), @p10='?' (Size = 8000) (DbType = AnsiString), @p11='?' (Size = 500), @p12='?' (Size = 8000) (DbType = Binary), @p13='?' (Size = 20) (DbType = AnsiString), @p14='?' (Size = 8000) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Usuarios] SET [BajaUsuario] = @p0, [ConfirmacionEmail] = @p1, [Direccion] = @p2, [Email] = @p3, [EnlaceCambioPass] = @p4, [FechaEnlaceCambioPass] = @p5, [FechaExpiracionContrasenaTemporal] = @p6, [FechaNacimiento] = @p7, [FechaRegistro] = @p8, [IdRol] = @p9, [NombreCompleto] = @p10, [Password] = @p11, [Salt] = @p12, [Telefono] = @p13, [TemporaryPassword] = @p14
+OUTPUT 1
+WHERE [Id] = @p15;
+INFO  2024-09-06 08:32:35 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (11ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 08:32:35 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 08:32:37 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (8ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__id_0
+INFO  2024-09-06 08:32:37 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (7ms) [Parameters=[@p15='?' (DbType = Int32), @p0='?' (DbType = Boolean), @p1='?' (DbType = Boolean), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (Size = 500) (DbType = AnsiString), @p4='?' (Size = 50), @p5='?' (DbType = DateTime), @p6='?' (DbType = DateTime), @p7='?' (DbType = DateTime), @p8='?' (DbType = DateTime), @p9='?' (DbType = Int32), @p10='?' (Size = 8000) (DbType = AnsiString), @p11='?' (Size = 500), @p12='?' (Size = 8000) (DbType = Binary), @p13='?' (Size = 20) (DbType = AnsiString), @p14='?' (Size = 8000) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Usuarios] SET [BajaUsuario] = @p0, [ConfirmacionEmail] = @p1, [Direccion] = @p2, [Email] = @p3, [EnlaceCambioPass] = @p4, [FechaEnlaceCambioPass] = @p5, [FechaExpiracionContrasenaTemporal] = @p6, [FechaNacimiento] = @p7, [FechaRegistro] = @p8, [IdRol] = @p9, [NombreCompleto] = @p10, [Password] = @p11, [Salt] = @p12, [Telefono] = @p13, [TemporaryPassword] = @p14
+OUTPUT 1
+WHERE [Id] = @p15;
+INFO  2024-09-06 08:32:37 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 08:32:37 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 08:38:05 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-09-06 08:38:05 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-09-06 08:38:05 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-09-06 08:38:05 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-09-06 08:38:05 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+ERROR 2024-09-06 08:38:06 – Clase: Program - Mensaje: Error con las claves durante el proceso de autenticación
+System.ArgumentNullException: Value cannot be null. (Parameter 'value')
+   at Newtonsoft.Json.Utilities.ValidationUtils.ArgumentNotNull(Object value, String parameterName)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject(String value, Type type, JsonSerializerSettings settings)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject[T](String value, JsonSerializerSettings settings)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject[T](String value)
+   at GestorInventario.Middlewares.MiddlewareAutenticacionAsimetricaV1.<>c__DisplayClass0_0.<<MiddlewareAutenticacionAsimetrica>b__0>d.MoveNext() in C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\Middlewares\MiddlewareAutenticacionAsimetricaV1.cs:line 82
+INFO  2024-09-06 08:38:21 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (219ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-09-06 08:38:21 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (9ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+INFO  2024-09-06 08:38:23 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (14ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 08:38:23 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 08:38:26 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (12ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__id_0
+INFO  2024-09-06 08:38:26 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (10ms) [Parameters=[@p15='?' (DbType = Int32), @p0='?' (DbType = Boolean), @p1='?' (DbType = Boolean), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (Size = 500) (DbType = AnsiString), @p4='?' (Size = 50), @p5='?' (DbType = DateTime), @p6='?' (DbType = DateTime), @p7='?' (DbType = DateTime), @p8='?' (DbType = DateTime), @p9='?' (DbType = Int32), @p10='?' (Size = 8000) (DbType = AnsiString), @p11='?' (Size = 500), @p12='?' (Size = 8000) (DbType = Binary), @p13='?' (Size = 20) (DbType = AnsiString), @p14='?' (Size = 8000) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Usuarios] SET [BajaUsuario] = @p0, [ConfirmacionEmail] = @p1, [Direccion] = @p2, [Email] = @p3, [EnlaceCambioPass] = @p4, [FechaEnlaceCambioPass] = @p5, [FechaExpiracionContrasenaTemporal] = @p6, [FechaNacimiento] = @p7, [FechaRegistro] = @p8, [IdRol] = @p9, [NombreCompleto] = @p10, [Password] = @p11, [Salt] = @p12, [Telefono] = @p13, [TemporaryPassword] = @p14
+OUTPUT 1
+WHERE [Id] = @p15;
+INFO  2024-09-06 08:38:26 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 08:38:26 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 08:38:31 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (10ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__id_0
+INFO  2024-09-06 08:38:31 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (8ms) [Parameters=[@p15='?' (DbType = Int32), @p0='?' (DbType = Boolean), @p1='?' (DbType = Boolean), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (Size = 500) (DbType = AnsiString), @p4='?' (Size = 50), @p5='?' (DbType = DateTime), @p6='?' (DbType = DateTime), @p7='?' (DbType = DateTime), @p8='?' (DbType = DateTime), @p9='?' (DbType = Int32), @p10='?' (Size = 8000) (DbType = AnsiString), @p11='?' (Size = 500), @p12='?' (Size = 8000) (DbType = Binary), @p13='?' (Size = 20) (DbType = AnsiString), @p14='?' (Size = 8000) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Usuarios] SET [BajaUsuario] = @p0, [ConfirmacionEmail] = @p1, [Direccion] = @p2, [Email] = @p3, [EnlaceCambioPass] = @p4, [FechaEnlaceCambioPass] = @p5, [FechaExpiracionContrasenaTemporal] = @p6, [FechaNacimiento] = @p7, [FechaRegistro] = @p8, [IdRol] = @p9, [NombreCompleto] = @p10, [Password] = @p11, [Salt] = @p12, [Telefono] = @p13, [TemporaryPassword] = @p14
+OUTPUT 1
+WHERE [Id] = @p15;
+INFO  2024-09-06 08:38:31 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 08:38:31 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 08:38:42 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (34ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Pedidos] AS [p]
+WARN  2024-09-06 08:38:42 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-09-06 08:38:42 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-09-06 08:38:42 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (112ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[currency], [t].[EstadoPedido], [t].[FechaPedido], [t].[IdUsuario], [t].[NumeroPedido], [t].[PagoId], [t].[saleID], [t].[total], [u].[Id], [t0].[Id], [t0].[Cantidad], [t0].[PedidoId], [t0].[ProductoId], [t0].[Id0], [t0].[Cantidad0], [t0].[Descripcion], [t0].[FechaCreacion], [t0].[FechaModificacion], [t0].[IdProveedor], [t0].[Imagen], [t0].[NombreProducto], [t0].[Precio], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM (
+    SELECT [p].[Id], [p].[currency], [p].[EstadoPedido], [p].[FechaPedido], [p].[IdUsuario], [p].[NumeroPedido], [p].[PagoId], [p].[saleID], [p].[total]
+    FROM [Pedidos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Usuarios] AS [u] ON [t].[IdUsuario] = [u].[Id]
+LEFT JOIN (
+    SELECT [d].[Id], [d].[Cantidad], [d].[PedidoId], [d].[ProductoId], [p0].[Id] AS [Id0], [p0].[Cantidad] AS [Cantidad0], [p0].[Descripcion], [p0].[FechaCreacion], [p0].[FechaModificacion], [p0].[IdProveedor], [p0].[Imagen], [p0].[NombreProducto], [p0].[Precio]
+    FROM [DetallePedido] AS [d]
+    LEFT JOIN [Productos] AS [p0] ON [d].[ProductoId] = [p0].[Id]
+) AS [t0] ON [t].[Id] = [t0].[PedidoId]
+ORDER BY [t].[Id], [u].[Id], [t0].[Id]
+INFO  2024-09-06 08:39:01 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (19ms) [Parameters=[@__pedidoId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[currency], [t].[EstadoPedido], [t].[FechaPedido], [t].[IdUsuario], [t].[NumeroPedido], [t].[PagoId], [t].[saleID], [t].[total], [t0].[Id], [t0].[Cantidad], [t0].[PedidoId], [t0].[ProductoId], [t0].[Id0], [t0].[Cantidad0], [t0].[Descripcion], [t0].[FechaCreacion], [t0].[FechaModificacion], [t0].[IdProveedor], [t0].[Imagen], [t0].[NombreProducto], [t0].[Precio]
+FROM (
+    SELECT TOP(1) [p].[Id], [p].[currency], [p].[EstadoPedido], [p].[FechaPedido], [p].[IdUsuario], [p].[NumeroPedido], [p].[PagoId], [p].[saleID], [p].[total]
+    FROM [Pedidos] AS [p]
+    WHERE [p].[Id] = @__pedidoId_0
+) AS [t]
+LEFT JOIN (
+    SELECT [d].[Id], [d].[Cantidad], [d].[PedidoId], [d].[ProductoId], [p0].[Id] AS [Id0], [p0].[Cantidad] AS [Cantidad0], [p0].[Descripcion], [p0].[FechaCreacion], [p0].[FechaModificacion], [p0].[IdProveedor], [p0].[Imagen], [p0].[NombreProducto], [p0].[Precio]
+    FROM [DetallePedido] AS [d]
+    LEFT JOIN [Productos] AS [p0] ON [d].[ProductoId] = [p0].[Id]
+) AS [t0] ON [t].[Id] = [t0].[PedidoId]
+ORDER BY [t].[Id], [t0].[Id]
+INFO  2024-09-06 08:39:04 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (82ms) [Parameters=[@p3='?' (DbType = Int32), @p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = Int32), @p12='?' (DbType = Int32), @p4='?' (Size = 8000) (DbType = AnsiString), @p5='?' (Size = 100) (DbType = AnsiString), @p6='?' (DbType = DateTime), @p7='?' (DbType = Int32), @p8='?' (Size = 20) (DbType = AnsiString), @p9='?' (Size = 8000) (DbType = AnsiString), @p10='?' (Size = 8000) (DbType = AnsiString), @p11='?' (Size = 8000) (DbType = AnsiString), @p21='?' (DbType = Int32), @p13='?' (DbType = Int32), @p14='?' (Size = 200) (DbType = AnsiString), @p15='?' (DbType = DateTime), @p16='?' (DbType = DateTime), @p17='?' (DbType = Int32), @p18='?' (Size = 8000) (DbType = AnsiString), @p19='?' (Size = 100) (DbType = AnsiString), @p20='?' (Precision = 18) (Scale = 2) (DbType = Decimal)], CommandType='Text', CommandTimeout='30']
+SET NOCOUNT ON;
+UPDATE [DetallePedido] SET [Cantidad] = @p0, [PedidoId] = @p1, [ProductoId] = @p2
+OUTPUT 1
+WHERE [Id] = @p3;
+UPDATE [Pedidos] SET [currency] = @p4, [EstadoPedido] = @p5, [FechaPedido] = @p6, [IdUsuario] = @p7, [NumeroPedido] = @p8, [PagoId] = @p9, [saleID] = @p10, [total] = @p11
+OUTPUT 1
+WHERE [Id] = @p12;
+UPDATE [Productos] SET [Cantidad] = @p13, [Descripcion] = @p14, [FechaCreacion] = @p15, [FechaModificacion] = @p16, [IdProveedor] = @p17, [Imagen] = @p18, [NombreProducto] = @p19, [Precio] = @p20
+OUTPUT 1
+WHERE [Id] = @p21;
+INFO  2024-09-06 08:39:04 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Pedidos] AS [p]
+INFO  2024-09-06 08:39:04 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (14ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[currency], [t].[EstadoPedido], [t].[FechaPedido], [t].[IdUsuario], [t].[NumeroPedido], [t].[PagoId], [t].[saleID], [t].[total], [u].[Id], [t0].[Id], [t0].[Cantidad], [t0].[PedidoId], [t0].[ProductoId], [t0].[Id0], [t0].[Cantidad0], [t0].[Descripcion], [t0].[FechaCreacion], [t0].[FechaModificacion], [t0].[IdProveedor], [t0].[Imagen], [t0].[NombreProducto], [t0].[Precio], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM (
+    SELECT [p].[Id], [p].[currency], [p].[EstadoPedido], [p].[FechaPedido], [p].[IdUsuario], [p].[NumeroPedido], [p].[PagoId], [p].[saleID], [p].[total]
+    FROM [Pedidos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Usuarios] AS [u] ON [t].[IdUsuario] = [u].[Id]
+LEFT JOIN (
+    SELECT [d].[Id], [d].[Cantidad], [d].[PedidoId], [d].[ProductoId], [p0].[Id] AS [Id0], [p0].[Cantidad] AS [Cantidad0], [p0].[Descripcion], [p0].[FechaCreacion], [p0].[FechaModificacion], [p0].[IdProveedor], [p0].[Imagen], [p0].[NombreProducto], [p0].[Precio]
+    FROM [DetallePedido] AS [d]
+    LEFT JOIN [Productos] AS [p0] ON [d].[ProductoId] = [p0].[Id]
+) AS [t0] ON [t].[Id] = [t0].[PedidoId]
+ORDER BY [t].[Id], [u].[Id], [t0].[Id]
+INFO  2024-09-06 08:40:48 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-09-06 08:40:48 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-09-06 08:40:48 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-09-06 08:40:48 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-09-06 08:40:48 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+ERROR 2024-09-06 08:40:49 – Clase: Program - Mensaje: Error con las claves durante el proceso de autenticación
+System.ArgumentNullException: Value cannot be null. (Parameter 'value')
+   at Newtonsoft.Json.Utilities.ValidationUtils.ArgumentNotNull(Object value, String parameterName)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject(String value, Type type, JsonSerializerSettings settings)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject[T](String value, JsonSerializerSettings settings)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject[T](String value)
+   at GestorInventario.Middlewares.MiddlewareAutenticacionAsimetricaV1.<>c__DisplayClass0_0.<<MiddlewareAutenticacionAsimetrica>b__0>d.MoveNext() in C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\Middlewares\MiddlewareAutenticacionAsimetricaV1.cs:line 82
+INFO  2024-09-06 08:41:09 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (148ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-09-06 08:41:09 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (6ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+INFO  2024-09-06 08:41:12 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 08:41:12 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 08:44:47 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-09-06 08:44:47 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-09-06 08:44:47 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-09-06 08:44:47 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-09-06 08:44:47 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+ERROR 2024-09-06 08:44:48 – Clase: Program - Mensaje: Error con las claves durante el proceso de autenticación
+System.ArgumentNullException: Value cannot be null. (Parameter 'value')
+   at Newtonsoft.Json.Utilities.ValidationUtils.ArgumentNotNull(Object value, String parameterName)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject(String value, Type type, JsonSerializerSettings settings)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject[T](String value, JsonSerializerSettings settings)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject[T](String value)
+   at GestorInventario.Middlewares.MiddlewareAutenticacionAsimetricaV1.<>c__DisplayClass0_0.<<MiddlewareAutenticacionAsimetrica>b__0>d.MoveNext() in C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\Middlewares\MiddlewareAutenticacionAsimetricaV1.cs:line 82
+INFO  2024-09-06 08:45:01 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (241ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-09-06 08:45:01 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (12ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+INFO  2024-09-06 08:45:04 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (18ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 08:45:04 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (8ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 08:45:29 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-09-06 08:45:29 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-09-06 08:45:29 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-09-06 08:45:29 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-09-06 08:45:29 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+ERROR 2024-09-06 08:45:30 – Clase: Program - Mensaje: Error con las claves durante el proceso de autenticación
+System.ArgumentNullException: Value cannot be null. (Parameter 'value')
+   at Newtonsoft.Json.Utilities.ValidationUtils.ArgumentNotNull(Object value, String parameterName)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject(String value, Type type, JsonSerializerSettings settings)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject[T](String value, JsonSerializerSettings settings)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject[T](String value)
+   at GestorInventario.Middlewares.MiddlewareAutenticacionAsimetricaV1.<>c__DisplayClass0_0.<<MiddlewareAutenticacionAsimetrica>b__0>d.MoveNext() in C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\Middlewares\MiddlewareAutenticacionAsimetricaV1.cs:line 82
+INFO  2024-09-06 08:46:08 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (21,679ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-09-06 08:46:23 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (15,486ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+INFO  2024-09-06 08:47:18 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (26ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 08:47:18 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4,392ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 08:47:18 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 08:47:18 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (12ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 08:47:19 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (398ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 08:47:19 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (205ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 08:47:19 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 08:47:19 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (6ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 08:47:19 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (37ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 08:47:19 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 08:52:02 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-09-06 08:52:02 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-09-06 08:52:02 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-09-06 08:52:02 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-09-06 08:52:02 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+ERROR 2024-09-06 08:52:04 – Clase: Program - Mensaje: Error con las claves durante el proceso de autenticación
+System.ArgumentNullException: Value cannot be null. (Parameter 'value')
+   at Newtonsoft.Json.Utilities.ValidationUtils.ArgumentNotNull(Object value, String parameterName)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject(String value, Type type, JsonSerializerSettings settings)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject[T](String value, JsonSerializerSettings settings)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject[T](String value)
+   at GestorInventario.Middlewares.MiddlewareAutenticacionAsimetricaV1.<>c__DisplayClass0_0.<<MiddlewareAutenticacionAsimetrica>b__0>d.MoveNext() in C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\Middlewares\MiddlewareAutenticacionAsimetricaV1.cs:line 82
+INFO  2024-09-06 08:52:34 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (149ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-09-06 08:52:34 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (6ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+INFO  2024-09-06 08:52:36 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 08:52:36 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 08:53:44 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-09-06 08:53:44 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-09-06 08:53:44 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-09-06 08:53:44 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-09-06 08:53:44 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+ERROR 2024-09-06 08:53:45 – Clase: Program - Mensaje: Error con las claves durante el proceso de autenticación
+System.ArgumentNullException: Value cannot be null. (Parameter 'value')
+   at Newtonsoft.Json.Utilities.ValidationUtils.ArgumentNotNull(Object value, String parameterName)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject(String value, Type type, JsonSerializerSettings settings)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject[T](String value, JsonSerializerSettings settings)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject[T](String value)
+   at GestorInventario.Middlewares.MiddlewareAutenticacionAsimetricaV1.<>c__DisplayClass0_0.<<MiddlewareAutenticacionAsimetrica>b__0>d.MoveNext() in C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\Middlewares\MiddlewareAutenticacionAsimetricaV1.cs:line 82
+INFO  2024-09-06 08:53:58 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (100ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-09-06 08:53:58 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (5ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+INFO  2024-09-06 08:54:00 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 08:54:00 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 08:56:57 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (37ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__id_0
+INFO  2024-09-06 08:56:57 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (7ms) [Parameters=[@p15='?' (DbType = Int32), @p0='?' (DbType = Boolean), @p1='?' (DbType = Boolean), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (Size = 500) (DbType = AnsiString), @p4='?' (Size = 50), @p5='?' (DbType = DateTime), @p6='?' (DbType = DateTime), @p7='?' (DbType = DateTime), @p8='?' (DbType = DateTime), @p9='?' (DbType = Int32), @p10='?' (Size = 8000) (DbType = AnsiString), @p11='?' (Size = 500), @p12='?' (Size = 8000) (DbType = Binary), @p13='?' (Size = 20) (DbType = AnsiString), @p14='?' (Size = 8000) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Usuarios] SET [BajaUsuario] = @p0, [ConfirmacionEmail] = @p1, [Direccion] = @p2, [Email] = @p3, [EnlaceCambioPass] = @p4, [FechaEnlaceCambioPass] = @p5, [FechaExpiracionContrasenaTemporal] = @p6, [FechaNacimiento] = @p7, [FechaRegistro] = @p8, [IdRol] = @p9, [NombreCompleto] = @p10, [Password] = @p11, [Salt] = @p12, [Telefono] = @p13, [TemporaryPassword] = @p14
+OUTPUT 1
+WHERE [Id] = @p15;
+INFO  2024-09-06 08:56:57 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (8ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 08:56:58 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 08:57:00 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (5ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__id_0
+INFO  2024-09-06 08:57:00 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[@p15='?' (DbType = Int32), @p0='?' (DbType = Boolean), @p1='?' (DbType = Boolean), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (Size = 500) (DbType = AnsiString), @p4='?' (Size = 50), @p5='?' (DbType = DateTime), @p6='?' (DbType = DateTime), @p7='?' (DbType = DateTime), @p8='?' (DbType = DateTime), @p9='?' (DbType = Int32), @p10='?' (Size = 8000) (DbType = AnsiString), @p11='?' (Size = 500), @p12='?' (Size = 8000) (DbType = Binary), @p13='?' (Size = 20) (DbType = AnsiString), @p14='?' (Size = 8000) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Usuarios] SET [BajaUsuario] = @p0, [ConfirmacionEmail] = @p1, [Direccion] = @p2, [Email] = @p3, [EnlaceCambioPass] = @p4, [FechaEnlaceCambioPass] = @p5, [FechaExpiracionContrasenaTemporal] = @p6, [FechaNacimiento] = @p7, [FechaRegistro] = @p8, [IdRol] = @p9, [NombreCompleto] = @p10, [Password] = @p11, [Salt] = @p12, [Telefono] = @p13, [TemporaryPassword] = @p14
+OUTPUT 1
+WHERE [Id] = @p15;
+INFO  2024-09-06 08:57:01 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (5ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 08:57:01 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (7ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 08:57:03 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__id_0
+INFO  2024-09-06 08:57:03 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[@p15='?' (DbType = Int32), @p0='?' (DbType = Boolean), @p1='?' (DbType = Boolean), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (Size = 500) (DbType = AnsiString), @p4='?' (Size = 50), @p5='?' (DbType = DateTime), @p6='?' (DbType = DateTime), @p7='?' (DbType = DateTime), @p8='?' (DbType = DateTime), @p9='?' (DbType = Int32), @p10='?' (Size = 8000) (DbType = AnsiString), @p11='?' (Size = 500), @p12='?' (Size = 8000) (DbType = Binary), @p13='?' (Size = 20) (DbType = AnsiString), @p14='?' (Size = 8000) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Usuarios] SET [BajaUsuario] = @p0, [ConfirmacionEmail] = @p1, [Direccion] = @p2, [Email] = @p3, [EnlaceCambioPass] = @p4, [FechaEnlaceCambioPass] = @p5, [FechaExpiracionContrasenaTemporal] = @p6, [FechaNacimiento] = @p7, [FechaRegistro] = @p8, [IdRol] = @p9, [NombreCompleto] = @p10, [Password] = @p11, [Salt] = @p12, [Telefono] = @p13, [TemporaryPassword] = @p14
+OUTPUT 1
+WHERE [Id] = @p15;
+INFO  2024-09-06 08:57:03 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 08:57:03 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 08:57:05 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (11ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__id_0
+INFO  2024-09-06 08:57:05 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (5ms) [Parameters=[@p15='?' (DbType = Int32), @p0='?' (DbType = Boolean), @p1='?' (DbType = Boolean), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (Size = 500) (DbType = AnsiString), @p4='?' (Size = 50), @p5='?' (DbType = DateTime), @p6='?' (DbType = DateTime), @p7='?' (DbType = DateTime), @p8='?' (DbType = DateTime), @p9='?' (DbType = Int32), @p10='?' (Size = 8000) (DbType = AnsiString), @p11='?' (Size = 500), @p12='?' (Size = 8000) (DbType = Binary), @p13='?' (Size = 20) (DbType = AnsiString), @p14='?' (Size = 8000) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Usuarios] SET [BajaUsuario] = @p0, [ConfirmacionEmail] = @p1, [Direccion] = @p2, [Email] = @p3, [EnlaceCambioPass] = @p4, [FechaEnlaceCambioPass] = @p5, [FechaExpiracionContrasenaTemporal] = @p6, [FechaNacimiento] = @p7, [FechaRegistro] = @p8, [IdRol] = @p9, [NombreCompleto] = @p10, [Password] = @p11, [Salt] = @p12, [Telefono] = @p13, [TemporaryPassword] = @p14
+OUTPUT 1
+WHERE [Id] = @p15;
+INFO  2024-09-06 08:57:05 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 08:57:05 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 08:57:08 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (18ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 08:57:08 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 08:57:12 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (8ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__id_0
+INFO  2024-09-06 08:57:12 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (9ms) [Parameters=[@p15='?' (DbType = Int32), @p0='?' (DbType = Boolean), @p1='?' (DbType = Boolean), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (Size = 500) (DbType = AnsiString), @p4='?' (Size = 50), @p5='?' (DbType = DateTime), @p6='?' (DbType = DateTime), @p7='?' (DbType = DateTime), @p8='?' (DbType = DateTime), @p9='?' (DbType = Int32), @p10='?' (Size = 8000) (DbType = AnsiString), @p11='?' (Size = 500), @p12='?' (Size = 8000) (DbType = Binary), @p13='?' (Size = 20) (DbType = AnsiString), @p14='?' (Size = 8000) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Usuarios] SET [BajaUsuario] = @p0, [ConfirmacionEmail] = @p1, [Direccion] = @p2, [Email] = @p3, [EnlaceCambioPass] = @p4, [FechaEnlaceCambioPass] = @p5, [FechaExpiracionContrasenaTemporal] = @p6, [FechaNacimiento] = @p7, [FechaRegistro] = @p8, [IdRol] = @p9, [NombreCompleto] = @p10, [Password] = @p11, [Salt] = @p12, [Telefono] = @p13, [TemporaryPassword] = @p14
+OUTPUT 1
+WHERE [Id] = @p15;
+INFO  2024-09-06 08:57:12 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (9ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 08:57:12 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 08:57:14 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (13ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__id_0
+INFO  2024-09-06 08:57:14 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (9ms) [Parameters=[@p15='?' (DbType = Int32), @p0='?' (DbType = Boolean), @p1='?' (DbType = Boolean), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (Size = 500) (DbType = AnsiString), @p4='?' (Size = 50), @p5='?' (DbType = DateTime), @p6='?' (DbType = DateTime), @p7='?' (DbType = DateTime), @p8='?' (DbType = DateTime), @p9='?' (DbType = Int32), @p10='?' (Size = 8000) (DbType = AnsiString), @p11='?' (Size = 500), @p12='?' (Size = 8000) (DbType = Binary), @p13='?' (Size = 20) (DbType = AnsiString), @p14='?' (Size = 8000) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Usuarios] SET [BajaUsuario] = @p0, [ConfirmacionEmail] = @p1, [Direccion] = @p2, [Email] = @p3, [EnlaceCambioPass] = @p4, [FechaEnlaceCambioPass] = @p5, [FechaExpiracionContrasenaTemporal] = @p6, [FechaNacimiento] = @p7, [FechaRegistro] = @p8, [IdRol] = @p9, [NombreCompleto] = @p10, [Password] = @p11, [Salt] = @p12, [Telefono] = @p13, [TemporaryPassword] = @p14
+OUTPUT 1
+WHERE [Id] = @p15;
+INFO  2024-09-06 08:57:14 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (13ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 08:57:14 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 08:57:15 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (16ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 08:57:15 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 09:01:11 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-09-06 09:01:11 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-09-06 09:01:11 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-09-06 09:01:11 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-09-06 09:01:11 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+ERROR 2024-09-06 09:01:12 – Clase: Program - Mensaje: Error con las claves durante el proceso de autenticación
+System.ArgumentNullException: Value cannot be null. (Parameter 'value')
+   at Newtonsoft.Json.Utilities.ValidationUtils.ArgumentNotNull(Object value, String parameterName)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject(String value, Type type, JsonSerializerSettings settings)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject[T](String value, JsonSerializerSettings settings)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject[T](String value)
+   at GestorInventario.Middlewares.MiddlewareAutenticacionAsimetricaV1.<>c__DisplayClass0_0.<<MiddlewareAutenticacionAsimetrica>b__0>d.MoveNext() in C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\Middlewares\MiddlewareAutenticacionAsimetricaV1.cs:line 82
+INFO  2024-09-06 09:01:31 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (133ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-09-06 09:01:31 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+INFO  2024-09-06 09:01:34 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (40ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Pedidos] AS [p]
+WARN  2024-09-06 09:01:34 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-09-06 09:01:34 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-09-06 09:01:34 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (28ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[currency], [t].[EstadoPedido], [t].[FechaPedido], [t].[IdUsuario], [t].[NumeroPedido], [t].[PagoId], [t].[saleID], [t].[total], [u].[Id], [t0].[Id], [t0].[Cantidad], [t0].[PedidoId], [t0].[ProductoId], [t0].[Id0], [t0].[Cantidad0], [t0].[Descripcion], [t0].[FechaCreacion], [t0].[FechaModificacion], [t0].[IdProveedor], [t0].[Imagen], [t0].[NombreProducto], [t0].[Precio], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM (
+    SELECT [p].[Id], [p].[currency], [p].[EstadoPedido], [p].[FechaPedido], [p].[IdUsuario], [p].[NumeroPedido], [p].[PagoId], [p].[saleID], [p].[total]
+    FROM [Pedidos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Usuarios] AS [u] ON [t].[IdUsuario] = [u].[Id]
+LEFT JOIN (
+    SELECT [d].[Id], [d].[Cantidad], [d].[PedidoId], [d].[ProductoId], [p0].[Id] AS [Id0], [p0].[Cantidad] AS [Cantidad0], [p0].[Descripcion], [p0].[FechaCreacion], [p0].[FechaModificacion], [p0].[IdProveedor], [p0].[Imagen], [p0].[NombreProducto], [p0].[Precio]
+    FROM [DetallePedido] AS [d]
+    LEFT JOIN [Productos] AS [p0] ON [d].[ProductoId] = [p0].[Id]
+) AS [t0] ON [t].[Id] = [t0].[PedidoId]
+ORDER BY [t].[Id], [u].[Id], [t0].[Id]
+INFO  2024-09-06 09:04:34 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-09-06 09:04:34 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-09-06 09:04:34 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-09-06 09:04:34 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-09-06 09:04:34 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+ERROR 2024-09-06 09:04:36 – Clase: Program - Mensaje: Error con las claves durante el proceso de autenticación
+System.ArgumentNullException: Value cannot be null. (Parameter 'value')
+   at Newtonsoft.Json.Utilities.ValidationUtils.ArgumentNotNull(Object value, String parameterName)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject(String value, Type type, JsonSerializerSettings settings)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject[T](String value, JsonSerializerSettings settings)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject[T](String value)
+   at GestorInventario.Middlewares.MiddlewareAutenticacionAsimetricaV1.<>c__DisplayClass0_0.<<MiddlewareAutenticacionAsimetrica>b__0>d.MoveNext() in C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\Middlewares\MiddlewareAutenticacionAsimetricaV1.cs:line 82
+INFO  2024-09-06 09:04:56 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-09-06 09:04:56 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-09-06 09:04:56 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-09-06 09:04:56 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-09-06 09:04:56 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-09-06 09:05:10 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (191ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-09-06 09:05:10 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (8ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+INFO  2024-09-06 09:05:13 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (31ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Pedidos] AS [p]
+WARN  2024-09-06 09:05:13 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-09-06 09:05:13 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-09-06 09:05:13 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (22ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[currency], [t].[EstadoPedido], [t].[FechaPedido], [t].[IdUsuario], [t].[NumeroPedido], [t].[PagoId], [t].[saleID], [t].[total], [u].[Id], [t0].[Id], [t0].[Cantidad], [t0].[PedidoId], [t0].[ProductoId], [t0].[Id0], [t0].[Cantidad0], [t0].[Descripcion], [t0].[FechaCreacion], [t0].[FechaModificacion], [t0].[IdProveedor], [t0].[Imagen], [t0].[NombreProducto], [t0].[Precio], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM (
+    SELECT [p].[Id], [p].[currency], [p].[EstadoPedido], [p].[FechaPedido], [p].[IdUsuario], [p].[NumeroPedido], [p].[PagoId], [p].[saleID], [p].[total]
+    FROM [Pedidos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Usuarios] AS [u] ON [t].[IdUsuario] = [u].[Id]
+LEFT JOIN (
+    SELECT [d].[Id], [d].[Cantidad], [d].[PedidoId], [d].[ProductoId], [p0].[Id] AS [Id0], [p0].[Cantidad] AS [Cantidad0], [p0].[Descripcion], [p0].[FechaCreacion], [p0].[FechaModificacion], [p0].[IdProveedor], [p0].[Imagen], [p0].[NombreProducto], [p0].[Precio]
+    FROM [DetallePedido] AS [d]
+    LEFT JOIN [Productos] AS [p0] ON [d].[ProductoId] = [p0].[Id]
+) AS [t0] ON [t].[Id] = [t0].[PedidoId]
+ORDER BY [t].[Id], [u].[Id], [t0].[Id]
+INFO  2024-09-06 09:05:18 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (12ms) [Parameters=[@__pedidoId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[currency], [t].[EstadoPedido], [t].[FechaPedido], [t].[IdUsuario], [t].[NumeroPedido], [t].[PagoId], [t].[saleID], [t].[total], [t0].[Id], [t0].[Cantidad], [t0].[PedidoId], [t0].[ProductoId], [t0].[Id0], [t0].[Cantidad0], [t0].[Descripcion], [t0].[FechaCreacion], [t0].[FechaModificacion], [t0].[IdProveedor], [t0].[Imagen], [t0].[NombreProducto], [t0].[Precio]
+FROM (
+    SELECT TOP(1) [p].[Id], [p].[currency], [p].[EstadoPedido], [p].[FechaPedido], [p].[IdUsuario], [p].[NumeroPedido], [p].[PagoId], [p].[saleID], [p].[total]
+    FROM [Pedidos] AS [p]
+    WHERE [p].[Id] = @__pedidoId_0
+) AS [t]
+LEFT JOIN (
+    SELECT [d].[Id], [d].[Cantidad], [d].[PedidoId], [d].[ProductoId], [p0].[Id] AS [Id0], [p0].[Cantidad] AS [Cantidad0], [p0].[Descripcion], [p0].[FechaCreacion], [p0].[FechaModificacion], [p0].[IdProveedor], [p0].[Imagen], [p0].[NombreProducto], [p0].[Precio]
+    FROM [DetallePedido] AS [d]
+    LEFT JOIN [Productos] AS [p0] ON [d].[ProductoId] = [p0].[Id]
+) AS [t0] ON [t].[Id] = [t0].[PedidoId]
+ORDER BY [t].[Id], [t0].[Id]
+INFO  2024-09-06 09:05:20 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (33ms) [Parameters=[@p3='?' (DbType = Int32), @p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = Int32), @p7='?' (DbType = Int32), @p4='?' (DbType = Int32), @p5='?' (DbType = Int32), @p6='?' (DbType = Int32), @p11='?' (DbType = Int32), @p8='?' (DbType = Int32), @p9='?' (DbType = Int32), @p10='?' (DbType = Int32), @p20='?' (DbType = Int32), @p12='?' (Size = 8000) (DbType = AnsiString), @p13='?' (Size = 100) (DbType = AnsiString), @p14='?' (DbType = DateTime), @p15='?' (DbType = Int32), @p16='?' (Size = 20) (DbType = AnsiString), @p17='?' (Size = 8000) (DbType = AnsiString), @p18='?' (Size = 8000) (DbType = AnsiString), @p19='?' (Size = 8000) (DbType = AnsiString), @p29='?' (DbType = Int32), @p21='?' (DbType = Int32), @p22='?' (Size = 200) (DbType = AnsiString), @p23='?' (DbType = DateTime), @p24='?' (DbType = DateTime), @p25='?' (DbType = Int32), @p26='?' (Size = 8000) (DbType = AnsiString), @p27='?' (Size = 100) (DbType = AnsiString), @p28='?' (Precision = 18) (Scale = 2) (DbType = Decimal), @p38='?' (DbType = Int32), @p30='?' (DbType = Int32), @p31='?' (Size = 200) (DbType = AnsiString), @p32='?' (DbType = DateTime), @p33='?' (DbType = DateTime), @p34='?' (DbType = Int32), @p35='?' (Size = 8000) (DbType = AnsiString), @p36='?' (Size = 100) (DbType = AnsiString), @p37='?' (Precision = 18) (Scale = 2) (DbType = Decimal), @p47='?' (DbType = Int32), @p39='?' (DbType = Int32), @p40='?' (Size = 200) (DbType = AnsiString), @p41='?' (DbType = DateTime), @p42='?' (DbType = DateTime), @p43='?' (DbType = Int32), @p44='?' (Size = 8000) (DbType = AnsiString), @p45='?' (Size = 100) (DbType = AnsiString), @p46='?' (Precision = 18) (Scale = 2) (DbType = Decimal)], CommandType='Text', CommandTimeout='30']
+SET NOCOUNT ON;
+UPDATE [DetallePedido] SET [Cantidad] = @p0, [PedidoId] = @p1, [ProductoId] = @p2
+OUTPUT 1
+WHERE [Id] = @p3;
+UPDATE [DetallePedido] SET [Cantidad] = @p4, [PedidoId] = @p5, [ProductoId] = @p6
+OUTPUT 1
+WHERE [Id] = @p7;
+UPDATE [DetallePedido] SET [Cantidad] = @p8, [PedidoId] = @p9, [ProductoId] = @p10
+OUTPUT 1
+WHERE [Id] = @p11;
+UPDATE [Pedidos] SET [currency] = @p12, [EstadoPedido] = @p13, [FechaPedido] = @p14, [IdUsuario] = @p15, [NumeroPedido] = @p16, [PagoId] = @p17, [saleID] = @p18, [total] = @p19
+OUTPUT 1
+WHERE [Id] = @p20;
+UPDATE [Productos] SET [Cantidad] = @p21, [Descripcion] = @p22, [FechaCreacion] = @p23, [FechaModificacion] = @p24, [IdProveedor] = @p25, [Imagen] = @p26, [NombreProducto] = @p27, [Precio] = @p28
+OUTPUT 1
+WHERE [Id] = @p29;
+UPDATE [Productos] SET [Cantidad] = @p30, [Descripcion] = @p31, [FechaCreacion] = @p32, [FechaModificacion] = @p33, [IdProveedor] = @p34, [Imagen] = @p35, [NombreProducto] = @p36, [Precio] = @p37
+OUTPUT 1
+WHERE [Id] = @p38;
+UPDATE [Productos] SET [Cantidad] = @p39, [Descripcion] = @p40, [FechaCreacion] = @p41, [FechaModificacion] = @p42, [IdProveedor] = @p43, [Imagen] = @p44, [NombreProducto] = @p45, [Precio] = @p46
+OUTPUT 1
+WHERE [Id] = @p47;
+INFO  2024-09-06 09:05:20 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Pedidos] AS [p]
+INFO  2024-09-06 09:05:20 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (12ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[currency], [t].[EstadoPedido], [t].[FechaPedido], [t].[IdUsuario], [t].[NumeroPedido], [t].[PagoId], [t].[saleID], [t].[total], [u].[Id], [t0].[Id], [t0].[Cantidad], [t0].[PedidoId], [t0].[ProductoId], [t0].[Id0], [t0].[Cantidad0], [t0].[Descripcion], [t0].[FechaCreacion], [t0].[FechaModificacion], [t0].[IdProveedor], [t0].[Imagen], [t0].[NombreProducto], [t0].[Precio], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM (
+    SELECT [p].[Id], [p].[currency], [p].[EstadoPedido], [p].[FechaPedido], [p].[IdUsuario], [p].[NumeroPedido], [p].[PagoId], [p].[saleID], [p].[total]
+    FROM [Pedidos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Usuarios] AS [u] ON [t].[IdUsuario] = [u].[Id]
+LEFT JOIN (
+    SELECT [d].[Id], [d].[Cantidad], [d].[PedidoId], [d].[ProductoId], [p0].[Id] AS [Id0], [p0].[Cantidad] AS [Cantidad0], [p0].[Descripcion], [p0].[FechaCreacion], [p0].[FechaModificacion], [p0].[IdProveedor], [p0].[Imagen], [p0].[NombreProducto], [p0].[Precio]
+    FROM [DetallePedido] AS [d]
+    LEFT JOIN [Productos] AS [p0] ON [d].[ProductoId] = [p0].[Id]
+) AS [t0] ON [t].[Id] = [t0].[PedidoId]
+ORDER BY [t].[Id], [u].[Id], [t0].[Id]
+INFO  2024-09-06 09:05:23 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (21ms) [Parameters=[@__pedidoId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[currency], [t].[EstadoPedido], [t].[FechaPedido], [t].[IdUsuario], [t].[NumeroPedido], [t].[PagoId], [t].[saleID], [t].[total], [t0].[Id], [t0].[Cantidad], [t0].[PedidoId], [t0].[ProductoId], [t0].[Id0], [t0].[Cantidad0], [t0].[Descripcion], [t0].[FechaCreacion], [t0].[FechaModificacion], [t0].[IdProveedor], [t0].[Imagen], [t0].[NombreProducto], [t0].[Precio]
+FROM (
+    SELECT TOP(1) [p].[Id], [p].[currency], [p].[EstadoPedido], [p].[FechaPedido], [p].[IdUsuario], [p].[NumeroPedido], [p].[PagoId], [p].[saleID], [p].[total]
+    FROM [Pedidos] AS [p]
+    WHERE [p].[Id] = @__pedidoId_0
+) AS [t]
+LEFT JOIN (
+    SELECT [d].[Id], [d].[Cantidad], [d].[PedidoId], [d].[ProductoId], [p0].[Id] AS [Id0], [p0].[Cantidad] AS [Cantidad0], [p0].[Descripcion], [p0].[FechaCreacion], [p0].[FechaModificacion], [p0].[IdProveedor], [p0].[Imagen], [p0].[NombreProducto], [p0].[Precio]
+    FROM [DetallePedido] AS [d]
+    LEFT JOIN [Productos] AS [p0] ON [d].[ProductoId] = [p0].[Id]
+) AS [t0] ON [t].[Id] = [t0].[PedidoId]
+ORDER BY [t].[Id], [t0].[Id]
+INFO  2024-09-06 09:05:24 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (45ms) [Parameters=[@p3='?' (DbType = Int32), @p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = Int32), @p7='?' (DbType = Int32), @p4='?' (DbType = Int32), @p5='?' (DbType = Int32), @p6='?' (DbType = Int32), @p16='?' (DbType = Int32), @p8='?' (Size = 8000) (DbType = AnsiString), @p9='?' (Size = 100) (DbType = AnsiString), @p10='?' (DbType = DateTime), @p11='?' (DbType = Int32), @p12='?' (Size = 20) (DbType = AnsiString), @p13='?' (Size = 8000) (DbType = AnsiString), @p14='?' (Size = 8000) (DbType = AnsiString), @p15='?' (Size = 8000) (DbType = AnsiString), @p25='?' (DbType = Int32), @p17='?' (DbType = Int32), @p18='?' (Size = 200) (DbType = AnsiString), @p19='?' (DbType = DateTime), @p20='?' (DbType = DateTime), @p21='?' (DbType = Int32), @p22='?' (Size = 8000) (DbType = AnsiString), @p23='?' (Size = 100) (DbType = AnsiString), @p24='?' (Precision = 18) (Scale = 2) (DbType = Decimal), @p34='?' (DbType = Int32), @p26='?' (DbType = Int32), @p27='?' (Size = 200) (DbType = AnsiString), @p28='?' (DbType = DateTime), @p29='?' (DbType = DateTime), @p30='?' (DbType = Int32), @p31='?' (Size = 8000) (DbType = AnsiString), @p32='?' (Size = 100) (DbType = AnsiString), @p33='?' (Precision = 18) (Scale = 2) (DbType = Decimal)], CommandType='Text', CommandTimeout='30']
+SET NOCOUNT ON;
+UPDATE [DetallePedido] SET [Cantidad] = @p0, [PedidoId] = @p1, [ProductoId] = @p2
+OUTPUT 1
+WHERE [Id] = @p3;
+UPDATE [DetallePedido] SET [Cantidad] = @p4, [PedidoId] = @p5, [ProductoId] = @p6
+OUTPUT 1
+WHERE [Id] = @p7;
+UPDATE [Pedidos] SET [currency] = @p8, [EstadoPedido] = @p9, [FechaPedido] = @p10, [IdUsuario] = @p11, [NumeroPedido] = @p12, [PagoId] = @p13, [saleID] = @p14, [total] = @p15
+OUTPUT 1
+WHERE [Id] = @p16;
+UPDATE [Productos] SET [Cantidad] = @p17, [Descripcion] = @p18, [FechaCreacion] = @p19, [FechaModificacion] = @p20, [IdProveedor] = @p21, [Imagen] = @p22, [NombreProducto] = @p23, [Precio] = @p24
+OUTPUT 1
+WHERE [Id] = @p25;
+UPDATE [Productos] SET [Cantidad] = @p26, [Descripcion] = @p27, [FechaCreacion] = @p28, [FechaModificacion] = @p29, [IdProveedor] = @p30, [Imagen] = @p31, [NombreProducto] = @p32, [Precio] = @p33
+OUTPUT 1
+WHERE [Id] = @p34;
+INFO  2024-09-06 09:05:25 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (14ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Pedidos] AS [p]
+INFO  2024-09-06 09:05:25 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (17ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[currency], [t].[EstadoPedido], [t].[FechaPedido], [t].[IdUsuario], [t].[NumeroPedido], [t].[PagoId], [t].[saleID], [t].[total], [u].[Id], [t0].[Id], [t0].[Cantidad], [t0].[PedidoId], [t0].[ProductoId], [t0].[Id0], [t0].[Cantidad0], [t0].[Descripcion], [t0].[FechaCreacion], [t0].[FechaModificacion], [t0].[IdProveedor], [t0].[Imagen], [t0].[NombreProducto], [t0].[Precio], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM (
+    SELECT [p].[Id], [p].[currency], [p].[EstadoPedido], [p].[FechaPedido], [p].[IdUsuario], [p].[NumeroPedido], [p].[PagoId], [p].[saleID], [p].[total]
+    FROM [Pedidos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Usuarios] AS [u] ON [t].[IdUsuario] = [u].[Id]
+LEFT JOIN (
+    SELECT [d].[Id], [d].[Cantidad], [d].[PedidoId], [d].[ProductoId], [p0].[Id] AS [Id0], [p0].[Cantidad] AS [Cantidad0], [p0].[Descripcion], [p0].[FechaCreacion], [p0].[FechaModificacion], [p0].[IdProveedor], [p0].[Imagen], [p0].[NombreProducto], [p0].[Precio]
+    FROM [DetallePedido] AS [d]
+    LEFT JOIN [Productos] AS [p0] ON [d].[ProductoId] = [p0].[Id]
+) AS [t0] ON [t].[Id] = [t0].[PedidoId]
+ORDER BY [t].[Id], [u].[Id], [t0].[Id]
+INFO  2024-09-06 09:05:30 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (20ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Pedidos] AS [p]
+INFO  2024-09-06 09:05:31 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (25ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[currency], [t].[EstadoPedido], [t].[FechaPedido], [t].[IdUsuario], [t].[NumeroPedido], [t].[PagoId], [t].[saleID], [t].[total], [u].[Id], [t0].[Id], [t0].[Cantidad], [t0].[PedidoId], [t0].[ProductoId], [t0].[Id0], [t0].[Cantidad0], [t0].[Descripcion], [t0].[FechaCreacion], [t0].[FechaModificacion], [t0].[IdProveedor], [t0].[Imagen], [t0].[NombreProducto], [t0].[Precio], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM (
+    SELECT [p].[Id], [p].[currency], [p].[EstadoPedido], [p].[FechaPedido], [p].[IdUsuario], [p].[NumeroPedido], [p].[PagoId], [p].[saleID], [p].[total]
+    FROM [Pedidos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Usuarios] AS [u] ON [t].[IdUsuario] = [u].[Id]
+LEFT JOIN (
+    SELECT [d].[Id], [d].[Cantidad], [d].[PedidoId], [d].[ProductoId], [p0].[Id] AS [Id0], [p0].[Cantidad] AS [Cantidad0], [p0].[Descripcion], [p0].[FechaCreacion], [p0].[FechaModificacion], [p0].[IdProveedor], [p0].[Imagen], [p0].[NombreProducto], [p0].[Precio]
+    FROM [DetallePedido] AS [d]
+    LEFT JOIN [Productos] AS [p0] ON [d].[ProductoId] = [p0].[Id]
+) AS [t0] ON [t].[Id] = [t0].[PedidoId]
+ORDER BY [t].[Id], [u].[Id], [t0].[Id]
+INFO  2024-09-06 09:05:33 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (45ms) [Parameters=[@__id_0='?' (Size = 50) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[id], [t].[cart], [t].[create_time], [t].[description], [t].[exchange_rate], [t].[intent], [t].[parent_payment], [t].[payee_email], [t].[payee_merchant_id], [t].[payer_email], [t].[payer_first_name], [t].[payer_id], [t].[payer_last_name], [t].[payer_status], [t].[payment_method], [t].[payment_mode], [t].[protection_eligibility], [t].[protection_eligibility_type], [t].[receivable_amount], [t].[receivable_currency], [t].[sale_currency], [t].[sale_discount], [t].[sale_handling_fee], [t].[sale_id], [t].[sale_insurance], [t].[sale_shipping], [t].[sale_shipping_discount], [t].[sale_state], [t].[sale_subtotal], [t].[sale_total], [t].[shipping_city], [t].[shipping_country_code], [t].[shipping_line1], [t].[shipping_postal_code], [t].[shipping_recipient_name], [t].[shipping_state], [t].[state], [t].[transaction_fee_amount], [t].[transaction_fee_currency], [t].[transactions_currency], [t].[transactions_discount], [t].[transactions_handling_fee], [t].[transactions_insurance], [t].[transactions_shipping], [t].[transactions_shipping_discount], [t].[transactions_subtotal], [t].[transactions_total], [t].[update_time], [p0].[id], [p0].[item_currency], [p0].[item_image_url], [p0].[item_name], [p0].[item_price], [p0].[item_quantity], [p0].[item_sku], [p0].[item_tax], [p0].[payPal_id]
+FROM (
+    SELECT TOP(1) [p].[id], [p].[cart], [p].[create_time], [p].[description], [p].[exchange_rate], [p].[intent], [p].[parent_payment], [p].[payee_email], [p].[payee_merchant_id], [p].[payer_email], [p].[payer_first_name], [p].[payer_id], [p].[payer_last_name], [p].[payer_status], [p].[payment_method], [p].[payment_mode], [p].[protection_eligibility], [p].[protection_eligibility_type], [p].[receivable_amount], [p].[receivable_currency], [p].[sale_currency], [p].[sale_discount], [p].[sale_handling_fee], [p].[sale_id], [p].[sale_insurance], [p].[sale_shipping], [p].[sale_shipping_discount], [p].[sale_state], [p].[sale_subtotal], [p].[sale_total], [p].[shipping_city], [p].[shipping_country_code], [p].[shipping_line1], [p].[shipping_postal_code], [p].[shipping_recipient_name], [p].[shipping_state], [p].[state], [p].[transaction_fee_amount], [p].[transaction_fee_currency], [p].[transactions_currency], [p].[transactions_discount], [p].[transactions_handling_fee], [p].[transactions_insurance], [p].[transactions_shipping], [p].[transactions_shipping_discount], [p].[transactions_subtotal], [p].[transactions_total], [p].[update_time]
+    FROM [PayPalPaymentDetails] AS [p]
+    WHERE [p].[id] = @__id_0
+) AS [t]
+LEFT JOIN [PayPalPaymentItems] AS [p0] ON [t].[id] = [p0].[payPal_id]
+ORDER BY [t].[id]
+INFO  2024-09-06 09:05:45 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (11ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [SubscriptionDetails] AS [s]
+WARN  2024-09-06 09:05:45 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-09-06 09:05:45 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-09-06 09:05:58 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (12,682ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [s].[SubscriptionID], [s].[CyclesCompleted], [s].[CyclesRemaining], [s].[FinalPaymentTime], [s].[LastPaymentAmount], [s].[LastPaymentCurrency], [s].[LastPaymentTime], [s].[NextBillingTime], [s].[OutstandingBalance], [s].[OutstandingCurrency], [s].[PayerID], [s].[PlanID], [s].[StartTime], [s].[Status], [s].[StatusUpdateTime], [s].[SubscriberEmail], [s].[SubscriberName], [s].[TotalCycles], [s].[TrialFixedPrice], [s].[TrialIntervalCount], [s].[TrialIntervalUnit], [s].[TrialTotalCycles]
+FROM [SubscriptionDetails] AS [s]
+ORDER BY (SELECT 1)
+OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+INFO  2024-09-06 09:06:13 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (5,854ms) [Parameters=[@__planId_0='?' (Size = 8000) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [p].[Id], [p].[AutoBillOutstanding], [p].[Description], [p].[Name], [p].[PaymentFailureThreshold], [p].[PaypalPlanId], [p].[ProductId], [p].[RegularFixedPrice], [p].[RegularIntervalCount], [p].[RegularIntervalUnit], [p].[RegularTotalCycles], [p].[SetupFee], [p].[SetupFeeFailureAction], [p].[Status], [p].[TaxInclusive], [p].[TaxPercentage], [p].[TrialFixedPrice], [p].[TrialIntervalCount], [p].[TrialIntervalUnit], [p].[TrialTotalCycles]
+FROM [PlanDetails] AS [p]
+WHERE [p].[PaypalPlanId] = @__planId_0
+INFO  2024-09-06 09:06:19 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (5,426ms) [Parameters=[@__detallesSuscripcion_SubscriptionId_0='?' (Size = 50) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [s].[SubscriptionID], [s].[CyclesCompleted], [s].[CyclesRemaining], [s].[FinalPaymentTime], [s].[LastPaymentAmount], [s].[LastPaymentCurrency], [s].[LastPaymentTime], [s].[NextBillingTime], [s].[OutstandingBalance], [s].[OutstandingCurrency], [s].[PayerID], [s].[PlanID], [s].[StartTime], [s].[Status], [s].[StatusUpdateTime], [s].[SubscriberEmail], [s].[SubscriberName], [s].[TotalCycles], [s].[TrialFixedPrice], [s].[TrialIntervalCount], [s].[TrialIntervalUnit], [s].[TrialTotalCycles]
+FROM [SubscriptionDetails] AS [s]
+WHERE [s].[SubscriptionID] = @__detallesSuscripcion_SubscriptionId_0
+INFO  2024-09-06 15:32:43 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-09-06 15:32:43 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-09-06 15:32:43 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-09-06 15:32:43 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-09-06 15:32:43 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2024-09-06 15:35:27 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (521ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-09-06 15:35:27 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (7ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+INFO  2024-09-06 15:35:33 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4,498ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 15:35:37 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4,584ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 15:35:53 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (6,344ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__id_0
+INFO  2024-09-06 15:35:57 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4,389ms) [Parameters=[@p15='?' (DbType = Int32), @p0='?' (DbType = Boolean), @p1='?' (DbType = Boolean), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (Size = 500) (DbType = AnsiString), @p4='?' (Size = 50), @p5='?' (DbType = DateTime), @p6='?' (DbType = DateTime), @p7='?' (DbType = DateTime), @p8='?' (DbType = DateTime), @p9='?' (DbType = Int32), @p10='?' (Size = 8000) (DbType = AnsiString), @p11='?' (Size = 500), @p12='?' (Size = 8000) (DbType = Binary), @p13='?' (Size = 20) (DbType = AnsiString), @p14='?' (Size = 8000) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Usuarios] SET [BajaUsuario] = @p0, [ConfirmacionEmail] = @p1, [Direccion] = @p2, [Email] = @p3, [EnlaceCambioPass] = @p4, [FechaEnlaceCambioPass] = @p5, [FechaExpiracionContrasenaTemporal] = @p6, [FechaNacimiento] = @p7, [FechaRegistro] = @p8, [IdRol] = @p9, [NombreCompleto] = @p10, [Password] = @p11, [Salt] = @p12, [Telefono] = @p13, [TemporaryPassword] = @p14
+OUTPUT 1
+WHERE [Id] = @p15;
+INFO  2024-09-06 15:36:02 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4,734ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 15:36:02 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 15:36:07 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (108ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__id_0
+INFO  2024-09-06 15:36:07 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (12ms) [Parameters=[@p15='?' (DbType = Int32), @p0='?' (DbType = Boolean), @p1='?' (DbType = Boolean), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (Size = 500) (DbType = AnsiString), @p4='?' (Size = 50), @p5='?' (DbType = DateTime), @p6='?' (DbType = DateTime), @p7='?' (DbType = DateTime), @p8='?' (DbType = DateTime), @p9='?' (DbType = Int32), @p10='?' (Size = 8000) (DbType = AnsiString), @p11='?' (Size = 500), @p12='?' (Size = 8000) (DbType = Binary), @p13='?' (Size = 20) (DbType = AnsiString), @p14='?' (Size = 8000) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Usuarios] SET [BajaUsuario] = @p0, [ConfirmacionEmail] = @p1, [Direccion] = @p2, [Email] = @p3, [EnlaceCambioPass] = @p4, [FechaEnlaceCambioPass] = @p5, [FechaExpiracionContrasenaTemporal] = @p6, [FechaNacimiento] = @p7, [FechaRegistro] = @p8, [IdRol] = @p9, [NombreCompleto] = @p10, [Password] = @p11, [Salt] = @p12, [Telefono] = @p13, [TemporaryPassword] = @p14
+OUTPUT 1
+WHERE [Id] = @p15;
+INFO  2024-09-06 15:36:17 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (9,629ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 15:36:18 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (645ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 15:37:56 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-09-06 15:37:56 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-09-06 15:37:56 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-09-06 15:37:56 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-09-06 15:37:56 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+ERROR 2024-09-06 15:37:58 – Clase: Program - Mensaje: Error con las claves durante el proceso de autenticación
+System.ArgumentNullException: Value cannot be null. (Parameter 'value')
+   at Newtonsoft.Json.Utilities.ValidationUtils.ArgumentNotNull(Object value, String parameterName)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject(String value, Type type, JsonSerializerSettings settings)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject[T](String value, JsonSerializerSettings settings)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject[T](String value)
+   at GestorInventario.Middlewares.MiddlewareAutenticacionAsimetricaV1.<>c__DisplayClass0_0.<<MiddlewareAutenticacionAsimetrica>b__0>d.MoveNext() in C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\Middlewares\MiddlewareAutenticacionAsimetricaV1.cs:line 82
+INFO  2024-09-06 15:38:18 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (92ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-09-06 15:38:18 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (10ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+INFO  2024-09-06 15:38:20 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (19ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 15:38:20 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 15:38:23 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (14ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__id_0
+INFO  2024-09-06 15:38:23 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (13ms) [Parameters=[@p15='?' (DbType = Int32), @p0='?' (DbType = Boolean), @p1='?' (DbType = Boolean), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (Size = 500) (DbType = AnsiString), @p4='?' (Size = 50), @p5='?' (DbType = DateTime), @p6='?' (DbType = DateTime), @p7='?' (DbType = DateTime), @p8='?' (DbType = DateTime), @p9='?' (DbType = Int32), @p10='?' (Size = 8000) (DbType = AnsiString), @p11='?' (Size = 500), @p12='?' (Size = 8000) (DbType = Binary), @p13='?' (Size = 20) (DbType = AnsiString), @p14='?' (Size = 8000) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Usuarios] SET [BajaUsuario] = @p0, [ConfirmacionEmail] = @p1, [Direccion] = @p2, [Email] = @p3, [EnlaceCambioPass] = @p4, [FechaEnlaceCambioPass] = @p5, [FechaExpiracionContrasenaTemporal] = @p6, [FechaNacimiento] = @p7, [FechaRegistro] = @p8, [IdRol] = @p9, [NombreCompleto] = @p10, [Password] = @p11, [Salt] = @p12, [Telefono] = @p13, [TemporaryPassword] = @p14
+OUTPUT 1
+WHERE [Id] = @p15;
+INFO  2024-09-06 15:38:23 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (15ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 15:38:23 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 15:38:25 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (9ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__id_0
+ERROR 2024-09-06 15:39:00 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Failed executing DbCommand (35,015ms) [Parameters=[@p15='?' (DbType = Int32), @p0='?' (DbType = Boolean), @p1='?' (DbType = Boolean), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (Size = 500) (DbType = AnsiString), @p4='?' (Size = 50), @p5='?' (DbType = DateTime), @p6='?' (DbType = DateTime), @p7='?' (DbType = DateTime), @p8='?' (DbType = DateTime), @p9='?' (DbType = Int32), @p10='?' (Size = 8000) (DbType = AnsiString), @p11='?' (Size = 500), @p12='?' (Size = 8000) (DbType = Binary), @p13='?' (Size = 20) (DbType = AnsiString), @p14='?' (Size = 8000) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Usuarios] SET [BajaUsuario] = @p0, [ConfirmacionEmail] = @p1, [Direccion] = @p2, [Email] = @p3, [EnlaceCambioPass] = @p4, [FechaEnlaceCambioPass] = @p5, [FechaExpiracionContrasenaTemporal] = @p6, [FechaNacimiento] = @p7, [FechaRegistro] = @p8, [IdRol] = @p9, [NombreCompleto] = @p10, [Password] = @p11, [Salt] = @p12, [Telefono] = @p13, [TemporaryPassword] = @p14
+OUTPUT 1
+WHERE [Id] = @p15;
+ERROR 2024-09-06 15:39:00 – Clase: Microsoft.EntityFrameworkCore.Update - Mensaje: An exception occurred in the database while saving changes for context type 'GestorInventario.Domain.Models.GestorInventarioContext'.
+Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> Microsoft.Data.SqlClient.SqlException (0x80131904): Execution Timeout Expired.  The timeout period elapsed prior to completion of the operation or the server is not responding.
+ ---> System.ComponentModel.Win32Exception (258): Tiempo de espera de la operación de espera agotado.
+   at Microsoft.Data.SqlClient.SqlCommand.<>c.<ExecuteDbDataReaderAsync>b__209_0(Task`1 result)
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+ClientConnectionId:0cd1dd66-3b34-42df-8918-d0a092a841ff
+Error Number:-2,State:0,Class:11
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> Microsoft.Data.SqlClient.SqlException (0x80131904): Execution Timeout Expired.  The timeout period elapsed prior to completion of the operation or the server is not responding.
+ ---> System.ComponentModel.Win32Exception (258): Tiempo de espera de la operación de espera agotado.
+   at Microsoft.Data.SqlClient.SqlCommand.<>c.<ExecuteDbDataReaderAsync>b__209_0(Task`1 result)
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+ClientConnectionId:0cd1dd66-3b34-42df-8918-d0a092a841ff
+Error Number:-2,State:0,Class:11
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+ERROR 2024-09-06 15:39:00 – Clase: GestorInventario.Infraestructure.Repositories.AdminRepository - Mensaje: Error al dar de alta el usuario
+Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> Microsoft.Data.SqlClient.SqlException (0x80131904): Execution Timeout Expired.  The timeout period elapsed prior to completion of the operation or the server is not responding.
+ ---> System.ComponentModel.Win32Exception (258): Tiempo de espera de la operación de espera agotado.
+   at Microsoft.Data.SqlClient.SqlCommand.<>c.<ExecuteDbDataReaderAsync>b__209_0(Task`1 result)
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+ClientConnectionId:0cd1dd66-3b34-42df-8918-d0a092a841ff
+Error Number:-2,State:0,Class:11
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at GestorInventario.MetodosExtension.DbContextExtensions.UpdateEntityAsync[T](DbContext context, T entity) in C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\MetodosExtension\DbContextExtensions.cs:line 22
+   at GestorInventario.Infraestructure.Repositories.AdminRepository.AltaUsuario(Int32 id) in C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\Infraestructure\Repositories\AdminRepository.cs:line 311
+ERROR 2024-09-06 15:39:00 – Clase: Microsoft.EntityFrameworkCore.Database.Transaction - Mensaje: An error occurred using a transaction.
+ERROR 2024-09-06 15:39:00 – Clase: GestorInventario.Application.Politicas_Resilencia.PolicyHandler - Mensaje: Error: This SqlTransaction has completed; it is no longer usable.. Se ha ejecutado la acción de fallback.
+ERROR 2024-09-06 15:39:00 – Clase: GestorInventario.Application.Politicas_Resilencia.PolicyHandler - Mensaje: Se ha producido un error. Se está ejecutando la acción de fallback.
+ERROR 2024-09-06 15:39:24 – Clase: Microsoft.EntityFrameworkCore.Database.Connection - Mensaje: An error occurred using the connection to database 'GestorInventario' on server 'DESKTOP-2TL9C3O\SQLEXPRESS'.
+WARN  2024-09-06 15:39:24 – Clase: GestorInventario.Application.Politicas_Resilencia.PolicyHandler - Mensaje: Error: Connection Timeout Expired.  The timeout period elapsed while attempting to consume the pre-login handshake acknowledgement.  This could be because the pre-login handshake failed or the server was unable to respond back in time.  The duration spent while attempting to connect to this server was - [Pre-Login] initialization=0; handshake=15005; . Waiting 00:00:02 before next retry. Retry attempt 1
+ERROR 2024-09-06 15:39:26 – Clase: Microsoft.EntityFrameworkCore.Database.Connection - Mensaje: An error occurred using the connection to database 'GestorInventario' on server 'DESKTOP-2TL9C3O\SQLEXPRESS'.
+WARN  2024-09-06 15:39:26 – Clase: GestorInventario.Application.Politicas_Resilencia.PolicyHandler - Mensaje: Error: Connection Timeout Expired.  The timeout period elapsed while attempting to consume the pre-login handshake acknowledgement.  This could be because the pre-login handshake failed or the server was unable to respond back in time.  The duration spent while attempting to connect to this server was - [Pre-Login] initialization=0; handshake=15005; . Waiting 00:00:04 before next retry. Retry attempt 2
+INFO  2024-09-06 15:39:58 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (14,741ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__id_0
+INFO  2024-09-06 15:39:58 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (10,300ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 15:40:00 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2,926ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 15:40:02 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4,802ms) [Parameters=[@p15='?' (DbType = Int32), @p0='?' (DbType = Boolean), @p1='?' (DbType = Boolean), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (Size = 500) (DbType = AnsiString), @p4='?' (Size = 50), @p5='?' (DbType = DateTime), @p6='?' (DbType = DateTime), @p7='?' (DbType = DateTime), @p8='?' (DbType = DateTime), @p9='?' (DbType = Int32), @p10='?' (Size = 8000) (DbType = AnsiString), @p11='?' (Size = 500), @p12='?' (Size = 8000) (DbType = Binary), @p13='?' (Size = 20) (DbType = AnsiString), @p14='?' (Size = 8000) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Usuarios] SET [BajaUsuario] = @p0, [ConfirmacionEmail] = @p1, [Direccion] = @p2, [Email] = @p3, [EnlaceCambioPass] = @p4, [FechaEnlaceCambioPass] = @p5, [FechaExpiracionContrasenaTemporal] = @p6, [FechaNacimiento] = @p7, [FechaRegistro] = @p8, [IdRol] = @p9, [NombreCompleto] = @p10, [Password] = @p11, [Salt] = @p12, [Telefono] = @p13, [TemporaryPassword] = @p14
+OUTPUT 1
+WHERE [Id] = @p15;
+INFO  2024-09-06 15:40:47 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (338ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__id_0
+INFO  2024-09-06 15:40:52 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4,863ms) [Parameters=[@p15='?' (DbType = Int32), @p0='?' (DbType = Boolean), @p1='?' (DbType = Boolean), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (Size = 500) (DbType = AnsiString), @p4='?' (Size = 50), @p5='?' (DbType = DateTime), @p6='?' (DbType = DateTime), @p7='?' (DbType = DateTime), @p8='?' (DbType = DateTime), @p9='?' (DbType = Int32), @p10='?' (Size = 8000) (DbType = AnsiString), @p11='?' (Size = 500), @p12='?' (Size = 8000) (DbType = Binary), @p13='?' (Size = 20) (DbType = AnsiString), @p14='?' (Size = 8000) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Usuarios] SET [BajaUsuario] = @p0, [ConfirmacionEmail] = @p1, [Direccion] = @p2, [Email] = @p3, [EnlaceCambioPass] = @p4, [FechaEnlaceCambioPass] = @p5, [FechaExpiracionContrasenaTemporal] = @p6, [FechaNacimiento] = @p7, [FechaRegistro] = @p8, [IdRol] = @p9, [NombreCompleto] = @p10, [Password] = @p11, [Salt] = @p12, [Telefono] = @p13, [TemporaryPassword] = @p14
+OUTPUT 1
+WHERE [Id] = @p15;
+INFO  2024-09-06 15:40:52 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (7ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 15:40:52 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 15:43:11 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-09-06 15:43:11 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-09-06 15:43:11 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-09-06 15:43:11 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-09-06 15:43:11 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+ERROR 2024-09-06 15:43:12 – Clase: Program - Mensaje: Error con las claves durante el proceso de autenticación
+System.ArgumentNullException: Value cannot be null. (Parameter 'value')
+   at Newtonsoft.Json.Utilities.ValidationUtils.ArgumentNotNull(Object value, String parameterName)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject(String value, Type type, JsonSerializerSettings settings)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject[T](String value, JsonSerializerSettings settings)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject[T](String value)
+   at GestorInventario.Middlewares.MiddlewareAutenticacionAsimetricaV1.<>c__DisplayClass0_0.<<MiddlewareAutenticacionAsimetrica>b__0>d.MoveNext() in C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\Middlewares\MiddlewareAutenticacionAsimetricaV1.cs:line 82
+INFO  2024-09-06 15:43:28 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (113ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-09-06 15:43:28 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+INFO  2024-09-06 15:43:30 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (13ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 15:43:30 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 15:43:34 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (12ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__id_0
+INFO  2024-09-06 15:43:35 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (16ms) [Parameters=[@p15='?' (DbType = Int32), @p0='?' (DbType = Boolean), @p1='?' (DbType = Boolean), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (Size = 500) (DbType = AnsiString), @p4='?' (Size = 50), @p5='?' (DbType = DateTime), @p6='?' (DbType = DateTime), @p7='?' (DbType = DateTime), @p8='?' (DbType = DateTime), @p9='?' (DbType = Int32), @p10='?' (Size = 8000) (DbType = AnsiString), @p11='?' (Size = 500), @p12='?' (Size = 8000) (DbType = Binary), @p13='?' (Size = 20) (DbType = AnsiString), @p14='?' (Size = 8000) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Usuarios] SET [BajaUsuario] = @p0, [ConfirmacionEmail] = @p1, [Direccion] = @p2, [Email] = @p3, [EnlaceCambioPass] = @p4, [FechaEnlaceCambioPass] = @p5, [FechaExpiracionContrasenaTemporal] = @p6, [FechaNacimiento] = @p7, [FechaRegistro] = @p8, [IdRol] = @p9, [NombreCompleto] = @p10, [Password] = @p11, [Salt] = @p12, [Telefono] = @p13, [TemporaryPassword] = @p14
+OUTPUT 1
+WHERE [Id] = @p15;
+INFO  2024-09-06 15:43:35 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (13ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 15:43:35 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 15:43:37 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (10ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__id_0
+INFO  2024-09-06 15:43:37 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (5ms) [Parameters=[@p15='?' (DbType = Int32), @p0='?' (DbType = Boolean), @p1='?' (DbType = Boolean), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (Size = 500) (DbType = AnsiString), @p4='?' (Size = 50), @p5='?' (DbType = DateTime), @p6='?' (DbType = DateTime), @p7='?' (DbType = DateTime), @p8='?' (DbType = DateTime), @p9='?' (DbType = Int32), @p10='?' (Size = 8000) (DbType = AnsiString), @p11='?' (Size = 500), @p12='?' (Size = 8000) (DbType = Binary), @p13='?' (Size = 20) (DbType = AnsiString), @p14='?' (Size = 8000) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Usuarios] SET [BajaUsuario] = @p0, [ConfirmacionEmail] = @p1, [Direccion] = @p2, [Email] = @p3, [EnlaceCambioPass] = @p4, [FechaEnlaceCambioPass] = @p5, [FechaExpiracionContrasenaTemporal] = @p6, [FechaNacimiento] = @p7, [FechaRegistro] = @p8, [IdRol] = @p9, [NombreCompleto] = @p10, [Password] = @p11, [Salt] = @p12, [Telefono] = @p13, [TemporaryPassword] = @p14
+OUTPUT 1
+WHERE [Id] = @p15;
+INFO  2024-09-06 15:43:37 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 15:43:37 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 15:43:41 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (12ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 15:43:41 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 15:43:42 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 15:43:42 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 15:48:31 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-09-06 15:48:31 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-09-06 15:48:31 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-09-06 15:48:31 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-09-06 15:48:31 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+ERROR 2024-09-06 15:48:32 – Clase: Program - Mensaje: Error con las claves durante el proceso de autenticación
+System.ArgumentNullException: Value cannot be null. (Parameter 'value')
+   at Newtonsoft.Json.Utilities.ValidationUtils.ArgumentNotNull(Object value, String parameterName)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject(String value, Type type, JsonSerializerSettings settings)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject[T](String value, JsonSerializerSettings settings)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject[T](String value)
+   at GestorInventario.Middlewares.MiddlewareAutenticacionAsimetricaV1.<>c__DisplayClass0_0.<<MiddlewareAutenticacionAsimetrica>b__0>d.MoveNext() in C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\Middlewares\MiddlewareAutenticacionAsimetricaV1.cs:line 82
+INFO  2024-09-06 15:49:07 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (62ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-09-06 15:49:07 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+INFO  2024-09-06 15:49:10 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 15:49:10 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 15:49:36 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (5ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__id_0
+INFO  2024-09-06 15:49:37 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (5ms) [Parameters=[@p15='?' (DbType = Int32), @p0='?' (DbType = Boolean), @p1='?' (DbType = Boolean), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (Size = 500) (DbType = AnsiString), @p4='?' (Size = 50), @p5='?' (DbType = DateTime), @p6='?' (DbType = DateTime), @p7='?' (DbType = DateTime), @p8='?' (DbType = DateTime), @p9='?' (DbType = Int32), @p10='?' (Size = 8000) (DbType = AnsiString), @p11='?' (Size = 500), @p12='?' (Size = 8000) (DbType = Binary), @p13='?' (Size = 20) (DbType = AnsiString), @p14='?' (Size = 8000) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Usuarios] SET [BajaUsuario] = @p0, [ConfirmacionEmail] = @p1, [Direccion] = @p2, [Email] = @p3, [EnlaceCambioPass] = @p4, [FechaEnlaceCambioPass] = @p5, [FechaExpiracionContrasenaTemporal] = @p6, [FechaNacimiento] = @p7, [FechaRegistro] = @p8, [IdRol] = @p9, [NombreCompleto] = @p10, [Password] = @p11, [Salt] = @p12, [Telefono] = @p13, [TemporaryPassword] = @p14
+OUTPUT 1
+WHERE [Id] = @p15;
+INFO  2024-09-06 15:49:37 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 15:49:37 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 15:49:40 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4ms) [Parameters=[@__id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__id_0
+INFO  2024-09-06 15:49:40 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4ms) [Parameters=[@p15='?' (DbType = Int32), @p0='?' (DbType = Boolean), @p1='?' (DbType = Boolean), @p2='?' (Size = 100) (DbType = AnsiString), @p3='?' (Size = 500) (DbType = AnsiString), @p4='?' (Size = 50), @p5='?' (DbType = DateTime), @p6='?' (DbType = DateTime), @p7='?' (DbType = DateTime), @p8='?' (DbType = DateTime), @p9='?' (DbType = Int32), @p10='?' (Size = 8000) (DbType = AnsiString), @p11='?' (Size = 500), @p12='?' (Size = 8000) (DbType = Binary), @p13='?' (Size = 20) (DbType = AnsiString), @p14='?' (Size = 8000) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Usuarios] SET [BajaUsuario] = @p0, [ConfirmacionEmail] = @p1, [Direccion] = @p2, [Email] = @p3, [EnlaceCambioPass] = @p4, [FechaEnlaceCambioPass] = @p5, [FechaExpiracionContrasenaTemporal] = @p6, [FechaNacimiento] = @p7, [FechaRegistro] = @p8, [IdRol] = @p9, [NombreCompleto] = @p10, [Password] = @p11, [Salt] = @p12, [Telefono] = @p13, [TemporaryPassword] = @p14
+OUTPUT 1
+WHERE [Id] = @p15;
+INFO  2024-09-06 15:49:40 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 15:49:40 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]
+INFO  2024-09-06 17:48:05 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2024-09-06 17:48:05 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2024-09-06 17:48:05 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2024-09-06 17:48:05 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2024-09-06 17:48:05 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+ERROR 2024-09-06 17:48:08 – Clase: Program - Mensaje: Error con las claves durante el proceso de autenticación
+System.ArgumentNullException: Value cannot be null. (Parameter 'value')
+   at Newtonsoft.Json.Utilities.ValidationUtils.ArgumentNotNull(Object value, String parameterName)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject(String value, Type type, JsonSerializerSettings settings)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject[T](String value, JsonSerializerSettings settings)
+   at Newtonsoft.Json.JsonConvert.DeserializeObject[T](String value)
+   at GestorInventario.Middlewares.MiddlewareAutenticacionAsimetricaV1.<>c__DisplayClass0_0.<<MiddlewareAutenticacionAsimetrica>b__0>d.MoveNext() in C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario\Middlewares\MiddlewareAutenticacionAsimetricaV1.cs:line 82
+INFO  2024-09-06 17:48:34 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (243ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2024-09-06 17:48:34 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+INFO  2024-09-06 17:48:37 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (32ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Pedidos] AS [p]
+WARN  2024-09-06 17:48:38 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-09-06 17:48:38 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-09-06 17:48:38 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (25ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[currency], [t].[EstadoPedido], [t].[FechaPedido], [t].[IdUsuario], [t].[NumeroPedido], [t].[PagoId], [t].[saleID], [t].[total], [u].[Id], [t0].[Id], [t0].[Cantidad], [t0].[PedidoId], [t0].[ProductoId], [t0].[Id0], [t0].[Cantidad0], [t0].[Descripcion], [t0].[FechaCreacion], [t0].[FechaModificacion], [t0].[IdProveedor], [t0].[Imagen], [t0].[NombreProducto], [t0].[Precio], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM (
+    SELECT [p].[Id], [p].[currency], [p].[EstadoPedido], [p].[FechaPedido], [p].[IdUsuario], [p].[NumeroPedido], [p].[PagoId], [p].[saleID], [p].[total]
+    FROM [Pedidos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN [Usuarios] AS [u] ON [t].[IdUsuario] = [u].[Id]
+LEFT JOIN (
+    SELECT [d].[Id], [d].[Cantidad], [d].[PedidoId], [d].[ProductoId], [p0].[Id] AS [Id0], [p0].[Cantidad] AS [Cantidad0], [p0].[Descripcion], [p0].[FechaCreacion], [p0].[FechaModificacion], [p0].[IdProveedor], [p0].[Imagen], [p0].[NombreProducto], [p0].[Precio]
+    FROM [DetallePedido] AS [d]
+    LEFT JOIN [Productos] AS [p0] ON [d].[ProductoId] = [p0].[Id]
+) AS [t0] ON [t].[Id] = [t0].[PedidoId]
+ORDER BY [t].[Id], [u].[Id], [t0].[Id]
+INFO  2024-09-06 17:48:40 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Pedidos] AS [p]
+WARN  2024-09-06 17:48:40 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2024-09-06 17:48:40 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2024-09-06 17:48:40 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (9ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[currency], [t].[EstadoPedido], [t].[FechaPedido], [t].[IdUsuario], [t].[NumeroPedido], [t].[PagoId], [t].[saleID], [t].[total], [u].[Id], [t0].[Id], [t0].[Cantidad], [t0].[PedidoId], [t0].[ProductoId], [t0].[Id0], [t0].[Cantidad0], [t0].[Descripcion], [t0].[FechaCreacion], [t0].[FechaModificacion], [t0].[IdProveedor], [t0].[Imagen], [t0].[NombreProducto], [t0].[Precio], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM (
+    SELECT [p].[Id], [p].[currency], [p].[EstadoPedido], [p].[FechaPedido], [p].[IdUsuario], [p].[NumeroPedido], [p].[PagoId], [p].[saleID], [p].[total]
+    FROM [Pedidos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_0 ROWS ONLY
+) AS [t]
+LEFT JOIN [Usuarios] AS [u] ON [t].[IdUsuario] = [u].[Id]
+LEFT JOIN (
+    SELECT [d].[Id], [d].[Cantidad], [d].[PedidoId], [d].[ProductoId], [p0].[Id] AS [Id0], [p0].[Cantidad] AS [Cantidad0], [p0].[Descripcion], [p0].[FechaCreacion], [p0].[FechaModificacion], [p0].[IdProveedor], [p0].[Imagen], [p0].[NombreProducto], [p0].[Precio]
+    FROM [DetallePedido] AS [d]
+    LEFT JOIN [Productos] AS [p0] ON [d].[ProductoId] = [p0].[Id]
+) AS [t0] ON [t].[Id] = [t0].[PedidoId]
+ORDER BY [t].[Id], [u].[Id], [t0].[Id]
+INFO  2024-09-06 17:48:43 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (6ms) [Parameters=[@__pedidoId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[currency], [t].[EstadoPedido], [t].[FechaPedido], [t].[IdUsuario], [t].[NumeroPedido], [t].[PagoId], [t].[saleID], [t].[total], [t0].[Id], [t0].[Cantidad], [t0].[PedidoId], [t0].[ProductoId], [t0].[Id0], [t0].[Cantidad0], [t0].[Descripcion], [t0].[FechaCreacion], [t0].[FechaModificacion], [t0].[IdProveedor], [t0].[Imagen], [t0].[NombreProducto], [t0].[Precio]
+FROM (
+    SELECT TOP(1) [p].[Id], [p].[currency], [p].[EstadoPedido], [p].[FechaPedido], [p].[IdUsuario], [p].[NumeroPedido], [p].[PagoId], [p].[saleID], [p].[total]
+    FROM [Pedidos] AS [p]
+    WHERE [p].[Id] = @__pedidoId_0
+) AS [t]
+LEFT JOIN (
+    SELECT [d].[Id], [d].[Cantidad], [d].[PedidoId], [d].[ProductoId], [p0].[Id] AS [Id0], [p0].[Cantidad] AS [Cantidad0], [p0].[Descripcion], [p0].[FechaCreacion], [p0].[FechaModificacion], [p0].[IdProveedor], [p0].[Imagen], [p0].[NombreProducto], [p0].[Precio]
+    FROM [DetallePedido] AS [d]
+    LEFT JOIN [Productos] AS [p0] ON [d].[ProductoId] = [p0].[Id]
+) AS [t0] ON [t].[Id] = [t0].[PedidoId]
+ORDER BY [t].[Id], [t0].[Id]
+INFO  2024-09-06 17:48:45 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (27ms) [Parameters=[@p3='?' (DbType = Int32), @p0='?' (DbType = Int32), @p1='?' (DbType = Int32), @p2='?' (DbType = Int32), @p7='?' (DbType = Int32), @p4='?' (DbType = Int32), @p5='?' (DbType = Int32), @p6='?' (DbType = Int32), @p11='?' (DbType = Int32), @p8='?' (DbType = Int32), @p9='?' (DbType = Int32), @p10='?' (DbType = Int32), @p20='?' (DbType = Int32), @p12='?' (Size = 8000) (DbType = AnsiString), @p13='?' (Size = 100) (DbType = AnsiString), @p14='?' (DbType = DateTime), @p15='?' (DbType = Int32), @p16='?' (Size = 20) (DbType = AnsiString), @p17='?' (Size = 8000) (DbType = AnsiString), @p18='?' (Size = 8000) (DbType = AnsiString), @p19='?' (Size = 8000) (DbType = AnsiString), @p29='?' (DbType = Int32), @p21='?' (DbType = Int32), @p22='?' (Size = 200) (DbType = AnsiString), @p23='?' (DbType = DateTime), @p24='?' (DbType = DateTime), @p25='?' (DbType = Int32), @p26='?' (Size = 8000) (DbType = AnsiString), @p27='?' (Size = 100) (DbType = AnsiString), @p28='?' (Precision = 18) (Scale = 2) (DbType = Decimal), @p38='?' (DbType = Int32), @p30='?' (DbType = Int32), @p31='?' (Size = 200) (DbType = AnsiString), @p32='?' (DbType = DateTime), @p33='?' (DbType = DateTime), @p34='?' (DbType = Int32), @p35='?' (Size = 8000) (DbType = AnsiString), @p36='?' (Size = 100) (DbType = AnsiString), @p37='?' (Precision = 18) (Scale = 2) (DbType = Decimal), @p47='?' (DbType = Int32), @p39='?' (DbType = Int32), @p40='?' (Size = 200) (DbType = AnsiString), @p41='?' (DbType = DateTime), @p42='?' (DbType = DateTime), @p43='?' (DbType = Int32), @p44='?' (Size = 8000) (DbType = AnsiString), @p45='?' (Size = 100) (DbType = AnsiString), @p46='?' (Precision = 18) (Scale = 2) (DbType = Decimal)], CommandType='Text', CommandTimeout='30']
+SET NOCOUNT ON;
+UPDATE [DetallePedido] SET [Cantidad] = @p0, [PedidoId] = @p1, [ProductoId] = @p2
+OUTPUT 1
+WHERE [Id] = @p3;
+UPDATE [DetallePedido] SET [Cantidad] = @p4, [PedidoId] = @p5, [ProductoId] = @p6
+OUTPUT 1
+WHERE [Id] = @p7;
+UPDATE [DetallePedido] SET [Cantidad] = @p8, [PedidoId] = @p9, [ProductoId] = @p10
+OUTPUT 1
+WHERE [Id] = @p11;
+UPDATE [Pedidos] SET [currency] = @p12, [EstadoPedido] = @p13, [FechaPedido] = @p14, [IdUsuario] = @p15, [NumeroPedido] = @p16, [PagoId] = @p17, [saleID] = @p18, [total] = @p19
+OUTPUT 1
+WHERE [Id] = @p20;
+UPDATE [Productos] SET [Cantidad] = @p21, [Descripcion] = @p22, [FechaCreacion] = @p23, [FechaModificacion] = @p24, [IdProveedor] = @p25, [Imagen] = @p26, [NombreProducto] = @p27, [Precio] = @p28
+OUTPUT 1
+WHERE [Id] = @p29;
+UPDATE [Productos] SET [Cantidad] = @p30, [Descripcion] = @p31, [FechaCreacion] = @p32, [FechaModificacion] = @p33, [IdProveedor] = @p34, [Imagen] = @p35, [NombreProducto] = @p36, [Precio] = @p37
+OUTPUT 1
+WHERE [Id] = @p38;
+UPDATE [Productos] SET [Cantidad] = @p39, [Descripcion] = @p40, [FechaCreacion] = @p41, [FechaModificacion] = @p42, [IdProveedor] = @p43, [Imagen] = @p44, [NombreProducto] = @p45, [Precio] = @p46
+OUTPUT 1
+WHERE [Id] = @p47;
+INFO  2024-09-06 17:48:46 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Pedidos] AS [p]
+INFO  2024-09-06 17:48:46 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (12ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[Id], [t].[currency], [t].[EstadoPedido], [t].[FechaPedido], [t].[IdUsuario], [t].[NumeroPedido], [t].[PagoId], [t].[saleID], [t].[total], [u].[Id], [t0].[Id], [t0].[Cantidad], [t0].[PedidoId], [t0].[ProductoId], [t0].[Id0], [t0].[Cantidad0], [t0].[Descripcion], [t0].[FechaCreacion], [t0].[FechaModificacion], [t0].[IdProveedor], [t0].[Imagen], [t0].[NombreProducto], [t0].[Precio], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM (
+    SELECT [p].[Id], [p].[currency], [p].[EstadoPedido], [p].[FechaPedido], [p].[IdUsuario], [p].[NumeroPedido], [p].[PagoId], [p].[saleID], [p].[total]
+    FROM [Pedidos] AS [p]
+    ORDER BY (SELECT 1)
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_0 ROWS ONLY
+) AS [t]
+LEFT JOIN [Usuarios] AS [u] ON [t].[IdUsuario] = [u].[Id]
+LEFT JOIN (
+    SELECT [d].[Id], [d].[Cantidad], [d].[PedidoId], [d].[ProductoId], [p0].[Id] AS [Id0], [p0].[Cantidad] AS [Cantidad0], [p0].[Descripcion], [p0].[FechaCreacion], [p0].[FechaModificacion], [p0].[IdProveedor], [p0].[Imagen], [p0].[NombreProducto], [p0].[Precio]
+    FROM [DetallePedido] AS [d]
+    LEFT JOIN [Productos] AS [p0] ON [d].[ProductoId] = [p0].[Id]
+) AS [t0] ON [t].[Id] = [t0].[PedidoId]
+ORDER BY [t].[Id], [u].[Id], [t0].[Id]
+INFO  2024-09-06 17:48:49 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (29ms) [Parameters=[@__id_0='?' (Size = 50) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[id], [t].[cart], [t].[create_time], [t].[description], [t].[exchange_rate], [t].[intent], [t].[parent_payment], [t].[payee_email], [t].[payee_merchant_id], [t].[payer_email], [t].[payer_first_name], [t].[payer_id], [t].[payer_last_name], [t].[payer_status], [t].[payment_method], [t].[payment_mode], [t].[protection_eligibility], [t].[protection_eligibility_type], [t].[receivable_amount], [t].[receivable_currency], [t].[sale_currency], [t].[sale_discount], [t].[sale_handling_fee], [t].[sale_id], [t].[sale_insurance], [t].[sale_shipping], [t].[sale_shipping_discount], [t].[sale_state], [t].[sale_subtotal], [t].[sale_total], [t].[shipping_city], [t].[shipping_country_code], [t].[shipping_line1], [t].[shipping_postal_code], [t].[shipping_recipient_name], [t].[shipping_state], [t].[state], [t].[transaction_fee_amount], [t].[transaction_fee_currency], [t].[transactions_currency], [t].[transactions_discount], [t].[transactions_handling_fee], [t].[transactions_insurance], [t].[transactions_shipping], [t].[transactions_shipping_discount], [t].[transactions_subtotal], [t].[transactions_total], [t].[update_time], [p0].[id], [p0].[item_currency], [p0].[item_image_url], [p0].[item_name], [p0].[item_price], [p0].[item_quantity], [p0].[item_sku], [p0].[item_tax], [p0].[payPal_id]
+FROM (
+    SELECT TOP(1) [p].[id], [p].[cart], [p].[create_time], [p].[description], [p].[exchange_rate], [p].[intent], [p].[parent_payment], [p].[payee_email], [p].[payee_merchant_id], [p].[payer_email], [p].[payer_first_name], [p].[payer_id], [p].[payer_last_name], [p].[payer_status], [p].[payment_method], [p].[payment_mode], [p].[protection_eligibility], [p].[protection_eligibility_type], [p].[receivable_amount], [p].[receivable_currency], [p].[sale_currency], [p].[sale_discount], [p].[sale_handling_fee], [p].[sale_id], [p].[sale_insurance], [p].[sale_shipping], [p].[sale_shipping_discount], [p].[sale_state], [p].[sale_subtotal], [p].[sale_total], [p].[shipping_city], [p].[shipping_country_code], [p].[shipping_line1], [p].[shipping_postal_code], [p].[shipping_recipient_name], [p].[shipping_state], [p].[state], [p].[transaction_fee_amount], [p].[transaction_fee_currency], [p].[transactions_currency], [p].[transactions_discount], [p].[transactions_handling_fee], [p].[transactions_insurance], [p].[transactions_shipping], [p].[transactions_shipping_discount], [p].[transactions_subtotal], [p].[transactions_total], [p].[update_time]
+    FROM [PayPalPaymentDetails] AS [p]
+    WHERE [p].[id] = @__id_0
+) AS [t]
+LEFT JOIN [PayPalPaymentItems] AS [p0] ON [t].[id] = [p0].[payPal_id]
+ORDER BY [t].[id]
+INFO  2024-09-06 17:48:59 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (8ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+INFO  2024-09-06 17:48:59 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [r].[Id], [r].[Nombre]
+FROM [Roles] AS [r]

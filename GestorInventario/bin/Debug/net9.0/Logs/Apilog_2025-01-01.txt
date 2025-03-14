@@ -1,0 +1,108 @@
+INFO  2025-01-01 21:48:47 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
+INFO  2025-01-01 21:48:47 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
+INFO  2025-01-01 21:48:47 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
+INFO  2025-01-01 21:48:47 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
+INFO  2025-01-01 21:48:47 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
+INFO  2025-01-01 21:49:25 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (160ms) [Parameters=[@__email_0='?' (Size = 500) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword], [r].[Id], [r].[Nombre]
+FROM [Usuarios] AS [u]
+INNER JOIN [Roles] AS [r] ON [u].[IdRol] = [r].[Id]
+WHERE [u].[Email] = @__email_0
+INFO  2025-01-01 21:49:25 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (16ms) [Parameters=[@__credencialesUsuario_Id_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[Id] = @__credencialesUsuario_Id_0
+INFO  2025-01-01 21:51:01 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (106ms) [Parameters=[@__planId_0='?' (Size = 255) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [p].[Id], [p].[AutoBillOutstanding], [p].[Description], [p].[Name], [p].[PaymentFailureThreshold], [p].[PaypalPlanId], [p].[ProductId], [p].[RegularFixedPrice], [p].[RegularIntervalCount], [p].[RegularIntervalUnit], [p].[RegularTotalCycles], [p].[SetupFee], [p].[SetupFeeFailureAction], [p].[Status], [p].[TaxInclusive], [p].[TaxPercentage], [p].[TrialFixedPrice], [p].[TrialIntervalCount], [p].[TrialIntervalUnit], [p].[TrialTotalCycles]
+FROM [PlanDetails] AS [p]
+WHERE [p].[PaypalPlanId] = @__planId_0
+INFO  2025-01-01 21:51:01 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (85ms) [Parameters=[@__detallesSuscripcion_SubscriptionId_0='?' (Size = 50) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [s].[SubscriptionID], [s].[CyclesCompleted], [s].[CyclesRemaining], [s].[FinalPaymentTime], [s].[LastPaymentAmount], [s].[LastPaymentCurrency], [s].[LastPaymentTime], [s].[NextBillingTime], [s].[OutstandingBalance], [s].[OutstandingCurrency], [s].[PayerID], [s].[PlanID], [s].[StartTime], [s].[Status], [s].[StatusUpdateTime], [s].[SubscriberEmail], [s].[SubscriberName], [s].[TotalCycles], [s].[TrialFixedPrice], [s].[TrialIntervalCount], [s].[TrialIntervalUnit], [s].[TrialTotalCycles]
+FROM [SubscriptionDetails] AS [s]
+WHERE [s].[SubscriptionID] = @__detallesSuscripcion_SubscriptionId_0
+INFO  2025-01-01 21:51:02 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (148ms) [Parameters=[@p0='?' (Size = 50) (DbType = AnsiString), @p1='?' (DbType = Int32), @p2='?' (DbType = Int32), @p3='?' (DbType = DateTime), @p4='?' (Precision = 10) (Scale = 2) (DbType = Decimal), @p5='?' (Size = 3) (DbType = AnsiString), @p6='?' (DbType = DateTime), @p7='?' (DbType = DateTime), @p8='?' (Precision = 10) (Scale = 2) (DbType = Decimal), @p9='?' (Size = 3) (DbType = AnsiString), @p10='?' (Size = 50) (DbType = AnsiString), @p11='?' (Size = 255) (DbType = AnsiString), @p12='?' (DbType = DateTime), @p13='?' (Size = 20) (DbType = AnsiString), @p14='?' (DbType = DateTime), @p15='?' (Size = 100) (DbType = AnsiString), @p16='?' (Size = 100) (DbType = AnsiString), @p17='?' (DbType = Int32), @p18='?' (Precision = 10) (Scale = 2) (DbType = Decimal), @p19='?' (DbType = Int32), @p20='?' (Size = 10) (DbType = AnsiString), @p21='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [SubscriptionDetails] ([SubscriptionID], [CyclesCompleted], [CyclesRemaining], [FinalPaymentTime], [LastPaymentAmount], [LastPaymentCurrency], [LastPaymentTime], [NextBillingTime], [OutstandingBalance], [OutstandingCurrency], [PayerID], [PlanID], [StartTime], [Status], [StatusUpdateTime], [SubscriberEmail], [SubscriberName], [TotalCycles], [TrialFixedPrice], [TrialIntervalCount], [TrialIntervalUnit], [TrialTotalCycles])
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17, @p18, @p19, @p20, @p21);
+INFO  2025-01-01 21:51:07 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (54ms) [Parameters=[@__usuarioId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[NombreSusbcriptor], [u].[PaypalPlanId], [u].[SubscriptionID], [u].[UserId], [u0].[Id], [u0].[BajaUsuario], [u0].[ConfirmacionEmail], [u0].[Direccion], [u0].[Email], [u0].[EnlaceCambioPass], [u0].[FechaEnlaceCambioPass], [u0].[FechaExpiracionContrasenaTemporal], [u0].[FechaNacimiento], [u0].[FechaRegistro], [u0].[IdRol], [u0].[NombreCompleto], [u0].[Password], [u0].[Salt], [u0].[Telefono], [u0].[TemporaryPassword]
+FROM [UserSubscription] AS [u]
+LEFT JOIN [Usuarios] AS [u0] ON [u].[UserId] = [u0].[Id]
+WHERE [u].[UserId] = @__usuarioId_0
+INFO  2025-01-01 21:51:12 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (12ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [SubscriptionDetails] AS [s]
+WARN  2025-01-01 21:51:12 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2025-01-01 21:51:12 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2025-01-01 21:51:12 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (24ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [s].[SubscriptionID], [s].[CyclesCompleted], [s].[CyclesRemaining], [s].[FinalPaymentTime], [s].[LastPaymentAmount], [s].[LastPaymentCurrency], [s].[LastPaymentTime], [s].[NextBillingTime], [s].[OutstandingBalance], [s].[OutstandingCurrency], [s].[PayerID], [s].[PlanID], [s].[StartTime], [s].[Status], [s].[StatusUpdateTime], [s].[SubscriberEmail], [s].[SubscriberName], [s].[TotalCycles], [s].[TrialFixedPrice], [s].[TrialIntervalCount], [s].[TrialIntervalUnit], [s].[TrialTotalCycles]
+FROM [SubscriptionDetails] AS [s]
+ORDER BY (SELECT 1)
+OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+INFO  2025-01-01 21:51:12 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (39ms) [Parameters=[@__detallesSuscripcion_SubscriberName_0='?' (Size = 8000) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[NombreCompleto] = @__detallesSuscripcion_SubscriberName_0
+INFO  2025-01-01 21:51:12 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (15ms) [Parameters=[@__8__locals2_usuarioId_0='?' (DbType = Int32), @__detallesSuscripcion_SubscriptionId_1='?' (Size = 50) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[NombreSusbcriptor], [u].[PaypalPlanId], [u].[SubscriptionID], [u].[UserId]
+FROM [UserSubscription] AS [u]
+WHERE [u].[UserId] = @__8__locals2_usuarioId_0 AND [u].[SubscriptionID] = @__detallesSuscripcion_SubscriptionId_1
+INFO  2025-01-01 21:51:12 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4ms) [Parameters=[@__detallesSuscripcion_SubscriberName_0='?' (Size = 8000) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[NombreCompleto] = @__detallesSuscripcion_SubscriberName_0
+INFO  2025-01-01 21:51:12 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[@__8__locals2_usuarioId_0='?' (DbType = Int32), @__detallesSuscripcion_SubscriptionId_1='?' (Size = 50) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[NombreSusbcriptor], [u].[PaypalPlanId], [u].[SubscriptionID], [u].[UserId]
+FROM [UserSubscription] AS [u]
+WHERE [u].[UserId] = @__8__locals2_usuarioId_0 AND [u].[SubscriptionID] = @__detallesSuscripcion_SubscriptionId_1
+INFO  2025-01-01 21:51:12 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (136ms) [Parameters=[@p0='?' (Size = 100) (DbType = AnsiString), @p1='?' (Size = 255) (DbType = AnsiString), @p2='?' (Size = 50) (DbType = AnsiString), @p3='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [UserSubscription] ([NombreSusbcriptor], [PaypalPlanId], [SubscriptionID], [UserId])
+OUTPUT INSERTED.[Id]
+VALUES (@p0, @p1, @p2, @p3);
+INFO  2025-01-01 21:51:12 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[@__detallesSuscripcion_SubscriberName_0='?' (Size = 8000) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[NombreCompleto] = @__detallesSuscripcion_SubscriberName_0
+INFO  2025-01-01 21:51:12 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[@__8__locals2_usuarioId_0='?' (DbType = Int32), @__detallesSuscripcion_SubscriptionId_1='?' (Size = 50) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[NombreSusbcriptor], [u].[PaypalPlanId], [u].[SubscriptionID], [u].[UserId]
+FROM [UserSubscription] AS [u]
+WHERE [u].[UserId] = @__8__locals2_usuarioId_0 AND [u].[SubscriptionID] = @__detallesSuscripcion_SubscriptionId_1
+INFO  2025-01-01 21:51:14 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [SubscriptionDetails] AS [s]
+WARN  2025-01-01 21:51:14 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+WARN  2025-01-01 21:51:14 – Clase: Microsoft.EntityFrameworkCore.Query - Mensaje: The query uses a row limiting operator ('Skip'/'Take') without an 'OrderBy' operator. This may lead to unpredictable results. If the 'Distinct' operator is used after 'OrderBy', then make sure to use the 'OrderBy' operator after 'Distinct' as the ordering would otherwise get erased.
+INFO  2025-01-01 21:51:14 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (13ms) [Parameters=[@__p_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [s].[SubscriptionID], [s].[CyclesCompleted], [s].[CyclesRemaining], [s].[FinalPaymentTime], [s].[LastPaymentAmount], [s].[LastPaymentCurrency], [s].[LastPaymentTime], [s].[NextBillingTime], [s].[OutstandingBalance], [s].[OutstandingCurrency], [s].[PayerID], [s].[PlanID], [s].[StartTime], [s].[Status], [s].[StatusUpdateTime], [s].[SubscriberEmail], [s].[SubscriberName], [s].[TotalCycles], [s].[TrialFixedPrice], [s].[TrialIntervalCount], [s].[TrialIntervalUnit], [s].[TrialTotalCycles]
+FROM [SubscriptionDetails] AS [s]
+ORDER BY (SELECT 1)
+OFFSET @__p_0 ROWS FETCH NEXT @__p_0 ROWS ONLY
+INFO  2025-01-01 21:51:14 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (4ms) [Parameters=[@__detallesSuscripcion_SubscriberName_0='?' (Size = 8000) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[BajaUsuario], [u].[ConfirmacionEmail], [u].[Direccion], [u].[Email], [u].[EnlaceCambioPass], [u].[FechaEnlaceCambioPass], [u].[FechaExpiracionContrasenaTemporal], [u].[FechaNacimiento], [u].[FechaRegistro], [u].[IdRol], [u].[NombreCompleto], [u].[Password], [u].[Salt], [u].[Telefono], [u].[TemporaryPassword]
+FROM [Usuarios] AS [u]
+WHERE [u].[NombreCompleto] = @__detallesSuscripcion_SubscriberName_0
+INFO  2025-01-01 21:51:14 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[@__8__locals2_usuarioId_0='?' (DbType = Int32), @__detallesSuscripcion_SubscriptionId_1='?' (Size = 50) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[NombreSusbcriptor], [u].[PaypalPlanId], [u].[SubscriptionID], [u].[UserId]
+FROM [UserSubscription] AS [u]
+WHERE [u].[UserId] = @__8__locals2_usuarioId_0 AND [u].[SubscriptionID] = @__detallesSuscripcion_SubscriptionId_1
+INFO  2025-01-01 21:51:19 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (5ms) [Parameters=[@__usuarioId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[NombreSusbcriptor], [u].[PaypalPlanId], [u].[SubscriptionID], [u].[UserId], [u0].[Id], [u0].[BajaUsuario], [u0].[ConfirmacionEmail], [u0].[Direccion], [u0].[Email], [u0].[EnlaceCambioPass], [u0].[FechaEnlaceCambioPass], [u0].[FechaExpiracionContrasenaTemporal], [u0].[FechaNacimiento], [u0].[FechaRegistro], [u0].[IdRol], [u0].[NombreCompleto], [u0].[Password], [u0].[Salt], [u0].[Telefono], [u0].[TemporaryPassword]
+FROM [UserSubscription] AS [u]
+LEFT JOIN [Usuarios] AS [u0] ON [u].[UserId] = [u0].[Id]
+WHERE [u].[UserId] = @__usuarioId_0
+INFO  2025-01-01 21:51:27 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (3ms) [Parameters=[@__planId_0='?' (Size = 255) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [p].[Id], [p].[AutoBillOutstanding], [p].[Description], [p].[Name], [p].[PaymentFailureThreshold], [p].[PaypalPlanId], [p].[ProductId], [p].[RegularFixedPrice], [p].[RegularIntervalCount], [p].[RegularIntervalUnit], [p].[RegularTotalCycles], [p].[SetupFee], [p].[SetupFeeFailureAction], [p].[Status], [p].[TaxInclusive], [p].[TaxPercentage], [p].[TrialFixedPrice], [p].[TrialIntervalCount], [p].[TrialIntervalUnit], [p].[TrialTotalCycles]
+FROM [PlanDetails] AS [p]
+WHERE [p].[PaypalPlanId] = @__planId_0
+INFO  2025-01-01 21:51:27 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (2ms) [Parameters=[@__detallesSuscripcion_SubscriptionId_0='?' (Size = 50) (DbType = AnsiString)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [s].[SubscriptionID], [s].[CyclesCompleted], [s].[CyclesRemaining], [s].[FinalPaymentTime], [s].[LastPaymentAmount], [s].[LastPaymentCurrency], [s].[LastPaymentTime], [s].[NextBillingTime], [s].[OutstandingBalance], [s].[OutstandingCurrency], [s].[PayerID], [s].[PlanID], [s].[StartTime], [s].[Status], [s].[StatusUpdateTime], [s].[SubscriberEmail], [s].[SubscriberName], [s].[TotalCycles], [s].[TrialFixedPrice], [s].[TrialIntervalCount], [s].[TrialIntervalUnit], [s].[TrialTotalCycles]
+FROM [SubscriptionDetails] AS [s]
+WHERE [s].[SubscriptionID] = @__detallesSuscripcion_SubscriptionId_0
+INFO  2025-01-01 21:51:52 – Clase: Microsoft.EntityFrameworkCore.Database.Command - Mensaje: Executed DbCommand (7ms) [Parameters=[@__usuarioId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [u].[Id], [u].[NombreSusbcriptor], [u].[PaypalPlanId], [u].[SubscriptionID], [u].[UserId], [u0].[Id], [u0].[BajaUsuario], [u0].[ConfirmacionEmail], [u0].[Direccion], [u0].[Email], [u0].[EnlaceCambioPass], [u0].[FechaEnlaceCambioPass], [u0].[FechaExpiracionContrasenaTemporal], [u0].[FechaNacimiento], [u0].[FechaRegistro], [u0].[IdRol], [u0].[NombreCompleto], [u0].[Password], [u0].[Salt], [u0].[Telefono], [u0].[TemporaryPassword]
+FROM [UserSubscription] AS [u]
+LEFT JOIN [Usuarios] AS [u0] ON [u].[UserId] = [u0].[Id]
+WHERE [u].[UserId] = @__usuarioId_0
