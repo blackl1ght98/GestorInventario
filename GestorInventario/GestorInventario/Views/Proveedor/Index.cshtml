@@ -1,0 +1,80 @@
+﻿@using GestorInventario.PaginacionLogica
+
+@model List<Proveedore>
+<style>
+    .btn-group > .btn {
+        margin-right: 10px; /* Ajusta este valor a la separación que desees */
+    }
+</style>
+<h1>Proveedores</h1>
+<p>
+    <a asp-action="Create" class="btn btn-info">Crear Proveedor</a>
+
+</p>
+@{
+   
+    var paginas = ViewBag.Paginas as List<PaginasModel>;
+    
+} 
+
+
+
+<form asp-controller="Proveedor" asp-action="Index">
+    <p>
+        Buscar: <input type="text" name="buscar" class="form-text" />
+        <input type="submit" value="Buscar" class="btn btn-sm btn-dark" />
+    </p>
+</form>
+
+<table class="table table-striped table-bordered w-100">
+    <thead>
+        <tr>
+            <th class="col-2">Nombre</th>
+            <th class="col-2">Contacto</th>
+            <th class="col-2">Dirección</th>
+            <th class="col-2" >Acciones</th>
+         
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var proveedor in Model)
+        {
+            <tr>
+                <td>@proveedor.NombreProveedor</td>
+                <td>@proveedor.Contacto</td>
+                <td>@proveedor.Direccion</td>
+                <td>
+                        @if(User.IsInRole("administrador"))
+                        {
+                        <a asp-action="Delete" asp-route-id="@proveedor.Id" class="btn btn-danger">Eliminar</a>
+                        <a asp-action="Edit" asp-route-id="@proveedor.Id" class="btn btn-warning">Actualizar</a>
+                        }
+                </td>
+               
+            </tr>
+        }
+    </tbody>
+</table>
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        @foreach (var pagina in paginas)
+        {
+            <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
+                <a class="page-link" href="@Url.Action("Index", new { Pagina = pagina.Pagina, buscar= ViewData["Buscar"] })">
+                    @if (pagina.Texto == "Anterior")
+                    {
+                        <span aria-hidden="true">«</span>
+                    }
+                    else if (pagina.Texto == "Siguiente")
+                    {
+                        <span aria-hidden="true">»</span>
+                    }
+                    else
+                    {
+                        @pagina.Texto
+                    }
+                </a>
+            </li>
+        }
+    </ul>
+</nav>

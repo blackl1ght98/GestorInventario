@@ -1,0 +1,28 @@
+﻿@model GestorInventario.Domain.Models.Usuario
+
+
+<p>Estás a punto de @(Model.BajaUsuario ? "reactivar" : "desactivar") al usuario con el ID @Model.Id.</p>
+<p>¿Estás seguro de que deseas continuar?</p>
+<p>El usuario tiene los datos siguientes: </p>
+<p><strong>Nombre Completo:</strong> @Model.NombreCompleto</p>
+<p><strong>Email:</strong> @Model.Email</p>
+<p><strong>Confirmación Email:</strong> @(Model.ConfirmacionEmail ? "Confirmado" : "No Confirmado")</p>
+<p><strong>Baja Usuario:</strong>@(Model.BajaUsuario ? "Baja" : "Alta") </p>
+<p><strong>Fecha de Nacimiento:</strong>@Model.FechaNacimiento</p>
+<p><strong>Telefono:</strong>@Model.Telefono</p>
+<p><strong>Dirección:</strong>@Model.Direccion</p>
+<p><strong>Fecha de Registro: </strong>@Model.FechaRegistro</p>
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-warning">
+        @TempData["ErrorMessage"]
+    </div>
+}
+<p>
+    <form asp-action="BajaUsuarioPost" class="form-control" method="post">
+        <input type="hidden" name="id" value="@Model.Id" />
+        <input type="submit" class="btn btn-info mt-2" value="@(Model.BajaUsuario ? "Reactivar Usuario" : "Desactivar Usuario")" />
+
+    </form>
+</p>
+

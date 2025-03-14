@@ -1,0 +1,69 @@
+﻿@using GestorInventario.Models.ViewModels;
+@model UserViewModel
+
+<section class="vh-100 d-flex align-items-center justify-content-center" >
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8">
+                <div class="card shadow-lg p-4" style="border-radius: 1rem;">
+                    <div class="card-body">
+                        <h3 class="text-center mb-4 text-primary">Crear Usuario</h3>
+                        <form asp-action="Create" method="post">
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" asp-for="Email" placeholder="ejemplo@correo.com" required />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <input type="password" class="form-control" asp-for="Password" required />
+                            </div>
+
+                            @if (User.IsInRole("administrador"))
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label">Rol</label>
+                                    <select asp-for="IdRol" class="form-select" asp-items="ViewBag.Roles"></select>
+                                </div>
+                            }
+
+                            <div class="mb-3">
+                                <label class="form-label">Nombre Completo</label>
+                                <input type="text" class="form-control" asp-for="NombreCompleto" required />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Fecha de Nacimiento</label>
+                                <input type="date" class="form-control" asp-for="FechaNacimiento" required />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Teléfono</label>
+                                <input type="tel" class="form-control" asp-for="Telefono" placeholder="123-456-7890" required />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Dirección</label>
+                                <input type="text" class="form-control" asp-for="Direccion" placeholder="C/Zafiro 3" required />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Ciudad</label>
+                                <input type="text" class="form-control" asp-for="ciudad" required />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Código Postal</label>
+                                <input type="text" class="form-control" asp-for="codigoPostal" required />
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg">Crear Usuario</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
