@@ -6,10 +6,18 @@
 - **SQL Server** en su última versión.
 - **Azure Data Studio** (para Docker).
 - **Redis** (si usas Docker).
-- **Docker**.(requerido)
+- **Docker**.(opcional)
 - **.NET 9.0** instalado.
 - **Sistema operativo**: Windows 10 (verificado).
+## ❌ Problema con Docker y Visual Studio
+Si **Docker Desktop no está instalado**, Visual Studio puede dar un error de compilación al intentar interpretar `docker-compose`. Para evitarlo:
 
+1. Abre Visual Studio y ve al **Explorador de Soluciones**.
+2. **Haz clic derecho en el proyecto `docker-compose`**.
+3. Selecciona **"Descargar proyecto"** (`Unload Project`).
+4. Ahora puedes compilar sin errores.
+
+Si en el futuro instalas Docker Desktop, puedes volver a habilitar `docker-compose` haciendo clic derecho en el proyecto y seleccionando **"Volver a cargar" (`Reload Project`)**.
 ### Notas
 
 - No testeado en **Linux** ni en **Windows 11**.
