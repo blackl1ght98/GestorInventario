@@ -1,0 +1,190 @@
+﻿@model List<Usuario>
+@using GestorInventario.PaginacionLogica
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+<div class="container-fluid">
+    <h1 class="text-left">Usuarios</h1>
+    <p class="text-left">
+        <a asp-action="Create" class="btn btn-info">Crear</a>
+    </p>
+
+    @{
+        var paginas = ViewBag.Paginas as List<PaginasModel>;
+    }
+    <div class="table">
+        <table class="table table-striped table-bordered w-100">
+            <thead>
+                <tr>
+                    <th class="col-2">Nombre Completo</th>
+                    <th class="col-2">Email</th>
+                    <th class="col-2">FechaRegistro</th>
+                    <th class="col-2">Rol</th>
+                    <th class="col-2">Baja Usuario</th>
+                    <th class="col-2">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model)
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(m => user.NombreCompleto)</td>
+                        <td>@Html.DisplayFor(m => user.Email)</td>
+                        <td>@Html.DisplayFor(m => user.FechaRegistro)</td>
+                        <td>@Html.DisplayFor(m => user.IdRolNavigation.Nombre)</td>
+                        <td>@(user.BajaUsuario ? "Baja" : "Alta")</td>
+                        <td>
+                            <div class="btn-group" role="group" aria-label="Acciones">
+                                <a asp-action="Delete" asp-route-id="@user.Id" class="btn btn-danger mt-2">Eliminar</a>
+                                <button class="btn btn-danger user-action-button mt-2" data-user-id="@user.Id" data-user-action="@((user.BajaUsuario) ? "Alta" : "Baja")">
+                                    @((user.BajaUsuario) ? "Alta" : "Baja")
+                                </button>
+                                <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-warning mt-2">Actualizar</a>
+                                @*    <a asp-action="BajaUsuario" asp-route-id="@user.Id" class="btn btn-warning mt-2">Baja</a>
+                                <a asp-action="AltaUsuario" asp-route-id="@user.Id" class="btn btn-warning mt-2">Alta</a> *@
+                                <a asp-action="ResetPassword" asp-controller="Auth" asp-route-email="@user.Email" class="btn btn-warning mt-2">Recuperar contraseña</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<nav aria-label="Page navigation example">
+    <ul class="pagination justify-content-center">
+        @foreach (var pagina in paginas!)
+        {
+            <li class="page-item @(pagina.Habilitada ? null : "disabled") @(pagina.Activa ? "active" : null)">
+                <a class="page-link" href="@Url.Action("Index", new { Pagina = pagina.Pagina, buscar = ViewData["Buscar"] })">@pagina.Texto</a>
+            </li>
+        }
+    </ul>
+</nav>
+<!-- Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Confirmación</h5>
+
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">¿Estás seguro de que deseas realizar esta acción?</p>
+                <p id="loadingMessage"></p>
+            </div>
+            <div class="modal-footer">
+
+                <button type="button" class="btn btn-primary" id="confirmActionBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        //Evento que se ejecuta cuando la pagina esta completamente cargada
+        document.addEventListener("DOMContentLoaded", function () {
+            var userId; // Variable va a ha recibir como dato el userId
+            var actionType; //Variable que va ha recibir la accion ejecutada por el usuario
+            var actionsMap = { //Las acciones que el usuario puede hacer
+                'Alta': 'AltaUsuarioPost',
+                'Baja': 'BajaUsuarioPost',
+            };
+            //Se asigna el evento click al boton de baja o alta
+            var actionButtons = document.querySelectorAll(".user-action-button");
+            /*¿Por que forEach en un boton?
+            Porque esto actionButtons devuelve un NodeList "lista" y al ser una lista es iterable y como va ha existir tantos botones como usuarios existan pues
+            es nesario recorrerlos para que cada boton tenga su dato especifico, ademas al tratarse de un array de botones se le asigna una funcion anonima con un parametro
+            llamado button que dentro de esta funcion puedes configurar que va a pasar si haces click en esos botones y con asignarlo una vez basta y ya no importa
+            cuantos botones haya que el evento que se ponga se propaga a todos los botones
+            */
+            actionButtons.forEach(function (button) {
+                //Se agrega el evento click a cada boton del nodelist
+                button.addEventListener("click", function (event) {
+                    //Se evita que se envie al servidor
+                    event.preventDefault();
+                    //Se obtiene el id del usuario y la accion que realizo
+                    userId = button.dataset.userId;
+                    actionType = button.dataset.userAction;
+                     console.log('User ID:', userId);
+                    //La accion se almacena en esta variable y el texto se pasa a minuscula
+                    var actionText = actionType.toLowerCase();
+                    //Se obtiene el modal
+                    var confirmModal = document.getElementById("confirmModal");
+                    //Se muestra el modal
+                    confirmModal.classList.add("show");
+                    confirmModal.style.display = "block";
+                    //Se obtiene el mensaje que mostrara el modal
+                    var confirmMessage = document.getElementById("confirmMessage");
+                    //Se modifica el mensaje que mostrara
+                    confirmMessage.textContent = `¿Estás seguro de que deseas dar de ${actionText} al usuario con ID ${userId}?`;
+                });
+            });
+            //Se agrega el evento click al boton de confirmacion del modal
+            var confirmActionBtn = document.getElementById("confirmActionBtn");
+            confirmActionBtn.addEventListener("click", function () {
+                //Si se le hace clic se deshabilita el boton para que no se hagan mas clics
+                confirmActionBtn.disabled = true;
+                //Se modifica el mensaje de carga
+                var loadingMessage = document.getElementById("loadingMessage");
+                loadingMessage.textContent = "Procesando...";
+                //Del array se obtiene la accion escogida por el usuario
+                var action = actionsMap[actionType];
+                if (action) {
+                    //Esa accion se pasa al metodo junto al id de usuario
+                    cambiarEstadoUsuario(userId, action);
+                } else {
+                    //Si se elige una accion no valida se muestra un mensaje de error
+                    console.log("Acción no definida");
+                    loadingMessage.textContent = "Error: Acción no definida";
+                    confirmActionBtn.disabled = false;
+                }
+            });
+            //Funcion que envia al servidor la accion
+                             function cambiarEstadoUsuario(id, action) {
+            var loadingMessage = document.getElementById("loadingMessage");
+            var confirmActionBtn = document.getElementById("confirmActionBtn");
+
+            // Mostrar mensaje de carga
+            loadingMessage.textContent = "Procesando...";
+            confirmActionBtn.disabled = true; // Deshabilitar el botón mientras se procesa
+
+            // Enviar datos en formato JSON
+            fetch(`/Admin/${action}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json" // Especificar que los datos son JSON
+                },
+                body: JSON.stringify({ id: id }) // Convertir el objeto a JSON
+            })
+            .then(response => response.json()) // Parsear la respuesta como JSON
+            .then(data => {
+                if (data.success) {
+                    location.reload(); // Recargar la página si la acción fue exitosa
+                } else {
+                    console.log(data.errorMessage);
+                    loadingMessage.textContent = "El servidor ha tardado en responder, por favor intente de nuevo";
+                    confirmActionBtn.disabled = false; // Habilitar el botón si hay error
+                }
+            })
+            .catch(error => {
+                console.error('Error al procesar la solicitud:', error);
+                loadingMessage.textContent = "Error al procesar la solicitud";
+                confirmActionBtn.disabled = false; // Habilitar el botón si hay error
+            });
+        }
+
+
+            //Se cierra el modal
+            var modalClose = document.querySelector('.modal');
+            //Se agrega el evento click
+            modalClose.addEventListener('click', function (event) {
+                //Si el evento que se produce es el de cierre lo ejecuta
+                if (event.target === modalClose) {
+                    var confirmModal = document.getElementById("confirmModal");
+                    confirmModal.classList.remove("show");
+                    confirmModal.style.display = "none";
+                }
+            });
+        });
+    </script>
+}
