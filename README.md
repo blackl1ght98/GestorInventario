@@ -9,6 +9,8 @@
 - **Docker**.(opcional)
 - **.NET 9.0** instalado.
 - **Sistema operativo**: Windows 10 (verificado).
+### Notas
+No testeado en **Linux** ni en **Windows 11**.
 ## ❌ Problema con Docker y Visual Studio
 Si **Docker Desktop no está instalado**, Visual Studio puede dar un error de compilación al intentar interpretar `docker-compose`. Para evitarlo:
 
@@ -18,9 +20,7 @@ Si **Docker Desktop no está instalado**, Visual Studio puede dar un error de co
 4. Ahora puedes compilar sin errores.
 
 Si en el futuro instalas Docker Desktop, puedes volver a habilitar `docker-compose` haciendo clic derecho en el proyecto y seleccionando **"Volver a cargar" (`Reload Project`)**.
-### Notas
 
-- No testeado en **Linux** ni en **Windows 11**.
 ## Restaurar la copia de seguridad
 
 Primero, restaurar la copia de seguridad **GestorInventarioDB** usando Microsoft SQL Server. Si no disponen de este programa tendrán que descargarlo de la página web de Microsoft. Puedes descargarlo desde [aquí](https://www.microsoft.com/es-es/sql-server/sql-server-downloads). Instalamos la versión **Express** y seguimos los pasos de instalación del instalador. Una vez se complete, tendremos que instalar la interfaz gráfica de SQL Server, que puedes descargar desde [aquí](https://learn.microsoft.com/es-es/sql/ssms/download-sql-server-management-studio-ssms?view=sql-server-ver16).
