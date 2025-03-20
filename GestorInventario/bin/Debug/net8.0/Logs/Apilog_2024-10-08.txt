@@ -1,5 +1,0 @@
-INFO  2024-10-08 21:12:24 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: https://localhost:7056
-INFO  2024-10-08 21:12:24 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Now listening on: http://localhost:5196
-INFO  2024-10-08 21:12:24 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Application started. Press Ctrl+C to shut down.
-INFO  2024-10-08 21:12:24 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Hosting environment: Development
-INFO  2024-10-08 21:12:24 – Clase: Microsoft.Hosting.Lifetime - Mensaje: Content root path: C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\proyectos mvc\Gestor Inventario\GestorInventario\GestorInventario
