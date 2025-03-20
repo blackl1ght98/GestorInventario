@@ -6,8 +6,8 @@
 - **SQL Server** en su última versión.
 - **Azure Data Studio** (para Docker).
 - **Redis** (si usas Docker).
-- **Docker**.(opcional)
-- **.NET 8.0** instalado.
+- **Docker**.(requerido)
+- **.NET 9.0** instalado.
 - **Sistema operativo**: Windows 10 (verificado).
 
 ### Notas
