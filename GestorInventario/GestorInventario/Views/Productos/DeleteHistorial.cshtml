@@ -1,0 +1,39 @@
+﻿@model HistorialProducto
+
+<h1>Eliminar Historial</h1>
+
+<h3>¿Estás seguro de que quieres eliminar este producto?</h3>
+<h4></h4>
+<div>
+    <h4>@Model.Id</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            Accion:
+        </dt>
+        <dd class="col-sm-10">
+            @Model.Accion
+        </dd>
+        <dt class="col-sm-2">
+            Ip:
+        </dt>
+        <dd class="col-sm-10">
+            @Model.Ip
+        </dd>
+        
+    </dl>
+
+    <form asp-action="DeleteConfirmedHistorial" method="post">
+
+        <input type="hidden" asp-for="@Model.Id" />
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-warning">
+                @TempData["ErrorMessage"]
+            </div>
+        }
+        <input type="submit" value="Eliminar" class="btn btn-danger" />
+
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
