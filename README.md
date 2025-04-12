@@ -8,9 +8,9 @@
 - **Redis** (si usas Docker).
 - **Docker**.(opcional)
 - **.NET 9.0** instalado.
-- **Sistema operativo**: Windows 10 (verificado).
+- **Sistema operativo**: Windows 10 (verificado), Windows 11 (verificado).
 ### Notas
-No testeado en **Linux** ni en **Windows 11**.
+No testeado en **Linux** 
 ## ❌ Problema con Docker y Visual Studio
 Si **Docker Desktop no está instalado**, Visual Studio puede dar un error de compilación al intentar interpretar `docker-compose`. Para evitarlo:
 
