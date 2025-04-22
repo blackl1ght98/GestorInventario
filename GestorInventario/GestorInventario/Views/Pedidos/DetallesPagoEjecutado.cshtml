@@ -1,0 +1,243 @@
+﻿@using GestorInventario.Domain.Models
+@model PayPalPaymentDetail
+
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+        }
+
+        .invoice-box {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #eee;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+        }
+
+            .invoice-box table {
+                width: 100%;
+                line-height: 24px;
+                text-align: left;
+                border-collapse: collapse;
+            }
+
+                .invoice-box table th {
+                    padding: 12px;
+                    background: #eee;
+                    border-bottom: 1px solid #ddd;
+                }
+
+                .invoice-box table td {
+                    padding: 8px;
+                    vertical-align: top;
+                }
+
+        .invoice-header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+            .invoice-header img {
+                max-width: 150px;
+            }
+
+        .invoice-details, .invoice-totals {
+            margin-top: 20px;
+        }
+
+            .invoice-totals table td {
+                padding: 8px;
+                border-top: 1px solid #eee;
+            }
+
+            .invoice-totals table tr:last-child td {
+                border-top: 2px solid #333;
+                font-weight: bold;
+            }
+    </style>
+</head>
+<body>
+    <div class="invoice-box">
+        <div class="invoice-header">
+            <img src="ruta/al/logo.png" alt="Logo Empresa" />
+            <h2>Factura</h2>
+            <p>Fecha: @Model.CreateTime?.ToString("dd/MM/yyyy HH:mm:ss")</p>
+        </div>
+
+        <div class="invoice-details">
+            <h3>Detalles del Cliente</h3>
+            <table>
+                <tr>
+                    <th>Nombre</th>
+                    <td>@Model.PayerFirstName @Model.PayerLastName</td>
+                </tr>
+                <tr>
+                    <th>Email</th>
+                    <td>@Model.PayerEmail</td>
+                </tr>
+                <tr>
+                    <th>Dirección</th>
+                    <td>@Model.ShippingLine1, @Model.ShippingCity, @Model.ShippingState, @Model.ShippingPostalCode, @Model.ShippingCountryCode</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="invoice-details">
+            <h3>Detalles de la Transacción</h3>
+            <table>
+                <tr>
+                    <th>ID del Pago</th>
+                    <td>@Model.Id</td>
+                </tr>
+                <tr>
+                    <th>Estado del Pago</th>
+                    <td>@Model.State</td>
+                </tr>
+                <tr>
+                    <th>Descripción</th>
+                    <td>@Model.Description</td>
+                </tr>
+                <tr>
+                    <th>Fecha de Creación</th>
+                    <td>@Model.CreateTime?.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="invoice-details">
+            <h3>Detalles de la Venta</h3>
+            <table>
+                <tr>
+                    <th>ID de la Venta</th>
+                    <td>@Model.SaleId</td>
+                </tr>
+                <tr>
+                    <th>Estado de la Venta</th>
+                    <td>@Model.SaleState</td>
+                </tr>
+                <tr>
+                    <th>Total de la Venta</th>
+                    <td>@Model.SaleTotal @Model.SaleCurrency</td>
+                </tr>
+                <tr>
+                    <th>Subtotal</th>
+                    <td>@Model.SaleSubtotal @Model.SaleCurrency</td>
+                </tr>
+                <tr>
+                    <th>Envío</th>
+                    <td>@Model.SaleShipping @Model.SaleCurrency</td>
+                </tr>
+               
+                <!-- Solo incluir si no son cero o nulos -->
+                @if (Model.SaleInsurance.HasValue && Model.SaleInsurance.Value != 0.00m)
+                {
+                    <tr>
+                        <th>Seguro</th>
+                        <td>@Model.SaleInsurance.Value @Model.SaleCurrency</td>
+                    </tr>
+                }
+                @if (Model.SaleHandlingFee.HasValue && Model.SaleHandlingFee.Value != 0.00m)
+                {
+                    <tr>
+                        <th>Cuota de Manejo</th>
+                        <td>@Model.SaleHandlingFee.Value @Model.SaleCurrency</td>
+                    </tr>
+                }
+                @if (Model.SaleShippingDiscount.HasValue && Model.SaleShippingDiscount.Value != 0.00m)
+                {
+                    <tr>
+                        <th>Descuento de Envío</th>
+                        <td>@Model.SaleShippingDiscount.Value @Model.SaleCurrency</td>
+                    </tr>
+                }
+                @if (Model.SaleDiscount.HasValue && Model.SaleDiscount.Value != 0.00m)
+                {
+                    <tr>
+                        <th>Descuento</th>
+                        <td>@Model.SaleDiscount.Value @Model.SaleCurrency</td>
+                    </tr>
+                }
+            </table>
+        </div>
+
+        <div class="invoice-details">
+            <h3>Detalles de los Productos</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>SKU</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unitario</th>
+                        <th>Impuesto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.PayPalPaymentItems)
+                    {
+                        <tr>
+                            <td>@item.ItemName</td>
+                            <td>@item.ItemSku</td>
+                            <td>@item.ItemQuantity</td>
+                            <td>@item.ItemPrice @item.ItemCurrency</td>
+                            <td>@item.ItemTax @item.ItemCurrency</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="invoice-totals">
+            <h3>Totales</h3>
+            <table>
+                <tr>
+                    <td>Subtotal</td>
+                    <td>@Model.SaleSubtotal @Model.SaleCurrency</td>
+                </tr>
+                <tr>
+                    <td>Envío</td>
+                    <td>@Model.SaleShipping @Model.SaleCurrency</td>
+                </tr>
+                <!-- Solo incluir si hay descuentos -->
+                @if (Model.SaleDiscount.HasValue && Model.SaleDiscount.Value != 0.00m)
+                {
+                    <tr>
+                        <td>Descuento</td>
+                        <td>@Model.SaleDiscount.Value @Model.SaleCurrency</td>
+                    </tr>
+                }
+                <tr>
+                    <td>Total</td>
+                    <td>@Model.SaleTotal @Model.SaleCurrency</td>
+                </tr>
+            </table>
+        </div>
+
+        @if (Model.SaleCurrency != Model.ReceivableCurrency)
+        {
+            <div class="invoice-details">
+                <h3>Detalles de la Transacción</h3>
+                <table>
+                    <tr>
+                        <th>Comisión de Transacción</th>
+                        <td>@Model.TransactionFeeAmount @Model.TransactionFeeCurrency</td>
+                    </tr>
+                    <tr>
+                        <th>Cambio</th>
+                        <td>@Model.ExchangeRate</td>
+                    </tr>
+                    <tr>
+                        <th>Monto Recibible</th>
+                        <td>@Model.ReceivableAmount @Model.ReceivableCurrency</td>
+                    </tr>
+                </table>
+            </div>
+        }
+    </div>
+    </div>
+</body>
+</html>

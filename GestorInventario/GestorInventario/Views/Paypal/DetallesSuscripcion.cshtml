@@ -1,0 +1,111 @@
+﻿@using GestorInventario.Domain.Models.ViewModels.Paypal
+@using Newtonsoft.Json
+@using System.Globalization
+@model GestorInventario.Domain.Models.SubscriptionDetail
+
+@{
+   
+    DateTime trialEndDate = DateTime.MinValue;
+    DateTime nextBillingTime = DateTime.MinValue;
+    int trialIntervalCount = Model.TrialIntervalCount ?? 0;
+    int trialTotalCycles = Model.TrialTotalCycles ?? 0;
+    int trialDays = trialIntervalCount > 0 ? trialIntervalCount * trialTotalCycles : 0; // Usa el valor configurado o 7 días por defecto
+
+    // Especificar el formato y la cultura
+    string dateFormat = "MM/dd/yyyy HH:mm:ss";
+    CultureInfo provider = new CultureInfo("en-US");
+
+    DateTime startDate = Model.StartTime;
+    DateTime statusUpdateDate = Model.StatusUpdateTime;
+
+    if (Model.CyclesCompleted == 1 && Model.CyclesRemaining == 0)
+    {
+        trialEndDate = startDate.AddDays(trialDays);
+        nextBillingTime = trialEndDate.AddDays(1);
+    }
+}
+
+<h2>Detalles de la Suscripción</h2>
+
+<p><strong>ID de la Suscripción:</strong> @Model.SubscriptionId</p>
+<p><strong>ID del Plan:</strong> @Model.PlanId</p>
+<p><strong>Estado:</strong> @Model.Status</p>
+<p><strong>Fecha de Inicio:</strong> @(startDate.ToString("dd/MM/yyyy HH:mm:ss"))</p>
+<p>
+    <strong>Fecha de Actualización del Estado:</strong> @if (statusUpdateDate.Year == 1753)
+    {
+        <span>Información de estado no disponible</span>
+    }
+    else
+    {
+        @(statusUpdateDate.ToString("dd/MM/yyyy HH:mm:ss"))
+    }
+</p>
+<p><strong>Días de Prueba:</strong> @trialDays</p>
+
+<h3>Detalles del Suscriptor</h3>
+<p><strong>Nombre:</strong> @Model.SubscriberName</p>
+<p><strong>Email:</strong> @Model.SubscriberEmail</p>
+<p><strong>ID del Pagador:</strong> @Model.PayerId</p>
+
+<h3>Detalles de Facturación</h3>
+<p><strong>Balance Pendiente:</strong> @Model.OutstandingBalance @Model.OutstandingCurrency</p>
+
+@if (Model.CyclesCompleted > 0 || Model.CyclesRemaining > 0 || Model.TotalCycles > 0)
+{
+    <h3>Detalles del Ciclo</h3>
+
+    <p><strong>Ciclos Completados:</strong> @Model.CyclesCompleted</p>
+    <p><strong>Ciclos Restantes:</strong> @Model.CyclesRemaining</p>
+    <p><strong>Total de Ciclos:</strong> @Model.TotalCycles</p>
+
+    @if (trialEndDate != DateTime.MinValue)
+    {
+        <h3>Período de Prueba</h3>
+        <p><strong>Días de Prueba:</strong> @trialDays</p>
+        <p><strong>Fecha de Finalización del Período de Prueba:</strong> @trialEndDate.ToString("dd/MM/yyyy HH:mm:ss")</p>
+        <p><strong>Primer Cobro Después del Período de Prueba:</strong> @nextBillingTime.ToString("dd/MM/yyyy HH:mm:ss")</p>
+    }
+}
+else
+{
+    <p>No hay detalles del ciclo disponibles.</p>
+}
+
+<p>
+    <strong>Próximo Pago:</strong>
+    @if (Model.NextBillingTime != DateTime.MinValue)
+    {
+        @Model.NextBillingTime
+    }
+    else
+    {
+        <span>Información de facturación no disponible.</span>
+    }
+</p>
+
+<p>
+    <strong>Último Pago:</strong>
+    @if (Model.LastPaymentTime.HasValue && Model.LastPaymentTime.Value.Year > 1753)
+    {
+    <p><strong>Fecha Último pago:</strong> @Model.LastPaymentTime</p>
+    <p><strong>Cantidad a pagar:</strong> @Model.LastPaymentAmount @Model.LastPaymentCurrency</p>
+    }
+    else
+    {
+    <span>No hay información disponible del último pago.</span>
+    }
+</p>
+
+
+<p>
+    <strong>Fecha Final de Pago:</strong>
+    @if (Model.FinalPaymentTime != DateTime.MinValue)
+    {
+        @Model.FinalPaymentTime.ToString("dd/MM/yyyy HH:mm:ss")
+    }
+    else
+    {
+        <span>No disponible</span>
+    }
+</p>

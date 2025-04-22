@@ -1,0 +1,147 @@
+﻿@using GestorInventario.Domain.Models.ViewModels.Paypal
+@using GestorInventario.PaginacionLogica
+
+@model PlanesPaginadosViewModel
+
+@{
+    ViewBag.Title = "Planes de Suscripción de PayPal";
+}
+
+<div class="container mt-4">
+    <h2 class="text-center mb-4"><i class="bi bi-star-fill me-2"></i>Planes de Suscripción de PayPal</h2>
+
+    <div class="alert alert-info text-center rounded-3 mb-4" role="alert">
+        Explora nuestros planes de suscripción y suscríbete al que mejor se adapte a tus necesidades. ¡Disfruta de servicios exclusivos con PayPal!
+    </div>
+
+    @if (!Model.Planes.Any())
+    {
+        <div class="alert alert-warning text-center rounded-3">
+            No hay planes de suscripción disponibles en este momento.
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var plan in Model.Planes)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 border-0 shadow-lg">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title text-center">@plan.name</h5>
+                            <p class="card-text text-center text-muted mb-3">@plan.description</p>
+
+                            <!-- Información visible para todos -->
+                            <p class="card-text"><strong>Estado:</strong> <span class="badge @(plan.status == "ACTIVE" ? "bg-success" : "bg-danger")">@plan.status</span></p>
+
+                            @if (plan.billing_cycles != null && plan.billing_cycles.Any())
+                            {
+                                <p class="card-text"><strong>Detalles de Facturación:</strong></p>
+                                <ul class="list-unstyled">
+                                    @foreach (var cycle in plan.billing_cycles)
+                                    {
+                                        <li class="mb-2">
+                                            @if (cycle.tenure_type == "TRIAL")
+                                            {
+                                                <span>
+                                                    <i class="bi bi-gift me-2 text-success"></i>
+                                                    Período de Prueba (@cycle.total_cycles ciclo@(cycle.total_cycles != 1 ? "s" : "")): @(cycle.frequency.interval_count) @(cycle.frequency.interval_unit.ToLower() == "month" ? (cycle.frequency.interval_count == 1 ? "día" : "días") : cycle.frequency.interval_unit) - @cycle.pricing_scheme.fixed_price.value @cycle.pricing_scheme.fixed_price.currency_code
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span>
+                                                    <i class="bi bi-wallet2 me-2 text-primary"></i>
+                                                    Ciclo Regular (@cycle.total_cycles ciclo@(cycle.total_cycles != 1 ? "s" : "")): @cycle.frequency.interval_unit - @cycle.pricing_scheme.fixed_price.value @cycle.pricing_scheme.fixed_price.currency_code
+                                                </span>
+                                            }
+                                        </li>
+                                    }
+                                </ul>
+
+                                <!-- Calcular el costo total con impuestos -->
+                              
+                                    decimal? totalWithTax = null;
+                                    string currencyCode = null;
+                                    string intervalUnit = null;
+
+                                    var regularCycle = plan.billing_cycles.FirstOrDefault(c => c.tenure_type == "REGULAR");
+                                    if (regularCycle != null && plan.Taxes != null && decimal.TryParse(plan.Taxes.percentage, out var taxPercentage))
+                                    {
+                                        var price = decimal.Parse(regularCycle.pricing_scheme.fixed_price.value);
+                                        var taxAmount = price * (taxPercentage / 100);
+                                        totalWithTax = price + taxAmount;
+                                        currencyCode = regularCycle.pricing_scheme.fixed_price.currency_code;
+                                        intervalUnit = regularCycle.frequency.interval_unit;
+                                   }
+                                
+
+                                @if (totalWithTax.HasValue)
+                                {
+                                    <p class="card-text"><strong>Total con Impuestos:</strong> @totalWithTax.Value.ToString("F2") @currencyCode por @intervalUnit</p>
+                                }
+                            }
+                            else
+                            {
+                                <p class="card-text text-muted">Detalles de facturación no disponibles.</p>
+                            }
+
+                            <!-- Información técnica solo para administradores -->
+                            @if (User.IsInRole("administrador"))
+                            {
+                                <hr class="my-3" />
+                                <p class="card-text"><strong>ID del Plan:</strong> @plan.id</p>
+                                <p class="card-text"><strong>Producto:</strong> @plan.productId</p>
+                                <p class="card-text"><strong>Tipo:</strong> @plan.usage_type</p>
+                                <p class="card-text"><strong>Fecha de Creación:</strong> @plan.createTime</p>
+                            }
+
+                            <div class="mt-auto">
+                                <div class="btn-group w-100" role="group" aria-label="Acciones">
+                                    <!-- Botón de suscripción visible para todos -->
+                                    <form asp-action="IniciarSuscripcion" method="post" class="w-@(User.IsInRole("administrador") ? "50 pe-1" : "100")">
+                                        <input type="hidden" name="plan_id" value="@plan.id" />
+                                        <input type="hidden" name="brand_name" value="@plan.name" />
+                                        <button type="submit" class="btn btn-success w-100"><i class="bi bi-check-circle me-2"></i>Suscribirse</button>
+                                    </form>
+
+                                    <!-- Botón de desactivar solo para administradores -->
+                                    @if (User.IsInRole("administrador"))
+                                    {
+                                        <form asp-action="DesactivarPlan" method="post" class="w-50 ps-1">
+                                            <input type="hidden" name="productId" value="@plan.productId" />
+                                            <input type="hidden" name="planId" value="@plan.id" />
+                                            <button type="submit" class="btn btn-danger w-100"><i class="bi bi-x-circle me-2"></i>Desactivar</button>
+                                        </form>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Navegación de paginación -->
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center mt-4">
+            <li class="page-item @(Model.TienePaginaAnterior ? "" : "disabled")">
+                <a class="page-link" href="@Url.Action("MostrarPlanes", new { pagina = Model.PaginaActual - 1 })" aria-label="Anterior">
+                    <span aria-hidden="true">«</span>
+                </a>
+            </li>
+            @foreach (var pagina in Model.Paginas)
+            {
+                <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
+                    <a class="page-link" href="@Url.Action("MostrarPlanes", new { pagina = pagina.Pagina })">@pagina.Texto</a>
+                </li>
+            }
+            <li class="page-item @(Model.TienePaginaSiguiente ? "" : "disabled")">
+                <a class="page-link" href="@Url.Action("MostrarPlanes", new { pagina = Model.PaginaActual + 1 })" aria-label="Siguiente">
+                    <span aria-hidden="true">»</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
