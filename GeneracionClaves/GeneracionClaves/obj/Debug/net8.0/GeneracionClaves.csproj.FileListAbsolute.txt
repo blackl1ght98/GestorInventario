@@ -1,0 +1,14 @@
+C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\GeneracionClaves\GeneracionClaves\bin\Debug\net8.0\GeneracionClaves.exe
+C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\GeneracionClaves\GeneracionClaves\bin\Debug\net8.0\GeneracionClaves.deps.json
+C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\GeneracionClaves\GeneracionClaves\bin\Debug\net8.0\GeneracionClaves.runtimeconfig.json
+C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\GeneracionClaves\GeneracionClaves\bin\Debug\net8.0\GeneracionClaves.dll
+C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\GeneracionClaves\GeneracionClaves\bin\Debug\net8.0\GeneracionClaves.pdb
+C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\GeneracionClaves\GeneracionClaves\obj\Debug\net8.0\GeneracionClaves.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\GeneracionClaves\GeneracionClaves\obj\Debug\net8.0\GeneracionClaves.AssemblyInfoInputs.cache
+C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\GeneracionClaves\GeneracionClaves\obj\Debug\net8.0\GeneracionClaves.AssemblyInfo.cs
+C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\GeneracionClaves\GeneracionClaves\obj\Debug\net8.0\GeneracionClaves.csproj.CoreCompileInputs.cache
+C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\GeneracionClaves\GeneracionClaves\obj\Debug\net8.0\GeneracionClaves.dll
+C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\GeneracionClaves\GeneracionClaves\obj\Debug\net8.0\refint\GeneracionClaves.dll
+C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\GeneracionClaves\GeneracionClaves\obj\Debug\net8.0\GeneracionClaves.pdb
+C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\GeneracionClaves\GeneracionClaves\obj\Debug\net8.0\GeneracionClaves.genruntimeconfig.cache
+C:\Users\guill\OneDrive\Escritorio\Proyectos .NET\GeneracionClaves\GeneracionClaves\obj\Debug\net8.0\ref\GeneracionClaves.dll
