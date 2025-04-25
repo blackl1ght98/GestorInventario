@@ -1,0 +1,203 @@
+﻿@using GestorInventario.PaginacionLogica
+@model List<Pedido>
+
+<h1>Pedidos</h1>
+
+<p>
+    @if (User.IsInRole("Administrador"))
+    {
+        <a asp-action="Create" class="btn btn-primary">Crear Pedido</a>
+    }
+</p>
+
+@{
+    var paginas = ViewBag.Paginas as List<PaginasModel>;
+}
+
+<div class="container my-4">
+    <div class="row g-3">
+        <div class="col-md-6">
+            <form asp-controller="Pedidos" asp-action="Index" method="get">
+                <div class="row g-2 align-items-center">
+                    <div class="col-auto">
+                        <label class="form-label">Fecha inicio:</label>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="date" name="fechaInicio" class="form-control" value="@ViewData["FechaInicio"]" />
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label">Fecha fin:</label>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="date" name="fechaFin" class="form-control" value="@ViewData["FechaFin"]" />
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary">Buscar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-6">
+            <form asp-controller="Pedidos" asp-action="Index" method="get">
+                <div class="row g-2 align-items-center">
+                    <div class="col-auto">
+                        <label class="form-label">Buscar:</label>
+                    </div>
+                    <div class="col-md-6">
+                        <input type="text" name="buscar" class="form-control" placeholder="Número de pedido, Estado, Nombre del cliente..." value="@ViewData["Buscar"]" />
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary">Buscar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    @foreach (var pedido in Model)
+    {
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-lg">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Pedido #@pedido.NumeroPedido</h5>
+                    <p class="card-text"><strong>Fecha:</strong> @pedido.FechaPedido</p>
+                    <p class="card-text"><strong>Estado:</strong> @pedido.EstadoPedido</p>
+                    <p class="card-text"><strong>Cliente:</strong> @pedido.IdUsuarioNavigation?.NombreCompleto</p>
+
+                    <div class="mt-auto">
+                        <div class="btn-group" role="group" aria-label="Acciones">
+                            <a asp-action="DetallesPedido" asp-route-id="@pedido.Id" class="btn btn-primary btn-sm">Ver Detalles</a>
+                            @{
+                                bool isRefunded = pedido.EstadoPedido == "Reembolsado";
+                            }
+                            @if (User.IsInRole("administrador"))
+                            {
+                                <a asp-action="Edit" asp-route-id="@pedido.Id" class="btn btn-primary btn-sm">Actualizar</a>
+                                <button type="button" class="btn btn-warning btn-sm refund-button"
+                                        data-toggle="modal"
+                                        data-target="#confirmModal"
+                                        data-pedido-id="@pedido.Id"
+                                @(isRefunded ? "disabled" : "")>
+                                    Reembolsar
+                                </button>
+                                <a asp-action="Delete" asp-route-id="@pedido.Id" class="btn btn-danger btn-sm">Eliminar</a>
+                                <a asp-action="DetallesPagoEjecutado" asp-route-id="@pedido.PagoId" class="btn btn-primary btn-sm mt-2 w-100">Detalles de Pago</a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        @foreach (var pagina in paginas)
+        {
+            <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
+                <a class="page-link" href="@Url.Action("Index", new { buscar = ViewData["Buscar"], fechaInicio = ViewData["FechaInicio"], fechaFin = ViewData["FechaFin"], Pagina = pagina.Pagina })">
+                    @if (pagina.Texto == "Anterior")
+                    {
+                        <span aria-hidden="true">«</span>
+                    }
+                    else if (pagina.Texto == "Siguiente")
+                    {
+                        <span aria-hidden="true">»</span>
+                    }
+                    else
+                    {
+                        @pagina.Texto
+                    }
+                </a>
+            </li>
+        }
+    </ul>
+</nav>
+
+<!-- Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content rounded-3">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="confirmModalLabel">Confirmación</h5>
+                <button type="button" class="btn-close btn-close-white" data-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">¿Estás seguro de que deseas realizar esta acción?</p>
+                <p id="loadingMessage" style="display: none;">Procesando...</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmActionBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var pedidoId;
+
+            // Maneja el clic en los botones de reembolso
+            var refundButtons = document.querySelectorAll(".refund-button");
+            refundButtons.forEach(function (button) {
+                button.addEventListener("click", function (event) {
+                    event.preventDefault();
+                    pedidoId = button.getAttribute("data-pedido-id");
+
+                    // Se obtiene el modal
+                    var confirmModal = document.getElementById("confirmModal");
+                    // Se muestra el modal
+                    confirmModal.classList.add("show");
+                    confirmModal.style.display = "block";
+                    document.body.classList.add("modal-open");
+                    document.getElementById("confirmMessage").textContent = `¿Estás seguro de que deseas reembolsar el pedido ${pedidoId}?`;
+                });
+            });
+
+            // Confirmar la acción del usuario
+            document.getElementById("confirmActionBtn").addEventListener("click", function () {
+                // Muestra un mensaje de carga
+                document.getElementById("loadingMessage").style.display = "block";
+                document.getElementById("confirmActionBtn").disabled = true;
+
+                // Realiza la solicitud AJAX para reembolsar el pedido
+                fetch('/Payment/RefundSale', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        PedidoId: pedidoId,
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Reembolso realizado con éxito");
+                    location.reload(); // Recarga la página después de la respuesta exitosa
+                })
+                .catch(error => {
+                    console.log("Error al realizar el reembolso: " + error);
+                    document.getElementById("loadingMessage").textContent = "Error al procesar el reembolso.";
+                    document.getElementById("confirmActionBtn").disabled = false;
+                });
+            });
+
+            // Cerrar el modal al hacer clic en "Cancelar" o en la "X"
+            document.querySelectorAll('[data-dismiss="modal"]').forEach(function (button) {
+                button.addEventListener("click", function () {
+                    var confirmModal = document.getElementById("confirmModal");
+                    confirmModal.classList.remove("show");
+                    confirmModal.style.display = "none";
+                    document.body.classList.remove("modal-open");
+                    document.getElementById("loadingMessage").style.display = "none";
+                    document.getElementById("confirmActionBtn").disabled = false;
+                });
+            });
+        });
+    </script>
+}

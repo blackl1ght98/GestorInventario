@@ -1,0 +1,26 @@
+
+
+1. **Cifrado**: Es el proceso de convertir información o datos en un código para prevenir el acceso no autorizado. 
+Esto se hace generalmente con una "clave" que solo conocen el emisor y el receptor.
+
+2. **Descifrado**: Es el proceso de convertir los datos cifrados de nuevo a su forma original. 
+Esto también se hace generalmente con una "clave".
+
+3. **Clave de cifrado/descifrado**: Es un pedazo de información que se utiliza en el cifrado y descifrado de datos. 
+Solo aquellos que tienen la clave pueden descifrar los datos cifrados.
+
+4. **Algoritmo de cifrado**: Es un conjunto de reglas matemáticas (llamadas algoritmo) que se utilizan para cifrar y 
+descifrar datos. Ejemplos comunes son AES, DES, RSA, etc.
+
+5. **Vector de Inicialización (IV)**: Es un valor aleatorio que se utiliza en el cifrado para hacer que cada cifrado sea único, 
+incluso si se cifra el mismo texto plano con la misma clave más de una vez.
+
+6. **Cifrado simétrico**: Es un tipo de cifrado donde se utiliza la misma clave para cifrar y descifrar los datos. 
+Ejemplos comunes son AES y DES. (el que mas he  usado)
+
+7. **Cifrado asimétrico**: Es un tipo de cifrado donde se utilizan dos claves diferentes para cifrar y descifrar los datos. 
+Una clave se utiliza para cifrar los datos y solo la otra clave puede descifrarlos. Un ejemplo común es RSA. (en proceso de aprendizaje)
+
+8. **Función hash**: Es una función que convierte los datos de entrada en una cadena de caracteres de longitud fija que 
+representa los datos. Se utiliza a menudo para verificar la integridad de los datos. (lo he usado bastantes veces)
+

@@ -1,0 +1,25 @@
+﻿ /* Explicación de cómo se crea la paginación:
+          * 1º Pasamos los datos que se van a paginar: 
+          *    var queryable = await ExecutePolicyAsync(() => _adminrepository.ObtenerUsuarios());
+          *    En esta variable se almacena la fuente de información, que es una consulta que aún no se ha ejecutado completamente.
+          * 
+          * 2º Calculamos el número total de páginas usando el método de extensión que hemos creado:
+          *    HttpContext.TotalPaginas(queryable, paginacion.CantidadAMostrar); 
+          *    Este método necesita dos parámetros: la fuente de información (`queryable`) y la cantidad de registros a mostrar por página (`paginacion.CantidadAMostrar`). 
+          *    Calcula el total de páginas usando `Math.Ceiling` para redondear hacia arriba, y almacena el resultado en la cabecera de la respuesta HTTP bajo el nombre "totalPaginas".
+          *    Para recuperar este valor, usamos: 
+          *    var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString(); 
+          * 
+          * 3º Aplicamos la paginación llamando al método de extensión creado:
+          *    var usuarios = ExecutePolicy(() => queryable.PaginarLista(paginacion).ToList());
+          *    Este método se encarga de omitir (`Skip`) y tomar (`Take`) los registros necesarios para la página actual. Se nutre de la consulta inicial `queryable`, 
+          *    que devuelve un `IQueryable<T>`, permitiendo que la paginación se ejecute eficientemente en la base de datos.
+          * 
+          * 4º Generamos la lista de páginas para la navegación llamando a otro método de extensión:
+          *    ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina); 
+          *    Este método toma dos parámetros: el número total de páginas y la página actual, y genera la lista de páginas que se mostrará en la interfaz de usuario.
+          * 
+          * 5º Finalmente, devolvemos los datos paginados:
+          *    var usuarios = ExecutePolicy(() => queryable.PaginarLista(paginacion).ToList());
+          *    Este es el resultado final que se pasa a la vista, mostrando los registros correspondientes a la página seleccionada.
+          */

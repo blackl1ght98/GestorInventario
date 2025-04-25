@@ -1,0 +1,102 @@
+/* Estilos para la vista de productos */
+.product-image {
+    height: 200px;
+    object-fit: cover;
+}
+/* Estilos de la página */
+.bg-light {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e7eb 100%);
+}
+.card {
+    border-radius: 1rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    }
+
+/* Footer fijo */
+.footer {
+    position: fixed !important;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #f8f9fa;
+    padding: 1rem 0;
+    border-top: 1px solid #dee2e6;
+    z-index: 1000;
+}
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.card-text {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.alert-primary {
+    background-color: #e7f1ff;
+    color: #084298;
+    border: none;
+}
+
+.form-control,
+.form-select {
+    border-radius: 0.5rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.3rem rgba(0, 123, 255, 0.2);
+    }
+
+.btn-primary {
+    background: linear-gradient(90deg, #007bff, #0056b3);
+    border: none;
+    border-radius: 0.5rem;
+}
+
+    .btn-primary:hover {
+        background: linear-gradient(90deg, #0056b3, #003d80);
+    }
+
+.btn-success {
+    border-radius: 0 0.5rem 0.5rem 0; /* Solo redondear los bordes derechos */
+}
+
+.btn-danger,
+.btn-outline-secondary {
+    border-radius: 0.5rem;
+}
+
+.pagination .page-link {
+    border-radius: 0.5rem;
+    margin: 0 0.2rem;
+    font-size: 1.1rem;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+@media (max-width: 576px) {
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .btn {
+        font-size: 0.9rem;
+        padding: 0.5rem;
+    }
+
+    .pagination .page-link {
+        font-size: 1rem;
+    }
+}

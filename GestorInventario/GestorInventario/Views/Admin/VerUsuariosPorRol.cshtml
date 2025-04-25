@@ -1,0 +1,70 @@
+﻿@model List<Usuario>
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 text-dark">Usuarios con este Rol</h1>
+        <a asp-action="ObtenerRoles" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Volver a Roles</a>
+    </div>
+
+    <div class="row g-4">
+        @foreach (var usuario in Model)
+        {
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card shadow-sm h-100 border-primary">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary"><i class="bi bi-person"></i> Detalle del Usuario</h5>
+                        <p class="card-text">
+                            <strong>Nombre:</strong> @usuario.NombreCompleto<br />
+                            <strong>Email:</strong> @usuario.Email<br />
+                            <strong>Rol:</strong> @(usuario.IdRolNavigation?.Nombre ?? "No definido")
+                        </p>
+                        <div class="d-flex gap-2">
+                            <!-- Botón Cambiar Rol -->
+                            <button class="btn btn-primary btn-sm change-role-button"
+                                    data-user-id="@usuario.Id">
+                                <i class="bi bi-gear"></i> Cambiar Rol
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (!Model.Any())
+        {
+            <div class="col-12 text-center py-4">
+                <p class="text-muted">No hay usuarios asociados a este rol.</p>
+            </div>
+        }
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="changeRoleModal" tabindex="-1" aria-labelledby="changeRoleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changeRoleModalLabel">Cambiar Rol</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Selecciona el nuevo rol para el usuario:</p>
+                    <select id="roleSelect" class="form-select">
+                        @foreach (var rol in ViewBag.Roles as List<Role>)
+                        {
+                            <option value="@rol.Id">@rol.Nombre</option>
+                        }
+                    </select>
+                    <p id="loadingMessage" class="d-none mt-2">Procesando...</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="confirmChangeRoleBtn">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/ver-usuario-rol.js" asp-append-version="true"></script>
+}
