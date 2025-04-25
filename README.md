@@ -70,7 +70,7 @@ Dentro de Visual Studio 2022 para acceder al archivo de **Secretos del usuario**
     "ConnectionStringLocal": "127.0.0.1:6379"
 
   },
-
+ "AuthMode": "Symmetric", // "Symmetric", "AsymmetricFixed", "AsymmetricDynamic"
   "JwtIssuer": "",
   "JwtAudience": "",
   "JWT": {
@@ -105,6 +105,7 @@ Dentro de Visual Studio 2022 para acceder al archivo de **Secretos del usuario**
 }
 ````
 ### ¿Como obtener cada valor del archivo de secretos?
+- **AuthMode**: este valor se encarga de manejar el modo de autenticacion
 - **JwtIssuer**: este valor se encarga de verificar el token. El valor que tiene que tener es el que nosotros queramos por ejemplo:
 ```sh
 "JwtIssuer": "GestorInvetarioEmisor"
