@@ -1,0 +1,86 @@
+Documentación sobre los metodos de extension:
+
+ Los métodos de extensión te permiten “agregar” métodos a tipos existentes sin crear un nuevo tipo derivado, recompilar o modificar de alguna 
+ otra manera el tipo original. Son métodos estáticos, pero se llaman como si fueran métodos de instancia en el tipo extendido.
+ 
+Pasos para crear un metodo de extension:
+1. La clase donde se realice el metodo de extension  tienen que ser estaticos
+2. Para decirle a .NET que admita cualquier tipo de dato se le pone <T> (InsertarParametrosPaginacionRespuesta<T>)
+3. Decimos de que clase de .NET va a extender este se indica asi (this HttpContext context)
+4. Decimos a .NET que tipo de dato va a admitir en este caso (IQueryable<T> queryable)
+
+¿Que hace Httpcontext?
+Su principal funcion es poder manipular y poder hacer distintas tareas con las peticiones http, su definicion puede ser la siguiente HttpContext 
+es una clase de .NET con la cual puedes manipular una peticion http antes de enviarse.
+
+¿Como accedemos al metodo de extensión creado?         
+El metodo que estamos creando es una extension de HttpContext con lo cual poniendo esto 
+await HttpContext.InsertarParametrosPaginacionRespuesta(queryable, paginacion.CantidadAMostrar); podemos acceder al metodo.
+         
+Proceso para crear el metodo de extension:
+
+Para hacer un metodo de extension es decir que este dentro de una de las clases de .NET tenemos que hacer que esa clase sea 
+estatica(public static class HttpContextExtensions), si la clase es estatica el metodo tambien lo tiene que ser que en este 
+caso es InsertarParametrosPaginacionRespuesta.
+
+Esta clase  cuenta con lo siguiente:
+
+Lo primero que hacemos es establecer que va ha hacer nuestro metodo de extension que en este caso va a realizar una operacion asincrona 
+de tipo Task.  
+        
+Nuestro metodo Task InsertarParametrosPaginacionRespuesta<T> va a poder admitir cualquier operacion asincrona siempre que esta 
+operacion asincrona devuleva algo de tipo IQueryable<T>.
+              
+¿Pero porque solo va a poder manejar IQueryable<T> si se ha dicho que <T> admite cualquier tipo de dato?
+Esto ocurre porque si nosotros tenemos la <T> InsertarParametrosPaginacionRespuesta<T> en nuestro metodo esto ahora admite cualquier tipo de 
+dato pero nosotros queremos limitar eso, que acepte un determinado tipo de dato pues esto se determina en la parte del this() cuando en el 
+this() pones otra <T> this( IQueryable<T> queryable) estamos estableciendo una restriccion que puede decirse asi 
+"Admite cualquier dato siempre que sea IQueryable".
+
+¿Como decimos a .NET de que metodo extiende?
+Esto se especifica a lo primero del this() que en este caso es (this HttpContext context) pues nuestro metodo extiende de la clase
+HttpContext de .NET. 
+
+¿Que significa que un metodo extienda de uno de .NET?
+Lo que significa que a ese metodo que tiene ya unas funciones le agregamos nuestras propias funcionalidades, lo cual es de gran ventaja para
+determinadas operaciones como por ejemplo la paginación en este caso nuestro metodo almacena en una cabecera llamada totalPaginas el numero
+total de paginas que tiene nuestra aplicacion web.
+              
+¿Porque solo admite IQueryable<T> y no otro metodo?
+Porque con esto permite construir consultas dinamicas que permiten el filtrado de datos entre otras cosas, ademas de que se le ha puesto una
+restriccion para que admita este tipo de datos
+             
+¿Por que se usa los metodos genericos <T> en metodos de extension?
+El motivo por el cual se usa es porque no sabes que dato vas a manejar puedes manejar un dato de tipo <Usuario>, <Producto>, <Rol> gracias a los
+metodos genericos podemos manejar estos casos
+
+Ahora que tenemos la teoria vamos a verlo con un ejemplo:
+public static class HttpContextExtensions
+{
+    public static async Task InsertarParametrosPaginacionRespuesta<T>(this HttpContext context, IQueryable<T> queryable, int cantidadRegistrosAMostrar)
+        {
+          
+                if (context == null)
+                {
+                    throw new ArgumentNullException(nameof(context));
+                }
+
+           
+                double conteo = await queryable.CountAsync();
+
+         
+                double totalPaginas = Math.Ceiling(conteo / cantidadRegistrosAMostrar);
+
+                context.Response.Headers.Add("totalPaginas", totalPaginas.ToString());
+       }
+}
+En este ejemplo vemos que para los metodos de extension siguen las reglas descritas anteriormente:
+1º Clase y metodo son estaticos
+2º Nuestro metodo va admitir cualquier tipo de dato para ello ponemos InsertarParametrosPaginacionRespuesta<T>
+3º Decimos a .Net de que clase extiende en este caso de InsertarParametrosPaginacionRespuesta<T>(this HttpContext context,...)
+4º Decimos que tipo de dato va a admitir en este caso InsertarParametrosPaginacionRespuesta<T>(this HttpContext context, IQueryable<T> queryable...)
+el tipo de dato seria IQueryable<T> queryable que esto es para la construccion de consultas dinamicas.
+5º Despues de poner esto los parametros que sean necesarios para el metodo en este caso un parametro mas que es int cantidadRegistrosAMostrar
+Este metodo en resumen calcula la cantidad de registros a mostrar y para ello emplea un metodo de la clase Math que es
+Math.Ceiling(conteo / cantidadRegistrosAMostrar); Math.Ceiling redondea hacia arriba el numero mas cercano me explico si tu tiene 2,3 y le pasas esta
+funcion el resultado es 3 porque es el numero mas cercano hacia arriba
