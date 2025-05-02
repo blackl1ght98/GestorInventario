@@ -1,0 +1,116 @@
+﻿@using GestorInventario.PaginacionLogica
+@model List<GestorInventario.Domain.Models.ItemsDelCarrito>
+
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Tu Carrito de Compras</h2>
+
+    @{
+        var paginas = ViewBag.Paginas as List<PaginasModel>;
+        var shipping = 2.99m;
+        var subtotal = Model.Sum(item => item.Producto.Precio * item.Cantidad);
+        var total = subtotal + shipping;
+    }
+
+    <div class="alert alert-info text-center rounded-3" role="alert">
+        Esta página solo admite pagos vía PayPal. Asegúrese de seleccionar la moneda correcta para evitar comisiones por cambio de divisa.
+    </div>
+    <div class="alert alert-warning text-center rounded-3" role="alert">
+        El precio total de los productos se calcula en PayPal después de hacer clic en <strong>Checkout</strong>.
+    </div>
+
+    <form asp-action="Checkout" method="post" class="mb-4 text-center">
+        <label class="fw-bold me-2">Seleccione la moneda de pago:</label>
+        <select name="monedaSeleccionada" asp-items="ViewBag.Moneda" class="form-select d-inline w-auto mx-2"></select>
+        <button type="submit" class="btn btn-success"><i class="bi bi-cart-check me-2"></i>Checkout</button>
+    </form>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger text-center rounded-3">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center rounded-3">
+            Tu carrito está vacío. <a asp-controller="Productos" asp-action="Index" class="alert-link">¡Añade algunos productos!</a>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var item in Model)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 border-0 shadow-lg">
+                        <img src="@item.Producto.Imagen" class="card-img-top product-image" alt="Imagen del producto">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">@item.Producto.NombreProducto</h5>
+                            <p class="card-text"><strong>Precio:</strong> @item.Producto.Precio.ToString("C")</p>
+                            <p class="card-text"><strong>Proveedor:</strong> @item.Producto.IdProveedorNavigation?.NombreProveedor</p>
+                            <p class="card-text"><strong>Total:</strong> @((item.Producto.Precio * item.Cantidad).ToString())</p>
+
+                            <div class="d-flex justify-content-center align-items-center gap-2 mb-3">
+                                <form asp-action="Decrementar" method="post">
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-dash"></i></button>
+                                </form>
+                                <span class="fw-bold">@item.Cantidad</span>
+                                <form asp-action="Incrementar" method="post">
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i></button>
+                                </form>
+                            </div>
+
+                            <div class="mt-auto">
+                                <form asp-action="EliminiarProductoCarrito" method="post">
+                                    <input type="hidden" asp-for="@item.Id" name="id" />
+                                    <button type="submit" class="btn btn-danger w-100"><i class="bi bi-trash me-2"></i>Eliminar</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Resumen de compra -->
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-lg">
+                    <div class="card-body">
+                        <h5 class="card-title text-center">Resumen de Compra</h5>
+                        <p class="card-text"><strong>Subtotal:</strong> @subtotal.ToString()</p>
+                        <p class="card-text"><strong>Envío:</strong> @shipping.ToString()</p>
+                        <h4 class="card-text text-center"><strong>Total (con impuestos):</strong> @total.ToString()</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center mt-4">
+            @foreach (var pagina in paginas)
+            {
+                <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
+                    <a class="page-link" href="@Url.Action("Index", new { Pagina = pagina.Pagina })">
+                        @if (pagina.Texto == "Anterior")
+                        {
+                            <span aria-hidden="true">«</span>
+                        }
+                        else if (pagina.Texto == "Siguiente")
+                        {
+                            <span aria-hidden="true">»</span>
+                        }
+                        else
+                        {
+                            @pagina.Texto
+                        }
+                    </a>
+                </li>
+            }
+        </ul>
+    </nav>
+</div>

@@ -1,0 +1,105 @@
+﻿@model List<Usuario>
+@using GestorInventario.PaginacionLogica
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 text-dark">Gestión de Usuarios</h1>
+        <a asp-action="Create" class="btn btn-info"><i class="bi bi-plus-circle"></i> Crear Usuario</a>
+    </div>
+
+    @{
+        var paginas = ViewBag.Paginas as List<PaginasModel>;
+    }
+
+    <!-- Lista de Usuarios con Tarjetas -->
+    <div class="row g-4">
+        @foreach (var user in Model)
+        {
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">@user.NombreCompleto</h5>
+                        <p class="card-text">
+                            <strong>Email:</strong> @user.Email<br />
+                            <strong>Fecha de Registro:</strong> @user.FechaRegistro.ToString()<br />
+                            <strong>Rol:</strong> @user.IdRolNavigation.Nombre<br />
+                            <strong>Estado:</strong>
+                            <span class="badge @(user.BajaUsuario ? "bg-danger" : "bg-success")">
+                                @(user.BajaUsuario ? "Baja" : "Alta")
+                            </span>
+                        </p>
+                    </div>
+                    <div class="card-footer bg-light">
+                        <div class="btn-group w-100" role="group" aria-label="Acciones">
+                            <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-warning btn-sm">
+                                <i class="bi bi-pencil"></i> Editar
+                            </a>
+                            <button class="btn btn-danger btn-sm user-action-button"
+                                    data-user-id="@user.Id"
+                                    data-user-action="@(user.BajaUsuario ? "Alta" : "Baja")">
+                                <i class="bi @(user.BajaUsuario ? "bi-arrow-up-circle" : "bi-arrow-down-circle")"></i>
+                                @(user.BajaUsuario ? "Dar Alta" : "Dar Baja")
+                            </button>
+                            <a asp-action="Delete" asp-route-id="@user.Id" class="btn btn-danger btn-sm">
+                                <i class="bi bi-trash"></i> Eliminar
+                            </a>
+                            <a asp-action="ResetPassword" asp-controller="Auth" asp-route-email="@user.Email"
+                               class="btn btn-secondary btn-sm">
+                                <i class="bi bi-key"></i> Recuperar Contraseña
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (!Model.Any())
+        {
+            <div class="col-12 text-center py-4">
+                <p class="text-muted">No hay usuarios para mostrar.</p>
+                <a asp-action="Create" class="btn btn-info">Crear un nuevo usuario</a>
+            </div>
+        }
+    </div>
+
+    <!-- Paginación -->
+    @if (paginas != null && paginas.Any())
+    {
+        <nav aria-label="Navegación de páginas" class="mt-4">
+            <ul class="pagination justify-content-center">
+                @foreach (var pagina in paginas)
+                {
+                    <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
+                        <a class="page-link"
+                           href="@Url.Action("Index", new { Pagina = pagina.Pagina, buscar = ViewData["Buscar"] })">
+                            @pagina.Texto
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Confirmación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">¿Estás seguro de que deseas realizar esta acción?</p>
+                <p id="loadingMessage" class="d-none">Procesando...</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmActionBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script src="~/js/alta-baja-usuario.js" asp-append-version="true"></script>
+}
