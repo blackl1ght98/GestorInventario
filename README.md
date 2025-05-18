@@ -234,7 +234,7 @@ Para ello ejecutamos estos comandos:
 
 El proyecto **Gestor Inventario** ofrece una amplia gama de características para gestionar eficientemente el inventario:
 
-- **Gestión de Datos**: Permite realizar operaciones CRUD (Crear, Leer, Actualizar, Eliminar) en usuarios, proveedores, productos, pedidos, y el historial de productos y pedidos.
+- **Gestión de Datos**: Permite realizar operaciones CRUD (Crear, Leer, Actualizar, Eliminar).
 - **Autenticación Robusta**: El sistema de autenticación se basa en la generación de tokens y ofrece tres métodos de autenticación: Autenticación simétrica, Autenticación asimétrica con clave pública y privada fija, Autenticación asimétrica con clave pública y privada dinámica.
 - **Generación de Informes**: Los usuarios pueden descargar informes en formato PDF del historial de pedidos y productos.
 - **Notificaciones por Correo Electrónico**: El sistema envía notificaciones por correo electrónico cuando el stock de un producto está bajo.
@@ -242,7 +242,7 @@ El proyecto **Gestor Inventario** ofrece una amplia gama de características par
 - **Panel de Administración de Usuarios**: El proyecto incluye un panel de administración de usuarios para gestionar las cuentas de usuario.
 - **Sistema Basado en Roles**: El acceso a diferentes niveles del sistema se controla mediante un sistema basado en roles.
 - **Pasarela de Pago PayPal**: El proyecto incluye la implementación de una pasarela de pago PayPal.
-- **Restablecimiento de Contraseña**: Los usuarios pueden restablecer su contraseña a través del panel de administrador. Se envía un correo electrónico al usuario seleccionado con una contraseña temporal y un enlace para cambiarla.
+- **Restablecimiento de Contraseña**: El usuario como el administrador puede restablecer la constraseña si es un usuario solo puede restablecer la suya y un administrador puede restablecer la de todos.
 - **Flexibilidad en la Autenticación**: Los usuarios pueden cambiar entre los modos de autenticación de manera efectiva comentando y descomentando el código correspondiente.
 - **Alta y baja de usuarios**: El administrador puede dar de alta o baja a un usuario o varios usuarios.
 - **Docker**: Configuración necesaria para integrar en Docker.
