@@ -248,7 +248,7 @@ El proyecto **Gestor Inventario** ofrece una amplia gama de características par
 - **Docker**: Configuración necesaria para integrar en Docker.
 - **Redis**: Configuración necesaria para que funcione correctamente en Redis.
 - **Función de reembolso**: Ahora cuenta con la función de reembolsar un pedido
--  **Creacion de planes y productos con paypal **: Actualmente cuenta con la funcionalidad de crear productos y planes en paypal 
+-  **Creacion de planes y productos con paypal**: Actualmente cuenta con la funcionalidad de crear productos y planes en paypal 
 - **Función de suscripcion a planes**: Actualmente cuenta con la posibilidad de suscribirse a planes.
 -  **Seguimiento de suscriptores, planes y productos**: Actualmente cuenta con una interfaz para ver cuantos planes y productos de paypal hay ademas de llevar un seguimiento de los suscriptores que hay
    
