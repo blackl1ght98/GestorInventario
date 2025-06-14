@@ -1,0 +1,34 @@
+﻿@model Proveedore
+
+<h2>Editar Producto</h2>
+
+<form asp-action="Edit" asp-controller="Proveedor" method="post">
+    <div class="form-group">
+        <input type="hidden" asp-for="Id" />
+        <label for="NombreProveedor">Nombre</label>
+        <input type="text" class="form-control" id="NombreProveedor" asp-for="NombreProveedor" required>
+    </div>
+    <div class="form-group">
+       
+        <label for="Contacto">Contacto</label>
+        <input type="text" class="form-control" id="Contacto" asp-for="Contacto" required>
+    </div>
+    <div class="form-group">
+
+        <label for="Direccion">Dirección</label>
+        <input type="text" class="form-control" id="Direccion" asp-for="Direccion" required>
+    </div>
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-warning">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+    <button type="submit" value="Save" class="btn btn-primary mt-2">Editar</button>
+ 
+</form>
+
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>

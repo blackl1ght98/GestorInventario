@@ -1,0 +1,124 @@
+﻿@using GestorInventario.Domain.Models.ViewModels
+@model PedidosViewModel
+
+@{
+    ViewData["Title"] = "Crear Pedido";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-sm hover-card animate-fade-in">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0"><i class="bi bi-cart-plus me-2"></i>Crear Pedido</h2>
+        </div>
+        <div class="card-body p-4">
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="form-group">
+                            <label class="form-label fw-bold"><i class="bi bi-hash me-2"></i>Número Pedido (Provisional)</label>
+                            <input asp-for="NumeroPedido" class="form-control" />
+                            <span asp-validation-for="NumeroPedido" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="form-group">
+                            <label asp-for="FechaPedido" class="form-label fw-bold"><i class="bi bi-calendar me-2"></i>Fecha Pedido</label>
+                            <input asp-for="FechaPedido" class="form-control" type="date" />
+                            <span asp-validation-for="FechaPedido" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="EstadoPedido" class="form-label fw-bold"><i class="bi bi-tag me-2"></i>Estado Pedido</label>
+                    <select asp-for="EstadoPedido" class="form-select">
+                        <option value="En Proceso">En Proceso</option>
+                        <option value="Confirmado">Confirmado</option>
+                        <option value="Preparado">Preparado</option>
+                        <option value="Enviado">Enviado</option>
+                        <option value="Entregado">Entregado</option>
+                    </select>
+                    <span asp-validation-for="EstadoPedido" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label class="form-label fw-bold"><i class="bi bi-box-seam me-2"></i>Productos</label>
+                    <div class="row">
+                        @for (var i = 0; i < ViewBag.Productos.Count; i++)
+                        {
+                            <div class="col-md-6 mb-2">
+                                <div class="d-flex align-items-center">
+                                    <input type="checkbox" asp-for="ProductosSeleccionados[i]" class="form-check-input me-2" id="producto-@i" />
+                                    <label class="form-check-label me-3" for="producto-@i">@ViewBag.Productos[i].NombreProducto</label>
+                                    <input type="hidden" asp-for="IdsProducto[i]" value="@ViewBag.Productos[i].Id" />
+                                    <input type="number" asp-for="Cantidades[i]" class="form-control w-25" min="0" placeholder="0" />
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <span asp-validation-for="ProductosSeleccionados" class="text-danger"></span>
+                    <span asp-validation-for="Cantidades" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="IdUsuario" class="form-label fw-bold"><i class="bi bi-person me-2"></i>Usuario</label>
+                    <select asp-for="IdUsuario" class="form-select" asp-items="ViewBag.Clientes"></select>
+                    <span asp-validation-for="IdUsuario" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mt-4 text-end">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save me-2"></i>Crear Pedido</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Obtener todos los checkboxes
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+
+            // Manejar el cambio en los checkboxes
+            checkboxes.forEach((checkbox, index) => {
+                checkbox.addEventListener('change', () => {
+                    const cantidad = document.querySelectorAll('input[type="number"]')[index];
+                    if (!checkbox.checked) {
+                        cantidad.value = 0;
+                    }
+                });
+            });
+
+            // Manejar el envío del formulario
+            const form = document.querySelector('form');
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+                checkboxes.forEach((checkbox, index) => {
+                    if (!checkbox.checked) {
+                        const cantidad = document.querySelectorAll('input[type="number"]')[index];
+                        cantidad.value = 0;
+                    }
+                });
+                form.submit();
+            });
+
+            // Inicializar tooltips (por si se añaden en el futuro)
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            tooltipTriggerList.forEach(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+        });
+    </script>
+}

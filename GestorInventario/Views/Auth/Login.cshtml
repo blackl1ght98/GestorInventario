@@ -1,0 +1,65 @@
+﻿@using GestorInventario.Models.ViewModels
+@model LoginViewModel
+
+<section class="vh-100 d-flex align-items-center" style="background-color: var(--background);">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+                <div class="card border-0 shadow-sm" style="border You were missing a semicolon here
+                -radius: 1rem;">
+                    <div class="card-body p-5">
+                        <h3 class="text-center mb-4 fw-bold" style="color: var(--primary);">Iniciar Sesión</h3>
+                        <form asp-controller="Auth" asp-action="Login" method="post" class="form" role="form" autocomplete="off" id="formLogin">
+                            <!-- Campo Email -->
+                            <div class="mb-4 position-relative">
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
+                                        <i class="bi bi-envelope" style="color: var(--secondary);"></i>
+                                    </span>
+                                    <input type="email" class="form-control form-control-lg" id="email" asp-for="Email" placeholder="Correo Electrónico" required />
+                                </div>
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                               
+                            </div>
+
+                            <!-- Campo Contraseña -->
+                            <div class="mb-4 position-relative">
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
+                                        <i class="bi bi-lock" style="color: var(--secondary);"></i>
+                                    </span>
+                                    <input type="password" class="form-control form-control-lg" id="password" asp-for="Password" placeholder="Contraseña" required />
+                                </div>
+                                <span asp-validation-for="Password" class="text-danger"></span>
+                            </div>
+
+                            <!-- Resumen de validación -->
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger mb-4" })
+
+                            <!-- Botón Iniciar Sesión -->
+                            <div class="d-grid mb-4">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-box-arrow-in-right nav-icon"></i> Iniciar Sesión
+                                </button>
+                            </div>
+
+                            <!-- Enlaces adicionales -->
+                            <div class="d-flex justify-content-between flex-wrap">
+                                <a asp-action="Create" asp-controller="Admin" class="btn btn-secondary btn-sm mt-2">
+                                    <i class="bi bi-person-plus nav-icon"></i> Crear Usuario
+                                </a>
+                                <a asp-action="ResetPasswordOlvidada" asp-controller="Auth" class="btn btn-outline-primary btn-sm mt-2">
+                                    <i class="bi bi-key nav-icon"></i> Recuperar Contraseña
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

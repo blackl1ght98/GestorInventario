@@ -1,0 +1,111 @@
+﻿@model List<Usuario>
+@using GestorInventario.PaginacionLogica
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "Usuarios por Rol - GestorInventario";
+    var paginas = ViewBag.Paginas as List<PaginasModel>;
+    var rolId = ViewBag.RolId as int?;
+    var rolNombre = (ViewBag.Roles as List<Role>)?.FirstOrDefault(r => r.Id == rolId)?.Nombre ?? "Desconocido";
+}
+
+<div class="container my-5">
+    <!-- Encabezado -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 fw-bold" style="color: var(--primary);">Usuarios del Rol @rolNombre</h1>
+        <a asp-action="ObtenerRoles" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left nav-icon"></i> Volver a Roles
+        </a>
+    </div>
+
+    <!-- Lista de Usuarios con Tarjetas -->
+    <div class="row g-4">
+        @foreach (var usuario in Model)
+        {
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm hover-card h-100">
+                    <div class="card-body p-4">
+                        <h5 class="card-title mb-3" style="color: var(--primary);">
+                            <i class="bi bi-person nav-icon me-2"></i> @usuario.NombreCompleto
+                        </h5>
+                        <p class="card-text">
+                            <i class="bi bi-envelope nav-icon text-muted me-2"></i>
+                            <strong>Email:</strong> @usuario.Email<br />
+                            <i class="bi bi-person-badge nav-icon text-muted me-2"></i>
+                            <strong>Rol:</strong>
+                            <span class="badge bg-primary ms-2">@(usuario.IdRolNavigation?.Nombre ?? "No definido")</span>
+                        </p>
+                        <!-- Botón Cambiar Rol -->
+                        <button class="btn btn-primary btn-sm change-role-button"
+                                data-user-id="@usuario.Id">
+                            <i class="bi bi-gear nav-icon"></i> Cambiar Rol
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (!Model.Any())
+        {
+            <div class="col-12 text-center py-5">
+                <p class="text-muted fs-5">No hay usuarios asociados a este rol.</p>
+                <a asp-action="ObtenerRoles" class="btn btn-primary">
+                    <i class="bi bi-arrow-left nav-icon"></i> Volver a Roles
+                </a>
+            </div>
+        }
+    </div>
+
+    <!-- Paginación -->
+    @if (paginas != null && paginas.Any())
+    {
+        <nav aria-label="Navegación de páginas" class="mt-5">
+            <ul class="pagination justify-content-center">
+                @foreach (var pagina in paginas)
+                {
+                    <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
+                        <a class="page-link"
+                           href="@Url.Action("VerUsuariosPorRol", new { id = rolId, Pagina = pagina.Pagina })"
+                           style="transition: background-color 0.2s;">
+                            @pagina.Texto
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="changeRoleModal" tabindex="-1" aria-labelledby="changeRoleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 1rem;">
+            <div class="modal-header" style="background-color: var(--primary); color: white;">
+                <h5 class="modal-title" id="changeRoleModalLabel">Cambiar Rol</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p>Selecciona el nuevo rol para el usuario:</p>
+                <div class="input-group">
+                    <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
+                        <i class="bi bi-person-badge" style="color: var(--secondary);"></i>
+                    </span>
+                    <select id="roleSelect" class="form-select">
+                        @foreach (var rol in ViewBag.Roles as List<Role>)
+                        {
+                            <option value="@rol.Id">@rol.Nombre</option>
+                        }
+                    </select>
+                </div>
+                <p id="loadingMessage" class="d-none mt-2 text-muted">Procesando...</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmChangeRoleBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/ver-usuario-rol.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,172 @@
+﻿@using GestorInventario.Domain.Models.ViewModels.Paypal
+@using Newtonsoft.Json
+@using System.Globalization
+@model GestorInventario.Domain.Models.SubscriptionDetail
+
+@{
+    ViewData["Title"] = "Detalles de la Suscripción";
+
+    DateTime trialEndDate = DateTime.MinValue;
+    DateTime nextBillingTime = DateTime.MinValue;
+    int trialIntervalCount = Model.TrialIntervalCount ?? 0;
+    int trialTotalCycles = Model.TrialTotalCycles ?? 0;
+    int trialDays = trialIntervalCount > 0 ? trialIntervalCount * trialTotalCycles : 0;
+
+    string dateFormat = "MM/dd/yyyy HH:mm:ss";
+    CultureInfo provider = new CultureInfo("en-US");
+
+    DateTime startDate = Model.StartTime;
+    DateTime statusUpdateDate = Model.StatusUpdateTime;
+
+    if (Model.CyclesCompleted == 1 && Model.CyclesRemaining == 0)
+    {
+        trialEndDate = startDate.AddDays(trialDays);
+        nextBillingTime = trialEndDate.AddDays(1);
+    }
+}
+
+<div class="container mt-5">
+    <div class="card shadow-sm hover-card animate-fade-in">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0"><i class="bi bi-wallet me-2"></i>Detalles de la Suscripción</h2>
+        </div>
+        <div class="card-body p-4">
+            <!-- Suscripción -->
+            <h4 class="mt-0 mb-3 text-secondary">Información General</h4>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <p><strong><i class="bi bi-tag me-2"></i>ID de la Suscripción:</strong> @Model.SubscriptionId</p>
+                    <p><strong><i class="bi bi-file-text me-2"></i>ID del Plan:</strong> @Model.PlanId</p>
+                    <p>
+                        <strong><i class="bi bi-info-circle me-2"></i>Estado:</strong>
+                        <span class="badge bg-@(Model.Status == "ACTIVE" ? "success" : Model.Status == "CANCELLED" ? "danger" : "warning")">@Model.Status</span>
+                    </p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <p><strong><i class="bi bi-calendar me-2"></i>Fecha de Inicio:</strong> @startDate.ToString("dd/MM/yyyy HH:mm:ss")</p>
+                    <p>
+                        <strong><i class="bi bi-clock me-2"></i>Fecha de Actualización:</strong>
+                        @if (statusUpdateDate.Year == 1753)
+                        {
+                            <span>Información no disponible</span>
+                        }
+                        else
+                        {
+                            @statusUpdateDate.ToString("dd/MM/yyyy HH:mm:ss")
+                        }
+                    </p>
+                    <p><strong><i class="bi bi-hourglass me-2"></i>Días de Prueba:</strong> @trialDays</p>
+                </div>
+            </div>
+
+            <!-- Suscriptor -->
+            <h4 class="mt-4 mb-3 text-secondary">Detalles del Suscriptor</h4>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <p><strong><i class="bi bi-person me-2"></i>Nombre:</strong> @Model.SubscriberName</p>
+                    <p><strong><i class="bi bi-envelope me-2"></i>Email:</strong> @Model.SubscriberEmail</p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <p><strong><i class="bi bi-key me-2"></i>ID del Pagador:</strong> @Model.PayerId</p>
+                </div>
+            </div>
+
+            <!-- Facturación -->
+            <h4 class="mt-4 mb-3 text-secondary">Detalles de Facturación</h4>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <p><strong><i class="bi bi-currency-dollar me-2"></i>Balance Pendiente:</strong> @Model.OutstandingBalance @Model.OutstandingCurrency</p>
+                    <p>
+                        <strong><i class="bi bi-calendar-check me-2"></i>Próximo Pago:</strong>
+                        @if (Model.NextBillingTime != DateTime.MinValue)
+                        {
+                            @Model.NextBillingTime.ToString()
+                        }
+                        else
+                        {
+                            <span>Información no disponible</span>
+                        }
+                    </p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <p>
+                        <strong><i class="bi bi-credit-card me-2"></i>Último Pago:</strong>
+                        @if (Model.LastPaymentTime.HasValue && Model.LastPaymentTime.Value.Year > 1753)
+                        {
+                            <span>@Model.LastPaymentTime.Value.ToString("dd/MM/yyyy HH:mm:ss")</span>
+                            <br />
+                            <span><strong>Monto:</strong> @Model.LastPaymentAmount @Model.LastPaymentCurrency</span>
+                        }
+                        else
+                        {
+                            <span>No hay información disponible</span>
+                        }
+                    </p>
+                    <p>
+                        <strong><i class="bi bi-calendar-x me-2"></i>Fecha Final de Pago:</strong>
+                        @if (Model.FinalPaymentTime != DateTime.MinValue)
+                        {
+                            @Model.FinalPaymentTime.ToString("dd/MM/yyyy HH:mm:ss")
+                        }
+                        else
+                        {
+                            <span>No disponible</span>
+                        }
+                    </p>
+                </div>
+            </div>
+
+            <!-- Ciclos -->
+            @if (Model.CyclesCompleted > 0 || Model.CyclesRemaining > 0 || Model.TotalCycles > 0)
+            {
+                <h4 class="mt-4 mb-3 text-secondary">Detalles del Ciclo</h4>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <p><strong><i class="bi bi-check-circle me-2"></i>Ciclos Completados:</strong> @Model.CyclesCompleted</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <p><strong><i class="bi bi-hourglass-split me-2"></i>Ciclos Restantes:</strong> @Model.CyclesRemaining</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <p><strong><i class="bi bi-arrow-repeat me-2"></i>Total de Ciclos:</strong> @Model.TotalCycles</p>
+                    </div>
+                </div>
+
+                <!-- Período de Prueba -->
+                @if (trialEndDate != DateTime.MinValue)
+                {
+                    <h4 class="mt-4 mb-3 text-secondary">Período de Prueba</h4>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <p><strong><i class="bi bi-hourglass me-2"></i>Días de Prueba:</strong> @trialDays</p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <p><strong><i class="bi bi-calendar-event me-2"></i>Fin del Período:</strong> @trialEndDate.ToString("dd/MM/yyyy HH:mm:ss")</p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <p><strong><i class="bi bi-wallet2 me-2"></i>Primer Cobro:</strong> @nextBillingTime.ToString("dd/MM/yyyy HH:mm:ss")</p>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="alert alert-info mt-4">
+                    <i class="bi bi-info-circle me-2"></i>No hay detalles del ciclo disponibles.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Inicializar tooltips (si se añaden en el futuro)
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+                new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+    </script>
+}

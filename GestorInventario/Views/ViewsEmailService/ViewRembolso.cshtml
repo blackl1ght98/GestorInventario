@@ -1,0 +1,44 @@
+﻿@using GestorInventario.Application.DTOs
+@model DTOEmailRembolso
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Notificación de Reembolso</title>
+</head>
+<body>
+    <h2>Solicitud de rembolso</h2>
+    <p><strong>Número de Pedido:</strong> @Model.NumeroPedido</p>
+    <p><strong>Cliente:</strong> @Model.NombreCliente</p>
+    <p><strong>Email del Cliente:</strong> @Model.EmailCliente</p>
+    <p><strong>Fecha de Reembolso:</strong> @Model.FechaRembolso.ToString()</p>
+    
+    <p><strong>Motivo del Reembolso:</strong> @Model.MotivoRembolso</p>
+
+    <h3>Productos Reembolsados:</h3>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>SKU</th>
+                <th>Precio Unitario</th>
+                <th>Cantidad</th>
+                <th>Precio total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var producto in Model.Productos)
+            {
+                <tr>
+                 
+                    <td>@producto.ItemName</td>
+                    <td>@producto.ItemSku</td>
+                    <td>@producto.ItemPrice.ToString()</td>
+                    <td>@producto.ItemQuantity</td>
+                    <td>@((producto.ItemPrice * producto.ItemQuantity).ToString())</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</body>
+</html>

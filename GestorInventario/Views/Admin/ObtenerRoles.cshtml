@@ -1,0 +1,62 @@
+﻿@model List<Role>
+@using GestorInventario.PaginacionLogica
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "Gestión de Roles - GestorInventario";
+}
+
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 fw-bold" style="color: var(--primary);">Gestión de Roles</h1>
+        
+    </div>
+
+    @{
+        var paginas = ViewBag.Paginas as List<PaginasModel>;
+    }
+
+    <!-- Lista de Roles con Tarjetas -->
+    <div class="row g-4">
+        @foreach (var role in Model)
+        {
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card border-0 shadow-sm hover-card h-100">
+                        <div class="card-body p-4">
+                            <h5 class="card-title mb-3" style="color: var(--primary);">
+                                <i class="bi bi-shield-lock nav-icon me-2"></i> @role.Nombre
+                            </h5>
+                            <p class="card-text">
+                                <i class="bi bi-people nav-icon text-muted me-2"></i>
+                                <strong>Usuarios asociados:</strong>
+                                <span class="badge bg-secondary ms-2">@(role.Usuarios?.Count() ?? 0)</span>
+                            </p>
+                            <!-- Botón para ver usuarios con este rol -->
+                            <a asp-action="VerUsuariosPorRol" asp-route-id="@role.Id" class="btn btn-primary btn-sm">
+                                <i class="bi bi-people nav-icon"></i> Ver Usuarios
+                            </a>
+                        </div>
+                    </div>
+                </div>
+        }
+      
+
+    <!-- Paginación -->
+    @if (paginas != null && paginas.Any())
+    {
+            <nav aria-label="Navegación de páginas" class="mt-5">
+                <ul class="pagination justify-content-center">
+                @foreach (var pagina in paginas)
+                {
+                            <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
+                                <a class="page-link"
+                                   href="@Url.Action("ObtenerRoles", new { Pagina = pagina.Pagina, buscar = ViewData["Buscar"] })"
+                                   style="transition: background-color 0.2s;">
+                            @pagina.Texto
+                                </a>
+                            </li>
+                }
+                </ul>
+            </nav>
+    }
+</div>

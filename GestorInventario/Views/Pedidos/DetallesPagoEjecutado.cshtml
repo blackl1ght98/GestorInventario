@@ -1,0 +1,162 @@
+﻿@using GestorInventario.Domain.Models
+@model PayPalPaymentDetail
+
+@{
+    ViewData["Title"] = "Factura de Pago - GestorInventario";
+}
+
+<div class="container my-5">
+    <div class="card border-0 shadow-sm" style="border-radius: 1rem;">
+        <div class="card-body p-5">
+            <!-- Encabezado de la factura -->
+            <div class="invoice-header text-center mb-5">
+                <img src="~/images/logo.png" alt="GestorInventario" class="mb-3" style="max-width: 150px;" />
+                <h2 class="fw-bold" style="color: var(--primary);">Factura</h2>
+                <p class="text-muted">Fecha: @Model.CreateTime?.ToString("dd/MM/yyyy HH:mm:ss")</p>
+                <p class="text-muted">ID del Pago: @Model.Id</p>
+            </div>
+
+            <!-- Detalles del Cliente -->
+            <div class="mb-5">
+                <h4 class="mb-3" style="color: var(--text);">Detalles del Cliente</h4>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <tbody>
+                            <tr>
+                                <th scope="row" class="bg-light" style="width: 30%;">Nombre</th>
+                                <td>@Model.PayerFirstName @Model.PayerLastName</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="bg-light">Email</th>
+                                <td>@Model.PayerEmail</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="bg-light">Dirección</th>
+                                <td>@Model.ShippingLine1, @Model.ShippingCity, @Model.ShippingState, @Model.ShippingPostalCode, @Model.ShippingCountryCode</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Detalles de la Transacción -->
+            <div class="mb-5">
+                <h4 class="mb-3" style="color: var(--text);">Detalles de la Transacción</h4>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <tbody>
+                            <tr>
+                                <th scope="row" class="bg-light" style="width: 30%;">Estado del Pago</th>
+                                <td>@Model.Status</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="bg-light">Descripción</th>
+                                <td>@Model.Description</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="bg-light">ID de la Venta</th>
+                                <td>@Model.SaleId</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="bg-light">Estado de la Venta</th>
+                                <td>@Model.SaleState</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Detalles de los Productos -->
+            <div class="mb-5">
+                <h4 class="mb-3" style="color: var(--text);">Productos</h4>
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered">
+                        <thead style="background-color: var(--primary); color: white;">
+                            <tr>
+                                <th>Producto</th>
+                                <th>SKU</th>
+                                <th>Cantidad</th>
+                                <th>Precio Unitario</th>
+                                <th>Impuesto</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.PayPalPaymentItems)
+                            {
+                                <tr>
+                                    <td>@item.ItemName</td>
+                                    <td>@item.ItemSku</td>
+                                    <td>@item.ItemQuantity</td>
+                                    <td>@item.ItemPrice @item.ItemCurrency</td>
+                                    <td>@item.ItemTax @item.ItemCurrency</td>
+                                    <td>@(item.ItemPrice * item.ItemQuantity + item.ItemTax) @item.ItemCurrency</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Totales -->
+            <div class="mb-5">
+                <h4 class="mb-3" style="color: var(--text);">Totales</h4>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <tbody>
+                            <tr>
+                                <th scope="row" class="bg-light" style="width: 30%;">Subtotal</th>
+                                <td>@Model.TransactionsSubtotal @Model.TransactionsCurrency</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="bg-light">Envío</th>
+                                <td>@Model.TransactionsShipping @Model.TransactionsCurrency</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="bg-light">Total</th>
+                                <td class="fw-bold">@Model.TransactionsTotal @Model.TransactionsCurrency</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Detalles de la Transacción (si aplica) -->
+            @if (Model.TransactionsCurrency != Model.ReceivableCurrency)
+            {
+                <div class="mb-5">
+                    <h4 class="mb-3" style="color: var(--text);">Detalles Adicionales</h4>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <tbody>
+                                <tr>
+                                    <th scope="row" class="bg-light" style="width: 30%;">Comisión de Transacción</th>
+                                    <td>@Model.TransactionFeeAmount @Model.TransactionFeeCurrency</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" class="bg-light">Cambio</th>
+                                    <td>@Model.ExchangeRate</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" class="bg-light">Monto Recibible</th>
+                                    <td>@Model.ReceivableAmount @Model.ReceivableCurrency</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+
+            <!-- Acciones -->
+            <h2>ACCIÓN EN FASE DE DESARROLLO NO FUNCIONA AUN</h2>
+            <div class="text-center">
+                <a href="javascript:window.print()" class="btn btn-primary">
+                    <i class="bi bi-printer nav-icon"></i> Imprimir Factura
+                </a>
+                <a asp-controller="Payment" asp-action="DownloadInvoice" asp-route-id="@Model.Id" class="btn btn-secondary ms-2">
+                    <i class="bi bi-file-earmark-pdf nav-icon"></i> Descargar PDF
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

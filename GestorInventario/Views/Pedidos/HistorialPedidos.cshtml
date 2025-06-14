@@ -1,0 +1,267 @@
+﻿@using GestorInventario.PaginacionLogica
+@model List<HistorialPedido>
+
+<div class="card hover-card">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h1 class="h4 mb-0">Historial de Pedidos</h1>
+        <a href="@Url.Action("DescargarHistorialPDF", "Pedidos")" target="_blank" class="btn btn-secondary descargar" data-bs-toggle="tooltip" title="Descargar historial en PDF">
+            <i class="bi bi-file-earmark-pdf nav-icon"></i> Descargar PDF
+        </a>
+    </div>
+    <div class="card-body">
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <form asp-controller="Pedidos" asp-action="HistorialPedidos" class="d-flex gap-2">
+                <div class="input-group">
+                    <input type="text" name="buscar" class="form-control" placeholder="Buscar en historial..." value="@ViewData["Buscar"]" />
+                    <button type="submit" class="btn btn-primary" data-bs-toggle="tooltip" title="Buscar">
+                        <i class="bi bi-search nav-icon"></i> Buscar
+                    </button>
+                </div>
+            </form>
+            @if (User.IsInRole("Administrador"))
+            {
+                <form asp-action="DeleteAllHistorial" asp-controller="Pedidos" method="post">
+                    <button type="submit" class="btn btn-danger" data-bs-toggle="tooltip" title="Eliminar todo el historial">
+                        <i class="bi bi-trash nav-icon"></i> Eliminar Todo
+                    </button>
+                </form>
+            }
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered table-hover w-100">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Acción</th>
+                        <th>IP</th>
+                        <th>ID Usuario</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var pedido in Model)
+                    {
+                        <tr>
+                            <td>@pedido.Fecha.ToString()</td>
+                            <td>@pedido.Accion</td>
+                            <td>@pedido.Ip</td>
+                            <td>@pedido.IdUsuario</td>
+                            <td>
+                                <a asp-action="DetallesHistorialPedido" asp-route-id="@pedido.Id" class="btn btn-info btn-sm" data-bs-toggle="tooltip" title="Ver detalles">
+                                    <i class="bi bi-eye nav-icon"></i> Detalles
+                                </a>
+                                @if (User.IsInRole("Administrador"))
+                                {
+                                    <a asp-action="DeleteHistorial" asp-route-id="@pedido.Id" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" title="Eliminar registro">
+                                        <i class="bi bi-trash nav-icon"></i> Eliminar
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <nav aria-label="Page navigation example" class="mt-3">
+            <ul class="pagination justify-content-center">
+                @foreach (var pagina in ViewBag.Paginas as List<PaginasModel>)
+                {
+                    <li class="page-item @(pagina.Habilitada ? null : "disabled") @(pagina.Activa ? "active" : null)">
+                        <a class="page-link" href="@Url.Action("HistorialPedidos", new { Pagina = pagina.Pagina, buscar = ViewData["Buscar"] })">@pagina.Texto</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin: 2rem auto;
+    }
+
+    .card-header {
+        background-color: var(--primary);
+        border-radius: 8px 8px 0 0;
+        padding: 1rem 1.5rem;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .table {
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+        .table th,
+        .table td {
+            padding: 0.75rem;
+            vertical-align: middle;
+        }
+
+        .table thead th {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 600;
+            border: none;
+        }
+
+        .table tbody tr {
+            transition: background-color 0.2s;
+        }
+
+            .table tbody tr:hover {
+                background-color: rgba(16, 185, 129, 0.1); /* --secondary con opacidad */
+            }
+
+    .table-bordered {
+        border: 1px solid #E5E7EB;
+    }
+
+        .table-bordered th,
+        .table-bordered td {
+            border: 1px solid #E5E7EB;
+        }
+
+    .btn-primary {
+        background-color: var(--primary);
+        border-color: var(--primary);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+        .btn-primary:hover {
+            background-color: #2B4CAF;
+            transform: scale(1.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+    .btn-secondary {
+        background-color: var(--secondary);
+        border-color: var(--secondary);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+        .btn-secondary:hover {
+            background-color: #0D9F6E;
+            transform: scale(1.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+    .btn-danger {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+        .btn-danger:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+    .btn-info {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+        .btn-info:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+    .form-control {
+        border-radius: 6px;
+        border: 1px solid #E5E7EB;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+        .form-control:focus {
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.3);
+        }
+
+    .input-group {
+        max-width: 400px;
+    }
+
+    .alert-warning {
+        background-color: rgba(255, 193, 7, 0.1);
+        border-color: #FFC107;
+        color: #856404;
+        border-radius: 6px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .alert-dismissible .btn-close {
+        padding: 1.25rem 1rem;
+    }
+
+    .pagination .page-link {
+        color: var(--primary);
+        transition: background-color 0.2s;
+        border-radius: 6px;
+        margin: 0 2px;
+    }
+
+        .pagination .page-link:hover {
+            background-color: var(--secondary);
+            color: white;
+        }
+
+    .pagination .page-item.active .page-link {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #6B7280;
+    }
+
+    .table-responsive {
+        border-radius: 8px;
+        overflow-x: auto;
+    }
+
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    media (max-width: 768px) {
+        .card
+
+    {
+        margin: 1rem;
+    }
+
+    .card-header h1 {
+        font-size: 1.25rem;
+    }
+
+    .table th,
+    .table td {
+        padding: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .input-group {
+        max-width: 100%;
+    }
+
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    }
+</style>

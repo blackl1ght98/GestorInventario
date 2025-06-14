@@ -1,0 +1,106 @@
+﻿@{
+    ViewData["Title"] = "GestorInventario - Gestión Inteligente de Inventario";
+}
+
+<div class="container my-5">
+    <!-- Hero Section -->
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold" style="color: var(--primary);">Bienvenido a GestorInventario</h1>
+        <p class="lead text-muted">La solución integral para gestionar tu inventario de forma eficiente, segura y moderna.</p>
+        <a href="https://docs.microsoft.com/aspnet/core" class="btn btn-primary mt-3" target="_blank">
+            <i class="bi bi-book nav-icon"></i> Ver Documentación
+        </a>
+        <a asp-controller="Auth" asp-action="Login" class="btn btn-secondary mt-3 ms-2">
+            <i class="bi bi-box-arrow-in-right nav-icon"></i> Empezar Ahora
+        </a>
+    </div>
+
+    <!-- Características Principales -->
+    <div class="row mb-5">
+        <h2 class="text-center mb-4" style="color: var(--text);">¿Qué ofrece GestorInventario?</h2>
+        <div class="col-md-4 mb-4">
+            <div class="card hover-card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-box-seam display-4" style="color: var(--secondary);"></i>
+                    <h5 class="card-title mt-3">Gestión Completa</h5>
+                    <p class="card-text">Realiza operaciones CRUD en productos, pedidos, proveedores y usuarios con facilidad.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card hover-card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-shield-lock display-4" style="color: var(--secondary);"></i>
+                    <h5 class="card-title mt-3">Autenticación Segura</h5>
+                    <p class="card-text">Soporta autenticación simétrica y asimétrica con tokens JWT para máxima seguridad.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card hover-card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-currency-dollar display-4" style="color: var(--secondary);"></i>
+                    <h5 class="card-title mt-3">Pagos y Reembolsos</h5>
+                    <p class="card-text">Integra PayPal para pagos y gestiona reembolsos de forma sencilla.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card hover-card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-envelope display-4" style="color: var(--secondary);"></i>
+                    <h5 class="card-title mt-3">Notificaciones</h5>
+                    <p class="card-text">Recibe alertas por correo cuando el stock de productos esté bajo.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card hover-card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-file-earmark-pdf display-4" style="color: var(--secondary);"></i>
+                    <h5 class="card-title mt-3">Informes en PDF</h5>
+                    <p class="card-text">Descarga historiales de pedidos y productos en formato PDF.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card hover-card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-person-check display-4" style="color: var(--secondary);"></i>
+                    <h5 class="card-title mt-3">Sistema de Roles</h5>
+                    <p class="card-text">Controla el acceso con roles de administrador y usuario.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Requisitos -->
+    <div class="row mb-5">
+        <h2 class="text-center mb-4" style="color: var(--text);">Requisitos para Empezar</h2>
+        <div class="col-md-6 offset-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i> Visual Studio 2022 (última versión)</li>
+                        <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i> SQL Server (última versión)</li>
+                        <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i> .NET 9.0</li>
+                        <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i> Windows 10 o 11 (verificado)</li>
+                        <li class="list-group-item"><i class="bi bi-info-circle-fill text-primary me-2"></i> Opcional: Docker, Redis, Azure Data Studio</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="text-center">
+        <h3 style="color: var(--primary);">¿Listo para gestionar tu inventario?</h3>
+        <p class="text-muted">Explora la documentación completa o inicia sesión para comenzar.</p>
+        <a href="https://docs.microsoft.com/aspnet/core" class="btn btn-primary" target="_blank">
+            <i class="bi bi-book nav-icon"></i> Documentación Completa
+        </a>
+        <a asp-controller="Auth" asp-action="Register" class="btn btn-secondary ms-2">
+            <i class="bi bi-person-plus nav-icon"></i> Registrarse
+        </a>
+    </div>
+</div>

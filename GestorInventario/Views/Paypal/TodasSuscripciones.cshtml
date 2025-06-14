@@ -1,0 +1,199 @@
+﻿@model List<SubscriptionDetail>
+@using GestorInventario.PaginacionLogica
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "Suscripciones";
+    var paginas = ViewBag.Paginas as List<PaginasModel>;
+}
+
+<div class="container mt-5">
+    <div class="text-center mb-4 animate-fade-in">
+        <h2 class="text-secondary"><i class="bi bi-wallet me-2"></i>Suscripciones</h2>
+        <p class="text-muted">Administra todas las suscripciones de PayPal, revisa detalles y realiza acciones.</p>
+    </div>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show text-center rounded-3 animate-fade-in" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-warning text-center rounded-3 animate-fade-in">
+            <i class="bi bi-exclamation-triangle me-2"></i>No hay suscripciones disponibles en este momento.
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm animate-fade-in">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered mb-0">
+                        <thead class="bg-primary text-white">
+                            <tr>
+                                <th scope="col"><i class="bi bi-key me-2"></i>ID Suscripción</th>
+                                <th scope="col"><i class="bi bi-file-text me-2"></i>Plan ID</th>
+                                <th scope="col"><i class="bi bi-info-circle me-2"></i>Estado</th>
+                                <th scope="col"><i class="bi bi-person-badge me-2"></i>Pagador ID</th>
+                                <th scope="col"><i class="bi bi-hourglass me-2"></i>Días de Prueba</th>
+                                <th scope="col"><i class="bi bi-person me-2"></i>Nombre Suscriptor</th>
+                                <th scope="col"><i class="bi bi-envelope me-2"></i>Email Suscriptor</th>
+                                @if (User.IsInRole("Administrador"))
+                                {
+                                    <th scope="col"><i class="bi bi-gear me-2"></i>Acciones</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var user in Model)
+                            {
+                                <tr class="hover-row">
+                                    <td>@Html.DisplayFor(m => user.SubscriptionId)</td>
+                                    <td>@Html.DisplayFor(m => user.PlanId)</td>
+                                    <td>
+                                        <span class="badge bg-@(user.Status == "ACTIVE" ? "success" : user.Status == "CANCELLED" ? "danger" : "warning")">
+                                            @Html.DisplayFor(m => user.Status)
+                                        </span>
+                                    </td>
+                                    <td>@Html.DisplayFor(m => user.PayerId)</td>
+                                    <td id="dias-prueba-@user.SubscriptionId">
+                                        @if (user.TrialIntervalCount > 0)
+                                        {
+                                            @user.TrialIntervalCount
+                                        }
+                                        else
+                                        {
+                                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                        }
+                                    </td>
+                                    <td>@Html.DisplayFor(m => user.SubscriberName)</td>
+                                    <td>@Html.DisplayFor(m => user.SubscriberEmail)</td>
+                                    @if (User.IsInRole("Administrador"))
+                                    {
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a asp-action="DetallesSuscripcion" asp-controller="Paypal" asp-route-id="@user.SubscriptionId"
+                                                   class="btn btn-primary btn-sm me-1">
+                                                    <i class="bi bi-eye me-2"></i>Detalles
+                                                </a>
+                                                <button class="btn btn-danger btn-sm user-action-button"
+                                                        data-suscription-id="@user.SubscriptionId">
+                                                    <i class="bi bi-x-circle-fill me-2"></i>Cancelar
+                                                </button>
+                                            </div>
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Paginación -->
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            @foreach (var pagina in paginas!)
+            {
+                <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
+                    <a class="page-link rounded-pill px-3 py-2 mx-1"
+                       href="@Url.Action("TodasSuscripciones", new { Pagina = pagina.Pagina })">
+                        @pagina.Texto
+                    </a>
+                </li>
+            }
+        </ul>
+    </nav>
+
+    <!-- Modal -->
+    <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="confirmModalLabel"><i class="bi bi-exclamation-circle me-2"></i>Confirmar Cancelación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="confirmMessage">¿Estás seguro de que deseas realizar esta acción?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x me-2"></i>Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="confirmActionBtn"><i class="bi bi-check me-2"></i>Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let subscriptionId;
+
+            // Mostrar el modal de confirmación
+            document.querySelectorAll(".user-action-button").forEach(function (button) {
+                button.addEventListener("click", function (event) {
+                    event.preventDefault();
+
+                    // Obtener el ID de la suscripción
+                    subscriptionId = button.getAttribute("data-suscription-id");
+                    console.log("Suscripción ID: " + subscriptionId);
+
+                    // Mostrar el modal usando Bootstrap 5
+                    const confirmModal = new bootstrap.Modal(document.getElementById("confirmModal"));
+                    document.getElementById("confirmMessage").textContent = `¿Estás seguro de que deseas cancelar la suscripción ${subscriptionId}?`;
+                    confirmModal.show();
+                });
+            });
+
+            // Confirmar la acción del usuario
+            document.getElementById("confirmActionBtn").addEventListener("click", function () {
+                // Ocultar el modal
+                const confirmModal = bootstrap.Modal.getInstance(document.getElementById("confirmModal"));
+                confirmModal.hide();
+
+                // Llamar a la función para cancelar la suscripción
+                cancelarSuscripcion(subscriptionId);
+            });
+
+            // Función para cancelar la suscripción
+            function cancelarSuscripcion(id) {
+                fetch('/Paypal/CancelarSuscripcion', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ subscription_id: id })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Error al procesar la solicitud');
+                    }
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Recargar la página si la cancelación es exitosa
+                        window.location.reload();
+                    } else {
+                        console.error('Error:', data.errorMessage);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al procesar la solicitud:', error);
+                });
+            }
+
+            // Inicializar tooltips (por si se añaden en el futuro)
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            tooltipTriggerList.forEach(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+        });
+    </script>
+}

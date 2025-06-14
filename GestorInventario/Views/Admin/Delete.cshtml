@@ -1,0 +1,85 @@
+﻿@model Usuario
+
+@{
+    ViewData["Title"] = "Confirmar Eliminación de Usuario - GestorInventario";
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="card border-0 shadow-sm" style="border-radius: 1rem;">
+                <div class="card-header text-center py-4" style="background: linear-gradient(90deg, var(--primary), #3B82F6); color: white;">
+                    <h3 class="mb-0 fw-bold">Confirmar Eliminación de Usuario</h3>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <p class="text-center mb-4">
+                        <i class="bi bi-exclamation-circle nav-icon text-danger me-2"></i>
+                        ¿Estás seguro de que quieres eliminar al usuario <strong>@Model.NombreCompleto</strong>?
+                    </p>
+
+                    <!-- Detalles del usuario -->
+                    <dl class="row mb-4">
+                        <dt class="col-sm-4 fw-bold" style="color: var(--primary);">
+                            <i class="bi bi-person nav-icon me-2"></i> Nombre
+                        </dt>
+                        <dd class="col-sm-8">@Model.NombreCompleto</dd>
+
+                        <dt class="col-sm-4 fw-bold" style="color: var(--primary);">
+                            <i class="bi bi-envelope nav-icon me-2"></i> Email
+                        </dt>
+                        <dd class="col-sm-8">@Model.Email</dd>
+
+                        <dt class="col-sm-4 fw-bold" style="color: var(--primary);">
+                            <i class="bi bi-geo-alt nav-icon me-2"></i> Dirección
+                        </dt>
+                        <dd class="col-sm-8">@Model.Direccion</dd>
+
+                        <dt class="col-sm-4 fw-bold" style="color: var(--primary);">
+                            <i class="bi bi-building nav-icon me-2"></i> Ciudad
+                        </dt>
+                        <dd class="col-sm-8">@Model.Ciudad</dd>
+
+                        <dt class="col-sm-4 fw-bold" style="color: var(--primary);">
+                            <i class="bi bi-mailbox nav-icon me-2"></i> Código Postal
+                        </dt>
+                        <dd class="col-sm-8">@Model.CodigoPostal</dd>
+
+                        <dt class="col-sm-4 fw-bold" style="color: var(--primary);">
+                            <i class="bi bi-calendar nav-icon me-2"></i> Fecha de Nacimiento
+                        </dt>
+                        <dd class="col-sm-8">@Model.FechaNacimiento.ToString()</dd>
+
+                        <dt class="col-sm-4 fw-bold" style="color: var(--primary);">
+                            <i class="bi bi-clock nav-icon me-2"></i> Fecha de Registro
+                        </dt>
+                        <dd class="col-sm-8">@Model.FechaRegistro.ToString()</dd>
+                    </dl>
+
+                    <!-- Mensaje de error -->
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
+                            @TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                        </div>
+                    }
+
+                    <!-- Formulario de eliminación -->
+                    <form asp-action="DeleteConfirmed" method="post">
+                        <!-- Campo oculto para el ID del usuario -->
+                        <input type="hidden" asp-for="Id" />
+                        @* Nota: El campo Id se envía al controlador para identificar el usuario a eliminar. *@
+                        <div class="d-flex justify-content-between gap-3">
+                            <button type="submit" class="btn btn-danger btn-lg flex-grow-1">
+                                <i class="bi bi-trash nav-icon"></i> Eliminar
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary btn-lg flex-grow-1">
+                                <i class="bi bi-arrow-left nav-icon"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

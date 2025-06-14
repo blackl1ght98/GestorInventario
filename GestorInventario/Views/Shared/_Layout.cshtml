@@ -1,0 +1,322 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - GestorInventario</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        :root {
+            --primary: #1E3A8A;
+            --secondary: #10B981;
+            --background: #F9FAFB;
+            --text: #1F2937;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .navbar {
+            background: linear-gradient(90deg, var(--primary), #3B82F6);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            color: white !important;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+            .navbar-brand:hover {
+                transform: scale(1.05);
+            }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            transition: color 0.2s, background-color 0.2s;
+        }
+
+            .nav-link:hover {
+                color: white !important;
+                background-color: rgba(255, 255, 255, 0.1);
+                border-radius: 5px;
+            }
+
+        .dropdown-menu {
+            background-color: #fff;
+            border: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            margin-top: 0.5rem;
+        }
+
+        .dropdown-item {
+            color: var(--text);
+            padding: 0.5rem 1rem;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+            .dropdown-item:hover {
+                background-color: var(--secondary);
+                color: white;
+            }
+
+        .btn-primary {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+            .btn-primary:hover {
+                background-color: #2B4CAF;
+                transform: scale(1.05);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+            border-color: var(--secondary);
+            transition: transform 0.2s, box-shadow 8px;
+        }
+
+            .btn-secondary:hover {
+                background-color: #0D9F6E;
+                transform: scale(1.05);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            }
+
+        .nav-icon {
+            margin-right: 0.5rem;
+        }
+
+        main {
+            flex: 1;
+            padding-bottom: 8rem;
+        }
+
+        .footer {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem 0;
+            margin-top: auto;
+        }
+
+            .footer a {
+                color: var(--secondary);
+                text-decoration: none;
+            }
+
+                .footer a:hover {
+                    color: white;
+                }
+
+        .hover-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+            .hover-card:hover {
+                transform: scale(1.02);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            }
+
+        .pagination .page-link {
+            color: var(--primary);
+            transition: background-color 0.2s;
+        }
+
+            .pagination .page-link:hover {
+                background-color: var(--secondary);
+                color: white;
+            }
+
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .pagination .page-item.disabled .page-link {
+            color: #6B7280;
+        }
+
+        .form-control:focus {
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.3);
+        }
+
+        .alert-primary {
+            background-color: rgba(30, 58, 138, 0.1);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-success {
+            background-color: var(--secondary);
+            border-color: var(--secondary);
+        }
+
+            .btn-success:hover {
+                background-color: #0D9F6E;
+            }
+
+        .product-image {
+            object-fit: cover;
+            height: 200px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index" data-bs-toggle="tooltip" title="Inicio">
+                    <i class="bi bi-box-seam nav-icon"></i> GestorInventario
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-sm-0">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index" data-bs-toggle="tooltip" title="Página principal"><i class="bi bi-house nav-icon"></i> Inicio</a>
+                            </視点: Inicio
+                        </li>
+                        @if (User.IsInRole("Administrador"))
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="gestionUsuariosDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip" title="Gestión de usuarios">
+                                    <i class="bi bi-person-gear nav-icon"></i> Gestión de Usuarios
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="gestionUsuariosDropdown">
+                                    <li>
+                                        <a asp-area="" asp-controller="Admin" asp-action="Index" class="dropdown-item" data-bs-toggle="tooltip" title="Panel de administración">Panel de Administración</a>
+                                    </li>
+                                    <li>
+                                        <a asp-area="" asp-controller="Admin" asp-action="ObtenerRoles" class="dropdown-item" data-bs-toggle="tooltip" title="Gestionar roles">Roles</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        @if (User.IsInRole("Administrador") || User.IsInRole("Usuario"))
+                        {
+                            <!-- Desplegable: Gestión de Inventario -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="gestionInventarioDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip" title="Gestión de inventario">
+                                    <i class="bi bi-boxes nav-icon"></i> Inventario
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="gestionInventarioDropdown">
+                                    @if (User.IsInRole("Administrador"))
+                                    {
+                                        <li>
+                                            <a asp-area="" asp-controller="Proveedor" asp-action="Index" class="dropdown-item" data-bs-toggle="tooltip" title="Gestionar proveedores"><i class="bi bi-truck nav-icon"></i> Proveedores</a>
+                                        </li>
+                                    }
+                                    <li>
+                                        <a asp-area="" asp-controller="Pedidos" asp-action="Index" class="dropdown-item" data-bs-toggle="tooltip" title="Ver pedidos"><i class="bi bi-cart nav-icon"></i> Pedidos</a>
+                                    </li>
+                                    <li>
+                                        <a asp-area="" asp-controller="Pedidos" asp-action="HistorialPedidos" class="dropdown-item" data-bs-toggle="tooltip" title="Historial de pedidos"><i class="bi bi-clock-history nav-icon"></i> Historial Pedidos</a>
+                                    </li>
+                                    <li>
+                                        <a asp-area="" asp-controller="Productos" asp-action="HistorialProducto" class="dropdown-item" data-bs-toggle="tooltip" title="Historial de productos"><i class="bi bi-archive nav-icon"></i> Historial Productos</a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <!-- Productos como elemento independiente -->
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Productos" asp-action="Index" data-bs-toggle="tooltip" title="Ver productos"><i class="bi bi-box nav-icon"></i> Productos</a>
+                            </li>
+                        }
+                        <!-- Desplegable: Transacciones -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="transaccionesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip" title="Gestión de transacciones">
+                                <i class="bi bi-wallet nav-icon"></i> Transacciones
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="transaccionesDropdown">
+                                <li>
+                                    <a asp-area="" asp-controller="Payment" asp-action="FormularioRembolso" class="dropdown-item" data-bs-toggle="tooltip" title="Gestionar reembolsos"><i class="bi bi-cash nav-icon"></i> Reembolsos</a>
+                                </li>
+                                <li>
+                                    <a asp-area="" asp-controller="Carrito" asp-action="Index" class="dropdown-item" data-bs-toggle="tooltip" title="Ver carrito"><i class="bi bi-cart3 nav-icon"></i> Carrito</a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav ms-auto">
+                        @if (User.IsInRole("Administrador") || User.IsInRole("Usuario"))
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="operacionesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip" title="Operaciones PayPal">
+                                    <i class="bi bi-gear nav-icon"></i> Operaciones
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="operacionesDropdown">
+                                    @if (User.IsInRole("Administrador"))
+                                    {
+                                        <li><a asp-area="" asp-controller="Paypal" asp-action="MostrarProductos" class="dropdown-item">Productos PayPal</a></li>
+                                    }
+                                    <li><a asp-area="" asp-controller="Paypal" asp-action="MostrarPlanes" class="dropdown-item">Planes PayPal</a></li>
+                                    <li><a asp-area="" asp-controller="Paypal" asp-action="TodasSuscripciones" class="dropdown-item">Suscriptores</a></li>
+                                    <li><a asp-area="" asp-controller="Paypal" asp-action="ObtenerSuscripcionUsuario" class="dropdown-item">Suscripción Usuario</a></li>
+                                </ul>
+                            </li>
+                        }
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip" title="Opciones de usuario">
+                                    <i class="bi bi-person-circle nav-icon"></i> @User.Identity.Name
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                    <li><a asp-controller="Auth" asp-action="Logout" class="dropdown-item">Cerrar sesión</a></li>
+                                    <li><a asp-action="EditUserActual" asp-controller="Admin" class="dropdown-item">Actualizar Perfil</a></li>
+                                    <li><a asp-action="ChangePassword" asp-controller="Auth" class="dropdown-item">Cambiar Contraseña</a></li>
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a asp-controller="Auth" asp-action="Login" class="btn btn-primary ms-2" data-bs-toggle="tooltip" title="Iniciar sesión">Iniciar sesión</a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <main role="main" class="container">
+        @RenderBody()
+    </main>
+    <footer class="footer text-center">
+        <div class="container">
+            © 2025 - GestorInventario - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacidad</a>
+        </div>
+    </footer>
+    <script src="~/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        // Inicializar tooltips
+        document.addEventListener('DOMContentLoaded', function () {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

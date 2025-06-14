@@ -1,0 +1,77 @@
+﻿@model HistorialPedido
+
+@{
+    ViewData["Title"] = $"Detalles del Pedido #{Model.Id}";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-sm hover-card animate-fade-in">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0"><i class="bi bi-clock-history me-2"></i>Detalles del Pedido #@Model.Id</h2>
+        </div>
+        <div class="card-body p-4">
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (Model.DetalleHistorialPedidos == null || !Model.DetalleHistorialPedidos.Any())
+            {
+                <div class="alert alert-warning text-center rounded-3 animate-fade-in">
+                    <i class="bi bi-exclamation-triangle me-2"></i>No hay detalles disponibles para este pedido.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered">
+                        <thead class="bg-primary text-white">
+                            <tr>
+                                <th scope="col"><i class="bi bi-box me-2"></i>Producto</th>
+                                <th scope="col"><i class="bi bi-hash me-2"></i>Cantidad</th>
+                                <th scope="col"><i class="bi bi-currency-euro me-2"></i>Precio Unitario</th>
+                                <th scope="col"><i class="bi bi-currency-euro me-2"></i>Precio sin IVA</th>
+                                <th scope="col"><i class="bi bi-currency-euro me-2"></i>Precio con IVA (21%)</th>
+                                <th scope="col"><i class="bi bi-tag me-2"></i>Estado</th>
+                                <th scope="col"><i class="bi bi-cart me-2"></i>Número Pedido</th>
+                                <th scope="col"><i class="bi bi-calendar me-2"></i>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var detalle in Model.DetalleHistorialPedidos)
+                            {
+                                <tr class="hover-row">
+                                    <td>@detalle.Producto?.NombreProducto</td>
+                                    <td>@detalle.Cantidad</td>
+                                    <td>@(detalle.Producto?.Precio.ToString() ?? "N/A")</td>
+                                    <td>@((detalle.Cantidad * (detalle.Producto?.Precio ?? 0)).ToString())</td>
+                                    <td>@((detalle.Cantidad * (detalle.Producto?.Precio ?? 0) * (decimal)1.21).ToString())</td>
+                                    <td>
+                                        <span class="badge bg-@(detalle.EstadoPedido == "Entregado" ? "success" : detalle.EstadoPedido == "Cancelado" ? "danger" : "primary")">
+                                            @detalle.EstadoPedido
+                                        </span>
+                                    </td>
+                                    <td>@detalle.NumeroPedido</td>
+                                    <td>@detalle.FechaPedido.ToString()</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Inicializar tooltips (por si se añaden en el futuro)
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            tooltipTriggerList.forEach(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+        });
+    </script>
+}

@@ -1,0 +1,102 @@
+﻿@using GestorInventario.Domain.Models.ViewModels.Paypal
+@model RefundForm
+
+@{
+    ViewData["Title"] = "Crear Petición de Rembolso - GestorInventario";
+}
+
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-6">
+                <div class="card border-0 shadow-lg" style="border-radius: 1rem;">
+                    <div class="card-header text-center py-4" style="background: linear-gradient(90deg, var(--primary), #3B82F6); color: white;">
+                        <h3 class="mb-0 fw-bold">Crear Petición de Rembolso</h3>
+                    </div>
+                    <div class="card-body p-4 p-md-5">
+                        <form asp-action="FormularioRembolso" method="post" id="createUserForm" novalidate>
+                            <!-- Número de Pedido -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold" for="NumeroPedido">Número de Pedido</label>
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
+                                        <i class="bi bi-hash" style="color: var(--secondary);"></i>
+                                    </span>
+                                    <input type="text" class="form-control form-control-lg" id="NumeroPedido" asp-for="NumeroPedido"
+                                           placeholder="Introduzca el número de pedido" required />
+                                </div>
+                                <span asp-validation-for="NumeroPedido" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Nombre del Cliente -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold" for="NombreCliente">Nombre del Cliente</label>
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
+                                        <i class="bi bi-person" style="color: var(--secondary);"></i>
+                                    </span>
+                                    <input type="text" class="form-control form-control-lg" id="NombreCliente" asp-for="NombreCliente"
+                                           placeholder="Introduzca el nombre del cliente" required />
+                                </div>
+                                <span asp-validation-for="NombreCliente" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Correo Electrónico -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold" for="EmailCliente">Correo Electrónico</label>
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
+                                        <i class="bi bi-envelope" style="color: var(--secondary);"></i>
+                                    </span>
+                                    <input type="email" class="form-control form-control-lg" id="EmailCliente" asp-for="EmailCliente"
+                                           placeholder="Introduzca el correo electrónico" required />
+                                </div>
+                                <span asp-validation-for="EmailCliente" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Fecha de Rembolso -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold" for="FechaRembolso">Fecha de Rembolso</label>
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
+                                        <i class="bi bi-calendar" style="color: var(--secondary);"></i>
+                                    </span>
+                                    <input type="date" class="form-control form-control-lg" id="FechaRembolso" asp-for="FechaRembolso"
+                                           required />
+                                </div>
+                                <span asp-validation-for="FechaRembolso" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Motivo de Rembolso -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold" for="MotivoRembolso">Motivo de Rembolso</label>
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
+                                        <i class="bi bi-chat" style="color: var(--secondary);"></i>
+                                    </span>
+                                    <textarea class="form-control form-control-lg" id="MotivoRembolso" asp-for="MotivoRembolso"
+                                              placeholder="Introduzca el motivo del reembolso" rows="4"></textarea>
+                                </div>
+                                <span asp-validation-for="MotivoRembolso" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Botones -->
+                            <div class="d-grid gap-3">
+                                <button type="submit" class="btn btn-primary btn-lg" id="submitButton">
+                                    <i class="bi bi-send me-2"></i>Crear Petición de Rembolso
+                                </button>
+                                <a class="btn btn-outline-secondary btn-lg" asp-controller="Paypal" asp-action="Index">
+                                    <i class="bi bi-arrow-left me-2"></i>Volver
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

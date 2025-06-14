@@ -1,0 +1,306 @@
+﻿@using GestorInventario.PaginacionLogica
+@model List<HistorialProducto>
+@{
+
+    var paginas = ViewBag.Paginas as List<PaginasModel>;
+}
+
+
+<style>
+    /* Título */
+    h1 {
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    /* Alerta */
+    .alert-warning {
+        background-color: rgba(245, 158, 11, 0.1);
+        border-color: #F59E0B;
+        color: #F59E0B;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Botones de acción superior */
+    .btn-action-top {
+        border-radius: 8px;
+        padding: 0.5rem 1.5rem;
+        margin-right: 0.5rem;
+        margin-bottom: 1rem;
+        transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-download {
+        background-color: var(--primary);
+        border-color: var(--primary);
+        color: white;
+    }
+
+    .btn-download:hover {
+        background-color: #2B4CAF;
+        transform: scale(1.05);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-delete-all {
+        background-color: #DC2626; /* Rojo */
+        border-color: #DC2626;
+        color: white;
+    }
+
+    .btn-delete-all:hover {
+        background-color: #B91C1C;
+        transform: scale(1.05);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Formulario de búsqueda */
+    .search-form {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        max-width: 400px;
+    }
+
+    .search-form .form-control {
+        border-radius: 8px;
+        border: 1px solid #D1D5DB;
+        padding: 0.5rem 1rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-form .form-control:focus {
+        border-color: var(--secondary);
+        box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.3);
+    }
+
+    .search-form .btn-search {
+        background-color: var(--primary);
+        border-color: var(--primary);
+        color: white;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+
+    .search-form .btn-search:hover {
+        background-color: #2B4CAF;
+        transform: scale(1.05);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Tabla */
+    .table {
+        background-color: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .table thead th {
+        background-color: var(--primary);
+        color: white;
+        font-weight: 500;
+        padding: 1rem;
+        text-align: center;
+    }
+
+    .table tbody tr {
+        transition: background-color 0.2s, transform 0.2s;
+    }
+
+    .table tbody tr:hover {
+        background-color: rgba(16, 185, 129, 0.05);
+        transform: scale(1.01);
+    }
+
+    .table tbody td {
+        padding: 1rem;
+        vertical-align: middle;
+        text-align: center;
+    }
+
+    /* Botones de acciones en la tabla */
+    .btn-action {
+        border-radius: 6px;
+        padding: 0.4rem 1rem;
+        font-size: 0.875rem;
+        margin: 0 0.25rem;
+        transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-details {
+        background-color: #3B82F6; /* Azul claro */
+        border-color: #3B82F6;
+        color: white;
+    }
+
+    .btn-details:hover {
+        background-color: #2563EB;
+        transform: scale(1.05);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-delete {
+        background-color: #DC2626; /* Rojo */
+        border-color: #DC2626;
+        color: white;
+    }
+
+    .btn-delete:hover {
+        background-color: #B91C1C;
+        transform: scale(1.05);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Paginación */
+    .pagination {
+        margin-top: 2rem;
+    }
+
+    .pagination .page-link {
+        color: var(--primary);
+        border-radius: 6px;
+        margin: 0 0.25rem;
+        padding: 0.5rem 1rem;
+        transition: background-color 0.2s, color 0.2s, transform 0.2s;
+    }
+
+    .pagination .page-link:hover {
+        background-color: var(--secondary);
+        color: white;
+        transform: scale(1.05);
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: var(--primary);
+        border-color: var(--primary);
+        color: white;
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #6B7280;
+        background-color: #F3F4F6;
+        border-color: #D1D5DB;
+    }
+
+    /* Responsividad */
+    media (max-width: 768px) {
+        .search-form {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .btn-action-top {
+            padding: 0.4rem 1rem;
+            font-size: 0.875rem;
+            display: block;
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+
+        .table thead th,
+        .table tbody td {
+            font-size: 0.875rem;
+            padding: 0.75rem;
+        }
+
+        .btn-action {
+            padding: 0.3rem 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        .pagination .page-link {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.875rem;
+        }
+    }
+</style>
+
+<h1>Historial de Productos</h1>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert-warning">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<div class="d-flex flex-column flex-md-row gap-2 mb-    <a href="@Url.Action("DescargarHistorialPDF", "Productos")" target="_blank" class="btn btn-download btn-action-top"><i class="bi bi-file-earmark-pdf nav-icon"></i> Descargar Historial PDF</a>
+-    <form asp-action="DeleteAllHistorial" asp-controller="Productos" method="post" onsubmit="return confirm('¿Estás seguro de que quieres eliminar todo el historial? Esta acción no se puede deshacer.');">
+-        <input type="submit" value="Eliminar todo el historial" class="btn btn-delete-all btn-action-top" />
+-    </form>
+-</div>
+
+<form asp-controller="Productos" asp-action="HistorialProducto" class="search-form">
+    <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input type="text" name="buscar" class="form-control" placeholder="Buscar en historial..." />
+    </div>
+    <input type="submit" value="Buscar" class="btn btn-search" />
+</form>
+
+<div class="table-responsive">
+    <table class="table table-striped table-bordered w-100">
+        <thead>
+            <tr>
+                <th>Usuario</th>
+                <th>Fecha</th>
+                <th>Acción</th>
+                <th>IP</th>
+                <th>Detalles</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var pedido in Model)
+            {
+                <tr>
+                    <td>@pedido.UsuarioId</td>
+                    <td>@pedido.Fecha.ToString()</td>
+                    <td>@pedido.Accion</td>
+                    <td>@pedido.Ip</td>
+                    <td>
+                        <a asp-action="DetallesHistorialProducto" asp-route-id="@pedido.Id" class="btn btn-details btn-action"><i class="bi bi-eye nav-icon"></i> Ver detalles</a>
+                    </td>
+                    <td>
+                        @if (User.IsInRole("Administrador"))
+                        {
+                            <a asp-action="DeleteHistorial" asp-route-id="@pedido.Id" class="btn btn-delete btn-action" onclick="return confirm('¿Estás seguro de que quieres eliminar este registro del historial?');"><i class="bi bi-trash nav-icon"></i> Eliminar</a>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        @foreach (var pagina in paginas)
+        {
+            <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
+                <a class="page-link" href="@Url.Action("HistorialProducto", new { Pagina = pagina.Pagina, buscar = ViewData["Buscar"] })">
+                    @if (pagina.Texto == "Anterior")
+                    {
+                        <span aria-hidden="true">«</span>
+                    }
+                    else if (pagina.Texto == "Siguiente")
+                    {
+                        <span aria-hidden="true">»</span>
+                    }
+                    else
+                    {
+                        @pagina.Texto
+                    }
+                </a>
+            </li>
+        }
+    </ul>
+</nav>

@@ -1,0 +1,134 @@
+﻿@using GestorInventario.Models.ViewModels
+@model UsuarioEditViewModel
+
+@{
+    ViewData["Title"] = "Editar Usuario - GestorInventario";
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="card border-0 shadow-sm" style="border-radius: 1rem;">
+                <div class="card-body p-5">
+                    <h3 class="text-center mb-4 fw-bold" style="color: var(--primary);">Editar Usuario</h3>
+                    <form asp-action="Edit" asp-controller="Admin" method="post">
+                        <input type="hidden" asp-for="Id" />
+
+                        <!-- Email -->
+                        <div class="mb-4">
+                            <div class="input-group">
+                                <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
+                                    <i class="bi bi-envelope" style="color: var(--secondary);"></i>
+                                </span>
+                                <input type="email" class="form-control form-control-lg" id="Email" asp-for="Email" placeholder="Correo Electrónico" required />
+                            </div>
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <!-- Nombre Completo -->
+                        <div class="mb-4">
+                            <div class="input-group">
+                                <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
+                                    <i class="bi bi-person" style="color: var(--secondary);"></i>
+                                </span>
+                                <input type="text" class="form-control form-control-lg" id="NombreCompleto" asp-for="NombreCompleto" placeholder="Nombre Completo" required />
+                            </div>
+                            <span asp-validation-for="NombreCompleto" class="text-danger"></span>
+                        </div>
+
+                        <!-- Fecha de Nacimiento -->
+                        <div class="mb-4">
+                            <div class="input-group">
+                                <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
+                                    <i class="bi bi-calendar" style="color: var(--secondary);"></i>
+                                </span>
+                                <input type="date" class="form-control form-control-lg" id="FechaNacimiento" asp-for="FechaNacimiento" required />
+                            </div>
+                            <span asp-validation-for="FechaNacimiento" class="text-danger"></span>
+                        </div>
+
+                        <!-- Teléfono -->
+                        <div class="mb-4">
+                            <div class="input-group">
+                                <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
+                                    <i class="bi bi-telephone" style="color: var(--secondary);"></i>
+                                </span>
+                                <input type="text" class="form-control form-control-lg" id="Telefono" asp-for="Telefono" placeholder="Teléfono" required />
+                            </div>
+                            <span asp-validation-for="Telefono" class="text-danger"></span>
+                        </div>
+
+                        <!-- Dirección -->
+                        <div class="mb-4">
+                            <div class="input-group">
+                                <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
+                                    <i class="bi bi-geo-alt" style="color: var(--secondary);"></i>
+                                </span>
+                                <input type="text" class="form-control form-control-lg" id="Direccion" asp-for="Direccion" placeholder="Dirección" required />
+                            </div>
+                            <span asp-validation-for="Direccion" class="text-danger"></span>
+                        </div>
+
+                        <!-- Ciudad -->
+                        <div class="mb-4">
+                            <div class="input-group">
+                                <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
+                                    <i class="bi bi-building" style="color: var(--secondary);"></i>
+                                </span>
+                                <input type="text" class="form-control form-control-lg" id="Ciudad" asp-for="Ciudad" placeholder="Ciudad" required />
+                            </div>
+                            <span asp-validation-for="Ciudad" class="text-danger"></span>
+                        </div>
+
+                        <!-- Código Postal -->
+                        <div class="mb-4">
+                            <div class="input-group">
+                                <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
+                                    <i class="bi bi-mailbox" style="color: var(--secondary);"></i>
+                                </span>
+                                <input type="text" class="form-control form-control-lg" id="CodigoPostal" asp-for="codigoPostal" placeholder="Código Postal" required />
+                            </div>
+                            <span asp-validation-for="codigoPostal" class="text-danger"></span>
+                        </div>
+
+                        <!-- Rol -->
+                        <div class="mb-4">
+                            <div class="input-group">
+                                <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
+                                    <i class="bi bi-person-badge" style="color: var(--secondary);"></i>
+                                </span>
+                                <select class="form-control form-control-lg" id="IdRol" asp-for="IdRol" asp-items="ViewBag.Roles">
+                                    <option value="">Selecciona un rol</option>
+                                </select>
+                            </div>
+                            <span asp-validation-for="IdRol" class="text-danger"></span>
+                        </div>
+
+                        <!-- Mensaje de error -->
+                        @if (TempData["ErrorMessage"] != null)
+                        {
+                            <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
+                                @TempData["ErrorMessage"]
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                            </div>
+                        }
+
+                        <!-- Botones -->
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-save nav-icon"></i> Guardar Cambios
+                            </button>
+                            <a asp-action="Index" asp-controller="Admin" class="btn btn-outline-secondary btn-lg">
+                                <i class="bi bi-arrow-left nav-icon"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

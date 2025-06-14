@@ -1,0 +1,51 @@
+﻿@model ProductosViewModel
+
+<h2>Editar Producto</h2>
+
+<form asp-action="Edit" asp-controller="Productos" method="post" enctype="multipart/form-data">
+    <div class="form-group">
+        <input type="hidden" asp-for="Id" />
+        <label for="NombreProducto">Nombre</label>
+        <input type="text" class="form-control" id="NombreProducto" asp-for="NombreProducto" required>
+    </div>
+    <div class="form-group">
+
+        <label for="Descripcion">Descripcion</label>
+        <input type="text" class="form-control" id="Contacto" asp-for="Descripcion" required>
+    </div>
+    <div class="form-group">
+
+        <label for="Cantidad">Cantidad</label>
+        <input type="text" class="form-control" id="Direccion" asp-for="Cantidad" required>
+    </div>
+    <div class="form-group">
+        <label asp-for="Imagen1" class="control-label"></label>
+        <input asp-for="Imagen1" type="file" class="form-control" />
+        <img src="@Model.Imagen" alt="Imagen del producto" style="width: 100px; height: 100px;" />
+    </div>
+    <div class="form-group">
+
+        <label for="Precio">Precio</label>
+        <input type="number" class="form-control" id="Precio" asp-for="Precio" required>
+    </div>
+  
+    <div class="form-group">
+
+        <label asp-for="IdProveedor" class="control-label"></label>
+
+        <select asp-for="IdProveedor" class="form-select" asp-items="ViewBag.Productos"></select>
+    </div>
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-warning">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+    <button type="submit" value="Save" class="btn btn-primary mt-2">Editar</button>
+  
+</form>
+
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>

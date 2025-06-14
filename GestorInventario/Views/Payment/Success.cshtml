@@ -1,0 +1,40 @@
+﻿@{
+    ViewData["Title"] = "Pago Realizado";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-sm text-center hover-card animate-fade-in">
+        <div class="card-body p-4">
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            <i class="bi bi-check-circle-fill success-icon"></i>
+            <h1 class="card-title text-success">Pago realizado con éxito</h1>
+            <p class="card-text">Redirigiendo a la página de productos en <span id="counter">5</span> segundos...</p>
+            <a href="/Productos" class="btn btn-primary mt-3">Volver a Productos</a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var counter = 5;
+            var interval = setInterval(function () {
+                counter--;
+                if (counter >= 0) {
+                    document.getElementById("counter").textContent = counter;
+                }
+                if (counter === 0) {
+                    window.location.href = "/Productos";
+                    clearInterval(interval);
+                }
+            }, 1000);
+        });
+    </script>
+}

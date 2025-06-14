@@ -1,0 +1,73 @@
+﻿@model List<UserSubscription>
+
+@{
+    ViewData["Title"] = "Suscripciones Activas";
+}
+
+<div class="container mt-5">
+    <div class="text-center mb-4 animate-fade-in">
+        <h2 class="text-secondary"><i class="bi bi-wallet me-2"></i>Suscripciones Activas</h2>
+        <p class="text-muted">Administra las suscripciones activas de los usuarios en PayPal.</p>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-warning text-center rounded-3 animate-fade-in">
+            <i class="bi bi-exclamation-triangle me-2"></i>No hay suscripciones activas en este momento.
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm animate-fade-in">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered mb-0">
+                        <thead class="bg-primary text-white">
+                            <tr>
+                                <th scope="col"><i class="bi bi-person me-2"></i>Usuario</th>
+                                <th scope="col"><i class="bi bi-person-circle me-2"></i>Nombre Suscriptor</th>
+                                <th scope="col"><i class="bi bi-key me-2"></i>ID Suscripción</th>
+                                <th scope="col"><i class="bi bi-info-circle me-2"></i>Detalles</th>
+                                <th scope="col"><i class="bi bi-x-circle me-2"></i>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var user in Model)
+                            {
+                                <tr class="hover-row">
+                                    <td>@user.User.NombreCompleto</td>
+                                    <td>@user.NombreSusbcriptor</td>
+                                    <td>@user.SubscriptionId</td>
+                                    <td>
+                                        <a asp-action="DetallesSuscripcion" asp-controller="Paypal" asp-route-id="@user.SubscriptionId"
+                                           class="btn btn-primary btn-sm">
+                                            <i class="bi bi-eye me-2"></i>Ver Detalles
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-danger btn-sm user-action-button"
+                                                data-suscription-id="@user.SubscriptionId">
+                                            <i class="bi bi-x-circle-fill me-2"></i>Cancelar
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Inicializar tooltips (por si se añaden en el futuro)
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+                new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+    </script>
+}

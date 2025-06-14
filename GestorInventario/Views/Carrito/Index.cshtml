@@ -1,0 +1,178 @@
+﻿@using GestorInventario.PaginacionLogica
+@model List<GestorInventario.Domain.Models.ItemsDelCarrito>
+
+@{
+    ViewData["Title"] = "Carrito de Compras - GestorInventario";
+    var paginas = ViewBag.Paginas as List<PaginasModel>;
+    var shipping = 2.99m;
+    var subtotal = Model.Sum(item => item.Producto.Precio * item.Cantidad);
+    var total = subtotal + shipping;
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8">
+            <div class="card border-0 shadow-lg" style="border-radius: 1rem;">
+                <div class="card-header text-center py-4" style="background: linear-gradient(90deg, var(--primary), #3B82F6); color: white;">
+                    <h3 class="mb-0 fw-bold">Tu Carrito de Compras</h3>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <!-- Alertas de PayPal -->
+                    <div class="alert alert-info alert-dismissible fade show text-center rounded-3 mb-4" role="alert">
+                        <i class="bi bi-info-circle nav-icon me-2"></i>
+                        Esta página solo admite pagos vía PayPal. Asegúrese de seleccionar la moneda correcta para evitar comisiones por cambio de divisa.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="alert alert-warning alert-dismissible fade show text-center rounded-3 mb-4" role="alert">
+                        <i class="bi bi-exclamation-circle nav-icon me-2"></i>
+                        El precio total de los productos se calcula en PayPal después de hacer clic en <strong>Checkout</strong>.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                    </div>
+
+                    <!-- Formulario de Checkout -->
+                    <form asp-action="Checkout" method="post" class="mb-4 text-center">
+                        <div class="input-group w-auto mx-auto" style="max-width: 400px;">
+                            <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
+                                <i class="bi bi-currency-exchange nav-icon" style="color: var(--secondary);"></i>
+                            </span>
+                            <select name="monedaSeleccionada" asp-items="ViewBag.Moneda" class="form-select"></select>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-cart-check me-2"></i>Checkout
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Mensaje de error -->
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show text-center rounded-3 mb-4" role="alert">
+                            <i class="bi bi-exclamation-circle nav-icon me-2"></i>
+                            @TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                        </div>
+                    }
+
+                    <!-- Carrito vacío -->
+                    @if (!Model.Any())
+                    {
+                        <div class="alert alert-info alert-dismissible fade show text-center rounded-3 mb-4" role="alert">
+                            <i class="bi bi-cart nav-icon me-2"></i>
+                            Tu carrito está vacío. <a asp-controller="Productos" asp-action="Index" class="alert-link">¡Añade algunos productos!</a>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Lista de productos -->
+                        <div class="row">
+                            @foreach (var item in Model)
+                            {
+                                <div class="col-md-4 mb-4">
+                                    <div class="card h-100 border-0 shadow-lg" style="border-radius: 1rem; transition: transform 0.2s, box-shadow 0.2s;">
+                                        <img src="@item.Producto.Imagen" class="card-img-top product-image" alt="Imagen del producto" style="border-top-left-radius: 1rem; border-top-right-radius: 1rem; object-fit: cover; height: 200px;">
+                                        <div class="card-body d-flex flex-column p-4">
+                                            <h5 class="card-title text-center" style="color: var(--primary);">@item.Producto.NombreProducto</h5>
+                                            <p class="card-text"><strong>Precio:</strong> @item.Producto.Precio.ToString()</p>
+                                            <p class="card-text"><strong>Proveedor:</strong> @item.Producto.IdProveedorNavigation?.NombreProveedor</p>
+                                            <p class="card-text"><strong>Total:</strong> @(item.Producto.Precio * item.Cantidad)</p>
+
+                                            <!-- Contador de cantidad -->
+                                            <div class="d-flex justify-content-center align-items-center gap-2 mb-3">
+                                                <form asp-action="Decrementar" method="post">
+                                                    <input type="hidden" name="id" value="@item.Id" />
+                                                    <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-dash"></i></button>
+                                                </form>
+                                                <span class="fw-bold">@item.Cantidad</span>
+                                                <form asp-action="Incrementar" method="post">
+                                                    <input type="hidden" name="id" value="@item.Id" />
+                                                    <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i></button>
+                                                </form>
+                                            </div>
+
+                                            <!-- Botón de eliminar -->
+                                            <div class="mt-auto">
+                                                <form asp-action="EliminiarProductoCarrito" method="post">
+                                                    <input type="hidden" asp-for="@item.Id" name="id" />
+                                                    <button type="submit" class="btn btn-danger w-100"><i class="bi bi-trash me-2"></i>Eliminar</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Resumen de compra -->
+                        <div class="row justify-content-center mt-4">
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-lg" style="border-radius: 1rem;">
+                                    <div class="card-header text-center py-3" style="background: linear-gradient(90deg, var(--secondary), #34D399); color: white;">
+                                        <h5 class="mb-0 fw-bold">Resumen de Compra</h5>
+                                    </div>
+                                    <div class="card-body p-4">
+                                        <p class="card-text"><strong>Subtotal:</strong> @subtotal.ToString()</p>
+                                        <p class="card-text"><strong>Envío:</strong> @shipping.ToString()</p>
+                                        <h4 class="card-text text-center" style="color: var(--primary);"><strong>Total (con impuestos):</strong> @total.ToString()</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Paginación -->
+                    @if (paginas != null && paginas.Any())
+                    {
+                        <nav aria-label="Page navigation" class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                @foreach (var pagina in paginas)
+                                {
+                                    <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new { Pagina = pagina.Pagina })" style="border-radius: 0.5rem; margin: 0 2px; @(pagina.Activa ? "background-color: var(--primary); border-color: var(--primary);" : "")">
+                                            @if (pagina.Texto == "Anterior")
+                                            {
+                                                <span aria-hidden="true">«</span>
+                                            }
+                                            else if (pagina.Texto == "Siguiente")
+                                            {
+                                                <span aria-hidden="true">»</span>
+                                            }
+                                            else
+                                            {
+                                                @pagina.Texto
+                                            }
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                        </nav>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card:hover {
+        transform: scale(1.03);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    .product-image {
+        max-height: 200px;
+        object-fit: cover;
+    }
+
+    .pagination .page-link {
+        transition: background-color 0.2s, color 0.2s;
+    }
+
+        .pagination .page-link:hover:not(.disabled) {
+            background-color: var(--secondary);
+            color: white;
+        }
+</style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,158 @@
+﻿@using GestorInventario.Domain.Models.ViewModels.Paypal
+@model ProductViewModelPaypal
+
+@{
+    ViewData["Title"] = "Crear Producto";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-sm hover-card animate-fade-in">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0">Crear Producto y Plan de Suscripción</h2>
+        </div>
+        <div class="card-body p-4">
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <form asp-action="CrearProducto" method="post">
+                <!-- Sección: Producto -->
+                <h4 class="mt-4 mb-3 text-secondary">Detalles del Producto</h4>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="form-group">
+                            <label asp-for="Name" class="form-label fw-bold"></label>
+                            <input asp-for="Name" class="form-control" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="form-group">
+                            <label asp-for="Description" class="form-label fw-bold"></label>
+                            <input asp-for="Description" class="form-control" />
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="form-group">
+                            <label asp-for="Type" class="form-label fw-bold"></label>
+                            <select asp-for="Type" class="form-select">
+                                <option value="SERVICE">Servicio</option>
+                                <option value="PHYSICAL">Físico</option>
+                                <option value="DIGITAL">Digital</option>
+                            </select>
+                            <span asp-validation-for="Type" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="form-group">
+                            <label asp-for="Category" class="form-label fw-bold"></label>
+                            <select asp-for="Category" class="form-select">
+                                @foreach (var category in Model.Categories)
+                                {
+                                    <option value="@category">@category</option>
+                                }
+                            </select>
+                            <span asp-validation-for="Category" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección: Plan de Suscripción -->
+                <h4 class="mt-4 mb-3 text-secondary">Detalles del Plan</h4>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="form-group">
+                            <label asp-for="PlanName" class="form-label fw-bold"></label>
+                            <input asp-for="PlanName" class="form-control" />
+                            <span asp-validation-for="PlanName" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="form-group">
+                            <label asp-for="PlanDescription" class="form-label fw-bold"></label>
+                            <input asp-for="PlanDescription" class="form-control" />
+                            <span asp-validation-for="PlanDescription" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="form-group">
+                            <label asp-for="Amount" class="form-label fw-bold"></label>
+                            <input asp-for="Amount" class="form-control" type="number" step="0.01" />
+                            <span asp-validation-for="Amount" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="form-group">
+                            <label class="form-label fw-bold">Moneda de Pago</label>
+                            <select name="monedaSeleccionada" asp-items="ViewBag.Moneda" class="form-select"></select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección: Período de Prueba -->
+                <h4 class="mt-4 mb-3 text-secondary">Período de Prueba</h4>
+                <div class="form-group mb-3">
+                    <div class="form-check">
+                        <input asp-for="HasTrialPeriod" class="form-check-input" type="checkbox" id="HasTrialPeriodCheckbox" />
+                        <label asp-for="HasTrialPeriod" class="form-check-label">Habilitar Período de Prueba</label>
+                        <span asp-validation-for="HasTrialPeriod" class="text-danger"></span>
+                    </div>
+                </div>
+                <div id="trialPeriodFields" style="display: none;">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="form-group">
+                                <label asp-for="TrialPeriodDays" class="form-label fw-bold"></label>
+                                <input asp-for="TrialPeriodDays" class="form-control" type="number" />
+                                <span asp-validation-for="TrialPeriodDays" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-group">
+                                <label asp-for="TrialAmount" class="form-label fw-bold"></label>
+                                <input asp-for="TrialAmount" class="form-control" type="number" step="0.01" />
+                                <span asp-validation-for="TrialAmount" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botón de envío -->
+                <div class="form-group mt-4 text-end">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save me-2"></i>Crear Producto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var checkbox = document.getElementById("HasTrialPeriodCheckbox");
+            var trialPeriodFields = document.getElementById("trialPeriodFields");
+
+            // Función para manejar el cambio del checkbox
+            checkbox.addEventListener("change", function () {
+                trialPeriodFields.style.display = checkbox.checked ? "block" : "none";
+            });
+
+            // Verificar el estado inicial
+            if (checkbox.checked) {
+                trialPeriodFields.style.display = "block";
+            }
+        });
+    </script>
+}

@@ -1,0 +1,128 @@
+﻿@model Pedido
+
+<div class="card hover-card">
+    <div class="card-header bg-primary text-white">
+        <h1 class="h4 mb-0">Detalles del Pedido #@Model.NumeroPedido</h1>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered table-hover w-100">
+                <thead class="table-dark">
+                    <tr>
+                        <th class="col-2">Nombre del Producto</th>
+                        <th class="col-2 text-center">Cantidad</th>
+                        <th class="col-2 text-end">Precio Unitario</th>
+                        <th class="col-2 text-end">Precio sin IVA</th>
+                        <th class="col-2 text-end">Precio con IVA (21%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var detalle in Model.DetallePedidos)
+                    {
+                        <tr>
+                            <td>@detalle.Producto?.NombreProducto</td>
+                            <td class="text-center">@detalle.Cantidad</td>
+                            <td class="text-end">@(detalle.Producto?.Precio.ToString())</td>
+                            <td class="text-end">@((detalle.Cantidad * (detalle.Producto?.Precio ?? 0)).ToString())</td>
+                            <td class="text-end">@((detalle.Cantidad * (detalle.Producto?.Precio ?? 0) * 1.21m).ToString())</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr class="table-light">
+                        <td colspan="3" class="text-end fw-bold">Total:</td>
+                        <td class="text-end fw-bold">@(Model.DetallePedidos.Sum(d => d.Cantidad * (d.Producto?.Precio ?? 0)).ToString())</td>
+                        <td class="text-end fw-bold">@(Model.DetallePedidos.Sum(d => d.Cantidad * (d.Producto?.Precio ?? 0) * 1.21m).ToString())</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+    }
+
+    .card-header {
+        background-color: var(--primary);
+        border-radius: 8px 8px 0 0;
+        padding: 1rem 1.5rem;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .table {
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+        .table th,
+        .table td {
+            padding: 0.75rem 1rem;
+            vertical-align: middle;
+        }
+
+        .table thead th {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 600;
+            border: none;
+        }
+
+        .table tbody tr {
+            transition: background-color 0.2s;
+        }
+
+            .table tbody tr:hover {
+                background-color: rgba(16, 185, 129, 0.1); /* --secondary con opacidad */
+            }
+
+        .table tfoot {
+            background-color: var(--background);
+            font-weight: 600;
+        }
+
+    .table-bordered {
+        border: 1px solid #E5E7EB;
+    }
+
+        .table-bordered th,
+        .table-bordered td {
+            border: 1px solid #E5E7EB;
+        }
+
+    .text-end {
+        text-align: right !important;
+    }
+
+    .text-center {
+        text-align: center !important;
+    }
+
+    .table-responsive {
+        border-radius: 8px;
+        overflow-x: auto;
+    }
+
+    media (max-width: 768px) {
+        .table th, .table td
+
+    {
+        padding: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .card-header h1 {
+        font-size: 1.25rem;
+    }
+
+    }
+</style>
