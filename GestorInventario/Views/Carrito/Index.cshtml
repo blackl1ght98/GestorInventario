@@ -9,11 +9,15 @@
     var total = subtotal + shipping;
 }
 
+
+    <link rel="stylesheet" href="~/css/carrito.css" />
+
+
 <div class="container my-5">
     <div class="row justify-content-center">
         <div class="col-12 col-md-10 col-lg-8">
-            <div class="card border-0 shadow-lg" style="border-radius: 1rem;">
-                <div class="card-header text-center py-4" style="background: linear-gradient(90deg, var(--primary), #3B82F6); color: white;">
+            <div class="card border-0 shadow-lg card-custom">
+                <div class="card-header text-center py-4 card-header-custom">
                     <h3 class="mb-0 fw-bold">Tu Carrito de Compras</h3>
                 </div>
                 <div class="card-body p-4 p-md-5">
@@ -32,8 +36,8 @@
                     <!-- Formulario de Checkout -->
                     <form asp-action="Checkout" method="post" class="mb-4 text-center">
                         <div class="input-group w-auto mx-auto" style="max-width: 400px;">
-                            <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
-                                <i class="bi bi-currency-exchange nav-icon" style="color: var(--secondary);"></i>
+                            <span class="input-group-text input-group-text-custom">
+                                <i class="bi bi-currency-exchange nav-icon currency-icon-custom"></i>
                             </span>
                             <select name="monedaSeleccionada" asp-items="ViewBag.Moneda" class="form-select"></select>
                             <button type="submit" class="btn btn-success">
@@ -68,10 +72,10 @@
                             @foreach (var item in Model)
                             {
                                 <div class="col-md-4 mb-4">
-                                    <div class="card h-100 border-0 shadow-lg" style="border-radius: 1rem; transition: transform 0.2s, box-shadow 0.2s;">
-                                        <img src="@item.Producto.Imagen" class="card-img-top product-image" alt="Imagen del producto" style="border-top-left-radius: 1rem; border-top-right-radius: 1rem; object-fit: cover; height: 200px;">
+                                    <div class="card h-100 border-0 shadow-lg card-product-custom">
+                                        <img src="@item.Producto.Imagen" class="card-img-top product-image product-image-custom" alt="Imagen del producto">
                                         <div class="card-body d-flex flex-column p-4">
-                                            <h5 class="card-title text-center" style="color: var(--primary);">@item.Producto.NombreProducto</h5>
+                                            <h5 class="card-title text-center card-title-custom">@item.Producto.NombreProducto</h5>
                                             <p class="card-text"><strong>Precio:</strong> @item.Producto.Precio.ToString()</p>
                                             <p class="card-text"><strong>Proveedor:</strong> @item.Producto.IdProveedorNavigation?.NombreProveedor</p>
                                             <p class="card-text"><strong>Total:</strong> @(item.Producto.Precio * item.Cantidad)</p>
@@ -105,14 +109,14 @@
                         <!-- Resumen de compra -->
                         <div class="row justify-content-center mt-4">
                             <div class="col-md-6">
-                                <div class="card border-0 shadow-lg" style="border-radius: 1rem;">
-                                    <div class="card-header text-center py-3" style="background: linear-gradient(90deg, var(--secondary), #34D399); color: white;">
+                                <div class="card border-0 shadow-lg card-custom">
+                                    <div class="card-header text-center py-3 card-header-summary-custom">
                                         <h5 class="mb-0 fw-bold">Resumen de Compra</h5>
                                     </div>
                                     <div class="card-body p-4">
                                         <p class="card-text"><strong>Subtotal:</strong> @subtotal.ToString()</p>
                                         <p class="card-text"><strong>Envío:</strong> @shipping.ToString()</p>
-                                        <h4 class="card-text text-center" style="color: var(--primary);"><strong>Total (con impuestos):</strong> @total.ToString()</h4>
+                                        <h4 class="card-text text-center total-text-custom"><strong>Total (con impuestos):</strong> @total.ToString()</h4>
                                     </div>
                                 </div>
                             </div>
@@ -127,7 +131,7 @@
                                 @foreach (var pagina in paginas)
                                 {
                                     <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
-                                        <a class="page-link" href="@Url.Action("Index", new { Pagina = pagina.Pagina })" style="border-radius: 0.5rem; margin: 0 2px; @(pagina.Activa ? "background-color: var(--primary); border-color: var(--primary);" : "")">
+                                        <a class="page-link page-link-custom @(pagina.Activa ? "active" : "")" href="@Url.Action("Index", new { Pagina = pagina.Pagina })">
                                             @if (pagina.Texto == "Anterior")
                                             {
                                                 <span aria-hidden="true">«</span>
@@ -151,27 +155,6 @@
         </div>
     </div>
 </div>
-
-<style>
-    .card:hover {
-        transform: scale(1.03);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2) !important;
-    }
-
-    .product-image {
-        max-height: 200px;
-        object-fit: cover;
-    }
-
-    .pagination .page-link {
-        transition: background-color 0.2s, color 0.2s;
-    }
-
-        .pagination .page-link:hover:not(.disabled) {
-            background-color: var(--secondary);
-            color: white;
-        }
-</style>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

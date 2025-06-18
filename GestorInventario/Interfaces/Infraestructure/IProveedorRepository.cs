@@ -9,6 +9,6 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<(bool, string)> CrearProveedor(ProveedorViewModel model);
         Task<Proveedore> ObtenerProveedorId(int id);
         Task<(bool, string)> EliminarProveedor(int Id);
-        Task<(bool, string)> EditarProveedor(ProveedorViewModel model);
+        Task<(bool, string)> EditarProveedor(ProveedorViewModel model, int Id);
     }
 }

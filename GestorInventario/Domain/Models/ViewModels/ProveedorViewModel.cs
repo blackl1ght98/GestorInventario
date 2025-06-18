@@ -1,4 +1,6 @@
-﻿namespace GestorInventario.Domain.Models.ViewModels
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+
+namespace GestorInventario.Domain.Models.ViewModels
 {
     public class ProveedorViewModel
     {
@@ -6,6 +8,8 @@
         public string NombreProveedor { get; set; }
         public string Contacto { get; set; }
         public string Direccion { get; set; }
+        public int? IdUsuario { get; set; } 
+        public IEnumerable<SelectListItem> Usuarios { get; set; } 
     }
    
 }

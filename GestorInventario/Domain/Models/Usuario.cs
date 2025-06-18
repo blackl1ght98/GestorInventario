@@ -51,6 +51,8 @@ public partial class Usuario
 
     public virtual ICollection<Pedido> Pedidos { get; set; } = new List<Pedido>();
 
+    public virtual ICollection<Proveedore> Proveedores { get; set; } = new List<Proveedore>();
+
     public virtual ICollection<Rembolso> Rembolsos { get; set; } = new List<Rembolso>();
 
     public virtual ICollection<UserSubscription> UserSubscriptions { get; set; } = new List<UserSubscription>();

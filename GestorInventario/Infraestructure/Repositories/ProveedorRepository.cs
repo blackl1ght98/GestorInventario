@@ -15,10 +15,15 @@ namespace GestorInventario.Infraestructure.Repositories
             _context = context;
             _logger = logger;
         }
-        
-        public IQueryable<Proveedore> ObtenerProveedores()=>from p in _context.Proveedores select p;             
+
+        public IQueryable<Proveedore> ObtenerProveedores()
+        {
+            return _context.Proveedores
+                .Include(p => p.IdUsuarioNavigation); // Carga la entidad relacionada
+        }
         public async Task<(bool, string)> CrearProveedor(ProveedorViewModel model)
         {
+           
             using var transaction= await _context.Database.BeginTransactionAsync();
             try
             {
@@ -27,6 +32,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     NombreProveedor = model.NombreProveedor,
                     Contacto = model.Contacto,
                     Direccion = model.Direccion,
+                    IdUsuario=model.IdUsuario
                 };
                 await _context.AddEntityAsync(proveedor);
                 await transaction.CommitAsync();
@@ -72,11 +78,11 @@ namespace GestorInventario.Infraestructure.Repositories
             }
            
         }
-        public async Task<(bool, string)> EditarProveedor(ProveedorViewModel model)
+        public async Task<(bool, string)> EditarProveedor(ProveedorViewModel model, int Id )
         {
             try
             {
-                var proveedor = await _context.Proveedores.FirstOrDefaultAsync(x => x.Id == model.Id);
+                var proveedor = await _context.Proveedores.Include(x=>x.IdUsuarioNavigation).FirstOrDefaultAsync(x => x.Id == Id);
                 if (proveedor == null)
                 {
                     return (false, "El proveedor no existe");
@@ -88,7 +94,7 @@ namespace GestorInventario.Infraestructure.Repositories
             catch (DbUpdateConcurrencyException ex)
             {
                 _logger.LogError("Error de concurrencia", ex);
-                var proveedor = await _context.Proveedores.FirstOrDefaultAsync(x => x.Id == model.Id);
+                var proveedor = await _context.Proveedores.Include(x => x.IdUsuarioNavigation).FirstOrDefaultAsync(x => x.Id == Id);
                 if (proveedor == null)
                 {
                     return (false, "El proveedor no existe");
@@ -112,6 +118,7 @@ namespace GestorInventario.Infraestructure.Repositories
             proveedor.NombreProveedor = model.NombreProveedor;
             proveedor.Contacto = model.Contacto;
             proveedor.Direccion = model.Direccion;
+            proveedor.IdUsuario = model.IdUsuario;
             await _context.UpdateEntityAsync(proveedor);
         }
     }

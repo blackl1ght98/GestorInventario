@@ -124,14 +124,3 @@
     </ul>
 </nav>
 
-@section Scripts {
-    <script>
-        // Inicializar tooltips (ya está en _Layout.cshtml, pero lo mantenemos por si cambias el layout)
-        document.addEventListener('DOMContentLoaded', function () {
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
-        });
-    </script>
-}

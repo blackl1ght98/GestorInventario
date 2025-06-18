@@ -508,6 +508,10 @@ public partial class GestorInventarioContext : DbContext
             entity.Property(e => e.NombreProveedor)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+
+            entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.Proveedores)
+                .HasForeignKey(d => d.IdUsuario)
+                .HasConstraintName("FK_IdUsuario_Provedor");
         });
 
         modelBuilder.Entity<Rembolso>(entity =>

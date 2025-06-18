@@ -9,6 +9,7 @@ using GestorInventario.PaginacionLogica;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Polly;
 using System.Linq;
 
 namespace GestorInventario.Infraestructure.Controllers
@@ -20,14 +21,16 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly GenerarPaginas _generarPaginas;
         private readonly PolicyHandler _PolicyHandler;
         private readonly IProveedorRepository _proveedorRepository;
+        private readonly GestorInventarioContext _context;
         public ProveedorController( ILogger<ProveedorController> logger, GenerarPaginas generarPaginas, 
-            PolicyHandler policyHandler, IProveedorRepository proveedor)
+            PolicyHandler policyHandler, IProveedorRepository proveedor, GestorInventarioContext context)
         {
             
             _logger = logger;
             _generarPaginas = generarPaginas;
             _PolicyHandler = policyHandler;
             _proveedorRepository= proveedor;
+            _context = context;
         }
         //Metodo que muestra todos los proveedores
         public async Task<IActionResult> Index(string buscar, [FromQuery] Paginacion paginacion)
@@ -38,38 +41,53 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
-              
-                var proveedores =ExecutePolicy(()=> _proveedorRepository.ObtenerProveedores()) ;
-               
+
+                var proveedores = _proveedorRepository.ObtenerProveedores(); 
+
                 ViewData["Buscar"] = buscar;
-                if (!String.IsNullOrEmpty(buscar))
+                if (!string.IsNullOrEmpty(buscar))
                 {
-                    proveedores=proveedores.Where(s=>s.NombreProveedor!.Contains(buscar));  
+                    proveedores = proveedores.Where(s => s.NombreProveedor.Contains(buscar));
                 }
+
                 await HttpContext.TotalPaginas(proveedores, paginacion.CantidadAMostrar);
-                var proveedor = ExecutePolicy(() => proveedores.Paginar(paginacion).ToList());
-                
+                var proveedorList = proveedores.Paginar(paginacion).ToList(); 
+
                 var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
-           
+
                 ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
-                return View(proveedor);
+                return View(proveedorList);
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
+                TempData["ConectionError"] = "El servidor ha tardado mucho en responder, inténtelo de nuevo más tarde";
                 _logger.LogError(ex, "Error al mostrar los proveedores");
                 return RedirectToAction("Error", "Home");
             }
-
         }
         //Metodo que muestra la vista para crear el proveedor
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
             if (!User.Identity.IsAuthenticated)
             {
                 return RedirectToAction("Login", "Auth");
             }
-            return View();
+
+            // Cargar los usuarios desde la base de datos
+            var usuarios = await _context.Usuarios 
+                .Select(u => new SelectListItem
+                {
+                    Value = u.Id.ToString(),
+                    Text = u.NombreCompleto 
+                })
+                .ToListAsync();
+
+            var model = new ProveedorViewModel
+            {
+                Usuarios = usuarios
+            };
+
+            return View(model);
         }
         //Metodo que crea el proveedor
         [HttpPost]
@@ -81,20 +99,19 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
+
                
-                if (ModelState.IsValid)
-                {
-                   
-                    var (success,errorMessage)= await ExecutePolicyAsync(()=> _proveedorRepository.CrearProveedor(model)) ;
+
+                    var (success, errorMessage) = await ExecutePolicyAsync(() => _proveedorRepository.CrearProveedor(model));
                     if (success)
                     {
                         TempData["SuccessMessage"] = "Los datos se han creado con éxito.";
                     }
-                   
 
+                
                     return RedirectToAction(nameof(Index));
-                }
-                return View(model);
+                
+              
             }
             catch (Exception ex)
             {
@@ -114,23 +131,21 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
-           
-                var proveedor= await ExecutePolicyAsync(()=> _proveedorRepository.ObtenerProveedorId(id));
-               
+
+                var proveedor = await ExecutePolicyAsync(() => _proveedorRepository.ObtenerProveedorId(id));
                 if (proveedor == null)
                 {
-                    return NotFound("proveedor no encontradas");
+                    return NotFound("El proveedor no fue encontrado");
                 }
-           
+
                 return View(proveedor);
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al mostrar la vista de eliminacion del proveedor");
+                TempData["ConectionError"] = "El servidor ha tardado mucho en responder, inténtelo de nuevo más tarde";
+                _logger.LogError(ex, "Error al mostrar la vista de eliminación del proveedor");
                 return RedirectToAction("Error", "Home");
             }
-
         }
 
         //Metodo que elimina el proveedor
@@ -174,8 +189,24 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
-               var proveedor= await ExecutePolicyAsync(() => _proveedorRepository.ObtenerProveedorId(id));
-                return View(proveedor);
+                
+                var usuarios = await _context.Usuarios
+                    .Select(u => new SelectListItem
+                    {
+                        Value = u.Id.ToString(),
+                        Text = u.NombreCompleto
+                    })
+                    .ToListAsync();
+                var proveedores = await _proveedorRepository.ObtenerProveedorId(id);
+                var model = new ProveedorViewModel
+                {
+                    NombreProveedor= proveedores.NombreProveedor,
+                    Contacto = proveedores.Contacto,
+                    Direccion = proveedores.Direccion,
+                    IdUsuario = proveedores.IdUsuario,
+                    Usuarios = usuarios
+                };
+                return View(model);
             }
             catch (Exception ex)
             {
@@ -187,7 +218,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         //Metodo encargado de editar el proveedor
         [HttpPost]
-        public async Task<ActionResult> Edit(ProveedorViewModel model)
+        public async Task<ActionResult> Edit(ProveedorViewModel model, int Id)
         {
             try
             {
@@ -195,9 +226,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
-                if (ModelState.IsValid)
-                {
-                    var (success,errorMessage)=await ExecutePolicyAsync(()=> _proveedorRepository.EditarProveedor(model)) ;
+                
+                    var (success,errorMessage)=await ExecutePolicyAsync(()=> _proveedorRepository.EditarProveedor(model,Id)) ;
                     if (success)
                     {
                         return RedirectToAction("Index");
@@ -208,8 +238,8 @@ namespace GestorInventario.Infraestructure.Controllers
                     }
                       
                     return RedirectToAction("Index");
-                }
-                return View(model);
+                
+               
             }
             catch (Exception ex)
             {

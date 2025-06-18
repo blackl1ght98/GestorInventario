@@ -1,0 +1,74 @@
+﻿
+
+.card-custom {
+    border-radius: 1rem;
+}
+
+.card-header-custom {
+    background: linear-gradient(90deg, var(--primary), #3B82F6);
+    color: white;
+}
+
+.input-group-text-custom {
+    background-color: var(--background);
+    border-color: var(--secondary);
+}
+
+.currency-icon-custom {
+    color: var(--secondary);
+}
+
+.product-image-custom {
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+    object-fit: cover;
+    height: 200px;
+}
+
+.card-title-custom {
+    color: var(--primary);
+}
+
+.card-product-custom {
+    border-radius: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card-header-summary-custom {
+    background: linear-gradient(90deg, var(--secondary), #34D399);
+    color: white;
+}
+
+.total-text-custom {
+    color: var(--primary);
+}
+
+.page-link-custom {
+    border-radius: 0.5rem;
+    margin: 0 2px;
+}
+
+    .page-link-custom.active {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+
+
+.card:hover {
+    transform: scale(1.03);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2) !important;
+}
+
+.product-image {
+    max-height: 200px;
+    object-fit: cover;
+}
+
+.pagination .page-link {
+    transition: background-color 0.2s, color 0.2s;
+}
+
+    .pagination .page-link:hover:not(.disabled) {
+        background-color: var(--secondary);
+        color: white;
+    }

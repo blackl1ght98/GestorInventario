@@ -1,5 +1,5 @@
 ﻿@model Pedido
-
+<link rel="stylesheet" href="~/css/detallePedido.css" />
 <div class="card hover-card">
     <div class="card-header bg-primary text-white">
         <h1 class="h4 mb-0">Detalles del Pedido #@Model.NumeroPedido</h1>
@@ -40,89 +40,3 @@
     </div>
 </div>
 
-<style>
-    .card {
-        border: none;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        margin-bottom: 2rem;
-    }
-
-    .card-header {
-        background-color: var(--primary);
-        border-radius: 8px 8px 0 0;
-        padding: 1rem 1.5rem;
-    }
-
-    .card-body {
-        padding: 1.5rem;
-    }
-
-    .table {
-        margin-bottom: 0;
-        border-collapse: separate;
-        border-spacing: 0;
-    }
-
-        .table th,
-        .table td {
-            padding: 0.75rem 1rem;
-            vertical-align: middle;
-        }
-
-        .table thead th {
-            background-color: var(--primary);
-            color: white;
-            font-weight: 600;
-            border: none;
-        }
-
-        .table tbody tr {
-            transition: background-color 0.2s;
-        }
-
-            .table tbody tr:hover {
-                background-color: rgba(16, 185, 129, 0.1); /* --secondary con opacidad */
-            }
-
-        .table tfoot {
-            background-color: var(--background);
-            font-weight: 600;
-        }
-
-    .table-bordered {
-        border: 1px solid #E5E7EB;
-    }
-
-        .table-bordered th,
-        .table-bordered td {
-            border: 1px solid #E5E7EB;
-        }
-
-    .text-end {
-        text-align: right !important;
-    }
-
-    .text-center {
-        text-align: center !important;
-    }
-
-    .table-responsive {
-        border-radius: 8px;
-        overflow-x: auto;
-    }
-
-    media (max-width: 768px) {
-        .table th, .table td
-
-    {
-        padding: 0.5rem;
-        font-size: 0.9rem;
-    }
-
-    .card-header h1 {
-        font-size: 1.25rem;
-    }
-
-    }
-</style>
