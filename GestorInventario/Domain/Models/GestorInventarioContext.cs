@@ -37,6 +37,8 @@ public partial class GestorInventarioContext : DbContext
 
     public virtual DbSet<Pedido> Pedidos { get; set; }
 
+    public virtual DbSet<Permiso> Permisos { get; set; }
+
     public virtual DbSet<PlanDetail> PlanDetails { get; set; }
 
     public virtual DbSet<Producto> Productos { get; set; }
@@ -46,6 +48,8 @@ public partial class GestorInventarioContext : DbContext
     public virtual DbSet<Rembolso> Rembolsos { get; set; }
 
     public virtual DbSet<Role> Roles { get; set; }
+
+    public virtual DbSet<RolePermiso> RolePermisos { get; set; }
 
     public virtual DbSet<SubscriptionDetail> SubscriptionDetails { get; set; }
 
@@ -432,6 +436,15 @@ public partial class GestorInventarioContext : DbContext
                 .HasConstraintName("FK_IdUsuario");
         });
 
+        modelBuilder.Entity<Permiso>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Permisos__3214EC0775746617");
+
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+        });
+
         modelBuilder.Entity<PlanDetail>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC0750705EBA");
@@ -549,6 +562,25 @@ public partial class GestorInventarioContext : DbContext
             entity.Property(e => e.Nombre)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<RolePermiso>(entity =>
+        {
+            entity.HasKey(e => new { e.RoleId, e.PermisoId }).HasName("PK__RolePerm__A394C26868D0DE9C");
+
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(5)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.Permiso).WithMany(p => p.RolePermisos)
+                .HasForeignKey(d => d.PermisoId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__RolePermi__Permi__62AFA012");
+
+            entity.HasOne(d => d.Role).WithMany(p => p.RolePermisos)
+                .HasForeignKey(d => d.RoleId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__RolePermi__RoleI__61BB7BD9");
         });
 
         modelBuilder.Entity<SubscriptionDetail>(entity =>

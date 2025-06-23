@@ -1,6 +1,7 @@
 ﻿using GestorInventario.Application.Services.Authentication;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
@@ -18,7 +19,6 @@ namespace GestorInventario.Middlewares.Strategis
         {
             try
             {
-            
                 // Recuperar cookies y servicios necesarios
                 var token = context.Request.Cookies["auth"];
                 var refreshToken = context.Request.Cookies["refreshToken"];
@@ -35,8 +35,15 @@ namespace GestorInventario.Middlewares.Strategis
                 // Validar el token principal
                 if (!string.IsNullOrEmpty(token))
                 {
-                    var jwtToken = await ValidateToken(token, builder, tokenService, redis, memoryCache, encryptionService, useRedis);
-                    if (jwtToken == null && !string.IsNullOrEmpty(refreshToken))
+                    var (jwtToken, principal) = await ValidateToken(token, builder, tokenService, redis, memoryCache, encryptionService, useRedis);
+                    if (jwtToken != null && principal != null)
+                    {
+                        // Establecer el ClaimsPrincipal en HttpContext.User
+                        context.User = principal;
+                        var logger = log4net.LogManager.GetLogger(typeof(DynamicAsymmetricAuthStrategy));
+                        logger.Info($"Claims establecidos en HttpContext.User: {string.Join(", ", principal.Claims.Select(c => $"{c.Type}: {c.Value}"))}");
+                    }
+                    else if (!string.IsNullOrEmpty(refreshToken))
                     {
                         await HandleExpiredToken(context, refreshToken, builder, tokenService, userService, redis, memoryCache, refreshTokenMethod, useRedis);
                     }
@@ -48,31 +55,41 @@ namespace GestorInventario.Middlewares.Strategis
             }
             catch (Exception ex)
             {
-                var logger = log4net.LogManager.GetLogger(typeof(Program));
+                var logger = log4net.LogManager.GetLogger(typeof(DynamicAsymmetricAuthStrategy));
                 logger.Error("Error en el middleware de autenticación", ex);
             }
 
             await next();
         }
 
-        private static async Task<JwtSecurityToken?> ValidateToken(string token, WebApplicationBuilder builder, ITokenGenerator tokenService, IDistributedCache? redis, IMemoryCache? memoryCache, IEncryptionService encryptionService, bool useRedis)
+        private static async Task<(JwtSecurityToken?, ClaimsPrincipal?)> ValidateToken(string token, WebApplicationBuilder builder, ITokenGenerator tokenService, IDistributedCache? redis, IMemoryCache? memoryCache, IEncryptionService encryptionService, bool useRedis)
         {
             var handler = new JwtSecurityTokenHandler();
+            var logger = log4net.LogManager.GetLogger(typeof(DynamicAsymmetricAuthStrategy));
 
             try
             {
                 var jwtToken = handler.ReadJwtToken(token);
 
                 if (jwtToken.ValidTo < DateTime.UtcNow)
-                    return null;
+                {
+                    logger.Warn("Token ha expirado.");
+                    return (null, null);
+                }
 
                 string kid = jwtToken.Header["kid"]?.ToString();
                 if (string.IsNullOrEmpty(kid))
-                    return null;
+                {
+                    logger.Warn("El token no contiene un 'kid'.");
+                    return (null, null);
+                }
 
                 var (privateKey, encryptedAesKey, publicKey) = await RetrieveKeys(kid, redis, memoryCache, useRedis);
                 if (privateKey == null || string.IsNullOrEmpty(encryptedAesKey) || string.IsNullOrEmpty(publicKey))
-                    return null;
+                {
+                    logger.Warn($"No se pudieron recuperar las claves para el usuario con kid: {kid}");
+                    return (null, null);
+                }
 
                 // Descifrar claves y validar el token
                 var aesKey = encryptionService.Descifrar(Convert.FromBase64String(encryptedAesKey), privateKey.Value);
@@ -86,15 +103,21 @@ namespace GestorInventario.Middlewares.Strategis
                     ValidateIssuer = true,
                     ValidIssuer = builder.Configuration["JwtIssuer"],
                     ValidateAudience = true,
-                    ValidAudience = builder.Configuration["JwtAudience"]
+                    ValidAudience = builder.Configuration["JwtAudience"],
+                    ValidateLifetime = true
                 };
 
-                handler.ValidateToken(token, validationParameters, out _);
-                return jwtToken;
+                var principal = handler.ValidateToken(token, validationParameters, out _);
+
+                var tokenPayload = jwtToken.Claims.Select(c => $"{c.Type}: {c.Value}");
+                logger.Info($"Claims validados en el token: {string.Join(", ", tokenPayload)}");
+
+                return (jwtToken, principal);
             }
-            catch
+            catch (Exception ex)
             {
-                return null;
+                logger.Error($"Error al validar el token: {ex.Message}", ex);
+                return (null, null);
             }
         }
 
@@ -102,17 +125,33 @@ namespace GestorInventario.Middlewares.Strategis
                                                      IMemoryCache? memoryCache, IRefreshTokenMethod refreshTokenMethod, bool useRedis)
         {
             var refreshTokenValid = await ValidateRefreshToken(refreshToken, builder, redis, memoryCache, useRedis);
+            var logger = log4net.LogManager.GetLogger(typeof(DynamicAsymmetricAuthStrategy));
+
+            if (!refreshTokenValid)
+            {
+                logger.Warn("Refresh token no válido o expirado.");
+                RedirectToLogin(context, context.Request.Cookies);
+                return;
+            }
 
             var handler = new JwtSecurityTokenHandler();
             var token = handler.ReadJwtToken(refreshToken);
             var userId = token.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userId))
+            {
+                logger.Warn("No se encontró userId en el refresh token.");
+                RedirectToLogin(context, context.Request.Cookies);
                 return;
+            }
 
             var user = await userService.ObtenerPorId(int.Parse(userId));
             if (user == null)
+            {
+                logger.Warn($"Usuario con ID {userId} no encontrado.");
+                RedirectToLogin(context, context.Request.Cookies);
                 return;
+            }
 
             var newAccessToken = await tokenService.GenerateTokenAsync(user);
             var newRefreshToken = await refreshTokenMethod.GenerarTokenRefresco(user);
@@ -134,9 +173,11 @@ namespace GestorInventario.Middlewares.Strategis
                 Secure = true,
                 Expires = DateTime.UtcNow.AddDays(7)
             });
+
+            logger.Info($"Nuevos tokens generados para el usuario {userId}.");
         }
 
-        private static async Task<(RSAParameters?, string?, string?)> RetrieveKeys(string kid, IDistributedCache? redis, IMemoryCache? memoryCache, bool useRedis)
+        public static async Task<(RSAParameters?, string?, string?)> RetrieveKeys(string kid, IDistributedCache? redis, IMemoryCache? memoryCache, bool useRedis)
         {
             if (useRedis && redis != null)
             {
@@ -199,7 +240,17 @@ namespace GestorInventario.Middlewares.Strategis
                 return false;
             }
         }
-      
-    }
 
+        private static void RedirectToLogin(HttpContext context, IRequestCookieCollection collectionCookies)
+        {
+            foreach (var cookie in collectionCookies)
+            {
+                context.Response.Cookies.Delete(cookie.Key);
+            }
+            if (context.Request.Path != "/Auth/Login")
+            {
+                context.Response.Redirect("/Auth/Login");
+            }
+        }
+    }
 }

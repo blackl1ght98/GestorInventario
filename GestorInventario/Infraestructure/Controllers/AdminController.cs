@@ -42,13 +42,22 @@ namespace GestorInventario.Infraestructure.Controllers
             _PolicyHandler = policy;
           
         }
-     
-        [Authorize(Roles ="Administrador")]
+
+        [Authorize(Roles = "Administrador", Policy = "VerUsuarios")]
         public async Task<ActionResult> Index(string buscar, [FromQuery] Paginacion paginacion)
         {
             try
             {
- 
+                var claims = User.Claims.Select(c => $"{c.Type}: {c.Value}");
+                var hasPermiso = User.HasClaim("permiso", "VerUsuarios");
+                var isInRole = User.IsInRole("Administrador");
+                _logger.LogInformation($"Claims del usuario: {string.Join(", ", claims)}");
+                _logger.LogInformation($"Tiene permiso VerUsuarios: {hasPermiso}");
+                _logger.LogInformation($"Es Administrador: {isInRole}");
+                if (!hasPermiso || !isInRole)
+                {
+                    return Forbid(); // Forzar error para depurar
+                }
                 var queryable =  await ExecutePolicyAsync(() => _adminrepository.ObtenerUsuarios());             
                  ViewData["Buscar"] = buscar;
               

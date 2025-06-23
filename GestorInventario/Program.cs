@@ -190,6 +190,31 @@ IAuthenticationStrategy strategy = authStrategy switch
 var configurator = new AuthenticationConfigurator(strategy);
 configurator.Configure(builder, builder.Configuration);
 
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("VerUsuarios", policy =>
+    {
+        policy.RequireClaim("permiso", "VerUsuarios");
+        policy.RequireAssertion(context =>
+        {
+            // Cast de context.Resource a HttpContext
+            if (context.Resource is HttpContext httpContext)
+            {
+                var logger = httpContext.RequestServices.GetService<ILogger<Program>>();
+                var hasClaim = context.User.HasClaim("permiso", "VerUsuarios");//devuelve true
+                logger?.LogInformation($"Evaluando política VerUsuarios: Tiene permiso={hasClaim}");
+                return hasClaim;
+            }
+            // Si no es HttpContext, loguear advertencia y fallar
+            var defaultLogger = context.User.Identity?.IsAuthenticated == true
+                ? context.User.Identity.Name
+                : "Usuario no autenticado";
+            Console.WriteLine($"Evaluando política VerUsuarios: Resource no es HttpContext para {defaultLogger}, permiso=false");
+            return false;
+        });
+    });
+});
 /*
 
     * options.Preload = true;: Esta opción indica que quieres incluir tu sitio en la lista de precarga de HSTS. 
@@ -238,28 +263,23 @@ IAuthProcessingStrategy strategyMiddleware = authStrategy switch
 };
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseCors();
 app.UseRouting();
-//Identifica quien es el usuario
-app.UseAuthentication();
-//Determina que puede hacer o no el usuario
-app.UseAuthorization();
+app.UseAuthentication(); // Identifica al usuario
 app.UseSession();
-
-
-
-app.UseAuthProcessing(builder, strategyMiddleware);
+app.UseAuthProcessing(builder, strategyMiddleware); // Establece HttpContext.User
+app.UseAuthorization(); // Evalúa políticas y roles
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
 app.Run();

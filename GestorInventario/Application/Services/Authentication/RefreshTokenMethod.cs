@@ -35,7 +35,12 @@ namespace GestorInventario.Application.Services.Authentication
         public async Task<string> GenerarTokenRefresco(Usuario credencialesUsuario)
         {
             // Obtener usuario de la base de datos
-            var usuarioDB = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == credencialesUsuario.Id);
+            //var usuarioDB = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == credencialesUsuario.Id);
+            var usuarioDB = await _context.Usuarios
+      .Include(u => u.IdRolNavigation)
+      .ThenInclude(r => r.RolePermisos)
+      .ThenInclude(rp => rp.Permiso)
+      .FirstOrDefaultAsync(x => x.Id == credencialesUsuario.Id);
             if (usuarioDB == null)
             {
                 throw new ArgumentException("El usuario no existe en la base de datos.");
@@ -48,7 +53,19 @@ namespace GestorInventario.Application.Services.Authentication
                 new Claim(ClaimTypes.Role, credencialesUsuario.IdRolNavigation.Nombre),
                 new Claim(ClaimTypes.NameIdentifier, credencialesUsuario.Id.ToString())
             };
-
+            var permisos = usuarioDB.IdRolNavigation?.RolePermisos?.Select(rp => rp.Permiso?.Nombre) ?? Enumerable.Empty<string>();
+            foreach (var permiso in permisos)
+            {
+                if (!string.IsNullOrEmpty(permiso))
+                {
+                    claims.Add(new Claim("permiso", permiso, ClaimValueTypes.String, issuer: "GestorInvetarioEmisor"));
+                    _logger.LogInformation($"Claim añadido en refresh token: permiso={permiso}");
+                }
+                else
+                {
+                    _logger.LogWarning($"Permiso vacío encontrado para el usuario {credencialesUsuario.Id}.");
+                }
+            }
             // Determinar la estrategia basada en AuthMode en tiempo de ejecución
             string authMode = _configuration["AuthMode"] ?? "Symmetric";
             SigningCredentials signingCredentials;
