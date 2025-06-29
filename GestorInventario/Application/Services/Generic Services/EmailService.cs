@@ -135,48 +135,7 @@ namespace GestorInventario.Application.Services
             }
            
         }
-        public async Task SendEmailAsyncResetPasswordOlvidada(DTOEmail userDataResetPassword)
-        {
-            var usuarioDB = await _context.Usuarios.AsTracking().FirstOrDefaultAsync(x => x.Email == userDataResetPassword.ToEmail);
-            // Generar una contraseña temporal
-            var contrasenaTemporal = GenerarContrasenaTemporal();
-            // Hashear la contraseña temporal y guardarla en la base de datos
-            var resultadoHash = _hashService.Hash(contrasenaTemporal);
-            usuarioDB.TemporaryPassword = resultadoHash.Hash;
-            usuarioDB.Salt = resultadoHash.Salt;
-            await _context.UpdateEntityAsync(usuarioDB);
-            var fechaExpiracion = DateTime.Now.AddMinutes(5);
-            // Guardar la fecha de vencimiento en la base de datos
-            usuarioDB.FechaEnlaceCambioPass = fechaExpiracion;
-            usuarioDB.FechaExpiracionContrasenaTemporal = fechaExpiracion;
-            await _context.UpdateEntityAsync(usuarioDB);
-            // Crear el modelo para la vista del correo electrónico
-            var model = new DTOEmail
-            {
-                //Cuando el usuario hace clic en el enlace que se le envia al correo electronico es dirigido la endpoint de restaurar la contraseña(RestorePassword)
-                RecoveryLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/AuthController/RestorePasswordOlvidada/{usuarioDB.Email}/{usuarioDB.EnlaceCambioPass}?redirect=true",
-                TemporaryPassword = contrasenaTemporal
-            };
-            var ruta = await RenderViewToStringAsync("ViewsEmailService/ViewResetPasswordEmail", model);
-            // Crear el correo electrónico
-            var email = new MimeMessage();
-            email.From.Add(MailboxAddress.Parse(_config.GetSection("Email:UserName").Value));
-            email.To.Add(MailboxAddress.Parse(userDataResetPassword.ToEmail));
-            email.Subject = "Recuperar Contraseña";
-            email.Body = new TextPart(TextFormat.Html)
-            {
-                Text = await RenderViewToStringAsync("ViewsEmailService/ViewResetPasswordEmail", model)
-            };
-            using var smtp = new SmtpClient();
-            await smtp.ConnectAsync(
-                _config.GetSection("Email:Host").Value,
-                Convert.ToInt32(_config.GetSection("Email:Port").Value),
-                SecureSocketOptions.StartTls
-            );
-            await smtp.AuthenticateAsync(_config.GetSection("Email:UserName").Value, _config.GetSection("Email:PassWord").Value);
-            await smtp.SendAsync(email);
-            await smtp.DisconnectAsync(true);
-        }
+      
         private string GenerarContrasenaTemporal()
         {
             var length = 12; // Aumenta la longitud de la contraseña

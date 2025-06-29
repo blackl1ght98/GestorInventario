@@ -201,7 +201,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
 
-        //Conjunto de 3 metodos que es para restablecer la contraseña del usuario este metodo envia el email
+        //CUANDO ES ADMIN ENTRA AQUI
         [Route("AuthController/ResetPassword/{email}")]
         public async Task<IActionResult> ResetPassword(string email)
         {
@@ -316,7 +316,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
-     
+       //CUANDO ES USUARIO NORMAL ENTRA AQUI
         public async Task<IActionResult> ResetPasswordOlvidada()
         {
             return View();
@@ -328,10 +328,19 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                 var usuarioDB = await ExecutePolicyAsync(() => _authRepository.ExisteEmail(email));
                 // Generar una contraseña temporal
-                await _emailService.SendEmailAsyncResetPasswordOlvidada(new DTOEmail
+                var (success, error) = await _emailService.SendEmailAsyncResetPassword(new DTOEmail
                 {
                     ToEmail = email
                 });
+                if (success)
+                {
+
+                    _logger.LogInformation("correo enviado con exito");
+                }
+                else {
+                    _logger.LogError("Ocurrio un error al enviar el correo");
+                    return RedirectToAction("Error", "Home");
+                }
                 TempData["Succes"] = "Email eviado con exito por favor mire en su bandeja de correo o spam";
                 return View(usuarioDB);
             }
