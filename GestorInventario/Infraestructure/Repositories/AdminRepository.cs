@@ -9,6 +9,7 @@ using GestorInventario.MetodosExtension;
 using GestorInventario.Models.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 namespace GestorInventario.Infraestructure.Repositories
 {
     public class AdminRepository : IAdminRepository
@@ -126,7 +127,18 @@ namespace GestorInventario.Infraestructure.Repositories
             {
                 user.ConfirmacionEmail = false;
                 user.Email = userVM.Email;
-                await _emailService.SendEmailAsyncRegister(new DTOEmail { ToEmail = userVM.Email });
+                var (success, error) = await _emailService.SendEmailAsyncRegister(new DTOEmail { ToEmail = userVM.Email });
+                if (success)
+                {
+                    _logger.LogInformation("Correo de confirmación enviado a {Email}", user.Email);
+
+                }
+                else {
+
+                    _logger.LogWarning("Error al enviar correo de confirmación: {Error}", error);
+
+                }
+
             }
             if (user.IdRol != userVM.IdRol)
             {
@@ -188,10 +200,18 @@ namespace GestorInventario.Infraestructure.Repositories
                 user.ConfirmacionEmail = false;
                 user.Email = userVM.Email;
                 await _context.UpdateEntityAsync(user);
-                await _emailService.SendEmailAsyncRegister(new DTOEmail
+                var (success, error) = await _emailService.SendEmailAsyncRegister(new DTOEmail { ToEmail = userVM.Email });
+                if (success)
                 {
-                    ToEmail = userVM.Email
-                });
+                    _logger.LogInformation("Correo de confirmación enviado a {Email}", user.Email);
+
+                }
+                else
+                {
+
+                    _logger.LogWarning("Error al enviar correo de confirmación: {Error}", error);
+
+                }
             }
             else
             {
@@ -228,10 +248,19 @@ namespace GestorInventario.Infraestructure.Repositories
                     CodigoPostal=model.codigoPostal
                 };
                 _context.AddEntity(user);
-                await _emailService.SendEmailAsyncRegister(new DTOEmail
+                var (success, error) = await _emailService.SendEmailAsyncRegister(new DTOEmail { ToEmail = model.Email });
+                if (success)
                 {
-                    ToEmail = model.Email
-                });
+                   
+                    _logger.LogInformation("Correo de confirmación enviado a {Email}", user.Email);
+                   
+                }
+                else
+                {
+
+                    _logger.LogWarning("Error al enviar correo de confirmación: {Error}", error);
+                  
+                }
                 await transaction.CommitAsync();
                 return (true, null);
             }
@@ -316,6 +345,122 @@ namespace GestorInventario.Infraestructure.Repositories
             usuario.IdRol = rolId; 
             _context.Usuarios.Update(usuario);
             await _context.SaveChangesAsync();
+        }
+        public async Task<(bool, string)> CrearRol(string nombreRol, List<int> permisoIds)
+        {
+            try
+            {
+                // Validar nombre del rol
+                if (string.IsNullOrWhiteSpace(nombreRol))
+                {
+                    _logger.LogWarning("Intento de crear rol con nombre vacío.");
+                    return (false, "El nombre del rol no puede estar vacío.");
+                }
+
+                if (!Regex.IsMatch(nombreRol, @"^[a-zA-Z0-9]+$"))
+                {
+                    _logger.LogWarning($"Nombre de rol inválido: {nombreRol}. Solo se permiten letras y números.");
+                    return (false, "El nombre del rol solo puede contener letras y números.");
+                }
+
+                // Verificar si el rol ya existe
+                if (await _context.Roles.AnyAsync(r => r.Nombre == nombreRol))
+                {
+                    _logger.LogWarning($"Intento de crear rol duplicado: {nombreRol}.");
+                    return (false, "El nombre del rol ya existe. Proporcione otro nombre.");
+                }
+
+                // Validar permisos
+                if (permisoIds != null && permisoIds.Any())
+                {
+                    var permisosExistentes = await _context.Permisos
+                        .Where(p => permisoIds.Contains(p.Id))
+                        .Select(p => p.Id)
+                        .ToListAsync();
+
+                    if (permisosExistentes.Count != permisoIds.Count)
+                    {
+                        var permisosNoEncontrados = permisoIds.Except(permisosExistentes).ToList();
+                        _logger.LogWarning($"Permisos no encontrados: {string.Join(", ", permisosNoEncontrados)}.");
+                        return (false, $"Los siguientes permisos no existen: {string.Join(", ", permisosNoEncontrados)}.");
+                    }
+                }
+
+                // Crear el rol
+                var rol = new Role { Nombre = nombreRol };
+                await _context.Roles.AddAsync(rol);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation($"Rol creado: {nombreRol} (ID: {rol.Id}).");
+
+                // Asignar permisos al rol
+                if (permisoIds != null && permisoIds.Any())
+                {
+                    foreach (var permisoId in permisoIds)
+                    {
+                        var rolPermiso = new RolePermiso
+                        {
+                            RoleId = rol.Id,
+                            PermisoId = permisoId
+                        };
+                        _context.RolePermisos.Add(rolPermiso);
+                    }
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation($"Permisos asignados al rol {nombreRol}: {string.Join(", ", permisoIds)}.");
+                }
+
+                return (true, "Rol creado y permisos asignados con éxito.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al crear rol {nombreRol}.");
+                return (false, $"Error al crear el rol: {ex.Message}");
+            }
+
+        }
+        public async Task<List<Permiso>> ObtenerPermisos() => await _context.Permisos.ToListAsync();
+        public async Task<(bool, List<int>, string)> CrearPermisos(List<NewPermisoDTO> nuevosPermisos)
+        {
+            try
+            {
+                var nuevosPermisoIds = new List<int>();
+
+                if (nuevosPermisos == null || !nuevosPermisos.Any())
+                {
+                    return (true, nuevosPermisoIds, "No se proporcionaron nuevos permisos.");
+                }
+
+                foreach (var nuevoPermiso in nuevosPermisos)
+                {
+                    if (string.IsNullOrWhiteSpace(nuevoPermiso.Nombre))
+                    {
+                        _logger.LogWarning("Intento de crear permiso con nombre vacío.");
+                        return (false, null, "El nombre del permiso no puede estar vacío.");
+                    }
+
+                    if (await _context.Permisos.AnyAsync(p => p.Nombre == nuevoPermiso.Nombre))
+                    {
+                        _logger.LogWarning($"Intento de crear permiso duplicado: {nuevoPermiso.Nombre}.");
+                        return (false, null, $"El permiso '{nuevoPermiso.Nombre}' ya existe.");
+                    }
+
+                    var permiso = new Permiso
+                    {
+                        Nombre = nuevoPermiso.Nombre,
+                        Descripcion = nuevoPermiso.Descripcion
+                    };
+                    await _context.Permisos.AddAsync(permiso);
+                    await _context.SaveChangesAsync();
+                    nuevosPermisoIds.Add(permiso.Id);
+                    _logger.LogInformation($"Permiso creado: {nuevoPermiso.Nombre} (ID: {permiso.Id}).");
+                }
+
+                return (true, nuevosPermisoIds, "Permisos creados con éxito.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al crear permisos.");
+                return (false, null, $"Error al crear permisos: {ex.Message}");
+            }
         }
     }
 }

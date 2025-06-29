@@ -15,7 +15,12 @@
     @{
         var paginas = ViewBag.Paginas as List<PaginasModel>;
     }
-
+    <a asp-action="CreateRole" asp-controller="Admin" class="btn btn-primary btn-sm">
+        <i class="bi bi-people nav-icon"></i> Crear rol
+    </a>
+    <a asp-action="CreatePermission" asp-controller="Admin" class="btn btn-primary btn-sm">
+        <i class="bi bi-people nav-icon"></i> Crear Permisos
+    </a>
     <!-- Lista de Roles con Tarjetas -->
     <div class="row g-4">
         @foreach (var role in Model)

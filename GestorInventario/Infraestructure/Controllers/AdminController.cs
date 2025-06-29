@@ -1,18 +1,19 @@
 ﻿using GestorInventario.Application.DTOs;
+using GestorInventario.Application.Politicas_Resilencia;
 using GestorInventario.Application.Services;
+using GestorInventario.Domain.Models.ViewModels;
+using GestorInventario.Infraestructure.Repositories;
 using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.MetodosExtension;
 using GestorInventario.Models.ViewModels;
+using GestorInventario.PaginacionLogica;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using GestorInventario.PaginacionLogica;
-using GestorInventario.Interfaces.Infraestructure;
-using GestorInventario.Application.Politicas_Resilencia;
-using GestorInventario.Domain.Models.ViewModels;
-using System.Security.Claims;
-using GestorInventario.MetodosExtension;
 using System.Linq;
+using System.Security.Claims;
 
 
 namespace GestorInventario.Infraestructure.Controllers
@@ -153,7 +154,7 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
                 
-                var usuarioDB = await ExecutePolicyAsync(() => _adminrepository.ObtenerPorId(confirmar.UserId));
+                var usuarioDB = await  _adminrepository.ObtenerPorId(confirmar.UserId);
               
                 if (usuarioDB.ConfirmacionEmail != false)
                 {
@@ -460,6 +461,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
         //Metodo que obtiene los roles y los usuarios que tienen ese rol
+       
         public async Task<IActionResult> ObtenerRoles()
         {
             try
@@ -511,7 +513,55 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-       
+      
+        public async Task<IActionResult> CreateRole()
+        {
+            var permisos = await _adminrepository.ObtenerPermisos();
+            var model = new CreateRoleDTO
+            {
+                Permisos = permisos.Select(p => new PermisoDTO
+                {
+                    Id = p.Id,
+                    Nombre = p.Nombre,
+                    Descripcion = p.Descripcion
+                }).ToList()
+            };
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateRole(string nombreRol, List<int> permisoIds)
+        {
+            try
+            {
+                var (success, message) = await _adminrepository.CrearRol(nombreRol, permisoIds);
+                if (success)
+                {
+                    _logger.LogInformation($"Rol creado con éxito: {nombreRol}");
+                    return RedirectToAction(nameof(ObtenerRoles));
+                }
+                ModelState.AddModelError("", message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al crear rol {nombreRol}.");
+                ModelState.AddModelError("", "Error al crear el rol. Intente de nuevo.");
+            }
+
+            var permisos = await _adminrepository.ObtenerPermisos();
+            var model = new CreateRoleDTO
+            {
+                NombreRol = nombreRol,
+                Permisos = permisos.Select(p => new PermisoDTO
+                {
+                    Id = p.Id,
+                    Nombre = p.Nombre,
+                    Descripcion = p.Descripcion
+                }).ToList(),
+                PermisoIds = permisoIds
+            };
+            return View(model);
+        }
         //Metodo para editar el rol se llama desde el script ver-usuario-rol.js
         [HttpPost]
         public async Task<IActionResult> CambiarRol([FromBody] CambiarRolRequestDTO request)
@@ -565,8 +615,35 @@ namespace GestorInventario.Infraestructure.Controllers
                 return Json(new { success = false, errorMessage = "El servidor ha tardado mucho en responder, intenta de nuevo más tarde." });
             }
         }
+     
+        public IActionResult CreatePermission()
+        {
+            var model = new List<NewPermisoDTO> { new NewPermisoDTO() }; // Inicializar con un permiso vacío
+            return View(model);
+        }
 
-      
+        [HttpPost]
+        public async Task<IActionResult> CreatePermission(List<NewPermisoDTO> model)
+        {
+            try
+            {
+                var (success, _, message) = await _adminrepository.CrearPermisos(model);
+                if (success)
+                {
+                    _logger.LogInformation("Permisos creados con éxito.");
+                    return RedirectToAction("CreateRole"); // Redirigir a crear rol para usar los nuevos permisos
+                }
+                ModelState.AddModelError("", message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al crear permisos.");
+                ModelState.AddModelError("", "Error al crear permisos. Intente de nuevo.");
+            }
+
+            return View(model);
+        }
+
         private async Task<T> ExecutePolicyAsync<T>(Func<Task<T>> operation)
         {
             var policy = _PolicyHandler.GetCombinedPolicyAsync<T>();

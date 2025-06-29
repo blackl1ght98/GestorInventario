@@ -209,11 +209,21 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                 var usuarioDB = await ExecutePolicyAsync(() => _authRepository.ExisteEmail(email));
                 // Generar una contraseña temporal
-                await _emailService.SendEmailAsyncResetPassword(new DTOEmail
+                var (succes,error)= await _emailService.SendEmailAsyncResetPassword(new DTOEmail
                 {
                     ToEmail = email
                 });
-                return View(usuarioDB);
+                if (succes)
+                {
+                    _logger.LogInformation("Email de restablecion de contraseña enviado con exito");
+                    return View(usuarioDB);
+                }
+                else
+                {
+                    _logger.LogError("Error al enviar el email");
+                    return RedirectToAction("Error", "Home");
+                }
+                
             }
             catch (Exception ex)
             {
