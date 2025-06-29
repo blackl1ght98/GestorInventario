@@ -193,27 +193,32 @@ configurator.Configure(builder, builder.Configuration);
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("VerUsuarios", policy =>
+    using var scope = builder.Services.BuildServiceProvider().CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<GestorInventarioContext>();
+    var permisos = context.Permisos.ToList();
+
+    foreach (var permiso in permisos)
     {
-        policy.RequireClaim("permiso", "VerUsuarios");
-        policy.RequireAssertion(context =>
+        options.AddPolicy(permiso.Nombre, policy =>
         {
-            // Cast de context.Resource a HttpContext
-            if (context.Resource is HttpContext httpContext)
+            policy.RequireClaim("permiso", permiso.Nombre);
+            policy.RequireAssertion(context =>
             {
-                var logger = httpContext.RequestServices.GetService<ILogger<Program>>();
-                var hasClaim = context.User.HasClaim("permiso", "VerUsuarios");//devuelve true
-                logger?.LogInformation($"Evaluando política VerUsuarios: Tiene permiso={hasClaim}");
-                return hasClaim;
-            }
-            // Si no es HttpContext, loguear advertencia y fallar
-            var defaultLogger = context.User.Identity?.IsAuthenticated == true
-                ? context.User.Identity.Name
-                : "Usuario no autenticado";
-            Console.WriteLine($"Evaluando política VerUsuarios: Resource no es HttpContext para {defaultLogger}, permiso=false");
-            return false;
+                if (context.Resource is HttpContext httpContext)
+                {
+                    var logger = httpContext.RequestServices.GetService<ILogger<Program>>();
+                    var hasClaim = context.User.HasClaim("permiso", permiso.Nombre);
+                    logger?.LogInformation($"Evaluando política {permiso.Nombre}: Tiene permiso={hasClaim}");
+                    return hasClaim;
+                }
+                var defaultLogger = context.User.Identity?.IsAuthenticated == true
+                    ? context.User.Identity.Name
+                    : "Usuario no autenticado";
+                Console.WriteLine($"Evaluando política {permiso.Nombre}: Resource no es HttpContext para {defaultLogger}, permiso=false");
+                return false;
+            });
         });
-    });
+    }
 });
 /*
 
