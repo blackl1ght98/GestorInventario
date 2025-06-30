@@ -14,30 +14,7 @@ namespace GestorInventario.Application.Services.Authentication
             _httpContextAccessor = httpContextAccessor;
         }
 
-        //// Método para cifrar
-        public byte[] Cifrar(byte[] data, byte[] aesKey)
-        {
-            try
-            {
-                using (var aes = Aes.Create())
-                {
-                    aes.Key = aesKey;
-                    aes.Mode = CipherMode.CBC;
-                    aes.Padding = PaddingMode.PKCS7;
-                    aes.GenerateIV();
-                    using (var encryptor = aes.CreateEncryptor())
-                    {
-                        var cipherText = encryptor.TransformFinalBlock(data, 0, data.Length);
-                        return aes.IV.Concat(cipherText).ToArray();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogCritical("Error al cifrar", ex);
-                throw;
-            }
-        }
+       
 
         // Método para descifrar la clave AES utilizando la clave privada
         public byte[] Descifrar(byte[] encryptedData, RSAParameters privateKeyParams)

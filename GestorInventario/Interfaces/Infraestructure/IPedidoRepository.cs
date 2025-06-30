@@ -19,12 +19,8 @@ namespace GestorInventario.Interfaces.Infraestructure
         IQueryable<HistorialPedido> ObtenerPedidosHistorial();
         IQueryable<HistorialPedido> ObtenerPedidosHistorialUsuario(int usuarioId);
         Task<HistorialPedido> DetallesHistorial(int id);
-     
-        Task<(bool, string)> EliminarHitorial();
-     
-        DateTime? ConvertToDateTime(object value);
-  
-        
+        Task<(bool, string)> EliminarHitorial();  
+        DateTime? ConvertToDateTime(object value); 
         Task<(PayPalPaymentDetail, bool, string)> ObtenerDetallePagoEjecutadoV2(string id);
         Task<Pedido> ObtenerDetallesPedido(int id);
 

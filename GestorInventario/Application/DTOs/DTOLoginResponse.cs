@@ -1,5 +1,6 @@
 ﻿namespace GestorInventario.Application.DTOs
 {
+    //NO CAMBIAR-> INFORMACION QUE CONTIENE EL TOKEN QUE SE GENERA
     public class DTOLoginResponse
     {
         public int Id { get; set; }

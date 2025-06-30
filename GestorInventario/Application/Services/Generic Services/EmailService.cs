@@ -212,47 +212,47 @@ namespace GestorInventario.Application.Services
                 .Where(u => u.IdRolNavigation.Nombre == "Empleado") 
                 .Select(u => u.Email)
                 .ToListAsync();
+            if (empleados != null) {
+                var model = new DTOEmailRembolso
+                {
+                    NumeroPedido = correo.NumeroPedido,
+                    NombreCliente = correo.NombreCliente,
+                    EmailCliente = correo.EmailCliente,
+                    FechaRembolso = correo.FechaRembolso,
+                    CantidadADevolver = correo.CantidadADevolver,
+                    MotivoRembolso = correo.MotivoRembolso,
+                    Productos = correo.Productos
+                };
 
-           
 
-            
-            var model = new DTOEmailRembolso
-            {
-                NumeroPedido = correo.NumeroPedido,
-                NombreCliente = correo.NombreCliente,
-                EmailCliente = correo.EmailCliente,
-                FechaRembolso = correo.FechaRembolso,
-                CantidadADevolver = correo.CantidadADevolver,
-                MotivoRembolso = correo.MotivoRembolso,
-                Productos = correo.Productos
-            };
+                var email = new MimeMessage();
+                email.From.Add(MailboxAddress.Parse(_config.GetSection("Email:UserName").Value));
 
-       
-            var email = new MimeMessage();
-            email.From.Add(MailboxAddress.Parse(_config.GetSection("Email:UserName").Value));
+                // Agregar cada empleado como destinatario
+                foreach (var empleadoEmail in empleados)
+                {
+                    email.To.Add(MailboxAddress.Parse(empleadoEmail));
+                }
 
-            // Agregar cada empleado como destinatario
-            foreach (var empleadoEmail in empleados)
-            {
-                email.To.Add(MailboxAddress.Parse(empleadoEmail));
+                email.Subject = "Notificación de Reembolso Realizado";
+                email.Body = new TextPart(TextFormat.Html)
+                {
+                    Text = await RenderViewToStringAsync("ViewsEmailService/ViewRembolso", model)
+                };
+
+
+                using var smtp = new SmtpClient();
+                await smtp.ConnectAsync(
+                    _config.GetSection("Email:Host").Value,
+                    Convert.ToInt32(_config.GetSection("Email:Port").Value),
+                    SecureSocketOptions.StartTls
+                );
+                await smtp.AuthenticateAsync(_config.GetSection("Email:UserName").Value, _config.GetSection("Email:PassWord").Value);
+                await smtp.SendAsync(email);
+                await smtp.DisconnectAsync(true);
+
             }
-
-            email.Subject = "Notificación de Reembolso Realizado";
-            email.Body = new TextPart(TextFormat.Html)
-            {
-                Text = await RenderViewToStringAsync("ViewsEmailService/ViewRembolso", model)
-            };
-
-         
-            using var smtp = new SmtpClient();
-            await smtp.ConnectAsync(
-                _config.GetSection("Email:Host").Value,
-                Convert.ToInt32(_config.GetSection("Email:Port").Value),
-                SecureSocketOptions.StartTls
-            );
-            await smtp.AuthenticateAsync(_config.GetSection("Email:UserName").Value, _config.GetSection("Email:PassWord").Value);
-            await smtp.SendAsync(email);
-            await smtp.DisconnectAsync(true);
+           
         }
         private async Task<string> RenderViewToStringAsync(string viewName, object model)
         {

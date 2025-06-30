@@ -64,7 +64,6 @@ builder.Services.AddTransient<PaginacionMetodo>();
 builder.Services.AddTransient<IGestorArchivos, GestorArchivosService>();
 builder.Services.AddTransient<HashService>();
 builder.Services.AddTransient<ICarritoRepository, CarritoRepository>();
-builder.Services.AddTransient<IChangePassService, ChangePassService>();
 builder.Services.AddTransient<IConfirmEmailService, ConfirmEmailService>();
 builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.AddTransient<TokenService>();
