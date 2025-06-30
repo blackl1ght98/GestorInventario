@@ -11,7 +11,7 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<(bool, string)> RestorePass(DTORestorePass cambio);
         Task<(bool, string)> ActualizarPass(DTORestorePass cambio);
         Task<(bool, string)> ChangePassword(string passwordAnterior, string passwordActual);
-        Task<(bool, string)> RestorePassOlvidada(DTORestorePass cambio);
-        Task<(bool, string)> ActualizarPassOlvidada(DTORestorePass cambio);
+       
+      
     }
 }

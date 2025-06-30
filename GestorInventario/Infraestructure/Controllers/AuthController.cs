@@ -296,26 +296,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
       
-        public async Task<IActionResult> ChangePassword()
-        {
-            return View();
-        }
-        [HttpPost]
-        public async Task<IActionResult> ChangePassword(string passwordAnterior, string passwordActual)
-        {
-
-            var (succes, errorMessage) = await ExecutePolicyAsync(() => _authRepository.ChangePassword(passwordAnterior, passwordActual));
-            if (succes)
-            {
-                return RedirectToAction("Index", "Admin");
-            }
-            else
-            {
-                TempData["ErrorMessage"] = errorMessage;
-                return View(nameof(ChangePassword));
-            }
-
-        }
+       
        //CUANDO ES USUARIO NORMAL ENTRA AQUI
         public async Task<IActionResult> ResetPasswordOlvidada()
         {
@@ -327,7 +308,7 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
                 var usuarioDB = await ExecutePolicyAsync(() => _authRepository.ExisteEmail(email));
-                // Generar una contraseña temporal
+               
                 var (success, error) = await _emailService.SendEmailAsyncResetPassword(new DTOEmail
                 {
                     ToEmail = email
@@ -352,77 +333,26 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
-        public async Task<IActionResult> RestorePasswordOlvidada()
+
+        public async Task<IActionResult> ChangePassword()
         {
             return View();
         }
-        [AllowAnonymous]
-        [Route("AuthController/RestorePasswordOlvidada/{email}/{Token}")]
-        public async Task<IActionResult> RestorePasswordOlvidada(DTORestorePass cambio)
-        {
-            try
-            {
-                //Se busca al usuario por Id
-                var usuarioDB = await ExecutePolicyAsync(() => _authRepository.ExisteEmail(cambio.email));
-                var (success, errorMessage) = await ExecutePolicyAsync(() => _authRepository.RestorePassOlvidada(cambio));
-                if (success)
-                {
-                    var restorePass = new DTORestorePass
-                    {
-                        email = usuarioDB.Email,
-                        Token = usuarioDB.EnlaceCambioPass,
-
-                    };
-                    return View(restorePass);
-                }
-                else
-                {
-                    TempData["ErrorMessage"] = errorMessage;
-                    return RedirectToAction(nameof(RestorePasswordOlvidada), new { Email = usuarioDB.Email, Token = usuarioDB.EnlaceCambioPass });
-
-                }
-            }
-            catch (Exception ex)
-            {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al mostrar el formulario de restauracion de contraseña");
-                return RedirectToAction("Error", "Home");
-            }
-
-        }
-        [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> RestorePasswordUserOlvidada(DTORestorePass cambio)
+        public async Task<IActionResult> ChangePassword(string passwordAnterior, string passwordActual)
         {
-            try
+
+            var (succes, errorMessage) = await ExecutePolicyAsync(() => _authRepository.ChangePassword(passwordAnterior, passwordActual));
+            if (succes)
             {
-
-                var (success, errorMessage) = await ExecutePolicyAsync(() => _authRepository.ActualizarPassOlvidada(cambio));
-                if (success)
-                {
-                    // Obtiene las cookies del navegador.
-                    var cookieCollection = Request.Cookies;
-
-                    // Recorre todas las cookies y las elimina.
-                    foreach (var cookie in cookieCollection)
-                    {
-                        Response.Cookies.Delete(cookie.Key);
-                    }
-
-                    return RedirectToAction("Login", "Auth");
-                }
-                else
-                {
-                    TempData["ErrorMessage"] = errorMessage;
-                    return View("RestorePassword", cambio);
-                }
+                return RedirectToAction("Index", "Admin");
             }
-            catch (Exception ex)
+            else
             {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al recuperar la contraseña");
-                return RedirectToAction("Error", "Home");
+                TempData["ErrorMessage"] = errorMessage;
+                return View(nameof(ChangePassword));
             }
+
         }
         /*
              Func<Task<T>>:   encapsula un método que no tiene parámetros y devuelve un valor del tipo especificado por Task<T>

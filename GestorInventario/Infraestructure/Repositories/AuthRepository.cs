@@ -63,42 +63,7 @@ namespace GestorInventario.Infraestructure.Repositories
             }
            
         }
-        public async Task<(bool, string)> RestorePassOlvidada(DTORestorePass cambio)
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                var usuarioDB = await ExisteEmail(cambio.email);
-                if (usuarioDB == null)
-                {
-                    return (false, "Usuario no encontrado");
-                }
-                if (usuarioDB.EnlaceCambioPass != cambio.Token)
-                {
-                    return (false, "Token no valido");
-                }
-                if (usuarioDB.FechaEnlaceCambioPass < DateTime.Now && usuarioDB.FechaExpiracionContrasenaTemporal < DateTime.Now)
-                {
-                    usuarioDB.FechaEnlaceCambioPass = null;
-                    usuarioDB.FechaExpiracionContrasenaTemporal = null;
-                    usuarioDB.TemporaryPassword = null;
-                    await _context.SaveChangesAsync();
-
-                    return (false, "El enlace y contraseña temporal ha expirado,vuelva a solicitar una contraseña nueva");
-                }
-                await transaction.CommitAsync();
-                return (true, null);
-
-            }
-            catch (Exception ex)
-            {
-
-                _logger.LogError(ex, "Error al restaurar la contraseña");
-                await transaction.RollbackAsync();
-                return (false, "Ocurrio un error inesperado por favor contacte con el administrador o intentelo de nuevo mas tarde");
-            }
-
-        }
+      
         public async Task<(bool, string)> ActualizarPass(DTORestorePass cambio)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -136,43 +101,7 @@ namespace GestorInventario.Infraestructure.Repositories
             }
            
         }
-        public async Task<(bool, string)> ActualizarPassOlvidada(DTORestorePass cambio)
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                var usuarioDB = await ExisteEmail(cambio.email);
-                if (usuarioDB == null)
-                {
-                    return (false, "Usuario no encontrado");
-                }
-                if (string.IsNullOrEmpty(cambio.Password))
-                {
-                    return (false, "La contraseña no puede estar vacia");
-                }
-                // Usa el salt almacenado en la base de datos para generar un hash para la contraseña temporal proporcionada por el usuario
-                var resultadoHashTemp = _hashService.Hash(cambio.TemporaryPassword, usuarioDB.Salt);
-                if (usuarioDB.TemporaryPassword != resultadoHashTemp.Hash)
-                {
-                    return (false, "La contraseña temporal no es valida");
-
-                }
-                var resultadoHash = _hashService.Hash(cambio.Password);
-                usuarioDB.Password = resultadoHash.Hash;
-                usuarioDB.Salt = resultadoHash.Salt;
-
-                await _context.UpdateEntityAsync(usuarioDB);
-                await transaction.CommitAsync();
-                return (true, null);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al actualizar la contraseña");
-                await transaction.RollbackAsync();
-                return (false, "Ocurrio un error inesperado por favor contacte con el administrador o intentelo de nuevo mas tarde");
-            }
-
-        }
+       
         public async Task<(bool, string)> ChangePassword(string passwordAnterior, string passwordActual)
         {
             using var transaction= await _context.Database.BeginTransactionAsync();
