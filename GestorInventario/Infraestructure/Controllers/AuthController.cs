@@ -1,15 +1,17 @@
-﻿using GestorInventario.Application.Services;
-using GestorInventario.Models.ViewModels;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using GestorInventario.Application.DTOs;
+﻿using GestorInventario.Application.DTOs;
+using GestorInventario.Application.Politicas_Resilencia;
+using GestorInventario.Application.Services;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
-using GestorInventario.Application.Politicas_Resilencia;
+using GestorInventario.MetodosExtension;
+using GestorInventario.Models.ViewModels;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 
 
 namespace GestorInventario.Infraestructure.Controllers
@@ -38,6 +40,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         //Metodo para mostrar la vista de login
         [AllowAnonymous]
+        [HttpGet]
         public IActionResult Login()
         {
 
@@ -52,94 +55,89 @@ namespace GestorInventario.Infraestructure.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
+            if (!ModelState.IsValid)
+                return View(model);
+
             try
             {
-               
-                
+                // Si ya está autenticado, redirige
+                if (User.Identity.IsAuthenticated)
+                    return RedirectToAction("Index", "Home");
 
-                if (ModelState.IsValid)
+                // Eliminar cookies existentes para mayor seguridad
+                foreach (var cookie in Request.Cookies)
                 {
-                    if (User.Identity.IsAuthenticated)
-                    {
-                        return RedirectToAction("Index", "Home");
-                    }
+                    Response.Cookies.Delete(cookie.Key);
+                }
 
-                    if (!User.Identity.IsAuthenticated)
-                    {
-                        // Eliminar cookies existentes para mayor seguridad
-                        var cookieCollection = Request.Cookies;
-                        foreach (var cookie in cookieCollection)
-                        {
-                            Response.Cookies.Delete(cookie.Key);
-                        }
-                    }
-
-                    var user = await ExecutePolicyAsync(() => _authRepository.Login(model.Email));
-                    if (user != null)
-                    {
-                        if (!user.ConfirmacionEmail)
-                        {
-                            ModelState.AddModelError("", "Por favor, confirma tu correo electrónico antes de iniciar sesión.");
-                            return View(model);
-                        }
-                        if (user.BajaUsuario)
-                        {
-                            ModelState.AddModelError("", "Su usuario ha sido dado de baja, contacte con el administrador.");
-                            return View(model);
-                        }
-
-                        var resultadoHash = _hashService.Hash(model.Password, user.Salt);
-                        if (user.Password == resultadoHash.Hash)
-                        {
-
-
-                            // Generar y devolver el auth token
-                            var tokenResponse = await _tokenService.GenerarToken(user);
-
-                            Response.Cookies.Append("auth", tokenResponse.Token, new CookieOptions
-                            {
-                                HttpOnly = true,
-                                SameSite = SameSiteMode.Lax,
-                                Domain = "localhost",
-                                Secure = true,
-                                Expires = DateTime.UtcNow.AddMinutes(10)
-                            });
-                            // Guardar el token de refresco en una cookie
-                            Response.Cookies.Append("refreshToken", tokenResponse.RefreshToken, new CookieOptions
-                            {
-                                HttpOnly = true,
-                                SameSite = SameSiteMode.Lax,
-                                Domain = "localhost",
-                                Secure = true,
-                                Expires = DateTime.UtcNow.AddDays(7) 
-                            });
-                            var claims = new List<Claim>
-                            {
-                                new Claim(ClaimTypes.Email, user.Email),
-                                new Claim(ClaimTypes.Role, user.IdRolNavigation.Nombre),
-                                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
-                             };
-
-                            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
-                            return RedirectToAction("Index", "Home");
-                        }
-                        else
-                        {
-                            ModelState.AddModelError("", "El email y/o la contraseña son incorrectos.");
-                            return View(model);
-                        }
-                    }
-
+                // Buscar usuario
+                var user = await ExecutePolicyAsync(() => _authRepository.Login(model.Email));
+                if (user == null)
+                {
+                    ModelState.AddModelError("", "El email y/o la contraseña son incorrectos.");
                     return View(model);
                 }
 
-                return View(model);
+                // Verificar confirmación de correo
+                if (!user.ConfirmacionEmail)
+                {
+                    ModelState.AddModelError("", "Por favor, confirma tu correo electrónico antes de iniciar sesión.");
+                    return View(model);
+                }
+
+                // Verificar si el usuario está dado de baja
+                if (user.BajaUsuario)
+                {
+                    ModelState.AddModelError("", "Su usuario ha sido dado de baja, contacte con el administrador.");
+                    return View(model);
+                }
+
+                // Validar contraseña
+                var resultadoHash = _hashService.Hash(model.Password, user.Salt);
+                if (user.Password != resultadoHash.Hash)
+                {
+                    ModelState.AddModelError("", "El email y/o la contraseña son incorrectos.");
+                    return View(model);
+                }
+
+                // Autenticación exitosa - generar tokens
+                var tokenResponse = await _tokenService.GenerarToken(user);
+
+                Response.Cookies.Append("auth", tokenResponse.Token, new CookieOptions
+                {
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.Lax,
+                    Domain = "localhost",
+                    Secure = true,
+                    Expires = DateTime.UtcNow.AddMinutes(10)
+                });
+
+                Response.Cookies.Append("refreshToken", tokenResponse.RefreshToken, new CookieOptions
+                {
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.Lax,
+                    Domain = "localhost",
+                    Secure = true,
+                    Expires = DateTime.UtcNow.AddDays(7)
+                });
+
+                // Construir claims para el login
+                var claims = new List<Claim>
+                {
+                  new Claim(ClaimTypes.Email, user.Email),
+                  new Claim(ClaimTypes.Role, user.IdRolNavigation.Nombre),
+                  new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+                };
+
+                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+
+                return RedirectToAction("Index", "Home");
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor tardó mucho en responder, inténtelo de nuevo más tarde.";
                 _logger.LogError(ex, "Error al realizar el login");
+                TempData["ConectionError"] = "El servidor tardó mucho en responder, inténtelo de nuevo más tarde.";
                 return RedirectToAction("Error", "Home");
             }
         }
@@ -147,6 +145,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
         //Metodo que cierra sesion
         [AllowAnonymous]
+        [HttpGet]
         public async Task<IActionResult> Logout()
         {
             try
@@ -172,115 +171,80 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-        //Metodo para hacer el logout desde el script site.js
-        [AllowAnonymous]
-        [HttpPost]
-        public async Task<IActionResult> LogoutScript()
-        {
-            try
-            {
-               
-                var cookieCollection = Request.Cookies;
-                Console.WriteLine("El metodo se ejecuta");
-               
-                foreach (var cookie in cookieCollection)
-                {
-                    Response.Cookies.Delete(cookie.Key);
-                }
-               
-              
-                await HttpContext.SignOutAsync();
+       
 
-                return RedirectToAction("Index", "Home");
-            }
-            catch (Exception ex)
-            {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al cerrar sesion");
-                return RedirectToAction("Error", "Home");
-            }
-        }
-
-        //CUANDO ES ADMIN ENTRA AQUI
-        [Route("AuthController/ResetPassword/{email}")]
+        [Authorize(Roles = "Administrador")]
+        [HttpGet("reset-password/{email}")]
         public async Task<IActionResult> ResetPassword(string email)
         {
             try
             {
-                var usuarioDB = await ExecutePolicyAsync(() => _authRepository.ExisteEmail(email));
-                // Generar una contraseña temporal
-                var (succes,error)= await _emailService.SendEmailAsyncResetPassword(new DTOEmail
+                if (string.IsNullOrWhiteSpace(email) || !new EmailAddressAttribute().IsValid(email))
+                {
+                    TempData["ErrorMessage"] = "El correo electrónico no es válido.";
+                    return RedirectToAction("Index", "Admin");
+                }
+
+                var (success, error, userEmail) = await _emailService.SendEmailAsyncResetPassword(new DTOEmail
                 {
                     ToEmail = email
                 });
-                if (succes)
-                {
-                    _logger.LogInformation("Email de restablecion de contraseña enviado con exito");
-                    return View(usuarioDB);
-                }
-                else
-                {
-                    _logger.LogError("Error al enviar el email");
-                    return RedirectToAction("Error", "Home");
-                }
-                
-            }
-            catch (Exception ex)
-            {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al obtener y enviar el email");
-                return RedirectToAction("Error", "Home");
-            }
-
-        }
-        
-        [AllowAnonymous]
-        [Route("AuthController/RestorePassword/{UserId}/{Token}")]
-        public async Task<IActionResult> RestorePassword(DTORestorePass cambio)
-        {
-            try
-            {
-                
-                var usuarioDB = await ExecutePolicyAsync(() => _authRepository.ObtenerPorId(cambio.UserId));
-                var (success, errorMessage) = await ExecutePolicyAsync(() => _authRepository.RestorePass(cambio));
                 if (success)
                 {
-                    var restorePass = new DTORestorePass
-                    {
-                        UserId = usuarioDB.Id,
-                        Token = usuarioDB.EnlaceCambioPass,
-
-                    };
-                    return View(restorePass);
+                    _logger.LogInformation("Email de restablecimiento de contraseña enviado con éxito");
+                    return View("ResetPassword", userEmail); 
                 }
-                else
-                {
-                    TempData["ErrorMessage"] = errorMessage;
-                    return RedirectToAction(nameof(RestorePassword), new { UserId = usuarioDB.Id, Token = usuarioDB.EnlaceCambioPass });
 
-                }
+                _logger.LogError("Error al enviar el email: {error}", error);
+                TempData["ErrorMessage"] = error;
+                return RedirectToAction("Index", "Admin");
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al mostrar el formulario de restauracion de contraseña");
+                TempData["ConnectionError"] = "El servidor tardó mucho en responder, inténtelo de nuevo más tarde.";
+                _logger.LogError(ex, "Error al enviar el email de restablecimiento");
                 return RedirectToAction("Error", "Home");
             }
-
         }
-       
+
+        [AllowAnonymous]
+       [HttpGet("auth/restore-password/{UserId}/{Token}")]
+        public async Task<IActionResult> RestorePassword(int UserId, string Token)
+        {
+            var result = await PrepareRestorePassModel(UserId, Token);
+            if (!result.success)
+            {
+                TempData["ErrorMessage"] = result.errorMessage;
+                return RedirectToAction("ResetPasswordOlvidada");
+            }
+            return View(result.model);
+        }
+
         [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> RestorePasswordUser(DTORestorePass cambio)
         {
+            if (!ModelState.IsValid)
+            {
+                return View("RestorePassword", cambio);
+            }
+
+            var result = await PrepareRestorePassModel(cambio.UserId, cambio.Token);
+            if (!result.success)
+            {
+                TempData["ErrorMessage"] = result.errorMessage;
+                return RedirectToAction("ResetPasswordOlvidada");
+            }
+
             try
             {
-
-                var (success, errorMessage) = await ExecutePolicyAsync(() => _authRepository.ActualizarPass(cambio));
+                var (success, errorMessage) = await ExecutePolicyAsync(() => _authRepository.SetNewPasswordAsync(cambio));
                 if (success)
                 {
+                    if (User.Identity.IsAuthenticated && User.IsAdministrador())
+                        return RedirectToAction("Index", "Admin");
 
-                    return RedirectToAction("Index", "Admin");
+                    return RedirectToAction(nameof(Login));
                 }
                 else
                 {
@@ -290,51 +254,76 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
+                TempData["ConnectionError"] = "El servidor tardó mucho en responder, inténtelo de nuevo más tarde";
                 _logger.LogError(ex, "Error al recuperar la contraseña");
                 return RedirectToAction("Error", "Home");
             }
         }
-      
-       
-       //CUANDO ES USUARIO NORMAL ENTRA AQUI
-        public async Task<IActionResult> ResetPasswordOlvidada()
+
+
+        [HttpGet]
+        public  IActionResult ResetPasswordOlvidada()
         {
             return View();
         }
+        [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> ResetPasswordOlvidada(string email)
         {
             try
             {
-                var usuarioDB = await ExecutePolicyAsync(() => _authRepository.ExisteEmail(email));
-               
-                var (success, error) = await _emailService.SendEmailAsyncResetPassword(new DTOEmail
+                if (string.IsNullOrWhiteSpace(email) || !new EmailAddressAttribute().IsValid(email))
+                {
+                    TempData["ErrorMessage"] = "El correo electrónico no es válido.";
+                    return View();
+                }
+
+                var (success, error, _) = await _emailService.SendEmailAsyncResetPassword(new DTOEmail
                 {
                     ToEmail = email
                 });
                 if (success)
                 {
+                    _logger.LogInformation("Correo enviado con éxito");
+                    TempData["Success"] = "Se ha enviado un correo con instrucciones para restablecer tu contraseña. Por favor, revisa tu bandeja de correo o spam.";
+                    return View();
+                }
 
-                    _logger.LogInformation("correo enviado con exito");
-                }
-                else {
-                    _logger.LogError("Ocurrio un error al enviar el correo");
-                    return RedirectToAction("Error", "Home");
-                }
-                TempData["Succes"] = "Email eviado con exito por favor mire en su bandeja de correo o spam";
-                return View(usuarioDB);
+                _logger.LogError("Error al enviar el correo: {error}", error);
+                TempData["ErrorMessage"] = error;
+                return View();
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al obtener y enviar el email");
+                TempData["ConnectionError"] = "El servidor tardó mucho en responder, inténtelo de nuevo más tarde.";
+                _logger.LogError(ex, "Error al enviar el email de restablecimiento");
                 return RedirectToAction("Error", "Home");
             }
-
         }
+        // Método privado para validar token y preparar modelo
+        private async Task<(bool success, string errorMessage, DTORestorePass model)> PrepareRestorePassModel(int userId, string token)
+        {
+            try
+            {
+                var cambio = new DTORestorePass
+                {
+                    UserId = userId,
+                    Token = token
+                };
 
-        public async Task<IActionResult> ChangePassword()
+                var (success, errorMessage) = await ExecutePolicyAsync(() => _authRepository.ValidateResetTokenAsync(cambio));
+                if (!success)
+                    return (false, errorMessage, null);
+
+                return (true, null, cambio);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al validar el token de restauración de contraseña");
+                return (false, "El servidor tardó mucho en responder, inténtelo de nuevo más tarde", null);
+            }
+        }
+        public IActionResult ChangePassword()
         {
             return View();
         }
@@ -345,7 +334,14 @@ namespace GestorInventario.Infraestructure.Controllers
             var (succes, errorMessage) = await ExecutePolicyAsync(() => _authRepository.ChangePassword(passwordAnterior, passwordActual));
             if (succes)
             {
-                return RedirectToAction("Index", "Admin");
+                if (User.Identity.IsAuthenticated && User.IsAdministrador())
+                {
+                    return RedirectToAction("Index", "Admin");
+                }
+                else
+                {
+                    return RedirectToAction(nameof(Login));
+                }
             }
             else
             {
@@ -362,11 +358,7 @@ namespace GestorInventario.Infraestructure.Controllers
             var policy = _PolicyHandler.GetCombinedPolicyAsync<T>();
             return await policy.ExecuteAsync(operation);
         }
-        private T ExecutePolicy<T>(Func<T> operation)
-        {
-            var policy = _PolicyHandler.GetCombinedPolicy<T>();
-            return policy.Execute(operation);
-        }
+      
        
     }
 }

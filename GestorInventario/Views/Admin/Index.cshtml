@@ -46,6 +46,7 @@
                             <a asp-action="Delete" asp-route-id="@user.Id" class="btn btn-danger btn-sm">
                                 <i class="bi bi-trash nav-icon"></i> Eliminar
                             </a>
+                            <!--Aqui enviamos por ruta el email del usuario al que se le restablece la constraseña-->
                             <a asp-action="ResetPassword" asp-controller="Auth" asp-route-email="@user.Email"
                                class="btn btn-outline-secondary btn-sm">
                                 <i class="bi bi-key nav-icon"></i> Recuperar Contraseña
