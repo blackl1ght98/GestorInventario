@@ -23,5 +23,7 @@ namespace GestorInventario.Models.ViewModels
         public int IdRol { get; set; }
         public string Ciudad { get; set; }
         public string  codigoPostal { get; set; }
+        public bool EsEdicionPropia { get; set; }
+
     }
 }

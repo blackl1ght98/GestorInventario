@@ -181,205 +181,134 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             
         }
-        
-        [Authorize(Roles = "Administrador")]
+
+
+
         public async Task<ActionResult> Edit(int id)
         {
             try
             {
-               
-                var user = await ExecutePolicyAsync(() => _adminrepository.ObtenerPorId(id));                          
-                if (user == null)
+                if (id == 0)
                 {
-                    TempData["ErrorMessage"] = "Usuario no encontrado";
-                }
-              
-                UsuarioEditViewModel viewModel = new UsuarioEditViewModel
-                {
-                    Id = user.Id,
-                    Email = user.Email,
-                    NombreCompleto = user.NombreCompleto,
-                    FechaNacimiento = user.FechaNacimiento,
-                    Telefono = user.Telefono,
-                    IdRol=user.IdRol,
-                    Direccion = user.Direccion,
-                    Ciudad=user.Ciudad,
-                    codigoPostal=user.CodigoPostal
-                };
-                var roles = await ExecutePolicyAsync(() => _adminrepository.ObtenerRoles());
-                ViewData["Roles"] = new SelectList(roles, "Id", "Nombre");
-
-
-                return View(viewModel);
-            }
-            catch (Exception ex)
-            {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al visualizar la vista de edicion de usuario");
-                return RedirectToAction("Error", "Home");
-            }
-           
-        }
-       
-        [HttpPost]
-        [Authorize(Roles = "Administrador")]
-        public async Task<ActionResult> Edit(UsuarioEditViewModel userVM)
-        {
-            try
-            {
-                
-               
-                if (ModelState.IsValid)
-                {
-                    if (!User.Identity.IsAuthenticated)
+                  
+                    var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    if (!int.TryParse(userIdClaim, out int usuarioActualId))
                     {
-                        return RedirectToAction("Login", "Auth");
+                        TempData["ErrorMessage"] = "ID de usuario inválido.";
+                        return BadRequest("ID de usuario inválido.");
                     }
-                    var roles = await ExecutePolicyAsync(() => _adminrepository.ObtenerRoles());
-                    ViewData["Roles"] = new SelectList(roles, "Id", "Nombre");
 
-
-                    var (success,errorMessage) = await _adminrepository.EditarUsuario(userVM);
-                    if (success)
-                    {
-                        TempData["SuccessMessage"] = "Usuario Actualizado con exito";
-                        return RedirectToAction(nameof(Index));
-                    }
-                    else
-                    {
-                        TempData["ErrorMessage"] = errorMessage;
-                    }
-                    return RedirectToAction("Index");
-                }
-                
-                return View(userVM);
-            }
-            catch(DbUpdateConcurrencyException ex)
-            {
-                var (success, errorMessage) = await _adminrepository.EditarUsuario(userVM);
-                if (success)
-                {
-                    TempData["SuccessMessage"] = "Usuario Actualizado con exito";
-                    return RedirectToAction(nameof(Index));
-                }
-                else
-                {
-                    TempData["ErrorMessage"] = errorMessage;
-
-                }
-                return RedirectToAction("Index");
-
-            }
-            catch (Exception ex)
-            {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al editar la informacion del usuario");
-                return RedirectToAction("Error", "Home");
-            }  
-        }
-       
-        [Authorize]
-        public async Task<IActionResult> EditUserActual(int id)
-        {
-            try
-            {
-               
-
-                var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int usuarioId;
-                if (int.TryParse(existeUsuario, out usuarioId))
-                {
-                    var user = await ExecutePolicyAsync(() => _adminrepository.ObtenerPorId(usuarioId));
-
+                    var user = await ExecutePolicyAsync(() => _adminrepository.ObtenerPorId(usuarioActualId));
                     if (user == null)
                     {
-                        TempData["ErrorMessage"] = "Usuario no encontrado";
-                        return BadRequest("Usuario no encontrado");
+                        TempData["ErrorMessage"] = "Usuario no encontrado.";
+                        return BadRequest("Usuario no encontrado.");
                     }
 
-                    // Crear el ViewModel
-                    var viewModel = new EditarUsuarioActual
+                    var viewModel = new UsuarioEditViewModel
                     {
+                        Id = user.Id,
                         Email = user.Email,
                         NombreCompleto = user.NombreCompleto,
                         FechaNacimiento = user.FechaNacimiento,
                         Telefono = user.Telefono,
                         Direccion = user.Direccion,
-                        ciudad = user.Ciudad,
-                        codigoPostal= user.CodigoPostal
+                        Ciudad = user.Ciudad,
+                        codigoPostal = user.CodigoPostal,
+                        IdRol = user.IdRol,
 
+                      
+                        EsEdicionPropia = true
                     };
 
-                    
-                    return View(viewModel);
+                    return View( viewModel); 
                 }
+                else
+                {
+                   
+                    var user = await ExecutePolicyAsync(() => _adminrepository.ObtenerPorId(id));
+                    if (user == null)
+                    {
+                        TempData["ErrorMessage"] = "Usuario no encontrado.";
+                        return BadRequest("Usuario no encontrado.");
+                    }
 
-            
-                TempData["ErrorMessage"] = "Error al obtener el usuario";
-                return BadRequest("Error al obtener el usuario");
+                    var viewModel = new UsuarioEditViewModel
+                    {
+                        Id = user.Id,
+                        Email = user.Email,
+                        NombreCompleto = user.NombreCompleto,
+                        FechaNacimiento = user.FechaNacimiento,
+                        Telefono = user.Telefono,
+                        Direccion = user.Direccion,
+                        Ciudad = user.Ciudad,
+                        codigoPostal = user.CodigoPostal,
+                        IdRol = user.IdRol,
+
+                       
+                        EsEdicionPropia = false
+                    };
+
+                    var roles = await ExecutePolicyAsync(() => _adminrepository.ObtenerRoles());
+                    ViewData["Roles"] = new SelectList(roles, "Id", "Nombre");
+
+                    return View(viewModel); 
+                }
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor ha tardado mucho en responder. Inténtalo de nuevo más tarde.";
+                TempData["ConectionError"] = "El servidor ha tardado mucho en responder. Inténtelo de nuevo más tarde.";
                 _logger.LogError(ex, "Error al visualizar la vista de edición de usuario");
                 return RedirectToAction("Error", "Home");
             }
         }
-    
+
+
+
+
         [HttpPost]
-        [Authorize]
-        public async Task<ActionResult> EditUserActual(EditarUsuarioActual userVM)
+        public async Task<ActionResult> Edit(UsuarioEditViewModel userVM)
         {
             try
             {
-                
-              
-                if (ModelState.IsValid)
+                if (!User.Identity.IsAuthenticated)
                 {
-                    if (!User.Identity.IsAuthenticated)
-                    {
-                        return RedirectToAction("Login", "Auth");
-                    }
-
-                    var (success, errorMessage) = await _adminrepository.EditarUsuarioActual(userVM);
-                    if (success)
-                    {
-                        TempData["SuccessMessage"] = "Usuario Actualizado con exito";
-                        return RedirectToAction(nameof(Index));
-                    }
-                    else
-                    {
-                        TempData["ErrorMessage"] = errorMessage;
-                    }
-                    return RedirectToAction("Index");
+                    return RedirectToAction("Login", "Auth");
                 }
 
-                return View(userVM);
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                var (success, errorMessage) = await _adminrepository.EditarUsuarioActual(userVM);
+                // Cargar roles para la vista en caso de error
+                if (!userVM.EsEdicionPropia)
+                {
+                    var roles = await ExecutePolicyAsync(() => _adminrepository.ObtenerRoles());
+                    ViewData["Roles"] = new SelectList(roles, "Id", "Nombre", userVM.IdRol);
+                }
+
+            
+
+                if (!ModelState.IsValid)
+                {
+                    return View(userVM);
+                }
+
+                var (success, errorMessage) = await _adminrepository.EditarUsuario(userVM);
                 if (success)
                 {
-                    TempData["SuccessMessage"] = "Usuario Actualizado con exito";
-                    return RedirectToAction(nameof(Index));
+                    TempData["SuccessMessage"] = "Usuario actualizado con éxito";
+                    return RedirectToAction("Index", "Home");
                 }
-                else
-                {
-                    TempData["ErrorMessage"] = errorMessage;
 
-                }
-                return RedirectToAction("Index");
-
+                TempData["ErrorMessage"] = errorMessage;
+                return View(userVM);
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al editar la informacion del usuario");
+                TempData["ConectionError"] = "El servidor ha tardado mucho en responder, inténtelo de nuevo más tarde";
+                _logger.LogError(ex, "Error al editar la información del usuario");
                 return RedirectToAction("Error", "Home");
             }
         }
-    
+
+
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Delete(int id)
         {

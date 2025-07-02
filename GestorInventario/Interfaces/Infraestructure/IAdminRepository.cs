@@ -16,7 +16,7 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<(bool, string?)> EditarUsuario(UsuarioEditViewModel userVM);   
         Task<(bool, string)> CrearUsuario(UserViewModel model);
         Task<(bool, string)> EliminarUsuario(int id);
-        Task<(bool, string)> EditarUsuarioActual(EditarUsuarioActual userVM);
+        //Task<(bool, string)> EditarUsuarioActual(EditarUsuarioActual userVM);
         Task<(bool, string)> BajaUsuario(int id);
         Task<(bool, string)> AltaUsuario(int id);
         Task<List<Role>> ObtenerRolesConUsuarios();

@@ -38,66 +38,60 @@ namespace GestorInventario.Application.Services
             _hashService = hashService;
         }
         //En este servicio esta la logica para enviar correo electronico
-        public async Task<(bool, string)> SendEmailAsyncRegister(DTOEmail userDataRegister)
+        public async Task<(bool, string)> SendEmailAsyncRegister(DTOEmail userDataRegister, Usuario usuarioDB)
         {
-            using (var transaction = _context.Database.BeginTransaction())
+            try
             {
-                try
+                if (usuarioDB == null)
                 {
-                    var usuarioDB = await _context.Usuarios.AsTracking().FirstOrDefaultAsync(x => x.Email == userDataRegister.ToEmail);
-                    if (usuarioDB != null)
-                    {
-                        //Genera un id aleatorio
-                        Guid miGuid = Guid.NewGuid();
-                        //El id generado aleatoriamente lo convierte a base 64 y esta tranformacion la transforma a un array de bytes
-                        string textoEnlace = Convert.ToBase64String(miGuid.ToByteArray());
-                        //Quita los caracteres especiales del id que se ha convertido en base 64
-                        textoEnlace = textoEnlace.Replace("=", "").Replace("+", "").Replace("/", "").Replace("?", "").Replace("&", "").Replace("!", "").Replace("¡", "");
-                        usuarioDB.EnlaceCambioPass = textoEnlace;
-                        var model = new DTOEmail
-                        {
-
-                            //Cuando el usuario hace clic en el enlace que se le envia al correo electroni va al enspoint de confirmacion de correo electronico, en dicho endpoint los parametros llegan por ruta
-                            RecoveryLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/AdminController/ConfirmRegistration/{usuarioDB.Id}/{usuarioDB.EnlaceCambioPass}?redirect=true",
-                        };
-                        await _context.UpdateEntityAsync(usuarioDB);
-                        var email = new MimeMessage();
-                        email.From.Add(MailboxAddress.Parse(_config.GetSection("Email:UserName").Value));
-                        email.To.Add(MailboxAddress.Parse(userDataRegister.ToEmail));
-                        email.Subject = "Confirmar Email";
-                        email.Body = new TextPart(TextFormat.Html)
-                        {
-                            Text = await RenderViewToStringAsync("ViewsEmailService/ViewRegisterEmail", model)
-                        };
-                        using var smtp = new SmtpClient();
-                        var emailHost = Environment.GetEnvironmentVariable("Email__Host") ?? _config.GetSection("Email:Host").Value;
-                        var emailPortString = Environment.GetEnvironmentVariable("Email__Port") ?? _config.GetSection("Email:Port").Value;
-                        int emailPort = int.Parse(emailPortString);
-                        await smtp.ConnectAsync(emailHost, emailPort, SecureSocketOptions.StartTls);
-                        var emailUserName = Environment.GetEnvironmentVariable("Email__Username") ?? _config.GetSection("Email:UserName").Value;
-                        var emailPassWord = Environment.GetEnvironmentVariable("Email__Password") ?? _config.GetSection("Email:PassWord").Value;
-                        await smtp.AuthenticateAsync(emailUserName, emailPassWord);
-                        await smtp.SendAsync(email);
-                        await smtp.DisconnectAsync(true);
-                        await transaction.CommitAsync();
-                        return (true, "Email de confirmacion enviado con exito");
-                    }
-                    else
-                    {
-                        return (false, "El email no existe");
-                    }
+                    return (false, "El email no existe");
                 }
-                catch (Exception ex) 
+
+                // Generar un enlace único para la confirmación
+                string textoEnlace = Convert.ToBase64String(Guid.NewGuid().ToByteArray())
+                    .Replace("=", "").Replace("+", "").Replace("/", "")
+                    .Replace("?", "").Replace("&", "").Replace("!", "").Replace("¡", "");
+                usuarioDB.EnlaceCambioPass = textoEnlace;
+
+                // Construir el enlace de recuperación
+                var model = new DTOEmail
                 {
-                    await transaction.RollbackAsync();
-                    // _logger.LogError(ex, "Error al enviar correo de restablecimiento de contraseña");
-                    return (false, $"Error al enviar el correo: {ex.Message}");
+                    RecoveryLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/AdminController/ConfirmRegistration/{usuarioDB.Id}/{usuarioDB.EnlaceCambioPass}?redirect=true",
+                };
 
-                }
-               
+                // Actualizar el usuario en la base de datos
+                await _context.UpdateEntityAsync(usuarioDB);
+
+                // Configurar el correo
+                var email = new MimeMessage();
+                email.From.Add(MailboxAddress.Parse(_config.GetSection("Email:UserName").Value));
+                email.To.Add(MailboxAddress.Parse(userDataRegister.ToEmail));
+                email.Subject = "Confirmar Email";
+                email.Body = new TextPart(TextFormat.Html)
+                {
+                    Text = await RenderViewToStringAsync("ViewsEmailService/ViewRegisterEmail", model)
+                };
+
+                // Enviar el correo
+                using var smtp = new SmtpClient();
+                var emailHost = Environment.GetEnvironmentVariable("Email__Host") ?? _config.GetSection("Email:Host").Value;
+                var emailPortString = Environment.GetEnvironmentVariable("Email__Port") ?? _config.GetSection("Email:Port").Value;
+                int emailPort = int.Parse(emailPortString);
+                await smtp.ConnectAsync(emailHost, emailPort, SecureSocketOptions.StartTls);
+                var emailUserName = Environment.GetEnvironmentVariable("Email__Username") ?? _config.GetSection("Email:UserName").Value;
+                var emailPassWord = Environment.GetEnvironmentVariable("Email__Password") ?? _config.GetSection("Email:PassWord").Value;
+                await smtp.AuthenticateAsync(emailUserName, emailPassWord);
+                await smtp.SendAsync(email);
+                await smtp.DisconnectAsync(true);
+
+                return (true, "Email de confirmación enviado con éxito");
             }
-            
+            catch (Exception ex)
+            {
+                return (false, $"Error al enviar el correo: {ex.Message}");
+            }
         }
+
         public async Task<(bool,string,string)> SendEmailAsyncResetPassword(DTOEmail userDataResetPassword)
         {
             using (var transaction = _context.Database.BeginTransaction()) 

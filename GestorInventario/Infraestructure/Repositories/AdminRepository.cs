@@ -29,14 +29,142 @@ namespace GestorInventario.Infraestructure.Repositories
             _logger = logger;
             _mapper = mapper;
         }
-       //Todos los metodos que hay aquí se llaman en AdminController
+    
         public async Task<IEnumerable<Usuario>> ObtenerUsuarios() => await _context.Usuarios.Include(x=>x.IdRolNavigation).ToListAsync();
         public async Task<Usuario> ObtenerPorId(int id)=>await _context.Usuarios.Include(x=>x.IdRolNavigation).FirstOrDefaultAsync(x=>x.Id==id);
         public  async Task<IEnumerable<Role>> ObtenerRoles()=> await _context.Roles.ToListAsync();
         public async Task<Usuario> UsuarioConPedido(int id)=>await _context.Usuarios.Include(p => p.Pedidos).FirstOrDefaultAsync(m => m.Id == id);
         public async Task<Usuario> ObtenerUsuarioId(int id) => await _context.Usuarios.FirstOrDefaultAsync(u => u.Id == id);
         public async Task<List<Role>> ObtenerRolesConUsuarios()=>await _context.Roles.Include(x=>x.Usuarios).ToListAsync();
-        //Metodo que implementa la separación de tuplas para manejar 2 valores
+        public async Task<List<Permiso>> ObtenerPermisos() => await _context.Permisos.ToListAsync();
+        public async Task<(bool, string)> CrearUsuario(UserViewModel model)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var existingUser = await _context.Usuarios.FirstOrDefaultAsync(x => x.Email == model.Email);
+                if (existingUser != null)
+                {
+                    return (false, "El Email ya existe en base de datos");
+                }
+                var resultadoHash = _hashService.Hash(model.Password);
+                var user = new Usuario()
+                {
+                    Email = model.Email,
+                    Password = resultadoHash.Hash,
+                    Salt = resultadoHash.Salt,
+                    IdRol = model.IdRol,
+                    NombreCompleto = model.NombreCompleto,
+                    FechaNacimiento = model.FechaNacimiento,
+                    Telefono = model.Telefono,
+                    Direccion = model.Direccion,
+                    FechaRegistro = DateTime.Now,
+                    Ciudad = model.ciudad,
+                    CodigoPostal = model.codigoPostal
+                };
+                _context.AddEntity(user);
+                var (success, error) = await _emailService.SendEmailAsyncRegister(new DTOEmail { ToEmail = model.Email }, user);
+                if (success)
+                {
+
+                    _logger.LogInformation("Correo de confirmación enviado a {Email}", user.Email);
+                    await transaction.CommitAsync();
+                    return (true, null);
+                }
+                else
+                {
+
+                    await transaction.RollbackAsync();
+                    return (false, "Error al enviar el correo de confirmación. Por favor, intenta de nuevo.");
+
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+
+                _logger.LogError(ex, "Error crear el usuario");
+                await transaction.RollbackAsync();
+                return (false, "Ocurrio un error inesperado por favor contacte con el administrador o intentelo de nuevo mas tarde");
+            }
+        }
+
+        public async Task<(bool, string?)> EditarUsuario(UsuarioEditViewModel userVM)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                if (!_contextAccessor.HttpContext.User.Identity.IsAuthenticated)
+                {
+                    return (false, "Usuario no logueado");
+                }
+
+                var user = await ObtenerUsuarioId(userVM.Id);
+                if (user == null)
+                {
+                    return (false, "Usuario no encontrado");
+                }
+
+                // Validar IdRol solo si es un administrador y se proporciona un nuevo rol
+                if (!userVM.EsEdicionPropia && userVM.IdRol != user.IdRol)
+                {
+                    if (userVM.IdRol == 0 || !await _context.Roles.AnyAsync(r => r.Id == userVM.IdRol))
+                    {
+                        return (false, "El rol seleccionado no es válido");
+                    }
+                }
+
+                await ActualizarUsuario(userVM, user);
+                await transaction.CommitAsync();
+                return (true, null);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                await transaction.RollbackAsync();
+                var user = await ObtenerUsuarioId(userVM.Id);
+                if (user == null)
+                {
+                    return (false, "Usuario no encontrado");
+                }
+                _context.ReloadEntity(user);
+                await ActualizarUsuario(userVM, user);
+                await transaction.CommitAsync();
+                return (true, null);
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Error inesperado al editar el usuario: {Message}", ex.Message);
+                return (false, "Ocurrió un error inesperado. Por favor, contacte con el administrador o inténtelo de nuevo más tarde.");
+            }
+        }
+        private async Task ActualizarUsuario(UsuarioEditViewModel userVM, Usuario user)
+        {
+            _mapper.Map(userVM, user);
+            
+            if (user.Email != userVM.Email)
+            {
+                user.ConfirmacionEmail = false;
+                user.Email = userVM.Email;
+                var (success, error) = await _emailService.SendEmailAsyncRegister(new DTOEmail { ToEmail = userVM.Email }, user);
+                if (!success)
+                {
+                    _logger.LogWarning("Error al enviar correo de confirmación: {Error}", error);
+                   
+                }
+                _logger.LogInformation("Correo de confirmación enviado a {Email}", user.Email);
+            }
+
+            // Actualizar IdRol solo si es un administrador, el rol cambió y es válido
+            if (!userVM.EsEdicionPropia && user.IdRol != userVM.IdRol && userVM.IdRol != 0)
+            {
+                user.IdRol = userVM.IdRol;
+            }
+
+            _context.EntityModified(user);
+            await _context.UpdateEntityAsync(user);
+        }
         public async Task<(bool, string)> EliminarUsuario(int id)
         {
             using var transaction= await _context.Database.BeginTransactionAsync();
@@ -68,211 +196,8 @@ namespace GestorInventario.Infraestructure.Repositories
             }
            
         } 
-        public async Task<(bool, string?)> EditarUsuario(UsuarioEditViewModel userVM)
-        {
-            using var transaction= await _context.Database.BeginTransactionAsync();
-            try
-            {
-                if (_contextAccessor.HttpContext.User.Identity.IsAuthenticated)
-                {
-                    if (_contextAccessor.HttpContext.User.IsInRole("Administrador"))
-                    {
-                        var user = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == userVM.Id);
-                        if (user != null)
-                        {                                                 
-                            await ActualizarUsuario(userVM, user);
-                            await transaction.CommitAsync();
-                            return (true, null);
-                        }
-                        else
-                        {                           
-                            return (false, "Usuario no encontrado");
-                        }
-                    }
-                    else
-                    {                       
-                        return (false, "El rol que tiene no tiene permitida esta operación");
-                    }
-                }
-                else
-                {
-                    return (false, "Usuario no logueado");
-                }
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                await transaction.RollbackAsync();
-                var user = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == userVM.Id);
-                if (user == null)
-                {
-                    
-                    return (false, "Usuario no encontrado");
-                }
-                _context.ReloadEntity(user);                              
-                await ActualizarUsuario(userVM, user);
-                await transaction.CommitAsync();
-                return (true, null);
-            }
-            catch(Exception ex)
-            {
-                await transaction.RollbackAsync(); 
-                _logger.LogError(ex, "Error inesperado al editar el usuario");
-                return (false, "Ocurrió un error inesperado. Por favor, contacte con el administrador o inténtelo de nuevo más tarde.");
-            }
-        }
-        private async Task ActualizarUsuario(UsuarioEditViewModel userVM, Usuario user)
-        {
-           _mapper.Map(userVM, user);
-            if (user.Email != userVM.Email)
-            {
-                user.ConfirmacionEmail = false;
-                user.Email = userVM.Email;
-                var (success, error) = await _emailService.SendEmailAsyncRegister(new DTOEmail { ToEmail = userVM.Email });
-                if (success)
-                {
-                    _logger.LogInformation("Correo de confirmación enviado a {Email}", user.Email);
-
-                }
-                else {
-
-                    _logger.LogWarning("Error al enviar correo de confirmación: {Error}", error);
-
-                }
-
-            }
-            if (user.IdRol != userVM.IdRol)
-            {
-                user.IdRol = userVM.IdRol;
-            }
-           
-            _context.EntityModified(user);
-            await _context.UpdateEntityAsync(user);
-        }
-        public async Task<(bool, string)> EditarUsuarioActual(EditarUsuarioActual userVM)
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                var existeUsuario = _contextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int usuarioId;
-                if (int.TryParse(existeUsuario, out usuarioId))
-                {
-                    var user = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == usuarioId);
-                    if (user != null)
-                    {                                                                
-                        await ActualizarUsuarioActual(userVM, user);
-                        await transaction.CommitAsync();
-                        return (true, null);
-                    }
-                 
-                    return (false, "El usuario no se ha encontrado o no estas autenticado");
-                }
-                  
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                await  transaction.RollbackAsync();
-                _logger.LogError("Ocurrio excepcion de concurrencia",ex);
-                await transaction.RollbackAsync();
-                var existeUsuario = _contextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int usuarioId;
-                if (int.TryParse(existeUsuario, out usuarioId))
-                {
-                    var user = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == usuarioId);
-                    if (user != null)
-                    {                       
-                        await ActualizarUsuarioActual(userVM, user);
-                        await transaction.CommitAsync();
-                        return (true, null);
-                    }                                  
-                }
-              
-                return (false, "El usuario no se ha encontrado o no estas autenticado");
-            }
-            return (false, "Ocurrio un error al editar el usuario");
-           
-        }
-        private async Task ActualizarUsuarioActual(EditarUsuarioActual userVM, Usuario user)
-        {
-           _mapper.Map(userVM, user);
-            if (user != null && user.Email != userVM.Email)
-            {
-                user.ConfirmacionEmail = false;
-                user.Email = userVM.Email;
-                await _context.UpdateEntityAsync(user);
-                var (success, error) = await _emailService.SendEmailAsyncRegister(new DTOEmail { ToEmail = userVM.Email });
-                if (success)
-                {
-                    _logger.LogInformation("Correo de confirmación enviado a {Email}", user.Email);
-
-                }
-                else
-                {
-
-                    _logger.LogWarning("Error al enviar correo de confirmación: {Error}", error);
-
-                }
-            }
-            else
-            {
-                user!.Email = userVM.Email;
-            }
-           
-            _context.Entry(user).State = EntityState.Modified;
-           await _context.UpdateEntityAsync(user);
-        }
       
-        public async Task<(bool, string)> CrearUsuario(UserViewModel model)
-        {
-            using var transaction= await _context.Database.BeginTransactionAsync();
-            try
-            {
-                var existingUser = await _context.Usuarios.FirstOrDefaultAsync(x => x.Email == model.Email);
-                if (existingUser != null)
-                {
-                    return (false, "El Email ya existe en base de datos");
-                }
-                var resultadoHash = _hashService.Hash(model.Password);
-                var user = new Usuario()
-                {
-                    Email = model.Email,
-                    Password = resultadoHash.Hash,
-                    Salt = resultadoHash.Salt,
-                    IdRol = model.IdRol,
-                    NombreCompleto = model.NombreCompleto,
-                    FechaNacimiento = model.FechaNacimiento,
-                    Telefono = model.Telefono,
-                    Direccion = model.Direccion,
-                    FechaRegistro = DateTime.Now,
-                    Ciudad=model.ciudad,
-                    CodigoPostal=model.codigoPostal
-                };
-                _context.AddEntity(user);
-                var (success, error) = await _emailService.SendEmailAsyncRegister(new DTOEmail { ToEmail = model.Email });
-                if (success)
-                {
-                   
-                    _logger.LogInformation("Correo de confirmación enviado a {Email}", user.Email);
-                   
-                }
-                else
-                {
-
-                    _logger.LogWarning("Error al enviar correo de confirmación: {Error}", error);
-                  
-                }
-                await transaction.CommitAsync();
-                return (true, null);
-            }
-            catch (Exception ex)
-            {
-
-                _logger.LogError(ex,"Error crear el usuario");
-                await transaction.RollbackAsync();
-                return (false, "Ocurrio un error inesperado por favor contacte con el administrador o intentelo de nuevo mas tarde");
-            }           
-        }
-     
+      
         public async Task<(bool, string)> BajaUsuario(int id)
         {
             using var transaction= await _context.Database.BeginTransactionAsync();
@@ -417,7 +342,7 @@ namespace GestorInventario.Infraestructure.Repositories
             }
 
         }
-        public async Task<List<Permiso>> ObtenerPermisos() => await _context.Permisos.ToListAsync();
+     
         public async Task<(bool, List<int>, string)> CrearPermisos(List<NewPermisoDTO> nuevosPermisos)
         {
             try

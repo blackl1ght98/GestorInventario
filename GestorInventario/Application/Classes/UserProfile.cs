@@ -11,12 +11,11 @@ namespace GestorInventario.Application.Classes
         {
             CreateMap<UsuarioEditViewModel, Usuario>()
                 .ForMember(dest => dest.ConfirmacionEmail, opt => opt.Ignore())
-                .ForMember(dest => dest.IdRol, opt => opt.Ignore());
-            CreateMap<EditarUsuarioActual, Usuario>()
-               .ForMember(dest => dest.Email, opt => opt.Ignore())
-               .ForMember(dest => dest.ConfirmacionEmail, opt => opt.Ignore())
-                 .ForMember(dest => dest.Ciudad, opt => opt.MapFrom(src => src.ciudad))
-            .ForMember(dest => dest.CodigoPostal, opt => opt.MapFrom(src => src.codigoPostal));
+                .ForMember(dest => dest.IdRol, opt => opt.Ignore())
+                .ForMember(dest => dest.CodigoPostal, opt => opt.MapFrom(x => x.codigoPostal))
+                .ForMember(dest => dest.Email, opt => opt.Ignore());
+                    
+            
         }
     }
 }
