@@ -18,6 +18,7 @@ using GestorInventario.Infraestructure.Controllers;
 using GestorInventario.Configuracion.Strategies;
 using GestorInventario.Application.Services.Authentication;
 using GestorInventario.Middlewares.Strategis;
+using GestorInventario.Infraestructure.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 // Agregar variables de entorno a la configuración
@@ -61,6 +62,7 @@ builder.Services.AddAntiforgery();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<GenerarPaginas>();
 builder.Services.AddTransient<PaginacionMetodo>();
+builder.Services.AddTransient<PolicyExecutor>();
 builder.Services.AddTransient<IGestorArchivos, GestorArchivosService>();
 builder.Services.AddTransient<HashService>();
 builder.Services.AddTransient<ICarritoRepository, CarritoRepository>();

@@ -124,15 +124,15 @@ namespace GestorInventario.Infraestructure.Controllers
                 });
 
                 // Construir claims para el login
-                var claims = new List<Claim>
-                {
-                  new Claim(ClaimTypes.Email, user.Email),
-                  new Claim(ClaimTypes.Role, user.IdRolNavigation.Nombre),
-                  new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
-                };
+                //var claims = new List<Claim>
+                //{
+                //  new Claim(ClaimTypes.Email, user.Email),
+                //  new Claim(ClaimTypes.Role, user.IdRolNavigation.Nombre),
+                //  new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+                //};
 
-                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+                //var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                //await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
                 return RedirectToAction("Index", "Home");
             }
