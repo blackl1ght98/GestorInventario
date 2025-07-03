@@ -1,9 +1,7 @@
-﻿using Aspose.Pdf;
-using Aspose.Pdf.Operators;
-using GestorInventario.Application.Politicas_Resilencia;
+﻿
 using GestorInventario.Application.Services;
-using GestorInventario.Domain.Models;
 using GestorInventario.Domain.Models.ViewModels;
+using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
@@ -12,9 +10,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using MimeKit.Encodings;
-using Polly;
-using System.Globalization;
 using System.Security.Claims;
 
 namespace GestorInventario.Infraestructure.Controllers
@@ -27,19 +22,21 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly ILogger<PedidosController> _logger;
         private readonly IPedidoRepository _pedidoRepository;
         private readonly IHttpContextAccessor _contextAccessor;
-        private readonly PolicyHandler _PolicyHandler;       
+        
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPdfService _pdfservice;
+        private readonly PolicyExecutor _policyExecutor;
         public PedidosController( GenerarPaginas generarPaginas, ILogger<PedidosController> logger, IUnitOfWork unitOfWork,
-            IPedidoRepository pedido, IHttpContextAccessor contextAccessor, PolicyHandler policy, IPdfService pdf)
+            IPedidoRepository pedido, IHttpContextAccessor contextAccessor,  IPdfService pdf, PolicyExecutor executor)
         {
-            _PolicyHandler = policy;
+      
             _generarPaginas = generarPaginas;
             _logger = logger;
             _pedidoRepository = pedido;
             _contextAccessor = contextAccessor;
             _pdfservice= pdf;
             _unitOfWork = unitOfWork;
+            _policyExecutor = executor;
         }
         //Metodo que muestra todos los pedidos
         public async Task<IActionResult> Index(string buscar, DateTime? fechaInicio, DateTime? fechaFin, [FromQuery] Paginacion paginacion)
@@ -55,16 +52,16 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {
                     
-                    var pedidos = ExecutePolicy(()=> _pedidoRepository.ObtenerPedidos()) ;
+                    var pedidos = _policyExecutor.ExecutePolicy(()=> _pedidoRepository.ObtenerPedidos()) ;
                     if (User.IsInRole("administrador"))
                     {
                        
-                        pedidos = ExecutePolicy(() => _pedidoRepository.ObtenerPedidos());
+                        pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidos());
                     }
                     else
                     {
                         
-                        pedidos = ExecutePolicy(() => _pedidoRepository.ObtenerPedidoUsuario(usuarioId));
+                        pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidoUsuario(usuarioId));
                     }
                     ViewData["Buscar"] = buscar;
                     ViewData["FechaInicio"] = fechaInicio;
@@ -107,10 +104,10 @@ namespace GestorInventario.Infraestructure.Controllers
                     FechaPedido = DateTime.Now
                 };
                 //Obtenemos los datos para generar los desplegables
-                ViewData["Productos"] = new SelectList(await ExecutePolicyAsync(()=> _pedidoRepository.ObtenerProductos()) , "Id", "NombreProducto");
+                ViewData["Productos"] = new SelectList(await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerProductos()) , "Id", "NombreProducto");
              
                 ViewBag.Productos = await _pedidoRepository.ObtenerProductos();
-                ViewData["Clientes"] = new SelectList(await ExecutePolicyAsync(()=> _pedidoRepository.ObtenerUsuarios()) , "Id", "NombreCompleto");
+                ViewData["Clientes"] = new SelectList(await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerUsuarios()) , "Id", "NombreCompleto");
 
                 return View(model);
             }
@@ -135,13 +132,13 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (ModelState.IsValid)
                 {
                    
-                    var (success, errorMessage) = await ExecutePolicyAsync(()=> _pedidoRepository.CrearPedido(model)) ;
+                    var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.CrearPedido(model)) ;
                     if (success)
                     {
                         // Se establecen las listas de productos y clientes para la vista.
-                        ViewData["Productos"] = new SelectList(await ExecutePolicyAsync(()=> _pedidoRepository.ObtenerProductos()) , "Id", "NombreProducto");
-                        ViewBag.Productos = await ExecutePolicyAsync(() => _pedidoRepository.ObtenerProductos());
-                        ViewData["Clientes"] = new SelectList(await ExecutePolicyAsync(()=> _pedidoRepository.ObtenerUsuarios()) , "Id", "NombreCompleto");
+                        ViewData["Productos"] = new SelectList(await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerProductos()) , "Id", "NombreProducto");
+                        ViewBag.Productos = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.ObtenerProductos());
+                        ViewData["Clientes"] = new SelectList(await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerUsuarios()) , "Id", "NombreCompleto");
                      
                         TempData["SuccessMessage"] = "Los datos se han creado con éxito.";
                         return RedirectToAction(nameof(Index));
@@ -179,7 +176,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }                           
-                var pedido = await ExecutePolicyAsync(()=> _pedidoRepository.ObtenerPedidoEliminacion(id));
+                var pedido = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerPedidoEliminacion(id));
             
                 if (pedido == null)
                 {
@@ -211,7 +208,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {
                     
-                    var (success, errorMessage) = await ExecutePolicyAsync(()=> _pedidoRepository.EliminarPedido(Id)) ;
+                    var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.EliminarPedido(Id)) ;
                     if (success)
                     {
                        
@@ -247,7 +244,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
-                var historialProducto = await ExecutePolicyAsync(()=> _pedidoRepository.EliminarHistorialPorId(id));
+                var historialProducto = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.EliminarHistorialPorId(id));
                 if (historialProducto == null)
                 {
 
@@ -278,7 +275,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {
-                    var (success, errorMessage) = await ExecutePolicyAsync(()=> _pedidoRepository.EliminarHistorialPorIdDefinitivo(Id));
+                    var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.EliminarHistorialPorIdDefinitivo(Id));
                     if (success)
                     {
                        
@@ -310,7 +307,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }                        
-                var pedido = await ExecutePolicyAsync(()=> _pedidoRepository.ObtenerPedidoId(id)) ;
+                var pedido = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerPedidoId(id)) ;
                 EditPedidoViewModel pedidosViewModel = new EditPedidoViewModel
                 {
                     fechaPedido = DateTime.Now,
@@ -340,7 +337,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 try
                 {
                     
-                    var (success, errorMessage) = await ExecutePolicyAsync(()=> _pedidoRepository.EditarPedido(model)) ;
+                    var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.EditarPedido(model)) ;
                     if (success)
                     {
                         TempData["SuccessMessage"] = "Los datos se han modificado con éxito.";
@@ -355,7 +352,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     _logger.LogError(ex, "Error de concurrencia");
                   
-                    var (success, errorMessage) = await ExecutePolicyAsync(()=> _pedidoRepository.EditarPedido(model)) ;
+                    var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.EditarPedido(model)) ;
                     if (success)
                     {
                         TempData["SuccessMessage"] = "Los datos se han modificado con éxito.";
@@ -387,7 +384,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
             
-               var pedido= await ExecutePolicyAsync(()=> _pedidoRepository.ObtenerDetallesPedido(id)) ;
+               var pedido= await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerDetallesPedido(id)) ;
                 if (pedido == null)
                 {
                     return NotFound();
@@ -417,16 +414,16 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {
 
-                    var pedidos = ExecutePolicy(() => _pedidoRepository.ObtenerPedidosHistorial());
+                    var pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidosHistorial());
                     if (User.IsInRole("administrador"))
                     {
 
-                        pedidos = ExecutePolicy(() => _pedidoRepository.ObtenerPedidosHistorial());
+                        pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidosHistorial());
                     }
                     else
                     {
 
-                        pedidos = ExecutePolicy(() => _pedidoRepository.ObtenerPedidosHistorialUsuario(usuarioId));
+                        pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidosHistorialUsuario(usuarioId));
                     }                   
                     ViewData["Buscar"] = buscar;
                     await HttpContext.TotalPaginas(pedidos, paginacion.CantidadAMostrar);
@@ -454,7 +451,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
-                var pedido = await ExecutePolicyAsync(()=> _pedidoRepository.DetallesHistorial(id)) ;
+                var pedido = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.DetallesHistorial(id)) ;
                 if (pedido == null)
                 {
                     TempData["ErrorMessage"] = "detalle del historial del pedido no encontrado";
@@ -481,7 +478,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
 
-                var (success, errorMessage, bytes) = await ExecutePolicyAsync(() => _pdfservice.DescargarPDF());
+                var (success, errorMessage, bytes) = await _policyExecutor.ExecutePolicyAsync(() => _pdfservice.DescargarPDF());
                 if (!success)
                 {
                     TempData["ErrorMessage"] = errorMessage;
@@ -508,7 +505,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
                
-                var (success, errorMessage) = await ExecutePolicyAsync(() => _pedidoRepository.EliminarHitorial());
+                var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.EliminarHitorial());
                 if (!success)
                 {
                     TempData["ErrorMessage"] = errorMessage;
@@ -526,7 +523,7 @@ namespace GestorInventario.Infraestructure.Controllers
         //Metodo para obtener los detalles del pago
         public async Task<IActionResult> DetallesPagoEjecutado(string id)
         {
-            var (detallepago,success,errorMessage)= await ExecutePolicyAsync(()=> _pedidoRepository.ObtenerDetallePagoEjecutadoV2(id));
+            var (detallepago,success,errorMessage)= await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerDetallePagoEjecutadoV2(id));
             if (success)
             {
                 return View(detallepago);
@@ -538,15 +535,6 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
       
-        private async Task<T> ExecutePolicyAsync<T>(Func<Task<T>> operation)
-        {
-            var policy = _PolicyHandler.GetCombinedPolicyAsync<T>();
-            return await policy.ExecuteAsync(operation);
-        }
-        private T ExecutePolicy<T>(Func<T> operation)
-        {
-            var policy = _PolicyHandler.GetCombinedPolicy<T>();
-            return policy.Execute(operation);
-        }
+       
     }
 }

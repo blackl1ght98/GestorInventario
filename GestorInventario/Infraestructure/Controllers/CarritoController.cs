@@ -2,6 +2,7 @@
 using GestorInventario.Application.Politicas_Resilencia;
 using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
+using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 
@@ -20,15 +21,17 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly GenerarPaginas _generarPaginas;
         private readonly ILogger<CarritoController> _logger;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly PolicyHandler _PolicyHandler;
+      
+        private readonly PolicyExecutor _policyExecutor;
         public CarritoController( ICarritoRepository carritorepository,  GenerarPaginas generarPaginas, 
-        ILogger<CarritoController> logger, IUnitOfWork unitOfWork, PolicyHandler policy)
+        ILogger<CarritoController> logger, IUnitOfWork unitOfWork,  PolicyExecutor executor)
         {          
             _carritoRepository = carritorepository;
-           _PolicyHandler = policy;
+          
             _generarPaginas = generarPaginas;
             _logger = logger;
-            _unitOfWork = unitOfWork;        
+            _unitOfWork = unitOfWork;      
+            _policyExecutor=executor;
         }
         //Metodo que muestra los items del carrito
         public async Task<IActionResult> Index([FromQuery] Paginacion paginacion)
@@ -44,16 +47,16 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {
 
-                    var carrito = await ExecutePolicyAsync(()=> _carritoRepository.ObtenerCarritoUsuario(usuarioId)) ;
+                    var carrito = await _policyExecutor.ExecutePolicyAsync(()=> _carritoRepository.ObtenerCarritoUsuario(usuarioId)) ;
                     if (carrito != null)
                     {
                       
-                        var itemsDelCarrito = ExecutePolicy(()=> _carritoRepository.ObtenerItems(carrito.Id)) ;
+                        var itemsDelCarrito = _policyExecutor.ExecutePolicy(()=> _carritoRepository.ObtenerItems(carrito.Id)) ;
                         await HttpContext.TotalPaginas(itemsDelCarrito, paginacion.CantidadAMostrar);
                         var productoPaginado = itemsDelCarrito.Paginar(paginacion).ToList();
                         var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
                         ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
-                        ViewData["Moneda"] = new SelectList(await ExecutePolicyAsync(()=> _carritoRepository.ObtenerMoneda()) , "Codigo", "Codigo");
+                        ViewData["Moneda"] = new SelectList(await _policyExecutor.ExecutePolicyAsync(()=> _carritoRepository.ObtenerMoneda()) , "Codigo", "Codigo");
 
                       
                         return View(productoPaginado);
@@ -88,7 +91,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {
                    
-                    var (success, message, approvalUrl) = await ExecutePolicyAsync(()=> _carritoRepository.PagarV2(monedaSeleccionada, usuarioId))  ;
+                    var (success, message, approvalUrl) = await _policyExecutor.ExecutePolicyAsync(()=> _carritoRepository.PagarV2(monedaSeleccionada, usuarioId))  ;
                     if (success)
                     {
                         return Redirect(approvalUrl);
@@ -183,15 +186,6 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
-        private async Task<T> ExecutePolicyAsync<T>(Func<Task<T>> operation)
-        {
-            var policy = _PolicyHandler.GetCombinedPolicyAsync<T>();
-            return await policy.ExecuteAsync(operation);
-        }
-        private T ExecutePolicy<T>(Func<T> operation)
-        {
-            var policy = _PolicyHandler.GetCombinedPolicy<T>();
-            return policy.Execute(operation);
-        }
+        
     }
 }

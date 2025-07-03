@@ -2,15 +2,14 @@
 using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
 using GestorInventario.Domain.Models.ViewModels;
+using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
-using GestorInventario.Models.ViewModels;
 using GestorInventario.PaginacionLogica;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Polly;
-using System.Linq;
+
 
 namespace GestorInventario.Infraestructure.Controllers
 {
@@ -18,19 +17,20 @@ namespace GestorInventario.Infraestructure.Controllers
     {
         
         private readonly ILogger<ProveedorController> _logger;
-        private readonly GenerarPaginas _generarPaginas;
-        private readonly PolicyHandler _PolicyHandler;
+        private readonly GenerarPaginas _generarPaginas;   
         private readonly IProveedorRepository _proveedorRepository;
         private readonly GestorInventarioContext _context;
+        private readonly PolicyExecutor _policyExecutor;
         public ProveedorController( ILogger<ProveedorController> logger, GenerarPaginas generarPaginas, 
-            PolicyHandler policyHandler, IProveedorRepository proveedor, GestorInventarioContext context)
+            IProveedorRepository proveedor, GestorInventarioContext context, PolicyExecutor executor)
         {
             
             _logger = logger;
             _generarPaginas = generarPaginas;
-            _PolicyHandler = policyHandler;
+           
             _proveedorRepository= proveedor;
             _context = context;
+            _policyExecutor = executor;
         }
         //Metodo que muestra todos los proveedores
         public async Task<IActionResult> Index(string buscar, [FromQuery] Paginacion paginacion)
@@ -102,7 +102,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
                
 
-                    var (success, errorMessage) = await ExecutePolicyAsync(() => _proveedorRepository.CrearProveedor(model));
+                    var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.CrearProveedor(model));
                     if (success)
                     {
                         TempData["SuccessMessage"] = "Los datos se han creado con éxito.";
@@ -132,7 +132,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
 
-                var proveedor = await ExecutePolicyAsync(() => _proveedorRepository.ObtenerProveedorId(id));
+                var proveedor = await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.ObtenerProveedorId(id));
                 if (proveedor == null)
                 {
                     return NotFound("El proveedor no fue encontrado");
@@ -159,7 +159,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
                
-                var (success,errorMessagee)=await ExecutePolicyAsync(()=> _proveedorRepository.EliminarProveedor(Id)) ;
+                var (success,errorMessagee)=await _policyExecutor.ExecutePolicyAsync(()=> _proveedorRepository.EliminarProveedor(Id)) ;
                 if (success)
                 {
                     TempData["SuccessMessage"] = "Los datos se han eliminado con éxito.";
@@ -227,7 +227,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
                 
-                    var (success,errorMessage)=await ExecutePolicyAsync(()=> _proveedorRepository.EditarProveedor(model,Id)) ;
+                    var (success,errorMessage)=await _policyExecutor.ExecutePolicyAsync(()=> _proveedorRepository.EditarProveedor(model,Id)) ;
                     if (success)
                     {
                         return RedirectToAction("Index");
@@ -249,17 +249,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }       
-        private async Task<T> ExecutePolicyAsync<T>(Func<Task<T>> operation)
-        {
-            var policy = _PolicyHandler.GetCombinedPolicyAsync<T>();
-            return await policy.ExecuteAsync(operation);
-        }
-        private T ExecutePolicy<T>(Func<T> operation)
-        {
-            var policy = _PolicyHandler.GetCombinedPolicy<T>();
-            return policy.Execute(operation);
-        }
-
+       
 
 
     }

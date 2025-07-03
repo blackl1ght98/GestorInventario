@@ -1,6 +1,7 @@
 ﻿using GestorInventario.Application.DTOs;
 using GestorInventario.Application.Politicas_Resilencia;
 using GestorInventario.Application.Services;
+using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
@@ -26,9 +27,9 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly PolicyHandler _PolicyHandler;
         private readonly ILogger<AuthController> _logger;
         private readonly IMemoryCache _memoryCache;
-
+        private readonly PolicyExecutor _policyExecutor;
         public AuthController(HashService hashService, IEmailService emailService, TokenService tokenService, IAuthRepository adminRepository,
-              ILogger<AuthController> logger, PolicyHandler policy, IMemoryCache memory)
+              ILogger<AuthController> logger, PolicyHandler policy, IMemoryCache memory, PolicyExecutor executor)
         {
             _hashService = hashService;
             _emailService = emailService;
@@ -37,6 +38,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _PolicyHandler = policy;
             _logger = logger;
             _memoryCache = memory;
+            _policyExecutor = executor;
         }
         //Metodo para mostrar la vista de login
         [AllowAnonymous]
@@ -71,7 +73,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
                 // Buscar usuario
-                var user = await ExecutePolicyAsync(() => _authRepository.Login(model.Email));
+                var user = await _policyExecutor.ExecutePolicyAsync(() => _authRepository.Login(model.Email));
                 if (user == null)
                 {
                     ModelState.AddModelError("", "El email y/o la contraseña son incorrectos.");
@@ -238,7 +240,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
             try
             {
-                var (success, errorMessage) = await ExecutePolicyAsync(() => _authRepository.SetNewPasswordAsync(cambio));
+                var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _authRepository.SetNewPasswordAsync(cambio));
                 if (success)
                 {
                     if (User.Identity.IsAuthenticated && User.IsAdministrador())
@@ -311,7 +313,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     Token = token
                 };
 
-                var (success, errorMessage) = await ExecutePolicyAsync(() => _authRepository.ValidateResetTokenAsync(cambio));
+                var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _authRepository.ValidateResetTokenAsync(cambio));
                 if (!success)
                     return (false, errorMessage, null);
 
@@ -331,7 +333,7 @@ namespace GestorInventario.Infraestructure.Controllers
         public async Task<IActionResult> ChangePassword(string passwordAnterior, string passwordActual)
         {
 
-            var (succes, errorMessage) = await ExecutePolicyAsync(() => _authRepository.ChangePassword(passwordAnterior, passwordActual));
+            var (succes, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _authRepository.ChangePassword(passwordAnterior, passwordActual));
             if (succes)
             {
                 if (User.Identity.IsAuthenticated && User.IsAdministrador())
@@ -350,14 +352,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
-        /*
-             Func<Task<T>>:   encapsula un método que no tiene parámetros y devuelve un valor del tipo especificado por Task<T>
-         */
-        private async Task<T> ExecutePolicyAsync<T>(Func<Task<T>> operation)
-        {
-            var policy = _PolicyHandler.GetCombinedPolicyAsync<T>();
-            return await policy.ExecuteAsync(operation);
-        }
+     
       
        
     }

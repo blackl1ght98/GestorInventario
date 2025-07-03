@@ -56,7 +56,7 @@ namespace GestorInventario.Application.Services
                 // Construir el enlace de recuperación
                 var model = new DTOEmail
                 {
-                    RecoveryLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/AdminController/ConfirmRegistration/{usuarioDB.Id}/{usuarioDB.EnlaceCambioPass}?redirect=true",
+                    RecoveryLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/admin/confirm-registration/{usuarioDB.Id}/{usuarioDB.EnlaceCambioPass}?redirect=true",
                 };
 
                 // Actualizar el usuario en la base de datos

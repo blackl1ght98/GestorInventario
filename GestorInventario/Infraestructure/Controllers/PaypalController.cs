@@ -9,6 +9,7 @@ using GestorInventario.Domain.Models.ViewModels.Paypal;
 using GestorInventario.Domain.Models.ViewModels.Paypal.GestorInventario.Domain.Models.ViewModels.Paypal;
 using GestorInventario.enums;
 using GestorInventario.Infraestructure.Repositories;
+using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.PaginacionLogica;
@@ -27,17 +28,19 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly GestorInventarioContext _context;
         private readonly IUnitOfWork _unitOfWork;
         private readonly GenerarPaginas _generarPaginas;
-        private readonly PolicyHandler _PolicyHandler;
+     
         private readonly ILogger<PaypalController> _logger;
         private readonly IPaypalController _paypalController;
         private readonly ICarritoRepository _carritoRepository;
         private readonly IMapper _mapper;
-        public PaypalController(GestorInventarioContext context, IUnitOfWork unit, GenerarPaginas generar, PolicyHandler policy, ILogger<PaypalController> logger, IPaypalController paypalController, ICarritoRepository carritoRepository, IMapper map)
+        private readonly PolicyExecutor _policyExecutor;
+        public PaypalController(GestorInventarioContext context, IUnitOfWork unit, GenerarPaginas generar,  ILogger<PaypalController> logger, 
+            IPaypalController paypalController, ICarritoRepository carritoRepository, IMapper map, PolicyExecutor executor)
         {
             _context = context;
             _unitOfWork = unit;
             _generarPaginas = generar;
-            _PolicyHandler = policy;
+         _policyExecutor=executor;
             _logger = logger;
             _paypalController = paypalController;
             _carritoRepository = carritoRepository;
@@ -158,7 +161,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
           
             var model = new ProductViewModelPaypal();
-            ViewData["Moneda"] = new SelectList(await ExecutePolicyAsync(() => _carritoRepository.ObtenerMoneda()), "Codigo", "Codigo");
+            ViewData["Moneda"] = new SelectList(await _policyExecutor.ExecutePolicyAsync(() => _carritoRepository.ObtenerMoneda()), "Codigo", "Codigo");
             // Obtener las categorías desde la enumeración y asignarlas al modelo
             model.Categories = GetCategoriesFromEnum();
 
@@ -336,7 +339,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
             
-                var subscriptionDetails = await ExecutePolicyAsync(() => _unitOfWork.PaypalService.ObtenerDetallesSuscripcion(subscription_id));
+                var subscriptionDetails = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.PaypalService.ObtenerDetallesSuscripcion(subscription_id));
 
                 if (subscriptionDetails == null)
                 {
@@ -348,12 +351,12 @@ namespace GestorInventario.Infraestructure.Controllers
                 string planId = (string)subscriptionDetails.plan_id;
 
             
-                var plan = await ExecutePolicyAsync(() => _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId));
+                var plan = await _policyExecutor.ExecutePolicyAsync(() => _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId));
 
                 if (plan == null)
                 {
-                    await ExecutePolicy(() => _paypalController.DetallesSubscripcion(planId));
-                    plan = await ExecutePolicyAsync(() => _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId));
+                    await _policyExecutor.ExecutePolicy(() => _paypalController.DetallesSubscripcion(planId));
+                    plan = await _policyExecutor.ExecutePolicyAsync(() => _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId));
                 }
 
                 // Establecer la fecha mínima SQL
@@ -393,7 +396,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
                 // Verificar si la suscripción ya existe en la base de datos
-                var existingSubscription = await ExecutePolicyAsync(() => _context.SubscriptionDetails
+                var existingSubscription = await _policyExecutor.ExecutePolicyAsync(() => _context.SubscriptionDetails
                     .FirstOrDefaultAsync(s => s.SubscriptionId == detallesSuscripcion.SubscriptionId));
 
                 if (existingSubscription != null)
@@ -436,7 +439,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
                 // Verificar si ya existe una relación en UserSubscriptions
-                var existeRelacion = await ExecutePolicyAsync(() => _context.UserSubscriptions
+                var existeRelacion = await _policyExecutor.ExecutePolicyAsync(() => _context.UserSubscriptions
                     .FirstOrDefaultAsync(us => us.UserId == usuarioId && us.SubscriptionId == subscription_id));
 
                 if (existeRelacion == null)
@@ -502,17 +505,17 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
                 // Obtener detalles de la suscripción desde PayPal
-                var subscriptionDetails = await ExecutePolicyAsync(() => _unitOfWork.PaypalService.ObtenerDetallesSuscripcion(id)); 
+                var subscriptionDetails = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.PaypalService.ObtenerDetallesSuscripcion(id)); 
 
                 // Convertir plan_id a string para evitar problemas con árboles de expresión
                 string planId = (string)subscriptionDetails.plan_id;
 
                 // Obtener los detalles del plan desde la base de datos usando el PlanId
-                var plan = await ExecutePolicyAsync(()=> _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId)); 
+                var plan = await _policyExecutor.ExecutePolicyAsync(()=> _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId)); 
 
                 if (plan == null)
                 {
-                    await ExecutePolicy(() => _paypalController.DetallesSubscripcion(planId));
+                    await _policyExecutor.ExecutePolicy(() => _paypalController.DetallesSubscripcion(planId));
                 }
 
                 // Establecer la fecha mínima SQL
@@ -554,7 +557,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
                 // Verificar si la suscripción ya existe en la base de datos
-                var existingSubscription = await ExecutePolicyAsync(() => _context.SubscriptionDetails
+                var existingSubscription = await _policyExecutor.ExecutePolicyAsync(() => _context.SubscriptionDetails
                     .FirstOrDefaultAsync(s => s.SubscriptionId == detallesSuscripcion.SubscriptionId)); 
 
                 if (existingSubscription != null)
@@ -625,7 +628,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 await HttpContext.TotalPaginas(queryable, paginacion.CantidadAMostrar);
 
                 // Obtiene los usuarios con la paginación aplicada
-                var usuarios = ExecutePolicy(() => queryable.Paginar(paginacion).ToList());
+                var usuarios = _policyExecutor.ExecutePolicy(() => queryable.Paginar(paginacion).ToList());
 
                 // Obtiene el número total de páginas para la paginación
                 var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
@@ -663,16 +666,7 @@ namespace GestorInventario.Infraestructure.Controllers
            return View(suscripcionesUsuario); 
         }
 
-        private async Task<T> ExecutePolicyAsync<T>(Func<Task<T>> operation)
-        {
-            var policy = _PolicyHandler.GetCombinedPolicyAsync<T>();
-            return await policy.ExecuteAsync(operation);
-        }
-        private T ExecutePolicy<T>(Func<T> operation)
-        {
-            var policy = _PolicyHandler.GetCombinedPolicy<T>();
-            return policy.Execute(operation);
-        }
+       
 
     }
 }

@@ -1,27 +1,20 @@
-﻿using GestorInventario.Domain.Models.ViewModels;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication;
+﻿
 using Microsoft.AspNetCore.Mvc;
 
 using System.Globalization;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
 using System.Text;
-using Microsoft.AspNetCore.Authorization;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using GestorInventario.Domain.Models.ViewModels.Paypal;
-using GestorInventario.Application.Services;
 using System.Net.Http.Headers;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Microsoft.Extensions.Caching.Memory;
 using GestorInventario.Application.DTOs;
 using GestorInventario.Interfaces.Application;
-using GestorInventario.Application.Politicas_Resilencia;
 using GestorInventario.MetodosExtension;
+using GestorInventario.Infraestructure.Utils;
 
 namespace GestorInventario.Infraestructure.Controllers
 {
@@ -33,8 +26,10 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly GestorInventarioContext _context;
         private readonly IMemoryCache _memory;
         private readonly IEmailService _emailService;
-        private readonly PolicyHandler _PolicyHandler;
-        public PaymentController(ILogger<PaymentController> logger, IUnitOfWork unitOfWork, IConfiguration configuration, GestorInventarioContext context, IMemoryCache memory, IEmailService email, PolicyHandler policy)
+     
+        private readonly PolicyExecutor _policyExecutor;
+        public PaymentController(ILogger<PaymentController> logger, IUnitOfWork unitOfWork, IConfiguration configuration, GestorInventarioContext context, IMemoryCache memory, 
+            IEmailService email, PolicyExecutor executor)
         {
             _logger = logger;
             _unitOfWork = unitOfWork;
@@ -42,7 +37,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _context = context;
             _memory = memory;
             _emailService = email;
-            _PolicyHandler = policy;
+          _policyExecutor = executor;
 
         }
         public async Task<IActionResult> Success(string PayerID)
@@ -153,7 +148,7 @@ namespace GestorInventario.Infraestructure.Controllers
         [HttpPost]
         public async Task<IActionResult> FormularioRembolso(RefundForm form)
         {
-            var obtenerNumeroPedido = await ExecutePolicyAsync(()=> _context.Pedidos
+            var obtenerNumeroPedido = await _policyExecutor.ExecutePolicyAsync(()=> _context.Pedidos
                 .Where(p => p.NumeroPedido == form.NumeroPedido)
                 .FirstOrDefaultAsync()) ;
             if (obtenerNumeroPedido == null)
@@ -165,7 +160,7 @@ namespace GestorInventario.Infraestructure.Controllers
             var rembolso = new Rembolso();
             if (int.TryParse(existeUsuario, out usuarioId))
             {
-                var emailCliente = await ExecutePolicyAsync(() => _context.Usuarios
+                var emailCliente = await _policyExecutor.ExecutePolicyAsync(() => _context.Usuarios
                     .Where(u => u.Id == usuarioId)
                     .Select(u => u.Email)
                     .FirstOrDefaultAsync());
@@ -173,11 +168,11 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return BadRequest("El cliente no existe");
                 }
-                var pedido = await ExecutePolicyAsync(() => _context.Pedidos.FirstOrDefaultAsync(p => p.NumeroPedido == form.NumeroPedido));
-                var existingDetail = await ExecutePolicyAsync(()=> _context.PayPalPaymentDetails
+                var pedido = await _policyExecutor.ExecutePolicyAsync(() => _context.Pedidos.FirstOrDefaultAsync(p => p.NumeroPedido == form.NumeroPedido));
+                var existingDetail = await _policyExecutor.ExecutePolicyAsync(()=> _context.PayPalPaymentDetails
                     .Include(d => d.PayPalPaymentItems)
                     .FirstOrDefaultAsync(x => x.Id == pedido.PagoId)) ;
-                var detallespago = await ExecutePolicyAsync(()=> _unitOfWork.PaypalService.ObtenerDetallesPagoEjecutadoV2(pedido.PagoId)) ;
+                var detallespago = await _policyExecutor.ExecutePolicyAsync(()=> _unitOfWork.PaypalService.ObtenerDetallesPagoEjecutadoV2(pedido.PagoId)) ;
                 if (detallespago == null)
                 {
                     return BadRequest("Error en obtener detalles");
@@ -310,7 +305,7 @@ namespace GestorInventario.Infraestructure.Controllers
                         Productos = paypalItems // Usar la lista de ítems recolectada
                     };
 
-                    await ExecutePolicyAsync(()=> _emailService.SendEmailAsyncRembolso(emailRembolso)) ;
+                    await _policyExecutor.ExecutePolicy(()=> _emailService.SendEmailAsyncRembolso(emailRembolso)) ;
                 }
             }
 
@@ -429,21 +424,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
             return null;
         }
-        private async Task<T> ExecutePolicyAsync<T>(Func<Task<T>> operation)
-        {
-            var policy = _PolicyHandler.GetCombinedPolicyAsync<T>();
-            return await policy.ExecuteAsync(operation);
-        }
-        private T ExecutePolicy<T>(Func<T> operation)
-        {
-            var policy = _PolicyHandler.GetCombinedPolicy<T>();
-            return policy.Execute(operation);
-        }
-        private async Task ExecutePolicyAsync(Func<Task> operation)
-        {
-            var policy = _PolicyHandler.GetCombinedPolicyAsync(); 
-            await policy.ExecuteAsync(operation);
-        }
+      
 
     } 
    

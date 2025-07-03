@@ -1,8 +1,8 @@
-﻿using GestorInventario.Application.DTOs;
+﻿using AutoMapper;
+using GestorInventario.Application.DTOs;
 using GestorInventario.Application.Politicas_Resilencia;
 using GestorInventario.Application.Services;
-using GestorInventario.Domain.Models.ViewModels;
-using GestorInventario.Infraestructure.Repositories;
+using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
@@ -11,8 +11,6 @@ using GestorInventario.PaginacionLogica;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using System.Linq;
 using System.Security.Claims;
 
 
@@ -27,11 +25,12 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly ILogger<AdminController> _logger;
         private readonly IAdminRepository _adminrepository;
         private readonly GenerarPaginas _generarPaginas;
-        private readonly PolicyHandler _PolicyHandler;   
-       
+      
+        private readonly IMapper _mapper;
+        private readonly PolicyExecutor _policyExecutor;
         public AdminController( IEmailService emailService, HashService hashService, IConfirmEmailService confirmEmailService, 
-            ILogger<AdminController> logger, IAdminRepository adminRepository,  GenerarPaginas generarPaginas, 
-             PolicyHandler policy)
+            ILogger<AdminController> logger, IAdminRepository adminRepository,  GenerarPaginas generarPaginas 
+            , IMapper map, PolicyExecutor executor)
         {
            
             _emailService = emailService;
@@ -40,7 +39,9 @@ namespace GestorInventario.Infraestructure.Controllers
             _logger = logger;
             _adminrepository = adminRepository;
             _generarPaginas = generarPaginas;
-            _PolicyHandler = policy;
+            
+            _mapper= map;
+            _policyExecutor = executor;
           
         }
 
@@ -49,6 +50,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+            #if DEBUG
                 var claims = User.Claims.Select(c => $"{c.Type}: {c.Value}");
                 var hasPermiso = User.HasClaim("permiso", "VerUsuarios");
                 var isInRole = User.IsInRole("Administrador");
@@ -57,9 +59,10 @@ namespace GestorInventario.Infraestructure.Controllers
                 _logger.LogInformation($"Es Administrador: {isInRole}");
                 if (!hasPermiso || !isInRole)
                 {
-                    return Forbid(); // Forzar error para depurar
+                    return Forbid(); 
                 }
-                var queryable =  await ExecutePolicyAsync(() => _adminrepository.ObtenerUsuarios());             
+            #endif
+                var queryable =  await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerUsuarios());             
                  ViewData["Buscar"] = buscar;
               
                 if (!String.IsNullOrEmpty(buscar))
@@ -69,13 +72,10 @@ namespace GestorInventario.Infraestructure.Controllers
                
                  HttpContext.TotalPaginasLista(queryable, paginacion.CantidadAMostrar);
                 var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
-                var usuarios = ExecutePolicy(() => queryable.PaginarLista(paginacion).ToList());
-              
-                
+                var usuarios = _policyExecutor.ExecutePolicy(() => queryable.PaginarLista(paginacion).ToList());                         
                 //Crea las paginas que el usuario ve.
                 ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
-                var roles = await ExecutePolicyAsync(() => _adminrepository.ObtenerRoles());
-                ViewData["Roles"] = new SelectList(roles, "Id", "Nombre");
+                await CargarRolesEnViewData();
 
                 return View(usuarios);
             }
@@ -92,11 +92,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                
-                var roles = await ExecutePolicyAsync(() => _adminrepository.ObtenerRoles());
-                
-                ViewData["Roles"] = new SelectList(roles, "Id", "Nombre");
-
+                await CargarRolesEnViewData();
                 return View();
             }
             catch (Exception ex)
@@ -115,7 +111,7 @@ namespace GestorInventario.Infraestructure.Controllers
                
                 if (ModelState.IsValid)
                 {
-                    var (success, errorMessage) = await ExecutePolicyAsync(() => _adminrepository.CrearUsuario(model));
+                    var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.CrearUsuario(model));
                     if (success)
                     {
                         TempData["SuccessMessage"] = "Usuario creado con exito";
@@ -132,9 +128,9 @@ namespace GestorInventario.Infraestructure.Controllers
                     {
                         TempData["ErrorMessage"] = errorMessage;
                     }
-                    var roles = await ExecutePolicyAsync(() => _adminrepository.ObtenerRoles());
-                    ViewData["Roles"] = new SelectList(roles, "Id", "Nombre");
-                   
+                 await   CargarRolesEnViewData();
+
+
                     return RedirectToAction("Login", "Auth");
                 }
                 return View(model);
@@ -148,20 +144,17 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         
         [AllowAnonymous]
-        [Route("AdminController/ConfirmRegistration/{UserId}/{Token}")]
+        [HttpGet("admin/confirm-registration/{UserId}/{Token}")]
         public async Task<IActionResult> ConfirmRegistration(DTOConfirmRegistration confirmar)
         {
             try
-            {
-                
-                var usuarioDB = await  _adminrepository.ObtenerPorId(confirmar.UserId);
-              
+            {               
+                var usuarioDB = await  _adminrepository.ObtenerPorId(confirmar.UserId);              
                 if (usuarioDB.ConfirmacionEmail != false)
                 {
                     TempData["ErrorMessage"] = "Usuario ya validado con anterioridad";
                     _logger.LogInformation($"El usuario con email {usuarioDB.Email} ha intentado confirmar su correo estando confirmado");
                 }
-
                 if (usuarioDB.EnlaceCambioPass != confirmar.Token)
                 {
                     _logger.LogCritical("Intento de manipulacion del token por el usuario: " + usuarioDB.Id);
@@ -181,79 +174,36 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             
         }
-
-
-
         public async Task<ActionResult> Edit(int id)
         {
             try
             {
-                if (id == 0)
+                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!int.TryParse(userIdClaim, out int usuarioActualId))
                 {
-                  
-                    var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                    if (!int.TryParse(userIdClaim, out int usuarioActualId))
-                    {
-                        TempData["ErrorMessage"] = "ID de usuario inválido.";
-                        return BadRequest("ID de usuario inválido.");
-                    }
-
-                    var user = await ExecutePolicyAsync(() => _adminrepository.ObtenerPorId(usuarioActualId));
-                    if (user == null)
-                    {
-                        TempData["ErrorMessage"] = "Usuario no encontrado.";
-                        return BadRequest("Usuario no encontrado.");
-                    }
-
-                    var viewModel = new UsuarioEditViewModel
-                    {
-                        Id = user.Id,
-                        Email = user.Email,
-                        NombreCompleto = user.NombreCompleto,
-                        FechaNacimiento = user.FechaNacimiento,
-                        Telefono = user.Telefono,
-                        Direccion = user.Direccion,
-                        Ciudad = user.Ciudad,
-                        codigoPostal = user.CodigoPostal,
-                        IdRol = user.IdRol,
-
-                      
-                        EsEdicionPropia = true
-                    };
-
-                    return View( viewModel); 
+                    TempData["ErrorMessage"] = "ID de usuario inválido.";
+                    return BadRequest("ID de usuario inválido.");
                 }
-                else
+                // Si el id recibido es 0, significa que se quiere editar el usuario actual (obtenido desde los claims),
+                // si no, se edita el usuario cuyo id se pasó en el parámetro.
+                int usuarioAEditarId = id == 0 ? usuarioActualId : id;
+
+                var user = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerPorId(usuarioAEditarId));
+                if (user == null)
                 {
-                   
-                    var user = await ExecutePolicyAsync(() => _adminrepository.ObtenerPorId(id));
-                    if (user == null)
-                    {
-                        TempData["ErrorMessage"] = "Usuario no encontrado.";
-                        return BadRequest("Usuario no encontrado.");
-                    }
-
-                    var viewModel = new UsuarioEditViewModel
-                    {
-                        Id = user.Id,
-                        Email = user.Email,
-                        NombreCompleto = user.NombreCompleto,
-                        FechaNacimiento = user.FechaNacimiento,
-                        Telefono = user.Telefono,
-                        Direccion = user.Direccion,
-                        Ciudad = user.Ciudad,
-                        codigoPostal = user.CodigoPostal,
-                        IdRol = user.IdRol,
-
-                       
-                        EsEdicionPropia = false
-                    };
-
-                    var roles = await ExecutePolicyAsync(() => _adminrepository.ObtenerRoles());
-                    ViewData["Roles"] = new SelectList(roles, "Id", "Nombre");
-
-                    return View(viewModel); 
+                    TempData["ErrorMessage"] = "Usuario no encontrado.";
+                    return BadRequest("Usuario no encontrado.");
                 }
+
+                var viewModel = _mapper.Map<UsuarioEditViewModel>(user);
+                viewModel.EsEdicionPropia = usuarioAEditarId == usuarioActualId;
+
+                if (!viewModel.EsEdicionPropia)
+                {
+                    await CargarRolesEnViewData();
+                }
+
+                return View(viewModel);
             }
             catch (Exception ex)
             {
@@ -262,9 +212,6 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-
-
-
 
         [HttpPost]
         public async Task<ActionResult> Edit(UsuarioEditViewModel userVM)
@@ -279,8 +226,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 // Cargar roles para la vista en caso de error
                 if (!userVM.EsEdicionPropia)
                 {
-                    var roles = await ExecutePolicyAsync(() => _adminrepository.ObtenerRoles());
-                    ViewData["Roles"] = new SelectList(roles, "Id", "Nombre", userVM.IdRol);
+                    await CargarRolesEnViewData();
                 }
 
             
@@ -294,6 +240,10 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (success)
                 {
                     TempData["SuccessMessage"] = "Usuario actualizado con éxito";
+                    if (User.IsAdministrador() && User.Identity.IsAuthenticated)
+                    {
+                        return RedirectToAction(nameof(Index));
+                    }
                     return RedirectToAction("Index", "Home");
                 }
 
@@ -307,22 +257,18 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-
-
         [Authorize(Roles = "Administrador")]
+        [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
             try
             {             
-                var user = await ExecutePolicyAsync(() => _adminrepository.UsuarioConPedido(id));
-              
+                var user = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.UsuarioConPedido(id));            
                 if (user == null)
                 {
                     TempData["ErrorMessage"] = "Usuario no encontrado";
-                }
-           
+                }        
                 return View(user);
-
             }
             catch (Exception ex)
             {
@@ -333,14 +279,14 @@ namespace GestorInventario.Infraestructure.Controllers
            
         }    
         
-        [HttpPost, ActionName("DeleteConfirmed")]
+        [HttpPost]
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> DeleteConfirmed(int Id)
         {
             try
             {
                
-                var (success, message) = await ExecutePolicyAsync(() => _adminrepository.EliminarUsuario(Id));
+                var (success, message) = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.EliminarUsuario(Id));
                 if (success)
                 {
                     TempData["SuccessMessage"] = message;
@@ -361,9 +307,10 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         //Metodo que da de baja el usuario, este metodo se llaman desde el script alta-baja-usuario.js
         [HttpPost]
+        [Authorize(Roles ="Administrador")]
         public async Task<IActionResult> BajaUsuarioPost([FromBody] UsuarioRequest request)
         {
-            var (success, errorMessage) = await ExecutePolicyAsync(() => _adminrepository.BajaUsuario(request.Id));
+            var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.BajaUsuario(request.Id));
             if (success)
             {
                 return Json(new { success = true });
@@ -376,9 +323,10 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         //Metodo que da de alta el usuario, este metodo se llaman desde el script alta-baja-usuario.js
         [HttpPost]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> AltaUsuarioPost([FromBody] UsuarioRequest request)
         {
-            var (success, errorMessage) = await ExecutePolicyAsync(() => _adminrepository.AltaUsuario(request.Id));
+            var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.AltaUsuario(request.Id));
             if (success)
             {
                 return Json(new { success = true });
@@ -389,13 +337,13 @@ namespace GestorInventario.Infraestructure.Controllers
                 return Json(new { success = false, errorMessage = errorMessage });
             }
         }
-        //Metodo que obtiene los roles y los usuarios que tienen ese rol
-       
+        [Authorize(Roles ="Administrador")]
+        [HttpGet]
         public async Task<IActionResult> ObtenerRoles()
         {
             try
             {
-                var roles = await ExecutePolicyAsync(() => _adminrepository.ObtenerRolesConUsuarios());
+                var roles = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerRolesConUsuarios());
                 return View(roles);
             }
             catch (Exception ex)
@@ -405,13 +353,14 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-      
+        [Authorize(Roles = "Administrador")]
+        [HttpGet]
         public async Task<IActionResult> VerUsuariosPorRol(int id, [FromQuery] Paginacion paginacion)
         {
             try
             {
                 
-                var rol = (await ExecutePolicyAsync(() => _adminrepository.ObtenerRolesConUsuarios())).FirstOrDefault(r => r.Id == id);
+                var rol = (await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerRolesConUsuarios())).FirstOrDefault(r => r.Id == id);
                 if (rol == null)
                 {
                     TempData["Error"] = "Rol no encontrado.";
@@ -425,10 +374,10 @@ namespace GestorInventario.Infraestructure.Controllers
                 var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
                 ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
 
-                var usuariosPaginados = ExecutePolicy(() => usuarios.PaginarLista(paginacion).ToList());
+                var usuariosPaginados = _policyExecutor.ExecutePolicy(() => usuarios.PaginarLista(paginacion).ToList());
 
             
-                var todosLosRoles = await ExecutePolicyAsync(() => _adminrepository.ObtenerRoles());
+                var todosLosRoles = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerRoles());
                 ViewBag.Roles = todosLosRoles;
                 ViewBag.RolId = id;
 
@@ -442,7 +391,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-      
+        [Authorize(Roles = "Administrador")]
+        [HttpGet]
         public async Task<IActionResult> CreateRole()
         {
             var permisos = await _adminrepository.ObtenerPermisos();
@@ -457,7 +407,7 @@ namespace GestorInventario.Infraestructure.Controllers
             };
             return View(model);
         }
-
+        [Authorize(Roles = "Administrador")]
         [HttpPost]
         public async Task<IActionResult> CreateRole(string nombreRol, List<int> permisoIds)
         {
@@ -493,12 +443,13 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         //Metodo para editar el rol se llama desde el script ver-usuario-rol.js
         [HttpPost]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> CambiarRol([FromBody] CambiarRolRequestDTO request)
         {
             try
             {
               
-                var usuario = await ExecutePolicyAsync(() => _adminrepository.ObtenerPorId(request.Id));
+                var usuario = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerPorId(request.Id));
                 if (usuario == null)
                 {
                     return Json(new { success = false, errorMessage = "Usuario no encontrado." });
@@ -511,7 +462,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
                 // Obtener todos los roles disponibles
-                var roles = await ExecutePolicyAsync(() => _adminrepository.ObtenerRoles());
+                var roles = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerRoles());
                 if (roles == null || !roles.Any())
                 {
                     return Json(new { success = false, errorMessage = "No se encontraron roles disponibles." });
@@ -531,7 +482,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
                 // Actualizar el rol del usuario
-                await ExecutePolicy(() => _adminrepository.ActualizarRolUsuario(request.Id, nuevoRol.Id));
+                await _policyExecutor.ExecutePolicy(() => _adminrepository.ActualizarRolUsuario(request.Id, nuevoRol.Id));
                 return Json(new
                 {
                     success = true,
@@ -544,14 +495,16 @@ namespace GestorInventario.Infraestructure.Controllers
                 return Json(new { success = false, errorMessage = "El servidor ha tardado mucho en responder, intenta de nuevo más tarde." });
             }
         }
-     
+        [HttpGet]
+        [Authorize(Roles = "Administrador")]
         public IActionResult CreatePermission()
         {
-            var model = new List<NewPermisoDTO> { new NewPermisoDTO() }; // Inicializar con un permiso vacío
+            var model = new List<NewPermisoDTO> { new NewPermisoDTO() }; 
             return View(model);
         }
 
         [HttpPost]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> CreatePermission(List<NewPermisoDTO> model)
         {
             try
@@ -560,7 +513,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (success)
                 {
                     _logger.LogInformation("Permisos creados con éxito.");
-                    return RedirectToAction("CreateRole"); // Redirigir a crear rol para usar los nuevos permisos
+                    return RedirectToAction(nameof(CreateRole));
                 }
                 ModelState.AddModelError("", message);
             }
@@ -572,16 +525,11 @@ namespace GestorInventario.Infraestructure.Controllers
 
             return View(model);
         }
-
-        private async Task<T> ExecutePolicyAsync<T>(Func<Task<T>> operation)
+        private async Task CargarRolesEnViewData()
         {
-            var policy = _PolicyHandler.GetCombinedPolicyAsync<T>();
-            return await policy.ExecuteAsync(operation);
+            var roles = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerRoles());
+            ViewData["Roles"] = new SelectList(roles, "Id", "Nombre");
         }
-        private T ExecutePolicy<T>(Func<T> operation)
-        {
-            var policy = _PolicyHandler.GetCombinedPolicy<T>();
-            return policy.Execute(operation);
-        }
+      
     }
 }

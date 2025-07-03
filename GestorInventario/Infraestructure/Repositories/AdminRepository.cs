@@ -2,13 +2,11 @@
 using GestorInventario.Application.DTOs;
 using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
-using GestorInventario.Domain.Models.ViewModels;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.Models.ViewModels;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using System.Text.RegularExpressions;
 namespace GestorInventario.Infraestructure.Repositories
 {
@@ -48,21 +46,11 @@ namespace GestorInventario.Infraestructure.Repositories
                     return (false, "El Email ya existe en base de datos");
                 }
                 var resultadoHash = _hashService.Hash(model.Password);
-                var user = new Usuario()
-                {
-                    Email = model.Email,
-                    Password = resultadoHash.Hash,
-                    Salt = resultadoHash.Salt,
-                    IdRol = model.IdRol,
-                    NombreCompleto = model.NombreCompleto,
-                    FechaNacimiento = model.FechaNacimiento,
-                    Telefono = model.Telefono,
-                    Direccion = model.Direccion,
-                    FechaRegistro = DateTime.Now,
-                    Ciudad = model.ciudad,
-                    CodigoPostal = model.codigoPostal
-                };
-                _context.AddEntity(user);
+                var user = _mapper.Map<Usuario>(model);
+                user.Password = resultadoHash.Hash;
+                user.Salt = resultadoHash.Salt;
+                user.FechaRegistro = DateTime.Now;
+                await _context.AddEntityAsync(user);
                 var (success, error) = await _emailService.SendEmailAsyncRegister(new DTOEmail { ToEmail = model.Email }, user);
                 if (success)
                 {
@@ -89,16 +77,12 @@ namespace GestorInventario.Infraestructure.Repositories
                 return (false, "Ocurrio un error inesperado por favor contacte con el administrador o intentelo de nuevo mas tarde");
             }
         }
-
         public async Task<(bool, string?)> EditarUsuario(UsuarioEditViewModel userVM)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                if (!_contextAccessor.HttpContext.User.Identity.IsAuthenticated)
-                {
-                    return (false, "Usuario no logueado");
-                }
+                
 
                 var user = await ObtenerUsuarioId(userVM.Id);
                 if (user == null)
@@ -196,21 +180,19 @@ namespace GestorInventario.Infraestructure.Repositories
             }
            
         } 
-      
-      
         public async Task<(bool, string)> BajaUsuario(int id)
         {
             using var transaction= await _context.Database.BeginTransactionAsync();
             try
             {
-                var usuarioDB = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == id);
+                var usuarioDB = await ObtenerUsuarioId(id);
                 if (usuarioDB == null)
                 {
                     return (false, "El usuario que intenta dar de baja no existe");
                 }
                 usuarioDB.BajaUsuario = true;
 
-                _context.UpdateEntity(usuarioDB);
+             await   _context.UpdateEntityAsync(usuarioDB);
                 await transaction.CommitAsync();
                 return (true, null);
             }
@@ -228,7 +210,7 @@ namespace GestorInventario.Infraestructure.Repositories
             using var transaction=await _context.Database.BeginTransactionAsync();
             try
             {
-                var usuarioDB = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == id);
+                var usuarioDB = await ObtenerUsuarioId(id);
                 if (usuarioDB == null)
                 {
                     return (false, "El usuario que intenta dar de baja no existe");
@@ -253,7 +235,7 @@ namespace GestorInventario.Infraestructure.Repositories
         public async Task ActualizarRolUsuario(int usuarioId, int rolId)
         {
           
-            var usuario = await _context.Usuarios.FindAsync(usuarioId);
+            var usuario = await ObtenerUsuarioId(usuarioId); ;
             if (usuario == null)
             {
                 throw new Exception($"Usuario con Id {usuarioId} no encontrado.");
@@ -268,14 +250,14 @@ namespace GestorInventario.Infraestructure.Repositories
 
           
             usuario.IdRol = rolId; 
-            _context.Usuarios.Update(usuario);
-            await _context.SaveChangesAsync();
+          await  _context.UpdateEntityAsync(usuario);
+            
         }
         public async Task<(bool, string)> CrearRol(string nombreRol, List<int> permisoIds)
         {
             try
             {
-                // Validar nombre del rol
+                
                 if (string.IsNullOrWhiteSpace(nombreRol))
                 {
                     _logger.LogWarning("Intento de crear rol con nombre vacío.");
@@ -288,14 +270,14 @@ namespace GestorInventario.Infraestructure.Repositories
                     return (false, "El nombre del rol solo puede contener letras y números.");
                 }
 
-                // Verificar si el rol ya existe
+               
                 if (await _context.Roles.AnyAsync(r => r.Nombre == nombreRol))
                 {
                     _logger.LogWarning($"Intento de crear rol duplicado: {nombreRol}.");
                     return (false, "El nombre del rol ya existe. Proporcione otro nombre.");
                 }
 
-                // Validar permisos
+               
                 if (permisoIds != null && permisoIds.Any())
                 {
                     var permisosExistentes = await _context.Permisos
@@ -311,13 +293,13 @@ namespace GestorInventario.Infraestructure.Repositories
                     }
                 }
 
-                // Crear el rol
+              
                 var rol = new Role { Nombre = nombreRol };
-                await _context.Roles.AddAsync(rol);
-                await _context.SaveChangesAsync();
+                await _context.AddEntityAsync(rol);
+             
                 _logger.LogInformation($"Rol creado: {nombreRol} (ID: {rol.Id}).");
 
-                // Asignar permisos al rol
+               
                 if (permisoIds != null && permisoIds.Any())
                 {
                     foreach (var permisoId in permisoIds)
@@ -327,9 +309,9 @@ namespace GestorInventario.Infraestructure.Repositories
                             RoleId = rol.Id,
                             PermisoId = permisoId
                         };
-                        _context.RolePermisos.Add(rolPermiso);
+                      await  _context.AddEntityAsync(rolPermiso);
                     }
-                    await _context.SaveChangesAsync();
+                  
                     _logger.LogInformation($"Permisos asignados al rol {nombreRol}: {string.Join(", ", permisoIds)}.");
                 }
 
@@ -342,7 +324,6 @@ namespace GestorInventario.Infraestructure.Repositories
             }
 
         }
-     
         public async Task<(bool, List<int>, string)> CrearPermisos(List<NewPermisoDTO> nuevosPermisos)
         {
             try
@@ -373,8 +354,7 @@ namespace GestorInventario.Infraestructure.Repositories
                         Nombre = nuevoPermiso.Nombre,
                         Descripcion = nuevoPermiso.Descripcion
                     };
-                    await _context.Permisos.AddAsync(permiso);
-                    await _context.SaveChangesAsync();
+                    await _context.AddEntityAsync(permiso);                
                     nuevosPermisoIds.Add(permiso.Id);
                     _logger.LogInformation($"Permiso creado: {nuevoPermiso.Nombre} (ID: {permiso.Id}).");
                 }
