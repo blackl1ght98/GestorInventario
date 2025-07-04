@@ -1,5 +1,6 @@
-﻿@using GestorInventario.PaginacionLogica
-@model List<HistorialPedido>
+﻿@model HistorialPedidoViewModel
+@using GestorInventario.Domain.Models.ViewModels.order
+@using GestorInventario.MetodosExtension
 <link rel="stylesheet" href="~/css/historialPedido.css" />
 <div class="card hover-card">
     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
@@ -46,7 +47,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var pedido in Model)
+                    @foreach (var pedido in Model.HistorialPedidos)
                     {
                         <tr>
                             <td>@pedido.Fecha.ToString()</td>
@@ -69,16 +70,25 @@
                 </tbody>
             </table>
         </div>
-        <nav aria-label="Page navigation example" class="mt-3">
-            <ul class="pagination justify-content-center">
-                @foreach (var pagina in ViewBag.Paginas as List<PaginasModel>)
-                {
-                    <li class="page-item @(pagina.Habilitada ? null : "disabled") @(pagina.Activa ? "active" : null)">
-                        <a class="page-link" href="@Url.Action("HistorialPedidos", new { Pagina = pagina.Pagina, buscar = ViewData["Buscar"] })">@pagina.Texto</a>
-                    </li>
-                }
-            </ul>
-        </nav>
+        <!-- Paginación -->
+        @if (Model.Paginas != null && Model.Paginas.Any())
+        {
+            <nav aria-label="Navegación de páginas" class="mt-5">
+                <ul class="pagination justify-content-center">
+                    @foreach (var pagina in Model.Paginas)
+                    {
+                        <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
+                            <a class="page-link"
+                               href="@Url.Action("Index", new { pagina = pagina.Pagina, buscar = Model.Buscar })"
+                               style="transition: background-color 0.2s;">
+                                @pagina.Texto
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
     </div>
-</div>
+    </div>
+
 

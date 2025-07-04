@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.Domain.Models.ViewModels
+﻿namespace GestorInventario.Domain.Models.ViewModels.user
 {
     public class RolViewModel
     {

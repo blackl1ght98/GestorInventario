@@ -1,5 +1,7 @@
-﻿@using GestorInventario.PaginacionLogica
-@model List<Producto>
+﻿@model ProductsViewModel
+@using GestorInventario.Domain.Models.ViewModels.product
+@using GestorInventario.PaginacionLogica
+@using Microsoft.AspNetCore.Mvc.Rendering
 
 <h1 class="display-5 mb-4 text-primary">Productos</h1>
 
@@ -54,7 +56,7 @@
 </div>
 
 <div class="row">
-    @foreach (var producto in Model)
+    @foreach (var producto in Model.Productos)
     {
         <div class="col-md-4 mb-4">
             <div class="card h-100 border-0 shadow-sm hover-card">
@@ -100,27 +102,32 @@
     }
 </div>
 
-<nav aria-label="Page navigation" class="mt-5 mb-6">
-    <ul class="pagination justify-content-center">
-        @foreach (var pagina in ViewBag.Paginas as List<PaginasModel>)
-        {
-            <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
-                <a class="page-link" href="@Url.Action("Index", new { Pagina = pagina.Pagina, buscar = ViewData["Buscar"], ordenarPorPrecio = ViewData["OrdenarPorprecio"], idProveedor = ViewData["idProveedor"] })">
-                    @if (pagina.Texto == "Anterior")
-                    {
-                        <span aria-hidden="true">«</span>
-                    }
-                    else if (pagina.Texto == "Siguiente")
-                    {
-                        <span aria-hidden="true">»</span>
-                    }
-                    else
-                    {
-                        @pagina.Texto
-                    }
-                </a>
-            </li>
-        }
-    </ul>
-</nav>
-
+<!-- Paginación -->
+@if (Model.Paginas != null && Model.Paginas.Any())
+{
+    <nav aria-label="Page navigation" class="mt-5">
+        <ul class="pagination justify-content-center">
+            @foreach (var pagina in Model.Paginas)
+            {
+                <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
+                    <a class="page-link page-link-custom @(pagina.Activa ? "active" : "")"
+                       href="@Url.Action("Index", new { pagina = pagina.Pagina, buscar = Model.Buscar, ordenarPorPrecio = Model.OrdenarPorPrecio, idProveedor = Model.IdProveedor })">
+                        @if (pagina.Texto == "Anterior")
+                        {
+                            <span aria-hidden="true">«</span>
+                        }
+                        else if (pagina.Texto == "Siguiente")
+                        {
+                            <span aria-hidden="true">»</span>
+                        }
+                        else
+                        {
+                            @pagina.Texto
+                        }
+                    </a>
+                </li>
+            }
+        </ul>
+    </nav>
+}
+</div>

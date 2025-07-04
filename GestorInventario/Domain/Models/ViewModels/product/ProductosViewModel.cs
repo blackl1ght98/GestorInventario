@@ -2,7 +2,7 @@
 using GestorInventario.Validations;
 using System.ComponentModel.DataAnnotations;
 
-namespace GestorInventario.Domain.Models.ViewModels
+namespace GestorInventario.Domain.Models.ViewModels.product
 {
     public class ProductosViewModel
     {

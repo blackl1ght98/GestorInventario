@@ -1,6 +1,6 @@
 ﻿using Aspose.Pdf.Operators;
 using GestorInventario.Domain.Models;
-using GestorInventario.Domain.Models.ViewModels;
+using GestorInventario.Domain.Models.ViewModels.product;
 using GestorInventario.Interfaces;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;

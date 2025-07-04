@@ -1,4 +1,5 @@
-﻿@model List<SubscriptionDetail>
+﻿@model SuscripcionesPaginadosViewModel
+@using GestorInventario.Domain.Models.ViewModels.paypal
 @using GestorInventario.PaginacionLogica
 @using Microsoft.AspNetCore.Mvc.Rendering
 
@@ -21,7 +22,7 @@
         </div>
     }
 
-    @if (Model == null || !Model.Any())
+    @if (Model == null )
     {
         <div class="alert alert-warning text-center rounded-3 animate-fade-in">
             <i class="bi bi-exclamation-triangle me-2"></i>No hay suscripciones disponibles en este momento.
@@ -49,7 +50,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var user in Model)
+                            @foreach (var user in Model.Suscripciones)
                             {
                                 <tr class="hover-row">
                                     <td>@Html.DisplayFor(m => user.SubscriptionId)</td>
@@ -95,21 +96,24 @@
             </div>
         </div>
     }
-
     <!-- Paginación -->
-    <nav aria-label="Page navigation" class="mt-4">
-        <ul class="pagination justify-content-center">
-            @foreach (var pagina in paginas!)
-            {
-                <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
-                    <a class="page-link rounded-pill px-3 py-2 mx-1"
-                       href="@Url.Action("TodasSuscripciones", new { Pagina = pagina.Pagina })">
-                        @pagina.Texto
-                    </a>
-                </li>
-            }
-        </ul>
-    </nav>
+    @if (Model.Paginas != null && Model.Paginas.Any())
+    {
+        <nav aria-label="Navegación de páginas" class="mt-5">
+            <ul class="pagination justify-content-center">
+                @foreach (var pagina in Model.Paginas)
+                {
+                    <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
+                        <a class="page-link"
+                           href="@Url.Action("TodasSuscripciones", new { pagina = pagina.Pagina})"
+                           style="transition: background-color 0.2s;">
+                            @pagina.Texto
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
 
     <!-- Modal -->
     <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">

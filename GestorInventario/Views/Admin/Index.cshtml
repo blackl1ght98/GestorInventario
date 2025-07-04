@@ -1,4 +1,5 @@
-﻿@model List<Usuario>
+﻿@model UsuariosViewModel
+@using GestorInventario.Domain.Models.ViewModels.user
 @using GestorInventario.PaginacionLogica
 @using Microsoft.AspNetCore.Mvc.Rendering
 
@@ -10,13 +11,19 @@
         </a>
     </div>
 
-    @{
-        var paginas = ViewBag.Paginas as List<PaginasModel>;
-    }
+    <!-- Formulario de búsqueda -->
+    <form asp-action="Index" method="get" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="buscar" value="@Model.Buscar" class="form-control" placeholder="Buscar por nombre completo" />
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-search"></i> Buscar
+            </button>
+        </div>
+    </form>
 
     <!-- Lista de Usuarios con Tarjetas -->
     <div class="row g-4">
-        @foreach (var user in Model)
+        @foreach (var user in Model.Usuarios)
         {
             <div class="col-12 col-md-6 col-lg-4">
                 <div class="card border-0 shadow-sm hover-card h-100">
@@ -25,7 +32,7 @@
                         <p class="card-text">
                             <i class="bi bi-envelope nav-icon text-muted"></i> <strong>Email:</strong> @user.Email<br />
                             <i class="bi bi-calendar nav-icon text-muted"></i> <strong>Fecha de Registro:</strong> @user.FechaRegistro.ToString()<br />
-                            <i class="bi bi-person-badge nav-icon text-muted"></i> <strong>Rol:</strong> @user.IdRolNavigation.Nombre<br />
+                            <i class="bi bi-person-badge nav-icon text-muted"></i> <strong>Rol:</strong> @(user.IdRolNavigation?.Nombre ?? "Sin rol")<br />
                             <i class="bi bi-circle-fill nav-icon @(user.BajaUsuario ? "text-danger" : "text-success")"></i> <strong>Estado:</strong>
                             <span class="badge @(user.BajaUsuario ? "bg-danger" : "bg-success")">
                                 @(user.BajaUsuario ? "Baja" : "Alta")
@@ -46,7 +53,6 @@
                             <a asp-action="Delete" asp-route-id="@user.Id" class="btn btn-danger btn-sm">
                                 <i class="bi bi-trash nav-icon"></i> Eliminar
                             </a>
-                            <!--Aqui enviamos por ruta el email del usuario al que se le restablece la constraseña-->
                             <a asp-action="ResetPassword" asp-controller="Auth" asp-route-email="@user.Email"
                                class="btn btn-outline-secondary btn-sm">
                                 <i class="bi bi-key nav-icon"></i> Recuperar Contraseña
@@ -56,7 +62,7 @@
                 </div>
             </div>
         }
-        @if (!Model.Any())
+        @if (!Model.Usuarios.Any())
         {
             <div class="col-12 text-center py-5">
                 <p class="text-muted fs-5">No hay usuarios para mostrar.</p>
@@ -68,15 +74,15 @@
     </div>
 
     <!-- Paginación -->
-    @if (paginas != null && paginas.Any())
+    @if (Model.Paginas != null && Model.Paginas.Any())
     {
         <nav aria-label="Navegación de páginas" class="mt-5">
             <ul class="pagination justify-content-center">
-                @foreach (var pagina in paginas)
+                @foreach (var pagina in Model.Paginas)
                 {
                     <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
                         <a class="page-link"
-                           href="@Url.Action("Index", new { Pagina = pagina.Pagina, buscar = ViewData["Buscar"] })"
+                           href="@Url.Action("Index", new { pagina = pagina.Pagina, buscar = Model.Buscar })"
                            style="transition: background-color 0.2s;">
                             @pagina.Texto
                         </a>

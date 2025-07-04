@@ -1,11 +1,7 @@
-﻿@using GestorInventario.PaginacionLogica
+﻿@model ProviderViewModel
+@using GestorInventario.Domain.Models.ViewModels.provider
 
-@model List<Proveedore>
-@{
 
-    var paginas = ViewBag.Paginas as List<PaginasModel>;
-
-}
 
 
 <link rel="stylesheet" href="~/css/provedorIndex.css" />
@@ -33,7 +29,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var proveedor in Model)
+        @foreach (var proveedor in Model.Proveedores)
         {
             <tr>
                 <td>@proveedor.NombreProveedor</td>
@@ -52,26 +48,21 @@
     </tbody>
 </table>
 
-<nav aria-label="Page navigation">
-    <ul class="pagination justify-content-center">
-        @foreach (var pagina in paginas)
-        {
-            <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
-                <a class="page-link" href="@Url.Action("Index", new { Pagina = pagina.Pagina, buscar = ViewData["Buscar"] })">
-                    @if (pagina.Texto == "Anterior")
-                    {
-                        <span aria-hidden="true">«</span>
-                    }
-                    else if (pagina.Texto == "Siguiente")
-                    {
-                        <span aria-hidden="true">»</span>
-                    }
-                    else
-                    {
+<!-- Paginación -->
+@if (Model.Paginas != null && Model.Paginas.Any())
+{
+    <nav aria-label="Navegación de páginas" class="mt-5">
+        <ul class="pagination justify-content-center">
+            @foreach (var pagina in Model.Paginas)
+            {
+                <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
+                    <a class="page-link"
+                       href="@Url.Action("Index", new { pagina = pagina.Pagina, buscar = Model.Buscar })"
+                       style="transition: background-color 0.2s;">
                         @pagina.Texto
-                    }
-                </a>
-            </li>
-        }
-    </ul>
-</nav>
+                    </a>
+                </li>
+            }
+        </ul>
+    </nav>
+}

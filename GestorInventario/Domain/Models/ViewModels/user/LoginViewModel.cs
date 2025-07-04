@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace GestorInventario.Models.ViewModels
+namespace GestorInventario.Domain.Models.ViewModels.user
 {
     public class LoginViewModel
     {

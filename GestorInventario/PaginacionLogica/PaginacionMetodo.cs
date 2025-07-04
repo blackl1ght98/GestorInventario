@@ -1,31 +1,24 @@
-﻿using Microsoft.AspNetCore.Mvc;
-
-namespace GestorInventario.PaginacionLogica
+﻿namespace GestorInventario.PaginacionLogica
 {
     public class PaginacionMetodo
     {
-        //NOTA: Si tienen dudas sobre constructores encadenados mirar explicacion logica paginacion.md
-        public List<PaginasModel> GenerarListaPaginas(Paginacion paginacion)
+        public List<PaginasModel> GenerarListaPaginas(int totalPaginas, int paginaActual, int radio = 3)
         {
             var paginas = new List<PaginasModel>();
-            var paginaAnterior = paginacion.PaginaActual > 1 ? paginacion.PaginaActual - 1 : 1;
-            paginas.Add(new PaginasModel(paginaAnterior, paginacion.PaginaActual != 1, "Anterior"));
+            var paginaAnterior = paginaActual > 1 ? paginaActual - 1 : 1;
+            paginas.Add(new PaginasModel(paginaAnterior, paginaActual != 1, "Anterior"));
 
-           
-
-            for (int i = 1; i <= paginacion.TotalPaginas; i++)
+            for (int i = 1; i <= totalPaginas; i++)
             {
-                if (i >= paginacion.PaginaActual - paginacion.Radio && i <= paginacion.PaginaActual + paginacion.Radio)
+                if (i >= paginaActual - radio && i <= paginaActual + radio)
                 {
-                    paginas.Add(new PaginasModel(i) { Activa = paginacion.PaginaActual == i });
+                    paginas.Add(new PaginasModel(i) { Activa = paginaActual == i });
                 }
             }
-            var paginaSiguiente = paginacion.PaginaActual < paginacion.TotalPaginas ? paginacion.PaginaActual + 1 : paginacion.TotalPaginas;
-            paginas.Add(new PaginasModel(paginaSiguiente, paginacion.PaginaActual != paginacion.TotalPaginas, "Siguiente"));
+
+            var paginaSiguiente = paginaActual < totalPaginas ? paginaActual + 1 : totalPaginas;
+            paginas.Add(new PaginasModel(paginaSiguiente, paginaActual != totalPaginas, "Siguiente"));
             return paginas;
         }
-
-
-
     }
 }

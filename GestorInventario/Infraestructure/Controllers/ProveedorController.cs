@@ -1,7 +1,9 @@
 ﻿using GestorInventario.Application.Politicas_Resilencia;
 using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
-using GestorInventario.Domain.Models.ViewModels;
+using GestorInventario.Domain.Models.ViewModels.product;
+using GestorInventario.Domain.Models.ViewModels.provider;
+using GestorInventario.Infraestructure.Repositories;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
@@ -32,6 +34,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _context = context;
             _policyExecutor = executor;
         }
+      
         //Metodo que muestra todos los proveedores
         public async Task<IActionResult> Index(string buscar, [FromQuery] Paginacion paginacion)
         {
@@ -42,7 +45,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
 
-                var proveedores = _proveedorRepository.ObtenerProveedores(); 
+                var proveedores = _proveedorRepository.ObtenerProveedores();
 
                 ViewData["Buscar"] = buscar;
                 if (!string.IsNullOrEmpty(buscar))
@@ -50,13 +53,23 @@ namespace GestorInventario.Infraestructure.Controllers
                     proveedores = proveedores.Where(s => s.NombreProveedor.Contains(buscar));
                 }
 
-                await HttpContext.TotalPaginas(proveedores, paginacion.CantidadAMostrar);
-                var proveedorList = proveedores.Paginar(paginacion).ToList(); 
+                // Aplicar paginación
+                var (proveedoresPaginados, totalItems) = await _policyExecutor.ExecutePolicyAsync(() => proveedores.PaginarAsync(paginacion));
+                var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
+                var paginas = _generarPaginas.GenerarListaPaginas(totalPaginas, paginacion.Pagina, paginacion.Radio);
+                var viewModel = new ProviderViewModel
+                {
+                    Proveedores = proveedoresPaginados,
+                    Paginas = paginas,
+                    TotalPaginas = totalPaginas,
+                    PaginaActual = paginacion.Pagina,
+                    Buscar = buscar,
+                 
+                   
+                };
+               
 
-                var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
-
-                ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
-                return View(proveedorList);
+                return View(viewModel);
             }
             catch (Exception ex)
             {

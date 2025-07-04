@@ -1,6 +1,5 @@
 ﻿using GestorInventario.Application.Classes;
-using GestorInventario.Domain.Models.ViewModels.Paypal;
-
+using GestorInventario.Domain.Models.ViewModels.paypal;
 
 namespace GestorInventario.Interfaces.Infraestructure
 {

@@ -1,7 +1,9 @@
 ﻿using GestorInventario.Application.DTOs;
 using GestorInventario.Application.Politicas_Resilencia;
 using GestorInventario.Application.Services;
-using GestorInventario.Domain.Models.ViewModels;
+
+using GestorInventario.Domain.Models.ViewModels.product;
+
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
@@ -45,7 +47,8 @@ namespace GestorInventario.Infraestructure.Controllers
             _pdfService = pdf;
         }
         //Metodo para obtener los productos
-        public async Task<IActionResult> Index(string buscar, string ordenarPorprecio, int? idProveedor, [FromQuery] Paginacion paginacion)
+        [HttpGet]
+        public async Task<IActionResult> Index(string buscar, string ordenarPorPrecio, int? idProveedor, [FromQuery] Paginacion paginacion)
         {
             try
             {
@@ -55,21 +58,17 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
                 // Obtiene la consulta como IQueryable
-                var productos = _policyExecutor.ExecutePolicy(() => _productoRepository.ObtenerTodoProducto());
+                var productos =  _policyExecutor.ExecutePolicy(() => _productoRepository.ObtenerTodoProducto());
 
                 // Aplicamos los filtros a la consulta
-                ViewData["Buscar"] = buscar;
-                ViewData["OrdenarPorprecio"] = ordenarPorprecio;
-                ViewData["idProveedor"] = idProveedor;
-
                 if (!string.IsNullOrEmpty(buscar))
                 {
                     productos = productos.Where(s => s.NombreProducto.Contains(buscar));
                 }
 
-                if (!string.IsNullOrEmpty(ordenarPorprecio))
+                if (!string.IsNullOrEmpty(ordenarPorPrecio))
                 {
-                    productos = ordenarPorprecio switch
+                    productos = ordenarPorPrecio switch
                     {
                         "asc" => productos.OrderBy(p => p.Precio),
                         "desc" => productos.OrderByDescending(p => p.Precio),
@@ -82,29 +81,36 @@ namespace GestorInventario.Infraestructure.Controllers
                     productos = productos.Where(p => p.IdProveedor == idProveedor.Value);
                 }
 
-                // Materializa la consulta aplicando la política de reintento
-                var productoPaginado = await _policyExecutor.ExecutePolicyAsync(() => productos.Paginar(paginacion).ToListAsync());
+                // Aplicar paginación
+                var (productosPaginados, totalItems) = await _policyExecutor.ExecutePolicyAsync(() => productos.PaginarAsync(paginacion));
+                var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
+                var paginas = _paginarMetodo.GenerarListaPaginas(totalPaginas, paginacion.Pagina, paginacion.Radio);
 
-                // Configuración adicional
-                ViewData["Proveedores"] = new SelectList(await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProveedores()), "Id", "NombreProveedor");
+                // Obtener proveedores
+                var proveedores = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProveedores());
+
+                // Verificar stock (manteniendo la lógica existente)
                 await VerificarStock();
-                await HttpContext.TotalPaginas(productos, paginacion.CantidadAMostrar);
 
-                var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
-                // Usar el objeto Paginacion para generar las páginas
-                var paginacionActualizada = new Paginacion
+                // Crear el ViewModel
+                var viewModel = new ProductsViewModel
                 {
-                    TotalPaginas = int.Parse(totalPaginas),
+                    Productos = productosPaginados,
+                    Paginas = paginas,
+                    TotalPaginas = totalPaginas,
                     PaginaActual = paginacion.Pagina,
-                    Radio = paginacion.Radio
+                    Buscar = buscar,
+                    OrdenarPorPrecio = ordenarPorPrecio,
+                    IdProveedor = idProveedor,
+                    Proveedores = new SelectList(proveedores, "Id", "NombreProveedor")
                 };
-                ViewData["Paginas"] = _paginarMetodo.GenerarListaPaginas(paginacionActualizada);
+                ViewData["Proveedores"] = new SelectList(await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProveedores()), "Id", "NombreProveedor");
 
-                return View(productoPaginado);
+                return View(viewModel);
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor ha tardado mucho en responder. Inténtelo de nuevo más tarde.";
+               
                 _logger.LogError(ex, "Error al mostrar la vista");
                 return RedirectToAction("Error", "Home");
             }
@@ -361,6 +367,9 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
+
+
+   
         //Metodo para obtener el historial del producto
         public async Task<IActionResult> HistorialProducto(string buscar, [FromQuery] Paginacion paginacion)
         {
@@ -376,13 +385,19 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     historialProductos = historialProductos.Where(p => p.Accion.Contains(buscar) || p.Ip.Contains(buscar));
                 }
-                await HttpContext.TotalPaginas(historialProductos, paginacion.CantidadAMostrar);
-                var usuarios = _policyExecutor.ExecutePolicy(() => historialProductos.Paginar(paginacion).ToList());
-                //Obtiene los datos de la cabecera que hace esta peticion
-                var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
-                //Crea las paginas que el usuario ve.
-                ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
-                return View(await historialProductos.ToListAsync());
+                var (historialPaginado, totalItems) = await _policyExecutor.ExecutePolicyAsync(() => historialProductos.PaginarAsync(paginacion));
+                var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
+                var paginas = _paginarMetodo.GenerarListaPaginas(totalPaginas, paginacion.Pagina, paginacion.Radio);
+                var viewModel = new HistorialProductoViewModel
+                {
+                    Historial = historialPaginado,
+                    Paginas = paginas,
+                    TotalPaginas = totalPaginas,
+                    PaginaActual = paginacion.Pagina,
+                  
+                };
+             
+                return View(viewModel);
             }
             catch (Exception ex)
             {
@@ -391,7 +406,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 _logger.LogError(ex, "Error al obtener el historial de producto");
                 return RedirectToAction("Error", "Home");
             }
-           
+
         }
         //Metodo para descargar el historial en pdf
         [HttpGet("descargarhistorialPDF")]
@@ -403,7 +418,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
-                var (success, errorMessage, pdfData) = await _policyExecutor.ExecutePolicyAsync(() =>_pdfService.DescargarProductoPDF());
+                var (success, errorMessage, pdfData) = await _policyExecutor.ExecutePolicyAsync(() => _pdfService.DescargarProductoPDF());
                 if (!success)
                 {
                     TempData["ErrorMessage"] = errorMessage;
@@ -430,7 +445,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
 
-                var historialProducto = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.HistorialProductoPorId(id));                    
+                var historialProducto = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.HistorialProductoPorId(id));
                 if (historialProducto == null)
                 {
                     TempData["ErrorMessage"] = "Detalles del historial no encontrado";
@@ -454,12 +469,12 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
-                var historialProducto = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.EliminarHistorialPorId(id));              
+                var historialProducto = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.EliminarHistorialPorId(id));
                 if (historialProducto == null)
                 {
 
                     TempData["ErrorMessage"] = "Historial no encontrado";
-                }               
+                }
                 return View(historialProducto);
             }
             catch (Exception ex)
@@ -471,7 +486,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
         }
         //Metodo que elimina el historial
-        [HttpPost, ActionName("DeleteConfirmedHistorial")]     
+        [HttpPost, ActionName("DeleteConfirmedHistorial")]
         public async Task<IActionResult> DeleteConfirmedHistorial(int Id)
         {
             try
@@ -487,7 +502,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.EliminarHistorialPorIdDefinitivo(Id));
                     if (success)
                     {
-                        
+
                         return RedirectToAction(nameof(HistorialProducto));
                     }
                     else
@@ -495,7 +510,7 @@ namespace GestorInventario.Infraestructure.Controllers
                         TempData["ErrorMessage"] = errorMessage;
                         return RedirectToAction(nameof(Delete), new { id = Id });
                     }
-                   
+
                 }
                 return RedirectToAction("Index");
 
@@ -508,7 +523,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
         //Metodo que elimina todo el historial
-        [HttpPost, ActionName("DeleteAllHistorial")]       
+        [HttpPost, ActionName("DeleteAllHistorial")]
         public async Task<IActionResult> DeleteAllHistorial()
         {
             try
@@ -519,13 +534,13 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
                 var historialProductos = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.EliminarTodoHistorial());
-               //var historialProductos = await _productoRepository.EliminarTodoHistorial();
+                //var historialProductos = await _productoRepository.EliminarTodoHistorial();
                 if (historialProductos == null || historialProductos.Count == 0)
                 {
                     TempData["ErrorMessage"] = "No hay datos en el historial para eliminar";
                     return BadRequest("No hay datos en el historial para eliminar");
                 }
-               
+
                 return RedirectToAction(nameof(HistorialProducto));
             }
             catch (Exception ex)
@@ -534,8 +549,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 _logger.LogError(ex, "Error al eliminar los datos del historial");
                 return RedirectToAction("Error", "Home");
             }
-        }       
-      
+        }
+
 
     }
 }

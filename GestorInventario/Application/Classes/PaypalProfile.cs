@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using GestorInventario.Domain.Models.ViewModels.Paypal;
+using GestorInventario.Domain.Models.ViewModels.paypal;
 using GestorInventario.Domain.Models.ViewModels.Paypal.GestorInventario.Domain.Models.ViewModels.Paypal;
 
 namespace GestorInventario.Application.Classes

@@ -1,7 +1,7 @@
 ﻿
 using GestorInventario.Application.Classes;
 using GestorInventario.Domain.Models;
-using GestorInventario.Domain.Models.ViewModels.Paypal;
+using GestorInventario.Domain.Models.ViewModels.paypal;
 using GestorInventario.Interfaces.Infraestructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace GestorInventario.Domain.Models.ViewModels
+namespace GestorInventario.Domain.Models.ViewModels.provider
 {
     public class ProveedorViewModel
     {

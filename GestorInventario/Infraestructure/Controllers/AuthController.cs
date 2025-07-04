@@ -1,11 +1,11 @@
 ﻿using GestorInventario.Application.DTOs;
 using GestorInventario.Application.Politicas_Resilencia;
 using GestorInventario.Application.Services;
+using GestorInventario.Domain.Models.ViewModels.user;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
-using GestorInventario.Models.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -123,16 +123,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     Expires = DateTime.UtcNow.AddDays(7)
                 });
 
-                // Construir claims para el login
-                //var claims = new List<Claim>
-                //{
-                //  new Claim(ClaimTypes.Email, user.Email),
-                //  new Claim(ClaimTypes.Role, user.IdRolNavigation.Nombre),
-                //  new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
-                //};
-
-                //var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                //await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+               
 
                 return RedirectToAction("Index", "Home");
             }

@@ -2,11 +2,12 @@
 using GestorInventario.Application.DTOs;
 using GestorInventario.Application.Politicas_Resilencia;
 using GestorInventario.Application.Services;
+using GestorInventario.Domain.Models.ViewModels;
+using GestorInventario.Domain.Models.ViewModels.user;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
-using GestorInventario.Models.ViewModels;
 using GestorInventario.PaginacionLogica;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -46,11 +47,11 @@ namespace GestorInventario.Infraestructure.Controllers
         }
 
         [Authorize(Roles = "Administrador", Policy = "VerUsuarios")]
-        public async Task<ActionResult> Index(string buscar, [FromQuery] Paginacion paginacion)
+        public async Task<IActionResult> Index(string buscar, [FromQuery] Paginacion paginacion)
         {
             try
             {
-            #if DEBUG
+#if DEBUG
                 var claims = User.Claims.Select(c => $"{c.Type}: {c.Value}");
                 var hasPermiso = User.HasClaim("permiso", "VerUsuarios");
                 var isInRole = User.IsInRole("Administrador");
@@ -59,35 +60,41 @@ namespace GestorInventario.Infraestructure.Controllers
                 _logger.LogInformation($"Es Administrador: {isInRole}");
                 if (!hasPermiso || !isInRole)
                 {
-                    return Forbid(); 
+                    return Forbid();
                 }
-            #endif
-                var queryable =  await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerUsuarios());             
-                 ViewData["Buscar"] = buscar;
-              
-                if (!String.IsNullOrEmpty(buscar))
+#endif
+
+                var queryable = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerUsuarios());
+                if (!string.IsNullOrEmpty(buscar))
                 {
                     queryable = queryable.Where(s => s.NombreCompleto.Contains(buscar));
                 }
-               
-                 HttpContext.TotalPaginasLista(queryable, paginacion.CantidadAMostrar);
-                var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
-                var usuarios = _policyExecutor.ExecutePolicy(() => queryable.PaginarLista(paginacion).ToList());                         
-                //Crea las paginas que el usuario ve.
-                ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
-                await CargarRolesEnViewData();
 
-                return View(usuarios);
+                // Aplicar paginación usando PaginarAsync
+                var (usuarios, totalItems) = await _policyExecutor.ExecutePolicyAsync(() => queryable.PaginarAsync(paginacion));
+                var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
+                var paginas = _generarPaginas.GenerarListaPaginas(totalPaginas, paginacion.Pagina, paginacion.Radio);
+
+                var viewModel = new UsuariosViewModel
+                {
+                    Usuarios = usuarios,
+                    Paginas = paginas,
+                    TotalPaginas = totalPaginas,
+                    PaginaActual = paginacion.Pagina,
+                    Buscar = buscar
+                };
+
+                await CargarRolesEnViewData();
+                return View(viewModel);
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
+               
                 _logger.LogError(ex, "Error al obtener los datos del usuario");
-                return RedirectToAction("Error", "Home"); 
-
+                return RedirectToAction("Error", "Home");
             }
         }
-      
+
         public async Task<IActionResult> Create()
         {
             try
@@ -339,16 +346,31 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         [Authorize(Roles ="Administrador")]
         [HttpGet]
-        public async Task<IActionResult> ObtenerRoles()
+        public async Task<IActionResult> ObtenerRoles([FromQuery] Paginacion paginacion)
         {
             try
             {
-                var roles = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerRolesConUsuarios());
-                return View(roles);
+                var queryable = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerRolesConUsuarios());
+
+                // Aplicar paginación usando PaginarAsync
+                var (roles, totalItems) = await _policyExecutor.ExecutePolicyAsync(() => queryable.PaginarAsync(paginacion));
+                var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
+                var paginas = _generarPaginas.GenerarListaPaginas(totalPaginas, paginacion.Pagina, paginacion.Radio);
+
+                var viewModel = new RolesViewModel
+                {
+                    Roles = roles,
+                    Paginas = paginas,
+                    TotalPaginas = totalPaginas,
+                    PaginaActual = paginacion.Pagina,
+                   
+                };
+
+                return View(viewModel);
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
+             
                 _logger.LogError(ex, "Error al obtener los roles");
                 return RedirectToAction("Error", "Home");
             }
@@ -359,34 +381,36 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                
-                var rol = (await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerRolesConUsuarios())).FirstOrDefault(r => r.Id == id);
+                var rol = (await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerRolesConUsuarios()))
+                    .FirstOrDefault(r => r.Id == id);
                 if (rol == null)
                 {
                     TempData["Error"] = "Rol no encontrado.";
                     return RedirectToAction("ObtenerRoles");
                 }
 
-                var usuarios = rol.Usuarios; 
+                var usuariosQueryable = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerUsuariosPorRol(id));
+                var (usuariosPaginados, totalItems) = await _policyExecutor.ExecutePolicyAsync(() => usuariosQueryable.PaginarAsync(paginacion));
+                var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
+                var paginas = _generarPaginas.GenerarListaPaginas(totalPaginas, paginacion.Pagina, paginacion.Radio);
 
-             
-                HttpContext.TotalPaginasLista(usuarios, paginacion.CantidadAMostrar);
-                var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
-                ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
-
-                var usuariosPaginados = _policyExecutor.ExecutePolicy(() => usuarios.PaginarLista(paginacion).ToList());
-
-            
                 var todosLosRoles = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerRoles());
-                ViewBag.Roles = todosLosRoles;
-                ViewBag.RolId = id;
 
-               
-                return View(usuariosPaginados);
+                var viewModel = new UsuariosPorRolViewModel
+                {
+                    Usuarios = usuariosPaginados,
+                    Paginas = paginas,
+                    TotalPaginas = totalPaginas,
+                    PaginaActual = paginacion.Pagina,
+                    RolId = id,
+                    TodosLosRoles = todosLosRoles
+                };
+
+                return View(viewModel);
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor ha tardado mucho en responder, intenta de nuevo más tarde.";
+            
                 _logger.LogError(ex, "Error al obtener los usuarios del rol con Id {Id}", id);
                 return RedirectToAction("Error", "Home");
             }

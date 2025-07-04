@@ -1,26 +1,34 @@
-﻿@model List<Usuario>
+﻿@model UsuariosPorRolViewModel
+@using GestorInventario.Domain.Models.ViewModels.user
 @using GestorInventario.PaginacionLogica
 @using Microsoft.AspNetCore.Mvc.Rendering
 
 @{
     ViewData["Title"] = "Usuarios por Rol - GestorInventario";
-    var paginas = ViewBag.Paginas as List<PaginasModel>;
-    var rolId = ViewBag.RolId as int?;
-    var rolNombre = (ViewBag.Roles as List<Role>)?.FirstOrDefault(r => r.Id == rolId)?.Nombre ?? "Desconocido";
 }
 
 <div class="container my-5">
     <!-- Encabezado -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 fw-bold" style="color: var(--primary);">Usuarios del Rol @rolNombre</h1>
+        <h1 class="h3 fw-bold" style="color: var(--primary);">Usuarios del Rol @Model.TodosLosRoles.FirstOrDefault(r => r.Id == Model.RolId)?.Nombre</h1>
         <a asp-action="ObtenerRoles" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left nav-icon"></i> Volver a Roles
         </a>
     </div>
 
+    <!-- Mensajes de error -->
+    @if (TempData["ConnectionError"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ConnectionError"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
     <!-- Lista de Usuarios con Tarjetas -->
     <div class="row g-4">
-        @foreach (var usuario in Model)
+        @foreach (var usuario in Model.Usuarios)
         {
             <div class="col-12 col-md-6 col-lg-4">
                 <div class="card border-0 shadow-sm hover-card h-100">
@@ -44,7 +52,7 @@
                 </div>
             </div>
         }
-        @if (!Model.Any())
+        @if (!Model.Usuarios.Any())
         {
             <div class="col-12 text-center py-5">
                 <p class="text-muted fs-5">No hay usuarios asociados a este rol.</p>
@@ -56,15 +64,15 @@
     </div>
 
     <!-- Paginación -->
-    @if (paginas != null && paginas.Any())
+    @if (Model.Paginas != null && Model.Paginas.Any())
     {
         <nav aria-label="Navegación de páginas" class="mt-5">
             <ul class="pagination justify-content-center">
-                @foreach (var pagina in paginas)
+                @foreach (var pagina in Model.Paginas)
                 {
                     <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
                         <a class="page-link"
-                           href="@Url.Action("VerUsuariosPorRol", new { id = rolId, Pagina = pagina.Pagina })"
+                           href="@Url.Action("VerUsuariosPorRol", new { id = Model.RolId, pagina = pagina.Pagina })"
                            style="transition: background-color 0.2s;">
                             @pagina.Texto
                         </a>
@@ -90,7 +98,7 @@
                         <i class="bi bi-person-badge" style="color: var(--secondary);"></i>
                     </span>
                     <select id="roleSelect" class="form-select">
-                        @foreach (var rol in ViewBag.Roles as List<Role>)
+                        @foreach (var rol in Model.TodosLosRoles)
                         {
                             <option value="@rol.Id">@rol.Nombre</option>
                         }

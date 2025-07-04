@@ -7,7 +7,6 @@ using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using GestorInventario.Domain.Models.ViewModels.Paypal;
 using System.Net.Http.Headers;
 using Newtonsoft.Json.Linq;
 using Microsoft.Extensions.Caching.Memory;
@@ -15,6 +14,7 @@ using GestorInventario.Application.DTOs;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.MetodosExtension;
 using GestorInventario.Infraestructure.Utils;
+using GestorInventario.Domain.Models.ViewModels.paypal;
 
 namespace GestorInventario.Infraestructure.Controllers
 {

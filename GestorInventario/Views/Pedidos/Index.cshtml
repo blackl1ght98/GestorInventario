@@ -1,11 +1,9 @@
-﻿@using GestorInventario.PaginacionLogica
+﻿@model PedidoViewModel
+@using GestorInventario.Domain.Models.ViewModels.order
 @using GestorInventario.MetodosExtension
-@model List<Pedido>
 
 <h1 class="display-5 mb-4 text-primary">Pedidos</h1>
-@{
-    var paginas = ViewBag.Paginas as List<PaginasModel>;
-}
+
 
 
 @if (User.IsInRole("Administrador"))
@@ -61,7 +59,7 @@
 </div>
 
 <div class="row">
-    @foreach (var pedido in Model)
+    @foreach (var pedido in Model.Pedidos)
     {
         <div class="col-md-4 mb-4">
             <div class="card h-100 border-0 shadow-sm hover-card">
@@ -99,29 +97,25 @@
     }
 </div>
 
-<nav aria-label="Page navigation" class="mt-2 mb-5">
-    <ul class="pagination justify-content-center">
-        @foreach (var pagina in paginas)
-        {
-            <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
-                <a class="page-link" href="@Url.Action("Index", new { buscar = ViewData["Buscar"], fechaInicio = ViewData["FechaInicio"], fechaFin = ViewData["FechaFin"], Pagina = pagina.Pagina })">
-                    @if (pagina.Texto == "Anterior")
-                    {
-                        <span aria-hidden="true">«</span>
-                    }
-                    else if (pagina.Texto == "Siguiente")
-                    {
-                        <span aria-hidden="true">»</span>
-                    }
-                    else
-                    {
+<!-- Paginación -->
+@if (Model.Paginas != null && Model.Paginas.Any())
+{
+    <nav aria-label="Navegación de páginas" class="mt-5">
+        <ul class="pagination justify-content-center">
+            @foreach (var pagina in Model.Paginas)
+            {
+                <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
+                    <a class="page-link"
+                       href="@Url.Action("Index", new { pagina = pagina.Pagina, buscar = Model.Buscar })"
+                       style="transition: background-color 0.2s;">
                         @pagina.Texto
-                    }
-                </a>
-            </li>
-        }
-    </ul>
-</nav>
+                    </a>
+                </li>
+            }
+        </ul>
+    </nav>
+}
+</div>
 
 <!-- Modal -->
 <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">

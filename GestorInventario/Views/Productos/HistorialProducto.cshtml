@@ -1,5 +1,7 @@
-﻿@using GestorInventario.PaginacionLogica
-@model List<HistorialProducto>
+﻿@model HistorialProductoViewModel
+@using GestorInventario.Domain.Models.ViewModels.product
+@using GestorInventario.PaginacionLogica
+@using Microsoft.AspNetCore.Mvc.Rendering
 @{
 
     var paginas = ViewBag.Paginas as List<PaginasModel>;
@@ -44,7 +46,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var pedido in Model)
+            @foreach (var pedido in Model.Historial)
             {
                 <tr>
                     <td>@pedido.UsuarioId</td>
@@ -66,26 +68,31 @@
     </table>
 </div>
 
-<nav aria-label="Page navigation">
-    <ul class="pagination justify-content-center">
-        @foreach (var pagina in paginas)
-        {
-            <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
-                <a class="page-link" href="@Url.Action("HistorialProducto", new { Pagina = pagina.Pagina, buscar = ViewData["Buscar"] })">
-                    @if (pagina.Texto == "Anterior")
-                    {
-                        <span aria-hidden="true">«</span>
-                    }
-                    else if (pagina.Texto == "Siguiente")
-                    {
-                        <span aria-hidden="true">»</span>
-                    }
-                    else
-                    {
-                        @pagina.Texto
-                    }
-                </a>
-            </li>
-        }
-    </ul>
-</nav>
+<!-- Paginación -->
+@if (Model.Paginas != null && Model.Paginas.Any())
+{
+    <nav aria-label="Page navigation" class="mt-5">
+        <ul class="pagination justify-content-center">
+            @foreach (var pagina in Model.Paginas)
+            {
+                <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
+                    <a class="page-link page-link-custom @(pagina.Activa ? "active" : "")"
+                       href="@Url.Action("HistorialProducto", new { pagina = pagina.Pagina })">
+                        @if (pagina.Texto == "Anterior")
+                        {
+                            <span aria-hidden="true">«</span>
+                        }
+                        else if (pagina.Texto == "Siguiente")
+                        {
+                            <span aria-hidden="true">»</span>
+                        }
+                        else
+                        {
+                            @pagina.Texto
+                        }
+                    </a>
+                </li>
+            }
+        </ul>
+    </nav>
+}

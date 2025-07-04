@@ -2,10 +2,10 @@
 using GestorInventario.Application.DTOs;
 using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
+using GestorInventario.Domain.Models.ViewModels.user;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
-using GestorInventario.Models.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
 namespace GestorInventario.Infraestructure.Repositories
@@ -27,13 +27,26 @@ namespace GestorInventario.Infraestructure.Repositories
             _logger = logger;
             _mapper = mapper;
         }
-    
-        public async Task<IEnumerable<Usuario>> ObtenerUsuarios() => await _context.Usuarios.Include(x=>x.IdRolNavigation).ToListAsync();
+
+        public Task<IQueryable<Usuario>> ObtenerUsuarios()
+        {
+            return Task.FromResult(_context.Usuarios.Include(x => x.IdRolNavigation).AsQueryable());
+        }
         public async Task<Usuario> ObtenerPorId(int id)=>await _context.Usuarios.Include(x=>x.IdRolNavigation).FirstOrDefaultAsync(x=>x.Id==id);
-        public  async Task<IEnumerable<Role>> ObtenerRoles()=> await _context.Roles.ToListAsync();
+        public  async Task<List<Role>> ObtenerRoles()=> await _context.Roles.ToListAsync();
         public async Task<Usuario> UsuarioConPedido(int id)=>await _context.Usuarios.Include(p => p.Pedidos).FirstOrDefaultAsync(m => m.Id == id);
         public async Task<Usuario> ObtenerUsuarioId(int id) => await _context.Usuarios.FirstOrDefaultAsync(u => u.Id == id);
-        public async Task<List<Role>> ObtenerRolesConUsuarios()=>await _context.Roles.Include(x=>x.Usuarios).ToListAsync();
+        public Task<IQueryable<Role>> ObtenerRolesConUsuarios()
+        {
+            return Task.FromResult(_context.Roles.Include(x => x.Usuarios).AsQueryable());
+        }
+        public Task<IQueryable<Usuario>> ObtenerUsuariosPorRol(int rolId)
+        {
+            return Task.FromResult(_context.Usuarios
+                .Where(u => u.IdRol == rolId)
+                .Include(u => u.IdRolNavigation)
+                .AsQueryable());
+        }
         public async Task<List<Permiso>> ObtenerPermisos() => await _context.Permisos.ToListAsync();
         public async Task<(bool, string)> CrearUsuario(UserViewModel model)
         {

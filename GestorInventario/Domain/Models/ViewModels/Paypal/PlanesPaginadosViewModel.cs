@@ -2,16 +2,17 @@
 using GestorInventario.Domain.Models.ViewModels.Paypal.GestorInventario.Domain.Models.ViewModels.Paypal;
 using GestorInventario.PaginacionLogica;
 
-namespace GestorInventario.Domain.Models.ViewModels.Paypal
+namespace GestorInventario.Domain.Models.ViewModels.paypal
 {
     public class PlanesPaginadosViewModel
     {
-        public IEnumerable<PlanesViewModel> Planes { get; set; }
-        public IEnumerable<PaginasModel> Paginas { get; set; }
-        public int CantidadAMostrar { get; set; }
+        public List<PlanesViewModel> Planes { get; set; } = new List<PlanesViewModel>();
+        public List<PaginasModel> Paginas { get; set; } = new List<PaginasModel>();
+        public int TotalPaginas { get; set; }
         public int PaginaActual { get; set; }
         public bool TienePaginaSiguiente { get; set; }
         public bool TienePaginaAnterior { get; set; }
+        public int CantidadAMostrar { get; set; }
     }
     public class PlansResponse
     {

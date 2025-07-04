@@ -63,6 +63,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<GenerarPaginas>();
 builder.Services.AddTransient<PaginacionMetodo>();
 builder.Services.AddTransient<PolicyExecutor>();
+builder.Services.AddTransient<UtilityClass>();
 builder.Services.AddTransient<IGestorArchivos, GestorArchivosService>();
 builder.Services.AddTransient<HashService>();
 builder.Services.AddTransient<ICarritoRepository, CarritoRepository>();

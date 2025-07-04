@@ -32,18 +32,24 @@ namespace GestorInventario.Infraestructure.Repositories
         public async Task<Carrito> ObtenerCarritoUsuario(int userId)=>await _context.Carritos.FirstOrDefaultAsync(x => x.UsuarioId == userId);
         public async Task<List<ItemsDelCarrito>> ObtenerItemsDelCarritoUsuario(int userIdcarrito)=>await _context.ItemsDelCarritos.Where(i => i.CarritoId == userIdcarrito).ToListAsync();
         public async Task<ItemsDelCarrito> ItemsDelCarrito(int Id)=>await _context.ItemsDelCarritos.FirstOrDefaultAsync(x => x.Id == Id);
-       
+        public IQueryable<ItemsDelCarrito> ObtenerItems(int id) => _context.ItemsDelCarritos.Include(i => i.Producto).Include(i => i.Producto.IdProveedorNavigation).Where(i => i.CarritoId == id);
+        public async Task<List<Monedum>> ObtenerMoneda() => await _context.Moneda.ToListAsync();
+        private int ObtenerUsuarioIdActual()
+        {
+            var value = _contextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return int.TryParse(value, out var id) ? id : 0;
+        }
+    
         public async Task<(bool, string, string)> PagarV2(string moneda, int userId)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 var nombreCompleto = _contextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int usuarioId;
+                int usuarioId= ObtenerUsuarioIdActual();
 
                 var infoUsuario = new InfoUsuario();
-                if (int.TryParse(nombreCompleto, out usuarioId))
-                {
+             
                     var usuarioActual = await _admin.ObtenerUsuarioId(usuarioId);
 
                     // Asignar los valores a la instancia de InfoUsuario
@@ -55,7 +61,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     string[] direccionParts = usuarioActual.Direccion.Split(",");
                     infoUsuario.line1 = direccionParts.Length > 0 ? direccionParts[0].Trim() : "";
                     infoUsuario.line2 = direccionParts.Length > 1 ? direccionParts[1].Trim() : "";
-                }
+                
                 //Cuando vas a pagar lo primero que obtenemos es los items del carrito
                 var itemsDelCarrito = await ObtenerItemsDelCarrito(userId);
                 //Una vez obtenidos los items creamos el pedido
@@ -99,10 +105,12 @@ namespace GestorInventario.Infraestructure.Repositories
         private async Task<List<ItemsDelCarrito>> ObtenerItemsDelCarrito(int userId)
         {
             var carrito = await ObtenerCarritoUsuario(userId);
-
-
+            if (carrito == null)
+            {
+                _logger.LogWarning("No se encontró carrito para el usuario con ID {UserId}", userId);
+                return new List<ItemsDelCarrito>();
+            }
             var itemsDelCarrito = await ObtenerItemsDelCarritoUsuario(carrito.Id);
-
             return itemsDelCarrito;
         }
         private async Task<HistorialPedido> CreacionPedido(int userId, List<ItemsDelCarrito> itemsDelCarrito)
@@ -201,8 +209,7 @@ namespace GestorInventario.Infraestructure.Repositories
         }
 
 
-        public IQueryable<ItemsDelCarrito> ObtenerItems(int id)=>_context.ItemsDelCarritos.Include(i => i.Producto).Include(i => i.Producto.IdProveedorNavigation).Where(i => i.CarritoId == id);
-        public async Task<List<Monedum>> ObtenerMoneda()=>await _context.Moneda.ToListAsync();    
+   
         public async Task<(bool, string)> Incremento(int id)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -214,12 +221,13 @@ namespace GestorInventario.Infraestructure.Repositories
                     carrito.Cantidad++;
                     await _context.UpdateEntityAsync(carrito);
                     var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == carrito.ProductoId);
-                    if (producto != null && producto.Cantidad > 0)
+                    if (producto == null || producto.Cantidad <= 0)
                     {
-                        // Decrementa la cantidad del producto en la tabla de productos
-                        producto.Cantidad--;
-                        await _context.UpdateEntityAsync(producto);
+                        await transaction.RollbackAsync();
+                        return (false, "No hay suficiente inventario para el producto seleccionado.");
                     }
+                    producto.Cantidad--;
+                    await _context.UpdateEntityAsync(producto);
                 }
                 await transaction.CommitAsync();
                 return (true, null);
@@ -245,13 +253,17 @@ namespace GestorInventario.Infraestructure.Repositories
                     // Decrementa la cantidad del producto en el carrito
                     carrito.Cantidad--;
                     var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == carrito.ProductoId);
-                    if (producto != null)
+                    if (producto == null || producto.Cantidad <= 0)
                     {
+                        await transaction.RollbackAsync();
+                        return (false, "No hay suficiente inventario para el producto seleccionado.");
+                    }
+                   
                         // Incrementa la cantidad del producto en la tabla de productos
                         producto.Cantidad++;
                      
                       await  _context.UpdateEntityAsync(producto);
-                    }
+                    
                    await _context.UpdateEntityAsync(carrito);
 
                 }

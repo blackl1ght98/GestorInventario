@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace GestorInventario.Domain.Models.ViewModels
+namespace GestorInventario.Domain.Models.ViewModels.order
 {
     public class PedidosViewModel
     {
@@ -14,6 +14,7 @@ namespace GestorInventario.Domain.Models.ViewModels
         public string EstadoPedido { get; set; }
         [Display(Name = "Clientes")]
         public int? IdUsuario { get; set; }
+       
     }
 
 }

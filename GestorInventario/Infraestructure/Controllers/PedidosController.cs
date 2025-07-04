@@ -1,6 +1,7 @@
 ﻿
 using GestorInventario.Application.Services;
-using GestorInventario.Domain.Models.ViewModels;
+using GestorInventario.Domain.Models.ViewModels.order;
+using GestorInventario.Domain.Models.ViewModels.user;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System.Security.Claims;
 
 namespace GestorInventario.Infraestructure.Controllers
@@ -21,8 +23,7 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly GenerarPaginas _generarPaginas;
         private readonly ILogger<PedidosController> _logger;
         private readonly IPedidoRepository _pedidoRepository;
-        private readonly IHttpContextAccessor _contextAccessor;
-        
+        private readonly IHttpContextAccessor _contextAccessor;       
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPdfService _pdfservice;
         private readonly PolicyExecutor _policyExecutor;
@@ -38,6 +39,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _unitOfWork = unitOfWork;
             _policyExecutor = executor;
         }
+       
         //Metodo que muestra todos los pedidos
         public async Task<IActionResult> Index(string buscar, DateTime? fechaInicio, DateTime? fechaFin, [FromQuery] Paginacion paginacion)
         {
@@ -51,21 +53,21 @@ namespace GestorInventario.Infraestructure.Controllers
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {
-                    
-                    var pedidos = _policyExecutor.ExecutePolicy(()=> _pedidoRepository.ObtenerPedidos()) ;
+
+                    var pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidos());
                     if (User.IsInRole("administrador"))
                     {
-                       
+
                         pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidos());
                     }
                     else
                     {
-                        
+
                         pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidoUsuario(usuarioId));
                     }
                     ViewData["Buscar"] = buscar;
                     ViewData["FechaInicio"] = fechaInicio;
-                    ViewData["FechaFin"] = fechaFin;                
+                    ViewData["FechaFin"] = fechaFin;
                     if (!String.IsNullOrEmpty(buscar))
                     {
                         pedidos = pedidos.Where(p => p.NumeroPedido.Contains(buscar) || p.EstadoPedido.Contains(buscar) || p.IdUsuarioNavigation.NombreCompleto.Contains(buscar));
@@ -74,11 +76,20 @@ namespace GestorInventario.Infraestructure.Controllers
                     {
                         pedidos = pedidos.Where(s => s.FechaPedido >= fechaInicio.Value && s.FechaPedido <= fechaFin.Value);
                     }
-                    await HttpContext.TotalPaginas(pedidos, paginacion.CantidadAMostrar);
-                    var pedidosPaginados = await pedidos.Paginar(paginacion).ToListAsync();
-                    var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
-                    ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
-                    return View(pedidosPaginados);
+                    var (orders, totalItems) = await _policyExecutor.ExecutePolicyAsync(() => pedidos.PaginarAsync(paginacion));
+                    var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
+                    var paginas = _generarPaginas.GenerarListaPaginas(totalPaginas, paginacion.Pagina, paginacion.Radio);
+                    var viewModel = new PedidoViewModel
+                    {
+                        Pedidos = orders,
+                        Paginas = paginas,
+                        TotalPaginas = totalPaginas,
+                        PaginaActual = paginacion.Pagina,
+                        Buscar = buscar
+                    };
+
+                 
+                    return View(viewModel);
                 }
                 return Unauthorized("No tienes permiso para ver el contenido o no te has logueado");
             }
@@ -275,10 +286,10 @@ namespace GestorInventario.Infraestructure.Controllers
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {
-                    var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.EliminarHistorialPorIdDefinitivo(Id));
+                    var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.EliminarHistorialPorIdDefinitivo(Id));
                     if (success)
                     {
-                       
+
                         return RedirectToAction(nameof(HistorialPedidos));
                     }
                     else
@@ -400,8 +411,9 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
+       
         //Metodo para obtener el historial del pedido
-        public async Task<IActionResult> HistorialPedidos(string buscar,[FromQuery] Paginacion paginacion)
+        public async Task<IActionResult> HistorialPedidos(string buscar, [FromQuery] Paginacion paginacion)
         {
             try
             {
@@ -424,15 +436,24 @@ namespace GestorInventario.Infraestructure.Controllers
                     {
 
                         pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidosHistorialUsuario(usuarioId));
-                    }                   
+                    }
                     ViewData["Buscar"] = buscar;
-                    await HttpContext.TotalPaginas(pedidos, paginacion.CantidadAMostrar);
-                    var pedidosPaginados = await pedidos.Paginar(paginacion).ToListAsync();
-                    var totalPaginas = HttpContext.Response.Headers["totalPaginas"].ToString();
-                    ViewData["Paginas"] = _generarPaginas.GenerarListaPaginas(int.Parse(totalPaginas), paginacion.Pagina);
-                    return View(pedidosPaginados);
+                    var (orders, totalItems) = await _policyExecutor.ExecutePolicyAsync(() => pedidos.PaginarAsync(paginacion));
+                    var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
+                    var paginas = _generarPaginas.GenerarListaPaginas(totalPaginas, paginacion.Pagina, paginacion.Radio);
+                    var viewModel = new HistorialPedidoViewModel
+                    {
+                        HistorialPedidos = orders,
+                        Paginas = paginas,
+                        TotalPaginas = totalPaginas,
+                        PaginaActual = paginacion.Pagina,
+                        Buscar = buscar
+                    };
+
+
+                    return View(viewModel);
                 }
-                return RedirectToAction("Index","Home");
+                return RedirectToAction("Index", "Home");
             }
             catch (Exception ex)
             {
@@ -493,9 +514,9 @@ namespace GestorInventario.Infraestructure.Controllers
                 _logger.LogError(ex, "Error al descargar el pdf");
                 return RedirectToAction("Error", "Home");
             }
-        } 
+        }
         //Metodo para eliminar el historial
-        [HttpPost, ActionName("DeleteAllHistorial")]       
+        [HttpPost, ActionName("DeleteAllHistorial")]
         public async Task<IActionResult> DeleteAllHistorial()
         {
             try
@@ -504,13 +525,13 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
-               
+
                 var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.EliminarHitorial());
                 if (!success)
                 {
                     TempData["ErrorMessage"] = errorMessage;
                     return RedirectToAction(nameof(HistorialPedidos));
-                }                       
+                }
                 return RedirectToAction(nameof(HistorialPedidos));
             }
             catch (Exception ex)
@@ -519,7 +540,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 _logger.LogError(ex, "Error al eliminar los datos del historial");
                 return RedirectToAction("Error", "Home");
             }
-        }        
+        }
         //Metodo para obtener los detalles del pago
         public async Task<IActionResult> DetallesPagoEjecutado(string id)
         {
