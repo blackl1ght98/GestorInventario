@@ -21,7 +21,11 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
         }
         public async Task<DTOLoginResponse> GenerateTokenAsync(Usuario credencialesUsuario)
         {
-            var usuarioDB = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == credencialesUsuario.Id);
+            var usuarioDB = await _context.Usuarios
+                 .Include(u => u.IdRolNavigation)
+                 .ThenInclude(r => r.RolePermisos)
+                 .ThenInclude(rp => rp.Permiso)
+                 .FirstOrDefaultAsync(u => u.Id == credencialesUsuario.Id);
             var permisos = usuarioDB.IdRolNavigation.RolePermisos?.Select(rp => rp.Permiso?.Nombre) ?? Enumerable.Empty<string>();
             var permisosList = permisos.ToList();
             var claims = new List<Claim>()
