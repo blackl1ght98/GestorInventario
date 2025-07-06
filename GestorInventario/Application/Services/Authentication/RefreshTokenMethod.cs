@@ -53,17 +53,18 @@ namespace GestorInventario.Application.Services.Authentication
                 new Claim(ClaimTypes.Role, credencialesUsuario.IdRolNavigation.Nombre),
                 new Claim(ClaimTypes.NameIdentifier, credencialesUsuario.Id.ToString())
             };
-            var permisos = usuarioDB.IdRolNavigation?.RolePermisos?.Select(rp => rp.Permiso?.Nombre) ?? Enumerable.Empty<string>();
-            foreach (var permiso in permisos)
+            var permisos = usuarioDB.IdRolNavigation.RolePermisos?.Select(rp => rp.Permiso?.Nombre) ?? Enumerable.Empty<string>();
+            var permisosList = permisos.ToList();
+            foreach (var permiso in permisosList)
             {
                 if (!string.IsNullOrEmpty(permiso))
                 {
                     claims.Add(new Claim("permiso", permiso, ClaimValueTypes.String, issuer: "GestorInvetarioEmisor"));
-                    _logger.LogInformation($"Claim añadido en refresh token: permiso={permiso}");
+                    //_logger.LogInformation($"Claim añadido en refresh token: permiso={permiso}");
                 }
                 else
                 {
-                    _logger.LogWarning($"Permiso vacío encontrado para el usuario {credencialesUsuario.Id}.");
+                    //_logger.LogWarning($"Permiso vacío encontrado para el usuario {credencialesUsuario.Id}.");
                 }
             }
             // Determinar la estrategia basada en AuthMode en tiempo de ejecución

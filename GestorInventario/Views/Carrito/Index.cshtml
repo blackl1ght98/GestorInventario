@@ -87,9 +87,9 @@
                                         <img src="@item.Producto.Imagen" class="card-img-top product-image product-image-custom" alt="Imagen del producto">
                                         <div class="card-body d-flex flex-column p-4">
                                             <h5 class="card-title text-center card-title-custom">@item.Producto.NombreProducto</h5>
-                                            <p class="card-text"><strong>Precio:</strong> @item.Producto.Precio.ToString("C")</p>
+                                            <p class="card-text"><strong>Precio:</strong> @item.Producto.Precio.ToString() €</p>
                                             <p class="card-text"><strong>Proveedor:</strong> @(item.Producto.IdProveedorNavigation?.NombreProveedor ?? "No definido")</p>
-                                            <p class="card-text"><strong>Total:</strong> @(item.Producto.Precio* item.Cantidad).ToString("C")</p>
+                                            <p class="card-text"><strong>Total:</strong> @(item.Producto.Precio* item.Cantidad) €</p>
 
                                             <!-- Contador de cantidad -->
                                             <div class="d-flex justify-content-center align-items-center gap-2 mb-3">
@@ -106,7 +106,7 @@
 
                                             <!-- Botón de eliminar -->
                                             <div class="mt-auto">
-                                                <form asp-action="EliminarProductoCarrito" method="post">
+                                                <form asp-action="EliminarProductoCarrito" asp-asp-controller="Carrito" method="post">
                                                     <input type="hidden" asp-for="@item.Id" name="id" />
                                                     <button type="submit" class="btn btn-danger w-100"><i class="bi bi-trash me-2"></i>Eliminar</button>
                                                 </form>

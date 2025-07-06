@@ -14,15 +14,17 @@ namespace GestorInventario.Infraestructure.Repositories
         private readonly IGestorArchivos _gestorArchivos;
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly ILogger<ProductoRepository> _logger;   
-        private readonly IConfiguration _configuration;     
+        private readonly IConfiguration _configuration; 
+        private readonly ICarritoRepository _carritoRepository;
         public ProductoRepository(GestorInventarioContext context, IGestorArchivos gestorArchivos, IHttpContextAccessor contextAccessor,
-        ILogger<ProductoRepository> logger, IConfiguration configuration)
+        ILogger<ProductoRepository> logger, IConfiguration configuration, ICarritoRepository carrito)
         {
             _context = context;
             _gestorArchivos = gestorArchivos;
             _contextAccessor = contextAccessor;
             _logger = logger;      
             _configuration = configuration;
+            _carritoRepository=carrito;
         }    
      
         public IQueryable<Producto> ObtenerTodoProducto()=>from p in _context.Productos.Include(x => x.IdProveedorNavigation)orderby p.Id  select p;             
@@ -118,15 +120,12 @@ namespace GestorInventario.Infraestructure.Repositories
             using var transaction=  await _context.Database.BeginTransactionAsync();
             try
             {
-                var producto = await _context.Productos.Include(p => p.DetallePedidos).ThenInclude(dp => dp.Pedido).Include(p => p.IdProveedorNavigation).Include(x => x.ItemsDelCarritos).FirstOrDefaultAsync(m => m.Id == Id);
+                var producto = await _context.Productos.Include(p => p.DetallePedidos).ThenInclude(dp => dp.Pedido).Include(p => p.IdProveedorNavigation).FirstOrDefaultAsync(m => m.Id == Id);
                 if (producto == null)
                 {
                     return (false, "No hay productos para eliminar");
                 }
-                if (producto.ItemsDelCarritos.Count() != 0)
-                {
-                    return (false, "el producto no se puede eliminar porque esta en el carrito");
-                }
+               
                await _context.DeleteEntityAsync(producto);
                await transaction.CommitAsync();
                return (true, null);
@@ -339,63 +338,67 @@ namespace GestorInventario.Infraestructure.Repositories
             }
            
         }
-        public async Task<(bool, string)> AgregarProductosCarrito(int idProducto, int cantidad, int usuarioId)
+       
+        public async Task<(bool, string)> AgregarProductoAlCarrito(int idProducto, int cantidad, int usuarioId)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var carrito = await _context.Carritos.FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
-                if (carrito == null)
+                // Validar cantidad
+                if (cantidad <= 0)
                 {
-                    carrito = new Carrito
-                    {
-                        UsuarioId = usuarioId,
-                        FechaCreacion = DateTime.Now
-                    };
-                    await _context.AddEntityAsync(carrito);
-
+                    return (false, "La cantidad debe ser mayor a cero.");
                 }
+
+                // Validar existencia del producto y stock
                 var producto = await _context.Productos.FirstOrDefaultAsync(x => x.Id == idProducto);
-                if (producto != null)
+                if (producto == null)
                 {
-                    if (producto.Cantidad < cantidad)
-                    {
-                        return (false, "No hay suficientes productos en stock");
-                    }
-
-                    var itemCarrito = _context.ItemsDelCarritos.FirstOrDefault(i => i.CarritoId == carrito.Id && i.ProductoId == idProducto);
-                    if (itemCarrito == null)
-                    {
-                        itemCarrito = new ItemsDelCarrito
-                        {
-                            ProductoId = idProducto,
-                            Cantidad = cantidad,
-                            CarritoId = carrito.Id,
-                            FechaPedido=DateTime.Now,
-                            NumeroPedido="No establecido",
-                            EstadoPedido="No establecido"
-                        };
-                        await _context.AddEntityAsync(itemCarrito);
-                    }
-                    else
-                    {
-                        itemCarrito.Cantidad = cantidad;
-                        await _context.UpdateEntityAsync(itemCarrito);
-                    }
-                    producto.Cantidad -= cantidad;
-                    await _context.UpdateEntityAsync(producto);
+                    return (false, "El producto no existe.");
                 }
+                if (producto.Cantidad < cantidad)
+                {
+                    return (false, "No hay suficientes productos en stock.");
+                }
+
+                // Obtener o crear el carrito
+                var carrito = await _carritoRepository.CrearCarritoUsuario(usuarioId);
+
+                // Verificar si el producto ya está en el carrito
+                var detalleExistente = await _context.DetallePedidos
+                    .FirstOrDefaultAsync(d => d.PedidoId == carrito.Id && d.ProductoId == idProducto);
+
+                if (detalleExistente != null)
+                {
+                    // Sumar la cantidad al ítem existente
+                    detalleExistente.Cantidad += cantidad;
+                    await _context.UpdateEntityAsync(detalleExistente);
+                }
+                else
+                {
+                    // Crear un nuevo ítem en el carrito
+                    var detalle = new DetallePedido
+                    {
+                        PedidoId = carrito.Id,
+                        ProductoId = idProducto,
+                        Cantidad = cantidad
+                    };
+                    await _context.AddEntityAsync(detalle);
+                }
+
+                // Actualizar el inventario del producto
+                producto.Cantidad -= cantidad;
+                await _context.UpdateEntityAsync(producto);
+
                 await transaction.CommitAsync();
                 return (true, null);
             }
             catch (Exception ex)
             {
-
-                _logger.LogError("Error al agregar el producto al carrito", ex);
+                _logger.LogError(ex, "Error al agregar producto al carrito");
                 await transaction.RollbackAsync();
-                return (false, "Error al actualizar");
+                return (false, "Ocurrió un error inesperado. Por favor, contacte con el administrador o intentelo de nuevo más tarde.");
             }
-           
         }
     }
 }

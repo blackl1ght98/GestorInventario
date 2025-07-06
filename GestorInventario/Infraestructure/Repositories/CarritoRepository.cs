@@ -1,4 +1,5 @@
-﻿using Aspose.Pdf.Operators;
+﻿
+using Aspose.Pdf.Operators;
 using GestorInventario.Application.Classes;
 using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Infraestructure;
@@ -7,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using PaypalServerSdk.Standard.Models;
 using System.Security.Claims;
-
 
 namespace GestorInventario.Infraestructure.Repositories
 {
@@ -19,7 +19,9 @@ namespace GestorInventario.Infraestructure.Repositories
         private readonly IConfiguration _configuration;
         private readonly ILogger<CarritoRepository> _logger;
         private readonly IAdminRepository _admin;
-        public CarritoRepository(GestorInventarioContext context, IUnitOfWork unit, IHttpContextAccessor contextAccessor, IConfiguration configuration, ILogger<CarritoRepository> logger, IAdminRepository admin)
+
+        public CarritoRepository(GestorInventarioContext context, IUnitOfWork unit, IHttpContextAccessor contextAccessor,
+            IConfiguration configuration, ILogger<CarritoRepository> logger, IAdminRepository admin)
         {
             _context = context;
             _unitOfWork = unit;
@@ -28,119 +30,152 @@ namespace GestorInventario.Infraestructure.Repositories
             _logger = logger;
             _admin = admin;
         }
-       
-        public async Task<Carrito> ObtenerCarritoUsuario(int userId)=>await _context.Carritos.FirstOrDefaultAsync(x => x.UsuarioId == userId);
-        public async Task<List<ItemsDelCarrito>> ObtenerItemsDelCarritoUsuario(int userIdcarrito)=>await _context.ItemsDelCarritos.Where(i => i.CarritoId == userIdcarrito).ToListAsync();
-        public async Task<ItemsDelCarrito> ItemsDelCarrito(int Id)=>await _context.ItemsDelCarritos.FirstOrDefaultAsync(x => x.Id == Id);
-        public IQueryable<ItemsDelCarrito> ObtenerItems(int id) => _context.ItemsDelCarritos.Include(i => i.Producto).Include(i => i.Producto.IdProveedorNavigation).Where(i => i.CarritoId == id);
-        public async Task<List<Monedum>> ObtenerMoneda() => await _context.Moneda.ToListAsync();
+
+        // Obtener el carrito del usuario (Pedidos con EsCarrito = 1)
+        public async Task<Pedido> ObtenerCarritoUsuario(int userId)
+        {
+            return await _context.Pedidos
+                .FirstOrDefaultAsync(x => x.IdUsuario == userId && x.EsCarrito);
+        }
+
+        // Obtener ítems del carrito (DetallePedido para un Pedido con EsCarrito = 1)
+        public async Task<List<DetallePedido>> ObtenerItemsDelCarritoUsuario(int pedidoId)
+        {
+            return await _context.DetallePedidos
+                .Where(i => i.PedidoId == pedidoId)
+                .ToListAsync();
+        }
+
+        // Obtener un ítem específico del carrito por ID
+        public async Task<DetallePedido> ItemsDelCarrito(int id)
+        {
+            return await _context.DetallePedidos
+                .FirstOrDefaultAsync(x => x.Id == id);
+        }
+
+        // Obtener ítems con datos relacionados (producto y proveedor)
+        public IQueryable<DetallePedido> ObtenerItems(int pedidoId)
+        {
+            return _context.DetallePedidos
+                .Include(i => i.Producto)
+                .Include(i => i.Producto.IdProveedorNavigation)
+                .Where(i => i.PedidoId == pedidoId);
+        }
+
+        // Obtener monedas disponibles
+        public async Task<List<Monedum>> ObtenerMoneda()
+        {
+            return await _context.Moneda.ToListAsync();
+        }
+
         private int ObtenerUsuarioIdActual()
         {
             var value = _contextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             return int.TryParse(value, out var id) ? id : 0;
         }
-    
+
+        // Método para crear un carrito si no existe
+        public async Task<Pedido> CrearCarritoUsuario(int userId)
+        {
+            var carrito = await ObtenerCarritoUsuario(userId);
+            if (carrito == null)
+            {
+                carrito = new Pedido
+                {
+                    IdUsuario = userId,
+                    NumeroPedido=GenerarNumeroPedido(),
+                    FechaPedido = DateTime.Now,
+                    EstadoPedido = "Carrito",
+                    EsCarrito = true
+                };
+                await _context.AddEntityAsync(carrito);
+             
+            }
+            return carrito;
+        }
+
+       
         public async Task<(bool, string, string)> PagarV2(string moneda, int userId)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var nombreCompleto = _contextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int usuarioId= ObtenerUsuarioIdActual();
+                var usuarioId = ObtenerUsuarioIdActual();
+                var usuarioActual = await _admin.ObtenerUsuarioId(usuarioId);
 
-                var infoUsuario = new InfoUsuario();
-             
-                    var usuarioActual = await _admin.ObtenerUsuarioId(usuarioId);
+                // Recolectar información del usuario
+                var infoUsuario = new InfoUsuario
+                {
+                    nombreCompletoUsuario = usuarioActual.NombreCompleto,
+                    telefono = usuarioActual.Telefono,
+                    codigoPostal = usuarioActual.CodigoPostal,
+                    ciudad = usuarioActual.Ciudad,
+                    line1 = usuarioActual.Direccion.Split(",")[0].Trim(),
+                    line2 = usuarioActual.Direccion.Split(",").Length > 1 ? usuarioActual.Direccion.Split(",")[1].Trim() : ""
+                };
 
-                    // Asignar los valores a la instancia de InfoUsuario
-                    infoUsuario.nombreCompletoUsuario = usuarioActual.NombreCompleto;
-                    infoUsuario.telefono = usuarioActual.Telefono;
-                    infoUsuario.codigoPostal = usuarioActual.CodigoPostal;
-                    infoUsuario.ciudad = usuarioActual.Ciudad;
+                // Obtener el carrito del usuario
+                var carrito = await ObtenerCarritoUsuario(userId);
+                if (carrito == null)
+                {
+                    return (false, "No se encontró un carrito para el usuario.", null);
+                }
 
-                    string[] direccionParts = usuarioActual.Direccion.Split(",");
-                    infoUsuario.line1 = direccionParts.Length > 0 ? direccionParts[0].Trim() : "";
-                    infoUsuario.line2 = direccionParts.Length > 1 ? direccionParts[1].Trim() : "";
-                
-                //Cuando vas a pagar lo primero que obtenemos es los items del carrito
-                var itemsDelCarrito = await ObtenerItemsDelCarrito(userId);
-                //Una vez obtenidos los items creamos el pedido
-                var historialPedido = await CreacionPedido(userId, itemsDelCarrito);
-                //Eliminamos del carrito los items
-                await _context.DeleteRangeEntityAsync(itemsDelCarrito);
+                // Obtener ítems del carrito
+                var itemsDelCarrito = await ObtenerItemsDelCarritoUsuario(carrito.Id);
+                if (!itemsDelCarrito.Any())
+                {
+                    return (false, "El carrito está vacío.", null);
+                }
+
+                // Convertir el carrito en un pedido
+                carrito.EsCarrito = false;
+                carrito.NumeroPedido = GenerarNumeroPedido();
+                carrito.FechaPedido = DateTime.Now;
+                carrito.EstadoPedido = "En Proceso";
+                await _context.UpdateEntityAsync(carrito);
+
+                // Calcular el total para PayPal
                 moneda = string.IsNullOrEmpty(moneda) ? "EUR" : moneda;
-                //Preparamos el pago para paypal
                 var checkout = await CrearCheckoutParaPago(itemsDelCarrito, moneda, infoUsuario);
                 var createdPaymentJson = await _unitOfWork.PaypalService.CreateOrderAsyncV2(checkout);
-                // Deserializar la respuesta
                 var createdPayment = JsonConvert.DeserializeObject<PayPalOrderResponse>(createdPaymentJson);
-                var links = createdPayment?.links;
-                
-                string approvalUrl = links?.FirstOrDefault(x => x.rel == "payer-action")?.href;
+                var approvalUrl = createdPayment?.links?.FirstOrDefault(x => x.rel == "payer-action")?.href;
+
                 if (!string.IsNullOrEmpty(approvalUrl))
                 {
+                    // Registrar el pedido en el historial
+                    await LogHistorialPedido(carrito, itemsDelCarrito);
                     await transaction.CommitAsync();
                     return (true, "Redirigiendo a PayPal para completar el pago", approvalUrl);
                 }
 
+                await transaction.RollbackAsync();
                 return (false, "Fallo al iniciar el pago con PayPal", null);
             }
             catch (Exception ex)
             {
-
                 _logger.LogError(ex, "Error al realizar el pago");
                 await transaction.RollbackAsync();
-                return (false, "Ocurrio un error inesperado por favor contacte con el administrador o intentelo de nuevo mas tarde", null);
+                return (false, "Ocurrió un error inesperado. Por favor, contacte con el administrador o intentelo de nuevo más tarde.", null);
             }
-
         }
+
         private string GenerarNumeroPedido()
         {
             var length = 10;
             var random = new Random();
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
             return new string(Enumerable.Repeat(chars, length)
-           .Select(s => s[random.Next(s.Length)]).ToArray());
+                .Select(s => s[random.Next(s.Length)]).ToArray());
         }
-        private async Task<List<ItemsDelCarrito>> ObtenerItemsDelCarrito(int userId)
-        {
-            var carrito = await ObtenerCarritoUsuario(userId);
-            if (carrito == null)
-            {
-                _logger.LogWarning("No se encontró carrito para el usuario con ID {UserId}", userId);
-                return new List<ItemsDelCarrito>();
-            }
-            var itemsDelCarrito = await ObtenerItemsDelCarritoUsuario(carrito.Id);
-            return itemsDelCarrito;
-        }
-        private async Task<HistorialPedido> CreacionPedido(int userId, List<ItemsDelCarrito> itemsDelCarrito)
-        {
-            var pedido = new Pedido
-            {
-                NumeroPedido = GenerarNumeroPedido(),
-                FechaPedido = DateTime.Now,
-                EstadoPedido = "En Proceso",
-                IdUsuario = userId
-            };
-            await _context.AddEntityAsync(pedido);
 
-            foreach (var item in itemsDelCarrito)
-            {
-                var detallePedido = new DetallePedido
-                {
-                    PedidoId = pedido.Id,
-                    ProductoId = item.ProductoId,
-                    Cantidad = item.Cantidad ?? 0
-
-                };
-                await _context.AddEntityAsync(detallePedido);
-            }
-           
+        private async Task LogHistorialPedido(Pedido pedido, List<DetallePedido> itemsDelCarrito)
+        {
             var ip = _contextAccessor.HttpContext.Connection.RemoteIpAddress;
             string ipString = (ip != null && ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
                 ? ip.MapToIPv4().ToString()
                 : ip?.ToString();
-
 
             var historialPedido = new HistorialPedido
             {
@@ -150,6 +185,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 Ip = ipString
             };
             await _context.AddEntityAsync(historialPedido);
+
             foreach (var item in itemsDelCarrito)
             {
                 var detalleHistorialPedido = new DetalleHistorialPedido
@@ -157,23 +193,22 @@ namespace GestorInventario.Infraestructure.Repositories
                     HistorialPedidoId = historialPedido.Id,
                     ProductoId = item.ProductoId,
                     Cantidad = item.Cantidad ?? 0,
-                    NumeroPedido= pedido.NumeroPedido,
-                    FechaPedido=DateTime.Now,
-                    EstadoPedido=pedido.EstadoPedido
-                   
+                    NumeroPedido = pedido.NumeroPedido,
+                    FechaPedido = DateTime.Now,
+                    EstadoPedido = pedido.EstadoPedido
                 };
                 await _context.AddEntityAsync(detalleHistorialPedido);
             }
-            return historialPedido;
         }
-       private async Task<Checkout> CrearCheckoutParaPago(List<ItemsDelCarrito> itemsDelCarrito, string moneda, InfoUsuario infoUsuario)
+
+        private async Task<Checkout> CrearCheckoutParaPago(List<DetallePedido> itemsDelCarrito, string moneda, InfoUsuario infoUsuario)
         {
             var items = new List<ItemModel>();
             decimal totalAmount = 0;
+
             foreach (var item in itemsDelCarrito)
             {
                 var producto = await _context.Productos.FindAsync(item.ProductoId);
-               
                 var paypalItem = new ItemModel
                 {
                     name = producto.NombreProducto,
@@ -185,13 +220,14 @@ namespace GestorInventario.Infraestructure.Repositories
                 items.Add(paypalItem);
                 totalAmount += Convert.ToDecimal(producto.Precio) * Convert.ToDecimal(item.Cantidad ?? 0);
             }
+
             var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER") == "true";
             string returnUrl = isDocker
                 ? _configuration["Paypal:returnUrlConDocker"] ?? Environment.GetEnvironmentVariable("Paypal_returnUrlConDocker")
                 : _configuration["Paypal:returnUrlSinDocker"] ?? Environment.GetEnvironmentVariable("Paypal_returnUrlSinDocker");
             string cancelUrl = "https://localhost:7056/Payment/Cancel";
 
-            var checkout = new Checkout
+            return new Checkout
             {
                 totalAmount = totalAmount,
                 currency = moneda,
@@ -205,110 +241,112 @@ namespace GestorInventario.Infraestructure.Repositories
                 line1 = infoUsuario.line1,
                 line2 = infoUsuario.line2
             };
-            return checkout;
         }
 
-
-   
         public async Task<(bool, string)> Incremento(int id)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var carrito = await ItemsDelCarrito(id);
-                if (carrito != null)
+                var detalle = await ItemsDelCarrito(id);
+                if (detalle == null)
                 {
-                    carrito.Cantidad++;
-                    await _context.UpdateEntityAsync(carrito);
-                    var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == carrito.ProductoId);
-                    if (producto == null || producto.Cantidad <= 0)
-                    {
-                        await transaction.RollbackAsync();
-                        return (false, "No hay suficiente inventario para el producto seleccionado.");
-                    }
-                    producto.Cantidad--;
-                    await _context.UpdateEntityAsync(producto);
+                    return (false, "El producto no está en el carrito.");
                 }
+
+                detalle.Cantidad++;
+                await _context.UpdateEntityAsync(detalle);
+
+                var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == detalle.ProductoId);
+                if (producto == null || producto.Cantidad <= 0)
+                {
+                    await transaction.RollbackAsync();
+                    return (false, "No hay suficiente inventario para el producto seleccionado.");
+                }
+
+                producto.Cantidad--;
+                await _context.UpdateEntityAsync(producto);
                 await transaction.CommitAsync();
                 return (true, null);
             }
             catch (Exception ex)
             {
-
                 _logger.LogError(ex, "Error al realizar el incremento");
                 await transaction.RollbackAsync();
-                return (false, "Ocurrio un error inesperado por favor contacte con el administrador o intentelo de nuevo mas tarde");
+                return (false, "Ocurrió un error inesperado. Por favor, contacte con el administrador o intentelo de nuevo más tarde.");
             }
-           
         }
+
         public async Task<(bool, string)> Decremento(int id)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var carrito = await ItemsDelCarrito(id);
-
-                if (carrito != null)
+                var detalle = await ItemsDelCarrito(id);
+                if (detalle == null)
                 {
-                    // Decrementa la cantidad del producto en el carrito
-                    carrito.Cantidad--;
-                    var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == carrito.ProductoId);
-                    if (producto == null || producto.Cantidad <= 0)
-                    {
-                        await transaction.RollbackAsync();
-                        return (false, "No hay suficiente inventario para el producto seleccionado.");
-                    }
-                   
-                        // Incrementa la cantidad del producto en la tabla de productos
-                        producto.Cantidad++;
-                     
-                      await  _context.UpdateEntityAsync(producto);
-                    
-                   await _context.UpdateEntityAsync(carrito);
-
+                    return (false, "El producto no está en el carrito.");
                 }
+
+                detalle.Cantidad--;
+                if (detalle.Cantidad <= 0)
+                {
+                    await _context.DeleteEntityAsync(detalle);
+                }
+                else
+                {
+                    await _context.UpdateEntityAsync(detalle);
+                }
+
+                var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == detalle.ProductoId);
+                if (producto == null)
+                {
+                    await transaction.RollbackAsync();
+                    return (false, "El producto no existe.");
+                }
+
+                producto.Cantidad++;
+                await _context.UpdateEntityAsync(producto);
+
                 await transaction.CommitAsync();
                 return (true, null);
             }
             catch (Exception ex)
             {
-
                 _logger.LogError(ex, "Error al realizar el decremento");
                 await transaction.RollbackAsync();
-                return (false, "Ocurrio un error inesperado por favor contacte con el administrador o intentelo de nuevo mas tarde");
+                return (false, "Ocurrió un error inesperado. Por favor, contacte con el administrador o intentelo de nuevo más tarde.");
             }
-            
         }
+
         public async Task<(bool, string)> EliminarProductoCarrito(int id)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var itemsCarrito = await _context.ItemsDelCarritos.FirstOrDefaultAsync(x => x.Id == id);
-                if (itemsCarrito == null)
+                var detalle = await _context.DetallePedidos.FirstOrDefaultAsync(x => x.Id == id);
+                if (detalle == null)
                 {
-                    return (false, "No se puede eliminar porque no hay productos");
+                    return (false, "No se puede eliminar porque no hay productos.");
                 }
-                await _context.DeleteEntityAsync(itemsCarrito);
-                var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == itemsCarrito.ProductoId);
+
+                var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == detalle.ProductoId);
                 if (producto != null)
                 {
-                    // Incrementa la cantidad del producto en la tabla de productos
-                    producto.Cantidad++;
-                    //_context.Productos.Update(producto);
-                   await _context.UpdateEntityAsync(producto);
+                    producto.Cantidad += detalle.Cantidad ?? 0;
+                    await _context.UpdateEntityAsync(producto);
                 }
+
+                await _context.DeleteEntityAsync(detalle);
                 await transaction.CommitAsync();
                 return (true, null);
             }
             catch (Exception ex)
             {
-
-                _logger.LogError(ex, "Error al realizar la eliminacion del producto del carrito");
+                _logger.LogError(ex, "Error al realizar la eliminación del producto del carrito");
                 await transaction.RollbackAsync();
-                return (false, "Ocurrio un error inesperado por favor contacte con el administrador o intentelo de nuevo mas tarde");
+                return (false, "Ocurrió un error inesperado. Por favor, contacte con el administrador o intentelo de nuevo más tarde.");
             }
-           
         }
     }
 }

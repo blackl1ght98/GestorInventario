@@ -64,7 +64,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
             // Creamos las Claims que el usuario tendrá
             var claims = new List<Claim>()
             {
-                new Claim(ClaimTypes.Email, credencialesUsuario.Email),
+                 new Claim(ClaimTypes.Email, credencialesUsuario.Email),
                 new Claim(ClaimTypes.Role, usuarioDB.IdRolNavigation.Nombre),
                 new Claim(ClaimTypes.NameIdentifier, credencialesUsuario.Id.ToString())
             };

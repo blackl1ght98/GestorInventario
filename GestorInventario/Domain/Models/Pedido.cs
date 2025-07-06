@@ -23,6 +23,8 @@ public partial class Pedido
 
     public string? PagoId { get; set; }
 
+    public bool EsCarrito { get; set; }
+
     public virtual ICollection<DetallePedido> DetallePedidos { get; set; } = new List<DetallePedido>();
 
     public virtual Usuario? IdUsuarioNavigation { get; set; }

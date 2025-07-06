@@ -22,15 +22,27 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
         public async Task<DTOLoginResponse> GenerateTokenAsync(Usuario credencialesUsuario)
         {
             var usuarioDB = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == credencialesUsuario.Id);
-
+            var permisos = usuarioDB.IdRolNavigation.RolePermisos?.Select(rp => rp.Permiso?.Nombre) ?? Enumerable.Empty<string>();
+            var permisosList = permisos.ToList();
             var claims = new List<Claim>()
                 {
-                    new Claim(ClaimTypes.Email, credencialesUsuario.Email),
+                   new Claim(ClaimTypes.Email, credencialesUsuario.Email),
                     new Claim(ClaimTypes.Role, credencialesUsuario.IdRolNavigation.Nombre),
                     new Claim(ClaimTypes.NameIdentifier, credencialesUsuario.Id.ToString())
 
                 };
-
+            foreach (var permiso in permisosList)
+            {
+                if (!string.IsNullOrEmpty(permiso))
+                {
+                    claims.Add(new Claim("permiso", permiso, ClaimValueTypes.String, issuer: "GestorInvetarioEmisor"));
+                    //_logger.LogInformation($"Claim añadido en refresh token: permiso={permiso}");
+                }
+                else
+                {
+                    //_logger.LogWarning($"Permiso vacío encontrado para el usuario {credencialesUsuario.Id}.");
+                }
+            }
             var privateKey = Environment.GetEnvironmentVariable("PrivateKey") ?? _configuration["JWT:PrivateKey"];
 
             // Convierte la clave privada a formato RSA

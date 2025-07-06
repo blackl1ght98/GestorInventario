@@ -15,8 +15,6 @@ public partial class GestorInventarioContext : DbContext
     {
     }
 
-    public virtual DbSet<Carrito> Carritos { get; set; }
-
     public virtual DbSet<DetalleHistorialPedido> DetalleHistorialPedidos { get; set; }
 
     public virtual DbSet<DetalleHistorialProducto> DetalleHistorialProductos { get; set; }
@@ -26,8 +24,6 @@ public partial class GestorInventarioContext : DbContext
     public virtual DbSet<HistorialPedido> HistorialPedidos { get; set; }
 
     public virtual DbSet<HistorialProducto> HistorialProductos { get; set; }
-
-    public virtual DbSet<ItemsDelCarrito> ItemsDelCarritos { get; set; }
 
     public virtual DbSet<Monedum> Moneda { get; set; }
 
@@ -63,19 +59,6 @@ public partial class GestorInventarioContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Carrito>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Carrito__3214EC0769AB9246");
-
-            entity.ToTable("Carrito");
-
-            entity.Property(e => e.FechaCreacion).HasColumnType("datetime");
-
-            entity.HasOne(d => d.Usuario).WithMany(p => p.Carritos)
-                .HasForeignKey(d => d.UsuarioId)
-                .HasConstraintName("FK__Carrito__Usuario__0880433F");
-        });
-
         modelBuilder.Entity<DetalleHistorialPedido>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__DetalleH__3214EC07C0868139");
@@ -161,29 +144,6 @@ public partial class GestorInventarioContext : DbContext
             entity.HasOne(d => d.Usuario).WithMany(p => p.HistorialProductos)
                 .HasForeignKey(d => d.UsuarioId)
                 .HasConstraintName("FK_UsuarioId");
-        });
-
-        modelBuilder.Entity<ItemsDelCarrito>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__ItemsDel__3214EC07EC167622");
-
-            entity.ToTable("ItemsDelCarrito");
-
-            entity.Property(e => e.EstadoPedido)
-                .HasMaxLength(100)
-                .IsUnicode(false);
-            entity.Property(e => e.FechaPedido).HasColumnType("datetime");
-            entity.Property(e => e.NumeroPedido)
-                .HasMaxLength(20)
-                .IsUnicode(false);
-
-            entity.HasOne(d => d.Carrito).WithMany(p => p.ItemsDelCarritos)
-                .HasForeignKey(d => d.CarritoId)
-                .HasConstraintName("FK__ItemsDelC__Carri__208CD6FA");
-
-            entity.HasOne(d => d.Producto).WithMany(p => p.ItemsDelCarritos)
-                .HasForeignKey(d => d.ProductoId)
-                .HasConstraintName("FK__ItemsDelC__Produ__6442E2C9");
         });
 
         modelBuilder.Entity<Monedum>(entity =>

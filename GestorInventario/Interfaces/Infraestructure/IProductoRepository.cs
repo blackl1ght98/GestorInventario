@@ -20,7 +20,7 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<(bool, string)> EliminarHistorialPorIdDefinitivo(int Id);
         Task<List<HistorialProducto>> EliminarTodoHistorial();
         Task<(bool, string)> EditarProducto(ProductosViewModel model, int usuarioId);
-        Task<(bool, string)> AgregarProductosCarrito(int idProducto, int cantidad, int usuarioId);
-      
+        //Task<(bool, string)> AgregarProductosCarrito(int idProducto, int cantidad, int usuarioId);
+        Task<(bool, string)> AgregarProductoAlCarrito(int userId, int idProducto, int cantidad);
     }
 }

@@ -34,11 +34,9 @@ namespace GestorInventario.Infraestructure.Controllers
         ILogger<ProductosController> logger, IEmailService emailService, IProductoRepository producto, PolicyHandler retry,  IPdfService pdf
        )
         {
-           
-           
+                   
             _paginarMetodo = paginacionMetodo;
-            _logger = logger;
-          
+            _logger = logger;         
             _emailService = emailService;
             _productoRepository = producto;
            _PolicyHandler= retry;
@@ -347,7 +345,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {
-                    var (success,errorMessage)= await _policyExecutor.ExecutePolicyAsync(()=> _productoRepository.AgregarProductosCarrito(idProducto, cantidad, usuarioId)) ;
+                    var (success,errorMessage)= await _policyExecutor.ExecutePolicyAsync(()=> _productoRepository.AgregarProductoAlCarrito(idProducto, cantidad, usuarioId)) ;
                     if (success) 
                     {
                         return RedirectToAction("Index");

@@ -30,6 +30,54 @@ namespace GestorInventario.Infraestructure.Controllers
             _utilityClass = utility;
         }
         //Metodo que muestra los items del carrito
+        //[HttpGet]
+        //public async Task<IActionResult> Index([FromQuery] Paginacion paginacion)
+        //{
+        //    try
+        //    {
+        //        if (!User.Identity.IsAuthenticated)
+        //        {
+        //            return RedirectToAction("Login", "Auth");
+        //        }
+
+        //        int usuarioId = _utilityClass.ObtenerUsuarioIdActual();
+        //        var carrito = await _policyExecutor.ExecutePolicyAsync(() => _carritoRepository.ObtenerCarritoUsuario(usuarioId));
+        //        if (carrito == null)
+        //        {
+        //            TempData["InfoMessage"] = "No tienes productos en tu carrito.";
+        //            return RedirectToAction("Index", "Home");
+        //        }
+
+        //        var itemsDelCarrito =  _policyExecutor.ExecutePolicy(() => _carritoRepository.ObtenerItems(carrito.Id));
+        //        var (itemsPaginados, totalItems) = await _policyExecutor.ExecutePolicyAsync(() => itemsDelCarrito.PaginarAsync(paginacion));
+        //        var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
+        //        var paginas = _generarPaginas.GenerarListaPaginas(totalPaginas, paginacion.Pagina, paginacion.Radio);
+
+        //        var subtotal = itemsPaginados.Sum(item => item.Producto.Precio * item.Cantidad) ??0;
+        //        var shipping = 2.99m;
+        //        var total = subtotal + shipping;
+
+        //        var viewModel = new CarritoViewModel
+        //        {
+        //            Productos = itemsPaginados,
+        //            Monedas = new SelectList(await _policyExecutor.ExecutePolicyAsync(() => _carritoRepository.ObtenerMoneda()), "Codigo", "Codigo"),
+        //            Paginas = paginas,
+        //            TotalPaginas = totalPaginas,
+        //            PaginaActual = paginacion.Pagina,
+        //            Subtotal = subtotal,
+        //            Shipping = shipping,
+        //            Total = total
+        //        };
+
+        //        return View(viewModel);
+        //    }
+        //    catch (Exception ex)
+        //    {
+
+        //        _logger.LogError(ex, "Error al obtener los productos del carrito");
+        //        return RedirectToAction("Error", "Home");
+        //    }
+        //}
         [HttpGet]
         public async Task<IActionResult> Index([FromQuery] Paginacion paginacion)
         {
@@ -42,24 +90,25 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 int usuarioId = _utilityClass.ObtenerUsuarioIdActual();
                 var carrito = await _policyExecutor.ExecutePolicyAsync(() => _carritoRepository.ObtenerCarritoUsuario(usuarioId));
+
+                // Si no existe un carrito, crearlo automáticamente
                 if (carrito == null)
                 {
-                    TempData["InfoMessage"] = "No tienes productos en tu carrito.";
-                    return RedirectToAction("Index", "Home");
+                    carrito = await _policyExecutor.ExecutePolicyAsync(() => _carritoRepository.CrearCarritoUsuario(usuarioId));
                 }
 
-                var itemsDelCarrito =  _policyExecutor.ExecutePolicy(() => _carritoRepository.ObtenerItems(carrito.Id));
+                var itemsDelCarrito = _policyExecutor.ExecutePolicy(() => _carritoRepository.ObtenerItems(carrito.Id));
                 var (itemsPaginados, totalItems) = await _policyExecutor.ExecutePolicyAsync(() => itemsDelCarrito.PaginarAsync(paginacion));
                 var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
                 var paginas = _generarPaginas.GenerarListaPaginas(totalPaginas, paginacion.Pagina, paginacion.Radio);
 
-                var subtotal = itemsPaginados.Sum(item => item.Producto.Precio * item.Cantidad) ??0;
+                var subtotal = itemsPaginados.Sum(item => item.Producto.Precio * (item.Cantidad ?? 0)) ;
                 var shipping = 2.99m;
                 var total = subtotal + shipping;
 
                 var viewModel = new CarritoViewModel
                 {
-                    Productos = itemsPaginados,
+                    Productos = itemsPaginados.ToList(), // Convertir IQueryable<DetallePedido> a List<DetallePedido>
                     Monedas = new SelectList(await _policyExecutor.ExecutePolicyAsync(() => _carritoRepository.ObtenerMoneda()), "Codigo", "Codigo"),
                     Paginas = paginas,
                     TotalPaginas = totalPaginas,
@@ -73,7 +122,6 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
-                
                 _logger.LogError(ex, "Error al obtener los productos del carrito");
                 return RedirectToAction("Error", "Home");
             }
@@ -157,7 +205,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
        //Metodo para eliminar un producto
         [HttpPost]
-        public async Task<IActionResult> EliminiarProductoCarrito(int id)
+        public async Task<IActionResult> EliminarProductoCarrito(int id)
         {
             try
             {

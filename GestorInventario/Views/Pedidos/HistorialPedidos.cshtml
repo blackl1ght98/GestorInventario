@@ -79,7 +79,7 @@
                     {
                         <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
                             <a class="page-link"
-                               href="@Url.Action("Index", new { pagina = pagina.Pagina, buscar = Model.Buscar })"
+                               href="@Url.Action("HistorialPedidos", new { pagina = pagina.Pagina, buscar = Model.Buscar })"
                                style="transition: background-color 0.2s;">
                                 @pagina.Texto
                             </a>

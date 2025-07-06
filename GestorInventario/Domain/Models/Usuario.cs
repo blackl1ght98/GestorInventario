@@ -41,8 +41,6 @@ public partial class Usuario
 
     public string? Ciudad { get; set; }
 
-    public virtual ICollection<Carrito> Carritos { get; set; } = new List<Carrito>();
-
     public virtual ICollection<HistorialPedido> HistorialPedidos { get; set; } = new List<HistorialPedido>();
 
     public virtual ICollection<HistorialProducto> HistorialProductos { get; set; } = new List<HistorialProducto>();

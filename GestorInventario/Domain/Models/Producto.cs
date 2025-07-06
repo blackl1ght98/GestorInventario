@@ -28,6 +28,4 @@ public partial class Producto
     public virtual ICollection<DetallePedido> DetallePedidos { get; set; } = new List<DetallePedido>();
 
     public virtual Proveedore? IdProveedorNavigation { get; set; }
-
-    public virtual ICollection<ItemsDelCarrito> ItemsDelCarritos { get; set; } = new List<ItemsDelCarrito>();
 }

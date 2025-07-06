@@ -5,7 +5,7 @@ namespace GestorInventario.Domain.Models.ViewModels
 {
     public class CarritoViewModel
     {
-        public List<ItemsDelCarrito> Productos { get; set; }
+        public List<DetallePedido> Productos { get; set; }
         public SelectList Monedas { get; set; }
         public List<PaginasModel> Paginas { get; set; }
         public int TotalPaginas { get; set; }
