@@ -30,6 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Documentación tecnica\Guias\" />
     <Folder Include="wwwroot\imagenes\" />
   </ItemGroup>
 

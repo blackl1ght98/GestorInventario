@@ -1,5 +1,6 @@
 ﻿
 using GestorInventario.Application.Classes;
+using GestorInventario.Application.DTOs;
 using GestorInventario.Domain.Models;
 using GestorInventario.Domain.Models.ViewModels.paypal;
 using GestorInventario.Interfaces.Infraestructure;
@@ -709,26 +710,21 @@ namespace GestorInventario.Application.Services
         }
         #endregion
         #region Obtener detalles de la suscripción
-        public async Task<dynamic> ObtenerDetallesSuscripcion(string subscription_id)
+     
+        public async Task<PaypalSubscriptionResponse> ObtenerDetallesSuscripcion(string subscription_id)
         {
-           
             var authToken = await GetAccessTokenAsync();
-
             using (var httpClient = new HttpClient())
             {
-               
                 httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-              
                 var response = await httpClient.GetAsync($"https://api-m.sandbox.paypal.com/v1/billing/subscriptions/{subscription_id}");
                 var responseContent = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
                 {
-                    
-                    dynamic subscriptionDetails = JsonConvert.DeserializeObject(responseContent);
-                    return subscriptionDetails;
+                    return JsonConvert.DeserializeObject<PaypalSubscriptionResponse>(responseContent);
                 }
                 else
                 {

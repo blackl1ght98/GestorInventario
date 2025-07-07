@@ -1,13 +1,10 @@
-﻿
-using Aspose.Pdf.Operators;
-using GestorInventario.Application.Classes;
+﻿using GestorInventario.Application.Classes;
 using GestorInventario.Domain.Models;
+using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using PaypalServerSdk.Standard.Models;
-using System.Security.Claims;
 
 namespace GestorInventario.Infraestructure.Repositories
 {
@@ -19,9 +16,9 @@ namespace GestorInventario.Infraestructure.Repositories
         private readonly IConfiguration _configuration;
         private readonly ILogger<CarritoRepository> _logger;
         private readonly IAdminRepository _admin;
-
+        private readonly UtilityClass _utilityClass;
         public CarritoRepository(GestorInventarioContext context, IUnitOfWork unit, IHttpContextAccessor contextAccessor,
-            IConfiguration configuration, ILogger<CarritoRepository> logger, IAdminRepository admin)
+            IConfiguration configuration, ILogger<CarritoRepository> logger, IAdminRepository admin, UtilityClass utility)
         {
             _context = context;
             _unitOfWork = unit;
@@ -29,6 +26,7 @@ namespace GestorInventario.Infraestructure.Repositories
             _configuration = configuration;
             _logger = logger;
             _admin = admin;
+            _utilityClass = utility;
         }
 
         // Obtener el carrito del usuario (Pedidos con EsCarrito = 1)
@@ -68,11 +66,7 @@ namespace GestorInventario.Infraestructure.Repositories
             return await _context.Moneda.ToListAsync();
         }
 
-        private int ObtenerUsuarioIdActual()
-        {
-            var value = _contextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return int.TryParse(value, out var id) ? id : 0;
-        }
+       
 
         // Método para crear un carrito si no existe
         public async Task<Pedido> CrearCarritoUsuario(int userId)
@@ -100,7 +94,7 @@ namespace GestorInventario.Infraestructure.Repositories
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var usuarioId = ObtenerUsuarioIdActual();
+                var usuarioId = _utilityClass.ObtenerUsuarioIdActual();
                 var usuarioActual = await _admin.ObtenerUsuarioId(usuarioId);
 
                 // Recolectar información del usuario

@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Application.Classes;
+using GestorInventario.Application.DTOs;
 using GestorInventario.Domain.Models.ViewModels.paypal;
 
 namespace GestorInventario.Interfaces.Infraestructure
@@ -21,7 +22,7 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<string> MarcarDesactivadoProducto(string id);
         Task<string> EditarProducto(string id, string name, string description);
         Task<string> Subscribirse(string id, string returnUrl, string cancelUrl, string planName);
-        Task<dynamic> ObtenerDetallesSuscripcion(string subscription_id);
+        Task<PaypalSubscriptionResponse> ObtenerDetallesSuscripcion(string subscription_id);
         Task<dynamic> ObtenerDetallesPlan(string id);
         Task<(string ProductsResponse, bool HasNextPage)> GetProductsAsync(int page = 1, int pageSize = 10);
         Task<string> CancelarSuscripcion(string subscription_id, string reason);

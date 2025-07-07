@@ -15,69 +15,19 @@ namespace GestorInventario.Infraestructure.Controllers
     {       
         private readonly ICarritoRepository _carritoRepository;       
         private readonly GenerarPaginas _generarPaginas;
-        private readonly ILogger<CarritoController> _logger;
-        private readonly IUnitOfWork _unitOfWork;   
+        private readonly ILogger<CarritoController> _logger;        
         private readonly PolicyExecutor _policyExecutor;
         private readonly UtilityClass _utilityClass;
         public CarritoController( ICarritoRepository carritorepository,  GenerarPaginas generarPaginas, 
-        ILogger<CarritoController> logger, IUnitOfWork unitOfWork,  PolicyExecutor executor, UtilityClass utility)
+        ILogger<CarritoController> logger,  PolicyExecutor executor, UtilityClass utility)
         {          
             _carritoRepository = carritorepository;       
             _generarPaginas = generarPaginas;
-            _logger = logger;
-            _unitOfWork = unitOfWork;      
+            _logger = logger;              
             _policyExecutor=executor;
             _utilityClass = utility;
         }
-        //Metodo que muestra los items del carrito
-        //[HttpGet]
-        //public async Task<IActionResult> Index([FromQuery] Paginacion paginacion)
-        //{
-        //    try
-        //    {
-        //        if (!User.Identity.IsAuthenticated)
-        //        {
-        //            return RedirectToAction("Login", "Auth");
-        //        }
-
-        //        int usuarioId = _utilityClass.ObtenerUsuarioIdActual();
-        //        var carrito = await _policyExecutor.ExecutePolicyAsync(() => _carritoRepository.ObtenerCarritoUsuario(usuarioId));
-        //        if (carrito == null)
-        //        {
-        //            TempData["InfoMessage"] = "No tienes productos en tu carrito.";
-        //            return RedirectToAction("Index", "Home");
-        //        }
-
-        //        var itemsDelCarrito =  _policyExecutor.ExecutePolicy(() => _carritoRepository.ObtenerItems(carrito.Id));
-        //        var (itemsPaginados, totalItems) = await _policyExecutor.ExecutePolicyAsync(() => itemsDelCarrito.PaginarAsync(paginacion));
-        //        var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
-        //        var paginas = _generarPaginas.GenerarListaPaginas(totalPaginas, paginacion.Pagina, paginacion.Radio);
-
-        //        var subtotal = itemsPaginados.Sum(item => item.Producto.Precio * item.Cantidad) ??0;
-        //        var shipping = 2.99m;
-        //        var total = subtotal + shipping;
-
-        //        var viewModel = new CarritoViewModel
-        //        {
-        //            Productos = itemsPaginados,
-        //            Monedas = new SelectList(await _policyExecutor.ExecutePolicyAsync(() => _carritoRepository.ObtenerMoneda()), "Codigo", "Codigo"),
-        //            Paginas = paginas,
-        //            TotalPaginas = totalPaginas,
-        //            PaginaActual = paginacion.Pagina,
-        //            Subtotal = subtotal,
-        //            Shipping = shipping,
-        //            Total = total
-        //        };
-
-        //        return View(viewModel);
-        //    }
-        //    catch (Exception ex)
-        //    {
-
-        //        _logger.LogError(ex, "Error al obtener los productos del carrito");
-        //        return RedirectToAction("Error", "Home");
-        //    }
-        //}
+       
         [HttpGet]
         public async Task<IActionResult> Index([FromQuery] Paginacion paginacion)
         {
@@ -108,7 +58,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 var viewModel = new CarritoViewModel
                 {
-                    Productos = itemsPaginados.ToList(), // Convertir IQueryable<DetallePedido> a List<DetallePedido>
+                    Productos = itemsPaginados.ToList(), 
                     Monedas = new SelectList(await _policyExecutor.ExecutePolicyAsync(() => _carritoRepository.ObtenerMoneda()), "Codigo", "Codigo"),
                     Paginas = paginas,
                     TotalPaginas = totalPaginas,
