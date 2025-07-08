@@ -734,35 +734,71 @@ namespace GestorInventario.Application.Services
         }
         #endregion
         #region Obtener detalles del plan 
-        public async Task<dynamic> ObtenerDetallesPlan(string id)
+      
+        public async Task<PaypalPlanResponse> ObtenerDetallesPlan(string id)
         {
-            // Obtén el token de acceso
-            var authToken = await GetAccessTokenAsync();
-
-            using (var httpClient = new HttpClient())
+            if (string.IsNullOrEmpty(id))
             {
-                // Configura los encabezados de la solicitud
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                _logger.LogError("El ID del plan no puede ser nulo o vacío.");
+                throw new ArgumentException("El ID del plan es requerido.");
+            }
 
-                // Realiza la solicitud GET a PayPal para obtener los detalles de la suscripción
-                var response = await httpClient.GetAsync($"https://api-m.sandbox.paypal.com/v1/billing/plans/{id}");
-                var responseContent = await response.Content.ReadAsStringAsync();
+            try
+            {
+                // Obtén el token de acceso
+                var authToken = await GetAccessTokenAsync();
 
-                if (response.IsSuccessStatusCode)
+                using (var httpClient = new HttpClient())
                 {
-                    // Deserializa la respuesta JSON a un objeto dinámico
-                    dynamic subscriptionDetails = JsonConvert.DeserializeObject(responseContent);
-                    return subscriptionDetails;
-                }
-                else
-                {
-                    throw new Exception($"Error al obtener los detalles de la suscripción: {responseContent}");
+                    // Configura los encabezados de la solicitud
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                    // Realiza la solicitud GET a PayPal
+                    var response = await httpClient.GetAsync($"https://api-m.sandbox.paypal.com/v1/billing/plans/{id}");
+                    var responseContent = await response.Content.ReadAsStringAsync();
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        _logger.LogError($"Error al obtener los detalles del plan {id}: {response.StatusCode}, {responseContent}");
+                        throw new Exception($"Error al obtener los detalles del plan: {response.StatusCode}, {responseContent}");
+                    }
+
+                    // Deserializa la respuesta a PaypalPlanResponse
+                    try
+                    {
+                        var planDetails = JsonConvert.DeserializeObject<PaypalPlanResponse>(responseContent);
+                        if (planDetails == null)
+                        {
+                            _logger.LogError($"No se pudo deserializar la respuesta del plan {id}: {responseContent}");
+                            throw new Exception("La respuesta de PayPal no contiene datos válidos.");
+                        }
+
+                        _logger.LogInformation($"Detalles del plan {id} obtenidos correctamente.");
+                        return planDetails;
+                    }
+                    catch (JsonException ex)
+                    {
+                        _logger.LogError($"Error al deserializar la respuesta del plan {id}: {ex.Message}, Contenido: {responseContent}");
+                        throw new Exception("Error al deserializar los detalles del plan.", ex);
+                    }
                 }
             }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError($"Error de red al obtener los detalles del plan {id}: {ex.Message}");
+                throw new Exception("Error de red al comunicarse con PayPal.", ex);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error inesperado al obtener los detalles del plan {id}: {ex.Message}");
+                throw;
+            }
         }
+
+
         #endregion
-       
+
         public async Task<(string ProductsResponse, bool HasNextPage)> GetProductsAsync(int page = 1, int pageSize = 10)
         {
           

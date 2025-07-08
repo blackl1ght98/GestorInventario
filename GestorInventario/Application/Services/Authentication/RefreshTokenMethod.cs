@@ -119,8 +119,13 @@ namespace GestorInventario.Application.Services.Authentication
 
                             if (useRedis)
                             {
-                                await _redis.SetStringAsync(credencialesUsuario.Id.ToString() + "PrivateKeyRefresco", privateKeyJson);
-                                await _redis.SetStringAsync(credencialesUsuario.Id.ToString() + "PublicKeyRefresco", publicKeyJson);
+                                await _redis.SetStringAsync(credencialesUsuario.Id.ToString() + "PrivateKeyRefresco", privateKeyJson, new DistributedCacheEntryOptions
+                                {
+                                    AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(30)
+                                });
+                                await _redis.SetStringAsync(credencialesUsuario.Id.ToString() + "PublicKeyRefresco",
+                                   publicKeyJson,
+                                   new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(30) });
                             }
                             else
                             {
@@ -157,7 +162,7 @@ namespace GestorInventario.Application.Services.Authentication
                 issuer: _configuration["JwtIssuer"],
                 audience: _configuration["JwtAudience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddDays(7),
+                expires: DateTime.UtcNow.AddHours(24),
                 signingCredentials: signingCredentials
             );
 

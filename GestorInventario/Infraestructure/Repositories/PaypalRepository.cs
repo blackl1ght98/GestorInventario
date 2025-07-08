@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace GestorInventario.Infraestructure.Repositories
 {
-    public class PaypalRepository:IPaypalController
+    public class PaypalRepository:IPaypalRepository
     {
         public readonly GestorInventarioContext _context;
         private readonly IUnitOfWork _unitOfWork;
@@ -33,51 +33,51 @@ namespace GestorInventario.Infraestructure.Repositories
                 var planDetails = new PlanDetail
                 {
                     Id = Guid.NewGuid().ToString(),
-                    PaypalPlanId = planRequest.id,
-                    ProductId = planRequest.product_id,
-                    Name = planRequest.name,
-                    Description = planRequest.description,
-                    Status = planRequest.status,
-                    AutoBillOutstanding = planRequest.payment_preferences.auto_bill_outstanding,
-                    SetupFee = planRequest.payment_preferences.setup_fee?.value != null ?
-                decimal.Parse(planRequest.payment_preferences.setup_fee.value.ToString(), CultureInfo.InvariantCulture) : 0,
-                    SetupFeeFailureAction = planRequest.payment_preferences.setup_fee_failure_action,
-                    PaymentFailureThreshold = planRequest.payment_preferences.payment_failure_threshold,
-                    TaxPercentage = planRequest.taxes?.percentage != null ?
-                     decimal.Parse(planRequest.taxes.percentage.ToString(), CultureInfo.InvariantCulture) : 0,
-                    TaxInclusive = planRequest.taxes?.inclusive ?? false
+                    PaypalPlanId = planRequest.Id,
+                    ProductId = planRequest.ProductId,
+                    Name = planRequest.Name,
+                    Description = planRequest.Description,
+                    Status = planRequest.Status,
+                    AutoBillOutstanding = planRequest.PaymentPreferences.AutoBillOutstanding,
+                    SetupFee = planRequest.PaymentPreferences.SetupFee?.Value != null ?
+                decimal.Parse(planRequest.PaymentPreferences.SetupFee.Value.ToString(), CultureInfo.InvariantCulture) : 0,
+                    SetupFeeFailureAction = planRequest.PaymentPreferences.SetupFeeFailureAction,
+                    PaymentFailureThreshold = planRequest.PaymentPreferences.PaymentFailureThreshold,
+                    TaxPercentage = planRequest.Taxes?.Percentage != null ?
+                     decimal.Parse(planRequest.Taxes.Percentage.ToString(), CultureInfo.InvariantCulture) : 0,
+                    TaxInclusive = planRequest.Taxes?.Inclusive ?? false
                 };
 
 
 
                 // Verificar si existe un ciclo de facturación de prueba si esta condicion se cumple es que existe dias de prueba.
-                if (planRequest.billing_cycles.Count > 1)
+                if (planRequest.BillingCycles.Count > 1)
                 {
-                    planDetails.TrialIntervalUnit = planRequest.billing_cycles[0].frequency.interval_unit;
-                    planDetails.TrialIntervalCount = planRequest.billing_cycles[0].frequency.interval_count;
-                    planDetails.TrialTotalCycles = planRequest.billing_cycles[0].total_cycles;
+                    planDetails.TrialIntervalUnit = planRequest.BillingCycles[0].Frequency.IntervalUnit;
+                    planDetails.TrialIntervalCount = planRequest.BillingCycles[0].Frequency.IntervalCount;
+                    planDetails.TrialTotalCycles = planRequest.BillingCycles[0].TotalCycles;
 
                     // Convertir TrialFixedPrice a decimal si no es nulo
-                    planDetails.TrialFixedPrice = planRequest.billing_cycles[0].pricing_scheme.fixed_price?.value != null ?
-                                                  decimal.Parse(planRequest.billing_cycles[0].pricing_scheme.fixed_price.value.ToString(), CultureInfo.InvariantCulture) : 0;
+                    planDetails.TrialFixedPrice = planRequest.BillingCycles[0].PricingScheme.FixedPrice?.Value != null ?
+                                                  decimal.Parse(planRequest.BillingCycles[0].PricingScheme.FixedPrice.Value.ToString(), CultureInfo.InvariantCulture) : 0;
 
                     // Información del ciclo regular
-                    planDetails.RegularIntervalUnit = planRequest.billing_cycles[1].frequency.interval_unit;
-                    planDetails.RegularIntervalCount = planRequest.billing_cycles[1].frequency.interval_count;
-                    planDetails.RegularTotalCycles = planRequest.billing_cycles[1].total_cycles;
+                    planDetails.RegularIntervalUnit = planRequest.BillingCycles[1].Frequency.IntervalUnit;
+                    planDetails.RegularIntervalCount = planRequest.BillingCycles[1].Frequency.IntervalCount;
+                    planDetails.RegularTotalCycles = planRequest.BillingCycles[1].TotalCycles;
 
                     // Convertir RegularFixedPrice a decimal si no es nulo
-                    planDetails.RegularFixedPrice = planRequest.billing_cycles[1].pricing_scheme.fixed_price?.value != null ?
-                                                    decimal.Parse(planRequest.billing_cycles[1].pricing_scheme.fixed_price.value.ToString(), CultureInfo.InvariantCulture) : 0;
+                    planDetails.RegularFixedPrice = planRequest.BillingCycles[1].PricingScheme.FixedPrice?.Value != null ?
+                                                    decimal.Parse(planRequest.BillingCycles[1].PricingScheme.FixedPrice.Value.ToString(), CultureInfo.InvariantCulture) : 0;
                 }
 
-                else if (planRequest.billing_cycles.Count == 1)
+                else if (planRequest.BillingCycles.Count == 1)
                 {
                     // Solo hay ciclo regular
-                    planDetails.RegularIntervalUnit = planRequest.billing_cycles[0].frequency.interval_unit;
-                    planDetails.RegularIntervalCount = planRequest.billing_cycles[0].frequency.interval_count;
-                    planDetails.RegularTotalCycles = planRequest.billing_cycles[0].total_cycles;
-                    planDetails.RegularFixedPrice = decimal.Parse(planRequest.billing_cycles[0].pricing_scheme.fixed_price.value, CultureInfo.InvariantCulture);
+                    planDetails.RegularIntervalUnit = planRequest.BillingCycles[0].Frequency.IntervalUnit;
+                    planDetails.RegularIntervalCount = planRequest.BillingCycles[0].Frequency.IntervalCount;
+                    planDetails.RegularTotalCycles = planRequest.BillingCycles[0].TotalCycles;
+                    planDetails.RegularFixedPrice = decimal.Parse(planRequest.BillingCycles[0].PricingScheme.FixedPrice.Value, CultureInfo.InvariantCulture);
                 }
 
                 _context.PlanDetails.Add(planDetails);

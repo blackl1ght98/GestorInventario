@@ -171,7 +171,7 @@ namespace GestorInventario.Middlewares.Strategis
                 SameSite = SameSiteMode.Lax,
                 Domain = "localhost",
                 Secure = true,
-                Expires = DateTime.UtcNow.AddDays(7)
+                Expires = DateTime.UtcNow.AddHours(24)
             });
 
             logger.Info($"Nuevos tokens generados para el usuario {userId}.");

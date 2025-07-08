@@ -32,20 +32,20 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly GenerarPaginas _generarPaginas;
      
         private readonly ILogger<PaypalController> _logger;
-        private readonly IPaypalController _paypalController;
+        private readonly IPaypalRepository _paypalRepository;
         private readonly ICarritoRepository _carritoRepository;
         private readonly IMapper _mapper;
         private readonly PolicyExecutor _policyExecutor;
       
         public PaypalController(GestorInventarioContext context, IUnitOfWork unit, GenerarPaginas generar,  ILogger<PaypalController> logger, 
-            IPaypalController paypalController, ICarritoRepository carritoRepository, IMapper map, PolicyExecutor executor)
+            IPaypalRepository paypalController, ICarritoRepository carritoRepository, IMapper map, PolicyExecutor executor)
         {
             _context = context;
             _unitOfWork = unit;
             _generarPaginas = generar;
          _policyExecutor=executor;
             _logger = logger;
-            _paypalController = paypalController;
+            _paypalRepository = paypalController;
             _carritoRepository = carritoRepository;
             _mapper = map;
         }
@@ -239,8 +239,8 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var activeSubscriptions = await _paypalController.ObtenerSuscriptcionesActivas(planId);
-                var userSubscriptions = await _paypalController.SusbcripcionesUsuario(planId);
+                var activeSubscriptions = await _paypalRepository.ObtenerSuscriptcionesActivas(planId);
+                var userSubscriptions = await _paypalRepository.SusbcripcionesUsuario(planId);
                 if (activeSubscriptions.Any() || userSubscriptions.Any())
                 {
                     return StatusCode(400, "No se puede cancelar el plan porque hay suscriptores activos.");
@@ -334,154 +334,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
 
-        //public async Task<IActionResult> ConfirmarSuscripcion(string subscription_id, string token, string ba_token)
-        //{
-        //    try
-        //    {
-        //        if (string.IsNullOrEmpty(subscription_id) || string.IsNullOrEmpty(token))
-        //        {
-        //            TempData["ErrorMessage"] = "No se pudo confirmar la suscripción. Faltan parámetros requeridos.";
-        //            return RedirectToAction("Error", "Home");
-        //        }
-
-        //        var existeUsuario = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        //        int usuarioId;
-
-        //        if (!int.TryParse(existeUsuario, out usuarioId))
-        //        {
-        //            TempData["ErrorMessage"] = "No se pudo identificar al usuario.";
-        //            return RedirectToAction("Error", "Home");
-        //        }
-
-
-        //        var subscriptionDetails = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.PaypalService.ObtenerDetallesSuscripcion(subscription_id));
-
-        //        if (subscriptionDetails == null)
-        //        {
-        //            TempData["ErrorMessage"] = "No se pudieron obtener los detalles de la suscripción desde PayPal.";
-        //            return RedirectToAction("Error", "Home");
-        //        }
-
-        //        // Convertir plan_id a string
-        //        string planId = (string)subscriptionDetails.plan_id;
-
-
-        //        var plan = await _policyExecutor.ExecutePolicyAsync(() => _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId));
-
-        //        if (plan == null)
-        //        {
-        //            await _policyExecutor.ExecutePolicy(() => _paypalController.DetallesSubscripcion(planId));
-        //            plan = await _policyExecutor.ExecutePolicyAsync(() => _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId));
-        //        }
-
-        //        // Establecer la fecha mínima SQL
-        //        var minSqlDate = new DateTime(1753, 1, 1);
-
-
-        //        var detallesSuscripcion = new SubscriptionDetail
-        //        {
-        //            SubscriptionId = subscriptionDetails.id ?? string.Empty,
-        //            PlanId = subscriptionDetails.plan_id ?? string.Empty,
-        //            Status = subscriptionDetails.status ?? string.Empty,
-        //            StartTime = subscriptionDetails.start_time ?? minSqlDate,
-        //            StatusUpdateTime = subscriptionDetails.status_updated_time ?? minSqlDate,
-        //            SubscriberName = $"{subscriptionDetails.subscriber.name.given_name ?? string.Empty} {subscriptionDetails.subscriber.name.surname ?? string.Empty}",
-        //            SubscriberEmail = subscriptionDetails.subscriber.email_address ?? string.Empty,
-        //            PayerId = subscriptionDetails.subscriber.payer_id ?? string.Empty,
-        //            OutstandingBalance = subscriptionDetails.billing_info.outstanding_balance.value != null ? Convert.ToDecimal(subscriptionDetails.billing_info.outstanding_balance.value) : 0,
-        //            OutstandingCurrency = subscriptionDetails.billing_info.outstanding_balance.currency_code ?? string.Empty,
-        //            NextBillingTime = subscriptionDetails.billing_info.next_billing_time ?? minSqlDate,
-        //            LastPaymentTime = subscriptionDetails.billing_info.last_payment?.time ?? minSqlDate,
-        //            LastPaymentAmount = subscriptionDetails.billing_info.last_payment?.amount.value != null ? Convert.ToDecimal(subscriptionDetails.billing_info.last_payment.amount.value) : 0,
-        //            LastPaymentCurrency = subscriptionDetails.billing_info.last_payment?.amount.currency_code ?? string.Empty,
-        //            FinalPaymentTime = subscriptionDetails.billing_info.final_payment_time ?? minSqlDate,
-        //            CyclesCompleted = subscriptionDetails.billing_info.cycle_executions[0]?.cycles_completed ?? 0,
-        //            CyclesRemaining = subscriptionDetails.billing_info.cycle_executions[0]?.cycles_remaining ?? 0,
-        //            TotalCycles = subscriptionDetails.billing_info.cycle_executions[0]?.total_cycles ?? 0,
-        //            TrialIntervalUnit = plan?.TrialIntervalUnit,
-        //            TrialIntervalCount = plan?.TrialIntervalCount ?? 0,
-        //            TrialTotalCycles = plan?.TrialTotalCycles ?? 0,
-        //            TrialFixedPrice = plan?.TrialFixedPrice ?? 0
-        //        };
-
-        //        // Calcular la fecha del próximo pago después del período de prueba
-        //        if (detallesSuscripcion.Status == "ACTIVE" && detallesSuscripcion.CyclesCompleted == 1 && detallesSuscripcion.CyclesRemaining == 0)
-        //        {
-        //            detallesSuscripcion.NextBillingTime = detallesSuscripcion.StartTime.AddDays((double)detallesSuscripcion.TrialIntervalCount * (double)detallesSuscripcion.TrialTotalCycles + 1);
-        //        }
-
-        //        // Verificar si la suscripción ya existe en la base de datos
-        //        var existingSubscription = await _policyExecutor.ExecutePolicyAsync(() => _context.SubscriptionDetails
-        //            .FirstOrDefaultAsync(s => s.SubscriptionId == detallesSuscripcion.SubscriptionId));
-
-        //        if (existingSubscription != null)
-        //        {
-        //            // Comparar los detalles y actualizar solo si han cambiado
-        //            bool hasChanges = !(
-        //                existingSubscription.PlanId == detallesSuscripcion.PlanId &&
-        //                existingSubscription.Status == detallesSuscripcion.Status &&
-        //                existingSubscription.StartTime == detallesSuscripcion.StartTime &&
-        //                existingSubscription.StatusUpdateTime == detallesSuscripcion.StatusUpdateTime &&
-        //                existingSubscription.SubscriberName == detallesSuscripcion.SubscriberName &&
-        //                existingSubscription.SubscriberEmail == detallesSuscripcion.SubscriberEmail &&
-        //                existingSubscription.PayerId == detallesSuscripcion.PayerId &&
-        //                existingSubscription.OutstandingBalance == detallesSuscripcion.OutstandingBalance &&
-        //                existingSubscription.OutstandingCurrency == detallesSuscripcion.OutstandingCurrency &&
-        //                existingSubscription.NextBillingTime == detallesSuscripcion.NextBillingTime &&
-        //                existingSubscription.LastPaymentTime == detallesSuscripcion.LastPaymentTime &&
-        //                existingSubscription.LastPaymentAmount == detallesSuscripcion.LastPaymentAmount &&
-        //                existingSubscription.LastPaymentCurrency == detallesSuscripcion.LastPaymentCurrency &&
-        //                existingSubscription.FinalPaymentTime == detallesSuscripcion.FinalPaymentTime &&
-        //                existingSubscription.CyclesCompleted == detallesSuscripcion.CyclesCompleted &&
-        //                existingSubscription.CyclesRemaining == detallesSuscripcion.CyclesRemaining &&
-        //                existingSubscription.TotalCycles == detallesSuscripcion.TotalCycles &&
-        //                existingSubscription.TrialIntervalUnit == detallesSuscripcion.TrialIntervalUnit &&
-        //                existingSubscription.TrialIntervalCount == detallesSuscripcion.TrialIntervalCount &&
-        //                existingSubscription.TrialTotalCycles == detallesSuscripcion.TrialTotalCycles &&
-        //                existingSubscription.TrialFixedPrice == detallesSuscripcion.TrialFixedPrice
-        //            );
-
-        //            if (hasChanges)
-        //            {
-        //                _context.SubscriptionDetails.Update(detallesSuscripcion);
-        //                await _context.SaveChangesAsync();
-        //            }
-        //        }
-        //        else
-        //        {
-        //            _context.SubscriptionDetails.Add(detallesSuscripcion);
-        //            await _context.SaveChangesAsync();
-        //        }
-
-        //        // Verificar si ya existe una relación en UserSubscriptions
-        //        var existeRelacion = await _policyExecutor.ExecutePolicyAsync(() => _context.UserSubscriptions
-        //            .FirstOrDefaultAsync(us => us.UserId == usuarioId && us.SubscriptionId == subscription_id));
-
-        //        if (existeRelacion == null)
-        //        {
-        //            // Crear la relación en UserSubscriptions
-        //            var userSubscription = new UserSubscription
-        //            {
-        //                UserId = usuarioId,
-        //                SubscriptionId = subscription_id,
-        //                NombreSusbcriptor = detallesSuscripcion.SubscriberName,
-        //                PaypalPlanId = detallesSuscripcion.PlanId
-        //            };
-
-        //            _context.UserSubscriptions.Add(userSubscription);
-        //            await _context.SaveChangesAsync();
-        //        }
-
-        //        TempData["SuccessMessage"] = "¡Suscripción confirmada con éxito!";
-        //        return RedirectToAction("DetallesSuscripcion", new { id = subscription_id });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Error al confirmar la suscripción con ID {SubscriptionId}", subscription_id);
-        //        TempData["ErrorMessage"] = $"Error al confirmar la suscripción: {ex.Message}";
-        //        return RedirectToAction("Error", "Home");
-        //    }
-        //}
+        
         public async Task<IActionResult> ConfirmarSuscripcion(string subscription_id, string token, string ba_token)
         {
             try
@@ -510,7 +363,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 var plan = await _policyExecutor.ExecutePolicyAsync(() => _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId));
                 if (plan == null)
                 {
-                    await _policyExecutor.ExecutePolicy(() => _paypalController.DetallesSubscripcion(planId));
+                    await _policyExecutor.ExecutePolicy(() => _paypalRepository.DetallesSubscripcion(planId));
                     plan = await _policyExecutor.ExecutePolicyAsync(() => _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId));
                 }
 
@@ -620,17 +473,21 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
         [HttpPost]
-        //Metodo que cancela la suscripcion
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CancelarSuscripcion([FromBody] PaypayRequest request)
         {
-
-
             try
             {
+                if (string.IsNullOrEmpty(request?.subscription_id))
+                {
+                    return BadRequest(new { success = false, errorMessage = "El ID de la suscripción es requerido." });
+                }
 
+                // Llamar al servicio para cancelar la suscripción en PayPal
                 string result = await _unitOfWork.PaypalService.CancelarSuscripcion(request.subscription_id, "No satisfecho");
 
-                var actualizar = await _paypalController.ObtenerSubscripcion(request.subscription_id);
+                // Obtener los detalles actualizados de la suscripción
+                var actualizar = await _paypalRepository.ObtenerSubscripcion(request.subscription_id);
                 if (actualizar != null)
                 {
                     if (actualizar.Status == "ACTIVE" || actualizar.Status == "SUSPEND")
@@ -640,16 +497,15 @@ namespace GestorInventario.Infraestructure.Controllers
                     }
                 }
 
-                return RedirectToAction(nameof(TodasSuscripciones));
+                return Ok(new { success = true, message = "Suscripción cancelada con éxito." });
             }
             catch (Exception ex)
             {
-
-                TempData["ErrorMessage"] = $"Error al iniciar la suscripción: {ex.Message}";
-                return RedirectToAction("Error", "Home");
+                return StatusCode(500, new { success = false, errorMessage = $"Error al cancelar la suscripción: {ex.Message}" });
             }
         }
 
+       
         public async Task<IActionResult> DetallesSuscripcion(string id)
         {
             System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
@@ -684,7 +540,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (plan == null)
                 {
                     // Intentar obtener los detalles del plan desde PayPal
-                    await _policyExecutor.ExecutePolicy(() => _paypalController.DetallesSubscripcion(planId));
+                    await _policyExecutor.ExecutePolicy(() => _paypalRepository.DetallesSubscripcion(planId));
                     plan = await _policyExecutor.ExecutePolicyAsync(() => _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId));
 
                     // Si el plan sigue siendo nulo, no continuar

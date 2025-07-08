@@ -78,7 +78,7 @@ builder.Services.AddTransient<PolicyHandler>();
 builder.Services.AddTransient<IProductoRepository, ProductoRepository>();
 builder.Services.AddTransient<IProveedorRepository, ProveedorRepository>();
 builder.Services.AddTransient<IPdfService, PdfService>();
-builder.Services.AddTransient<IPaypalController, PaypalRepository>();
+builder.Services.AddTransient<IPaypalRepository, PaypalRepository>();
 builder.Services.AddTransient<IEncryptionService, EncryptionService>();
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 // Comprobamos si Redis se está usando...
