@@ -18,20 +18,24 @@ namespace GestorInventario.Application.Services
       */
         //Combina PaypalService y EmailService
         private readonly IConfiguration _configuration;
-        private readonly GestorInventarioContext _context;
+       
         private readonly ILogger<PaypalServices> _logger;
         private readonly IEmailService _emailService;
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly IMemoryCache _cache;
-        public UnitOfWork(IConfiguration configuration, ILogger<PaypalServices> logger, GestorInventarioContext context, IEmailService email, IHttpContextAccessor contextAccessor, IMemoryCache m)
+      private readonly IPaypalServiceRepository _paypalRepository;
+        public UnitOfWork(IConfiguration configuration, ILogger<PaypalServices> logger, 
+            IEmailService email, IHttpContextAccessor contextAccessor, IMemoryCache m, IPaypalServiceRepository repo)
         {
             _configuration = configuration;
             _logger = logger;
-            _context = context;
+           
             _emailService = email;
             _cache = m;
-            PaypalService = new PaypalServices(_configuration, _context, _logger, _cache);
+         _paypalRepository = repo;
+            PaypalService = new PaypalServices(_configuration,  _logger, _cache, _paypalRepository);
             _contextAccessor = contextAccessor;
+           
         }
         public IPaypalService PaypalService { get; private set; }
         public async Task<string> CreateProductAndNotifyAsync(string productName, string productDescription, string productType, string productCategory)

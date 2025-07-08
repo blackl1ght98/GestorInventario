@@ -73,6 +73,8 @@ builder.Services.AddTransient<TokenService>();
 builder.Services.AddTransient<IAdminRepository, AdminRepository>();
 builder.Services.AddTransient<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddTransient<IPaypalService,PaypalServices>();
+builder.Services.AddTransient<IPaypalServiceRepository,PaypalServiceRepository>();
 builder.Services.AddTransient<IPedidoRepository, PedidoRepository>();
 builder.Services.AddTransient<PolicyHandler>();
 builder.Services.AddTransient<IProductoRepository, ProductoRepository>();

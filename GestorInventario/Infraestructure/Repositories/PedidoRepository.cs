@@ -14,14 +14,15 @@ namespace GestorInventario.Infraestructure.Repositories
         private readonly GestorInventarioContext _context;
         private readonly IMemoryCache _cache;
         private readonly IHttpContextAccessor _contextAccessor;
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IPaypalService _paypalService;
         private readonly ILogger<PedidoRepository> _logger;
-        public PedidoRepository(GestorInventarioContext context, IMemoryCache memory, IHttpContextAccessor contextAccessor, IUnitOfWork unitOfWork, ILogger<PedidoRepository> logger)
+        public PedidoRepository(GestorInventarioContext context, IMemoryCache memory, IHttpContextAccessor contextAccessor,
+            IPaypalService service, ILogger<PedidoRepository> logger)
         {
             _context = context;
             _cache = memory;
             _contextAccessor = contextAccessor;
-            _unitOfWork = unitOfWork;
+            _paypalService = service;
             _logger = logger;
         }
    
@@ -260,7 +261,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     return (existingDetail, true, null);
                 }
 
-                var detallespago = await _unitOfWork.PaypalService.ObtenerDetallesPagoEjecutadoV2(id);
+                var detallespago = await _paypalService.ObtenerDetallesPagoEjecutadoV2(id);
                 if (detallespago == null)
                 {
                     return (null, false, "No se ha encontrado el pago para generar la factura");

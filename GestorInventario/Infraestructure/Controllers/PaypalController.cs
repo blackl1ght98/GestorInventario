@@ -248,7 +248,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 var deleteResponse = await _unitOfWork.PaypalService.DesactivarPlan(productId, planId);
 
 
-                return RedirectToAction(nameof(MostrarProductos), new { mensaje = deleteResponse });
+                return RedirectToAction(nameof(MostrarPlanes), new { mensaje = deleteResponse });
             }
             catch (Exception ex)
             {

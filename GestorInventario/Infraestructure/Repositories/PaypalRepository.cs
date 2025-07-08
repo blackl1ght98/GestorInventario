@@ -8,12 +8,12 @@ namespace GestorInventario.Infraestructure.Repositories
     public class PaypalRepository:IPaypalRepository
     {
         public readonly GestorInventarioContext _context;
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IPaypalService _paypalService;
         private readonly ILogger<PaypalRepository> _logger;
-        public PaypalRepository(GestorInventarioContext context, IUnitOfWork unitOfWork, ILogger<PaypalRepository> logger)
+        public PaypalRepository(GestorInventarioContext context, IPaypalService service, ILogger<PaypalRepository> logger)
         {
             _context = context;
-            _unitOfWork = unitOfWork;
+            _paypalService = service;
             _logger = logger;
         }
 
@@ -29,7 +29,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 {
                     return;
                 }
-                var planRequest = await _unitOfWork.PaypalService.ObtenerDetallesPlan(id);
+                var planRequest = await _paypalService.ObtenerDetallesPlan(id);
                 var planDetails = new PlanDetail
                 {
                     Id = Guid.NewGuid().ToString(),
@@ -89,6 +89,50 @@ namespace GestorInventario.Infraestructure.Repositories
 
             }
         }
-       
+        public async Task SavePlanDetailsToDatabase(string createdPlanId, dynamic planRequest)
+        {
+            var planDetails = new PlanDetail
+            {
+                Id = Guid.NewGuid().ToString(),
+                PaypalPlanId = createdPlanId,
+                ProductId = planRequest.product_id,
+                Name = planRequest.name,
+                Description = planRequest.description,
+                Status = planRequest.status,
+                AutoBillOutstanding = planRequest.payment_preferences.auto_bill_outstanding,
+                SetupFee = decimal.Parse(planRequest.payment_preferences.setup_fee.value, CultureInfo.InvariantCulture),
+                SetupFeeFailureAction = planRequest.payment_preferences.setup_fee_failure_action,
+                PaymentFailureThreshold = planRequest.payment_preferences.payment_failure_threshold,
+                TaxPercentage = decimal.Parse(planRequest.taxes.percentage, CultureInfo.InvariantCulture),
+                TaxInclusive = planRequest.taxes.inclusive
+            };
+
+            // Verificar si existe un ciclo de facturación de prueba
+            if (planRequest.billing_cycles.Count > 1)
+            {
+                planDetails.TrialIntervalUnit = planRequest.billing_cycles[0].frequency.interval_unit;
+                planDetails.TrialIntervalCount = planRequest.billing_cycles[0].frequency.interval_count;
+                planDetails.TrialTotalCycles = planRequest.billing_cycles[0].total_cycles;
+                planDetails.TrialFixedPrice = decimal.Parse(planRequest.billing_cycles[0].pricing_scheme.fixed_price.value, CultureInfo.InvariantCulture);
+
+                // Información del ciclo regular
+                planDetails.RegularIntervalUnit = planRequest.billing_cycles[1].frequency.interval_unit;
+                planDetails.RegularIntervalCount = planRequest.billing_cycles[1].frequency.interval_count;
+                planDetails.RegularTotalCycles = planRequest.billing_cycles[1].total_cycles;
+                planDetails.RegularFixedPrice = decimal.Parse(planRequest.billing_cycles[1].pricing_scheme.fixed_price.value, CultureInfo.InvariantCulture);
+            }
+            else if (planRequest.billing_cycles.Count == 1)
+            {
+                // Solo hay ciclo regular
+                planDetails.RegularIntervalUnit = planRequest.billing_cycles[0].frequency.interval_unit;
+                planDetails.RegularIntervalCount = planRequest.billing_cycles[0].frequency.interval_count;
+                planDetails.RegularTotalCycles = planRequest.billing_cycles[0].total_cycles;
+                planDetails.RegularFixedPrice = decimal.Parse(planRequest.billing_cycles[0].pricing_scheme.fixed_price.value, CultureInfo.InvariantCulture);
+            }
+
+            _context.PlanDetails.Add(planDetails);
+            await _context.SaveChangesAsync();
+        }
+
     }
 }

@@ -3,6 +3,8 @@ using GestorInventario.Application.Classes;
 using GestorInventario.Application.DTOs;
 using GestorInventario.Domain.Models;
 using GestorInventario.Domain.Models.ViewModels.paypal;
+using GestorInventario.Infraestructure.Repositories;
+using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -19,16 +21,19 @@ namespace GestorInventario.Application.Services
 
        
         private readonly IConfiguration _configuration;
-        private readonly GestorInventarioContext _context;
+       
         private readonly ILogger<PaypalServices> _logger;
         private readonly IMemoryCache _cache;
-        
-        public PaypalServices(IConfiguration configuration, GestorInventarioContext context, ILogger<PaypalServices> logger, IMemoryCache memory)
+        private readonly IPaypalServiceRepository _repository;
+        public PaypalServices(IConfiguration configuration, ILogger<PaypalServices> logger, 
+            IMemoryCache memory, IPaypalServiceRepository repo)
         {
+           
             _configuration = configuration;
-            _context = context;
+          
             _logger = logger;
             _cache = memory;
+            _repository = repo;
            
         }
 
@@ -196,20 +201,10 @@ namespace GestorInventario.Application.Services
         {
             try
             {
-                var pedido = await _context.Pedidos
-                    .Include(p => p.DetallePedidos)
-                    .ThenInclude(d => d.Producto)
-                    .FirstOrDefaultAsync(p => p.Id == pedidoId);
+                // Obtener el pedido y el monto total desde el repositorio
+                var (pedido, totalAmount) = await _repository.GetPedidoWithDetailsAsync(pedidoId);
 
-                if (pedido == null || string.IsNullOrEmpty(pedido.SaleId))
-                    throw new ArgumentException("Pedido no encontrado o SaleId no disponible.");
-
-                decimal totalAmount = pedido.DetallePedidos.Sum(d => d.Producto.Precio * (d.Cantidad ?? 0));
-
-                if (string.IsNullOrEmpty(pedido.Currency))
-                    throw new ArgumentException("El código de moneda no está definido.");
-
-                // Crea el objeto de solicitud de reembolso con estructura v2
+                // Crear el objeto de solicitud de reembolso
                 var refundRequest = new
                 {
                     amount = new
@@ -245,9 +240,8 @@ namespace GestorInventario.Application.Services
                     var jsonResponse = await response.Content.ReadAsStringAsync();
                     _logger.LogInformation("Reembolso exitoso: {response}", jsonResponse);
 
-                    pedido.EstadoPedido = "Reembolsado";
-                    _context.Update(pedido);
-                    await _context.SaveChangesAsync();
+                    // Actualizar el estado del pedido usando UnitOfWork
+                    await _repository.UpdatePedidoStatusAsync(pedidoId, "Reembolsado");
 
                     return jsonResponse;
                 }
@@ -452,7 +446,7 @@ namespace GestorInventario.Application.Services
                         string createdPlanId = responseObject.id;
 
                         // Guardar los detalles del plan en la base de datos con la ID de PayPal
-                        await SavePlanDetailsToDatabase(createdPlanId, planRequest);
+                        await  _repository.SavePlanDetailsToDatabase(createdPlanId, planRequest);
 
                         return responseContent;
                     }
@@ -473,51 +467,6 @@ namespace GestorInventario.Application.Services
             }
         }
 
-
-        private async Task SavePlanDetailsToDatabase(string createdPlanId, dynamic planRequest)
-        {
-            var planDetails = new PlanDetail
-            {
-                Id = Guid.NewGuid().ToString(),
-                PaypalPlanId = createdPlanId,
-                ProductId = planRequest.product_id,
-                Name = planRequest.name,
-                Description = planRequest.description,
-                Status = planRequest.status,
-                AutoBillOutstanding = planRequest.payment_preferences.auto_bill_outstanding,
-                SetupFee = decimal.Parse(planRequest.payment_preferences.setup_fee.value, CultureInfo.InvariantCulture),
-                SetupFeeFailureAction = planRequest.payment_preferences.setup_fee_failure_action,
-                PaymentFailureThreshold = planRequest.payment_preferences.payment_failure_threshold,
-                TaxPercentage = decimal.Parse(planRequest.taxes.percentage, CultureInfo.InvariantCulture),
-                TaxInclusive = planRequest.taxes.inclusive
-            };
-
-            // Verificar si existe un ciclo de facturación de prueba
-            if (planRequest.billing_cycles.Count > 1)
-            {
-                planDetails.TrialIntervalUnit = planRequest.billing_cycles[0].frequency.interval_unit;
-                planDetails.TrialIntervalCount = planRequest.billing_cycles[0].frequency.interval_count;
-                planDetails.TrialTotalCycles = planRequest.billing_cycles[0].total_cycles;
-                planDetails.TrialFixedPrice = decimal.Parse(planRequest.billing_cycles[0].pricing_scheme.fixed_price.value, CultureInfo.InvariantCulture);
-
-                // Información del ciclo regular
-                planDetails.RegularIntervalUnit = planRequest.billing_cycles[1].frequency.interval_unit;
-                planDetails.RegularIntervalCount = planRequest.billing_cycles[1].frequency.interval_count;
-                planDetails.RegularTotalCycles = planRequest.billing_cycles[1].total_cycles;
-                planDetails.RegularFixedPrice = decimal.Parse(planRequest.billing_cycles[1].pricing_scheme.fixed_price.value, CultureInfo.InvariantCulture);
-            }
-            else if (planRequest.billing_cycles.Count == 1)
-            {
-                // Solo hay ciclo regular
-                planDetails.RegularIntervalUnit = planRequest.billing_cycles[0].frequency.interval_unit;
-                planDetails.RegularIntervalCount = planRequest.billing_cycles[0].frequency.interval_count;
-                planDetails.RegularTotalCycles = planRequest.billing_cycles[0].total_cycles;
-                planDetails.RegularFixedPrice = decimal.Parse(planRequest.billing_cycles[0].pricing_scheme.fixed_price.value, CultureInfo.InvariantCulture);
-            }
-
-            _context.PlanDetails.Add(planDetails);
-            await _context.SaveChangesAsync();
-        }
         #endregion
         #region desactivar plan de suscripcion
         public async Task<string> DesactivarPlan(string productId, string planId)
@@ -536,7 +485,7 @@ namespace GestorInventario.Application.Services
                         $"https://api-m.sandbox.paypal.com/v1/billing/plans/{planId}/deactivate",
                         null); 
                    
-                    await UpdatePlanStatusInDatabase(planId, "INACTIVE");
+                    await _repository.UpdatePlanStatusInDatabase(planId, "INACTIVE");
                 }
                 else
                 {
@@ -545,23 +494,10 @@ namespace GestorInventario.Application.Services
                 }
 
 
-
-
-
-
             }
             return "Plan desactivado y producto eliminado con éxito";
         }
-        private async Task UpdatePlanStatusInDatabase(string planId, string status)
-        {
-            var planDetails = await _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId);
-            if (planDetails != null)
-            {
-                planDetails.Status = status;
-                _context.PlanDetails.Update(planDetails);
-                await _context.SaveChangesAsync();
-            }
-        }
+      
         #endregion
         #region Desactivar producto vinculado a un plan
         public async Task<string> MarcarDesactivadoProducto(string id)

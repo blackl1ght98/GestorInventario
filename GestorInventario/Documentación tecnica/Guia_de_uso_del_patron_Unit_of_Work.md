@@ -2,72 +2,100 @@
 
 ## Introducción
 
-El patrón **Unit of Work** (Unidad de Trabajo) es un patrón de diseño que se utiliza principalmente en aplicaciones que interactúan con bases de datos, pero también 
-puede aplicarse a otros contextos donde se necesita coordinar la interacción entre varios servicios. El objetivo principal del patrón es centralizar la lógica de las 
-operaciones que deben ejecutarse de manera conjunta, permitiendo una mejor organización del código y facilitando la gestión de transacciones.
+El patrón **Unit of Work** (Unidad de Trabajo) es un patrón de diseño que centraliza la coordinación de operaciones relacionadas con datos, como las interacciones con una base de datos o servicios externos. Su objetivo es garantizar que múltiples operaciones se realicen de manera consistente, facilitando la gestión de transacciones y mejorando la organización del código.
 
 ## ¿Por Qué Usar el Patrón Unit of Work?
 
-1. **Coordinación de Múltiples Servicios**: Cuando tu aplicación necesita realizar operaciones que involucran varios servicios (por ejemplo, crear un producto y 
- enviar un correo electrónico), el patrón Unit of Work ayuda a coordinar estas operaciones en un solo punto.
+1. **Coordinación de Operaciones**: Facilita la ejecución de operaciones que involucran múltiples repositorios o servicios, asegurando que se completen de forma conjunta.
+2. **Gestión de Transacciones**: En contextos de bases de datos, permite manejar transacciones para garantizar que todas las operaciones se confirmen o deshagan correctamente.
+3. **Mantenibilidad y Extensibilidad**: Centraliza la lógica de coordinación, haciendo el código más fácil de mantener y ampliable para futuras funcionalidades, como agregar nuevos repositorios o notificaciones.
 
-2. **Gestión de Transacciones**: Aunque en este caso no estamos interactuando directamente con una base de datos, el patrón se inspira en la gestión de transacciones. 
- La idea es asegurar que todas las operaciones se completen correctamente antes de confirmar el "commit" de la transacción. Si algo falla, se puede "deshacer" todo lo 
- que se hizo hasta ese punto.
+## Regla de Oro del Unit of Work
 
-3. **Mantenibilidad y Extensibilidad**: Centralizar la lógica de coordinación de servicios en un solo lugar facilita la mantenibilidad del código. Además, si en el futuro 
- se necesita añadir más servicios (como notificaciones por SMS, registros en logs, etc.), se pueden integrar fácilmente en el Unit of Work.
+**El Unit of Work debe coordinar repositorios, no servicios, y los repositorios no deben depender de servicios que a su vez dependan de ellos.**
+
+### ¿Qué significa esto?
+- **Coordinar repositorios, no servicios**: El Unit of Work debe gestionar operaciones de repositorios (que acceden directamente a la base de datos) en lugar de servicios de aplicación (que contienen lógica de negocio o interactúan con APIs externas). Esto evita que el Unit of Work se vuelva un contenedor de lógica compleja y reduce el riesgo de ciclos de dependencias.
+- **Evitar dependencias circulares**: Los repositorios no deben inyectar servicios (como `IPaypalService`) que dependan de ellos mismos, ya que esto crea ciclos de dependencias que causan errores en la inyección de dependencias (por ejemplo, `InvalidOperationException`).
+- **Por qué es importante**: Seguir esta regla mantiene el código limpio, evita errores difíciles de depurar y asegura que el Unit of Work cumpla su propósito de coordinar operaciones de datos sin mezclarse con lógica de negocio.
+
+### Ejemplo Práctico de la Regla
+Si un repositorio como `PaypalRepository` necesita datos de un servicio como `PaypalServices`, no debe inyectar `IPaypalService`. 
+En lugar de eso, el Unit of Work o un controlador debe obtener los datos del servicio y pasarlos al repositorio como parámetros. 
+Esto rompe posibles ciclos de dependencias y mantiene las responsabilidades separadas.
 
 ## Ejemplo de Implementación
 
-A continuación, se presenta un ejemplo de cómo implementar un Unit of Work para coordinar la creación de un producto en PayPal y el envío de un correo electrónico de notificación.
+A continuación, se muestra un ejemplo de cómo implementar un Unit of Work que coordina operaciones de repositorios, siguiendo la regla de oro. En este caso, coordinamos la creación de un producto en PayPal (a través de un servicio) y el guardado de sus detalles en la base de datos (a través de un repositorio), junto con el envío de un correo electrónico de notificación.
 
 ### Código de Ejemplo
 
-```chsarp
-public class UnitOfWork : IUnitOfWork
+```csharp
+using GestorInventario.Application.DTOs;
+using GestorInventario.Domain.Models;
+using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Infraestructure;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.Extensions.Caching.Memory;
+using System.Security.Claims;
+
+namespace GestorInventario.Application.Services
 {
-    private readonly IConfiguration _configuration;
-    private readonly ILogger<PaypalServices> _logger;
-    private readonly IEmailService _emailService;
-    private readonly IHttpContextAccessor _contextAccessor;
-
-    public UnitOfWork(IConfiguration configuration, ILogger<PaypalServices> logger, IEmailService emailService, IHttpContextAccessor contextAccessor)
+    public class UnitOfWork : IUnitOfWork
     {
-        _configuration = configuration;
-        _logger = logger;
-        _emailService = emailService;
-        _contextAccessor = contextAccessor;
-        PaypalService = new PaypalServices(_configuration, _logger);
-    }
-
-    public IPaypalService PaypalService { get; private set; }
-
-    public async Task<string> CreateProductAndNotifyAsync(string productName, string productDescription, string productType, string productCategory)
-    {
-        // Crear el producto
-        var response = await PaypalService.CreateProductAsync(productName, productDescription, productType, productCategory);
-
-        if (response.IsSuccessStatusCode)
+        /* 
+      * Esta clase actúa como un punto de coordinación para los servicios relacionados, como PaypalServices.
+      * Su propósito es facilitar la gestión y posible expansión futura, donde varios servicios pueden necesitar ser coordinados.
+      * Aunque actualmente solo gestiona PaypalServices, se ha diseñado para permitir la integración de otros servicios en el futuro,
+      * si se necesita coordinación entre ellos. Este patrón ayuda a mantener una estructura más organizada y extensible.
+      */
+        //Combina PaypalService y EmailService
+        private readonly IConfiguration _configuration;
+        private readonly GestorInventarioContext _context;
+        private readonly ILogger<PaypalServices> _logger;
+        private readonly IEmailService _emailService;
+        private readonly IHttpContextAccessor _contextAccessor;
+        private readonly IMemoryCache _cache;
+      private readonly IPaypalServiceRepository _paypalRepository;
+        public UnitOfWork(IConfiguration configuration, ILogger<PaypalServices> logger, GestorInventarioContext context, 
+            IEmailService email, IHttpContextAccessor contextAccessor, IMemoryCache m, IPaypalServiceRepository repo)
         {
-            // Obtener el email del usuario autenticado
-            var email = _contextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Email);
-
-            // Enviar el correo electrónico
-            var emailDto = new DTOEmail
-            {
-                ToEmail = email,
-                NombreProducto = productName
-            };
-
-            await _emailService.SendEmailCreateProduct(emailDto, productName);
-
-            return response.Content.ReadAsStringAsync().Result;
+            _configuration = configuration;
+            _logger = logger;
+            _context = context;
+            _emailService = email;
+            _cache = m;
+         _paypalRepository = repo;
+            PaypalService = new PaypalServices(_configuration, _context, _logger, _cache, _paypalRepository);
+            _contextAccessor = contextAccessor;
+           
         }
-        else
+        public IPaypalService PaypalService { get; private set; }
+        public async Task<string> CreateProductAndNotifyAsync(string productName, string productDescription, string productType, string productCategory)
         {
-            throw new Exception($"Error al crear el producto: {response.StatusCode} - {response.Content.ReadAsStringAsync().Result}");
+            // Crear el producto
+            var response = await PaypalService.CreateProductAsync(productName, productDescription, productType, productCategory);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var email = _contextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Email);
+                // Enviar el correo electrónico
+                var emailDto = new DTOEmail
+                {
+                    ToEmail = email,
+                    NombreProducto = productName
+                };
+
+                await _emailService.SendEmailCreateProduct(emailDto, productName);
+
+                return response.Content.ReadAsStringAsync().Result;
+            }
+            else
+            {
+                throw new Exception($"Error al crear el producto: {response.StatusCode} - {response.Content.ReadAsStringAsync().Result}");
+            }
         }
     }
 }
+
 ````

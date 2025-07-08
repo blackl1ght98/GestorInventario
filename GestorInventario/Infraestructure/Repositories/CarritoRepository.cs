@@ -11,17 +11,17 @@ namespace GestorInventario.Infraestructure.Repositories
     public class CarritoRepository : ICarritoRepository
     {
         private readonly GestorInventarioContext _context;
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IPaypalService _paypalService;
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly IConfiguration _configuration;
         private readonly ILogger<CarritoRepository> _logger;
         private readonly IAdminRepository _admin;
         private readonly UtilityClass _utilityClass;
-        public CarritoRepository(GestorInventarioContext context, IUnitOfWork unit, IHttpContextAccessor contextAccessor,
+        public CarritoRepository(GestorInventarioContext context, IPaypalService service, IHttpContextAccessor contextAccessor,
             IConfiguration configuration, ILogger<CarritoRepository> logger, IAdminRepository admin, UtilityClass utility)
         {
             _context = context;
-            _unitOfWork = unit;
+            _paypalService = service;
             _contextAccessor = contextAccessor;
             _configuration = configuration;
             _logger = logger;
@@ -132,7 +132,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 // Calcular el total para PayPal
                 moneda = string.IsNullOrEmpty(moneda) ? "EUR" : moneda;
                 var checkout = await CrearCheckoutParaPago(itemsDelCarrito, moneda, infoUsuario);
-                var createdPaymentJson = await _unitOfWork.PaypalService.CreateOrderAsyncV2(checkout);
+                var createdPaymentJson = await _paypalService.CreateOrderAsyncV2(checkout);
                 var createdPayment = JsonConvert.DeserializeObject<PayPalOrderResponse>(createdPaymentJson);
                 var approvalUrl = createdPayment?.links?.FirstOrDefault(x => x.rel == "payer-action")?.href;
 

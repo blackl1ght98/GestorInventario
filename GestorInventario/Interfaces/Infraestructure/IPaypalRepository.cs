@@ -8,7 +8,7 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<List<UserSubscription>> SusbcripcionesUsuario(string planId);
         Task<SubscriptionDetail> ObtenerSubscripcion(string subscription_id);
         Task DetallesSubscripcion(string id);
-       
+        Task SavePlanDetailsToDatabase(string createdPlanId, dynamic planRequest);
 
     }
 }
