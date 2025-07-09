@@ -25,16 +25,18 @@ namespace GestorInventario.Application.Services
         private readonly ILogger<PaypalServices> _logger;
         private readonly IMemoryCache _cache;
         private readonly IPaypalServiceRepository _repository;
+        private readonly IHttpContextAccessor _contextAccesor;
+        private readonly IEmailService _emailService;
         public PaypalServices(IConfiguration configuration, ILogger<PaypalServices> logger, 
-            IMemoryCache memory, IPaypalServiceRepository repo)
+            IMemoryCache memory, IPaypalServiceRepository repo, IHttpContextAccessor contex, IEmailService email)
         {
            
             _configuration = configuration;
-          
+          _contextAccesor = contex;
             _logger = logger;
             _cache = memory;
             _repository = repo;
-           
+           _emailService = email;
         }
 
         // Solicitud para crear un pedido en version V1 de paypal
@@ -862,6 +864,30 @@ namespace GestorInventario.Application.Services
                 }
 
                 throw new Exception($"Error al cancelar la suscripción: {responseContent}");
+            }
+        }
+        public async Task<string> CreateProductAndNotifyAsync(string productName, string productDescription, string productType, string productCategory)
+        {
+            // Crear el producto
+            var response = await CreateProductAsync(productName, productDescription, productType, productCategory);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var email = _contextAccesor.HttpContext.User.FindFirstValue(ClaimTypes.Email);
+                // Enviar el correo electrónico
+                var emailDto = new DTOEmail
+                {
+                    ToEmail = email,
+                    NombreProducto = productName
+                };
+
+                await _emailService.SendEmailCreateProduct(emailDto, productName);
+
+                return response.Content.ReadAsStringAsync().Result;
+            }
+            else
+            {
+                throw new Exception($"Error al crear el producto: {response.StatusCode} - {response.Content.ReadAsStringAsync().Result}");
             }
         }
     }
