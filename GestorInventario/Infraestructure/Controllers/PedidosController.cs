@@ -23,11 +23,10 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly GenerarPaginas _generarPaginas;
         private readonly ILogger<PedidosController> _logger;
         private readonly IPedidoRepository _pedidoRepository;
-        private readonly IHttpContextAccessor _contextAccessor;       
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IHttpContextAccessor _contextAccessor;            
         private readonly IPdfService _pdfservice;
         private readonly PolicyExecutor _policyExecutor;
-        public PedidosController( GenerarPaginas generarPaginas, ILogger<PedidosController> logger, IUnitOfWork unitOfWork,
+        public PedidosController( GenerarPaginas generarPaginas, ILogger<PedidosController> logger, 
             IPedidoRepository pedido, IHttpContextAccessor contextAccessor,  IPdfService pdf, PolicyExecutor executor)
         {
       
@@ -36,7 +35,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _pedidoRepository = pedido;
             _contextAccessor = contextAccessor;
             _pdfservice= pdf;
-            _unitOfWork = unitOfWork;
+          
             _policyExecutor = executor;
         }
        
