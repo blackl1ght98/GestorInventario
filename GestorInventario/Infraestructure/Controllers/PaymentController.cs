@@ -21,24 +21,24 @@ namespace GestorInventario.Infraestructure.Controllers
     public class PaymentController : Controller
     {
         private readonly ILogger<PaymentController> _logger;
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IPaypalService _paypalService;
         private readonly IConfiguration _configuration;
         private readonly GestorInventarioContext _context;
         private readonly IMemoryCache _memory;
         private readonly IEmailService _emailService;
      
         private readonly PolicyExecutor _policyExecutor;
-        public PaymentController(ILogger<PaymentController> logger, IUnitOfWork unitOfWork, IConfiguration configuration, GestorInventarioContext context, IMemoryCache memory, 
-            IEmailService email, PolicyExecutor executor)
+        public PaymentController(ILogger<PaymentController> logger,  IConfiguration configuration, GestorInventarioContext context, IMemoryCache memory, 
+            IEmailService email, PolicyExecutor executor, IPaypalService service)
         {
             _logger = logger;
-            _unitOfWork = unitOfWork;
+           
             _configuration = configuration;
             _context = context;
             _memory = memory;
             _emailService = email;
           _policyExecutor = executor;
-
+            _paypalService = service;
         }
         public async Task<IActionResult> Success(string PayerID)
         {
@@ -54,7 +54,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
                     var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
-                    var authToken = await _unitOfWork.PaypalService.GetAccessTokenAsync(clientId, clientSecret);
+                    var authToken = await _paypalService.GetAccessTokenAsync(clientId, clientSecret);
 
                     if (string.IsNullOrEmpty(authToken))
                         throw new Exception("No se pudo obtener el token de autenticación.");
@@ -132,7 +132,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
             try
             {
-                var refund = await _unitOfWork.PaypalService.RefundSaleAsync(request.PedidoId, request.currency);
+                var refund = await _paypalService.RefundSaleAsync(request.PedidoId, request.currency);
                 return Ok(refund);
             }
             catch (Exception ex)
@@ -172,7 +172,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 var existingDetail = await _policyExecutor.ExecutePolicyAsync(()=> _context.PayPalPaymentDetails
                     .Include(d => d.PayPalPaymentItems)
                     .FirstOrDefaultAsync(x => x.Id == pedido.PagoId)) ;
-                var detallespago = await _policyExecutor.ExecutePolicyAsync(()=> _unitOfWork.PaypalService.ObtenerDetallesPagoEjecutadoV2(pedido.PagoId)) ;
+                var detallespago = await _policyExecutor.ExecutePolicyAsync(()=> _paypalService.ObtenerDetallesPagoEjecutadoV2(pedido.PagoId)) ;
                 if (detallespago == null)
                 {
                     return BadRequest("Error en obtener detalles");
