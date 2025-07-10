@@ -82,7 +82,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
                 }
             }
 
-            // Resto del código sin cambios...
+            
             using (var rsa = new RSACryptoServiceProvider(2048))
             {
                 var privateKey = rsa.ExportParameters(true);

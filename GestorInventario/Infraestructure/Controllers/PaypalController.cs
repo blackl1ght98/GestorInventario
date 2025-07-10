@@ -334,7 +334,8 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
 
-        
+
+      
         public async Task<IActionResult> ConfirmarSuscripcion(string subscription_id, string token, string ba_token)
         {
             try
@@ -363,7 +364,59 @@ namespace GestorInventario.Infraestructure.Controllers
                 var plan = await _policyExecutor.ExecutePolicyAsync(() => _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId));
                 if (plan == null)
                 {
-                    await _policyExecutor.ExecutePolicy(() => _paypalRepository.DetallesSubscripcion(planId));
+                    // Obtener detalles del plan desde PayPal y mapear a PaypalPlanDetailsDto
+                    var planResponse = await _policyExecutor.ExecutePolicyAsync(() => _paypalService.ObtenerDetallesPlan(planId));
+                    var planDetails = new PaypalPlanDetailsDto
+                    {
+                        Id = planResponse.Id,
+                        ProductId = planResponse.ProductId,
+                        Name = planResponse.Name,
+                        Description = planResponse.Description,
+                        Status = planResponse.Status,
+                        PaymentPreferences = new PaymentPreferencesDto
+                        {
+                            AutoBillOutstanding = planResponse.PaymentPreferences.AutoBillOutstanding,
+                            SetupFee = planResponse.PaymentPreferences.SetupFee != null
+                                ? new FixedPriceDto
+                                {
+                                    Value = planResponse.PaymentPreferences.SetupFee.Value.ToString(CultureInfo.InvariantCulture),
+                                    CurrencyCode = planResponse.PaymentPreferences.SetupFee.CurrencyCode
+                                }
+                                : null,
+                            SetupFeeFailureAction = planResponse.PaymentPreferences.SetupFeeFailureAction,
+                            PaymentFailureThreshold = planResponse.PaymentPreferences.PaymentFailureThreshold
+                        },
+                        Taxes = planResponse.Taxes != null
+                            ? new TaxesDto
+                            {
+                                Percentage = planResponse.Taxes.Percentage.ToString(CultureInfo.InvariantCulture),
+                                Inclusive = planResponse.Taxes.Inclusive
+                            }
+                            : null,
+                        BillingCycles = planResponse.BillingCycles.Select(b => new BillingCycleDto
+                        {
+                            TenureType = b.TenureType,
+                            Sequence = b.Sequence,
+                            Frequency = new FrequencyDto
+                            {
+                                IntervalUnit = b.Frequency.IntervalUnit,
+                                IntervalCount = b.Frequency.IntervalCount
+                            },
+                            TotalCycles = b.TotalCycles,
+                            PricingScheme = new PricingSchemeDto
+                            {
+                                FixedPrice = b.PricingScheme.FixedPrice != null
+                                    ? new FixedPriceDto
+                                    {
+                                        Value = b.PricingScheme.FixedPrice.Value,
+                                        CurrencyCode = b.PricingScheme.FixedPrice.CurrencyCode
+                                    }
+                                    : null
+                            }
+                        }).ToArray()
+                    };
+
+                    await _policyExecutor.ExecutePolicy(() => _paypalRepository.SavePlanDetailsAsync(planId, planDetails));
                     plan = await _policyExecutor.ExecutePolicyAsync(() => _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId));
                 }
 
@@ -379,16 +432,26 @@ namespace GestorInventario.Infraestructure.Controllers
                     SubscriberName = $"{subscriptionDetails.subscriber?.name?.given_name ?? string.Empty} {subscriptionDetails.subscriber?.name?.surname ?? string.Empty}".Trim(),
                     SubscriberEmail = subscriptionDetails.subscriber?.email_address ?? string.Empty,
                     PayerId = subscriptionDetails.subscriber?.payer_id ?? string.Empty,
-                    OutstandingBalance = subscriptionDetails.billing_info?.outstanding_balance?.value != null ? Convert.ToDecimal(subscriptionDetails.billing_info.outstanding_balance.value) : 0,
+                    OutstandingBalance = subscriptionDetails.billing_info?.outstanding_balance?.value != null
+                        ? Convert.ToDecimal(subscriptionDetails.billing_info.outstanding_balance.value)
+                        : 0,
                     OutstandingCurrency = subscriptionDetails.billing_info?.outstanding_balance?.currency_code ?? string.Empty,
                     NextBillingTime = subscriptionDetails.billing_info?.next_billing_time ?? minSqlDate,
                     LastPaymentTime = subscriptionDetails.billing_info?.last_payment?.time ?? minSqlDate,
-                    LastPaymentAmount = subscriptionDetails.billing_info?.last_payment?.amount?.value != null ? Convert.ToDecimal(subscriptionDetails.billing_info.last_payment.amount.value) : 0,
+                    LastPaymentAmount = subscriptionDetails.billing_info?.last_payment?.amount?.value != null
+                        ? Convert.ToDecimal(subscriptionDetails.billing_info.last_payment.amount.value)
+                        : 0,
                     LastPaymentCurrency = subscriptionDetails.billing_info?.last_payment?.amount?.currency_code ?? string.Empty,
                     FinalPaymentTime = subscriptionDetails.billing_info?.final_payment_time ?? minSqlDate,
-                    CyclesCompleted = subscriptionDetails.billing_info?.cycle_executions != null && subscriptionDetails.billing_info.cycle_executions.Count > 0 ? subscriptionDetails.billing_info.cycle_executions[0].cycles_completed : 0,
-                    CyclesRemaining = subscriptionDetails.billing_info?.cycle_executions != null && subscriptionDetails.billing_info.cycle_executions.Count > 0 ? subscriptionDetails.billing_info.cycle_executions[0].cycles_remaining : 0,
-                    TotalCycles = subscriptionDetails.billing_info?.cycle_executions != null && subscriptionDetails.billing_info.cycle_executions.Count > 0 ? subscriptionDetails.billing_info.cycle_executions[0].total_cycles : 0,
+                    CyclesCompleted = subscriptionDetails.billing_info?.cycle_executions != null && subscriptionDetails.billing_info.cycle_executions.Count > 0
+                        ? subscriptionDetails.billing_info.cycle_executions[0].cycles_completed
+                        : 0,
+                    CyclesRemaining = subscriptionDetails.billing_info?.cycle_executions != null && subscriptionDetails.billing_info.cycle_executions.Count > 0
+                        ? subscriptionDetails.billing_info.cycle_executions[0].cycles_remaining
+                        : 0,
+                    TotalCycles = subscriptionDetails.billing_info?.cycle_executions != null && subscriptionDetails.billing_info.cycle_executions.Count > 0
+                        ? subscriptionDetails.billing_info.cycle_executions[0].total_cycles
+                        : 0,
                     TrialIntervalUnit = plan?.TrialIntervalUnit,
                     TrialIntervalCount = plan?.TrialIntervalCount ?? 0,
                     TrialTotalCycles = plan?.TrialTotalCycles ?? 0,
@@ -403,33 +466,33 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 // Verificar si la suscripción ya existe en la base de datos
                 var existingSubscription = await _policyExecutor.ExecutePolicyAsync(() => _context.SubscriptionDetails
-                .FirstOrDefaultAsync(s => s.SubscriptionId == detallesSuscripcion.SubscriptionId));
+                    .FirstOrDefaultAsync(s => s.SubscriptionId == detallesSuscripcion.SubscriptionId));
 
                 if (existingSubscription != null)
                 {
                     // Comparar los detalles y actualizar solo si han cambiado
                     bool hasChanges = !(
-                    existingSubscription.PlanId == detallesSuscripcion.PlanId &&
-                    existingSubscription.Status == detallesSuscripcion.Status &&
-                    existingSubscription.StartTime == detallesSuscripcion.StartTime &&
-                    existingSubscription.StatusUpdateTime == detallesSuscripcion.StatusUpdateTime &&
-                    existingSubscription.SubscriberName == detallesSuscripcion.SubscriberName &&
-                    existingSubscription.SubscriberEmail == detallesSuscripcion.SubscriberEmail &&
-                    existingSubscription.PayerId == detallesSuscripcion.PayerId &&
-                    existingSubscription.OutstandingBalance == detallesSuscripcion.OutstandingBalance &&
-                    existingSubscription.OutstandingCurrency == detallesSuscripcion.OutstandingCurrency &&
-                    existingSubscription.NextBillingTime == detallesSuscripcion.NextBillingTime &&
-                    existingSubscription.LastPaymentTime == detallesSuscripcion.LastPaymentTime &&
-                    existingSubscription.LastPaymentAmount == detallesSuscripcion.LastPaymentAmount &&
-                    existingSubscription.LastPaymentCurrency == detallesSuscripcion.LastPaymentCurrency &&
-                    existingSubscription.FinalPaymentTime == detallesSuscripcion.FinalPaymentTime &&
-                    existingSubscription.CyclesCompleted == detallesSuscripcion.CyclesCompleted &&
-                    existingSubscription.CyclesRemaining == detallesSuscripcion.CyclesRemaining &&
-                    existingSubscription.TotalCycles == detallesSuscripcion.TotalCycles &&
-                    existingSubscription.TrialIntervalUnit == detallesSuscripcion.TrialIntervalUnit &&
-                    existingSubscription.TrialIntervalCount == detallesSuscripcion.TrialIntervalCount &&
-                    existingSubscription.TrialTotalCycles == detallesSuscripcion.TrialTotalCycles &&
-                    existingSubscription.TrialFixedPrice == detallesSuscripcion.TrialFixedPrice
+                        existingSubscription.PlanId == detallesSuscripcion.PlanId &&
+                        existingSubscription.Status == detallesSuscripcion.Status &&
+                        existingSubscription.StartTime == detallesSuscripcion.StartTime &&
+                        existingSubscription.StatusUpdateTime == detallesSuscripcion.StatusUpdateTime &&
+                        existingSubscription.SubscriberName == detallesSuscripcion.SubscriberName &&
+                        existingSubscription.SubscriberEmail == detallesSuscripcion.SubscriberEmail &&
+                        existingSubscription.PayerId == detallesSuscripcion.PayerId &&
+                        existingSubscription.OutstandingBalance == detallesSuscripcion.OutstandingBalance &&
+                        existingSubscription.OutstandingCurrency == detallesSuscripcion.OutstandingCurrency &&
+                        existingSubscription.NextBillingTime == detallesSuscripcion.NextBillingTime &&
+                        existingSubscription.LastPaymentTime == detallesSuscripcion.LastPaymentTime &&
+                        existingSubscription.LastPaymentAmount == detallesSuscripcion.LastPaymentAmount &&
+                        existingSubscription.LastPaymentCurrency == detallesSuscripcion.LastPaymentCurrency &&
+                        existingSubscription.FinalPaymentTime == detallesSuscripcion.FinalPaymentTime &&
+                        existingSubscription.CyclesCompleted == detallesSuscripcion.CyclesCompleted &&
+                        existingSubscription.CyclesRemaining == detallesSuscripcion.CyclesRemaining &&
+                        existingSubscription.TotalCycles == detallesSuscripcion.TotalCycles &&
+                        existingSubscription.TrialIntervalUnit == detallesSuscripcion.TrialIntervalUnit &&
+                        existingSubscription.TrialIntervalCount == detallesSuscripcion.TrialIntervalCount &&
+                        existingSubscription.TrialTotalCycles == detallesSuscripcion.TrialTotalCycles &&
+                        existingSubscription.TrialFixedPrice == detallesSuscripcion.TrialFixedPrice
                     );
 
                     if (hasChanges)
@@ -446,7 +509,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 // Verificar si ya existe una relación en UserSubscriptions
                 var existeRelacion = await _policyExecutor.ExecutePolicyAsync(() => _context.UserSubscriptions
-                .FirstOrDefaultAsync(us => us.UserId == usuarioId && us.SubscriptionId == subscription_id));
+                    .FirstOrDefaultAsync(us => us.UserId == usuarioId && us.SubscriptionId == subscription_id));
 
                 if (existeRelacion == null)
                 {
@@ -505,7 +568,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
 
-       
+
         public async Task<IActionResult> DetallesSuscripcion(string id)
         {
             System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
@@ -539,8 +602,59 @@ namespace GestorInventario.Infraestructure.Controllers
                 var plan = await _policyExecutor.ExecutePolicyAsync(() => _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId));
                 if (plan == null)
                 {
-                    // Intentar obtener los detalles del plan desde PayPal
-                    await _policyExecutor.ExecutePolicy(() => _paypalRepository.DetallesSubscripcion(planId));
+                    // Intentar obtener los detalles del plan desde PayPal y mapear a PaypalPlanDetailsDto
+                    var planResponse = await _policyExecutor.ExecutePolicyAsync(() => _paypalService.ObtenerDetallesPlan(planId));
+                    var planDetails = new PaypalPlanDetailsDto
+                    {
+                        Id = planResponse.Id,
+                        ProductId = planResponse.ProductId,
+                        Name = planResponse.Name,
+                        Description = planResponse.Description,
+                        Status = planResponse.Status,
+                        PaymentPreferences = new PaymentPreferencesDto
+                        {
+                            AutoBillOutstanding = planResponse.PaymentPreferences.AutoBillOutstanding,
+                            SetupFee = planResponse.PaymentPreferences.SetupFee != null
+                                ? new FixedPriceDto
+                                {
+                                    Value = planResponse.PaymentPreferences.SetupFee.Value.ToString(CultureInfo.InvariantCulture),
+                                    CurrencyCode = planResponse.PaymentPreferences.SetupFee.CurrencyCode
+                                }
+                                : null,
+                            SetupFeeFailureAction = planResponse.PaymentPreferences.SetupFeeFailureAction,
+                            PaymentFailureThreshold = planResponse.PaymentPreferences.PaymentFailureThreshold
+                        },
+                        Taxes = planResponse.Taxes != null
+                            ? new TaxesDto
+                            {
+                                Percentage = planResponse.Taxes.Percentage.ToString(CultureInfo.InvariantCulture),
+                                Inclusive = planResponse.Taxes.Inclusive
+                            }
+                            : null,
+                        BillingCycles = planResponse.BillingCycles.Select(b => new BillingCycleDto
+                        {
+                            TenureType = b.TenureType,
+                            Sequence = b.Sequence,
+                            Frequency = new FrequencyDto
+                            {
+                                IntervalUnit = b.Frequency.IntervalUnit,
+                                IntervalCount = b.Frequency.IntervalCount
+                            },
+                            TotalCycles = b.TotalCycles,
+                            PricingScheme = new PricingSchemeDto
+                            {
+                                FixedPrice = b.PricingScheme.FixedPrice != null
+                                    ? new FixedPriceDto
+                                    {
+                                        Value = b.PricingScheme.FixedPrice.Value,
+                                        CurrencyCode = b.PricingScheme.FixedPrice.CurrencyCode
+                                    }
+                                    : null
+                            }
+                        }).ToArray()
+                    };
+
+                    await _policyExecutor.ExecutePolicy(() => _paypalRepository.SavePlanDetailsAsync(planId, planDetails));
                     plan = await _policyExecutor.ExecutePolicyAsync(() => _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId));
 
                     // Si el plan sigue siendo nulo, no continuar
@@ -565,21 +679,32 @@ namespace GestorInventario.Infraestructure.Controllers
                     SubscriberName = $"{subscriptionDetails.subscriber?.name?.given_name ?? string.Empty} {subscriptionDetails.subscriber?.name?.surname ?? string.Empty}".Trim(),
                     SubscriberEmail = subscriptionDetails.subscriber?.email_address ?? string.Empty,
                     PayerId = subscriptionDetails.subscriber?.payer_id ?? string.Empty,
-                    OutstandingBalance = subscriptionDetails.billing_info?.outstanding_balance?.value != null ? Convert.ToDecimal(subscriptionDetails.billing_info.outstanding_balance.value) : 0,
+                    OutstandingBalance = subscriptionDetails.billing_info?.outstanding_balance?.value != null
+                        ? Convert.ToDecimal(subscriptionDetails.billing_info.outstanding_balance.value)
+                        : 0,
                     OutstandingCurrency = subscriptionDetails.billing_info?.outstanding_balance?.currency_code ?? string.Empty,
                     NextBillingTime = subscriptionDetails.billing_info?.next_billing_time ?? minSqlDate,
                     LastPaymentTime = subscriptionDetails.billing_info?.last_payment?.time ?? minSqlDate,
-                    LastPaymentAmount = subscriptionDetails.billing_info?.last_payment?.amount?.value != null ? Convert.ToDecimal(subscriptionDetails.billing_info.last_payment.amount.value) : 0,
+                    LastPaymentAmount = subscriptionDetails.billing_info?.last_payment?.amount?.value != null
+                        ? Convert.ToDecimal(subscriptionDetails.billing_info.last_payment.amount.value)
+                        : 0,
                     LastPaymentCurrency = subscriptionDetails.billing_info?.last_payment?.amount?.currency_code ?? string.Empty,
                     FinalPaymentTime = subscriptionDetails.billing_info?.final_payment_time ?? minSqlDate,
-                    CyclesCompleted = subscriptionDetails.billing_info?.cycle_executions != null && subscriptionDetails.billing_info.cycle_executions.Count > 0 ? subscriptionDetails.billing_info.cycle_executions[0].cycles_completed : 0,
-                    CyclesRemaining = subscriptionDetails.billing_info?.cycle_executions != null && subscriptionDetails.billing_info.cycle_executions.Count > 0 ? subscriptionDetails.billing_info.cycle_executions[0].cycles_remaining : 0,
-                    TotalCycles = subscriptionDetails.billing_info?.cycle_executions != null && subscriptionDetails.billing_info.cycle_executions.Count > 0 ? subscriptionDetails.billing_info.cycle_executions[0].total_cycles : 0,
+                    CyclesCompleted = subscriptionDetails.billing_info?.cycle_executions != null && subscriptionDetails.billing_info.cycle_executions.Count > 0
+                        ? subscriptionDetails.billing_info.cycle_executions[0].cycles_completed
+                        : 0,
+                    CyclesRemaining = subscriptionDetails.billing_info?.cycle_executions != null && subscriptionDetails.billing_info.cycle_executions.Count > 0
+                        ? subscriptionDetails.billing_info.cycle_executions[0].cycles_remaining
+                        : 0,
+                    TotalCycles = subscriptionDetails.billing_info?.cycle_executions != null && subscriptionDetails.billing_info.cycle_executions.Count > 0
+                        ? subscriptionDetails.billing_info.cycle_executions[0].total_cycles
+                        : 0,
                     TrialIntervalUnit = plan?.TrialIntervalUnit,
                     TrialIntervalCount = plan?.TrialIntervalCount ?? 0,
                     TrialTotalCycles = plan?.TrialTotalCycles ?? 0,
                     TrialFixedPrice = plan?.TrialFixedPrice ?? 0
                 };
+
                 // Calcular la fecha del próximo pago después del período de prueba
                 if (detallesSuscripcion.Status == "ACTIVE" && detallesSuscripcion.CyclesCompleted == 1 && detallesSuscripcion.CyclesRemaining == 0)
                 {

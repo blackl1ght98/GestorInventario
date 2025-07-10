@@ -1,4 +1,5 @@
-﻿using GestorInventario.Domain.Models;
+﻿using GestorInventario.Application.DTOs;
+using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
@@ -14,49 +15,75 @@ namespace GestorInventario.Infraestructure.Repositories
             _context = context;
         }
 
-        public async Task SavePlanDetailsToDatabase(string createdPlanId, dynamic planRequest)
+
+        public async Task SavePlanDetailsAsync(string planId, PaypalPlanDetailsDto planDetails)
         {
-            var planDetails = new PlanDetail
+            try
             {
-                Id = Guid.NewGuid().ToString(),
-                PaypalPlanId = createdPlanId,
-                ProductId = planRequest.product_id,
-                Name = planRequest.name,
-                Description = planRequest.description,
-                Status = planRequest.status,
-                AutoBillOutstanding = planRequest.payment_preferences.auto_bill_outstanding,
-                SetupFee = decimal.Parse(planRequest.payment_preferences.setup_fee.value, CultureInfo.InvariantCulture),
-                SetupFeeFailureAction = planRequest.payment_preferences.setup_fee_failure_action,
-                PaymentFailureThreshold = planRequest.payment_preferences.payment_failure_threshold,
-                TaxPercentage = decimal.Parse(planRequest.taxes.percentage, CultureInfo.InvariantCulture),
-                TaxInclusive = planRequest.taxes.inclusive
-            };
+                // Verificar si el plan ya existe
+                var existingPlan = await _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId);
+                if (existingPlan != null)
+                {
+                    
+                    return;
+                }
 
-            // Verificar si existe un ciclo de facturación de prueba
-            if (planRequest.billing_cycles.Count > 1)
-            {
-                planDetails.TrialIntervalUnit = planRequest.billing_cycles[0].frequency.interval_unit;
-                planDetails.TrialIntervalCount = planRequest.billing_cycles[0].frequency.interval_count;
-                planDetails.TrialTotalCycles = planRequest.billing_cycles[0].total_cycles;
-                planDetails.TrialFixedPrice = decimal.Parse(planRequest.billing_cycles[0].pricing_scheme.fixed_price.value, CultureInfo.InvariantCulture);
+                var planDetail = new PlanDetail
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    PaypalPlanId = planId,
+                    ProductId = planDetails.ProductId,
+                    Name = planDetails.Name,
+                    Description = planDetails.Description,
+                    Status = planDetails.Status,
+                    AutoBillOutstanding = planDetails.PaymentPreferences.AutoBillOutstanding,
+                    SetupFee = planDetails.PaymentPreferences.SetupFee?.Value != null
+                        ? decimal.Parse(planDetails.PaymentPreferences.SetupFee.Value, CultureInfo.InvariantCulture)
+                        : 0,
+                    SetupFeeFailureAction = planDetails.PaymentPreferences.SetupFeeFailureAction,
+                    PaymentFailureThreshold = planDetails.PaymentPreferences.PaymentFailureThreshold,
+                    TaxPercentage = planDetails.Taxes?.Percentage != null
+                        ? decimal.Parse(planDetails.Taxes.Percentage, CultureInfo.InvariantCulture)
+                        : 0,
+                    TaxInclusive = planDetails.Taxes?.Inclusive ?? false
+                };
 
-                // Información del ciclo regular
-                planDetails.RegularIntervalUnit = planRequest.billing_cycles[1].frequency.interval_unit;
-                planDetails.RegularIntervalCount = planRequest.billing_cycles[1].frequency.interval_count;
-                planDetails.RegularTotalCycles = planRequest.billing_cycles[1].total_cycles;
-                planDetails.RegularFixedPrice = decimal.Parse(planRequest.billing_cycles[1].pricing_scheme.fixed_price.value, CultureInfo.InvariantCulture);
+                // Manejar ciclos de facturación
+                if (planDetails.BillingCycles.Length > 1)
+                {
+                    planDetail.TrialIntervalUnit = planDetails.BillingCycles[0].Frequency.IntervalUnit;
+                    planDetail.TrialIntervalCount = planDetails.BillingCycles[0].Frequency.IntervalCount;
+                    planDetail.TrialTotalCycles = planDetails.BillingCycles[0].TotalCycles;
+                    planDetail.TrialFixedPrice = planDetails.BillingCycles[0].PricingScheme.FixedPrice?.Value != null
+                        ? decimal.Parse(planDetails.BillingCycles[0].PricingScheme.FixedPrice.Value, CultureInfo.InvariantCulture)
+                        : 0;
+
+                    planDetail.RegularIntervalUnit = planDetails.BillingCycles[1].Frequency.IntervalUnit;
+                    planDetail.RegularIntervalCount = planDetails.BillingCycles[1].Frequency.IntervalCount;
+                    planDetail.RegularTotalCycles = planDetails.BillingCycles[1].TotalCycles;
+                    planDetail.RegularFixedPrice = planDetails.BillingCycles[1].PricingScheme.FixedPrice?.Value != null
+                        ? decimal.Parse(planDetails.BillingCycles[1].PricingScheme.FixedPrice.Value, CultureInfo.InvariantCulture)
+                        : 0;
+                }
+                else if (planDetails.BillingCycles.Length == 1)
+                {
+                    planDetail.RegularIntervalUnit = planDetails.BillingCycles[0].Frequency.IntervalUnit;
+                    planDetail.RegularIntervalCount = planDetails.BillingCycles[0].Frequency.IntervalCount;
+                    planDetail.RegularTotalCycles = planDetails.BillingCycles[0].TotalCycles;
+                    planDetail.RegularFixedPrice = planDetails.BillingCycles[0].PricingScheme.FixedPrice?.Value != null
+                        ? decimal.Parse(planDetails.BillingCycles[0].PricingScheme.FixedPrice.Value, CultureInfo.InvariantCulture)
+                        : 0;
+                }
+
+                _context.PlanDetails.Add(planDetail);
+                await _context.SaveChangesAsync();
+              
             }
-            else if (planRequest.billing_cycles.Count == 1)
+            catch (Exception ex)
             {
-                // Solo hay ciclo regular
-                planDetails.RegularIntervalUnit = planRequest.billing_cycles[0].frequency.interval_unit;
-                planDetails.RegularIntervalCount = planRequest.billing_cycles[0].frequency.interval_count;
-                planDetails.RegularTotalCycles = planRequest.billing_cycles[0].total_cycles;
-                planDetails.RegularFixedPrice = decimal.Parse(planRequest.billing_cycles[0].pricing_scheme.fixed_price.value, CultureInfo.InvariantCulture);
+               
+                throw;
             }
-
-            _context.PlanDetails.Add(planDetails);
-            await _context.SaveChangesAsync();
         }
         public async Task UpdatePlanStatusInDatabase(string planId, string status)
         {

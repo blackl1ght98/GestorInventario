@@ -1,24 +1,28 @@
-﻿using GestorInventario.Application.Services;
+﻿using AutoMapper;
+using GestorInventario.Application.Classes;
+using GestorInventario.Application.Politicas_Resilencia;
+using GestorInventario.Application.Services;
+using GestorInventario.Application.Services.Authentication;
+using GestorInventario.Configuracion;
+using GestorInventario.Configuracion.Strategies;
 using GestorInventario.Domain.Models;
+using GestorInventario.Infraestructure.Controllers;
 using GestorInventario.Infraestructure.Repositories;
+using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
-using Microsoft.EntityFrameworkCore;
-using System.Text.Json.Serialization;
-using GestorInventario.Application.Politicas_Resilencia;
-using GestorInventario.PaginacionLogica;
 using GestorInventario.Middlewares;
-using GestorInventario.Configuracion;
-using StackExchange.Redis;
+using GestorInventario.Middlewares.Strategis;
+using GestorInventario.PaginacionLogica;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.AspNetCore.DataProtection;
-using GestorInventario.Infraestructure.Controllers;
-using GestorInventario.Configuracion.Strategies;
-using GestorInventario.Application.Services.Authentication;
-using GestorInventario.Middlewares.Strategis;
-using GestorInventario.Infraestructure.Utils;
+using Microsoft.Extensions.DependencyInjection;
+using StackExchange.Redis;
+using System.Reflection;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 // Agregar variables de entorno a la configuración
@@ -82,7 +86,53 @@ builder.Services.AddTransient<IProveedorRepository, ProveedorRepository>();
 builder.Services.AddTransient<IPdfService, PdfService>();
 builder.Services.AddTransient<IPaypalRepository, PaypalRepository>();
 builder.Services.AddTransient<IEncryptionService, EncryptionService>();
-builder.Services.AddAutoMapper(typeof(Program).Assembly);
+//builder.Services.AddAutoMapper(cfg =>
+//{
+
+//    cfg.AddProfile<UserProfile>();
+//    cfg.AddProfile<PaypalProfile>();
+
+//});
+
+
+// Registrar AutoMapper
+builder.Services.AddAutoMapper(cfg =>
+{
+    var assemblies = AppDomain.CurrentDomain.GetAssemblies()
+        .Where(a => !a.IsDynamic && !a.FullName.StartsWith("System", StringComparison.OrdinalIgnoreCase)
+                 && !a.FullName.StartsWith("Microsoft", StringComparison.OrdinalIgnoreCase))
+        .ToList();
+
+    // Obtener el IServiceProvider para resolver dependencias
+    var serviceProvider = builder.Services.BuildServiceProvider();
+
+    foreach (var assembly in assemblies)
+    {
+        foreach (var profileType in assembly.GetTypes()
+            .Where(t => typeof(Profile).IsAssignableFrom(t) && !t.IsAbstract && !t.IsInterface))
+        {
+            try
+            {
+                // Intentar instanciar el perfil usando el contenedor de inyección de dependencias
+                var profileInstance = (Profile)ActivatorUtilities.CreateInstance(serviceProvider, profileType);
+                cfg.AddProfile(profileInstance);
+            }
+            catch (Exception ex)
+            {
+                // Registrar el error para depuración
+                Console.WriteLine($"Error al instanciar el perfil {profileType.FullName}: {ex.Message}");
+            }
+        }
+    }
+
+
+});
+
+
+
+
+
+
 // Comprobamos si Redis se está usando...
 bool useRedis = bool.Parse(Environment.GetEnvironmentVariable("USE_REDIS") ?? "false");
 

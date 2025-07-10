@@ -349,8 +349,8 @@ namespace GestorInventario.Application.Services
 
         public async Task<string> CreateSubscriptionPlanAsync(string productId, string planName, string description, decimal amount, string currency, int trialDays = 0, decimal trialAmount = 0.00m)
         {
-            System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
-            System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
+            System.Threading.Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+            System.Threading.Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
 
             var authToken = await GetAccessTokenAsync();
 
@@ -358,81 +358,78 @@ namespace GestorInventario.Application.Services
             {
                 httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-               
+
                 try
                 {
-                    /*Como no se sabe que tipo de dato viene en el json se pone que es de tipo object*/
-                    var billingCycles = new List<object>();
+                    var billingCycles = new List<BillingCycleDto>();
 
                     // Si hay días de prueba, agrega el ciclo de prueba
                     if (trialDays > 0)
                     {
-                        //Como lo primero que encontramos es un array la forma de ponerlo es asi
-                        billingCycles.Add(new
+                        billingCycles.Add(new BillingCycleDto
                         {
-                            //Dentro de este array podemos tener objetos con propiedades la forma de ponerlo es asi
-                            frequency = new
+                            TenureType = "TRIAL",
+                            Sequence = 1, // Primer ciclo
+                            Frequency = new FrequencyDto
                             {
-                                interval_unit = "DAY", //valores admitidos DAY,WEEK,MONTH,YEAR
-                                interval_count = trialDays
+                                IntervalUnit = "DAY",
+                                IntervalCount = trialDays
                             },
-                            tenure_type = "TRIAL", //Valores admitidos TRIAL O REGULAR
-                            sequence = 1,
-                            total_cycles = 1,
-                            pricing_scheme = new
+                            TotalCycles = 1,
+                            PricingScheme = new PricingSchemeDto
                             {
-                                fixed_price = new
+                                FixedPrice = new FixedPriceDto
                                 {
-                                    value = trialAmount.ToString("0.00", CultureInfo.InvariantCulture),
-                                    currency_code = currency
+                                    Value = trialAmount.ToString("0.00", CultureInfo.InvariantCulture),
+                                    CurrencyCode = currency
                                 }
                             }
                         });
                     }
 
                     // Agrega el ciclo regular
-                    billingCycles.Add(new
+                    billingCycles.Add(new BillingCycleDto
                     {
-                        frequency = new
+                        TenureType = "REGULAR",
+                        Sequence = trialDays > 0 ? 2 : 1, // Segundo ciclo si hay prueba, primero si no
+                        Frequency = new FrequencyDto
                         {
-                            interval_unit = "MONTH",
-                            interval_count = 1
+                            IntervalUnit = "MONTH",
+                            IntervalCount = 1
                         },
-                        tenure_type = "REGULAR",
-                        sequence = billingCycles.Count + 1, // Este valor será 1 si no hay período de prueba, o 2 si lo hay
-                        total_cycles = 12,
-                        pricing_scheme = new
+                        TotalCycles = 12,
+                        PricingScheme = new PricingSchemeDto
                         {
-                            fixed_price = new
+                            FixedPrice = new FixedPriceDto
                             {
-                                value = amount.ToString("0.00", CultureInfo.InvariantCulture),
-                                currency_code = currency
+                                Value = amount.ToString("0.00", CultureInfo.InvariantCulture),
+                                CurrencyCode = currency
                             }
                         }
                     });
 
-                    var planRequest = new
+                    var planRequest = new PaypalPlanDetailsDto
                     {
-                        product_id = productId,
-                        name = planName,
-                        description = description,
-                        status = "ACTIVE",
-                        billing_cycles = billingCycles,
-                        payment_preferences = new
+                        ProductId = productId,
+                        Name = planName,
+                        Description = description,
+                        Status = "ACTIVE",
+                        BillingCycles = billingCycles.ToArray(),
+                        PaymentPreferences = new PaymentPreferencesDto
                         {
-                            auto_bill_outstanding = true,
-                            setup_fee = new
+                            AutoBillOutstanding = true,
+                            SetupFee = new FixedPriceDto
                             {
-                                value = "0.00",
-                                currency_code = currency
+                                Value = "0.00",
+                                CurrencyCode = currency
                             },
-                            setup_fee_failure_action = "CONTINUE",
-                            payment_failure_threshold = 3
+                            SetupFeeFailureAction = "CONTINUE",
+                            PaymentFailureThreshold = 3
                         },
-                        taxes = new
+                        Taxes = new TaxesDto
                         {
-                            percentage = "10",
-                            inclusive = false
+                            Percentage = "10",
+                            Inclusive = false
                         }
                     };
 
@@ -443,12 +440,10 @@ namespace GestorInventario.Application.Services
                     {
                         var responseContent = await response.Content.ReadAsStringAsync();
                         dynamic responseObject = JsonConvert.DeserializeObject(responseContent);
-
-                        // Obtener la ID del plan creado desde la respuesta de PayPal
                         string createdPlanId = responseObject.id;
 
                         // Guardar los detalles del plan en la base de datos con la ID de PayPal
-                        await  _repository.SavePlanDetailsToDatabase(createdPlanId, planRequest);
+                        await _repository.SavePlanDetailsAsync(createdPlanId, planRequest);
 
                         return responseContent;
                     }
@@ -460,15 +455,11 @@ namespace GestorInventario.Application.Services
                 }
                 catch (Exception ex)
                 {
-                    // Aquí manejamos el error para evitar que se propague y estropee el flujo
-                    Console.WriteLine($"Error controlado al crear el plan de suscripción: {ex.Message}");
-
-                    // Opcionalmente, puedes devolver un mensaje personalizado
+                    _logger.LogError(ex, "Error al crear el plan de suscripción");
                     return $"{{\"error\":\"Se produjo un error al crear el plan de suscripción: {ex.Message}\"}}";
                 }
             }
         }
-
         #endregion
         #region desactivar plan de suscripcion
         public async Task<string> DesactivarPlan(string productId, string planId)
