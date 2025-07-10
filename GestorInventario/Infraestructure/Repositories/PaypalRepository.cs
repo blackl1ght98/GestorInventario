@@ -6,22 +6,38 @@ using System.Globalization;
 
 namespace GestorInventario.Infraestructure.Repositories
 {
-    public class PaypalRepository:IPaypalRepository
+    public class PaypalRepository : IPaypalRepository
     {
         public readonly GestorInventarioContext _context;
-        private readonly IPaypalService _paypalService;
+     
         private readonly ILogger<PaypalRepository> _logger;
-        public PaypalRepository(GestorInventarioContext context, IPaypalService service, ILogger<PaypalRepository> logger)
+        public PaypalRepository(GestorInventarioContext context, ILogger<PaypalRepository> logger)
         {
             _context = context;
-            _paypalService = service;
+          
             _logger = logger;
         }
 
-        public async Task<List<SubscriptionDetail>> ObtenerSuscriptcionesActivas(string planId) => await _context.SubscriptionDetails.Where(s => s.PlanId == planId && s.Status != "CANCELLED").ToListAsync();
-        public async Task<List<UserSubscription>> SusbcripcionesUsuario(string planId)=> await _context.UserSubscriptions.Where(us => us.PaypalPlanId == planId).ToListAsync();
-        public async Task<SubscriptionDetail> ObtenerSubscripcion(string subscription_id) => await _context.SubscriptionDetails.FirstOrDefaultAsync(x => x.SubscriptionId == subscription_id);
-      
+        public async Task<List<SubscriptionDetail>> ObtenerSuscriptcionesActivas(string planId)
+        {
+            return await _context.SubscriptionDetails
+                .Where(s => s.PlanId == planId && s.Status != "CANCELLED")
+                .ToListAsync();
+        }
+
+        public async Task<List<UserSubscription>> SusbcripcionesUsuario(string planId)
+        {
+            return await _context.UserSubscriptions
+                .Where(us => us.PaypalPlanId == planId)
+                .ToListAsync();
+        }
+
+        public async Task<SubscriptionDetail> ObtenerSubscripcion(string subscription_id)
+        {
+            return await _context.SubscriptionDetails
+                .FirstOrDefaultAsync(x => x.SubscriptionId == subscription_id);
+        }
+
         public async Task SavePlanDetailsAsync(string planId, PaypalPlanDetailsDto planDetails)
         {
             try
@@ -91,6 +107,73 @@ namespace GestorInventario.Infraestructure.Repositories
                 throw;
             }
         }
-       
+
+        public async Task UpdatePlanStatusAsync(string planId, string status)
+        {
+            var planDetails = await _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId);
+            if (planDetails != null)
+            {
+                planDetails.Status = status;
+                _context.PlanDetails.Update(planDetails);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation($"Estado del plan {planId} actualizado a {status}");
+            }
+        }
+
+        public async Task<(Pedido Pedido, decimal TotalAmount)> GetPedidoWithDetailsAsync(int pedidoId)
+        {
+            try
+            {
+                var pedido = await _context.Pedidos
+                    .Include(p => p.DetallePedidos)
+                    .ThenInclude(d => d.Producto)
+                    .FirstOrDefaultAsync(p => p.Id == pedidoId);
+
+                if (pedido == null || string.IsNullOrEmpty(pedido.SaleId))
+                    throw new ArgumentException("Pedido no encontrado o SaleId no disponible.");
+
+                if (string.IsNullOrEmpty(pedido.Currency))
+                    throw new ArgumentException("El código de moneda no está definido.");
+
+                decimal totalAmount = pedido.DetallePedidos.Sum(d => d.Producto.Precio * (d.Cantidad ?? 0));
+
+                return (pedido, totalAmount);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al obtener el pedido {pedidoId}");
+                throw;
+            }
+        }
+
+        public async Task UpdatePedidoStatusAsync(int pedidoId, string status)
+        {
+            try
+            {
+                var pedido = await _context.Pedidos.FindAsync(pedidoId);
+                if (pedido == null)
+                    throw new ArgumentException($"Pedido con ID {pedidoId} no encontrado.");
+
+                pedido.EstadoPedido = status;
+                _context.Update(pedido);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation($"Estado del pedido {pedidoId} actualizado a {status}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al actualizar el estado del pedido {pedidoId}");
+                throw;
+            }
+        }
+        public async Task UpdatePlanStatusInDatabase(string planId, string status)
+        {
+            var planDetails = await _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId);
+            if (planDetails != null)
+            {
+                planDetails.Status = status;
+                _context.PlanDetails.Update(planDetails);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

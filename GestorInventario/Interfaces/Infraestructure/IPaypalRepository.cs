@@ -10,6 +10,9 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<SubscriptionDetail> ObtenerSubscripcion(string subscription_id);
  
         Task SavePlanDetailsAsync(string planId, PaypalPlanDetailsDto planDetails);
-
+        Task UpdatePlanStatusAsync(string planId, string status);
+        Task<(Pedido Pedido, decimal TotalAmount)> GetPedidoWithDetailsAsync(int pedidoId);
+        Task UpdatePedidoStatusAsync(int pedidoId, string status);
+        Task UpdatePlanStatusInDatabase(string planId, string status);
     }
 }

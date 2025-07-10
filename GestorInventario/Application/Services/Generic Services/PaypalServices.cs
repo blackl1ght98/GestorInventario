@@ -24,18 +24,18 @@ namespace GestorInventario.Application.Services
        
         private readonly ILogger<PaypalServices> _logger;
         private readonly IMemoryCache _cache;
-        private readonly IPaypalServiceRepository _repository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IHttpContextAccessor _contextAccesor;
         private readonly IEmailService _emailService;
         public PaypalServices(IConfiguration configuration, ILogger<PaypalServices> logger, 
-            IMemoryCache memory, IPaypalServiceRepository repo, IHttpContextAccessor contex, IEmailService email)
+            IMemoryCache memory, IUnitOfWork unit, IHttpContextAccessor contex, IEmailService email)
         {
            
             _configuration = configuration;
           _contextAccesor = contex;
             _logger = logger;
             _cache = memory;
-            _repository = repo;
+            _unitOfWork = unit;
            _emailService = email;
         }
 
@@ -204,7 +204,7 @@ namespace GestorInventario.Application.Services
             try
             {
                 // Obtener el pedido y el monto total desde el repositorio
-                var (pedido, totalAmount) = await _repository.GetPedidoWithDetailsAsync(pedidoId);
+                var (pedido, totalAmount) = await _unitOfWork.PaypalRepository.GetPedidoWithDetailsAsync(pedidoId);
 
                 // Crear el objeto de solicitud de reembolso
                 var refundRequest = new
@@ -243,7 +243,7 @@ namespace GestorInventario.Application.Services
                     _logger.LogInformation("Reembolso exitoso: {response}", jsonResponse);
 
                     // Actualizar el estado del pedido usando UnitOfWork
-                    await _repository.UpdatePedidoStatusAsync(pedidoId, "Reembolsado");
+                    await _unitOfWork.PaypalRepository.UpdatePedidoStatusAsync(pedidoId, "Reembolsado");
 
                     return jsonResponse;
                 }
@@ -443,7 +443,7 @@ namespace GestorInventario.Application.Services
                         string createdPlanId = responseObject.id;
 
                         // Guardar los detalles del plan en la base de datos con la ID de PayPal
-                        await _repository.SavePlanDetailsAsync(createdPlanId, planRequest);
+                        await _unitOfWork.PaypalRepository.SavePlanDetailsAsync(createdPlanId, planRequest);
 
                         return responseContent;
                     }
@@ -478,7 +478,7 @@ namespace GestorInventario.Application.Services
                         $"https://api-m.sandbox.paypal.com/v1/billing/plans/{planId}/deactivate",
                         null); 
                    
-                    await _repository.UpdatePlanStatusInDatabase(planId, "INACTIVE");
+                    await _unitOfWork.PaypalRepository.UpdatePlanStatusInDatabase(planId, "INACTIVE");
                 }
                 else
                 {
