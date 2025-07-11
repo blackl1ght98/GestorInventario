@@ -1,6 +1,6 @@
 ﻿namespace GestorInventario.Application.DTOs
 {
-    public class PaypayRequest
+    public class PaypalRequest
     {
         public string subscription_id { get; set; }
     }

@@ -2,7 +2,7 @@
 
 namespace GestorInventario.Application.DTOs
 {
-    public class DTORestorePass
+    public class RestoresPasswordDto
     {
         public int UserId { get; set; }
         public string Token { get; set; }
@@ -10,6 +10,6 @@ namespace GestorInventario.Application.DTOs
         public string Password { get; set; }
         [Required]
         public string TemporaryPassword { get; set; }
-        public string? email { get; set; }
+       
     }
 }

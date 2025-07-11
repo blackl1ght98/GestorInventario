@@ -5,11 +5,11 @@ namespace GestorInventario.Interfaces.Application
 {
     public interface IEmailService
     {
-        Task<(bool, string)> SendEmailAsyncRegister(DTOEmail userDataRegister, Usuario usuarioDB);
-            Task<(bool, string, string)> SendEmailAsyncResetPassword(DTOEmail userDataResetPassword);
-        Task SendEmailAsyncLowStock(DTOEmail correo, Producto producto);
-        Task SendEmailCreateProduct(DTOEmail correo, string productName);
+        Task<(bool, string)> SendEmailAsyncRegister(EmailDto userDataRegister, Usuario usuarioDB);
+            Task<(bool, string, string)> SendEmailAsyncResetPassword(EmailDto userDataResetPassword);
+        Task SendEmailAsyncLowStock(EmailDto correo, Producto producto);
+        Task SendEmailCreateProduct(EmailDto correo, string productName);
      
-        Task SendEmailAsyncRembolso(DTOEmailRembolso correo);
+        Task SendEmailAsyncRembolso(EmailRembolsoDto correo);
     }
 }

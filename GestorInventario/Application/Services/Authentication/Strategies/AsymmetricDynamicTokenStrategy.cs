@@ -31,7 +31,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
             _logger = logger;
             _context = context;
         }
-        public async Task<DTOLoginResponse> GenerateTokenAsync(Usuario credencialesUsuario)
+        public async Task<LoginResponseDto> GenerateTokenAsync(Usuario credencialesUsuario)
         {
             var usuarioDB = await _context.Usuarios
                 .Include(u => u.IdRolNavigation)
@@ -135,7 +135,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
                 var tokenPayload = new JwtSecurityTokenHandler().ReadJwtToken(tokenString).Claims
                     .Select(c => $"{c.Type}: {c.Value}");
                 _logger.LogInformation($"Claims en el token: {string.Join(", ", tokenPayload)}");
-                return new DTOLoginResponse()
+                return new LoginResponseDto()
                 {
                     Id = credencialesUsuario.Id,
                     Token = tokenString,

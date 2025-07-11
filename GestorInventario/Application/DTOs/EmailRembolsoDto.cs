@@ -2,7 +2,7 @@
 
 namespace GestorInventario.Application.DTOs
 {
-    public class DTOEmailRembolso
+    public class EmailRembolsoDto
     {
         public string NumeroPedido { get; set; }
         public string NombreCliente { get; set; }

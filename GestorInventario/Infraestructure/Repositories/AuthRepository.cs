@@ -24,7 +24,7 @@ namespace GestorInventario.Infraestructure.Repositories
         //Los metodos que hay aqui estan todos en AuthController
         public async Task<Usuario> Login(string email)=>await _context.Usuarios.Include(x => x.IdRolNavigation).FirstOrDefaultAsync(u => u.Email == email);
         public async Task<Usuario> ObtenerPorId(int id)=>await _context.Usuarios.FindAsync(id);
-        public async Task<(bool, string)> ValidateResetTokenAsync(DTORestorePass cambio)
+        public async Task<(bool, string)> ValidateResetTokenAsync(RestoresPasswordDto cambio)
         {
             try
             {
@@ -39,7 +39,7 @@ namespace GestorInventario.Infraestructure.Repositories
         }
 
 
-        public async Task<(bool, string)> SetNewPasswordAsync(DTORestorePass cambio)
+        public async Task<(bool, string)> SetNewPasswordAsync(RestoresPasswordDto cambio)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -109,7 +109,7 @@ namespace GestorInventario.Infraestructure.Repositories
             }
            
         }
-        private async Task<(bool valido, string mensaje, Usuario usuario)> ValidarTokenCambioPass(DTORestorePass cambio)
+        private async Task<(bool valido, string mensaje, Usuario usuario)> ValidarTokenCambioPass(RestoresPasswordDto cambio)
         {
             var usuario = await ObtenerPorId(cambio.UserId);
             if (usuario == null)

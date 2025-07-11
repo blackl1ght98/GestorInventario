@@ -44,7 +44,7 @@ namespace GestorInventario.Application.Services
             };
         }
 
-        public async Task<DTOLoginResponse> GenerateTokenAsync(Usuario credencialesUsuario)
+        public async Task<LoginResponseDto> GenerateTokenAsync(Usuario credencialesUsuario)
         {
             var usuarioDB = await _context.Usuarios
                 .Include(u => u.IdRolNavigation)

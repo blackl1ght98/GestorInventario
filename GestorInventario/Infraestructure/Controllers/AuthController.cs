@@ -178,7 +178,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Index", "Admin");
                 }
 
-                var (success, error, userEmail) = await _emailService.SendEmailAsyncResetPassword(new DTOEmail
+                var (success, error, userEmail) = await _emailService.SendEmailAsyncResetPassword(new EmailDto
                 {
                     ToEmail = email
                 });
@@ -215,7 +215,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> RestorePasswordUser(DTORestorePass cambio)
+        public async Task<IActionResult> RestorePasswordUser(RestoresPasswordDto cambio)
         {
             if (!ModelState.IsValid)
             {
@@ -271,7 +271,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     return View();
                 }
 
-                var (success, error, _) = await _emailService.SendEmailAsyncResetPassword(new DTOEmail
+                var (success, error, _) = await _emailService.SendEmailAsyncResetPassword(new EmailDto
                 {
                     ToEmail = email
                 });
@@ -294,11 +294,11 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
         // Método privado para validar token y preparar modelo
-        private async Task<(bool success, string errorMessage, DTORestorePass model)> PrepareRestorePassModel(int userId, string token)
+        private async Task<(bool success, string errorMessage, RestoresPasswordDto model)> PrepareRestorePassModel(int userId, string token)
         {
             try
             {
-                var cambio = new DTORestorePass
+                var cambio = new RestoresPasswordDto
                 {
                     UserId = userId,
                     Token = token

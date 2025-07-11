@@ -152,7 +152,7 @@ namespace GestorInventario.Infraestructure.Controllers
         
         [AllowAnonymous]
         [HttpGet("admin/confirm-registration/{UserId}/{Token}")]
-        public async Task<IActionResult> ConfirmRegistration(DTOConfirmRegistration confirmar)
+        public async Task<IActionResult> ConfirmRegistration(ConfirmRegistrationDto confirmar)
         {
             try
             {               
@@ -167,7 +167,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     _logger.LogCritical("Intento de manipulacion del token por el usuario: " + usuarioDB.Id);
                    
                 }
-                await _confirmEmailService.ConfirmEmail(new DTOConfirmRegistration
+                await _confirmEmailService.ConfirmEmail(new ConfirmRegistrationDto
                 {
                     UserId = confirmar.UserId
                 });
@@ -468,7 +468,7 @@ namespace GestorInventario.Infraestructure.Controllers
         //Metodo para editar el rol se llama desde el script ver-usuario-rol.js
         [HttpPost]
         [Authorize(Roles = "Administrador")]
-        public async Task<IActionResult> CambiarRol([FromBody] CambiarRolRequestDTO request)
+        public async Task<IActionResult> CambiarRol([FromBody] CambiarRolDto request)
         {
             try
             {

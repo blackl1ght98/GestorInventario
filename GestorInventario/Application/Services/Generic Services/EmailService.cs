@@ -38,7 +38,7 @@ namespace GestorInventario.Application.Services
             _hashService = hashService;
         }
         //En este servicio esta la logica para enviar correo electronico
-        public async Task<(bool, string)> SendEmailAsyncRegister(DTOEmail userDataRegister, Usuario usuarioDB)
+        public async Task<(bool, string)> SendEmailAsyncRegister(EmailDto userDataRegister, Usuario usuarioDB)
         {
             try
             {
@@ -54,7 +54,7 @@ namespace GestorInventario.Application.Services
                 usuarioDB.EnlaceCambioPass = textoEnlace;
 
                 // Construir el enlace de recuperación
-                var model = new DTOEmail
+                var model = new EmailDto
                 {
                     RecoveryLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/admin/confirm-registration/{usuarioDB.Id}/{usuarioDB.EnlaceCambioPass}?redirect=true",
                 };
@@ -92,7 +92,7 @@ namespace GestorInventario.Application.Services
             }
         }
 
-        public async Task<(bool,string,string)> SendEmailAsyncResetPassword(DTOEmail userDataResetPassword)
+        public async Task<(bool,string,string)> SendEmailAsyncResetPassword(EmailDto userDataResetPassword)
         {
             using (var transaction = _context.Database.BeginTransaction()) 
             {
@@ -113,7 +113,7 @@ namespace GestorInventario.Application.Services
                         usuarioDB.FechaExpiracionContrasenaTemporal = fechaExpiracion;
                         await _context.UpdateEntityAsync(usuarioDB);
                         // Crear el modelo para la vista del correo electrónico
-                        var model = new DTOEmail
+                        var model = new EmailDto
                         {
                             //Cuando el usuario hace clic en el enlace que se le envia al correo electronico es dirigido la endpoint de restaurar la contraseña(RestorePassword)
                             RecoveryLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/auth/restore-password/{usuarioDB.Id}/{usuarioDB.EnlaceCambioPass}?redirect=true",
@@ -170,10 +170,10 @@ namespace GestorInventario.Application.Services
             return new string(Enumerable.Repeat(chars, length)
            .Select(s => s[random.Next(s.Length)]).ToArray());
         }
-        public async Task SendEmailAsyncLowStock(DTOEmail correo, Producto producto)
+        public async Task SendEmailAsyncLowStock(EmailDto correo, Producto producto)
         {
             // Crear el modelo para la vista del correo electrónico
-            var model = new DTOEmail
+            var model = new EmailDto
             {
                 NombreProducto=producto.NombreProducto,
                 Cantidad=producto.Cantidad,
@@ -201,10 +201,10 @@ namespace GestorInventario.Application.Services
             await smtp.DisconnectAsync(true);
         }
 
-        public async Task SendEmailCreateProduct(DTOEmail correo, string productName)
+        public async Task SendEmailCreateProduct(EmailDto correo, string productName)
         {
             // Crear el modelo para la vista del correo electrónico
-            var model = new DTOEmail
+            var model = new EmailDto
             {
                 NombreProducto = productName
                
@@ -230,7 +230,7 @@ namespace GestorInventario.Application.Services
             await smtp.SendAsync(email);
             await smtp.DisconnectAsync(true);
         }
-        public async Task SendEmailAsyncRembolso(DTOEmailRembolso correo)
+        public async Task SendEmailAsyncRembolso(EmailRembolsoDto correo)
         {
            
             var empleados = await _context.Usuarios
@@ -238,7 +238,7 @@ namespace GestorInventario.Application.Services
                 .Select(u => u.Email)
                 .ToListAsync();
             if (empleados != null) {
-                var model = new DTOEmailRembolso
+                var model = new EmailRembolsoDto
                 {
                     NumeroPedido = correo.NumeroPedido,
                     NombreCliente = correo.NombreCliente,

@@ -128,7 +128,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     {
                         if (producto.Cantidad < 10) 
                         {
-                            await _emailService.SendEmailAsyncLowStock(new DTOEmail
+                            await _emailService.SendEmailAsyncLowStock(new EmailDto
                             {
                                 ToEmail = emailUsuario
                             }, producto);

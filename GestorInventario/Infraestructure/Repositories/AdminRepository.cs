@@ -64,7 +64,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 user.Salt = resultadoHash.Salt;
                 user.FechaRegistro = DateTime.Now;
                 await _context.AddEntityAsync(user);
-                var (success, error) = await _emailService.SendEmailAsyncRegister(new DTOEmail { ToEmail = model.Email }, user);
+                var (success, error) = await _emailService.SendEmailAsyncRegister(new EmailDto { ToEmail = model.Email }, user);
                 if (success)
                 {
 
@@ -144,7 +144,7 @@ namespace GestorInventario.Infraestructure.Repositories
             {
                 user.ConfirmacionEmail = false;
                 user.Email = userVM.Email;
-                var (success, error) = await _emailService.SendEmailAsyncRegister(new DTOEmail { ToEmail = userVM.Email }, user);
+                var (success, error) = await _emailService.SendEmailAsyncRegister(new EmailDto { ToEmail = userVM.Email }, user);
                 if (!success)
                 {
                     _logger.LogWarning("Error al enviar correo de confirmación: {Error}", error);

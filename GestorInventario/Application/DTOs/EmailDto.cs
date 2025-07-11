@@ -1,6 +1,6 @@
 ﻿namespace GestorInventario.Application.DTOs
 {
-    public class DTOEmail
+    public class EmailDto
     {
         public string ToEmail { get; set; }      
         public string? RecoveryLink { get; set; }

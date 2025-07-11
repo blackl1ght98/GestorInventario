@@ -25,7 +25,7 @@ namespace GestorInventario.Application.Services
         }
        
 
-        public async Task<DTOLoginResponse> GenerarToken(Usuario credencialesUsuario)
+        public async Task<LoginResponseDto> GenerarToken(Usuario credencialesUsuario)
         {
             // Generar el token principal
             //var tokenPrincipal = await _tokenService.GenerarTokenAsimetricoDinamico(credencialesUsuario);
@@ -34,7 +34,7 @@ namespace GestorInventario.Application.Services
             var tokenRefresco = await _refreshTokenMethod.GenerarTokenRefresco(credencialesUsuario);
 
             // Devolver ambos tokens en la respuesta
-            return new DTOLoginResponse
+            return new LoginResponseDto
             {
                 Id = tokenPrincipal.Id,
                 Token = tokenPrincipal.Token,

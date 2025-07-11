@@ -14,7 +14,7 @@ namespace GestorInventario.Application.Services
             _context = context;
 
         }   
-        public async Task ConfirmEmail(DTOConfirmRegistration confirm)
+        public async Task ConfirmEmail(ConfirmRegistrationDto confirm)
         {
           
             var usuarioUpdate = _context.Usuarios.AsTracking().FirstOrDefault(x => x.Id == confirm.UserId);

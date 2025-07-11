@@ -866,7 +866,7 @@ namespace GestorInventario.Application.Services
             {
                 var email = _contextAccesor.HttpContext.User.FindFirstValue(ClaimTypes.Email);
                 // Enviar el correo electrónico
-                var emailDto = new DTOEmail
+                var emailDto = new EmailDto
                 {
                     ToEmail = email,
                     NombreProducto = productName

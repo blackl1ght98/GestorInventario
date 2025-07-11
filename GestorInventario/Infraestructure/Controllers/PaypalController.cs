@@ -537,7 +537,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CancelarSuscripcion([FromBody] PaypayRequest request)
+        public async Task<IActionResult> CancelarSuscripcion([FromBody] PaypalRequest request)
         {
             try
             {

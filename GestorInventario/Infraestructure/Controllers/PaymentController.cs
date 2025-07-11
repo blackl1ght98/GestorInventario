@@ -294,7 +294,7 @@ namespace GestorInventario.Infraestructure.Controllers
                    
 
                     // Preparar y enviar el correo a los empleados
-                    var emailRembolso = new DTOEmailRembolso
+                    var emailRembolso = new EmailRembolsoDto
                     {
                         NumeroPedido = rembolso.NumeroPedido,
                         NombreCliente = rembolso.NombreCliente,

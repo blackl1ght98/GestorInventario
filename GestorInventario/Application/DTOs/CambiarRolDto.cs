@@ -1,6 +1,6 @@
 ﻿namespace GestorInventario.Application.DTOs
 {
-    public class CambiarRolRequestDTO
+    public class CambiarRolDto
     {
         public int Id { get; set; }
         public int RolId { get; set; }

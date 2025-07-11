@@ -7,7 +7,7 @@ namespace GestorInventario.Interfaces.Application
     public interface ITokenGenerator
     {
  
-        Task<DTOLoginResponse> GenerateTokenAsync(Usuario credencialesUsuario);
+        Task<LoginResponseDto> GenerateTokenAsync(Usuario credencialesUsuario);
        
       
 
