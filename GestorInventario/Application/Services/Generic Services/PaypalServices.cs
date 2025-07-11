@@ -2,10 +2,10 @@
 using GestorInventario.Application.Classes;
 using GestorInventario.Application.DTOs;
 using GestorInventario.Domain.Models;
-using GestorInventario.Domain.Models.ViewModels.paypal;
 using GestorInventario.Infraestructure.Repositories;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.ViewModels.Paypal;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;

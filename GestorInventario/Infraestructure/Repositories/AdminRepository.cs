@@ -2,10 +2,10 @@
 using GestorInventario.Application.DTOs;
 using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
-using GestorInventario.Domain.Models.ViewModels.user;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
+using GestorInventario.ViewModels.user;
 using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
 namespace GestorInventario.Infraestructure.Repositories

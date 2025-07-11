@@ -1,14 +1,12 @@
 ﻿using AutoMapper;
 using GestorInventario.Application.DTOs;
-using GestorInventario.Application.Politicas_Resilencia;
 using GestorInventario.Application.Services;
-using GestorInventario.Domain.Models.ViewModels;
-using GestorInventario.Domain.Models.ViewModels.user;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.PaginacionLogica;
+using GestorInventario.ViewModels.user;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;

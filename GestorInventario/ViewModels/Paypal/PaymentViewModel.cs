@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.Domain.Models.ViewModels.paypal
+﻿namespace GestorInventario.ViewModels.Paypal
 {
     public class PaymentViewModel
     {

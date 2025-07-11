@@ -1,7 +1,8 @@
-﻿using GestorInventario.PaginacionLogica;
+﻿using GestorInventario.Domain.Models;
+using GestorInventario.PaginacionLogica;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace GestorInventario.Domain.Models.ViewModels.product
+namespace GestorInventario.ViewModels.product
 {
     public class HistorialProductoViewModel
     {

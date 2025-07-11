@@ -1,8 +1,8 @@
 ﻿
 using GestorInventario.Domain.Models;
-using GestorInventario.Domain.Models.ViewModels.order;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
+using GestorInventario.ViewModels.order;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using System.Globalization;

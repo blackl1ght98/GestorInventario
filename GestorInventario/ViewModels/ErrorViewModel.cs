@@ -1,4 +1,4 @@
-namespace GestorInventario.Domain.Models.ViewModels
+namespace GestorInventario.ViewModels
 {
     public class ErrorViewModel
     {

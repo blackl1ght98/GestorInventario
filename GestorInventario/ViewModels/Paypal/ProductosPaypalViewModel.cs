@@ -1,7 +1,7 @@
-﻿using GestorInventario.Domain.Models.ViewModels.product;
+﻿
 using GestorInventario.PaginacionLogica;
 
-namespace GestorInventario.Domain.Models.ViewModels.paypal
+namespace GestorInventario.ViewModels.Paypal
 {
     public class ProductosPaypalViewModel
     {

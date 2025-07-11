@@ -1,5 +1,5 @@
 ﻿using GestorInventario.Domain.Models;
-using GestorInventario.Domain.Models.ViewModels.product;
+using GestorInventario.ViewModels.product;
 
 namespace GestorInventario.Interfaces.Infraestructure
 {

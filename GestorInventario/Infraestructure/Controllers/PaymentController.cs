@@ -14,7 +14,7 @@ using GestorInventario.Application.DTOs;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.MetodosExtension;
 using GestorInventario.Infraestructure.Utils;
-using GestorInventario.Domain.Models.ViewModels.paypal;
+using GestorInventario.ViewModels.Paypal;
 
 namespace GestorInventario.Infraestructure.Controllers
 {

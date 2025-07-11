@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace GestorInventario.Domain.Models.ViewModels.order
+namespace GestorInventario.ViewModels.order
 {
     public class PedidosViewModel
     {

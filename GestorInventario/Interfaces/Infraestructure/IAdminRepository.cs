@@ -1,7 +1,7 @@
 ﻿using GestorInventario.Application.DTOs;
 using GestorInventario.Domain.Models;
 using GestorInventario.Domain.Models.ViewModels;
-using GestorInventario.Domain.Models.ViewModels.user;
+using GestorInventario.ViewModels.user;
 
 namespace GestorInventario.Interfaces.Infraestructure
 {

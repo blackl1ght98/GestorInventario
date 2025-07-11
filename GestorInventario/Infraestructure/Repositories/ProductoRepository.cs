@@ -1,9 +1,9 @@
 ﻿using Aspose.Pdf.Operators;
 using GestorInventario.Domain.Models;
-using GestorInventario.Domain.Models.ViewModels.product;
 using GestorInventario.Interfaces;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
+using GestorInventario.ViewModels.product;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 namespace GestorInventario.Infraestructure.Repositories

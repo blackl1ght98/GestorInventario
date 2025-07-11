@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.Domain.Models.ViewModels.product
+﻿namespace GestorInventario.ViewModels.product
 {
     public class ProductoViewModel
     {

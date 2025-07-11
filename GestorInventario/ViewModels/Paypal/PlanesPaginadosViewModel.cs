@@ -2,7 +2,7 @@
 using GestorInventario.Domain.Models.ViewModels.Paypal.GestorInventario.Domain.Models.ViewModels.Paypal;
 using GestorInventario.PaginacionLogica;
 
-namespace GestorInventario.Domain.Models.ViewModels.paypal
+namespace GestorInventario.ViewModels.Paypal
 {
     public class PlanesPaginadosViewModel
     {

@@ -1,6 +1,7 @@
-﻿using GestorInventario.PaginacionLogica;
+﻿using GestorInventario.Domain.Models;
+using GestorInventario.PaginacionLogica;
 
-namespace GestorInventario.Domain.Models.ViewModels.provider
+namespace GestorInventario.ViewModels.provider
 {
     public class ProviderViewModel
     {
