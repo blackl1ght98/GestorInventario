@@ -132,7 +132,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 var planesViewModel = new List<PlanesViewModel>();
                 foreach (dynamic plan in plans ?? new List<dynamic>())
                 {
-                
+                  
 
                     var viewModel = new PlanesViewModel
                     {
@@ -188,10 +188,20 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             if (dateTime == null) return null;
 
-            string dateString = dateTime.ToString();
+            // Forzar conversión a string para evitar conflictos dinámicos
+            string dateString;
+            try
+            {
+                dateString = Convert.ToString(dateTime);
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+
             if (string.IsNullOrEmpty(dateString)) return null;
 
-          
+            // Log para depurar el valor de la fecha
             _logger.LogInformation("Parseando fecha: {DateTime}", dateString);
 
             // Formatos de fecha soportados
@@ -200,7 +210,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 "yyyy-MM-ddTHH:mm:ssZ", // ISO 8601: "2024-12-01T12:12:46Z"
                 "yyyy-MM-ddTHH:mm:ss.fffZ", // ISO 8601 con milisegundos
                 "dd/MM/yyyy HH:mm:ss", // Formato del log: "01/12/2024 12:12:46"
-                "yyyy-MM-dd HH:mm:ss", // Otros formatos posibles
+                "yyyy-MM-dd HH:mm:ss",
                 "MM/dd/yyyy HH:mm:ss"
             };
 
@@ -268,14 +278,15 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             if (pricingScheme == null) return null;
 
-        
+            // Log para depurar las fechas en pricing_scheme
+       
 
             return new PricingScheme
             {
                 Version = pricingScheme?.version != null ? (int)pricingScheme.version : 0,
                 FixedPrice = MapMoney(pricingScheme?.fixed_price),
-               //CreateTime = ParseDateTimeToString(pricingScheme?.create_time),
-               // UpdateTime = ParseDateTimeToString(pricingScheme?.update_time)
+               CreateTime =pricingScheme?.create_time,
+                UpdateTime = pricingScheme?.update_time
             };
         }
 
@@ -298,6 +309,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 Inclusive = taxes?.inclusive != null && (bool)taxes.inclusive
             };
         }
+    
 
         // Método para crear la lista de categorías a partir de la enumeración
         private List<string> GetCategoriesFromEnum()

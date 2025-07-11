@@ -790,12 +790,10 @@ namespace GestorInventario.Application.Services
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
-                    _logger.LogError("Error al obtener planes: {StatusCode} - {ErrorContent}", response.StatusCode, errorContent);
                     throw new Exception($"Error al obtener planes: {response.StatusCode} - {errorContent}");
                 }
 
                 var responseContent = await response.Content.ReadAsStringAsync();
-                _logger.LogInformation("Respuesta inicial de planes: {ResponseContent}", responseContent);
                 dynamic jsonResponse = JsonConvert.DeserializeObject(responseContent);
 
                 // Verificar si hay enlace "next" para paginación
@@ -828,7 +826,6 @@ namespace GestorInventario.Application.Services
                     plan.links = planDetails.links;
                 }
 
-                _logger.LogInformation("Planes en página {Page}: {Count}", page, plans.Count);
                 return (plans, hasNextPage);
             }
         }
