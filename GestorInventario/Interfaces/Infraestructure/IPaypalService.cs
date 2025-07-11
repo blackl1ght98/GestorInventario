@@ -28,7 +28,8 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<(string ProductsResponse, bool HasNextPage)> GetProductsAsync(int page = 1, int pageSize = 10);
         Task<string> CancelarSuscripcion(string subscription_id, string reason);
         Task<string> GetAccessTokenAsync(string clientId, string clientSecret);
-        Task<(List<Plan> plans, bool HasNextPage)> GetSubscriptionPlansAsync(int page = 1, int pageSize = 10);
+       
+        Task<(List<dynamic> plans, bool HasNextPage)> GetSubscriptionPlansAsyncV2(int page = 1, int pageSize = 6);
         Task<string> CreateProductAndNotifyAsync(string productName, string productDescription, string productType, string productCategory);
 
 

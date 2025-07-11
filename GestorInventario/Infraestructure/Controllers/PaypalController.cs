@@ -3,7 +3,6 @@ using GestorInventario.Application.Classes;
 using GestorInventario.Application.DTOs;
 using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
-using GestorInventario.Domain.Models.ViewModels.Paypal.GestorInventario.Domain.Models.ViewModels.Paypal;
 using GestorInventario.enums;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Infraestructure;
@@ -124,10 +123,31 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 // Obtener planes de suscripción de PayPal
                 var (plans, hasNextPage) = await _policyExecutor.ExecutePolicyAsync(() =>
-                    _paypalService.GetSubscriptionPlansAsync(pagina, cantidadAMostrar));
+                    _paypalService.GetSubscriptionPlansAsyncV2(pagina, cantidadAMostrar));
 
-                // Mapear los planes a PlanesViewModel
-                var planesViewModel = _mapper.Map<List<PlanesViewModel>>(plans ?? new List<Plan>());
+                // Log del JSON completo para depuración
+                _logger.LogInformation("JSON de planes: {Plans}", JsonConvert.SerializeObject(plans));
+
+                // Mapear manualmente los planes dinámicos a PlanesViewModel
+                var planesViewModel = new List<PlanesViewModel>();
+                foreach (dynamic plan in plans ?? new List<dynamic>())
+                {
+                
+
+                    var viewModel = new PlanesViewModel
+                    {
+                        id = plan?.id?.ToString(),
+                        productId = plan?.product_id?.ToString(),
+                        name = plan?.name?.ToString(),
+                        description = plan?.description?.ToString(),
+                        status = plan?.status?.ToString(),
+                        usage_type = plan?.usage_type?.ToString(),
+                        createTime = ParseDateTimeToString(plan?.create_time),
+                        billing_cycles = MapBillingCycles(plan?.billing_cycles),
+                        Taxes = MapTaxes(plan?.taxes)
+                    };
+                    planesViewModel.Add(viewModel);
+                }
 
                 // Calcular TotalPaginas basado en hasNextPage (aproximación)
                 int totalPaginas = hasNextPage ? pagina + 1 : pagina;
@@ -163,7 +183,122 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-    
+
+        private string ParseDateTimeToString(dynamic dateTime)
+        {
+            if (dateTime == null) return null;
+
+            string dateString = dateTime.ToString();
+            if (string.IsNullOrEmpty(dateString)) return null;
+
+          
+            _logger.LogInformation("Parseando fecha: {DateTime}", dateString);
+
+            // Formatos de fecha soportados
+            string[] formats = new[]
+            {
+                "yyyy-MM-ddTHH:mm:ssZ", // ISO 8601: "2024-12-01T12:12:46Z"
+                "yyyy-MM-ddTHH:mm:ss.fffZ", // ISO 8601 con milisegundos
+                "dd/MM/yyyy HH:mm:ss", // Formato del log: "01/12/2024 12:12:46"
+                "yyyy-MM-dd HH:mm:ss", // Otros formatos posibles
+                "MM/dd/yyyy HH:mm:ss"
+            };
+
+            try
+            {
+                // Intentar parsear la fecha con los formatos soportados
+                if (DateTime.TryParseExact(
+                    dateString,
+                    formats,
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.RoundtripKind | DateTimeStyles.AllowWhiteSpaces,
+                    out DateTime parsedDate))
+                {
+                    return parsedDate.ToString("o"); // Devolver en formato ISO 8601
+                }
+
+                // Intentar parseo genérico como respaldo
+                if (DateTime.TryParse(dateString, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
+                {
+                    return parsedDate.ToString("o");
+                }
+
+                // Si no se puede parsear, devolver el string original
+                _logger.LogWarning("No se pudo parsear la fecha: {DateTime}. Devolviendo valor original.", dateString);
+                return dateString;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error al parsear la fecha: {DateTime}. Devolviendo valor original.", dateString);
+                return dateString;
+            }
+        }
+
+        private List<BillingCycle> MapBillingCycles(dynamic billingCycles)
+        {
+            var result = new List<BillingCycle>();
+            if (billingCycles == null) return result;
+
+            foreach (dynamic cycle in (IEnumerable<dynamic>)billingCycles)
+            {
+                var billingCycle = new BillingCycle
+                {
+                    TenureType = cycle?.tenure_type?.ToString(),
+                    Sequence = cycle?.sequence != null ? (int)cycle.sequence : 0,
+                    TotalCycles = cycle?.total_cycles != null ? (int)cycle.total_cycles : 0,
+                    Frequency = MapFrequency(cycle?.frequency),
+                    PricingScheme = MapPricingScheme(cycle?.pricing_scheme)
+                };
+                result.Add(billingCycle);
+            }
+            return result;
+        }
+
+        private Frequency MapFrequency(dynamic frequency)
+        {
+            if (frequency == null) return null;
+            return new Frequency
+            {
+                IntervalUnit = frequency?.interval_unit?.ToString(),
+                IntervalCount = frequency?.interval_count != null ? (int)frequency.interval_count : 0
+            };
+        }
+
+        private PricingScheme MapPricingScheme(dynamic pricingScheme)
+        {
+            if (pricingScheme == null) return null;
+
+        
+
+            return new PricingScheme
+            {
+                Version = pricingScheme?.version != null ? (int)pricingScheme.version : 0,
+                FixedPrice = MapMoney(pricingScheme?.fixed_price),
+               //CreateTime = ParseDateTimeToString(pricingScheme?.create_time),
+               // UpdateTime = ParseDateTimeToString(pricingScheme?.update_time)
+            };
+        }
+
+        private Money MapMoney(dynamic money)
+        {
+            if (money == null) return null;
+            return new Money
+            {
+                CurrencyCode = money?.currency_code?.ToString(),
+                Value = money?.value?.ToString()
+            };
+        }
+
+        private Taxes MapTaxes(dynamic taxes)
+        {
+            if (taxes == null) return null;
+            return new Taxes
+            {
+                Percentage = taxes?.percentage?.ToString(),
+                Inclusive = taxes?.inclusive != null && (bool)taxes.inclusive
+            };
+        }
+
         // Método para crear la lista de categorías a partir de la enumeración
         private List<string> GetCategoriesFromEnum()
         {

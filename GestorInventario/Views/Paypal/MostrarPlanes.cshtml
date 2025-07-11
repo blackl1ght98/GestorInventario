@@ -46,22 +46,22 @@
                                         @foreach (var cycle in plan.billing_cycles)
                                         {
                                             <li class="mb-2">
-                                                @if (cycle.tenure_type == "TRIAL")
+                                                @if (cycle.TenureType == "TRIAL")
                                                 {
                                                     <span>
                                                         <i class="bi bi-gift me-2 text-success"></i>
-                                                        Período de Prueba (@cycle.total_cycles ciclo@(cycle.total_cycles != 1 ? "s" : "")):
-                                                        @(cycle.frequency.interval_count)
-                                                        @(cycle.frequency.interval_unit.ToLower() == "month" ? (cycle.frequency.interval_count == 1 ? "mes" : "meses") : cycle.frequency.interval_unit.ToLower())
-                                                        - @cycle.pricing_scheme.fixed_price.value @cycle.pricing_scheme.fixed_price.currency_code
+                                                        Período de Prueba (@cycle.TotalCycles ciclo@(cycle.TotalCycles != 1 ? "s" : "")):
+                                                        @(cycle.Frequency.IntervalCount)
+                                                        @(cycle.Frequency.IntervalUnit.ToLower() == "month" ? (cycle.Frequency.IntervalCount == 1 ? "mes" : "meses") : cycle.Frequency.IntervalUnit.ToLower())
+                                                        - @cycle.PricingScheme.FixedPrice.Value @cycle.PricingScheme.FixedPrice.CurrencyCode
                                                     </span>
                                                 }
                                                 else
                                                 {
                                                     <span>
                                                         <i class="bi bi-wallet2 me-2 text-primary"></i>
-                                                        Ciclo Regular (@cycle.total_cycles ciclo@(cycle.total_cycles != 1 ? "s" : "")):
-                                                        @cycle.frequency.interval_unit - @cycle.pricing_scheme.fixed_price.value @cycle.pricing_scheme.fixed_price.currency_code
+                                                        Ciclo Regular (@cycle.TotalCycles ciclo@(cycle.TotalCycles != 1 ? "s" : "")):
+                                                        @cycle.Frequency.IntervalUnit - @cycle.PricingScheme.FixedPrice.Value @cycle.PricingScheme.FixedPrice.CurrencyCode
                                                     </span>
                                                 }
                                             </li>
@@ -74,14 +74,14 @@
                                         string currencyCode = null;
                                         string intervalUnit = null;
 
-                                        var regularCycle = plan.billing_cycles.FirstOrDefault(c => c.tenure_type == "REGULAR");
-                                        if (regularCycle != null && plan.Taxes != null && decimal.TryParse(plan.Taxes.percentage, out var taxPercentage))
+                                        var regularCycle = plan.billing_cycles.FirstOrDefault(c => c.TenureType == "REGULAR");
+                                        if (regularCycle != null && plan.Taxes != null && decimal.TryParse(plan.Taxes.Percentage, out var taxPercentage))
                                         {
-                                            var price = decimal.Parse(regularCycle.pricing_scheme.fixed_price.value);
+                                            var price = decimal.Parse(regularCycle.PricingScheme.FixedPrice.Value);
                                             var taxAmount = price * (taxPercentage / 100);
                                             totalWithTax = price + taxAmount;
-                                            currencyCode = regularCycle.pricing_scheme.fixed_price.currency_code;
-                                            intervalUnit = regularCycle.frequency.interval_unit;
+                                            currencyCode = regularCycle.PricingScheme.FixedPrice.CurrencyCode;
+                                            intervalUnit = regularCycle.Frequency.IntervalUnit;
                                         }
                                     }
 

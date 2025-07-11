@@ -774,7 +774,8 @@ namespace GestorInventario.Application.Services
             }
         }
 
-        public async Task<(List<Plan> plans, bool HasNextPage)> GetSubscriptionPlansAsync(int page = 1, int pageSize = 6)
+
+        public async Task<(List<dynamic> plans, bool HasNextPage)> GetSubscriptionPlansAsyncV2(int page = 1, int pageSize = 6)
         {
             var authToken = await GetAccessTokenAsync();
 
@@ -789,47 +790,48 @@ namespace GestorInventario.Application.Services
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("Error al obtener planes: {StatusCode} - {ErrorContent}", response.StatusCode, errorContent);
                     throw new Exception($"Error al obtener planes: {response.StatusCode} - {errorContent}");
                 }
 
                 var responseContent = await response.Content.ReadAsStringAsync();
+                _logger.LogInformation("Respuesta inicial de planes: {ResponseContent}", responseContent);
                 dynamic jsonResponse = JsonConvert.DeserializeObject(responseContent);
-                var links = ((IEnumerable<dynamic>)jsonResponse.links).ToList();
-                bool hasNextPage = links.Any(link => link.rel == "next");
 
-                // Paso 2: Deserializar la lista de planes
-                var plansList = JsonConvert.DeserializeObject<PlansResponse>(responseContent);
-                var plans = plansList.Plans ?? new List<Plan>();
+                // Verificar si hay enlace "next" para paginación
+                bool hasNextPage = ((IEnumerable<dynamic>)jsonResponse.links).Any(link => link.rel == "next");
 
-                // Paso 3: Obtener los detalles completos de cada plan
+                // Obtener la lista de planes
+                var plans = ((IEnumerable<dynamic>)jsonResponse.plans).ToList();
+
+                // Paso 2: Obtener detalles completos de cada plan
                 foreach (var plan in plans)
                 {
                     string planDetailsUrl = $"https://api.sandbox.paypal.com/v1/billing/plans/{plan.id}";
                     var planResponse = await httpClient.GetAsync(planDetailsUrl);
-                    if (planResponse.IsSuccessStatusCode)
-                    {
-                        var planDetailsContent = await planResponse.Content.ReadAsStringAsync();
-                        var planDetails = JsonConvert.DeserializeObject<Plan>(planDetailsContent);
-
-                        // Actualizar el plan con los detalles completos
-                        plan.billing_cycles = planDetails.billing_cycles;
-                        plan.taxes = planDetails.taxes;
-                        // También puedes actualizar otros campos si es necesario
-                        plan.description = planDetails.description ?? plan.description;
-                        plan.status = planDetails.status ?? plan.status;
-                    }
-                    else
+                    if (!planResponse.IsSuccessStatusCode)
                     {
                         var errorContent = await planResponse.Content.ReadAsStringAsync();
+                  
                         throw new Exception($"Error al obtener detalles del plan {plan.id}: {planResponse.StatusCode} - {errorContent}");
                     }
+
+                    var planDetailsContent = await planResponse.Content.ReadAsStringAsync();
+                 
+                    dynamic planDetails = JsonConvert.DeserializeObject(planDetailsContent);
+
+                    // Actualizar el plan con los detalles completos
+                    plan.billing_cycles = planDetails.billing_cycles;
+                    plan.taxes = planDetails.taxes;
+                    plan.description = planDetails.description ?? plan.description;
+                    plan.status = planDetails.status ?? plan.status;
+                    plan.links = planDetails.links;
                 }
-                Console.WriteLine("Planes en página " + page + ": " + plans.Count);
-               
+
+                _logger.LogInformation("Planes en página {Page}: {Count}", page, plans.Count);
                 return (plans, hasNextPage);
             }
         }
-
         public async Task<string> CancelarSuscripcion(string subscription_id, string reason)
         {
             var authToken = await GetAccessTokenAsync(); 
