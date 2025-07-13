@@ -1,7 +1,7 @@
 ﻿
 using GestorInventario.Application.Classes;
 using GestorInventario.Application.DTOs;
-using GestorInventario.Application.DTOs.Response_paypal.GET;
+
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Repositories;
 using GestorInventario.Interfaces.Application;
