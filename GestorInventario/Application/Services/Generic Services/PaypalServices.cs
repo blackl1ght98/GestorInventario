@@ -776,128 +776,75 @@ namespace GestorInventario.Application.Services
         }
 
 
-        //public async Task<(List<dynamic> plans, bool HasNextPage)> GetSubscriptionPlansAsyncV2(int page = 1, int pageSize = 6)
-        //{
-        //    var authToken = await GetAccessTokenAsync();
 
-        //    using (var httpClient = new HttpClient())
-        //    {
-        //        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-        //        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-        //        // Paso 1: Obtener la lista de planes
-        //        string url = $"https://api.sandbox.paypal.com/v1/billing/plans?page_size={pageSize}&page={page}";
-        //        var response = await httpClient.GetAsync(url);
-        //        if (!response.IsSuccessStatusCode)
-        //        {
-        //            var errorContent = await response.Content.ReadAsStringAsync();
-        //            throw new Exception($"Error al obtener planes: {response.StatusCode} - {errorContent}");
-        //        }
-
-        //        var responseContent = await response.Content.ReadAsStringAsync();
-        //        dynamic jsonResponse = JsonConvert.DeserializeObject(responseContent);
-
-        //        // Verificar si hay enlace "next" para paginación
-        //        bool hasNextPage = ((IEnumerable<dynamic>)jsonResponse.links).Any(link => link.rel == "next");
-
-        //        // Obtener la lista de planes
-        //        var plans = ((IEnumerable<dynamic>)jsonResponse.plans).ToList();
-
-        //        // Paso 2: Obtener detalles completos de cada plan
-        //        foreach (var plan in plans)
-        //        {
-        //            string planDetailsUrl = $"https://api.sandbox.paypal.com/v1/billing/plans/{plan.id}";
-        //            var planResponse = await httpClient.GetAsync(planDetailsUrl);
-        //            if (!planResponse.IsSuccessStatusCode)
-        //            {
-        //                var errorContent = await planResponse.Content.ReadAsStringAsync();
-
-        //                throw new Exception($"Error al obtener detalles del plan {plan.id}: {planResponse.StatusCode} - {errorContent}");
-        //            }
-
-        //            var planDetailsContent = await planResponse.Content.ReadAsStringAsync();
-
-        //            dynamic planDetails = JsonConvert.DeserializeObject(planDetailsContent);
-
-        //            // Actualizar el plan con los detalles completos
-        //            plan.billing_cycles = planDetails.billing_cycles;
-        //            plan.taxes = planDetails.taxes;
-        //            plan.description = planDetails.description ?? plan.description;
-        //            plan.status = planDetails.status ?? plan.status;
-        //            plan.links = planDetails.links;
-        //        }
-
-        //        return (plans, hasNextPage);
-        //    }
-        //}
-      public async Task<(List<dynamic> plans, bool HasNextPage)> GetSubscriptionPlansAsyncV2(int page = 1, int pageSize = 6)
-{
-    var authToken = await GetAccessTokenAsync();
-
-    using (var httpClient = new HttpClient())
-    {
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-        // Paso 1: Obtener la lista de planes
-        string url = $"https://api.sandbox.paypal.com/v1/billing/plans?page_size={pageSize}&page={page}";
-        var response = await httpClient.GetAsync(url);
-        if (!response.IsSuccessStatusCode)
+        public async Task<(List<dynamic> plans, bool HasNextPage)> GetSubscriptionPlansAsyncV2(int page = 1, int pageSize = 6)
         {
-            var errorContent = await response.Content.ReadAsStringAsync();
-            throw new Exception($"Error al obtener planes: {response.StatusCode} - {errorContent}");
-        }
+            var authToken = await GetAccessTokenAsync();
 
-        var responseContent = await response.Content.ReadAsStringAsync();
-        _logger.LogInformation("Respuesta JSON de /v1/billing/plans: {Content}", responseContent);
-
-        // Deserializar la respuesta completa
-        dynamic jsonResponse = JsonConvert.DeserializeObject(responseContent);
-        bool hasNextPage = ((IEnumerable<dynamic>)jsonResponse.links).Any(link => link.rel == "next");
-
-        // Obtener la lista de planes
-        var plansList = ((IEnumerable<dynamic>)jsonResponse.plans).ToList();
-        var typedPlans = new List<PaypalPlanResponse>(); // Usar PaypalPlanResponse
-
-        // Paso 2: Obtener detalles completos de cada plan
-        foreach (var plan in plansList)
-        {
-            string planId = plan.id;
-            try
+            using (var httpClient = new HttpClient())
             {
-                string planDetailsUrl = $"https://api.sandbox.paypal.com/v1/billing/plans/{planId}";
-                var planResponse = await httpClient.GetAsync(planDetailsUrl);
-                if (!planResponse.IsSuccessStatusCode)
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                // Paso 1: Obtener la lista de planes
+                string url = $"https://api.sandbox.paypal.com/v1/billing/plans?page_size={pageSize}&page={page}";
+                var response = await httpClient.GetAsync(url);
+                if (!response.IsSuccessStatusCode)
                 {
-                    var errorContent = await planResponse.Content.ReadAsStringAsync();
-                    throw new Exception($"Error al obtener detalles del plan {planId}: {planResponse.StatusCode} - {errorContent}");
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    throw new Exception($"Error al obtener planes: {response.StatusCode} - {errorContent}");
                 }
 
-                var planDetailsContent = await planResponse.Content.ReadAsStringAsync();
-                _logger.LogInformation("Respuesta JSON de /v1/billing/plans/{PlanId}: {Content}", planId, planDetailsContent);
+                var responseContent = await response.Content.ReadAsStringAsync();
+                _logger.LogInformation("Respuesta JSON de /v1/billing/plans: {Content}", responseContent);
 
-                // Deserializar los detalles completos como PaypalPlanResponse
-                var planDetails = JsonConvert.DeserializeObject<PaypalPlanResponse>(planDetailsContent);
-                typedPlans.Add(planDetails ?? new PaypalPlanResponse()); // Manejar null
-                _logger.LogInformation("Plan mapeado para {PlanId}: {Details}", planId, JsonConvert.SerializeObject(planDetails));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error al procesar detalles del plan {planId}: {ex.Message}");
-                // Omitir el plan en caso de error
+                // Deserializar la respuesta completa
+                dynamic jsonResponse = JsonConvert.DeserializeObject(responseContent);
+                bool hasNextPage = ((IEnumerable<dynamic>)jsonResponse.links).Any(link => link.rel == "next");
+
+                // Obtener la lista de planes
+                var plansList = ((IEnumerable<dynamic>)jsonResponse.plans).ToList();
+                var typedPlans = new List<PaypalPlanResponse>(); // Usar PaypalPlanResponse
+
+                // Paso 2: Obtener detalles completos de cada plan
+                foreach (var plan in plansList)
+                {
+                    string planId = plan.id;
+                    try
+                    {
+                        string planDetailsUrl = $"https://api.sandbox.paypal.com/v1/billing/plans/{planId}";
+                        var planResponse = await httpClient.GetAsync(planDetailsUrl);
+                        if (!planResponse.IsSuccessStatusCode)
+                        {
+                            var errorContent = await planResponse.Content.ReadAsStringAsync();
+                            throw new Exception($"Error al obtener detalles del plan {planId}: {planResponse.StatusCode} - {errorContent}");
+                        }
+
+                        var planDetailsContent = await planResponse.Content.ReadAsStringAsync();
+                        _logger.LogInformation("Respuesta JSON de /v1/billing/plans/{PlanId}: {Content}", planId, planDetailsContent);
+
+                        // Deserializar los detalles completos como PaypalPlanResponse
+                        var planDetails = JsonConvert.DeserializeObject<PaypalPlanResponse>(planDetailsContent);
+                        typedPlans.Add(planDetails ?? new PaypalPlanResponse()); // Manejar null
+                        _logger.LogInformation("Plan mapeado para {PlanId}: {Details}", planId, JsonConvert.SerializeObject(planDetails));
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Error al procesar detalles del plan {planId}: {ex.Message}");
+                        // Omitir el plan en caso de error
+                    }
+                }
+
+                // Convertir los planes tipados a dynamic para mantener la firma
+                var dynamicPlans = typedPlans.Select(plan =>
+                {
+                    string json = JsonConvert.SerializeObject(plan);
+                    return JsonConvert.DeserializeObject<dynamic>(json);
+                }).ToList();
+
+                return (dynamicPlans, hasNextPage);
             }
         }
-
-        // Convertir los planes tipados a dynamic para mantener la firma
-        var dynamicPlans = typedPlans.Select(plan =>
-        {
-            string json = JsonConvert.SerializeObject(plan);
-            return JsonConvert.DeserializeObject<dynamic>(json);
-        }).ToList();
-
-        return (dynamicPlans, hasNextPage);
-    }
-}
         public async Task<string> CancelarSuscripcion(string subscription_id, string reason)
         {
             var authToken = await GetAccessTokenAsync(); 
