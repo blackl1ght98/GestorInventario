@@ -1,103 +1,104 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace GestorInventario.Application.DTOs
 {
     public class PaypalPlanResponse
     {
-        [JsonPropertyName("id")]
+        [JsonProperty("id")]
         [Required(ErrorMessage = "El ID del plan es requerido.")]
         public string Id { get; set; }
 
-        [JsonPropertyName("product_id")]
+        [JsonProperty("product_id")]
         [Required(ErrorMessage = "El ID del producto es requerido.")]
         public string ProductId { get; set; }
 
-        [JsonPropertyName("name")]
+        [JsonProperty("name")]
         [Required(ErrorMessage = "El nombre del plan es requerido.")]
         public string Name { get; set; }
 
-        [JsonPropertyName("status")]
+        [JsonProperty("status")]
         [Required(ErrorMessage = "El estado del plan es requerido.")]
         public string Status { get; set; }
 
-        [JsonPropertyName("description")]
+        [JsonProperty("description")]
         public string Description { get; set; }
 
-        [JsonPropertyName("usage_type")]
+        [JsonProperty("usage_type")]
         public string UsageType { get; set; }
 
-        [JsonPropertyName("billing_cycles")]
+        [JsonProperty("billing_cycles")]
         [Required(ErrorMessage = "Los ciclos de facturación son requeridos.")]
         public List<BillingCycle> BillingCycles { get; set; }
 
-        [JsonPropertyName("payment_preferences")]
+        [JsonProperty("payment_preferences")]
         [Required(ErrorMessage = "Las preferencias de pago son requeridas.")]
         public PaymentPreferences PaymentPreferences { get; set; }
 
-        [JsonPropertyName("taxes")]
+        [JsonProperty("taxes")]
         public Taxes Taxes { get; set; }
 
-        [JsonPropertyName("quantity_supported")]
+        [JsonProperty("quantity_supported")]
         public bool QuantitySupported { get; set; }
 
-        [JsonPropertyName("create_time")]
+        [JsonProperty("create_time")]
         public DateTime CreateTime { get; set; }
 
-        [JsonPropertyName("update_time")]
+        [JsonProperty("update_time")]
         public DateTime UpdateTime { get; set; }
 
-        [JsonPropertyName("links")]
+        [JsonProperty("links")]
         public List<Link> Links { get; set; }
     }
 
     // DTO para los ciclos de facturación
     public class BillingCycle
     {
-        [JsonPropertyName("pricing_scheme")]
+        [JsonProperty("pricing_scheme")]
         [Required(ErrorMessage = "El esquema de precios es requerido.")]
         public PricingScheme PricingScheme { get; set; }
 
-        [JsonPropertyName("frequency")]
+        [JsonProperty("frequency")]
         [Required(ErrorMessage = "La frecuencia es requerida.")]
         public Frequency Frequency { get; set; }
 
-        [JsonPropertyName("tenure_type")]
+        [JsonProperty("tenure_type")]
         [Required(ErrorMessage = "El tipo de tenencia es requerido.")]
         public string TenureType { get; set; }
 
-        [JsonPropertyName("sequence")]
+        [JsonProperty("sequence")]
         public int Sequence { get; set; }
 
-        [JsonPropertyName("total_cycles")]
+        [JsonProperty("total_cycles")]
         public int TotalCycles { get; set; }
     }
 
     // DTO para el esquema de precios
     public class PricingScheme
     {
-        [JsonPropertyName("version")]
+        [JsonProperty("version")]
         public int Version { get; set; }
 
-        [JsonPropertyName("fixed_price")]
+        [JsonProperty("fixed_price")]
         [Required(ErrorMessage = "El precio fijo es requerido.")]
         public Money FixedPrice { get; set; }
 
-        [JsonPropertyName("create_time")]
+        [JsonProperty("create_time")]
         public DateTime CreateTime { get; set; }
 
-        [JsonPropertyName("update_time")]
+        [JsonProperty("update_time")]
         public DateTime UpdateTime { get; set; }
     }
 
     // DTO para el monto
     public class Money
     {
-        [JsonPropertyName("currency_code")]
+        [JsonProperty("currency_code")]
         [Required(ErrorMessage = "El código de moneda es requerido.")]
         public string CurrencyCode { get; set; }
 
-        [JsonPropertyName("value")]
+        [JsonProperty("value")]
         [Required(ErrorMessage = "El valor del monto es requerido.")]
         public string Value { get; set; }
     }
@@ -105,56 +106,56 @@ namespace GestorInventario.Application.DTOs
     // DTO para la frecuencia
     public class Frequency
     {
-        [JsonPropertyName("interval_unit")]
+        [JsonProperty("interval_unit")]
         [Required(ErrorMessage = "La unidad de intervalo es requerida.")]
         public string IntervalUnit { get; set; }
 
-        [JsonPropertyName("interval_count")]
+        [JsonProperty("interval_count")]
         public int IntervalCount { get; set; }
     }
 
     // DTO para las preferencias de pago
     public class PaymentPreferences
     {
-        [JsonPropertyName("service_type")]
+        [JsonProperty("service_type")]
         public string ServiceType { get; set; }
 
-        [JsonPropertyName("auto_bill_outstanding")]
+        [JsonProperty("auto_bill_outstanding")]
         public bool AutoBillOutstanding { get; set; }
 
-        [JsonPropertyName("setup_fee")]
+        [JsonProperty("setup_fee")]
         public Money SetupFee { get; set; }
 
-        [JsonPropertyName("setup_fee_failure_action")]
+        [JsonProperty("setup_fee_failure_action")]
         public string SetupFeeFailureAction { get; set; }
 
-        [JsonPropertyName("payment_failure_threshold")]
+        [JsonProperty("payment_failure_threshold")]
         public int PaymentFailureThreshold { get; set; }
     }
 
     // DTO para los impuestos
     public class Taxes
     {
-        [JsonPropertyName("percentage")]
+        [JsonProperty("percentage")]
         public string Percentage { get; set; }
 
-        [JsonPropertyName("inclusive")]
+        [JsonProperty("inclusive")]
         public bool Inclusive { get; set; }
     }
 
     // DTO para los enlaces
     public class Link
     {
-        [JsonPropertyName("href")]
+        [JsonProperty("href")]
         public string Href { get; set; }
 
-        [JsonPropertyName("rel")]
+        [JsonProperty("rel")]
         public string Rel { get; set; }
 
-        [JsonPropertyName("method")]
+        [JsonProperty("method")]
         public string Method { get; set; }
 
-        [JsonPropertyName("encType")]
+        [JsonProperty("encType")]
         public string EncType { get; set; }
     }
 }
