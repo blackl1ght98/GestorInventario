@@ -125,8 +125,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 var (plans, hasNextPage) = await _policyExecutor.ExecutePolicyAsync(() =>
                     _paypalService.GetSubscriptionPlansAsyncV2(pagina, cantidadAMostrar));
 
-                // Log del JSON completo para depuración
-                _logger.LogInformation("JSON de planes: {Plans}", JsonConvert.SerializeObject(plans));
+               
 
                 // Mapear manualmente los planes dinámicos a PlanesViewModel
                 var planesViewModel = new List<PlanesViewModel>();
@@ -142,7 +141,7 @@ namespace GestorInventario.Infraestructure.Controllers
                         description = plan?.description?.ToString(),
                         status = plan?.status?.ToString(),
                         usage_type = plan?.usage_type?.ToString(),
-                        createTime = ParseDateTimeToString(plan?.create_time),
+                        createTime = plan?.create_time,
                         billing_cycles = MapBillingCycles(plan?.billing_cycles),
                         Taxes = MapTaxes(plan?.taxes)
                     };
@@ -184,65 +183,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
 
-        private string ParseDateTimeToString(dynamic dateTime)
-        {
-            if (dateTime == null) return null;
-
-            // Forzar conversión a string para evitar conflictos dinámicos
-            string dateString;
-            try
-            {
-                dateString = Convert.ToString(dateTime);
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
-
-            if (string.IsNullOrEmpty(dateString)) return null;
-
-            // Log para depurar el valor de la fecha
-            _logger.LogInformation("Parseando fecha: {DateTime}", dateString);
-
-            // Formatos de fecha soportados
-            string[] formats = new[]
-            {
-                "yyyy-MM-ddTHH:mm:ssZ", // ISO 8601: "2024-12-01T12:12:46Z"
-                "yyyy-MM-ddTHH:mm:ss.fffZ", // ISO 8601 con milisegundos
-                "dd/MM/yyyy HH:mm:ss", // Formato del log: "01/12/2024 12:12:46"
-                "yyyy-MM-dd HH:mm:ss",
-                "MM/dd/yyyy HH:mm:ss"
-            };
-
-            try
-            {
-                // Intentar parsear la fecha con los formatos soportados
-                if (DateTime.TryParseExact(
-                    dateString,
-                    formats,
-                    CultureInfo.InvariantCulture,
-                    DateTimeStyles.RoundtripKind | DateTimeStyles.AllowWhiteSpaces,
-                    out DateTime parsedDate))
-                {
-                    return parsedDate.ToString("o"); // Devolver en formato ISO 8601
-                }
-
-                // Intentar parseo genérico como respaldo
-                if (DateTime.TryParse(dateString, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
-                {
-                    return parsedDate.ToString("o");
-                }
-
-                // Si no se puede parsear, devolver el string original
-                _logger.LogWarning("No se pudo parsear la fecha: {DateTime}. Devolviendo valor original.", dateString);
-                return dateString;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Error al parsear la fecha: {DateTime}. Devolviendo valor original.", dateString);
-                return dateString;
-            }
-        }
+      
 
         private List<BillingCycle> MapBillingCycles(dynamic billingCycles)
         {
@@ -269,7 +210,7 @@ namespace GestorInventario.Infraestructure.Controllers
             if (frequency == null) return null;
             return new Frequency
             {
-                IntervalUnit = frequency?.interval_unit?.ToString(),
+                IntervalUnit = frequency?.interval_unit,
                 IntervalCount = frequency?.interval_count != null ? (int)frequency.interval_count : 0
             };
         }
@@ -277,10 +218,6 @@ namespace GestorInventario.Infraestructure.Controllers
         private PricingScheme MapPricingScheme(dynamic pricingScheme)
         {
             if (pricingScheme == null) return null;
-
-            // Log para depurar las fechas en pricing_scheme
-       
-
             return new PricingScheme
             {
                 Version = pricingScheme?.version != null ? (int)pricingScheme.version : 0,
