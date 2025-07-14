@@ -2,6 +2,7 @@
 
 namespace GestorInventario.Application.DTOs
 {
+    //Dto para crear el plan de suscripcion
     public class PaypalPlanDetailsDto
     {
         [JsonProperty("id")]

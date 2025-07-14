@@ -10,7 +10,7 @@ namespace GestorInventario.ViewModels.Paypal
         public string description { get; set; }
         public string status { get; set; }
         public string usage_type { get; set; }
-        public string createTime { get; set; }
+        public DateTime createTime { get; set; }
         public List<BillingCycle> billing_cycles { get; set; }
         public Taxes Taxes { get; set; }
     }

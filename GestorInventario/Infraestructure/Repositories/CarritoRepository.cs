@@ -208,7 +208,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     name = producto.NombreProducto,
                     currency = moneda,
                     price = producto.Precio,
-                    quantity = item.Cantidad.ToString(),
+                    quantity = item.Cantidad.Value.ToString(),
                     sku = "producto"
                 };
                 items.Add(paypalItem);

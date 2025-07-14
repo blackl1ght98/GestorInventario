@@ -9,7 +9,7 @@ namespace GestorInventario.Interfaces.Infraestructure
       
        
       
-        Task<string> GetAccessTokenAsync();
+       
         //Hacer pedido   
         Task<string> CreateOrderAsyncV2(Checkout pagar);
         //Obtener detaller de un pedido     
@@ -29,7 +29,8 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<string> CancelarSuscripcion(string subscription_id, string reason);
         Task<string> GetAccessTokenAsync(string clientId, string clientSecret);
        
-        Task<(List<dynamic> plans, bool HasNextPage)> GetSubscriptionPlansAsyncV2(int page = 1, int pageSize = 6);
+    
+        Task<(List<PaypalPlanResponse> plans, bool HasNextPage)> GetSubscriptionPlansAsyncV2(int page = 1, int pageSize = 6);
         Task<string> CreateProductAndNotifyAsync(string productName, string productDescription, string productType, string productCategory);
 
 

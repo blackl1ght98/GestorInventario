@@ -24,25 +24,26 @@ namespace GestorInventario.Infraestructure.Controllers
     {
         private readonly GestorInventarioContext _context;
        
-        private readonly GenerarPaginas _generarPaginas;
-     
+        private readonly GenerarPaginas _generarPaginas;   
         private readonly ILogger<PaypalController> _logger;
         private readonly IPaypalRepository _paypalRepository;
         private readonly ICarritoRepository _carritoRepository;
         private readonly IMapper _mapper;
         private readonly PolicyExecutor _policyExecutor;
         private readonly IPaypalService _paypalService;
-        public PaypalController(GestorInventarioContext context, GenerarPaginas generar,  ILogger<PaypalController> logger, 
+        private readonly IConfiguration _configuration;
+        public PaypalController(GestorInventarioContext context, GenerarPaginas generar,  ILogger<PaypalController> logger, IConfiguration config,
             IPaypalRepository paypalController, ICarritoRepository carritoRepository, IMapper map, PolicyExecutor executor, IPaypalService service)
         {
             _context = context;
             _paypalService= service;
             _generarPaginas = generar;
-         _policyExecutor=executor;
+           _policyExecutor=executor;
             _logger = logger;
             _paypalRepository = paypalController;
             _carritoRepository = carritoRepository;
             _mapper = map;
+            _configuration = config;
         }
 
         //Metodo que muestra los productos creados en paypal
@@ -109,6 +110,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
 
 
+
         [HttpGet]
         public async Task<IActionResult> MostrarPlanes([FromQuery] int pagina = 1, [FromQuery] int cantidadAMostrar = 6)
         {
@@ -121,37 +123,34 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 _logger.LogInformation("Página solicitada: {Pagina}, CantidadAMostrar: {Cantidad}", pagina, cantidadAMostrar);
 
-                // Obtener planes de suscripción de PayPal
+                // Obtener planes tipados
                 var (plans, hasNextPage) = await _policyExecutor.ExecutePolicyAsync(() =>
-                    _paypalService.GetSubscriptionPlansAsyncV2(pagina, cantidadAMostrar));
+                    _paypalService.GetSubscriptionPlansAsyncV2(pagina, cantidadAMostrar)); 
 
-               
-
-                // Mapear manualmente los planes dinámicos a PlanesViewModel
                 var planesViewModel = new List<PlanesViewModel>();
-                foreach (dynamic plan in plans ?? new List<dynamic>())
-                {
-                  
 
-                    var viewModel = new PlanesViewModel
+                if (plans != null)
+                {
+                    foreach (var plan in plans)
                     {
-                        id = plan?.id?.ToString(),
-                        productId = plan?.product_id?.ToString(),
-                        name = plan?.name?.ToString(),
-                        description = plan?.description?.ToString(),
-                        status = plan?.status?.ToString(),
-                        usage_type = plan?.usage_type?.ToString(),
-                        createTime = plan?.create_time,
-                        billing_cycles = MapBillingCycles(plan?.billing_cycles),
-                        Taxes = MapTaxes(plan?.taxes)
-                    };
-                    planesViewModel.Add(viewModel);
+                        var viewModel = new PlanesViewModel
+                        {
+                            id = plan.Id,
+                            productId = plan.ProductId,
+                            name = plan.Name,
+                            description = plan.Description,
+                            status = plan.Status,
+                            usage_type = plan.UsageType,
+                            createTime = plan.CreateTime,
+                            billing_cycles = MapBillingCycles(plan.BillingCycles),
+                            Taxes = MapTaxes(plan.Taxes)
+                        };
+                        planesViewModel.Add(viewModel);
+                    }
                 }
 
-                // Calcular TotalPaginas basado en hasNextPage (aproximación)
                 int totalPaginas = hasNextPage ? pagina + 1 : pagina;
 
-                // Configurar paginación
                 var paginacion = new Paginacion
                 {
                     Pagina = pagina,
@@ -161,7 +160,6 @@ namespace GestorInventario.Infraestructure.Controllers
                 };
                 var paginas = _generarPaginas.GenerarListaPaginas(paginacion);
 
-                // Crear el modelo para la vista
                 var model = new PlanesPaginadosViewModel
                 {
                     Planes = planesViewModel,
@@ -183,70 +181,73 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
 
-      
-
-        private List<BillingCycle> MapBillingCycles(dynamic billingCycles)
+        // Mapear listas de BillingCycle tipadas
+        private List<BillingCycle> MapBillingCycles(List<BillingCycle> billingCycles)
         {
-            var result = new List<BillingCycle>();
-            if (billingCycles == null) return result;
+            if (billingCycles == null)
+                return new List<BillingCycle>();
 
-            foreach (dynamic cycle in (IEnumerable<dynamic>)billingCycles)
+            // Si los tipos coinciden exactamente, solo devolvemos o clonamos (si quieres evitar referencias directas)
+            return billingCycles.Select(cycle => new BillingCycle
             {
-                var billingCycle = new BillingCycle
-                {
-                    TenureType = cycle?.tenure_type?.ToString(),
-                    Sequence = cycle?.sequence != null ? (int)cycle.sequence : 0,
-                    TotalCycles = cycle?.total_cycles != null ? (int)cycle.total_cycles : 0,
-                    Frequency = MapFrequency(cycle?.frequency),
-                    PricingScheme = MapPricingScheme(cycle?.pricing_scheme)
-                };
-                result.Add(billingCycle);
-            }
-            return result;
+                TenureType = cycle.TenureType,
+                Sequence = cycle.Sequence,
+                TotalCycles = cycle.TotalCycles,
+                Frequency = MapFrequency(cycle.Frequency),
+                PricingScheme = MapPricingScheme(cycle.PricingScheme)
+            }).ToList();
         }
 
-        private Frequency MapFrequency(dynamic frequency)
+        private Frequency MapFrequency(Frequency frequency)
         {
-            if (frequency == null) return null;
+            if (frequency == null)
+                return null;
+
             return new Frequency
             {
-                IntervalUnit = frequency?.interval_unit,
-                IntervalCount = frequency?.interval_count != null ? (int)frequency.interval_count : 0
+                IntervalUnit = frequency.IntervalUnit,
+                IntervalCount = frequency.IntervalCount
             };
         }
 
-        private PricingScheme MapPricingScheme(dynamic pricingScheme)
+        private PricingScheme MapPricingScheme(PricingScheme pricingScheme)
         {
-            if (pricingScheme == null) return null;
+            if (pricingScheme == null)
+                return null;
+
             return new PricingScheme
             {
-                Version = pricingScheme?.version != null ? (int)pricingScheme.version : 0,
-                FixedPrice = MapMoney(pricingScheme?.fixed_price),
-               CreateTime =pricingScheme?.create_time,
-                UpdateTime = pricingScheme?.update_time
+                Version = pricingScheme.Version,
+                FixedPrice = MapMoney(pricingScheme.FixedPrice),
+                CreateTime = pricingScheme.CreateTime,
+                UpdateTime = pricingScheme.UpdateTime
             };
         }
 
-        private Money MapMoney(dynamic money)
+        private Money MapMoney(Money money)
         {
-            if (money == null) return null;
+            if (money == null)
+                return null;
+
             return new Money
             {
-                CurrencyCode = money?.currency_code?.ToString(),
-                Value = money?.value?.ToString()
+                CurrencyCode = money.CurrencyCode,
+                Value = money.Value
             };
         }
 
-        private Taxes MapTaxes(dynamic taxes)
+        private Taxes MapTaxes(Taxes taxes)
         {
-            if (taxes == null) return null;
+            if (taxes == null)
+                return null;
+
             return new Taxes
             {
-                Percentage = taxes?.percentage?.ToString(),
-                Inclusive = taxes?.inclusive != null && (bool)taxes.inclusive
+                Percentage = taxes.Percentage,
+                Inclusive = taxes.Inclusive
             };
         }
-    
+
 
         // Método para crear la lista de categorías a partir de la enumeración
         private List<string> GetCategoriesFromEnum()
@@ -368,7 +369,9 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 try
                 {
-                    var authToken = await _paypalService.GetAccessTokenAsync();
+                    var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
+                    var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
+                    var authToken = await _paypalService.GetAccessTokenAsync(clientId, clientSecret);
                     using (var httpClient = new HttpClient())
                     {
                         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);

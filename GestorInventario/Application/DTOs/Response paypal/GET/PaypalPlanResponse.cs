@@ -4,6 +4,14 @@ using System.Text.Json.Serialization;
 
 namespace GestorInventario.Application.DTOs
 {
+    public class PaypalPlansListResponse
+    {
+        [JsonProperty("plans")]
+        public List<PaypalPlanResponse> Plans { get; set; }
+
+        [JsonProperty("links")]
+        public List<Link> Links { get; set; }
+    }
     public class PaypalPlanResponse
     {
         [JsonProperty("id")]

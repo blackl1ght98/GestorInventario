@@ -4,6 +4,7 @@
     {
         public string subscription_id { get; set; }
     }
+    //DTO para obtener los detalles de una suscripcion
     public class PaypalSubscriptionResponse
     {
         public string id { get; set; }
