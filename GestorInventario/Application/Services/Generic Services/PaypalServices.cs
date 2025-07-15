@@ -2,6 +2,7 @@
 using GestorInventario.Application.Classes;
 using GestorInventario.Application.DTOs;
 using GestorInventario.Application.DTOs.Response_paypal.GET;
+using GestorInventario.Application.DTOs.Response_paypal.PATCH;
 using GestorInventario.Application.DTOs.Response_paypal.POST;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Repositories;
@@ -210,10 +211,10 @@ namespace GestorInventario.Application.Services
                 var (pedido, totalAmount) = await _unitOfWork.PaypalRepository.GetPedidoWithDetailsAsync(pedidoId);
 
                 // Crear el objeto de solicitud de reembolso
-                var refundRequest = new
+                var refundRequest = new PaypalRefundResponse
                 {
-                    note_to_payer = "Pedido cancelado por el usuario",
-                    amount = new
+                    NotaParaElCliente = "Pedido cancelado por el usuario",
+                    Amount =  new Amount
                     {
                         value = totalAmount.ToString("F2", CultureInfo.InvariantCulture),
                         currency_code = pedido.Currency
@@ -248,10 +249,11 @@ namespace GestorInventario.Application.Services
 
                     var jsonResponse = await response.Content.ReadAsStringAsync();
                     _logger.LogInformation("Reembolso exitoso: {response}", jsonResponse);
-
+                    var refundResponse = JsonConvert.DeserializeObject<PaypalRefundResponse>(jsonResponse);
+                    string refundId = refundResponse.Id;
                     // Actualizar el estado del pedido usando UnitOfWork
-                    await _unitOfWork.PaypalRepository.UpdatePedidoStatusAsync(pedidoId, "Reembolsado");
-
+                    await _unitOfWork.PaypalRepository.UpdatePedidoStatusAsync(pedidoId, "Reembolsado",refundId);
+                   
                     return jsonResponse;
                 }
             }
@@ -303,13 +305,13 @@ namespace GestorInventario.Application.Services
                 httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                var productRequest = new
+                var productRequest = new CreateProductResponse
                 {
-                    name = productName,
-                    description = productDescription,
-                    type = productType,
-                    category = productCategory,
-                    image_url = "https://example.com/product-image.jpg"
+                    Nombre = productName,
+                    Description = productDescription,
+                    Type = productType,
+                    Category = productCategory,
+                    Imagen = "https://example.com/product-image.jpg"
                 };
 
                 var content = new StringContent(JsonConvert.SerializeObject(productRequest), Encoding.UTF8, "application/json");
@@ -439,7 +441,7 @@ namespace GestorInventario.Application.Services
         }
         #endregion
         #region desactivar plan de suscripcion
-        public async Task<string> DesactivarPlan(string productId, string planId)
+        public async Task<string> DesactivarPlan( string planId)
         {
             var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
             var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
@@ -474,102 +476,162 @@ namespace GestorInventario.Application.Services
         #region Desactivar producto vinculado a un plan
         public async Task<string> MarcarDesactivadoProducto(string id)
         {
+            // Validar el parámetro de entrada
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new ArgumentException("El ID del producto no puede ser nulo o vacío.", nameof(id));
+            }
+
             var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
             var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
-            var authToken = await GetAccessTokenAsync(clientId, clientSecret);
-            using (var httpClient = new HttpClient())
+
+            if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
             {
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+                throw new InvalidOperationException("No se encontraron las credenciales de PayPal (ClientId o ClientSecret).");
+            }
+
+            var authToken = await GetAccessTokenAsync(clientId, clientSecret);
+
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+
+            try
+            {
+                // Verificar si el producto existe en PayPal
                 var productResponse = await httpClient.GetAsync($"https://api-m.sandbox.paypal.com/v1/catalogs/products/{id}");
                 if (!productResponse.IsSuccessStatusCode)
                 {
                     var errorContent = await productResponse.Content.ReadAsStringAsync();
                     throw new Exception($"No se pudo encontrar el producto con ID {id}: {productResponse.StatusCode} - {errorContent}");
                 }
-                var request = new[]
-                {
-                   new
-                   {
-                       op="replace",
-                       path="/description",
-                       value="INACTIVO"
-                   },
-                     new
-                   {
-                       op="replace",
-                       path="/name",
-                       value="INACTIVO"
-                   }
 
+                // Crear la solicitud PATCH usando DTOs
+                var patchRequest = new List<PatchOperation>
+                {
+                    new PatchOperation
+                    {
+                        Operation = "replace",
+                        Path = "/description",
+                        Value = "INACTIVO"
+                    },
+                    new PatchOperation
+                    {
+                        Operation = "replace",
+                        Path = "/name",
+                        Value = "INACTIVO"
+                    }
                 };
-                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
-                var deleteProduct = await httpClient.PatchAsync($"https://api-m.sandbox.paypal.com/v1/catalogs/products/{id}", content);
-                //Si la peticion es correcta..
-                if (deleteProduct.IsSuccessStatusCode)
-                {
-                    //Lee el contenido de la peticion
-                    var responseContent = await deleteProduct.Content.ReadAsStringAsync();
 
-                    return responseContent;
-                }
-                else
+                // Serializar la solicitud a JSON
+                var content = new StringContent(
+                    JsonConvert.SerializeObject(patchRequest),
+                    Encoding.UTF8,
+                    "application/json"
+                );
+
+                // Enviar la solicitud PATCH
+                var patchResponse = await httpClient.PatchAsync(
+                    $"https://api-m.sandbox.paypal.com/v1/catalogs/products/{id}",
+                    content
+                );
+
+                if (!patchResponse.IsSuccessStatusCode)
                 {
-                    var errorContent = await deleteProduct.Content.ReadAsStringAsync();
-                    throw new Exception($"Error al eliminar el producto: {deleteProduct.StatusCode} - {errorContent}");
+                    var errorContent = await patchResponse.Content.ReadAsStringAsync();
+                    throw new Exception($"Error al actualizar el producto con ID {id}: {patchResponse.StatusCode} - {errorContent}");
                 }
 
+                return "Producto marcado como inactivo con éxito";
             }
-
-
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al marcar como inactivo el producto con ID {ProductId}", id);
+                throw; // Relanzar la excepción para que el controlador la maneje
+            }
         }
         #endregion
         #region Editar producto vinculado a un plan
         public async Task<string> EditarProducto(string id, string name, string description)
         {
+            // Validar parámetros de entrada
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new ArgumentException("El ID del producto no puede ser nulo o vacío.", nameof(id));
+            }
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentException("El nombre del producto no puede ser nulo o vacío.", nameof(name));
+            }
+            if (string.IsNullOrEmpty(description))
+            {
+                throw new ArgumentException("La descripción del producto no puede ser nula o vacía.", nameof(description));
+            }
+
             var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
             var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
-            var authToken = await GetAccessTokenAsync(clientId, clientSecret);
-            using (var httpClient = new HttpClient())
+
+            if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
             {
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+                throw new InvalidOperationException("No se encontraron las credenciales de PayPal (ClientId o ClientSecret).");
+            }
+
+            var authToken = await GetAccessTokenAsync(clientId, clientSecret);
+
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+
+            try
+            {
+                // Verificar si el producto existe en PayPal
                 var productResponse = await httpClient.GetAsync($"https://api-m.sandbox.paypal.com/v1/catalogs/products/{id}");
                 if (!productResponse.IsSuccessStatusCode)
                 {
                     var errorContent = await productResponse.Content.ReadAsStringAsync();
                     throw new Exception($"No se pudo encontrar el producto con ID {id}: {productResponse.StatusCode} - {errorContent}");
                 }
-                var request = new[]
+
+                // Crear la solicitud PATCH usando DTOs
+                var patchRequest = new List<PatchOperation>
                 {
-                      new
-                   {
-                       op="replace",
-                       path="/name",
-                       value=name
-                   },
-                   new
-                   {
-                       op="replace",
-                       path="/description",
-                       value=description
-                   }
-
-
+                    new PatchOperation
+                    {
+                        Operation = "replace",
+                        Path = "/name",
+                        Value = name
+                    },
+                    new PatchOperation
+                    {
+                        Operation = "replace",
+                        Path = "/description",
+                        Value = description
+                    }
                 };
-                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
-                var deleteProduct = await httpClient.PatchAsync($"https://api-m.sandbox.paypal.com/v1/catalogs/products/{id}", content);
-                //Si la peticion es correcta..
-                if (deleteProduct.IsSuccessStatusCode)
-                {
 
-                    var responseContent = await deleteProduct.Content.ReadAsStringAsync();
+                // Serializar la solicitud a JSON
+                var content = new StringContent(
+                    JsonConvert.SerializeObject(patchRequest), // Usar patchRequest en lugar de request
+                    Encoding.UTF8,
+                    "application/json"
+                );
 
-                    return responseContent;
-                }
-                else
+                // Enviar la solicitud PATCH
+                var patchResponse = await httpClient.PatchAsync(
+                    $"https://api-m.sandbox.paypal.com/v1/catalogs/products/{id}",
+                    content
+                );
+
+                if (!patchResponse.IsSuccessStatusCode)
                 {
-                    var errorContent = await deleteProduct.Content.ReadAsStringAsync();
-                    throw new Exception($"Error al eliminar el producto: {deleteProduct.StatusCode} - {errorContent}");
+                    var errorContent = await patchResponse.Content.ReadAsStringAsync();
+                    throw new Exception($"Error al actualizar el producto con ID {id}: {patchResponse.StatusCode} - {errorContent}");
                 }
+
+                return "Producto actualizado con éxito";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al actualizar el producto con ID {ProductId}", id);
+                throw; // Relanzar la excepción para que el controlador la maneje
             }
         }
         #endregion

@@ -20,7 +20,7 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<string> RefundSaleAsync(int pedidoId, string currency);
         Task<string> CreateSubscriptionPlanAsync(string productId, string planName, string description, decimal amount, string currency, int trialDays = 0, decimal trialAmount = 0.00m);
         Task<HttpResponseMessage> CreateProductAsync(string productName, string productDescription, string productType, string productCategory);
-        Task<string> DesactivarPlan(string productId, string planId);
+        Task<string> DesactivarPlan( string planId);
         Task<string> MarcarDesactivadoProducto(string id);
         Task<string> EditarProducto(string id, string name, string description);
         Task<string> Subscribirse(string id, string returnUrl, string cancelUrl, string planName);

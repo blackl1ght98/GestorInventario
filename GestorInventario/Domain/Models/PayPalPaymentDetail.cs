@@ -13,8 +13,6 @@ public partial class PayPalPaymentDetail
 
     public string? PaymentMethod { get; set; }
 
-    public string? PayerStatus { get; set; }
-
     public string? PayerEmail { get; set; }
 
     public string? PayerFirstName { get; set; }
@@ -43,12 +41,6 @@ public partial class PayPalPaymentDetail
 
     public decimal? TransactionsShipping { get; set; }
 
-    public decimal? TransactionsInsurance { get; set; }
-
-    public decimal? TransactionsHandlingFee { get; set; }
-
-    public decimal? TransactionsShippingDiscount { get; set; }
-
     public string? PayeeMerchantId { get; set; }
 
     public string? PayeeEmail { get; set; }
@@ -64,8 +56,6 @@ public partial class PayPalPaymentDetail
     public string? SaleCurrency { get; set; }
 
     public string? ProtectionEligibility { get; set; }
-
-    public string? ProtectionEligibilityType { get; set; }
 
     public decimal? TransactionFeeAmount { get; set; }
 

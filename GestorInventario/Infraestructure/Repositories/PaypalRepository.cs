@@ -147,7 +147,7 @@ namespace GestorInventario.Infraestructure.Repositories
             }
         }
 
-        public async Task UpdatePedidoStatusAsync(int pedidoId, string status)
+        public async Task UpdatePedidoStatusAsync(int pedidoId, string status,string refundId)
         {
             try
             {
@@ -156,6 +156,8 @@ namespace GestorInventario.Infraestructure.Repositories
                     throw new ArgumentException($"Pedido con ID {pedidoId} no encontrado.");
 
                 pedido.EstadoPedido = status;
+                pedido.RefundId = refundId;
+
                 _context.Update(pedido);
                 await _context.SaveChangesAsync();
                 _logger.LogInformation($"Estado del pedido {pedidoId} actualizado a {status}");
@@ -176,15 +178,8 @@ namespace GestorInventario.Infraestructure.Repositories
                 await _context.SaveChangesAsync();
             }
         }
-        public async Task ActualizarEstadoPedido(string pedidoId)
-        {
-            var pedido = await _context.Pedidos.FindAsync(pedidoId);
-            if(pedido != null)
-            {
-                pedido.EstadoPedido = "Reembolsado";
-                await _context.UpdateEntityAsync(pedido);
-            }
-           
-        }
+      
+      
+        
     }
 }

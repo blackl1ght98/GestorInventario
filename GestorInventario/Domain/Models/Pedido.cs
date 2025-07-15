@@ -25,6 +25,8 @@ public partial class Pedido
 
     public bool EsCarrito { get; set; }
 
+    public string? RefundId { get; set; }
+
     public virtual ICollection<DetallePedido> DetallePedidos { get; set; } = new List<DetallePedido>();
 
     public virtual Usuario? IdUsuarioNavigation { get; set; }

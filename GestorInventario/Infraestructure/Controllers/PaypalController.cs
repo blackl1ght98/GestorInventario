@@ -316,7 +316,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
         //Metodo para desactivar el plan
         [HttpPost]
-        public async Task<IActionResult> DesactivarPlan(string productId, string planId)
+        public async Task<IActionResult> DesactivarPlan(string planId)
         {
             try
             {
@@ -326,7 +326,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return StatusCode(400, "No se puede cancelar el plan porque hay suscriptores activos.");
                 }
-                var deleteResponse = await _paypalService.DesactivarPlan(productId, planId);
+                var deleteResponse = await _paypalService.DesactivarPlan( planId);
 
 
                 return RedirectToAction(nameof(MostrarPlanes), new { mensaje = deleteResponse });
