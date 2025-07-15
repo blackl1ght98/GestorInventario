@@ -1,6 +1,7 @@
 ﻿
 using GestorInventario.Application.Classes;
 using GestorInventario.Application.DTOs;
+using GestorInventario.Application.DTOs.Response_paypal.GET;
 using GestorInventario.Application.DTOs.Response_paypal.POST;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Repositories;
@@ -60,17 +61,17 @@ namespace GestorInventario.Application.Services
                         Value = pagar.totalAmount.ToString("F2", CultureInfo.InvariantCulture),
                         Breakdown = new Breakdown
                         {
-                            ItemTotal = new MoneyBase
+                            ItemTotal = new Money
                             {
                                 CurrencyCode = pagar.currency,
                                 Value = pagar.totalAmount.ToString("F2", CultureInfo.InvariantCulture)
                             },
-                            TaxTotal = new MoneyBase
+                            TaxTotal = new Money
                             {
                                 CurrencyCode = pagar.currency,
                                 Value = "0.00"
                             },
-                            ShippingAmount = new MoneyBase
+                            ShippingAmount = new Money
                             {
                                 CurrencyCode = pagar.currency,
                                 Value = "0.00"
@@ -85,12 +86,12 @@ namespace GestorInventario.Application.Services
                         Name = item.name,
                         Description = item.description,
                         Quantity = item.quantity.ToString(),
-                        UnitAmount = new MoneyBase
+                        UnitAmount = new Money
                         {
                             Value = item.price.ToString("F2", CultureInfo.InvariantCulture),
                             CurrencyCode = pagar.currency
                         },
-                        Tax = new MoneyBase
+                        Tax = new Money
                         {
                             Value = "0.00",
                             CurrencyCode = pagar.currency
@@ -169,9 +170,8 @@ namespace GestorInventario.Application.Services
         }
 
         #endregion
-        #region Obtener detalles del pago v2 paypal
-
-        public async Task<dynamic> ObtenerDetallesPagoEjecutadoV2(string id)
+        #region Obtener detalles del pago v2 paypal   
+        public async Task<CheckoutDetails> ObtenerDetallesPagoEjecutadoV2(string id)
         {
 
             var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
@@ -191,7 +191,7 @@ namespace GestorInventario.Application.Services
                 if (response.IsSuccessStatusCode)
                 {
                     // Deserializa la respuesta JSON a un objeto dinámico
-                    dynamic subscriptionDetails = JsonConvert.DeserializeObject(responseContent);
+                    dynamic subscriptionDetails = JsonConvert.DeserializeObject<CheckoutDetails>(responseContent);
                     return subscriptionDetails;
                 }
                 else
@@ -212,12 +212,14 @@ namespace GestorInventario.Application.Services
                 // Crear el objeto de solicitud de reembolso
                 var refundRequest = new
                 {
+                    note_to_payer = "Pedido cancelado por el usuario",
                     amount = new
                     {
                         value = totalAmount.ToString("F2", CultureInfo.InvariantCulture),
                         currency_code = pedido.Currency
                     }
                 };
+
 
                 var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
                 var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");

@@ -123,7 +123,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         //Si el pago es rechazado viene aqui
         [HttpPost]
-        public async Task<IActionResult> RefundSale([FromBody] RefundRequestModel request)
+        public async Task<IActionResult> RefundSale(RefundRequestModel request)
         {
             if (request == null || request.PedidoId <= 0)
             {
@@ -133,7 +133,8 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
                 var refund = await _paypalService.RefundSaleAsync(request.PedidoId, request.currency);
-                return Ok(refund);
+
+                return RedirectToAction("Index", "Pedidos");
             }
             catch (Exception ex)
             {
@@ -180,20 +181,20 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 var detallesSuscripcion = new PayPalPaymentDetail
                 {
-                    Id = detallespago["id"]?.ToString() ?? string.Empty,
-                    Intent = detallespago["intent"]?.ToString() ?? string.Empty,
-                    Status = detallespago["status"]?.ToString() ?? string.Empty,
+                    Id = detallespago.Id,
+                    Intent = detallespago.Intent,
+                    Status = detallespago.Status,
                     PaymentMethod = "paypal",
-                    PayerEmail = detallespago["payer"]?["email_address"]?.ToString() ?? string.Empty,
-                    PayerFirstName = detallespago["payer"]?["name"]?["given_name"]?.ToString() ?? string.Empty,
-                    PayerLastName = detallespago["payer"]?["name"]?["surname"]?.ToString() ?? string.Empty,
-                    PayerId = detallespago["payer"]?["payer_id"]?.ToString() ?? string.Empty,
-                    ShippingRecipientName = detallespago["purchase_units"]?[0]?["shipping"]?["name"]?["full_name"]?.ToString() ?? string.Empty,
-                    ShippingLine1 = detallespago["purchase_units"]?[0]?["shipping"]?["address"]?["address_line_1"]?.ToString() ?? string.Empty,
-                    ShippingCity = detallespago["purchase_units"]?[0]?["shipping"]?["address"]?["admin_area_2"]?.ToString() ?? string.Empty,
-                    ShippingState = detallespago["purchase_units"]?[0]?["shipping"]?["address"]?["admin_area_1"]?.ToString() ?? string.Empty,
-                    ShippingPostalCode = detallespago["purchase_units"]?[0]?["shipping"]?["address"]?["postal_code"]?.ToString() ?? string.Empty,
-                    ShippingCountryCode = detallespago["purchase_units"]?[0]?["shipping"]?["address"]?["country_code"]?.ToString() ?? string.Empty
+                    PayerEmail = detallespago.Payer.Email,
+                    PayerFirstName = detallespago.Payer.Name.GivenName,
+                    PayerLastName = detallespago.Payer.Name.Surname,
+                    PayerId = detallespago.Payer.PayerId,
+                    ShippingRecipientName = detallespago.PurchaseUnits.FirstOrDefault()?.Shipping.Name.FullName,
+                    ShippingLine1 = detallespago.PurchaseUnits.FirstOrDefault()?.Shipping.Address.AddressLine1,        
+                    ShippingCity = detallespago.PurchaseUnits.FirstOrDefault()?.Shipping.Address.AdminArea2,
+                    ShippingState = detallespago.PurchaseUnits.FirstOrDefault()?.Shipping.Address.AdminArea1,
+                    ShippingPostalCode = detallespago.PurchaseUnits.FirstOrDefault()?.Shipping.Address.PostalCode,
+                    ShippingCountryCode = detallespago.PurchaseUnits.FirstOrDefault()?.Shipping.Address?.CountryCode,
                 };
 
 
@@ -201,58 +202,58 @@ namespace GestorInventario.Infraestructure.Controllers
                 // Lista para almacenar los ítems de PayPal temporalmente
                 var paypalItems = new List<PayPalPaymentItem>();
 
-                if (detallespago["purchase_units"] != null)
+                if (detallespago.PurchaseUnits != null)
                 {
-                    foreach (var purchaseUnit in detallespago["purchase_units"])
+                    foreach (var purchaseUnit in detallespago.PurchaseUnits)
                     {
                         if (purchaseUnit != null)
                         {
-                            detallesSuscripcion.TransactionsTotal = ConvertToDecimal(purchaseUnit?["amount"]?["value"]?.ToString());
-                            detallesSuscripcion.TransactionsCurrency = purchaseUnit?["amount"]?["currency_code"]?.ToString() ?? string.Empty;
-                            detallesSuscripcion.TransactionsSubtotal = ConvertToDecimal(purchaseUnit?["amount"]?["breakdown"]?["item_total"]?["value"]?.ToString());
-                            if (detallesSuscripcion.TransactionsSubtotal == 0 && purchaseUnit["items"] != null)
+                            detallesSuscripcion.TransactionsTotal = ConvertToDecimal(purchaseUnit.Amount.Value);
+                            detallesSuscripcion.TransactionsCurrency = purchaseUnit.Amount.CurrencyCode;
+                            detallesSuscripcion.TransactionsSubtotal = ConvertToDecimal(purchaseUnit.Amount.Breakdown.ItemTotal.Value);
+                            if (detallesSuscripcion.TransactionsSubtotal == 0 && purchaseUnit.Items != null)
                             {
-                                decimal subtotal = 0;
-                                foreach (var item in purchaseUnit["items"])
+                                decimal? subtotal = 0;
+                                foreach (var item in purchaseUnit.Items)
                                 {
-                                    var unitAmount = ConvertToDecimal(item["unit_amount"]?["value"]?.ToString());
-                                    var quantity = ConvertToInt(item["quantity"]?.ToString());
+                                    var unitAmount = ConvertToDecimal(item.UnitAmount.Value);
+                                    var quantity = ConvertToInt(item.Quantity);
                                     subtotal += unitAmount * quantity;
                                 }
                                 detallesSuscripcion.TransactionsSubtotal = subtotal;
                             }
-                            detallesSuscripcion.TransactionsShipping = ConvertToDecimal(purchaseUnit?["amount"]?["breakdown"]?["shipping"]?["value"]?.ToString());
-                            detallesSuscripcion.PayeeMerchantId = purchaseUnit?["payee"]?["merchant_id"]?.ToString() ?? string.Empty;
-                            detallesSuscripcion.PayeeEmail = purchaseUnit?["payee"]?["email_address"]?.ToString() ?? string.Empty;
-                            detallesSuscripcion.Description = purchaseUnit?["description"]?.ToString() ?? string.Empty;
+                            detallesSuscripcion.TransactionsShipping = ConvertToDecimal(purchaseUnit.Amount.Breakdown.Shipping.Value);
+                            detallesSuscripcion.PayeeMerchantId = purchaseUnit.Payee.MerchantId;
+                            detallesSuscripcion.PayeeEmail = purchaseUnit.Payee.EmailAddress;
+                            detallesSuscripcion.Description = purchaseUnit.Description;
 
-                            if (purchaseUnit["payments"]?["captures"] != null)
+                            if (purchaseUnit.Payments.Captures != null)
                             {
-                                foreach (var capture in purchaseUnit["payments"]["captures"])
+                                foreach (var capture in purchaseUnit.Payments.Captures)
                                 {
                                     if (capture != null)
                                     {
-                                        detallesSuscripcion.SaleId = capture["id"]?.ToString() ?? string.Empty;
-                                        detallesSuscripcion.SaleState = capture["status"]?.ToString() ?? string.Empty;
-                                        detallesSuscripcion.SaleTotal = ConvertToDecimal(capture["amount"]?["value"]?.ToString());
-                                        detallesSuscripcion.SaleCurrency = capture["amount"]?["currency_code"]?.ToString() ?? string.Empty;
-                                        detallesSuscripcion.ProtectionEligibility = capture["seller_protection"]?["status"]?.ToString() ?? string.Empty;
-                                        detallesSuscripcion.TransactionFeeAmount = ConvertToDecimal(capture["seller_receivable_breakdown"]?["paypal_fee"]?["value"]?.ToString());
-                                        detallesSuscripcion.TransactionFeeCurrency = capture["seller_receivable_breakdown"]?["paypal_fee"]?["currency_code"]?.ToString() ?? string.Empty;
-                                        detallesSuscripcion.ReceivableAmount = ConvertToDecimal(capture["seller_receivable_breakdown"]?["net_amount"]?["value"]?.ToString());
-                                        detallesSuscripcion.ReceivableCurrency = capture["seller_receivable_breakdown"]?["net_amount"]?["currency_code"]?.ToString() ?? string.Empty;
-                                        string exchangeRateValue = capture["seller_receivable_breakdown"]?["exchange_rate"]?["value"]?.ToString() ?? string.Empty;
+                                        detallesSuscripcion.SaleId = capture.Id;
+                                        detallesSuscripcion.SaleState = capture.Status;
+                                        detallesSuscripcion.SaleTotal = ConvertToDecimal(capture.Amount.Value);
+                                        detallesSuscripcion.SaleCurrency = capture.Amount.CurrencyCode;
+                                        detallesSuscripcion.ProtectionEligibility = capture.SellerProtection.Status;
+                                        detallesSuscripcion.TransactionFeeAmount = ConvertToDecimal(capture.SellerReceivableBreakdown.PaypalFee.Value);
+                                        detallesSuscripcion.TransactionFeeCurrency = capture.SellerReceivableBreakdown.PaypalFee.CurrencyCode;
+                                        detallesSuscripcion.ReceivableAmount = ConvertToDecimal(capture.SellerReceivableBreakdown.NetAmount.Value);
+                                        detallesSuscripcion.ReceivableCurrency = capture.SellerReceivableBreakdown.NetAmount.CurrencyCode;
+                                        string exchangeRateValue = capture.SellerReceivableBreakdown.ExchangeRate.Value;
                                         if (!string.IsNullOrEmpty(exchangeRateValue) && decimal.TryParse(exchangeRateValue, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal exchangeRate))
                                         {
                                             detallesSuscripcion.ExchangeRate = exchangeRate;
                                         }
-                                        detallesSuscripcion.CreateTime = ConvertToDateTime(capture["create_time"]);
-                                        detallesSuscripcion.UpdateTime = ConvertToDateTime(capture["update_time"]);
+                                        detallesSuscripcion.CreateTime = ConvertToDateTime(capture.CreateTime);
+                                        detallesSuscripcion.UpdateTime = ConvertToDateTime(capture.UpdateTime);
                                     }
                                 }
                             }
 
-                            var items = purchaseUnit["items"];
+                            var items = purchaseUnit.Items;
                             if (items != null)
                             {
                                 foreach (var item in items)
@@ -260,12 +261,12 @@ namespace GestorInventario.Infraestructure.Controllers
                                     var paymentItem = new PayPalPaymentItem
                                     {
                                         PayPalId = detallesSuscripcion.Id,
-                                        ItemName = item["name"]?.ToString(),
-                                        ItemSku = item["sku"]?.ToString(),
-                                        ItemPrice = ConvertToDecimal(item["unit_amount"]?["value"]?.ToString()),
-                                        ItemCurrency = item["unit_amount"]?["currency_code"]?.ToString(),
-                                        ItemTax = ConvertToDecimal(item["tax"]?["value"]?.ToString()),
-                                        ItemQuantity = ConvertToInt(item["quantity"]?.ToString())
+                                        ItemName = item.Name,
+                                        ItemSku = item.Sku,
+                                        ItemPrice = ConvertToDecimal(item.UnitAmount.Value),
+                                        ItemCurrency = item.UnitAmount.CurrencyCode,
+                                        ItemTax = ConvertToDecimal(item.Tax.Value),
+                                        ItemQuantity = ConvertToInt(item.Quantity)
                                     };
 
                                     paypalItems.Add(paymentItem); // Agregar a la lista temporal

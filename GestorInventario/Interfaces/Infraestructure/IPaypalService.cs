@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Application.Classes;
 using GestorInventario.Application.DTOs;
+using GestorInventario.Application.DTOs.Response_paypal.GET;
 using GestorInventario.ViewModels.Paypal;
 
 namespace GestorInventario.Interfaces.Infraestructure
@@ -10,11 +11,12 @@ namespace GestorInventario.Interfaces.Infraestructure
        
       
        
-        //Hacer pedido   
+
         Task<string> CreateOrderAsyncV2(Checkout pagar);
-        //Obtener detaller de un pedido     
-        Task<dynamic> ObtenerDetallesPagoEjecutadoV2(string id);
-        //Hacer el reembolso
+        
+
+       Task<CheckoutDetails> ObtenerDetallesPagoEjecutadoV2(string id);
+  
         Task<string> RefundSaleAsync(int pedidoId, string currency);
         Task<string> CreateSubscriptionPlanAsync(string productId, string planName, string description, decimal amount, string currency, int trialDays = 0, decimal trialAmount = 0.00m);
         Task<HttpResponseMessage> CreateProductAsync(string productName, string productDescription, string productType, string productCategory);

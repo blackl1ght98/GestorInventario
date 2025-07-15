@@ -1,6 +1,7 @@
 ﻿using GestorInventario.Application.DTOs;
 using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.MetodosExtension;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 
@@ -174,6 +175,16 @@ namespace GestorInventario.Infraestructure.Repositories
                 _context.PlanDetails.Update(planDetails);
                 await _context.SaveChangesAsync();
             }
+        }
+        public async Task ActualizarEstadoPedido(string pedidoId)
+        {
+            var pedido = await _context.Pedidos.FindAsync(pedidoId);
+            if(pedido != null)
+            {
+                pedido.EstadoPedido = "Reembolsado";
+                await _context.UpdateEntityAsync(pedido);
+            }
+           
         }
     }
 }

@@ -63,20 +63,6 @@ public partial class PayPalPaymentDetail
 
     public string? SaleCurrency { get; set; }
 
-    public decimal? SaleSubtotal { get; set; }
-
-    public decimal? SaleShipping { get; set; }
-
-    public decimal? SaleInsurance { get; set; }
-
-    public decimal? SaleHandlingFee { get; set; }
-
-    public decimal? SaleShippingDiscount { get; set; }
-
-    public decimal? SaleDiscount { get; set; }
-
-    public string? PaymentMode { get; set; }
-
     public string? ProtectionEligibility { get; set; }
 
     public string? ProtectionEligibilityType { get; set; }
@@ -90,8 +76,6 @@ public partial class PayPalPaymentDetail
     public string? ReceivableCurrency { get; set; }
 
     public decimal? ExchangeRate { get; set; }
-
-    public string? ParentPayment { get; set; }
 
     public DateTime? CreateTime { get; set; }
 

@@ -180,10 +180,6 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(20)
                 .IsUnicode(false)
                 .HasColumnName("intent");
-            entity.Property(e => e.ParentPayment)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("parent_payment");
             entity.Property(e => e.PayeeEmail)
                 .HasMaxLength(100)
                 .IsUnicode(false)
@@ -216,10 +212,6 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(20)
                 .IsUnicode(false)
                 .HasColumnName("payment_method");
-            entity.Property(e => e.PaymentMode)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("payment_mode");
             entity.Property(e => e.ProtectionEligibility)
                 .HasMaxLength(50)
                 .IsUnicode(false)
@@ -239,32 +231,14 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("sale_currency");
-            entity.Property(e => e.SaleDiscount)
-                .HasColumnType("decimal(10, 2)")
-                .HasColumnName("sale_discount");
-            entity.Property(e => e.SaleHandlingFee)
-                .HasColumnType("decimal(10, 2)")
-                .HasColumnName("sale_handling_fee");
             entity.Property(e => e.SaleId)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("sale_id");
-            entity.Property(e => e.SaleInsurance)
-                .HasColumnType("decimal(10, 2)")
-                .HasColumnName("sale_insurance");
-            entity.Property(e => e.SaleShipping)
-                .HasColumnType("decimal(10, 2)")
-                .HasColumnName("sale_shipping");
-            entity.Property(e => e.SaleShippingDiscount)
-                .HasColumnType("decimal(10, 2)")
-                .HasColumnName("sale_shipping_discount");
             entity.Property(e => e.SaleState)
                 .HasMaxLength(20)
                 .IsUnicode(false)
                 .HasColumnName("sale_state");
-            entity.Property(e => e.SaleSubtotal)
-                .HasColumnType("decimal(10, 2)")
-                .HasColumnName("sale_subtotal");
             entity.Property(e => e.SaleTotal)
                 .HasColumnType("decimal(10, 2)")
                 .HasColumnName("sale_total");

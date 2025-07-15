@@ -48,23 +48,16 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
     public class Breakdown
     {
         [JsonProperty("item_total")]
-        public MoneyBase ItemTotal { get; set; }
+        public Money ItemTotal { get; set; }
 
         [JsonProperty("tax_total")]
-        public MoneyBase TaxTotal { get; set; }
+        public Money TaxTotal { get; set; }
 
         [JsonProperty("shipping")]
-        public MoneyBase ShippingAmount { get; set; }
+        public Money ShippingAmount { get; set; }
     }
 
-    public class MoneyBase
-    {
-        [JsonProperty("currency_code")]
-        public string CurrencyCode { get; set; }
 
-        [JsonProperty("value")]
-        public string Value { get; set; }
-    }
 
     public class Item
     {
@@ -78,10 +71,10 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
         public string Quantity { get; set; }
 
         [JsonProperty("unit_amount")]
-        public MoneyBase UnitAmount { get; set; }
+        public Money UnitAmount { get; set; }
 
         [JsonProperty("tax")]
-        public MoneyBase Tax { get; set; }
+        public Money Tax { get; set; }
 
         [JsonProperty("sku")]
         public string Sku { get; set; }

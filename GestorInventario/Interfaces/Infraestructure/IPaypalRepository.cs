@@ -14,5 +14,6 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<(Pedido Pedido, decimal TotalAmount)> GetPedidoWithDetailsAsync(int pedidoId);
         Task UpdatePedidoStatusAsync(int pedidoId, string status);
         Task UpdatePlanStatusInDatabase(string planId, string status);
+    
     }
 }

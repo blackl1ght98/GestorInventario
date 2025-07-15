@@ -74,13 +74,14 @@
                             @if (User.IsAdministrador())
                             {
                                 <a asp-action="Edit" asp-route-id="@pedido.Id" class="btn btn-outline-primary btn-sm">Actualizar</a>
-                                <button type="button" class="btn btn-outline-warning btn-sm refund-button"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#confirmModal"
-                                        data-pedido-id="@pedido.Id"
-                                @(pedido.EstadoPedido == "Reembolsado" ? "disabled" : "")>
-                                    Reembolsar
-                                </button>
+                                <form asp-controller="Payment" asp-action="RefundSale" method="post" class="d-inline">
+                                    <input type="hidden" name="PedidoId" value="@pedido.Id" />
+                                    <input type="hidden" name="Currency" value="@pedido.Currency" />
+                                    <button type="submit" class="btn btn-outline-warning btn-sm"
+                                            @(pedido.EstadoPedido == "Reembolsado" ? "disabled" : "")>
+                                        Reembolsar
+                                    </button>
+                                </form>
                             }
                         </div>
                         @if (User.IsAdministrador())
@@ -138,41 +139,5 @@
 </div>
 
 @section Scripts {
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            var pedidoId;
-
-            // Maneja el clic en los botones de reembolso
-            var refundButtons = document.querySelectorAll(".refund-button");
-            refundButtons.forEach(function (button) {
-                button.addEventListener("click", function (event) {
-                    event.preventDefault();
-                    pedidoId = button.getAttribute("data-pedido-id");
-                    document.getElementById("confirmMessage").textContent = `¿Estás seguro de que deseas reembolsar el pedido ${pedidoId}?`;
-                });
-            });
-
-            // Confirmar la acción del usuario
-            document.getElementById("confirmActionBtn").addEventListener("click", function () {
-                document.getElementById("loadingMessage").style.display = "block";
-                document.getElementById("confirmActionBtn").disabled = true;
-
-                fetch('/Payment/RefundSale', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ PedidoId: pedidoId })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log("Reembolso exitoso");
-                    location.reload();
-                })
-                .catch(error => {
-                    console.error("Error al reembolsar:", error);
-                    document.getElementById("loadingMessage").textContent = "Error al procesar el reembolso.";
-                    document.getElementById("confirmActionBtn").disabled = false;
-                });
-            });
-        });
-    </script>
+ 
 }
