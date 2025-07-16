@@ -318,11 +318,11 @@ namespace GestorInventario.Infraestructure.Controllers
                 var pedido = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerPedidoId(id)) ;
                 EditPedidoViewModel pedidosViewModel = new EditPedidoViewModel
                 {
-                    fechaPedido = DateTime.Now,
+                    fechaPedido = pedido.FechaPedido,
                     estadoPedido = pedido.EstadoPedido,
 
                 };
-                return View();
+                return View(pedidosViewModel);
             }
             catch (Exception ex)
             {

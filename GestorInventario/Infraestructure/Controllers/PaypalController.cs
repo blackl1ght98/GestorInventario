@@ -104,8 +104,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
 
-
-
+       
 
         [HttpGet]
         public async Task<IActionResult> MostrarPlanes([FromQuery] int pagina = 1, [FromQuery] int cantidadAMostrar = 6)

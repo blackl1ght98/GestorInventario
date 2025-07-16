@@ -10,7 +10,6 @@ namespace GestorInventario.ViewModels.order
         public int TotalPaginas { get; set; }
         public int PaginaActual { get; set; }
         public string Buscar { get; set; }
-        public DateTime? FechaInicio { get; set; }
-        public DateTime? FechaFin { get; set; }
+    
     }
 }

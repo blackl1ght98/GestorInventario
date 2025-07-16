@@ -6,13 +6,7 @@
         <h2 class="h4 mb-0">Editar Pedido #@Model.id</h2>
     </div>
     <div class="card-body">
-        @if (TempData["ErrorMessage"] != null)
-        {
-            <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                @TempData["ErrorMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        }
+       
         <form asp-action="Edit" asp-controller="Pedidos" method="post">
             <input type="hidden" asp-for="id" />
             <div class="form-group mb-3">

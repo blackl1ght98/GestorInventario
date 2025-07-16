@@ -4,7 +4,7 @@ namespace GestorInventario.ViewModels.order
 {
     public class PedidosViewModel
     {
-        public int Id { get; set; }
+       
         [Display(Name = "Productos")]
         public List<int> IdsProducto { get; set; } // Lista de IDs de productos, esta variable almacena el total de productos que hay
         public List<int> Cantidades { get; set; } // Lista de cantidades, esto almacena la cantidad de cada producto
