@@ -1,15 +1,12 @@
 ﻿
 using GestorInventario.Application.Classes;
 using GestorInventario.Application.DTOs;
+using GestorInventario.Application.DTOs.Response.PayPal;
 using GestorInventario.Application.DTOs.Response_paypal.GET;
 using GestorInventario.Application.DTOs.Response_paypal.PATCH;
 using GestorInventario.Application.DTOs.Response_paypal.POST;
-using GestorInventario.Domain.Models;
-using GestorInventario.Infraestructure.Repositories;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
-using GestorInventario.ViewModels.Paypal;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using System.Globalization;
@@ -649,22 +646,22 @@ namespace GestorInventario.Application.Services
             {
                 httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                var subscriptionRequest = new
+                var subscriptionRequest = new SubscriptionCreateResponse
                 {
-                    plan_id = id,
-                    application_context = new
+                    PlanId = id,
+                    ApplicationContext = new ApplicationContext
                     {
-                        brand_name = planName,
-                        locale = "es-ES",
-                        shipping_preference = "NO_SHIPPING",
-                        user_action = "SUBSCRIBE_NOW",
-                        payment_method = new
+                        BrandName = planName,
+                        Locale = "es-ES",
+                        ShippingPreference = "NO_SHIPPING",
+                        UserAction = "SUBSCRIBE_NOW",
+                        PaymentMethod = new PaymentMethod
                         {
-                            payer_selected = "PAYPAL",
-                            payee_preferred = "IMMEDIATE_PAYMENT_REQUIRED"
+                            PayerSelected = "PAYPAL",
+                            PayeePreferred = "IMMEDIATE_PAYMENT_REQUIRED"
                         },
-                        return_url = returnUrl,
-                        cancel_url = cancelUrl
+                        ReturnUrl = returnUrl,
+                        CancelUrl = cancelUrl
                     }
                 };
 
@@ -675,10 +672,13 @@ namespace GestorInventario.Application.Services
 
                 if (response.IsSuccessStatusCode)
                 {
-                    dynamic subscriptionJson = JsonConvert.DeserializeObject(responseContent);
+                    var subscriptionJson = JsonConvert.DeserializeObject<SubscriptionCreateResponse>(responseContent);
 
-                    var approvalLink = ((IEnumerable<dynamic>)subscriptionJson.links).First(link => link.rel == "approve").href;
-
+                    var approvalLink = subscriptionJson.Links.FirstOrDefault(link => link.Rel == "approve").Href;
+                    if (string.IsNullOrEmpty(approvalLink))
+                    {
+                        throw new Exception("No se encontró el enlace de aprobación en la respuesta de PayPal.");
+                    }
                     return approvalLink;
                 }
                 throw new Exception("Ha ocurrido un error");
@@ -779,7 +779,7 @@ namespace GestorInventario.Application.Services
 
         #endregion
 
-        public async Task<(string ProductsResponse, bool HasNextPage)> GetProductsAsync(int page = 1, int pageSize = 10)
+        public async Task<(PaypalProductListResponse ProductsResponse, bool HasNextPage)> GetProductsAsync(int page = 1, int pageSize = 10)
         {
 
             var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
@@ -805,18 +805,12 @@ namespace GestorInventario.Application.Services
 
                     var responseContent = await response.Content.ReadAsStringAsync();
 
-
-                    dynamic jsonResponse = JsonConvert.DeserializeObject(responseContent);
-
-                    // Como jsonResponse es de tipo dynamic, realizamos una conversión explícita a IEnumerable para manejar listas o arrays,
-                    // en este caso, la lista de enlaces ("links") que devuelve la API de PayPal
-                    var links = ((IEnumerable<dynamic>)jsonResponse.links).ToList();
-
-                    // Verificamos si existe un enlace que indique la presencia de una página siguiente ("next")
-                    bool hasNextPage = links.Any(link => link.rel == "next");
+                    var jsonResponse = JsonConvert.DeserializeObject<PaypalProductListResponse>(responseContent);
+                    bool hasNextPage = jsonResponse.Links.Any(link => link.Rel == "next");
 
 
-                    return (responseContent, hasNextPage);
+                    return (jsonResponse, hasNextPage);
+
                 }
                 else
                 {

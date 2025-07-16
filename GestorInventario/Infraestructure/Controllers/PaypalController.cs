@@ -61,13 +61,10 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 // Obtener productos de PayPal
                 var (respuestaProductos, tienePaginaSiguiente) = await _policyExecutor.ExecutePolicyAsync(() =>
-                _paypalService.GetProductsAsync(pagina, cantidadAMostrar));
-
-                // Deserializar la respuesta JSON
-                var productosJson = JsonConvert.DeserializeObject<PaypalProductResponse>(respuestaProductos);
+                    _paypalService.GetProductsAsync(pagina, cantidadAMostrar));
 
                 // Mapear productos a ProductoPaypalViewModel
-                var productos = productosJson?.Products?.Select(p => new ProductoPaypalViewModel
+                var productos = respuestaProductos?.Products?.Select(p => new ProductoPaypalViewModel
                 {
                     Id = p.Id,
                     Nombre = p.Name,
@@ -75,7 +72,6 @@ namespace GestorInventario.Infraestructure.Controllers
                 }).ToList() ?? new List<ProductoPaypalViewModel>();
 
                 // Calcular total de páginas (PayPal no proporciona totalItems, usamos tienePaginaSiguiente)
-                // Nota: Esto es una aproximación, ya que PayPal no proporciona el conteo total de productos.
                 var totalPaginas = tienePaginaSiguiente ? pagina + 1 : pagina;
 
                 // Configurar paginación
@@ -103,11 +99,11 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
-               
                 _logger.LogError(ex, "Error al obtener los productos de PayPal");
                 return RedirectToAction("Error", "Home");
             }
         }
+
 
 
 

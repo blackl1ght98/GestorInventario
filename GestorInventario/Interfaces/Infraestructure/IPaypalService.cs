@@ -27,7 +27,8 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<PaypalSubscriptionResponse> ObtenerDetallesSuscripcion(string subscription_id);
    
         Task<PaypalPlanResponse> ObtenerDetallesPlan(string id);
-        Task<(string ProductsResponse, bool HasNextPage)> GetProductsAsync(int page = 1, int pageSize = 10);
+        // Task<(string ProductsResponse, bool HasNextPage)> GetProductsAsync(int page = 1, int pageSize = 10);
+        Task<(PaypalProductListResponse ProductsResponse, bool HasNextPage)> GetProductsAsync(int page = 1, int pageSize = 10);
         Task<string> CancelarSuscripcion(string subscription_id, string reason);
         Task<string> GetAccessTokenAsync(string clientId, string clientSecret);
        
