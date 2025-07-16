@@ -1,5 +1,4 @@
-﻿using GestorInventario.Application.DTOs;
-using MailKit.Security;
+﻿using MailKit.Security;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -13,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using MailKit.Net.Smtp;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.MetodosExtension;
+using GestorInventario.Application.DTOs.Email;
 
 namespace GestorInventario.Application.Services
 {

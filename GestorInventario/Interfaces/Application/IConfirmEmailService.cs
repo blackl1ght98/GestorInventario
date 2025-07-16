@@ -1,4 +1,4 @@
-﻿using GestorInventario.Application.DTOs;
+﻿using GestorInventario.Application.DTOs.User;
 
 namespace GestorInventario.Interfaces.Application
 {

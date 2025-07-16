@@ -1,4 +1,4 @@
-﻿using GestorInventario.Application.DTOs;
+﻿using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Domain.Models;
 
 namespace GestorInventario.Interfaces.Application

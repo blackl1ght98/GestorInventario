@@ -1,4 +1,4 @@
-﻿using GestorInventario.Application.DTOs;
+﻿using GestorInventario.Application.DTOs.User;
 using GestorInventario.Application.Services.Authentication.Strategies;
 using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application;

@@ -1,20 +1,16 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
-
 using System.Globalization;
-using System.Text;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using System.Net.Http.Headers;
-using Newtonsoft.Json.Linq;
 using Microsoft.Extensions.Caching.Memory;
-using GestorInventario.Application.DTOs;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.MetodosExtension;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.ViewModels.Paypal;
+using GestorInventario.Application.DTOs.Email;
 
 namespace GestorInventario.Infraestructure.Controllers
 {
@@ -25,94 +21,56 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IConfiguration _configuration;
         private readonly GestorInventarioContext _context;
         private readonly IMemoryCache _memory;
-        private readonly IEmailService _emailService;
-     
+        private readonly IEmailService _emailService;     
         private readonly PolicyExecutor _policyExecutor;
         public PaymentController(ILogger<PaymentController> logger,  IConfiguration configuration, GestorInventarioContext context, IMemoryCache memory, 
             IEmailService email, PolicyExecutor executor, IPaypalService service)
         {
-            _logger = logger;
-           
+            _logger = logger;          
             _configuration = configuration;
             _context = context;
             _memory = memory;
             _emailService = email;
-          _policyExecutor = executor;
+            _policyExecutor = executor;
             _paypalService = service;
         }
         public async Task<IActionResult> Success(string PayerID)
         {
             try
             {
-                // Recuperar el orderId desde el caché
                 if (!_memory.TryGetValue("PayPalPaymentId", out string orderId) || string.IsNullOrEmpty(orderId))
                 {
                     throw new Exception("No se encontró el ID del pedido en el caché.");
                 }
 
-                using (var httpClient = new HttpClient())
+                var (captureId, total, currency) = await _paypalService.CapturarPagoAsync(orderId);
+
+                var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!int.TryParse(existeUsuario, out int usuarioId))
                 {
-                    var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
-                    var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
-                    var authToken = await _paypalService.GetAccessTokenAsync(clientId, clientSecret);
-
-                    if (string.IsNullOrEmpty(authToken))
-                        throw new Exception("No se pudo obtener el token de autenticación.");
-
-                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                    // Capturar el pedido con /v2/checkout/orders/{orderId}/capture
-                    var response = await httpClient.PostAsync($"https://api-m.sandbox.paypal.com/v2/checkout/orders/{orderId}/capture", new StringContent("{}", Encoding.UTF8, "application/json"));
-                    var responseBody = await response.Content.ReadAsStringAsync();
-
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        throw new Exception($"Error al ejecutar el pago: {response.StatusCode} - {responseBody}");
-                    }
-
-                    // Parsear la respuesta de la API v2
-                    var jsonResponse = JObject.Parse(responseBody);
-                    var captureId = jsonResponse["purchase_units"]?[0]?["payments"]?["captures"]?[0]?["id"]?.ToString();
-                    var total = jsonResponse["purchase_units"]?[0]?["payments"]?["captures"]?[0]?["amount"]?["value"]?.ToString();
-                    var currency = jsonResponse["purchase_units"]?[0]?["payments"]?["captures"]?[0]?["amount"]?["currency_code"]?.ToString();
-
-                    if (string.IsNullOrEmpty(captureId) || string.IsNullOrEmpty(total) || string.IsNullOrEmpty(currency))
-                    {
-                        throw new Exception("No se pudo extraer la información del pago.");
-                    }
-
-                    // Actualizar la base de datos manualmente
-                    var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                    if (int.TryParse(existeUsuario, out int usuarioId))
-                    {
-                        var pedido = await _context.Pedidos
-                            .Where(p => p.IdUsuario == usuarioId && p.EstadoPedido == "En Proceso")
-                            .OrderByDescending(p => p.FechaPedido)
-                            .FirstOrDefaultAsync();
-
-                        if (pedido != null)
-                        {
-                            pedido.SaleId = captureId; // En v2, esto es el captureId, no saleId
-                            pedido.Total = total;
-                            pedido.Currency = currency;
-                            pedido.PagoId = orderId; // Usamos orderId, no paymentId
-                            pedido.EstadoPedido = "Pagado";
-                            _context.Update(pedido);
-                            await _context.SaveChangesAsync();
-                        }
-                        else
-                        {
-                            throw new Exception("No se encontró un pedido en proceso para este usuario.");
-                        }
-                    }
-                    else
-                    {
-                        throw new Exception("No se pudo obtener el ID del usuario autenticado.");
-                    }
-
-                    return View();
+                    throw new Exception("No se pudo obtener el ID del usuario autenticado.");
                 }
+
+                var pedido = await _context.Pedidos
+                    .Where(p => p.IdUsuario == usuarioId && p.EstadoPedido == "En Proceso")
+                    .OrderByDescending(p => p.FechaPedido)
+                    .FirstOrDefaultAsync();
+
+                if (pedido == null)
+                {
+                    throw new Exception("No se encontró un pedido en proceso para este usuario.");
+                }
+
+                pedido.SaleId = captureId;
+                pedido.Total = total;
+                pedido.Currency = currency;
+                pedido.PagoId = orderId;
+                pedido.EstadoPedido = "Pagado";
+
+                _context.Update(pedido);
+                await _context.SaveChangesAsync();
+
+                return View();
             }
             catch (Exception ex)
             {
@@ -121,7 +79,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-        //Si el pago es rechazado viene aqui
+
+        //Si el pago es reembolsado
         [HttpPost]
         public async Task<IActionResult> RefundSale(RefundRequestModel request)
         {

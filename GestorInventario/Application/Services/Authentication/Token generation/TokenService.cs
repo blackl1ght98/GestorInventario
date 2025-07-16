@@ -3,12 +3,12 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using GestorInventario.Domain.Models;
-using GestorInventario.Application.DTOs;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.Caching.Memory;
 using GestorInventario.Interfaces.Application;
+using GestorInventario.Application.DTOs.User;
 
 namespace GestorInventario.Application.Services
 {

@@ -1,8 +1,8 @@
-﻿using GestorInventario.Application.DTOs;
-using GestorInventario.Interfaces.Application;
+﻿using GestorInventario.Interfaces.Application;
 using GestorInventario.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using GestorInventario.MetodosExtension;
+using GestorInventario.Application.DTOs.User;
 
 namespace GestorInventario.Application.Services
 {

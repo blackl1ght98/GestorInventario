@@ -1,4 +1,6 @@
 ﻿using GestorInventario.Application.DTOs;
+using GestorInventario.Application.DTOs.Email;
+using GestorInventario.Application.DTOs.User;
 using GestorInventario.Application.Politicas_Resilencia;
 using GestorInventario.Application.Services;
 using GestorInventario.Infraestructure.Utils;

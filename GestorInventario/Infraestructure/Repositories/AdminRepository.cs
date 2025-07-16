@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using GestorInventario.Application.DTOs;
+using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application;

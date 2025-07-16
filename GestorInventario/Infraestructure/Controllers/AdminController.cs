@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using GestorInventario.Application.DTOs;
+using GestorInventario.Application.DTOs.User;
 using GestorInventario.Application.Services;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
@@ -18,30 +19,22 @@ namespace GestorInventario.Infraestructure.Controllers
     public class AdminController : Controller
     {
       
-        private readonly IEmailService _emailService;
-        private readonly HashService _hashService;
+       
         private readonly IConfirmEmailService _confirmEmailService;
         private readonly ILogger<AdminController> _logger;
         private readonly IAdminRepository _adminrepository;
-        private readonly GenerarPaginas _generarPaginas;
-      
+        private readonly GenerarPaginas _generarPaginas;      
         private readonly IMapper _mapper;
         private readonly PolicyExecutor _policyExecutor;
-        public AdminController( IEmailService emailService, HashService hashService, IConfirmEmailService confirmEmailService, 
-            ILogger<AdminController> logger, IAdminRepository adminRepository,  GenerarPaginas generarPaginas 
-            , IMapper map, PolicyExecutor executor)
-        {
-           
-            _emailService = emailService;
-            _hashService = hashService;
+        public AdminController(IConfirmEmailService confirmEmailService, ILogger<AdminController> logger, IAdminRepository adminRepository,  GenerarPaginas generarPaginas, 
+        IMapper map, PolicyExecutor executor)
+        {           
             _confirmEmailService = confirmEmailService;
             _logger = logger;
             _adminrepository = adminRepository;
-            _generarPaginas = generarPaginas;
-            
+            _generarPaginas = generarPaginas;            
             _mapper= map;
-            _policyExecutor = executor;
-          
+            _policyExecutor = executor;          
         }
 
         [Authorize(Roles = "Administrador", Policy = "VerUsuarios")]

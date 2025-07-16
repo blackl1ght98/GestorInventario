@@ -1,6 +1,7 @@
 ﻿
 using GestorInventario.Application.Classes;
 using GestorInventario.Application.DTOs;
+using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Application.DTOs.Response.PayPal;
 using GestorInventario.Application.DTOs.Response_paypal.GET;
 using GestorInventario.Application.DTOs.Response_paypal.PATCH;
@@ -9,6 +10,7 @@ using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Globalization;
 using System.Net.Http.Headers;
 using System.Security.Claims;
@@ -941,5 +943,42 @@ namespace GestorInventario.Application.Services
                 throw new Exception($"Error al crear el producto: {response.StatusCode} - {response.Content.ReadAsStringAsync().Result}");
             }
         }
+        public async Task<(string CaptureId, string Total, string Currency)> CapturarPagoAsync(string orderId)
+        {
+            var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
+            var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
+            var authToken = await GetAccessTokenAsync(clientId, clientSecret);
+
+            if (string.IsNullOrEmpty(authToken))
+                throw new Exception("No se pudo obtener el token de autenticación.");
+
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            var response = await httpClient.PostAsync(
+                $"https://api-m.sandbox.paypal.com/v2/checkout/orders/{orderId}/capture",
+                new StringContent("{}", Encoding.UTF8, "application/json"));
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"Error al ejecutar el pago: {response.StatusCode} - {responseBody}");
+            }
+
+            var jsonResponse = JObject.Parse(responseBody);
+            var captureId = jsonResponse["purchase_units"]?[0]?["payments"]?["captures"]?[0]?["id"]?.ToString();
+            var total = jsonResponse["purchase_units"]?[0]?["payments"]?["captures"]?[0]?["amount"]?["value"]?.ToString();
+            var currency = jsonResponse["purchase_units"]?[0]?["payments"]?["captures"]?[0]?["amount"]?["currency_code"]?.ToString();
+
+            if (string.IsNullOrEmpty(captureId) || string.IsNullOrEmpty(total) || string.IsNullOrEmpty(currency))
+            {
+                throw new Exception("No se pudo extraer la información del pago.");
+            }
+
+            return (captureId, total, currency);
+        }
+
     }
 }

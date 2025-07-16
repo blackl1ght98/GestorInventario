@@ -1,6 +1,6 @@
 ﻿using GestorInventario.Domain.Models;
 
-namespace GestorInventario.Application.DTOs
+namespace GestorInventario.Application.DTOs.Email
 {
     public class EmailRembolsoDto
     {

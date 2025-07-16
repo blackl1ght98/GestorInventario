@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.Application.DTOs
+﻿namespace GestorInventario.Application.DTOs.User
 {
     public class UsuarioRequest
     {
