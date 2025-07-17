@@ -269,7 +269,10 @@ namespace GestorInventario.Infraestructure.Repositories
                 PayPalPaymentDetail detallesSuscripcion;
                 if (existingDetail == null)
                 {
-                    detallesSuscripcion = new PayPalPaymentDetail();
+                    detallesSuscripcion = new PayPalPaymentDetail
+                    {
+                        Id = detalles.Id // Asignar el Id antes de agregar al contexto
+                    };
                     _context.PayPalPaymentDetails.Add(detallesSuscripcion);
                 }
                 else
@@ -280,7 +283,6 @@ namespace GestorInventario.Infraestructure.Repositories
                 }
 
                 // Actualizar los campos del objeto PayPalPaymentDetail con los datos de la API
-                detallesSuscripcion.Id = detalles.Id;
                 detallesSuscripcion.Intent = detalles.Intent;
                 detallesSuscripcion.Status = detalles.Status;
                 detallesSuscripcion.PaymentMethod = "paypal";
@@ -380,7 +382,7 @@ namespace GestorInventario.Infraestructure.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al obtener los detalles del pago");
+                _logger.LogError(ex, "Error al obtener los Junta detalles del pago");
                 await transaccion.RollbackAsync();
                 return (null, false, "Ha ocurrido un error");
             }
