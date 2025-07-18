@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace GestorInventario.Application.DTOs.Response_paypal.POST
 {
@@ -48,13 +49,13 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
     public class Breakdown
     {
         [JsonProperty("item_total")]
-        public Money ItemTotal { get; set; }
+        public MoneyOrder ItemTotal { get; set; }
 
         [JsonProperty("tax_total")]
-        public Money TaxTotal { get; set; }
+        public MoneyOrder TaxTotal { get; set; }
 
         [JsonProperty("shipping")]
-        public Money ShippingAmount { get; set; }
+        public MoneyOrder ShippingAmount { get; set; }
     }
 
 
@@ -71,10 +72,10 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
         public string Quantity { get; set; }
 
         [JsonProperty("unit_amount")]
-        public Money UnitAmount { get; set; }
+        public MoneyOrder UnitAmount { get; set; }
 
         [JsonProperty("tax")]
-        public Money Tax { get; set; }
+        public MoneyOrder Tax { get; set; }
 
         [JsonProperty("sku")]
         public string Sku { get; set; }
@@ -138,5 +139,15 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
 
         [JsonProperty("cancel_url")]
         public string CancelUrl { get; set; }
+    }
+    public class MoneyOrder
+    {
+        [JsonProperty("currency_code")]
+        [Required(ErrorMessage = "El código de moneda es requerido.")]
+        public string CurrencyCode { get; set; }
+
+        [JsonProperty("value")]
+        [Required(ErrorMessage = "El valor del monto es requerido.")]
+        public string Value { get; set; }
     }
 }

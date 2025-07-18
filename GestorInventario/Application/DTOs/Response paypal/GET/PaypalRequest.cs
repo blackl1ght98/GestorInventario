@@ -1,4 +1,6 @@
-﻿namespace GestorInventario.Application.DTOs
+﻿using Newtonsoft.Json;
+
+namespace GestorInventario.Application.DTOs
 {
     public class PaypalRequest
     {
@@ -7,53 +9,77 @@
     //DTO para obtener los detalles de una suscripcion
     public class PaypalSubscriptionResponse
     {
-        public string id { get; set; }
-        public string plan_id { get; set; }
-        public string status { get; set; }
-        public DateTime? start_time { get; set; }
-        public DateTime? status_update_time { get; set; }
-        public Subscriber subscriber { get; set; }
-        public BillingInfo billing_info { get; set; }
+        [JsonProperty("id")]
+        public string Id { get; set; }
+        [JsonProperty("plan_id")]
+        public string PlanId { get; set; }
+        [JsonProperty("status")]
+        public string Status { get; set; }
+        [JsonProperty("start_time")]
+        public DateTime? StartTime { get; set; }
+        [JsonProperty("status_update_time")]
+        public DateTime? StatusUpdateTime { get; set; }
+        [JsonProperty("subscriber")]
+        public Subscriber Subscriber { get; set; }
+        [JsonProperty("billing_info")]
+        public BillingInfo BillingInfo { get; set; }
     }
 
     public class Subscriber
     {
-        public Name name { get; set; }
-        public string email_address { get; set; }
-        public string payer_id { get; set; }
+        [JsonProperty("name")]
+        public Name Name { get; set; }
+        [JsonProperty("email_address")]
+        public string EmailAddress { get; set; }
+        [JsonProperty("payer_id")]
+        public string PayerId { get; set; }
     }
 
     public class Name
     {
-        public string given_name { get; set; }
-        public string surname { get; set; }
+        [JsonProperty("given_name")]
+        public string GivenName { get; set; }
+        [JsonProperty("surname")]
+        public string Surname { get; set; }
     }
 
     public class BillingInfo
     {
-        public Amount outstanding_balance { get; set; }
-        public DateTime? next_billing_time { get; set; }
-        public LastPayment last_payment { get; set; }
-        public DateTime? final_payment_time { get; set; }
-        public List<CycleExecution> cycle_executions { get; set; }
+        [JsonProperty("outstanding_balance")]
+        public Amount OutstandingBalance { get; set; }
+        [JsonProperty("next_billing_time")]
+        public DateTime? NextBillingTime { get; set; }
+        [JsonProperty("last_payment")]
+        public LastPayment LastPayment { get; set; }
+        [JsonProperty("final_payment_time")]
+        public DateTime? FinalPaymentTime { get; set; }
+        [JsonProperty("cycle_executions")]
+        public List<CycleExecution> CycleExecutions { get; set; }
     }
 
     public class Amount
     {
-        public string currency_code { get; set; }
-        public string value { get; set; }
+        [JsonProperty("currency_code")]
+        public string CurrencyCode { get; set; }
+        [JsonProperty("value")]
+        public string Value { get; set; }
     }
 
     public class LastPayment
     {
-        public Amount amount { get; set; }
-        public DateTime? time { get; set; }
+        [JsonProperty("amount")]
+        public Amount Amount { get; set; }
+        [JsonProperty("time")]
+        public DateTime? Time { get; set; }
     }
 
     public class CycleExecution
     {
-        public int cycles_completed { get; set; }
-        public int cycles_remaining { get; set; }
-        public int total_cycles { get; set; }
+        [JsonProperty("cycles_completed")]
+        public int CyclesCompleted { get; set; }
+        [JsonProperty("cycles_remaining")]
+        public int CyclesRemaining { get; set; }
+        [JsonProperty("total_cycles")]
+        public int TotalCycles { get; set; }
     }
 }

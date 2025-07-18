@@ -61,17 +61,17 @@ namespace GestorInventario.Application.Services
                         Value = pagar.totalAmount.ToString("F2", CultureInfo.InvariantCulture),
                         Breakdown = new Breakdown
                         {
-                            ItemTotal = new Money
+                            ItemTotal = new MoneyOrder
                             {
                                 CurrencyCode = pagar.currency,
                                 Value = pagar.totalAmount.ToString("F2", CultureInfo.InvariantCulture)
                             },
-                            TaxTotal = new Money
+                            TaxTotal = new MoneyOrder
                             {
                                 CurrencyCode = pagar.currency,
                                 Value = "0.00"
                             },
-                            ShippingAmount = new Money
+                            ShippingAmount = new MoneyOrder
                             {
                                 CurrencyCode = pagar.currency,
                                 Value = "0.00"
@@ -86,12 +86,12 @@ namespace GestorInventario.Application.Services
                         Name = item.name,
                         Description = item.description,
                         Quantity = item.quantity.ToString(),
-                        UnitAmount = new Money
+                        UnitAmount = new MoneyOrder
                         {
                             Value = item.price.ToString("F2", CultureInfo.InvariantCulture),
                             CurrencyCode = pagar.currency
                         },
-                        Tax = new Money
+                        Tax = new MoneyOrder
                         {
                             Value = "0.00",
                             CurrencyCode = pagar.currency
@@ -213,10 +213,10 @@ namespace GestorInventario.Application.Services
                 var refundRequest = new PaypalRefundResponse
                 {
                     NotaParaElCliente = "Pedido cancelado por el usuario",
-                    Amount =  new Amount
+                    Amount =  new AmountRefund
                     {
-                        value = totalAmount.ToString("F2", CultureInfo.InvariantCulture),
-                        currency_code = pedido.Currency
+                        Value = totalAmount.ToString("F2", CultureInfo.InvariantCulture),
+                        CurrencyCode = pedido.Currency
                     }
                 };
 

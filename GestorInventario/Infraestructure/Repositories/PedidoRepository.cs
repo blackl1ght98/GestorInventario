@@ -5,7 +5,6 @@ using GestorInventario.MetodosExtension;
 using GestorInventario.ViewModels.order;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
 using System.Globalization;
 using System.Security.Claims;
 namespace GestorInventario.Infraestructure.Repositories

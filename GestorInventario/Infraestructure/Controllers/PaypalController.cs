@@ -438,7 +438,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Error", "Home");
                 }
 
-                string planId = subscriptionDetails.plan_id ?? string.Empty;
+                string planId = subscriptionDetails.PlanId ?? string.Empty;
                 var plan = await _policyExecutor.ExecutePolicyAsync(() => _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId));
                 if (plan == null)
                 {
@@ -502,33 +502,33 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 var detallesSuscripcion = new SubscriptionDetail
                 {
-                    SubscriptionId = subscriptionDetails.id ?? string.Empty,
-                    PlanId = subscriptionDetails.plan_id ?? string.Empty,
-                    Status = subscriptionDetails.status ?? string.Empty,
-                    StartTime = subscriptionDetails.start_time ?? minSqlDate,
-                    StatusUpdateTime = subscriptionDetails.status_update_time ?? minSqlDate,
-                    SubscriberName = $"{subscriptionDetails.subscriber?.name?.given_name ?? string.Empty} {subscriptionDetails.subscriber?.name?.surname ?? string.Empty}".Trim(),
-                    SubscriberEmail = subscriptionDetails.subscriber?.email_address ?? string.Empty,
-                    PayerId = subscriptionDetails.subscriber?.payer_id ?? string.Empty,
-                    OutstandingBalance = subscriptionDetails.billing_info?.outstanding_balance?.value != null
-                        ? Convert.ToDecimal(subscriptionDetails.billing_info.outstanding_balance.value)
+                    SubscriptionId = subscriptionDetails.Id ?? string.Empty,
+                    PlanId = subscriptionDetails.PlanId ?? string.Empty,
+                    Status = subscriptionDetails.Status ?? string.Empty,
+                    StartTime = subscriptionDetails.StartTime ?? minSqlDate,
+                    StatusUpdateTime = subscriptionDetails.StatusUpdateTime ?? minSqlDate,
+                    SubscriberName = $"{subscriptionDetails.Subscriber?.Name?.GivenName ?? string.Empty} {subscriptionDetails.Subscriber?.Name?.Surname ?? string.Empty}".Trim(),
+                    SubscriberEmail = subscriptionDetails.Subscriber?.EmailAddress ?? string.Empty,
+                    PayerId = subscriptionDetails.Subscriber?.PayerId ?? string.Empty,
+                    OutstandingBalance = subscriptionDetails.BillingInfo?.OutstandingBalance?.Value != null
+                        ? Convert.ToDecimal(subscriptionDetails.BillingInfo.OutstandingBalance.Value)
                         : 0,
-                    OutstandingCurrency = subscriptionDetails.billing_info?.outstanding_balance?.currency_code ?? string.Empty,
-                    NextBillingTime = subscriptionDetails.billing_info?.next_billing_time ?? minSqlDate,
-                    LastPaymentTime = subscriptionDetails.billing_info?.last_payment?.time ?? minSqlDate,
-                    LastPaymentAmount = subscriptionDetails.billing_info?.last_payment?.amount?.value != null
-                        ? Convert.ToDecimal(subscriptionDetails.billing_info.last_payment.amount.value)
+                    OutstandingCurrency = subscriptionDetails.BillingInfo?.OutstandingBalance?.CurrencyCode ?? string.Empty,
+                    NextBillingTime = subscriptionDetails.BillingInfo?.NextBillingTime ?? minSqlDate,
+                    LastPaymentTime = subscriptionDetails.BillingInfo?.LastPayment?.Time ?? minSqlDate,
+                    LastPaymentAmount = subscriptionDetails.BillingInfo?.LastPayment?.Amount?.Value != null
+                        ? Convert.ToDecimal(subscriptionDetails.BillingInfo.LastPayment.Amount.Value)
                         : 0,
-                    LastPaymentCurrency = subscriptionDetails.billing_info?.last_payment?.amount?.currency_code ?? string.Empty,
-                    FinalPaymentTime = subscriptionDetails.billing_info?.final_payment_time ?? minSqlDate,
-                    CyclesCompleted = subscriptionDetails.billing_info?.cycle_executions != null && subscriptionDetails.billing_info.cycle_executions.Count > 0
-                        ? subscriptionDetails.billing_info.cycle_executions[0].cycles_completed
+                    LastPaymentCurrency = subscriptionDetails.BillingInfo?.LastPayment?.Amount?.CurrencyCode ?? string.Empty,
+                    FinalPaymentTime = subscriptionDetails.BillingInfo?.FinalPaymentTime ?? minSqlDate,
+                    CyclesCompleted = subscriptionDetails.BillingInfo?.CycleExecutions != null && subscriptionDetails.BillingInfo.CycleExecutions.Count > 0
+                        ? subscriptionDetails.BillingInfo.CycleExecutions[0].CyclesCompleted
                         : 0,
-                    CyclesRemaining = subscriptionDetails.billing_info?.cycle_executions != null && subscriptionDetails.billing_info.cycle_executions.Count > 0
-                        ? subscriptionDetails.billing_info.cycle_executions[0].cycles_remaining
+                    CyclesRemaining = subscriptionDetails.BillingInfo?.CycleExecutions != null && subscriptionDetails.BillingInfo.CycleExecutions.Count > 0
+                        ? subscriptionDetails.BillingInfo.CycleExecutions[0].CyclesRemaining
                         : 0,
-                    TotalCycles = subscriptionDetails.billing_info?.cycle_executions != null && subscriptionDetails.billing_info.cycle_executions.Count > 0
-                        ? subscriptionDetails.billing_info.cycle_executions[0].total_cycles
+                    TotalCycles = subscriptionDetails.BillingInfo?.CycleExecutions != null && subscriptionDetails.BillingInfo.CycleExecutions.Count > 0
+                        ? subscriptionDetails.BillingInfo.CycleExecutions[0].TotalCycles
                         : 0,
                     TrialIntervalUnit = plan?.TrialIntervalUnit,
                     TrialIntervalCount = plan?.TrialIntervalCount ?? 0,
@@ -669,7 +669,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
                 // Obtener el planId desde el DTO y validar que no sea nulo o vacío
-                string planId = subscriptionDetails.plan_id;
+                string planId = subscriptionDetails.PlanId;
                 if (string.IsNullOrEmpty(planId))
                 {
                     TempData["ErrorMessage"] = "El ID del plan de la suscripción es inválido o no se proporcionó.";
@@ -749,33 +749,33 @@ namespace GestorInventario.Infraestructure.Controllers
                 // Crear el objeto de detalles de la suscripción
                 var detallesSuscripcion = new SubscriptionDetail
                 {
-                    SubscriptionId = subscriptionDetails.id ?? string.Empty,
-                    PlanId = subscriptionDetails.plan_id ?? string.Empty,
-                    Status = subscriptionDetails.status ?? string.Empty,
-                    StartTime = subscriptionDetails.start_time ?? minSqlDate,
-                    StatusUpdateTime = subscriptionDetails.status_update_time ?? minSqlDate,
-                    SubscriberName = $"{subscriptionDetails.subscriber?.name?.given_name ?? string.Empty} {subscriptionDetails.subscriber?.name?.surname ?? string.Empty}".Trim(),
-                    SubscriberEmail = subscriptionDetails.subscriber?.email_address ?? string.Empty,
-                    PayerId = subscriptionDetails.subscriber?.payer_id ?? string.Empty,
-                    OutstandingBalance = subscriptionDetails.billing_info?.outstanding_balance?.value != null
-                        ? Convert.ToDecimal(subscriptionDetails.billing_info.outstanding_balance.value)
+                    SubscriptionId = subscriptionDetails.Id ?? string.Empty,
+                    PlanId = subscriptionDetails.PlanId ?? string.Empty,
+                    Status = subscriptionDetails.Status ?? string.Empty,
+                    StartTime = subscriptionDetails.StartTime ?? minSqlDate,
+                    StatusUpdateTime = subscriptionDetails.StatusUpdateTime ?? minSqlDate,
+                    SubscriberName = $"{subscriptionDetails.Subscriber?.Name?.GivenName ?? string.Empty} {subscriptionDetails.Subscriber?.Name?.Surname ?? string.Empty}".Trim(),
+                    SubscriberEmail = subscriptionDetails.Subscriber?.EmailAddress ?? string.Empty,
+                    PayerId = subscriptionDetails.Subscriber?.PayerId ?? string.Empty,
+                    OutstandingBalance = subscriptionDetails.BillingInfo?.OutstandingBalance?.Value != null
+                        ? Convert.ToDecimal(subscriptionDetails.BillingInfo.OutstandingBalance.Value)
                         : 0,
-                    OutstandingCurrency = subscriptionDetails.billing_info?.outstanding_balance?.currency_code ?? string.Empty,
-                    NextBillingTime = subscriptionDetails.billing_info?.next_billing_time ?? minSqlDate,
-                    LastPaymentTime = subscriptionDetails.billing_info?.last_payment?.time ?? minSqlDate,
-                    LastPaymentAmount = subscriptionDetails.billing_info?.last_payment?.amount?.value != null
-                        ? Convert.ToDecimal(subscriptionDetails.billing_info.last_payment.amount.value)
+                    OutstandingCurrency = subscriptionDetails.BillingInfo?.OutstandingBalance?.CurrencyCode ?? string.Empty,
+                    NextBillingTime = subscriptionDetails.BillingInfo?.NextBillingTime ?? minSqlDate,
+                    LastPaymentTime = subscriptionDetails.BillingInfo?.LastPayment?.Time ?? minSqlDate,
+                    LastPaymentAmount = subscriptionDetails.BillingInfo?.LastPayment?.Amount?.Value != null
+                        ? Convert.ToDecimal(subscriptionDetails.BillingInfo.LastPayment.Amount.Value)
                         : 0,
-                    LastPaymentCurrency = subscriptionDetails.billing_info?.last_payment?.amount?.currency_code ?? string.Empty,
-                    FinalPaymentTime = subscriptionDetails.billing_info?.final_payment_time ?? minSqlDate,
-                    CyclesCompleted = subscriptionDetails.billing_info?.cycle_executions != null && subscriptionDetails.billing_info.cycle_executions.Count > 0
-                        ? subscriptionDetails.billing_info.cycle_executions[0].cycles_completed
+                    LastPaymentCurrency = subscriptionDetails.BillingInfo?.LastPayment?.Amount?.CurrencyCode ?? string.Empty,
+                    FinalPaymentTime = subscriptionDetails.BillingInfo?.FinalPaymentTime ?? minSqlDate,
+                    CyclesCompleted = subscriptionDetails.BillingInfo?.CycleExecutions != null && subscriptionDetails.BillingInfo.CycleExecutions.Count > 0
+                        ? subscriptionDetails.BillingInfo.CycleExecutions[0].CyclesCompleted
                         : 0,
-                    CyclesRemaining = subscriptionDetails.billing_info?.cycle_executions != null && subscriptionDetails.billing_info.cycle_executions.Count > 0
-                        ? subscriptionDetails.billing_info.cycle_executions[0].cycles_remaining
+                    CyclesRemaining = subscriptionDetails.BillingInfo?.CycleExecutions != null && subscriptionDetails.BillingInfo.CycleExecutions.Count > 0
+                        ? subscriptionDetails.BillingInfo.CycleExecutions[0].CyclesRemaining
                         : 0,
-                    TotalCycles = subscriptionDetails.billing_info?.cycle_executions != null && subscriptionDetails.billing_info.cycle_executions.Count > 0
-                        ? subscriptionDetails.billing_info.cycle_executions[0].total_cycles
+                    TotalCycles = subscriptionDetails.BillingInfo?.CycleExecutions != null && subscriptionDetails.BillingInfo.CycleExecutions.Count > 0
+                        ? subscriptionDetails.BillingInfo.CycleExecutions[0].TotalCycles
                         : 0,
                     TrialIntervalUnit = plan?.TrialIntervalUnit,
                     TrialIntervalCount = plan?.TrialIntervalCount ?? 0,

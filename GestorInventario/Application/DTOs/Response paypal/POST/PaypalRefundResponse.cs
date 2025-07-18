@@ -10,6 +10,14 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
         [JsonProperty("note_to_payer")]
         public string NotaParaElCliente { get; set; }
         [JsonProperty("amount")]
-        public Amount Amount { get; set; }
+        public AmountRefund Amount { get; set; }
     }
+    public class AmountRefund
+    {
+        [JsonProperty("currency_code")]
+        public string CurrencyCode { get; set; }
+        [JsonProperty("value")]
+        public string Value { get; set; }
+    }
+
 }

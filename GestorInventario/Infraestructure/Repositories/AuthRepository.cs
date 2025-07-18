@@ -1,6 +1,7 @@
 ﻿using GestorInventario.Application.DTOs.User;
 using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
+using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using Microsoft.EntityFrameworkCore;
@@ -14,12 +15,17 @@ namespace GestorInventario.Infraestructure.Repositories
         private readonly HashService _hashService;
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly ILogger<AuthRepository> _logger;
-        public AuthRepository(GestorInventarioContext context, HashService hash, IHttpContextAccessor httpcontextAccessor, ILogger<AuthRepository> logger)
+        private readonly UtilityClass _utilityClass;
+        private readonly ICarritoRepository _carritoRepository;
+        public AuthRepository(GestorInventarioContext context, HashService hash, IHttpContextAccessor httpcontextAccessor, 
+            ILogger<AuthRepository> logger, UtilityClass utilityClass, ICarritoRepository carritoRepository)
         {
             _context = context;
             _hashService = hash;
             _contextAccessor = httpcontextAccessor;
             _logger = logger;
+            _utilityClass = utilityClass;
+            _carritoRepository = carritoRepository;
         }
         //Los metodos que hay aqui estan todos en AuthController
         public async Task<Usuario> Login(string email)=>await _context.Usuarios.Include(x => x.IdRolNavigation).FirstOrDefaultAsync(u => u.Email == email);
@@ -129,6 +135,31 @@ namespace GestorInventario.Infraestructure.Repositories
 
             return (true, null, usuario);
         }
+        public async Task EliminarCarritoActivo()
+        {
+            try
+            {
+                var usuarioId = _utilityClass.ObtenerUsuarioIdActual();
+                var carritosActivos = await _context.Pedidos
+                    .Where(p => p.IdUsuario == usuarioId && p.EsCarrito)
+                    .ToListAsync();
 
+                foreach (var carritoActivo in carritosActivos)
+                {
+                    var itemsCarrito = await _carritoRepository.ObtenerItemsDelCarritoUsuario(carritoActivo.Id);
+                    if (!itemsCarrito.Any()) // Solo eliminar carritos vacíos
+                    {
+                        _context.Pedidos.Remove(carritoActivo);
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al eliminar carritos activos para el usuario {UsuarioId}", _utilityClass.ObtenerUsuarioIdActual());
+                throw; // O manejar el error según la lógica de tu aplicación
+            }
+        }
     }
 }

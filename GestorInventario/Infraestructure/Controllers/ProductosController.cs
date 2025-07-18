@@ -10,7 +10,6 @@ using GestorInventario.PaginacionLogica;
 using GestorInventario.ViewModels.product;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace GestorInventario.Infraestructure.Controllers

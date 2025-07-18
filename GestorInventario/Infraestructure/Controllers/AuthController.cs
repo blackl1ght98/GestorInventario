@@ -1,7 +1,6 @@
 ﻿using GestorInventario.Application.DTOs;
 using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Application.DTOs.User;
-using GestorInventario.Application.Politicas_Resilencia;
 using GestorInventario.Application.Services;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
@@ -9,12 +8,10 @@ using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.ViewModels.user;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 using System.ComponentModel.DataAnnotations;
-using System.Security.Claims;
+
 
 
 namespace GestorInventario.Infraestructure.Controllers
@@ -25,21 +22,19 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly HashService _hashService;
         private readonly IEmailService _emailService;
         private readonly TokenService _tokenService;
-        private readonly IAuthRepository _authRepository;
-        private readonly PolicyHandler _PolicyHandler;
-        private readonly ILogger<AuthController> _logger;
-        private readonly IMemoryCache _memoryCache;
+        private readonly IAuthRepository _authRepository;        
+        private readonly ILogger<AuthController> _logger;       
         private readonly PolicyExecutor _policyExecutor;
         public AuthController(HashService hashService, IEmailService emailService, TokenService tokenService, IAuthRepository adminRepository,
-              ILogger<AuthController> logger, PolicyHandler policy, IMemoryCache memory, PolicyExecutor executor)
+              ILogger<AuthController> logger,   PolicyExecutor executor)
         {
             _hashService = hashService;
             _emailService = emailService;
             _tokenService = tokenService;
             _authRepository = adminRepository;
-            _PolicyHandler = policy;
+          
             _logger = logger;
-            _memoryCache = memory;
+      
             _policyExecutor = executor;
         }
         //Metodo para mostrar la vista de login
@@ -153,7 +148,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     Response.Cookies.Delete(cookie.Key);
                 }
-
+               await _authRepository.EliminarCarritoActivo();
                 // Cierra la sesión.
                 await HttpContext.SignOutAsync();
 

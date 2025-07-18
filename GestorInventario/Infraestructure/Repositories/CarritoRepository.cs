@@ -88,7 +88,7 @@ namespace GestorInventario.Infraestructure.Repositories
             return carrito;
         }
 
-       
+
         public async Task<(bool, string, string)> PagarV2(string moneda, int userId)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -131,7 +131,7 @@ namespace GestorInventario.Infraestructure.Repositories
 
                 // Calcular el total para PayPal
                 moneda = string.IsNullOrEmpty(moneda) ? "EUR" : moneda;
-                var checkout = await CrearCheckoutParaPago(itemsDelCarrito, moneda, infoUsuario);
+                var checkout = await PrepararCheckoutParaPagoPayPal(itemsDelCarrito, moneda, infoUsuario);
                 var createdPaymentJson = await _paypalService.CreateOrderAsyncV2(checkout);
                 var createdPayment = JsonConvert.DeserializeObject<PayPalOrderResponse>(createdPaymentJson);
                 var approvalUrl = createdPayment?.links?.FirstOrDefault(x => x.rel == "payer-action")?.href;
@@ -140,6 +140,21 @@ namespace GestorInventario.Infraestructure.Repositories
                 {
                     // Registrar el pedido en el historial
                     await LogHistorialPedido(carrito, itemsDelCarrito);
+
+                    // Eliminar cualquier carrito vacío o adicional para el usuario
+                    var carritosActivos = await _context.Pedidos
+                        .Where(p => p.IdUsuario == userId && p.EsCarrito)
+                        .ToListAsync();
+                    foreach (var carritoActivo in carritosActivos)
+                    {
+                        var itemsCarrito = await ObtenerItemsDelCarritoUsuario(carritoActivo.Id);
+                        if (!itemsCarrito.Any()) // Solo eliminar carritos vacíos
+                        {
+                            _context.Pedidos.Remove(carritoActivo);
+                        }
+                    }
+                    await _context.SaveChangesAsync();
+
                     await transaction.CommitAsync();
                     return (true, "Redirigiendo a PayPal para completar el pago", approvalUrl);
                 }
@@ -154,7 +169,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 return (false, "Ocurrió un error inesperado. Por favor, contacte con el administrador o intentelo de nuevo más tarde.", null);
             }
         }
-
+       
         private string GenerarNumeroPedido()
         {
             var length = 10;
@@ -195,7 +210,7 @@ namespace GestorInventario.Infraestructure.Repositories
             }
         }
 
-        private async Task<Checkout> CrearCheckoutParaPago(List<DetallePedido> itemsDelCarrito, string moneda, InfoUsuario infoUsuario)
+        private async Task<Checkout> PrepararCheckoutParaPagoPayPal(List<DetallePedido> itemsDelCarrito, string moneda, InfoUsuario infoUsuario)
         {
             var items = new List<ItemModel>();
             decimal totalAmount = 0;
@@ -209,7 +224,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     currency = moneda,
                     price = producto.Precio,
                     quantity = item.Cantidad.Value.ToString(),
-                    sku = "producto"
+                    sku = producto.Descripcion
                 };
                 items.Add(paypalItem);
                 totalAmount += Convert.ToDecimal(producto.Precio) * Convert.ToDecimal(item.Cantidad ?? 0);
