@@ -66,7 +66,14 @@ namespace GestorInventario.Infraestructure.Repositories
             return await _context.Moneda.ToListAsync();
         }
 
-       
+        private string GenerarNumeroPedido()
+        {
+            var length = 10;
+            var random = new Random();
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            return new string(Enumerable.Repeat(chars, length)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
 
         // Método para crear un carrito si no existe
         public async Task<Pedido> CrearCarritoUsuario(int userId)
@@ -94,73 +101,37 @@ namespace GestorInventario.Infraestructure.Repositories
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var usuarioId = _utilityClass.ObtenerUsuarioIdActual();
-                var usuarioActual = await _admin.ObtenerUsuarioId(usuarioId);
-
                 // Recolectar información del usuario
-                var infoUsuario = new InfoUsuario
-                {
-                    nombreCompletoUsuario = usuarioActual.NombreCompleto,
-                    telefono = usuarioActual.Telefono,
-                    codigoPostal = usuarioActual.CodigoPostal,
-                    ciudad = usuarioActual.Ciudad,
-                    line1 = usuarioActual.Direccion.Split(",")[0].Trim(),
-                    line2 = usuarioActual.Direccion.Split(",").Length > 1 ? usuarioActual.Direccion.Split(",")[1].Trim() : ""
-                };
-
-                // Obtener el carrito del usuario
-                var carrito = await ObtenerCarritoUsuario(userId);
+                var infoUsuario = await ValidarUsuarioYObtenerInfo();
+                
+                //Validar y obtener items del carrito
+                var (carrito, itemsDelCarrito)= await ValidarCarritoYObtenerItems(userId);
                 if (carrito == null)
                 {
                     return (false, "No se encontró un carrito para el usuario.", null);
                 }
-
-                // Obtener ítems del carrito
-                var itemsDelCarrito = await ObtenerItemsDelCarritoUsuario(carrito.Id);
                 if (!itemsDelCarrito.Any())
                 {
                     return (false, "El carrito está vacío.", null);
                 }
-
                 // Convertir el carrito en un pedido
-                carrito.EsCarrito = false;
-                carrito.NumeroPedido = GenerarNumeroPedido();
-                carrito.FechaPedido = DateTime.Now;
-                carrito.EstadoPedido = "En Proceso";
-                await _context.UpdateEntityAsync(carrito);
+                await ConvertirCarritoAPedido(carrito);
 
                 // Calcular el total para PayPal
                 moneda = string.IsNullOrEmpty(moneda) ? "EUR" : moneda;
                 var checkout = await PrepararCheckoutParaPagoPayPal(itemsDelCarrito, moneda, infoUsuario);
-                var createdPaymentJson = await _paypalService.CreateOrderAsyncV2(checkout);
-                var createdPayment = JsonConvert.DeserializeObject<PayPalOrderResponse>(createdPaymentJson);
-                var approvalUrl = createdPayment?.links?.FirstOrDefault(x => x.rel == "payer-action")?.href;
-
-                if (!string.IsNullOrEmpty(approvalUrl))
+                // Iniciar pago con PayPal
+                var (success, message, approvalUrl) = await ProcesarPagoPayPal(checkout);
+                if (!success)
                 {
-                    // Registrar el pedido en el historial
-                    await LogHistorialPedido(carrito, itemsDelCarrito);
-
-                    // Eliminar cualquier carrito vacío o adicional para el usuario
-                    var carritosActivos = await _context.Pedidos
-                        .Where(p => p.IdUsuario == userId && p.EsCarrito)
-                        .ToListAsync();
-                    foreach (var carritoActivo in carritosActivos)
-                    {
-                        var itemsCarrito = await ObtenerItemsDelCarritoUsuario(carritoActivo.Id);
-                        if (!itemsCarrito.Any()) // Solo eliminar carritos vacíos
-                        {
-                            _context.Pedidos.Remove(carritoActivo);
-                        }
-                    }
-                    await _context.SaveChangesAsync();
-
-                    await transaction.CommitAsync();
-                    return (true, "Redirigiendo a PayPal para completar el pago", approvalUrl);
+                    await transaction.RollbackAsync();
+                    return (false, message, null);
                 }
+                await RegistrarHistorialPedido(carrito, itemsDelCarrito);
+                await EliminarCarritosVaciosUsuario(userId);
 
-                await transaction.RollbackAsync();
-                return (false, "Fallo al iniciar el pago con PayPal", null);
+                await transaction.CommitAsync();
+                return (true, "Redirigiendo a PayPal para completar el pago", approvalUrl);
             }
             catch (Exception ex)
             {
@@ -169,47 +140,42 @@ namespace GestorInventario.Infraestructure.Repositories
                 return (false, "Ocurrió un error inesperado. Por favor, contacte con el administrador o intentelo de nuevo más tarde.", null);
             }
         }
-       
-        private string GenerarNumeroPedido()
+        private async Task<InfoUsuario> ValidarUsuarioYObtenerInfo()
         {
-            var length = 10;
-            var random = new Random();
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            return new string(Enumerable.Repeat(chars, length)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
-        }
+            var usuarioId = _utilityClass.ObtenerUsuarioIdActual();
+            var usuarioActual = await _admin.ObtenerUsuarioId(usuarioId);
 
-        private async Task LogHistorialPedido(Pedido pedido, List<DetallePedido> itemsDelCarrito)
-        {
-            var ip = _contextAccessor.HttpContext.Connection.RemoteIpAddress;
-            string ipString = (ip != null && ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
-                ? ip.MapToIPv4().ToString()
-                : ip?.ToString();
-
-            var historialPedido = new HistorialPedido
+            // Recolectar información del usuario
+            return new InfoUsuario
             {
-                IdUsuario = pedido.IdUsuario,
-                Fecha = DateTime.Now,
-                Accion = "Nuevo pedido",
-                Ip = ipString
+                nombreCompletoUsuario = usuarioActual.NombreCompleto,
+                telefono = usuarioActual.Telefono,
+                codigoPostal = usuarioActual.CodigoPostal,
+                ciudad = usuarioActual.Ciudad,
+                line1 = usuarioActual.Direccion.Split(",")[0].Trim(),
+                line2 = usuarioActual.Direccion.Split(",").Length > 1 ? usuarioActual.Direccion.Split(",")[1].Trim() : ""
             };
-            await _context.AddEntityAsync(historialPedido);
-
-            foreach (var item in itemsDelCarrito)
-            {
-                var detalleHistorialPedido = new DetalleHistorialPedido
-                {
-                    HistorialPedidoId = historialPedido.Id,
-                    ProductoId = item.ProductoId,
-                    Cantidad = item.Cantidad ?? 0,
-                    NumeroPedido = pedido.NumeroPedido,
-                    FechaPedido = DateTime.Now,
-                    EstadoPedido = pedido.EstadoPedido
-                };
-                await _context.AddEntityAsync(detalleHistorialPedido);
-            }
         }
-
+        private async Task<(Pedido, List<DetallePedido>)> ValidarCarritoYObtenerItems(int userId)
+        {
+            // Obtener el carrito del usuario
+            var carrito = await ObtenerCarritoUsuario(userId);
+            if (carrito == null)
+            {
+                return (null, null);
+            }
+            var itemsDelCarrito = await ObtenerItemsDelCarritoUsuario(carrito.Id);
+            return (carrito, itemsDelCarrito);
+        }
+        private async Task ConvertirCarritoAPedido(Pedido carrito)
+        {
+            carrito.EsCarrito = false;
+            carrito.NumeroPedido = GenerarNumeroPedido();
+            carrito.FechaPedido = DateTime.Now;
+            carrito.EstadoPedido = "En Proceso";
+            await _context.UpdateEntityAsync(carrito);
+        }
+       
         private async Task<Checkout> PrepararCheckoutParaPagoPayPal(List<DetallePedido> itemsDelCarrito, string moneda, InfoUsuario infoUsuario)
         {
             var items = new List<ItemModel>();
@@ -251,6 +217,67 @@ namespace GestorInventario.Infraestructure.Repositories
                 line2 = infoUsuario.line2
             };
         }
+        private async Task<(bool, string, string)> ProcesarPagoPayPal(Checkout checkout)
+        {
+            var createdPaymentJson = await _paypalService.CreateOrderAsyncV2(checkout);
+            var createdPayment = JsonConvert.DeserializeObject<PayPalOrderResponse>(createdPaymentJson);
+            var approvalUrl = createdPayment?.links?.FirstOrDefault(x => x.rel == "payer-action")?.href;
+            if (!string.IsNullOrEmpty(approvalUrl))
+            {
+                return (true, "Redirigiendo a PayPal para completar el pago", approvalUrl);
+            }
+            return (false, "Fallo al iniciar el pago con PayPal", null);
+        }
+
+
+        private async Task RegistrarHistorialPedido(Pedido pedido, List<DetallePedido> itemsDelCarrito)
+        {
+            var ip = _contextAccessor.HttpContext.Connection.RemoteIpAddress;
+            string ipString = (ip != null && ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+                ? ip.MapToIPv4().ToString()
+                : ip?.ToString();
+
+            var historialPedido = new HistorialPedido
+            {
+                IdUsuario = pedido.IdUsuario,
+                Fecha = DateTime.Now,
+                Accion = "Nuevo pedido",
+                Ip = ipString
+            };
+            await _context.AddEntityAsync(historialPedido);
+
+            foreach (var item in itemsDelCarrito)
+            {
+                var detalleHistorialPedido = new DetalleHistorialPedido
+                {
+                    HistorialPedidoId = historialPedido.Id,
+                    ProductoId = item.ProductoId,
+                    Cantidad = item.Cantidad ?? 0,
+                    NumeroPedido = pedido.NumeroPedido,
+                    FechaPedido = DateTime.Now,
+                    EstadoPedido = pedido.EstadoPedido
+                };
+                await _context.AddEntityAsync(detalleHistorialPedido);
+            }
+        }
+
+        private async Task EliminarCarritosVaciosUsuario(int userId)
+        {
+            var carritosActivos = await _context.Pedidos
+                .Include(p => p.DetallePedidos)
+                .Where(p => p.IdUsuario == userId && p.EsCarrito)
+                .ToListAsync();
+            foreach (var carritoActivo in carritosActivos)
+            {
+                if (!carritoActivo.DetallePedidos.Any())
+                {
+                    _context.Pedidos.Remove(carritoActivo);
+                    _logger.LogInformation($"Carrito vacío eliminado para el usuario {userId}, ID: {carritoActivo.Id}");
+                }
+            }
+            await _context.SaveChangesAsync();
+        }
+
 
         public async Task<(bool, string)> Incremento(int id)
         {
