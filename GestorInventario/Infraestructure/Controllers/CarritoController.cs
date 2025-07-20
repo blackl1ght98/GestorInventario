@@ -100,7 +100,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     {
                         TempData["ErrorMessage"] = message;
                     }
-                    ViewData["Moneda"] = new SelectList(await _carritoRepository.ObtenerMoneda(), "Codigo", "Codigo");
+                    
                     return RedirectToAction("Index", "Home");
             }
             catch (Exception ex)

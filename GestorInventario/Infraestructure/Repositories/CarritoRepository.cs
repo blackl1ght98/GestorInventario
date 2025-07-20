@@ -219,7 +219,7 @@ namespace GestorInventario.Infraestructure.Repositories
         }
         private async Task<(bool, string, string)> ProcesarPagoPayPal(Checkout checkout)
         {
-            var createdPaymentJson = await _paypalService.CreateOrderAsyncV2(checkout);
+            var createdPaymentJson = await _paypalService.CreateOrderWithPaypalAsync(checkout);
             var createdPayment = JsonConvert.DeserializeObject<PayPalOrderResponse>(createdPaymentJson);
             var approvalUrl = createdPayment?.links?.FirstOrDefault(x => x.rel == "payer-action")?.href;
             if (!string.IsNullOrEmpty(approvalUrl))

@@ -8,7 +8,7 @@ namespace GestorInventario.Interfaces.Infraestructure
     public interface IPaypalService
     {
 
-        Task<string> CreateOrderAsyncV2(Checkout pagar);
+        Task<string> CreateOrderWithPaypalAsync(Checkout pagar);
        Task<CheckoutDetails> ObtenerDetallesPagoEjecutadoV2(string id);
   
         Task<string> RefundSaleAsync(int pedidoId, string currency);

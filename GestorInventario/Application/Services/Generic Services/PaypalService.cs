@@ -18,18 +18,16 @@ using System.Text;
 
 namespace GestorInventario.Application.Services
 {
-    public class PaypalServices : IPaypalService
+    public class PaypalService : IPaypalService
     {
-
-
         private readonly IConfiguration _configuration;
-
-        private readonly ILogger<PaypalServices> _logger;
+        private readonly ILogger<PaypalService> _logger;
         private readonly IMemoryCache _cache;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IHttpContextAccessor _contextAccesor;
         private readonly IEmailService _emailService;
-        public PaypalServices(IConfiguration configuration, ILogger<PaypalServices> logger,
+        private readonly HttpClient _httpClient;
+        public PaypalService(IConfiguration configuration, ILogger<PaypalService> logger, HttpClient http,
             IMemoryCache memory, IUnitOfWork unit, IHttpContextAccessor contex, IEmailService email)
         {
 
@@ -39,23 +37,94 @@ namespace GestorInventario.Application.Services
             _cache = memory;
             _unitOfWork = unit;
             _emailService = email;
+            _httpClient = http;
+        }
+        #region Generacion token paypal
+
+        public async Task<string> GetAccessTokenAsync(string clientId, string clientSecret)
+        {
+            var tokenUrl = "v1/oauth2/token";
+            var byteArray = Encoding.ASCII.GetBytes($"{clientId}:{clientSecret}");
+            var authHeader = Convert.ToBase64String(byteArray);
+
+            var request = new HttpRequestMessage(HttpMethod.Post, tokenUrl);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", authHeader);
+            request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                { "grant_type", "client_credentials" }
+            });
+
+            var response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+
+            var responseString = await response.Content.ReadAsStringAsync();
+            dynamic responseJson = JsonConvert.DeserializeObject(responseString);
+
+            return responseJson.access_token;
+        }
+        private (string clientId, string clientSecret) GetPaypalCredentials()
+        {
+            var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
+            var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
+
+            return (clientId, clientSecret);
         }
 
-        // Solicitud para crear un pedido en version V1 de paypal
+        #endregion
+      
         #region Pagar un pedido  v2 api paypal
 
-        public async Task<string> CreateOrderAsyncV2(Checkout pagar)
+        public async Task<string> CreateOrderWithPaypalAsync(Checkout pagar)
         {
             try
             {
-                var order = new PaypalCreateOrder
+                var order = BuildOrder(pagar);
+                var (clientId, clientSecret) = GetPaypalCredentials();
+
+                var authToken = await GetAccessTokenAsync(clientId, clientSecret);
+                if (string.IsNullOrEmpty(authToken))
+                    throw new Exception("No se pudo obtener el token de autenticación.");
+
+                var request = new HttpRequestMessage(HttpMethod.Post, "v2/checkout/orders");
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+                request.Content = new StringContent(JsonConvert.SerializeObject(order), Encoding.UTF8, "application/json");
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var response = await _httpClient.SendAsync(request);
+                var responseBody = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
                 {
-                    Intent = "CAPTURE",
-                    PurchaseUnits = new List<PurchaseUnit>
+                    throw new Exception($"Error al crear la orden: {response.StatusCode} - {responseBody}");
+                }
+
+                var jsonResponse = JsonConvert.DeserializeObject<PayPalOrderResponse>(responseBody);
+                string paymentId = jsonResponse?.id;
+
+                if (!string.IsNullOrEmpty(paymentId))
                 {
+                    _cache.Set("PayPalPaymentId", paymentId, TimeSpan.FromMinutes(10));
+                }
+
+                return responseBody;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al crear la orden de PayPal");
+                throw new InvalidOperationException("No se pudo crear la orden de PayPal", ex);
+            }
+        }
+
+        private PaypalCreateOrder BuildOrder(Checkout pagar)
+        {
+            return new PaypalCreateOrder
+            {
+                Intent = "CAPTURE",
+                PurchaseUnits = new List<PurchaseUnit>
+            {
                 new PurchaseUnit
                 {
-                   Amount = new AmountBase
+                    Amount = new AmountBase
                     {
                         CurrencyCode = pagar.currency,
                         Value = pagar.totalAmount.ToString("F2", CultureInfo.InvariantCulture),
@@ -78,7 +147,6 @@ namespace GestorInventario.Application.Services
                             }
                         }
                     },
-
                     Description = "The payment transaction description.",
                     InvoiceId = Guid.NewGuid().ToString(),
                     Items = pagar.items.ConvertAll(item => new Item
@@ -129,47 +197,45 @@ namespace GestorInventario.Application.Services
                         }
                     }
                 };
-
-                using var httpClient = new HttpClient();
-
-                var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
-                var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
-
-                var authToken = await GetAccessTokenAsync(clientId, clientSecret);
-                if (string.IsNullOrEmpty(authToken))
-                    throw new Exception("No se pudo obtener el token de autenticación.");
-
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                var content = new StringContent(JsonConvert.SerializeObject(order), Encoding.UTF8, "application/json");
-
-                var response = await httpClient.PostAsync("https://api-m.sandbox.paypal.com/v2/checkout/orders", content);
-                var responseBody = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    throw new Exception($"Error al crear la orden: {response.StatusCode} - {responseBody}");
-                }
-
-                var jsonResponse = JsonConvert.DeserializeObject<PayPalOrderResponse>(responseBody);
-                string paymentId = jsonResponse?.id;
-
-                if (!string.IsNullOrEmpty(paymentId))
-                {
-                    _cache.Set("PayPalPaymentId", paymentId, TimeSpan.FromMinutes(10));
-                }
-
-                return responseBody;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al crear la orden de PayPal");
-                throw new InvalidOperationException("No se pudo crear la orden de PayPal", ex);
-            }
         }
 
+        public async Task<(string CaptureId, string Total, string Currency)> CapturarPagoAsync(string orderId)
+        {
+            var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
+            var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
+            var authToken = await GetAccessTokenAsync(clientId, clientSecret);
+
+            if (string.IsNullOrEmpty(authToken))
+                throw new Exception("No se pudo obtener el token de autenticación.");
+
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            var response = await _httpClient.PostAsync(
+                $"v2/checkout/orders/{orderId}/capture",
+                new StringContent("{}", Encoding.UTF8, "application/json"));
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"Error al ejecutar el pago: {response.StatusCode} - {responseBody}");
+            }
+
+            // Deserializar la respuesta en el DTO PaypalCaptureOrder
+            var paypalResponse = JsonConvert.DeserializeObject<PaypalCaptureOrder>(responseBody);
+
+            // Acceder a los datos de manera tipada
+            var capture = paypalResponse?.PurchaseUnits?.FirstOrDefault()?.Payments?.Captures?.FirstOrDefault();
+            if (capture == null || string.IsNullOrEmpty(capture.Id) || string.IsNullOrEmpty(capture.Amount?.Value) || string.IsNullOrEmpty(capture.Amount?.CurrencyCode))
+            {
+                throw new Exception("No se pudo extraer la información del pago.");
+            }
+
+            return (capture.Id, capture.Amount.Value, capture.Amount.CurrencyCode);
+        }
         #endregion
+
         #region Obtener detalles del pago v2 paypal   
         public async Task<CheckoutDetails> ObtenerDetallesPagoEjecutadoV2(string id)
         {
@@ -178,27 +244,25 @@ namespace GestorInventario.Application.Services
             var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
             var authToken = await GetAccessTokenAsync(clientId, clientSecret);
 
-            using (var httpClient = new HttpClient())
-            {
                 // Configura los encabezados de la solicitud
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
                 // Realiza la solicitud GET a PayPal para obtener los detalles de la suscripción
-                var response = await httpClient.GetAsync($"https://api.sandbox.paypal.com/v2/checkout/orders/{id}");
+                var response = await _httpClient.GetAsync($"v2/checkout/orders/{id}");
                 var responseContent = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
                 {
                     // Deserializa la respuesta JSON a un objeto dinámico
-                    dynamic subscriptionDetails = JsonConvert.DeserializeObject<CheckoutDetails>(responseContent);
+                    var subscriptionDetails = JsonConvert.DeserializeObject<CheckoutDetails>(responseContent);
                     return subscriptionDetails;
                 }
                 else
                 {
                     throw new Exception($"Error al obtener los detalles de la suscripción: {responseContent}");
                 }
-            }
+            
         }
         #endregion
         #region Realizar reembolso pedido
@@ -227,10 +291,9 @@ namespace GestorInventario.Application.Services
                 if (string.IsNullOrEmpty(authToken))
                     throw new Exception("No se pudo obtener el token de autenticación.");
 
-                using (var httpClient = new HttpClient())
-                {
-                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                
+                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+                    _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
                     var jsonContent = new StringContent(
                         JsonConvert.SerializeObject(refundRequest, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }),
@@ -238,7 +301,7 @@ namespace GestorInventario.Application.Services
                         "application/json");
 
                     string paypalBaseUrl = "https://api-m.sandbox.paypal.com";
-                    var response = await httpClient.PostAsync($"{paypalBaseUrl}/v2/payments/captures/{pedido.SaleId}/refund", jsonContent);
+                    var response = await _httpClient.PostAsync($"v2/payments/captures/{pedido.SaleId}/refund", jsonContent);
 
                     if (!response.IsSuccessStatusCode)
                     {
@@ -254,7 +317,7 @@ namespace GestorInventario.Application.Services
                     await _unitOfWork.PaypalRepository.UpdatePedidoStatusAsync(pedidoId, "Reembolsado",refundId);
                    
                     return jsonResponse;
-                }
+                
             }
             catch (Exception ex)
             {
@@ -262,36 +325,7 @@ namespace GestorInventario.Application.Services
                 throw new InvalidOperationException("No se pudo realizar el reembolso", ex);
             }
         }
-
-
-        #endregion
-        #region Generacion token paypal
-
-        public async Task<string> GetAccessTokenAsync(string clientId, string clientSecret)
-        {
-            var tokenUrl = "https://api-m.sandbox.paypal.com/v1/oauth2/token";
-
-            using (var httpClient = new HttpClient())
-            {
-                var byteArray = Encoding.ASCII.GetBytes($"{clientId}:{clientSecret}");
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
-
-                var requestBody = new Dictionary<string, string>
-                {
-                    { "grant_type", "client_credentials" }
-                };
-
-                var content = new FormUrlEncodedContent(requestBody);
-                var response = await httpClient.PostAsync(tokenUrl, content);
-                response.EnsureSuccessStatusCode();
-
-                var responseString = await response.Content.ReadAsStringAsync();
-                var responseJson = JsonConvert.DeserializeObject<dynamic>(responseString);
-
-                return responseJson.access_token;
-            }
-        }
-        #endregion
+        #endregion   
         #region creacion de un producto y plan de suscripcion
         public async Task<HttpResponseMessage> CreateProductAsync(string productName, string productDescription, string productType, string productCategory)
         {
@@ -299,10 +333,9 @@ namespace GestorInventario.Application.Services
             var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
             var authToken = await GetAccessTokenAsync(clientId, clientSecret);
 
-            using (var httpClient = new HttpClient())
-            {
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+           
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
                 var productRequest = new CreateProductResponse
                 {
@@ -315,10 +348,10 @@ namespace GestorInventario.Application.Services
 
                 var content = new StringContent(JsonConvert.SerializeObject(productRequest), Encoding.UTF8, "application/json");
 
-                var response = await httpClient.PostAsync("https://api-m.sandbox.paypal.com/v1/catalogs/products/", content);
+                var response = await _httpClient.PostAsync("v1/catalogs/products/", content);
 
                 return response;
-            }
+            
         }
 
 
@@ -332,10 +365,9 @@ namespace GestorInventario.Application.Services
             var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
             var authToken = await GetAccessTokenAsync(clientId, clientSecret);
 
-            using (var httpClient = new HttpClient())
-            {
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+           
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
                 try
                 {
@@ -412,7 +444,7 @@ namespace GestorInventario.Application.Services
                     };
 
                     var content = new StringContent(JsonConvert.SerializeObject(planRequest), Encoding.UTF8, "application/json");
-                    var response = await httpClient.PostAsync("https://api-m.sandbox.paypal.com/v1/billing/plans", content);
+                    var response = await _httpClient.PostAsync("v1/billing/plans", content);
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -436,7 +468,7 @@ namespace GestorInventario.Application.Services
                     _logger.LogError(ex, "Error al crear el plan de suscripción");
                     return $"{{\"error\":\"Se produjo un error al crear el plan de suscripción: {ex.Message}\"}}";
                 }
-            }
+            
         }
         #endregion
         #region desactivar plan de suscripcion
@@ -445,17 +477,16 @@ namespace GestorInventario.Application.Services
             var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
             var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
             var authToken = await GetAccessTokenAsync(clientId, clientSecret);
-            using (var httpClient = new HttpClient())
-            {
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+            
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
 
                 // Verificar si el plan existe antes de intentar desactivarlo
-                var planResponse = await httpClient.GetAsync($"https://api-m.sandbox.paypal.com/v1/billing/plans/{planId}");
+                var planResponse = await _httpClient.GetAsync($"v1/billing/plans/{planId}");
                 if (planResponse.IsSuccessStatusCode)
                 {
                     // Desactivar el plan
-                    var deactivatePlanResponse = await httpClient.PostAsync(
-                        $"https://api-m.sandbox.paypal.com/v1/billing/plans/{planId}/deactivate",
+                    var deactivatePlanResponse = await _httpClient.PostAsync(
+                        $"v1/billing/plans/{planId}/deactivate",
                         null);
 
                     await _unitOfWork.PaypalRepository.UpdatePlanStatusInDatabase(planId, "INACTIVE");
@@ -467,7 +498,7 @@ namespace GestorInventario.Application.Services
                 }
 
 
-            }
+            
             return "Plan desactivado y producto eliminado con éxito";
         }
 
@@ -491,13 +522,13 @@ namespace GestorInventario.Application.Services
 
             var authToken = await GetAccessTokenAsync(clientId, clientSecret);
 
-            using var httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+         
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
 
             try
             {
                 // Verificar si el producto existe en PayPal
-                var productResponse = await httpClient.GetAsync($"https://api-m.sandbox.paypal.com/v1/catalogs/products/{id}");
+                var productResponse = await _httpClient.GetAsync($"https://api-m.sandbox.paypal.com/v1/catalogs/products/{id}");
                 if (!productResponse.IsSuccessStatusCode)
                 {
                     var errorContent = await productResponse.Content.ReadAsStringAsync();
@@ -529,8 +560,8 @@ namespace GestorInventario.Application.Services
                 );
 
                 // Enviar la solicitud PATCH
-                var patchResponse = await httpClient.PatchAsync(
-                    $"https://api-m.sandbox.paypal.com/v1/catalogs/products/{id}",
+                var patchResponse = await _httpClient.PatchAsync(
+                    $"v1/catalogs/products/{id}",
                     content
                 );
 
@@ -576,13 +607,13 @@ namespace GestorInventario.Application.Services
 
             var authToken = await GetAccessTokenAsync(clientId, clientSecret);
 
-            using var httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+         
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
 
             try
             {
                 // Verificar si el producto existe en PayPal
-                var productResponse = await httpClient.GetAsync($"https://api-m.sandbox.paypal.com/v1/catalogs/products/{id}");
+                var productResponse = await _httpClient.GetAsync($"v1/catalogs/products/{id}");
                 if (!productResponse.IsSuccessStatusCode)
                 {
                     var errorContent = await productResponse.Content.ReadAsStringAsync();
@@ -614,8 +645,8 @@ namespace GestorInventario.Application.Services
                 );
 
                 // Enviar la solicitud PATCH
-                var patchResponse = await httpClient.PatchAsync(
-                    $"https://api-m.sandbox.paypal.com/v1/catalogs/products/{id}",
+                var patchResponse = await _httpClient.PatchAsync(
+                    $"v1/catalogs/products/{id}",
                     content
                 );
 
@@ -644,10 +675,9 @@ namespace GestorInventario.Application.Services
             var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
             var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
             var authToken = await GetAccessTokenAsync(clientId, clientSecret);
-            using (var httpClient = new HttpClient())
-            {
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 var subscriptionRequest = new SubscriptionCreateResponse
                 {
                     PlanId = id,
@@ -669,7 +699,7 @@ namespace GestorInventario.Application.Services
 
                 var content = new StringContent(JsonConvert.SerializeObject(subscriptionRequest), Encoding.UTF8, "application/json");
 
-                var response = await httpClient.PostAsync("https://api-m.sandbox.paypal.com/v1/billing/subscriptions", content);
+                var response = await _httpClient.PostAsync("v1/billing/subscriptions", content);
                 var responseContent = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
@@ -684,7 +714,7 @@ namespace GestorInventario.Application.Services
                     return approvalLink;
                 }
                 throw new Exception("Ha ocurrido un error");
-            }
+            
         }
         #endregion
         #region Obtener detalles de la suscripción
@@ -694,12 +724,11 @@ namespace GestorInventario.Application.Services
             var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
             var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
             var authToken = await GetAccessTokenAsync(clientId, clientSecret);
-            using (var httpClient = new HttpClient())
-            {
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+           
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                var response = await httpClient.GetAsync($"https://api-m.sandbox.paypal.com/v1/billing/subscriptions/{subscription_id}");
+                var response = await _httpClient.GetAsync($"v1/billing/subscriptions/{subscription_id}");
                 var responseContent = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
@@ -710,7 +739,7 @@ namespace GestorInventario.Application.Services
                 {
                     throw new Exception($"Error al obtener los detalles de la suscripción: {responseContent}");
                 }
-            }
+            
         }
         #endregion
         #region Obtener detalles del plan 
@@ -730,14 +759,13 @@ namespace GestorInventario.Application.Services
                 var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
                 var authToken = await GetAccessTokenAsync(clientId, clientSecret);
 
-                using (var httpClient = new HttpClient())
-                {
+                
                     // Configura los encabezados de la solicitud
-                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+                    _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
                     // Realiza la solicitud GET a PayPal
-                    var response = await httpClient.GetAsync($"https://api-m.sandbox.paypal.com/v1/billing/plans/{id}");
+                    var response = await _httpClient.GetAsync($"v1/billing/plans/{id}");
                     var responseContent = await response.Content.ReadAsStringAsync();
 
                     if (!response.IsSuccessStatusCode)
@@ -764,7 +792,7 @@ namespace GestorInventario.Application.Services
                         _logger.LogError($"Error al deserializar la respuesta del plan {id}: {ex.Message}, Contenido: {responseContent}");
                         throw new Exception("Error al deserializar los detalles del plan.", ex);
                     }
-                }
+                
             }
             catch (HttpRequestException ex)
             {
@@ -788,18 +816,17 @@ namespace GestorInventario.Application.Services
             var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
             var authToken = await GetAccessTokenAsync(clientId, clientSecret);
 
-            using (var httpClient = new HttpClient())
-            {
+         
 
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
 
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-
-                string url = $"https://api.sandbox.paypal.com/v1/catalogs/products?page_size={pageSize}&page={page}";
+                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
 
-                var response = await httpClient.GetAsync(url);
+                string url = $"v1/catalogs/products?page_size={pageSize}&page={page}";
+
+
+                var response = await _httpClient.GetAsync(url);
 
 
                 if (response.IsSuccessStatusCode)
@@ -820,7 +847,7 @@ namespace GestorInventario.Application.Services
                     var errorContent = await response.Content.ReadAsStringAsync();
                     throw new Exception($"Error al obtener productos: {response.StatusCode} - {errorContent}");
                 }
-            }
+            
         }
 
 
@@ -832,13 +859,12 @@ namespace GestorInventario.Application.Services
             var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
             var authToken = await GetAccessTokenAsync(clientId, clientSecret);
 
-            using (var httpClient = new HttpClient())
-            {
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                string url = $"https://api.sandbox.paypal.com/v1/billing/plans?page_size={pageSize}&page={page}";
-                var response = await httpClient.GetAsync(url);
+                string url = $"v1/billing/plans?page_size={pageSize}&page={page}";
+                var response = await _httpClient.GetAsync(url);
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -861,8 +887,8 @@ namespace GestorInventario.Application.Services
                 {
                     try
                     {
-                        string planDetailsUrl = $"https://api.sandbox.paypal.com/v1/billing/plans/{plan.Id}";
-                        var planResponse = await httpClient.GetAsync(planDetailsUrl);
+                        string planDetailsUrl = $"v1/billing/plans/{plan.Id}";
+                        var planResponse = await _httpClient.GetAsync(planDetailsUrl);
 
                         if (!planResponse.IsSuccessStatusCode)
                         {
@@ -886,8 +912,8 @@ namespace GestorInventario.Application.Services
                     }
                 }
 
-                return (detailedPlans, hasNextPage);
-            }
+               return (detailedPlans, hasNextPage);
+            
         }
 
         public async Task<string> CancelarSuscripcion(string subscription_id, string reason)
@@ -896,17 +922,16 @@ namespace GestorInventario.Application.Services
             var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
             var authToken = await GetAccessTokenAsync(clientId, clientSecret);
 
-            using (var httpClient = new HttpClient())
-            {
+           
                 // Configurar el encabezado de autorización
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
                 // Crea el contenido JSON con la razón de la cancelación
                 var content = new StringContent(JsonConvert.SerializeObject(new { reason }), Encoding.UTF8, "application/json");
 
                 // Realiza la solicitud POST a PayPal para cancelar la suscripción
-                var response = await httpClient.PostAsync($"https://api-m.sandbox.paypal.com/v1/billing/subscriptions/{subscription_id}/cancel", content);
+                var response = await _httpClient.PostAsync($"v1/billing/subscriptions/{subscription_id}/cancel", content);
                 var responseContent = await response.Content.ReadAsStringAsync();
 
                 // Verifica si la solicitud fue exitosa
@@ -917,7 +942,7 @@ namespace GestorInventario.Application.Services
                 }
 
                 throw new Exception($"Error al cancelar la suscripción: {responseContent}");
-            }
+            
         }
         public async Task<string> CreateProductAndNotifyAsync(string productName, string productDescription, string productType, string productCategory)
         {
@@ -943,42 +968,7 @@ namespace GestorInventario.Application.Services
                 throw new Exception($"Error al crear el producto: {response.StatusCode} - {response.Content.ReadAsStringAsync().Result}");
             }
         }
-        public async Task<(string CaptureId, string Total, string Currency)> CapturarPagoAsync(string orderId)
-        {
-            var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
-            var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
-            var authToken = await GetAccessTokenAsync(clientId, clientSecret);
-
-            if (string.IsNullOrEmpty(authToken))
-                throw new Exception("No se pudo obtener el token de autenticación.");
-
-            using var httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-            var response = await httpClient.PostAsync(
-                $"https://api-m.sandbox.paypal.com/v2/checkout/orders/{orderId}/capture",
-                new StringContent("{}", Encoding.UTF8, "application/json"));
-
-            var responseBody = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new Exception($"Error al ejecutar el pago: {response.StatusCode} - {responseBody}");
-            }
-
-            var jsonResponse = JObject.Parse(responseBody);
-            var captureId = jsonResponse["purchase_units"]?[0]?["payments"]?["captures"]?[0]?["id"]?.ToString();
-            var total = jsonResponse["purchase_units"]?[0]?["payments"]?["captures"]?[0]?["amount"]?["value"]?.ToString();
-            var currency = jsonResponse["purchase_units"]?[0]?["payments"]?["captures"]?[0]?["amount"]?["currency_code"]?.ToString();
-
-            if (string.IsNullOrEmpty(captureId) || string.IsNullOrEmpty(total) || string.IsNullOrEmpty(currency))
-            {
-                throw new Exception("No se pudo extraer la información del pago.");
-            }
-
-            return (captureId, total, currency);
-        }
+        
 
     }
 }

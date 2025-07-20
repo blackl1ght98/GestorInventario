@@ -21,6 +21,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text.Json.Serialization;
 
@@ -77,7 +78,7 @@ builder.Services.AddTransient<TokenService>();
 builder.Services.AddTransient<IAdminRepository, AdminRepository>();
 builder.Services.AddTransient<IAuthRepository, AuthRepository>();
 builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
-builder.Services.AddTransient<IPaypalService,PaypalServices>();
+builder.Services.AddTransient<IPaypalService,PaypalService>();
 builder.Services.AddTransient<IPedidoRepository, PedidoRepository>();
 builder.Services.AddTransient<PolicyHandler>();
 builder.Services.AddTransient<IProductoRepository, ProductoRepository>();
@@ -85,13 +86,12 @@ builder.Services.AddTransient<IProveedorRepository, ProveedorRepository>();
 builder.Services.AddTransient<IPdfService, PdfService>();
 builder.Services.AddTransient<IPaypalRepository, PaypalRepository>();
 builder.Services.AddTransient<IEncryptionService, EncryptionService>();
-//builder.Services.AddAutoMapper(cfg =>
-//{
+builder.Services.AddHttpClient<IPaypalService, PaypalService>(client =>
+{
+    client.BaseAddress = new Uri("https://api-m.sandbox.paypal.com/");
+    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+});
 
-//    cfg.AddProfile<UserProfile>();
-//    cfg.AddProfile<PaypalProfile>();
-
-//});
 
 
 // Registrar AutoMapper
