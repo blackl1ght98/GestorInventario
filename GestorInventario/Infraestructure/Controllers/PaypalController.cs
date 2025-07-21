@@ -261,7 +261,7 @@ namespace GestorInventario.Infraestructure.Controllers
             return View(model);
         }
 
-      //Metodo que crea el producto al que se suscribira el usuario
+      //Metodo que crea el producto  y plan al que se suscribira el usuario
         [HttpPost]
         public async Task<IActionResult> CrearProducto(ProductViewModelPaypal model, string monedaSeleccionada)
         {

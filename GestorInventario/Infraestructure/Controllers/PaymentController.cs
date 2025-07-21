@@ -34,11 +34,11 @@ namespace GestorInventario.Infraestructure.Controllers
             _policyExecutor = executor;
             _paypalService = service;
         }
-        public async Task<IActionResult> Success(string PayerID)
+        public async Task<IActionResult> Success()
         {
             try
             {
-                if (!_memory.TryGetValue("PayPalPaymentId", out string orderId) || string.IsNullOrEmpty(orderId))
+                if (!_memory.TryGetValue("PayPalOrderId", out string orderId) || string.IsNullOrEmpty(orderId))
                 {
                     throw new Exception("No se encontró el ID del pedido en el caché.");
                 }
@@ -61,7 +61,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     throw new Exception("No se encontró un pedido en proceso para este usuario.");
                 }
 
-                pedido.SaleId = captureId;
+                pedido.SaleId = captureId; //-> Localizado en el array captures dentro de la respuesta de PayPal representa el id de la venta
                 pedido.Total = total;
                 pedido.Currency = currency;
                 pedido.PagoId = orderId;

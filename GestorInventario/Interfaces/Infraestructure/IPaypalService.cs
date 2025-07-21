@@ -7,9 +7,10 @@ namespace GestorInventario.Interfaces.Infraestructure
 {
     public interface IPaypalService
     {
-
+        Task<string> GetAccessTokenAsync(string clientId, string clientSecret);
         Task<string> CreateOrderWithPaypalAsync(Checkout pagar);
-       Task<CheckoutDetails> ObtenerDetallesPagoEjecutadoV2(string id);
+        Task<(string CaptureId, string Total, string Currency)> CapturarPagoAsync(string orderId);
+        Task<CheckoutDetails> ObtenerDetallesPagoEjecutadoV2(string id);
   
         Task<string> RefundSaleAsync(int pedidoId, string currency);
         Task<string> CreateSubscriptionPlanAsync(string productId, string planName, string description, decimal amount, string currency, int trialDays = 0, decimal trialAmount = 0.00m);
@@ -22,10 +23,10 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<PaypalPlanResponse> ObtenerDetallesPlan(string id);
         Task<(PaypalProductListResponse ProductsResponse, bool HasNextPage)> GetProductsAsync(int page = 1, int pageSize = 10);
         Task<string> CancelarSuscripcion(string subscription_id, string reason);
-        Task<string> GetAccessTokenAsync(string clientId, string clientSecret);
+    
         Task<(List<PaypalPlanResponse> plans, bool HasNextPage)> GetSubscriptionPlansAsyncV2(int page = 1, int pageSize = 6);
         Task<string> CreateProductAndNotifyAsync(string productName, string productDescription, string productType, string productCategory);
-        Task<(string CaptureId, string Total, string Currency)> CapturarPagoAsync(string orderId);
+        
 
 
     }

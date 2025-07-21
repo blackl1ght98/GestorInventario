@@ -11,6 +11,7 @@ using GestorInventario.Interfaces.Infraestructure;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using StackExchange.Redis;
 using System.Globalization;
 using System.Net.Http.Headers;
 using System.Security.Claims;
@@ -99,11 +100,11 @@ namespace GestorInventario.Application.Services
                 }
 
                 var jsonResponse = JsonConvert.DeserializeObject<PayPalOrderResponse>(responseBody);
-                string paymentId = jsonResponse?.id;
+                string orderId = jsonResponse?.id;
 
-                if (!string.IsNullOrEmpty(paymentId))
+                if (!string.IsNullOrEmpty(orderId))
                 {
-                    _cache.Set("PayPalPaymentId", paymentId, TimeSpan.FromMinutes(10));
+                    _cache.Set("PayPalOrderId", orderId, TimeSpan.FromMinutes(10));
                 }
 
                 return responseBody;
@@ -201,68 +202,77 @@ namespace GestorInventario.Application.Services
 
         public async Task<(string CaptureId, string Total, string Currency)> CapturarPagoAsync(string orderId)
         {
-            var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
-            var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
-            var authToken = await GetAccessTokenAsync(clientId, clientSecret);
-
-            if (string.IsNullOrEmpty(authToken))
-                throw new Exception("No se pudo obtener el token de autenticación.");
-
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-            var response = await _httpClient.PostAsync(
-                $"v2/checkout/orders/{orderId}/capture",
-                new StringContent("{}", Encoding.UTF8, "application/json"));
-
-            var responseBody = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
+            try
             {
-                throw new Exception($"Error al ejecutar el pago: {response.StatusCode} - {responseBody}");
+                var (clientId, clientSecret) = GetPaypalCredentials();
+
+                var authToken = await GetAccessTokenAsync(clientId, clientSecret);
+                if (string.IsNullOrEmpty(authToken))
+                    throw new Exception("No se pudo obtener el token de autenticación.");
+
+                var request = new HttpRequestMessage(HttpMethod.Post, $"v2/checkout/orders/{orderId}/capture");
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                request.Content = new StringContent("{}", Encoding.UTF8, "application/json"); // cuerpo vacío necesario debido a que es una "confirmacion"
+
+                var response = await _httpClient.SendAsync(request);
+                var responseBody = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exception($"Error al capturar el pago: {response.StatusCode} - {responseBody}");
+                }
+
+                var paypalResponse = JsonConvert.DeserializeObject<PaypalCaptureOrder>(responseBody);
+
+                var capture = paypalResponse?.PurchaseUnits?
+                    .FirstOrDefault()?.Payments?
+                    .Captures?.FirstOrDefault();
+
+                if (capture == null || string.IsNullOrEmpty(capture.Id) ||
+                    string.IsNullOrEmpty(capture.Amount?.Value) ||
+                    string.IsNullOrEmpty(capture.Amount?.CurrencyCode))
+                {
+                    throw new Exception("No se pudo extraer la información de la captura del pago.");
+                }
+
+                return (capture.Id, capture.Amount.Value, capture.Amount.CurrencyCode);
             }
-
-            // Deserializar la respuesta en el DTO PaypalCaptureOrder
-            var paypalResponse = JsonConvert.DeserializeObject<PaypalCaptureOrder>(responseBody);
-
-            // Acceder a los datos de manera tipada
-            var capture = paypalResponse?.PurchaseUnits?.FirstOrDefault()?.Payments?.Captures?.FirstOrDefault();
-            if (capture == null || string.IsNullOrEmpty(capture.Id) || string.IsNullOrEmpty(capture.Amount?.Value) || string.IsNullOrEmpty(capture.Amount?.CurrencyCode))
+            catch (Exception ex)
             {
-                throw new Exception("No se pudo extraer la información del pago.");
+                _logger.LogError(ex, "Error al capturar el pago de PayPal");
+                throw new InvalidOperationException("No se pudo capturar el pago de PayPal", ex);
             }
-
-            return (capture.Id, capture.Amount.Value, capture.Amount.CurrencyCode);
         }
+
         #endregion
 
         #region Obtener detalles del pago v2 paypal   
         public async Task<CheckoutDetails> ObtenerDetallesPagoEjecutadoV2(string id)
         {
+            var (clientId, clientSecret) = GetPaypalCredentials();
 
-            var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
-            var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
             var authToken = await GetAccessTokenAsync(clientId, clientSecret);
+            if (string.IsNullOrEmpty(authToken))
+                throw new Exception("No se pudo obtener el token de autenticación.");
 
-                // Configura los encabezados de la solicitud
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            // Creamos el mensaje de la solicitud GET
+            var request = new HttpRequestMessage(HttpMethod.Get, $"v2/checkout/orders/{id}");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                // Realiza la solicitud GET a PayPal para obtener los detalles de la suscripción
-                var response = await _httpClient.GetAsync($"v2/checkout/orders/{id}");
-                var responseContent = await response.Content.ReadAsStringAsync();
+            // Enviamos la solicitud
+            var response = await _httpClient.SendAsync(request);
+            var responseBody = await response.Content.ReadAsStringAsync();
 
-                if (response.IsSuccessStatusCode)
-                {
-                    // Deserializa la respuesta JSON a un objeto dinámico
-                    var subscriptionDetails = JsonConvert.DeserializeObject<CheckoutDetails>(responseContent);
-                    return subscriptionDetails;
-                }
-                else
-                {
-                    throw new Exception($"Error al obtener los detalles de la suscripción: {responseContent}");
-                }
-            
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"Error al obtener los detalles del pago: {response.StatusCode} - {responseBody}");
+            }
+
+            // Deserializamos la respuesta al DTO correspondiente
+            var subscriptionDetails = JsonConvert.DeserializeObject<CheckoutDetails>(responseBody);
+            return subscriptionDetails;
         }
         #endregion
         #region Realizar reembolso pedido
@@ -285,39 +295,32 @@ namespace GestorInventario.Application.Services
                 };
 
 
-                var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
-                var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
+                var (clientId, clientSecret) = GetPaypalCredentials();
+
                 var authToken = await GetAccessTokenAsync(clientId, clientSecret);
                 if (string.IsNullOrEmpty(authToken))
                     throw new Exception("No se pudo obtener el token de autenticación.");
+                var request = new HttpRequestMessage(HttpMethod.Post, $"v2/payments/captures/{pedido.SaleId}/refund");
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+                request.Content = new StringContent(JsonConvert.SerializeObject(refundRequest), Encoding.UTF8, "application/json");
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+               
+                // Enviamos la solicitud
+                var response = await _httpClient.SendAsync(request);
+                var responseBody = await response.Content.ReadAsStringAsync();
 
-                
-                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-                    _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exception($"Error al obtener los detalles del pago: {response.StatusCode} - {responseBody}");
+                }
 
-                    var jsonContent = new StringContent(
-                        JsonConvert.SerializeObject(refundRequest, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }),
-                        Encoding.UTF8,
-                        "application/json");
+                _logger.LogInformation("Reembolso exitoso: {response}", responseBody);
+                var refundResponse = JsonConvert.DeserializeObject<PaypalRefundResponse>(responseBody);
+                string refundId = refundResponse.Id;
+                // Actualizar el estado del pedido usando UnitOfWork
+                await _unitOfWork.PaypalRepository.UpdatePedidoStatusAsync(pedidoId, "Reembolsado", refundId);
 
-                    string paypalBaseUrl = "https://api-m.sandbox.paypal.com";
-                    var response = await _httpClient.PostAsync($"v2/payments/captures/{pedido.SaleId}/refund", jsonContent);
-
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        var errorContent = await response.Content.ReadAsStringAsync();
-                        throw new Exception($"Error al procesar el reembolso: {response.StatusCode} - {errorContent}");
-                    }
-
-                    var jsonResponse = await response.Content.ReadAsStringAsync();
-                    _logger.LogInformation("Reembolso exitoso: {response}", jsonResponse);
-                    var refundResponse = JsonConvert.DeserializeObject<PaypalRefundResponse>(jsonResponse);
-                    string refundId = refundResponse.Id;
-                    // Actualizar el estado del pedido usando UnitOfWork
-                    await _unitOfWork.PaypalRepository.UpdatePedidoStatusAsync(pedidoId, "Reembolsado",refundId);
-                   
-                    return jsonResponse;
-                
+                return responseBody;
             }
             catch (Exception ex)
             {
