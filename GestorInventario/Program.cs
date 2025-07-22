@@ -91,40 +91,44 @@ builder.Services.AddHttpClient<IPaypalService, PaypalService>(client =>
     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 });
 
-
-
-// Registrar AutoMapper
 builder.Services.AddAutoMapper(cfg =>
 {
-    var assemblies = AppDomain.CurrentDomain.GetAssemblies()
-        .Where(a => !a.IsDynamic && !a.FullName.StartsWith("System", StringComparison.OrdinalIgnoreCase)
-                 && !a.FullName.StartsWith("Microsoft", StringComparison.OrdinalIgnoreCase))
-        .ToList();
-
-    // Obtener el IServiceProvider para resolver dependencias
-    var serviceProvider = builder.Services.BuildServiceProvider();
-
-    foreach (var assembly in assemblies)
-    {
-        foreach (var profileType in assembly.GetTypes()
-            .Where(t => typeof(Profile).IsAssignableFrom(t) && !t.IsAbstract && !t.IsInterface))
-        {
-            try
-            {
-                // Intentar instanciar el perfil usando el contenedor de inyección de dependencias
-                var profileInstance = (Profile)ActivatorUtilities.CreateInstance(serviceProvider, profileType);
-                cfg.AddProfile(profileInstance);
-            }
-            catch (Exception ex)
-            {
-                // Registrar el error para depuración
-                Console.WriteLine($"Error al instanciar el perfil {profileType.FullName}: {ex.Message}");
-            }
-        }
-    }
-
-
+    // Configurar AutoMapper para escanear los perfiles en el ensamblado actual
+    cfg.AddMaps(Assembly.GetExecutingAssembly());
 });
+
+// Registrar AutoMapper
+//builder.Services.AddAutoMapper(cfg =>
+//{
+//    var assemblies = AppDomain.CurrentDomain.GetAssemblies()
+//        .Where(a => !a.IsDynamic && !a.FullName.StartsWith("System", StringComparison.OrdinalIgnoreCase)
+//                 && !a.FullName.StartsWith("Microsoft", StringComparison.OrdinalIgnoreCase))
+//        .ToList();
+
+//    // Obtener el IServiceProvider para resolver dependencias
+//    var serviceProvider = builder.Services.BuildServiceProvider();
+
+//    foreach (var assembly in assemblies)
+//    {
+//        foreach (var profileType in assembly.GetTypes()
+//            .Where(t => typeof(Profile).IsAssignableFrom(t) && !t.IsAbstract && !t.IsInterface))
+//        {
+//            try
+//            {
+//                // Intentar instanciar el perfil usando el contenedor de inyección de dependencias
+//                var profileInstance = (Profile)ActivatorUtilities.CreateInstance(serviceProvider, profileType);
+//                cfg.AddProfile(profileInstance);
+//            }
+//            catch (Exception ex)
+//            {
+//                // Registrar el error para depuración
+//                Console.WriteLine($"Error al instanciar el perfil {profileType.FullName}: {ex.Message}");
+//            }
+//        }
+//    }
+
+
+//});
 
 
 
