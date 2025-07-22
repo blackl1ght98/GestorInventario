@@ -28,7 +28,6 @@ using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 // Agregar variables de entorno a la configuración
 builder.Configuration.AddEnvironmentVariables();
-builder.WebHost.UseUrls("http://0.0.0.0:5000");
 string secret = Environment.GetEnvironmentVariable("ClaveJWT")?? builder.Configuration["ClaveJWT"];
 //Para que no salte una excepcion en consultas que son recursivas
 builder.Services.AddControllersWithViews().AddJsonOptions(options => options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
