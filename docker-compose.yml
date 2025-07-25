@@ -7,6 +7,7 @@ services:
     build:
       context: .
       dockerfile: GestorInventario/Dockerfile
+
     ports:
       - "28907:8080"
       - "8080:8080"
@@ -36,9 +37,7 @@ services:
       - Email__Port=${Email__Port}
       - Email__Username=${Email__Username}
       - Email__Password=${Email__Password} 
-    volumes:
-      - /c/Users/guill/.aspnet/https:/https:ro
-      - appdata:/app/data
+
 
   redis:
     image: redis:latest
