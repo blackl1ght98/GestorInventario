@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:9.0-windowsservercore-ltsc2022 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 COPY ["GestorInventario/GestorInventario.csproj", "GestorInventario/"]
 RUN dotnet restore "GestorInventario/GestorInventario.csproj"
@@ -9,11 +9,13 @@ RUN dotnet build "GestorInventario.csproj" -c Release -o /app/build
 FROM build AS publish
 RUN dotnet publish "GestorInventario.csproj" -c Release -o /app/publish
 
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-windowsservercore-ltsc2022 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-EXPOSE 8080 8081
+CMD printenv
 ENTRYPOINT ["dotnet", "GestorInventario.dll"]
+CMD printenv
+EXPOSE 8080 8081
 
 # Primero ejecutar dotnet publish -c Release -o out
 
@@ -23,7 +25,7 @@ ENTRYPOINT ["dotnet", "GestorInventario.dll"]
 #Para poner un contenedor o varios contenedores en la misma red primero se pone el siguiente comando:
 		#docker network create --attachable <nombre de la red>
 	    #docker network connect <nombre de la red> <nombre del contenedor> --> Para obtener el nombre de un contenedor se pone el comando docker ps
-#Para ver la información de la red ponemos el comando docker network inspect <nombre de la red> --> Para obtener las redes existentes ponemos el comando docker network ls
+#Para ver la informaciï¿½n de la red ponemos el comando docker network inspect <nombre de la red> --> Para obtener las redes existentes ponemos el comando docker network ls
 #Para testear la conexion con base de datos ponemos docker exec -it SQL-Server-Local /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P SQL#1234 -d GestorInventario -Q "SELECT * FROM Usuarios;"
 #Ademas el comando anterior permite hacer consultas desde la terminal docker exec -it SQL-Server-Local /opt/mssql-tools/bin/sqlcmd -S localhost -U pepe -P pepe#1234  -d GestorInventario -Q "SELECT * FROM Usuarios;"
 #Para generar el certificado https y ponerlo en un directorio en concreto se usa el comando: dotnet dev-certs https -ep C:\Users\guill\.aspnet\https\aspnetapp.pfx -p password
@@ -79,10 +81,10 @@ ENTRYPOINT ["dotnet", "GestorInventario.dll"]
 #Por ultimo para comprobar que la variable de entorno se ha creado correctamente ponemos este comando Write-Host "ClaveJWT: $env:ClaveJWT"
 
 #Luego en el Program.cs ponemos esto
-#// Agregar variables de entorno a la configuración
+#// Agregar variables de entorno a la configuraciï¿½n
 #builder.Configuration.AddEnvironmentVariables();
 #
-#// Imprimir todas las variables de entorno para depuración
+#// Imprimir todas las variables de entorno para depuraciï¿½n
 #foreach (DictionaryEntry env in Environment.GetEnvironmentVariables())
 #{
     #Console.WriteLine($"{env.Key}: {env.Value}");
