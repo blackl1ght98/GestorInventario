@@ -6,21 +6,21 @@ services:
     image: ${DOCKER_REGISTRY-}gestorinventario
     build:
       context: .
-      dockerfile: GestorInventario/Dockerfile
+      dockerfile: Dockerfile
 
     ports:
-      - "28907:8080"
+     
       - "8080:8080"
       - "8081:8081"
-      - "28908:8081"
+     
     environment:
       - DB_HOST=${DB_HOST}
       - DB_NAME=${DB_NAME}
       - DB_SA_PASSWORD=${DB_SA_PASSWORD}
       - IS_DOCKER=true
       - USE_REDIS=true 
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/GestorInventario.pfx
       - ASPNETCORE_Kestrel__Certificates__Default__Password=password
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
       - ClaveJWT=${ClaveJWT}
       - REDIS_CONNECTION_STRING=${REDIS_CONNECTION_STRING} 
       - JwtIssuer=${JwtIssuer}
@@ -38,7 +38,8 @@ services:
       - Email__Username=${Email__Username}
       - Email__Password=${Email__Password} 
 
-
+    volumes:
+       - C:/Users/guill/AppData/Roaming/ASP.NET/Https/GestorInventario.pfx:/https/GestorInventario.pfx:ro
   redis:
     image: redis:latest
     container_name: redis
