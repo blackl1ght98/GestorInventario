@@ -183,7 +183,7 @@ namespace GestorInventario.Application.Services
             var email = new MimeMessage();
             email.From.Add(MailboxAddress.Parse(_config.GetSection("Email:UserName").Value));
             email.To.Add(MailboxAddress.Parse(correo.ToEmail));
-            email.Subject = "Recuperar Contraseña";
+            email.Subject = "Alerta: Bajo stock de producto";
             email.Body = new TextPart(TextFormat.Html)
             {
                 Text = await RenderViewToStringAsync("ViewsEmailService/ViewLowStock", model)

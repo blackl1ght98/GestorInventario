@@ -918,27 +918,72 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-        public async Task<IActionResult> ObtenerSuscripcionUsuario()
-       {
-          var usuarioActual = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-          int usuarioId;
-          List<UserSubscription> suscripcionesUsuario = new List<UserSubscription>();
-         if (usuarioActual != null)
-          {
-            if (int.TryParse(usuarioActual, out usuarioId))
-             {
-               // Consulta para obtener todas las suscripciones del usuario
-               suscripcionesUsuario = await _context.UserSubscriptions
-               .Include(x => x.User)
-               .Where(x => x.UserId == usuarioId)
-               .ToListAsync();
-             }
-          }
+        [HttpGet]
+        public async Task<IActionResult> ObtenerSuscripcionUsuario([FromQuery] Paginacion paginacion)
+        {
+            try
+            {
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
 
-           return View(suscripcionesUsuario); 
+                var usuarioActual = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (usuarioActual == null || !int.TryParse(usuarioActual, out int usuarioId))
+                {
+                    TempData["ErrorMessage"] = "No se pudo identificar al usuario. Por favor, inicia sesión nuevamente.";
+                    return RedirectToAction("Login", "Auth");
+                }
+
+                _logger.LogInformation("Página solicitada: {Pagina}, CantidadAMostrar: {Cantidad}, UsuarioId: {UsuarioId}",
+                    paginacion.Pagina, paginacion.CantidadAMostrar, usuarioId);
+
+                // Consulta inicial para obtener las suscripciones del usuario
+                var queryable = _context.UserSubscriptions
+                    .Include(x => x.User)
+                    .Where(x => x.UserId == usuarioId);
+
+                // Calcular el número total de páginas
+                var totalItems = await queryable.CountAsync();
+                var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
+
+                // Obtener las suscripciones con paginación
+                var suscripciones = await _policyExecutor.ExecutePolicyAsync(() =>
+                    Task.FromResult(queryable.Paginar(paginacion).ToList()));
+
+                // Configurar paginación
+                var paginacionConfig = new Paginacion
+                {
+                    Pagina = paginacion.Pagina,
+                    CantidadAMostrar = paginacion.CantidadAMostrar,
+                    TotalPaginas = totalPaginas,
+                    Radio = 3
+                };
+                var paginas = _generarPaginas.GenerarListaPaginas(paginacionConfig);
+
+                // Crear el modelo para la vista
+                var model = new SuscripcionesUsuarioPaginadosViewModel
+                {
+                    Suscripciones = suscripciones ?? new List<UserSubscription>(),
+                    Paginas = paginas,
+                    TotalPaginas = totalPaginas,
+                    PaginaActual = paginacion.Pagina,
+                    TienePaginaSiguiente = paginacion.Pagina < totalPaginas,
+                    TienePaginaAnterior = paginacion.Pagina > 1,
+                    CantidadAMostrar = paginacion.CantidadAMostrar
+                };
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                TempData["ConnectionError"] = "El servidor ha tardado mucho en responder. Inténtelo de nuevo más tarde.";
+              
+                  
+                return RedirectToAction("Error", "Home");
+            }
         }
 
-       
 
     }
 }
