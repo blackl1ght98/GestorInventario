@@ -1,16 +1,21 @@
-﻿@model List<UserSubscription>
+﻿@model SuscripcionesUsuarioPaginadosViewModel
+
+@using GestorInventario.ViewModels.Paypal
 
 @{
     ViewData["Title"] = "Suscripciones Activas";
 }
 
-<div class="container mt-5">
+
+
+<div class="container my-5">
     <div class="text-center mb-4 animate-fade-in">
         <h2 class="text-secondary"><i class="bi bi-wallet me-2"></i>Suscripciones Activas</h2>
         <p class="text-muted">Administra las suscripciones activas de los usuarios en PayPal.</p>
     </div>
 
-    @if (Model == null || !Model.Any())
+    <!-- Mensaje sin datos -->
+    @if (Model == null || !Model.Suscripciones.Any())
     {
         <div class="alert alert-warning text-center rounded-3 animate-fade-in">
             <i class="bi bi-exclamation-triangle me-2"></i>No hay suscripciones activas en este momento.
@@ -18,46 +23,85 @@
     }
     else
     {
-        <div class="card shadow-sm animate-fade-in">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover table-bordered mb-0">
-                        <thead class="bg-primary text-white">
-                            <tr>
-                                <th scope="col"><i class="bi bi-person me-2"></i>Usuario</th>
-                                <th scope="col"><i class="bi bi-person-circle me-2"></i>Nombre Suscriptor</th>
-                                <th scope="col"><i class="bi bi-key me-2"></i>ID Suscripción</th>
-                                <th scope="col"><i class="bi bi-info-circle me-2"></i>Detalles</th>
-                                <th scope="col"><i class="bi bi-x-circle me-2"></i>Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var user in Model)
-                            {
-                                <tr class="hover-row">
-                                    <td>@user.User.NombreCompleto</td>
-                                    <td>@user.NombreSusbcriptor</td>
-                                    <td>@user.SubscriptionId</td>
-                                    <td>
-                                        <a asp-action="DetallesSuscripcion" asp-controller="Paypal" asp-route-id="@user.SubscriptionId"
-                                           class="btn btn-primary btn-sm">
-                                            <i class="bi bi-eye me-2"></i>Ver Detalles
-                                        </a>
-                                    </td>
-                                    <td>
+        <!-- Lista de Suscripciones con Tarjetas -->
+        <div class="row g-4">
+            @foreach (var user in Model.Suscripciones)
+            {
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card border-0 shadow-sm hover-card h-100 animate-fade-in">
+                        <div class="card-body p-4">
+                            <h5 class="card-title mb-3" style="color: var(--primary);">@user.SubscriptionId</h5>
+                            <p class="card-text">
+                                <i class="bi bi-person nav-icon text-muted"></i> <strong>Usuario:</strong> @user.User.NombreCompleto<br />
+                                <i class="bi bi-person-circle nav-icon text-muted"></i> <strong>Nombre Suscriptor:</strong> @user.NombreSusbcriptor<br />
+                                <i class="bi bi-key nav-icon text-muted"></i> <strong>ID Suscripción:</strong> @user.SubscriptionId<br />
+                            </p>
+                        </div>
+                        <div class="card-footer bg-light p-3">
+                            <div class="d-flex flex-wrap gap-2 justify-content-center">
+                                <a asp-action="DetallesSuscripcion" asp-controller="Paypal" asp-route-id="@user.SubscriptionId" class="btn btn-primary btn-sm" data-bs-toggle="tooltip" title="Ver detalles">
+                                    <i class="bi bi-eye nav-icon"></i> Detalles
+                                </a>
+                                <button class="btn btn-danger btn-sm user-action-button" data-subscription-id="@user.SubscriptionId" data-bs-toggle="tooltip" title="Cancelar suscripción">
+                                    <i class="bi bi-x-circle-fill nav-icon"></i> Cancelar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
 
-                                        <button class="btn btn-danger btn-sm user-action-button"
-                                                data-subscription-id="@user.SubscriptionId">
-                                            <i class="bi bi-x-circle-fill me-2"></i>Cancelar
-                                        </button>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+    <!-- Modal -->
+    <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="confirmModalLabel"><i class="bi bi-exclamation-circle me-2"></i>Confirmar Cancelación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="confirmMessage">¿Estás seguro de que deseas cancelar esta suscripción?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-toggle="tooltip" title="Cancelar acción"><i class="bi bi-x me-2"></i>Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="confirmActionBtn" data-bs-toggle="tooltip" title="Confirmar acción"><i class="bi bi-check me-2"></i>Confirmar</button>
                 </div>
             </div>
         </div>
-    }
+    </div>
 </div>
-
+<!-- Paginación -->
+@if (Model.Paginas != null && Model.Paginas.Any())
+{
+    <nav aria-label="Navegación de páginas" class="mt-5">
+        <ul class="pagination justify-content-center">
+            @foreach (var pagina in Model.Paginas)
+            {
+                <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
+                    <a class="page-link"
+                       href="@Url.Action("ObtenerSuscripcionUsuario", new { pagina = pagina.Pagina })"
+                       style="transition: background-color 0.2s;">
+                        @if (pagina.Texto == "Anterior")
+                        {
+                            <span aria-hidden="true">«</span>
+                        }
+                        else if (pagina.Texto == "Siguiente")
+                        {
+                            <span aria-hidden="true">»</span>
+                        }
+                        else
+                        {
+                            @pagina.Texto
+                        }
+                    </a>
+                </li>
+            }
+        </ul>
+    </nav>
+}
+@section Scripts {
+    <script src="~/js/suscripciones.js" asp-append-version="true"></script>
+  
+}

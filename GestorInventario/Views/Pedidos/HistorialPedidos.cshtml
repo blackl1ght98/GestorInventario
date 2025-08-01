@@ -1,94 +1,99 @@
 ﻿@model HistorialPedidoViewModel
 @using GestorInventario.MetodosExtension
 @using GestorInventario.ViewModels.order
-<link rel="stylesheet" href="~/css/historialPedido.css" />
-<div class="card hover-card">
-    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-        <h1 class="h4 mb-0">Historial de Pedidos</h1>
-        <a href="@Url.Action("DescargarHistorialPDF", "Pedidos")" target="_blank" class="btn btn-secondary descargar" data-bs-toggle="tooltip" title="Descargar historial en PDF">
+
+
+
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 fw-bold" style="color: var(--primary);">Historial de Pedidos</h1>
+        <a href="@Url.Action("DescargarHistorialPDF", "Pedidos")" target="_blank" class="btn btn-secondary" data-bs-toggle="tooltip" title="Descargar historial en PDF">
             <i class="bi bi-file-earmark-pdf nav-icon"></i> Descargar PDF
         </a>
     </div>
-    <div class="card-body">
-        @if (TempData["ErrorMessage"] != null)
+
+    <!-- Mensaje de error -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Formulario de búsqueda y botón Eliminar Todo -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <form asp-controller="Pedidos" asp-action="HistorialPedidos" method="get" class="input-group w-auto">
+            <input type="text" name="buscar" class="form-control" placeholder="Buscar en historial..." value="@ViewData["Buscar"]" />
+            <button type="submit" class="btn btn-primary" data-bs-toggle="tooltip" title="Buscar">
+                <i class="bi bi-search nav-icon"></i> Buscar
+            </button>
+        </form>
+        @if (User.IsInRole("Administrador"))
         {
-            <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                @TempData["ErrorMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <form asp-action="DeleteAllHistorial" asp-controller="Pedidos" method="post">
+                <button type="submit" class="btn btn-danger" data-bs-toggle="tooltip" title="Eliminar todo el historial">
+                    <i class="bi bi-trash nav-icon"></i> Eliminar Todo
+                </button>
+            </form>
+        }
+    </div>
+
+    <!-- Lista de Historial de Pedidos con Tarjetas -->
+    <div class="row g-4">
+        @foreach (var pedido in Model.HistorialPedidos)
+        {
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm hover-card h-100">
+                    <div class="card-body p-4">
+                        <h5 class="card-title mb-3" style="color: var(--primary);">Registro #@pedido.Id</h5>
+                        <p class="card-text">
+                            <i class="bi bi-calendar nav-icon text-muted"></i> <strong>Fecha:</strong> @pedido.Fecha.ToString()<br />
+                            <i class="bi bi-gear nav-icon text-muted"></i> <strong>Acción:</strong> @pedido.Accion<br />
+                            <i class="bi bi-globe nav-icon text-muted"></i> <strong>IP:</strong> @pedido.Ip<br />
+                            <i class="bi bi-person nav-icon text-muted"></i> <strong>ID Usuario:</strong> @pedido.IdUsuario<br />
+                        </p>
+                    </div>
+                    <div class="card-footer bg-light p-3">
+                        <div class="d-flex flex-wrap gap-2 justify-content-center">
+                            <a asp-action="DetallesHistorialPedido" asp-route-id="@pedido.Id" class="btn btn-info btn-sm" data-bs-toggle="tooltip" title="Ver detalles">
+                                <i class="bi bi-eye nav-icon"></i> Detalles
+                            </a>
+                            @if (User.IsInRole("Administrador"))
+                            {
+                                <a asp-action="DeleteHistorial" asp-route-id="@pedido.Id" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" title="Eliminar registro">
+                                    <i class="bi bi-trash nav-icon"></i> Eliminar
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
             </div>
         }
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <form asp-controller="Pedidos" asp-action="HistorialPedidos" class="d-flex gap-2">
-                <div class="input-group">
-                    <input type="text" name="buscar" class="form-control" placeholder="Buscar en historial..." value="@ViewData["Buscar"]" />
-                    <button type="submit" class="btn btn-primary" data-bs-toggle="tooltip" title="Buscar">
-                        <i class="bi bi-search nav-icon"></i> Buscar
-                    </button>
-                </div>
-            </form>
-            @if (User.IsInRole("Administrador"))
-            {
-                <form asp-action="DeleteAllHistorial" asp-controller="Pedidos" method="post">
-                    <button type="submit" class="btn btn-danger" data-bs-toggle="tooltip" title="Eliminar todo el historial">
-                        <i class="bi bi-trash nav-icon"></i> Eliminar Todo
-                    </button>
-                </form>
-            }
-        </div>
-        <div class="table-responsive">
-            <table class="table table-striped table-bordered table-hover w-100">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Acción</th>
-                        <th>IP</th>
-                        <th>ID Usuario</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var pedido in Model.HistorialPedidos)
-                    {
-                        <tr>
-                            <td>@pedido.Fecha.ToString()</td>
-                            <td>@pedido.Accion</td>
-                            <td>@pedido.Ip</td>
-                            <td>@pedido.IdUsuario</td>
-                            <td>
-                                <a asp-action="DetallesHistorialPedido" asp-route-id="@pedido.Id" class="btn btn-info btn-sm" data-bs-toggle="tooltip" title="Ver detalles">
-                                    <i class="bi bi-eye nav-icon"></i> Detalles
-                                </a>
-                                @if (User.IsInRole("Administrador"))
-                                {
-                                    <a asp-action="DeleteHistorial" asp-route-id="@pedido.Id" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" title="Eliminar registro">
-                                        <i class="bi bi-trash nav-icon"></i> Eliminar
-                                    </a>
-                                }
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-        <!-- Paginación -->
-        @if (Model.Paginas != null && Model.Paginas.Any())
+        @if (!Model.HistorialPedidos.Any())
         {
-            <nav aria-label="Navegación de páginas" class="mt-5">
-                <ul class="pagination justify-content-center">
-                    @foreach (var pagina in Model.Paginas)
-                    {
-                        <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
-                            <a class="page-link"
-                               href="@Url.Action("HistorialPedidos", new { pagina = pagina.Pagina, buscar = Model.Buscar })"
-                               style="transition: background-color 0.2s;">
-                                @pagina.Texto
-                            </a>
-                        </li>
-                    }
-                </ul>
-            </nav>
+            <div class="col-12 text-center py-5">
+                <p class="text-muted fs-5">No hay registros de historial para mostrar.</p>
+            </div>
         }
     </div>
-    </div>
 
-
+    <!-- Paginación -->
+    @if (Model.Paginas != null && Model.Paginas.Any())
+    {
+        <nav aria-label="Navegación de páginas" class="mt-5">
+            <ul class="pagination justify-content-center">
+                @foreach (var pagina in Model.Paginas)
+                {
+                    <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
+                        <a class="page-link"
+                           href="@Url.Action("HistorialPedidos", new { pagina = pagina.Pagina, buscar = Model.Buscar })"
+                           style="transition: background-color 0.2s;">
+                            @pagina.Texto
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+</div>
