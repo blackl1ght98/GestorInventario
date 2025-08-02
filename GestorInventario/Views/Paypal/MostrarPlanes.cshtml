@@ -121,14 +121,12 @@
                                     </form>
 
                                     <!-- Botón de desactivar para administradores -->
-                                    @if (User.IsInRole("Administrador"))
-                                    {
-                                        <form asp-action="DesactivarPlan" method="post" class="w-50 ps-1">
-                                            <input type="hidden" name="productId" value="@plan.productId" />
-                                            <input type="hidden" name="planId" value="@plan.id" />
-                                            <button type="submit" class="btn btn-danger w-100"><i class="bi bi-x-circle-fill me-2"></i>Desactivar</button>
-                                        </form>
-                                    }
+                                    <form asp-action="DesactivarPlan" method="post" class="w-50 ms-1">
+                                        <input type="hidden" name="id" value="@plan.id" />
+                                        <button type="submit" class="btn btn-danger w-100">
+                                            <i class="bi bi-x-circle-fill me-2"></i>Desactivar
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
