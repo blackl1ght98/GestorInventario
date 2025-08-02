@@ -311,17 +311,17 @@ namespace GestorInventario.Infraestructure.Controllers
 
         //Metodo para desactivar el plan
         [HttpPost]
-        public async Task<IActionResult> DesactivarPlan(string planId)
+        public async Task<IActionResult> DesactivarPlan(string id)
         {
             try
             {
-                var activeSubscriptions = await _paypalRepository.ObtenerSuscriptcionesActivas(planId);
-                var userSubscriptions = await _paypalRepository.SusbcripcionesUsuario(planId);
+                var activeSubscriptions = await _paypalRepository.ObtenerSuscriptcionesActivas(id);
+                var userSubscriptions = await _paypalRepository.SusbcripcionesUsuario(id);
                 if (activeSubscriptions.Any() || userSubscriptions.Any())
                 {
                     return StatusCode(400, "No se puede cancelar el plan porque hay suscriptores activos.");
                 }
-                var deleteResponse = await _paypalService.DesactivarPlan( planId);
+                var deleteResponse = await _paypalService.DesactivarPlan( id);
 
 
                 return RedirectToAction(nameof(MostrarPlanes), new { mensaje = deleteResponse });
@@ -332,23 +332,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
 
-        //Metodo para desactivar el producto
-        [HttpPost]
-        public async Task<IActionResult> DesactivarProducto(string id)
-        {
-            try
-            {
-
-                var deleteResponse = await _paypalService.MarcarDesactivadoProducto(id);
-
-
-                return RedirectToAction(nameof(MostrarProductos), new { mensaje = deleteResponse });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error al eliminar el producto y el plan: {ex.Message}");
-            }
-        }
+        
         //Metodo que muestra la vista para editar
         public IActionResult EditarProductoPaypal()
         {

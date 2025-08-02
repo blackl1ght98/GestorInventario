@@ -6,6 +6,7 @@ using GestorInventario.Application.DTOs.Response.PayPal;
 using GestorInventario.Application.DTOs.Response_paypal.GET;
 using GestorInventario.Application.DTOs.Response_paypal.PATCH;
 using GestorInventario.Application.DTOs.Response_paypal.POST;
+using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using Microsoft.Extensions.Caching.Memory;
@@ -332,28 +333,24 @@ namespace GestorInventario.Application.Services
         #region creacion de un producto y plan de suscripcion
         public async Task<HttpResponseMessage> CreateProductAsync(string productName, string productDescription, string productType, string productCategory)
         {
-            var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
-            var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
-            var authToken = await GetAccessTokenAsync(clientId, clientSecret);
+            var (clientId, clientSecret) = GetPaypalCredentials();
 
-           
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                var productRequest = new CreateProductResponse
-                {
-                    Nombre = productName,
-                    Description = productDescription,
-                    Type = productType,
-                    Category = productCategory,
-                    Imagen = "https://example.com/product-image.jpg"
-                };
-
-                var content = new StringContent(JsonConvert.SerializeObject(productRequest), Encoding.UTF8, "application/json");
-
-                var response = await _httpClient.PostAsync("v1/catalogs/products/", content);
-
-                return response;
+            var authToken = await GetAccessTokenAsync(clientId, clientSecret);           
+            var productRequest = new CreateProductResponse
+             {
+                Nombre = productName,
+                Description = productDescription,
+                Type = productType,
+                Category = productCategory,
+                Imagen = "https://example.com/product-image.jpg"
+            };
+            var request = new HttpRequestMessage(HttpMethod.Post, $"v1/catalogs/products/");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+            request.Content = new StringContent(JsonConvert.SerializeObject(productRequest), Encoding.UTF8, "application/json");
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            var response = await _httpClient.SendAsync(request);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            return response;
             
         }
 
@@ -364,114 +361,166 @@ namespace GestorInventario.Application.Services
             System.Threading.Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
             System.Threading.Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
 
+            var (clientId, clientSecret) = GetPaypalCredentials();
+            var authToken = await GetAccessTokenAsync(clientId, clientSecret);
+
+            try
+            {
+                var planRequest = BuildPaypalPlanRequest(productId, planName, description, amount, currency, trialDays, trialAmount);
+
+                var request = new HttpRequestMessage(HttpMethod.Post, "v1/billing/plans");
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+                request.Content = new StringContent(JsonConvert.SerializeObject(planRequest), Encoding.UTF8, "application/json");
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));           
+                var response = await _httpClient.SendAsync(request);
+                var responseBody = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseObject = JsonConvert.DeserializeObject<PaypalPlanDetailsDto>(responseBody);
+                    string createdPlanId = responseObject.Id;
+
+                    // Guardar los detalles del plan en la base de datos con la ID de PayPal
+                    await _unitOfWork.PaypalRepository.SavePlanDetailsAsync(createdPlanId, planRequest);
+
+                    return responseBody;
+                }
+                else
+                {
+                    throw new Exception($"Error al crear el plan de suscripción: {response.StatusCode} - {responseBody}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al crear el plan de suscripción");
+                return $"{{\"error\":\"Se produjo un error al crear el plan de suscripción: {ex.Message}\"}}";
+            }
+        }
+        private PaypalPlanDetailsDto BuildPaypalPlanRequest(string productId, string planName, string description, decimal amount, string currency, int trialDays = 0, decimal trialAmount = 0.00m)
+        {
+            var billingCycles = new List<BillingCycleDto>();
+
+            // Si hay días de prueba, agrega el ciclo de prueba
+            if (trialDays > 0)
+            {
+                billingCycles.Add(new BillingCycleDto
+                {
+                    TenureType = "TRIAL",
+                    Sequence = 1,
+                    Frequency = new FrequencyDto
+                    {
+                        IntervalUnit = "DAY",
+                        IntervalCount = trialDays
+                    },
+                    TotalCycles = 1,
+                    PricingScheme = new PricingSchemeDto
+                    {
+                        FixedPrice = new FixedPriceDto
+                        {
+                            Value = trialAmount.ToString("0.00", CultureInfo.InvariantCulture),
+                            CurrencyCode = currency
+                        }
+                    }
+                });
+            }
+
+            // Agrega el ciclo regular
+            billingCycles.Add(new BillingCycleDto
+            {
+                TenureType = "REGULAR",
+                Sequence = trialDays > 0 ? 2 : 1,
+                Frequency = new FrequencyDto
+                {
+                    IntervalUnit = "MONTH",
+                    IntervalCount = 1
+                },
+                TotalCycles = 12,
+                PricingScheme = new PricingSchemeDto
+                {
+                    FixedPrice = new FixedPriceDto
+                    {
+                        Value = amount.ToString("0.00", CultureInfo.InvariantCulture),
+                        CurrencyCode = currency
+                    }
+                }
+            });
+
+            return new PaypalPlanDetailsDto
+            {
+                ProductId = productId,
+                Name = planName,
+                Description = description,
+                Status = "ACTIVE",
+                BillingCycles = billingCycles.ToArray(),
+                PaymentPreferences = new PaymentPreferencesDto
+                {
+                    AutoBillOutstanding = true,
+                    SetupFee = new FixedPriceDto
+                    {
+                        Value = "0.00",
+                        CurrencyCode = currency
+                    },
+                    SetupFeeFailureAction = "CONTINUE",
+                    PaymentFailureThreshold = 3
+                },
+                Taxes = new TaxesDto
+                {
+                    Percentage = "10",
+                    Inclusive = false
+                }
+            };
+        }
+        #endregion
+        #region Suscribirse a un plan
+        public async Task<string> Subscribirse(string id, string returnUrl, string cancelUrl, string planName)
+        {
+
+            System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
+            System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
+
             var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
             var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
             var authToken = await GetAccessTokenAsync(clientId, clientSecret);
 
-           
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                try
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            var subscriptionRequest = new SubscriptionCreateResponse
+            {
+                PlanId = id,
+                ApplicationContext = new ApplicationContext
                 {
-                    var billingCycles = new List<BillingCycleDto>();
-
-                    // Si hay días de prueba, agrega el ciclo de prueba
-                    if (trialDays > 0)
+                    BrandName = planName,
+                    Locale = "es-ES",
+                    ShippingPreference = "NO_SHIPPING",
+                    UserAction = "SUBSCRIBE_NOW",
+                    PaymentMethod = new PaymentMethod
                     {
-                        billingCycles.Add(new BillingCycleDto
-                        {
-                            TenureType = "TRIAL",
-                            Sequence = 1, // Primer ciclo
-                            Frequency = new FrequencyDto
-                            {
-                                IntervalUnit = "DAY",
-                                IntervalCount = trialDays
-                            },
-                            TotalCycles = 1,
-                            PricingScheme = new PricingSchemeDto
-                            {
-                                FixedPrice = new FixedPriceDto
-                                {
-                                    Value = trialAmount.ToString("0.00", CultureInfo.InvariantCulture),
-                                    CurrencyCode = currency
-                                }
-                            }
-                        });
-                    }
-
-                    // Agrega el ciclo regular
-                    billingCycles.Add(new BillingCycleDto
-                    {
-                        TenureType = "REGULAR",
-                        Sequence = trialDays > 0 ? 2 : 1, // Segundo ciclo si hay prueba, primero si no
-                        Frequency = new FrequencyDto
-                        {
-                            IntervalUnit = "MONTH",
-                            IntervalCount = 1
-                        },
-                        TotalCycles = 12,
-                        PricingScheme = new PricingSchemeDto
-                        {
-                            FixedPrice = new FixedPriceDto
-                            {
-                                Value = amount.ToString("0.00", CultureInfo.InvariantCulture),
-                                CurrencyCode = currency
-                            }
-                        }
-                    });
-
-                    var planRequest = new PaypalPlanDetailsDto
-                    {
-                        ProductId = productId,
-                        Name = planName,
-                        Description = description,
-                        Status = "ACTIVE",
-                        BillingCycles = billingCycles.ToArray(),
-                        PaymentPreferences = new PaymentPreferencesDto
-                        {
-                            AutoBillOutstanding = true,
-                            SetupFee = new FixedPriceDto
-                            {
-                                Value = "0.00",
-                                CurrencyCode = currency
-                            },
-                            SetupFeeFailureAction = "CONTINUE",
-                            PaymentFailureThreshold = 3
-                        },
-                        Taxes = new TaxesDto
-                        {
-                            Percentage = "10",
-                            Inclusive = false
-                        }
-                    };
-
-                    var content = new StringContent(JsonConvert.SerializeObject(planRequest), Encoding.UTF8, "application/json");
-                    var response = await _httpClient.PostAsync("v1/billing/plans", content);
-
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var responseContent = await response.Content.ReadAsStringAsync();
-                        dynamic responseObject = JsonConvert.DeserializeObject(responseContent);
-                        string createdPlanId = responseObject.id;
-
-                        // Guardar los detalles del plan en la base de datos con la ID de PayPal
-                        await _unitOfWork.PaypalRepository.SavePlanDetailsAsync(createdPlanId, planRequest);
-
-                        return responseContent;
-                    }
-                    else
-                    {
-                        var errorContent = await response.Content.ReadAsStringAsync();
-                        throw new Exception($"Error al crear el plan de suscripción: {response.StatusCode} - {errorContent}");
-                    }
+                        PayerSelected = "PAYPAL",
+                        PayeePreferred = "IMMEDIATE_PAYMENT_REQUIRED"
+                    },
+                    ReturnUrl = returnUrl,
+                    CancelUrl = cancelUrl
                 }
-                catch (Exception ex)
+            };
+
+            var content = new StringContent(JsonConvert.SerializeObject(subscriptionRequest), Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync("v1/billing/subscriptions", content);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
+            {
+                var subscriptionJson = JsonConvert.DeserializeObject<SubscriptionCreateResponse>(responseContent);
+
+                var approvalLink = subscriptionJson.Links.FirstOrDefault(link => link.Rel == "approve").Href;
+                if (string.IsNullOrEmpty(approvalLink))
                 {
-                    _logger.LogError(ex, "Error al crear el plan de suscripción");
-                    return $"{{\"error\":\"Se produjo un error al crear el plan de suscripción: {ex.Message}\"}}";
+                    throw new Exception("No se encontró el enlace de aprobación en la respuesta de PayPal.");
                 }
-            
+                return approvalLink;
+            }
+            throw new Exception("Ha ocurrido un error");
+
         }
         #endregion
         #region desactivar plan de suscripcion
@@ -506,83 +555,7 @@ namespace GestorInventario.Application.Services
         }
 
         #endregion
-        #region Desactivar producto vinculado a un plan
-        public async Task<string> MarcarDesactivadoProducto(string id)
-        {
-            // Validar el parámetro de entrada
-            if (string.IsNullOrEmpty(id))
-            {
-                throw new ArgumentException("El ID del producto no puede ser nulo o vacío.", nameof(id));
-            }
-
-            var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
-            var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
-
-            if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
-            {
-                throw new InvalidOperationException("No se encontraron las credenciales de PayPal (ClientId o ClientSecret).");
-            }
-
-            var authToken = await GetAccessTokenAsync(clientId, clientSecret);
-
-         
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-
-            try
-            {
-                // Verificar si el producto existe en PayPal
-                var productResponse = await _httpClient.GetAsync($"https://api-m.sandbox.paypal.com/v1/catalogs/products/{id}");
-                if (!productResponse.IsSuccessStatusCode)
-                {
-                    var errorContent = await productResponse.Content.ReadAsStringAsync();
-                    throw new Exception($"No se pudo encontrar el producto con ID {id}: {productResponse.StatusCode} - {errorContent}");
-                }
-
-                // Crear la solicitud PATCH usando DTOs
-                var patchRequest = new List<PatchOperation>
-                {
-                    new PatchOperation
-                    {
-                        Operation = "replace",
-                        Path = "/description",
-                        Value = "INACTIVO"
-                    },
-                    new PatchOperation
-                    {
-                        Operation = "replace",
-                        Path = "/name",
-                        Value = "INACTIVO"
-                    }
-                };
-
-                // Serializar la solicitud a JSON
-                var content = new StringContent(
-                    JsonConvert.SerializeObject(patchRequest),
-                    Encoding.UTF8,
-                    "application/json"
-                );
-
-                // Enviar la solicitud PATCH
-                var patchResponse = await _httpClient.PatchAsync(
-                    $"v1/catalogs/products/{id}",
-                    content
-                );
-
-                if (!patchResponse.IsSuccessStatusCode)
-                {
-                    var errorContent = await patchResponse.Content.ReadAsStringAsync();
-                    throw new Exception($"Error al actualizar el producto con ID {id}: {patchResponse.StatusCode} - {errorContent}");
-                }
-
-                return "Producto marcado como inactivo con éxito";
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al marcar como inactivo el producto con ID {ProductId}", id);
-                throw; // Relanzar la excepción para que el controlador la maneje
-            }
-        }
-        #endregion
+      
         #region Editar producto vinculado a un plan
         public async Task<string> EditarProducto(string id, string name, string description)
         {
@@ -668,58 +641,7 @@ namespace GestorInventario.Application.Services
             }
         }
         #endregion
-        #region Suscribirse a un plan
-        public async Task<string> Subscribirse(string id, string returnUrl, string cancelUrl, string planName)
-        {
-
-            System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
-            System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
-
-            var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
-            var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
-            var authToken = await GetAccessTokenAsync(clientId, clientSecret);
-            
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                var subscriptionRequest = new SubscriptionCreateResponse
-                {
-                    PlanId = id,
-                    ApplicationContext = new ApplicationContext
-                    {
-                        BrandName = planName,
-                        Locale = "es-ES",
-                        ShippingPreference = "NO_SHIPPING",
-                        UserAction = "SUBSCRIBE_NOW",
-                        PaymentMethod = new PaymentMethod
-                        {
-                            PayerSelected = "PAYPAL",
-                            PayeePreferred = "IMMEDIATE_PAYMENT_REQUIRED"
-                        },
-                        ReturnUrl = returnUrl,
-                        CancelUrl = cancelUrl
-                    }
-                };
-
-                var content = new StringContent(JsonConvert.SerializeObject(subscriptionRequest), Encoding.UTF8, "application/json");
-
-                var response = await _httpClient.PostAsync("v1/billing/subscriptions", content);
-                var responseContent = await response.Content.ReadAsStringAsync();
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var subscriptionJson = JsonConvert.DeserializeObject<SubscriptionCreateResponse>(responseContent);
-
-                    var approvalLink = subscriptionJson.Links.FirstOrDefault(link => link.Rel == "approve").Href;
-                    if (string.IsNullOrEmpty(approvalLink))
-                    {
-                        throw new Exception("No se encontró el enlace de aprobación en la respuesta de PayPal.");
-                    }
-                    return approvalLink;
-                }
-                throw new Exception("Ha ocurrido un error");
-            
-        }
-        #endregion
+       
         #region Obtener detalles de la suscripción
 
         public async Task<PaypalSubscriptionResponse> ObtenerDetallesSuscripcion(string subscription_id)
