@@ -73,10 +73,17 @@
                                     <button class="btn btn-danger btn-sm user-action-button" data-subscription-id="@user.SubscriptionId" data-bs-toggle="tooltip" title="Cancelar suscripción">
                                         <i class="bi bi-x-circle-fill nav-icon"></i> Cancelar
                                     </button>
+                                    <button class="btn btn-success btn-sm suspend-action-button" data-subscription-id="@user.SubscriptionId" data-bs-toggle="tooltip" title="Suspender suscripción">
+                                        <i class="bi bi-pause-circle-fill nav-icon"></i> Suspender
+                                    </button>
+                                    <button class="btn btn-success btn-sm activate-action-button" data-subscription-id="@user.SubscriptionId" data-bs-toggle="tooltip" title="Activar suscripción">
+                                        <i class="bi bi-check-circle-fill nav-icon"></i> Activar
+                                    </button>
                                 </div>
                             </div>
                         }
                     </div>
+                   
                 </div>
             }
         </div>
@@ -127,6 +134,52 @@
                     <button type="button" class="btn btn-secondary" data-bs-toggle="tooltip" title="Cancelar acción"><i class="bi bi-x me-2"></i>Cancelar</button>
                     <button type="button" class="btn btn-primary" id="confirmActionBtn" data-bs-toggle="tooltip" title="Confirmar acción"><i class="bi bi-check me-2"></i>Confirmar</button>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal para Suspender con Motivo -->
+<div class="modal fade" id="suspendModal" tabindex="-1" aria-labelledby="suspendModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="suspendModalLabel"><i class="bi bi-pause-circle me-2"></i>Suspender Suscripción</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="suspendMessage">Ingresa el motivo para suspender la suscripción <strong id="suspendSubscriptionId"></strong>:</p>
+                <div class="mb-3">
+                    <label for="suspendReason" class="form-label">Motivo:</label>
+                    <textarea class="form-control" id="suspendReason" rows="4" placeholder="Escribe el motivo aquí (máximo 500 caracteres)" maxlength="500" required></textarea>
+                    <div class="invalid-feedback">El motivo es requerido.</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-bs-toggle="tooltip" title="Cancelar acción"><i class="bi bi-x me-2"></i>Cancelar</button>
+                <button type="button" class="btn btn-success" id="confirmSuspendBtn" data-bs-toggle="tooltip" title="Suspender suscripción"><i class="bi bi-check me-2"></i>Suspender</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal para Activar con Motivo -->
+<div class="modal fade" id="activateModal" tabindex="-1" aria-labelledby="activateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="activateModalLabel"><i class="bi bi-check-circle me-2"></i>Activar Suscripción</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="activateMessage">Ingresa el motivo para activar la suscripción <strong id="activateSubscriptionId"></strong>:</p>
+                <div class="mb-3">
+                    <label for="activateReason" class="form-label">Motivo:</label>
+                    <textarea class="form-control" id="activateReason" rows="4" placeholder="Escribe el motivo aquí (máximo 500 caracteres)" maxlength="500" required></textarea>
+                    <div class="invalid-feedback">El motivo es requerido.</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-bs-toggle="tooltip" title="Cancelar acción"><i class="bi bi-x me-2"></i>Cancelar</button>
+                <button type="button" class="btn btn-success" id="confirmActivateBtn" data-bs-toggle="tooltip" title="Activar suscripción"><i class="bi bi-check me-2"></i>Activar</button>
             </div>
         </div>
     </div>

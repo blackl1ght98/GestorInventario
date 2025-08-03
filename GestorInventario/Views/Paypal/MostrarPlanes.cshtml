@@ -116,7 +116,7 @@
                                     <!-- Botón de suscripción -->
                                     <form asp-action="IniciarSuscripcion" method="post" class="w-@(User.IsInRole("Administrador") ? "50 pe-1" : "100")">
                                         <input type="hidden" name="plan_id" value="@plan.id" />
-                                        <input type="hidden" name="brand_name" value="@plan.name" />
+                                        <input type="hidden" name="planName" value="@plan.name" />
                                         <button type="submit" class="btn btn-success w-100"><i class="bi bi-check-circle-fill me-2"></i>Suscribirse</button>
                                     </form>
 
@@ -126,6 +126,11 @@
                                         <button type="submit" class="btn btn-danger w-100">
                                             <i class="bi bi-x-circle-fill me-2"></i>Desactivar
                                         </button>
+                                    </form>
+                                    <form asp-action="ActivarPlan" method="post" class="w-50 ms-1">
+                                        <input type="hidden" name="id" value="@plan.id" />
+                                        <button type="submit" class="btn btn-success w-100"><i class="bi bi-check-circle-fill me-2"></i>Activar</button>
+
                                     </form>
                                 </div>
                             </div>

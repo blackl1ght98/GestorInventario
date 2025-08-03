@@ -478,12 +478,9 @@ namespace GestorInventario.Application.Services
             System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
             System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
 
-            var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
-            var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
+            var (clientId, clientSecret) = GetPaypalCredentials();
             var authToken = await GetAccessTokenAsync(clientId, clientSecret);
 
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             var subscriptionRequest = new SubscriptionCreateResponse
             {
                 PlanId = id,
@@ -502,15 +499,15 @@ namespace GestorInventario.Application.Services
                     CancelUrl = cancelUrl
                 }
             };
-
-            var content = new StringContent(JsonConvert.SerializeObject(subscriptionRequest), Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PostAsync("v1/billing/subscriptions", content);
-            var responseContent = await response.Content.ReadAsStringAsync();
-
+            var request = new HttpRequestMessage(HttpMethod.Post, "v1/billing/subscriptions");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+            request.Content = new StringContent(JsonConvert.SerializeObject(subscriptionRequest), Encoding.UTF8, "application/json");
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            var response = await _httpClient.SendAsync(request);
+            var responseBody = await response.Content.ReadAsStringAsync();                   
             if (response.IsSuccessStatusCode)
             {
-                var subscriptionJson = JsonConvert.DeserializeObject<SubscriptionCreateResponse>(responseContent);
+                var subscriptionJson = JsonConvert.DeserializeObject<SubscriptionCreateResponse>(responseBody);
 
                 var approvalLink = subscriptionJson.Links.FirstOrDefault(link => link.Rel == "approve").Href;
                 if (string.IsNullOrEmpty(approvalLink))
@@ -523,39 +520,227 @@ namespace GestorInventario.Application.Services
 
         }
         #endregion
+        #region Obtener detalles de la suscripción
+        public async Task<PaypalSubscriptionResponse> ObtenerDetallesSuscripcion(string subscription_id)
+        {
+            var (clientId, clientSecret) = GetPaypalCredentials();
+            var authToken = await GetAccessTokenAsync(clientId, clientSecret);
+
+            var request = new HttpRequestMessage(HttpMethod.Get, $"v1/billing/subscriptions/{subscription_id}");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+            request.Content = new StringContent(JsonConvert.SerializeObject("{}"), Encoding.UTF8, "application/json");
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            var response = await _httpClient.SendAsync(request);
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+          
+            
+
+            if (response.IsSuccessStatusCode)
+            {
+                return JsonConvert.DeserializeObject<PaypalSubscriptionResponse>(responseBody);
+            }
+            else
+            {
+                throw new Exception($"Error al obtener los detalles de la suscripción: {responseBody}");
+            }
+
+        }
+        #endregion
         #region desactivar plan de suscripcion
-        public async Task<string> DesactivarPlan( string planId)
+        public async Task<string> DesactivarPlan(string planId)
+        {
+            var (payPalClientId, payPalClientSecret) = GetPaypalCredentials();
+            var accessToken = await GetAccessTokenAsync(payPalClientId, payPalClientSecret);
+
+            var deactivatePlanRequest = new HttpRequestMessage(HttpMethod.Post, $"v1/billing/plans/{planId}/deactivate");
+            deactivatePlanRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            deactivatePlanRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            var deactivatePlanResponse = await _httpClient.SendAsync(deactivatePlanRequest);
+            var deactivatePlanResponseBody = await deactivatePlanResponse.Content.ReadAsStringAsync();
+
+            if (deactivatePlanResponse.IsSuccessStatusCode)
+            {
+                var planDetailsRequest = new HttpRequestMessage(HttpMethod.Get, $"v1/billing/plans/{planId}");
+                planDetailsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                planDetailsRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                var planDetailsResponse = await _httpClient.SendAsync(planDetailsRequest);
+                var planDetailsResponseBody = await planDetailsResponse.Content.ReadAsStringAsync();
+
+                if (planDetailsResponse.IsSuccessStatusCode)
+                {
+                    var planDetails = JsonConvert.DeserializeObject<PaypalPlanDetailsDto>(planDetailsResponseBody);
+                    string planStatusResult = planDetails.Status;
+                    await _unitOfWork.PaypalRepository.UpdatePlanStatusInDatabase(planId, planStatusResult);
+                }
+                else
+                {
+                    throw new Exception($"No se pudo obtener los detalles del plan con ID {planId}: {planDetailsResponse.StatusCode} - {planDetailsResponseBody}");
+                }
+            }
+            else
+            {
+                throw new Exception($"No se pudo desactivar el plan con ID {planId}: {deactivatePlanResponse.StatusCode} - {deactivatePlanResponseBody}");
+            }
+
+            return "Plan desactivado con éxito";
+        }
+        #endregion
+        #region Activar plan
+        public async Task<string> ActivarPlan(string planId)
+        {
+            var (payPalClientId, payPalClientSecret) = GetPaypalCredentials();
+            var accessToken = await GetAccessTokenAsync(payPalClientId, payPalClientSecret);
+
+            var activatePlanRequest = new HttpRequestMessage(HttpMethod.Post, $"v1/billing/plans/{planId}/activate");
+            activatePlanRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            activatePlanRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            var activatePlanResponse = await _httpClient.SendAsync(activatePlanRequest);
+            var activatePlanResponseBody = await activatePlanResponse.Content.ReadAsStringAsync();
+
+            if (activatePlanResponse.IsSuccessStatusCode)
+            {
+                var planDetailsRequest = new HttpRequestMessage(HttpMethod.Get, $"v1/billing/plans/{planId}");
+                planDetailsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                planDetailsRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                var planDetailsResponse = await _httpClient.SendAsync(planDetailsRequest);
+                var planDetailsResponseBody = await planDetailsResponse.Content.ReadAsStringAsync();
+
+                if (planDetailsResponse.IsSuccessStatusCode)
+                {
+                    var planDetails = JsonConvert.DeserializeObject<PaypalPlanDetailsDto>(planDetailsResponseBody);
+                    string planStatusResult = planDetails.Status;
+                    await _unitOfWork.PaypalRepository.UpdatePlanStatusInDatabase(planId, planStatusResult);
+                }
+                else
+                {
+                    throw new Exception($"No se pudo obtener los detalles del plan con ID {planId}: {planDetailsResponse.StatusCode} - {planDetailsResponseBody}");
+                }
+            }
+            else
+            {
+                throw new Exception($"No se pudo activar el plan con ID {planId}: {activatePlanResponse.StatusCode} - {activatePlanResponseBody}");
+            }
+
+            return "Plan activado con éxito";
+        }
+
+
+
+        #endregion
+        public async Task<string> CancelarSuscripcion(string subscription_id, string reason)
         {
             var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
             var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
             var authToken = await GetAccessTokenAsync(clientId, clientSecret);
-            
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
 
-                // Verificar si el plan existe antes de intentar desactivarlo
-                var planResponse = await _httpClient.GetAsync($"v1/billing/plans/{planId}");
-                if (planResponse.IsSuccessStatusCode)
+
+            // Configurar el encabezado de autorización
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            // Crea el contenido JSON con la razón de la cancelación
+            var content = new StringContent(JsonConvert.SerializeObject(new { reason }), Encoding.UTF8, "application/json");
+
+            // Realiza la solicitud POST a PayPal para cancelar la suscripción
+            var response = await _httpClient.PostAsync($"v1/billing/subscriptions/{subscription_id}/cancel", content);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            // Verifica si la solicitud fue exitosa
+            if (response.IsSuccessStatusCode)
+            {
+                await ObtenerDetallesSuscripcion(subscription_id);
+                return "Suscripción cancelada exitosamente";
+            }
+
+            throw new Exception($"Error al cancelar la suscripción: {responseContent}");
+
+        }
+
+        #region Suspender suscripcion
+        public async Task<string> SuspenderSuscripcion(string subscription_id, string reason)
+        {
+            var (payPalClientId, payPalClientSecret) = GetPaypalCredentials();
+            var accessToken = await GetAccessTokenAsync(payPalClientId, payPalClientSecret);
+
+            var suspendSubscriptionRequest = new HttpRequestMessage(HttpMethod.Post, $"v1/billing/subscriptions/{subscription_id}/suspend");
+            suspendSubscriptionRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            suspendSubscriptionRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            suspendSubscriptionRequest.Content = new StringContent(JsonConvert.SerializeObject(new { reason = reason }), Encoding.UTF8,"application/json");
+
+          var suspendSubscriptionResponse = await _httpClient.SendAsync(suspendSubscriptionRequest);
+          
+
+            if (suspendSubscriptionResponse.IsSuccessStatusCode)
+            {
+                var subscriptionDetailsRequest = new HttpRequestMessage(HttpMethod.Get, $"v1/billing/subscriptions/{subscription_id}");
+                subscriptionDetailsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                subscriptionDetailsRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var subscriptionDetailsResponse = await _httpClient.SendAsync(subscriptionDetailsRequest);
+                var planDetailsResponseBody = await subscriptionDetailsResponse.Content.ReadAsStringAsync();
+
+                if (subscriptionDetailsResponse.IsSuccessStatusCode)
                 {
-                    // Desactivar el plan
-                    var deactivatePlanResponse = await _httpClient.PostAsync(
-                        $"v1/billing/plans/{planId}/deactivate",
-                        null);
-
-                    await _unitOfWork.PaypalRepository.UpdatePlanStatusInDatabase(planId, "INACTIVE");
+                    var planDetails = JsonConvert.DeserializeObject<PaypalPlanDetailsDto>(planDetailsResponseBody);
+                    string planStatusResult = planDetails.Status;
+              
                 }
                 else
                 {
-                    var errorContent = await planResponse.Content.ReadAsStringAsync();
-                    throw new Exception($"No se pudo encontrar el plan con ID {planId}: {planResponse.StatusCode} - {errorContent}");
+                    throw new Exception($"No se pudo obtener los detalles de la suscripcion con ID {subscription_id}: {subscriptionDetailsResponse.StatusCode} - {planDetailsResponseBody}");
                 }
+            }
+            else
+            {
+                throw new Exception($"No se pudo suspender la suscripcion con ID {subscription_id}: {suspendSubscriptionResponse.StatusCode} - {suspendSubscriptionResponse}");
+            }
 
-
-            
-            return "Plan desactivado y producto eliminado con éxito";
+            return "Subscripcion suspendida con éxito";
         }
-
         #endregion
-      
+        #region Activar suscripcion
+        public async Task<string> ActivarSuscripcion(string subscription_id, string reason)
+        {
+            var (payPalClientId, payPalClientSecret) = GetPaypalCredentials();
+            var accessToken = await GetAccessTokenAsync(payPalClientId, payPalClientSecret);
+
+            var activateSubscriptionRequest = new HttpRequestMessage(HttpMethod.Post, $"v1/billing/subscriptions/{subscription_id}/activate");
+            activateSubscriptionRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            activateSubscriptionRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            activateSubscriptionRequest.Content = new StringContent(JsonConvert.SerializeObject(new { reason = reason }), Encoding.UTF8, "application/json");
+
+            var suspendSubscriptionResponse = await _httpClient.SendAsync(activateSubscriptionRequest);
+
+
+            if (suspendSubscriptionResponse.IsSuccessStatusCode)
+            {
+                var subscriptionDetailsRequest = new HttpRequestMessage(HttpMethod.Get, $"v1/billing/subscriptions/{subscription_id}");
+                subscriptionDetailsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                subscriptionDetailsRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var subscriptionDetailsResponse = await _httpClient.SendAsync(subscriptionDetailsRequest);
+                var planDetailsResponseBody = await subscriptionDetailsResponse.Content.ReadAsStringAsync();
+
+                if (subscriptionDetailsResponse.IsSuccessStatusCode)
+                {
+                    var planDetails = JsonConvert.DeserializeObject<PaypalPlanDetailsDto>(planDetailsResponseBody);
+                    string planStatusResult = planDetails.Status;
+
+                }
+                else
+                {
+                    throw new Exception($"No se pudo obtener los detalles de la suscripcion con ID {subscription_id}: {subscriptionDetailsResponse.StatusCode} - {planDetailsResponseBody}");
+                }
+            }
+            else
+            {
+                throw new Exception($"No se pudo activar la subscripcion con ID {subscription_id}: {suspendSubscriptionResponse.StatusCode} - {suspendSubscriptionResponse}");
+            }
+
+            return "Subscripcion activada con éxito";
+        }
+        #endregion
         #region Editar producto vinculado a un plan
         public async Task<string> EditarProducto(string id, string name, string description)
         {
@@ -642,31 +827,7 @@ namespace GestorInventario.Application.Services
         }
         #endregion
        
-        #region Obtener detalles de la suscripción
-
-        public async Task<PaypalSubscriptionResponse> ObtenerDetallesSuscripcion(string subscription_id)
-        {
-            var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
-            var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
-            var authToken = await GetAccessTokenAsync(clientId, clientSecret);
-           
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                var response = await _httpClient.GetAsync($"v1/billing/subscriptions/{subscription_id}");
-                var responseContent = await response.Content.ReadAsStringAsync();
-
-                if (response.IsSuccessStatusCode)
-                {
-                    return JsonConvert.DeserializeObject<PaypalSubscriptionResponse>(responseContent);
-                }
-                else
-                {
-                    throw new Exception($"Error al obtener los detalles de la suscripción: {responseContent}");
-                }
-            
-        }
-        #endregion
+       
         #region Obtener detalles del plan 
 
         public async Task<PaypalPlanResponse> ObtenerDetallesPlan(string id)
@@ -841,34 +1002,7 @@ namespace GestorInventario.Application.Services
             
         }
 
-        public async Task<string> CancelarSuscripcion(string subscription_id, string reason)
-        {
-            var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
-            var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
-            var authToken = await GetAccessTokenAsync(clientId, clientSecret);
-
-           
-                // Configurar el encabezado de autorización
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                // Crea el contenido JSON con la razón de la cancelación
-                var content = new StringContent(JsonConvert.SerializeObject(new { reason }), Encoding.UTF8, "application/json");
-
-                // Realiza la solicitud POST a PayPal para cancelar la suscripción
-                var response = await _httpClient.PostAsync($"v1/billing/subscriptions/{subscription_id}/cancel", content);
-                var responseContent = await response.Content.ReadAsStringAsync();
-
-                // Verifica si la solicitud fue exitosa
-                if (response.IsSuccessStatusCode)
-                {
-                    await ObtenerDetallesSuscripcion(subscription_id);
-                    return "Suscripción cancelada exitosamente";
-                }
-
-                throw new Exception($"Error al cancelar la suscripción: {responseContent}");
-            
-        }
+        
         public async Task<string> CreateProductAndNotifyAsync(string productName, string productDescription, string productType, string productCategory)
         {
             // Crear el producto
