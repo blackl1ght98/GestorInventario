@@ -331,8 +331,30 @@ namespace GestorInventario.Infraestructure.Controllers
                 return StatusCode(500, $"Error al eliminar el producto y el plan: {ex.Message}");
             }
         }
+        [HttpPost]
+        public async Task<IActionResult> ActivarPlan(string id)
+        {
+            try
+            {
+                var activeSubscriptions = await _paypalRepository.ObtenerSuscriptcionesActivas(id);
+                var userSubscriptions = await _paypalRepository.SusbcripcionesUsuario(id);
+                if (activeSubscriptions.Any() || userSubscriptions.Any())
+                {
+                    return StatusCode(400, "No se puede cancelar el plan porque hay suscriptores activos.");
+                }
+                var activateResponse = await _paypalService.ActivarPlan(id);
 
-        
+
+                return RedirectToAction(nameof(MostrarPlanes), new { mensaje = activateResponse });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error al eliminar el producto y el plan: {ex.Message}");
+            }
+        }
+      
+
+
         //Metodo que muestra la vista para editar
         public IActionResult EditarProductoPaypal()
         {
@@ -629,7 +651,81 @@ namespace GestorInventario.Infraestructure.Controllers
                 return StatusCode(500, new { success = false, errorMessage = $"Error al cancelar la suscripción: {ex.Message}" });
             }
         }
+        [HttpPost]
+        public async Task<IActionResult> SuspenderSuscripcion([FromBody] SuspendSubscriptionRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request.Id))
+                {
+                    return BadRequest(new { success = false, errorMessage = "El ID de la suscripción es requerido." });
+                }
+                if (string.IsNullOrEmpty(request.Reason))
+                {
+                    return BadRequest(new { success = false, errorMessage = "El motivo de la suspensión es requerido." });
+                }
 
+                // Llamar al servicio para suspender la suscripción en PayPal
+                string result = await _paypalService.SuspenderSuscripcion(request.Id, request.Reason);
+
+                // Obtener los detalles actualizados de la suscripción
+                var subscription = await _paypalRepository.ObtenerSubscripcion(request.Id);
+                if (subscription != null)
+                {
+                    if (subscription.Status == "ACTIVE")
+                    {
+                        subscription.Status = "SUSPENDED";
+                        await _context.UpdateEntityAsync(subscription);
+                    }
+                }
+
+                return Ok(new { success = true, message = "Suscripción suspendida con éxito." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, errorMessage = $"Error al suspender la suscripción: {ex.Message}" });
+            }
+        }
+        [HttpPost]
+        public async Task<IActionResult> ActivarSuscripcion([FromBody] SuspendSubscriptionRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request.Id))
+                {
+                    return BadRequest(new { success = false, errorMessage = "El ID de la suscripción es requerido." });
+                }
+                if (string.IsNullOrEmpty(request.Reason))
+                {
+                    return BadRequest(new { success = false, errorMessage = "El motivo de la activacion es requerido." });
+                }
+
+                // Llamar al servicio para activar la suscripción en PayPal
+                string result = await _paypalService.ActivarSuscripcion(request.Id, request.Reason);
+
+                // Obtener los detalles actualizados de la suscripción
+                var subscription = await _paypalRepository.ObtenerSubscripcion(request.Id);
+                if (subscription != null)
+                {
+                    if (subscription.Status == "CANCELLED" || subscription.Status == "SUSPENDED")
+                    {
+                        subscription.Status = "ACTIVE";
+                        await _context.UpdateEntityAsync(subscription);
+                    }
+                }
+
+                return Ok(new { success = true, message = "Suscripción activada con éxito." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, errorMessage = $"Error al suspender la suscripción: {ex.Message}" });
+            }
+        }
+        public class SuspendSubscriptionRequest
+        {
+            public string Id { get; set; }
+            public string Reason { get; set; }
+        }
 
         public async Task<IActionResult> DetallesSuscripcion(string id)
         {
