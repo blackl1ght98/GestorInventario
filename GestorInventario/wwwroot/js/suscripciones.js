@@ -234,4 +234,5 @@
                 alert(`Error al procesar la solicitud: ${error.message}`);
             });
     }
+
 });

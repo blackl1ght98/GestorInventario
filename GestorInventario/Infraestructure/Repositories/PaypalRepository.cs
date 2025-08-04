@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Application.DTOs;
+using GestorInventario.Application.DTOs.Response_paypal.POST;
 using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
@@ -25,7 +26,10 @@ namespace GestorInventario.Infraestructure.Repositories
                 .Where(s => s.PlanId == planId && s.Status != "CANCELLED")
                 .ToListAsync();
         }
-
+        public async Task<PlanDetail> ObtenerPlan(string planId)
+        {
+            return await _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId);
+        }
         public async Task<List<UserSubscription>> SusbcripcionesUsuario(string planId)
         {
             return await _context.UserSubscriptions
@@ -178,8 +182,65 @@ namespace GestorInventario.Infraestructure.Repositories
                 await _context.SaveChangesAsync();
             }
         }
-      
-      
-        
+
+        public async Task SavePlanPriceUpdateAsync(string planId, UpdatePricingPlan planPriceUpdate)
+        {
+            try
+            {
+                // Buscar el plan en la base de datos
+                var planDetail = await _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId);
+                if (planDetail == null)
+                {
+                    _logger.LogWarning($"No se encontró el plan con ID {planId} en la base de datos.");
+                    throw new ArgumentException($"No se encontró el plan con ID {planId}.");
+                }
+
+                // Verificar si el plan tiene un ciclo de prueba (basado en los campos Trial no nulos)
+                bool hasTrial = !string.IsNullOrEmpty(planDetail.TrialIntervalUnit);
+
+                // Procesar los esquemas de precios
+                foreach (var pricingScheme in planPriceUpdate.PricingSchemes)
+                {
+                    int billingCycleSequence = pricingScheme.BillingCycleSequence;
+                    string priceValue = pricingScheme.PricingScheme.FixedPrice?.Value;
+
+                    if (string.IsNullOrEmpty(priceValue))
+                    {
+                        _logger.LogWarning($"El precio proporcionado para el ciclo {billingCycleSequence} del plan {planId} es nulo o vacío.");
+                        continue;
+                    }
+
+                    decimal price = decimal.Parse(priceValue, CultureInfo.InvariantCulture);
+
+                    if (hasTrial && billingCycleSequence == 1)
+                    {
+                        // Actualizar el precio del ciclo de prueba
+                        planDetail.TrialFixedPrice = price;
+                        _logger.LogInformation($"Precio del ciclo de prueba para el plan {planId} actualizado a {price}.");
+                    }
+                    else if ((hasTrial && billingCycleSequence == 2) || (!hasTrial && billingCycleSequence == 1))
+                    {
+                        // Actualizar el precio del ciclo regular
+                        planDetail.RegularFixedPrice = price;
+                        _logger.LogInformation($"Precio del ciclo regular para el plan {planId} actualizado a {price}.");
+                    }
+                    else
+                    {
+                        _logger.LogWarning($"Ciclo de facturación {billingCycleSequence} no válido para el plan {planId}.");
+                    }
+                }
+
+                // Guardar los cambios en la base de datos
+                _context.PlanDetails.Update(planDetail);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation($"Precios del plan {planId} actualizados exitosamente en la base de datos.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al guardar los precios actualizados del plan {planId}");
+                throw;
+            }
+        }
+
     }
 }

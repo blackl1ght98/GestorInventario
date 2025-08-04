@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using GestorInventario.Application.Classes;
 using GestorInventario.Application.DTOs;
+using GestorInventario.Application.DTOs.Response_paypal.Controller_Paypal_y_payment;
+using GestorInventario.Application.DTOs.Response_paypal.POST;
 using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
 using GestorInventario.enums;
@@ -14,6 +16,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Net.Http.Headers;
 using System.Security.Claims;
@@ -721,12 +724,42 @@ namespace GestorInventario.Infraestructure.Controllers
                 return StatusCode(500, new { success = false, errorMessage = $"Error al suspender la suscripción: {ex.Message}" });
             }
         }
-        public class SuspendSubscriptionRequest
+      
+        [HttpPost]
+        public async Task<IActionResult> ActualizarPrecioPlan([FromBody] UpdatePlanPriceRequest request)
         {
-            public string Id { get; set; }
-            public string Reason { get; set; }
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                    return BadRequest(new { success = false, errorMessage = string.Join("; ", errors) });
+                }
+
+                // Validar que el plan exista
+                var plan = await _paypalRepository.ObtenerPlan(request.PlanId);
+                if (plan == null)
+                {
+                    return NotFound(new { success = false, errorMessage = $"No se encontró el plan con ID {request.PlanId}" });
+                }
+
+                // Llamar al servicio para actualizar el precio
+                string result = await _paypalService.UpdatePricingPlanAsync(request.PlanId, request.TrialAmount, request.RegularAmount, request.Currency);
+
+                TempData["SuccessMessage"] = "Precio del plan actualizado con éxito.";
+                return Ok(new { success = true, message = "Precio del plan actualizado con éxito." });
+            }
+            catch (Exception ex) when (ex.Message.Contains("PRICING_SCHEME_UPDATE_NOT_ALLOWED"))
+            {
+                return BadRequest(new { success = false, errorMessage = "No se puede actualizar el precio de un plan activo con suscripciones asociadas. Por favor, crea un nuevo plan o actualiza las suscripciones individualmente." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, errorMessage = $"Error al actualizar el precio del plan: {ex.Message}" });
+            }
         }
 
+       
         public async Task<IActionResult> DetallesSuscripcion(string id)
         {
             System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
