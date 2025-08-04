@@ -132,6 +132,9 @@
                                         <button type="submit" class="btn btn-success w-100"><i class="bi bi-check-circle-fill me-2"></i>Activar</button>
 
                                     </form>
+                                    <button class="btn btn-warning btn-sm update-plan-price-button" data-plan-id="@plan.id" data-bs-toggle="tooltip" title="Actualizar precio del plan">
+                                        <i class="bi bi-currency-exchange nav-icon"></i> Actualizar Precio del Plan
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -158,3 +161,35 @@
     }
 </div>
 
+<!-- Modal para actualizar precio del plan -->
+<div class="modal fade" id="updatePlanPriceModal" tabindex="-1" aria-labelledby="updatePlanPriceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title" id="updatePlanPriceModalLabel"><i class="bi bi-currency-exchange me-2"></i>Actualizar Precio del Plan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="updatePlanPriceMessage">Ingresa los nuevos precios para el plan <strong id="updatePlanPricePlanId"></strong>:</p>
+                <div class="mb-3">
+                    <label for="newTrialPrice" class="form-label">Precio de Prueba (USD, opcional):</label>
+                    <input type="number" step="0.01" min="0.00" class="form-control" id="newTrialPrice" placeholder="Ejemplo: 0.00">
+                    <div class="invalid-feedback">El precio de prueba debe ser 0 o mayor.</div>
+                </div>
+                <div class="mb-3">
+                    <label for="newRegularPrice" class="form-label">Precio Regular (USD):</label>
+                    <input type="number" step="0.01" min="0.01" class="form-control" id="newRegularPrice" placeholder="Ejemplo: 7.00" required>
+                    <div class="invalid-feedback">El precio regular debe ser un número mayor a 0.</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-bs-toggle="tooltip" title="Cancelar acción"><i class="bi bi-x me-2"></i>Cancelar</button>
+                <button type="button" class="btn btn-warning" id="confirmUpdatePlanPriceBtn" data-bs-toggle="tooltip" title="Actualizar precio del plan"><i class="bi bi-check me-2"></i>Actualizar</button>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script src="~/js/planes.js" asp-append-version="true"></script>
+
+}

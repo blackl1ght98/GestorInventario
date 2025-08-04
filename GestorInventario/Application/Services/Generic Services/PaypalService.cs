@@ -3,9 +3,11 @@ using GestorInventario.Application.Classes;
 using GestorInventario.Application.DTOs;
 using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Application.DTOs.Response.PayPal;
+using GestorInventario.Application.DTOs.Response_paypal;
 using GestorInventario.Application.DTOs.Response_paypal.GET;
 using GestorInventario.Application.DTOs.Response_paypal.PATCH;
 using GestorInventario.Application.DTOs.Response_paypal.POST;
+using GestorInventario.Application.Exceptions;
 using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
@@ -741,6 +743,178 @@ namespace GestorInventario.Application.Services
             return "Subscripcion activada con éxito";
         }
         #endregion
+
+        public async Task<string> UpdatePricingPlanAsync(string planId, decimal? trialAmount, decimal regularAmount, string currency)
+        {
+            System.Threading.Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+            System.Threading.Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
+
+            var (payPalClientId, payPalClientSecret) = GetPaypalCredentials();
+            var accessToken = await GetAccessTokenAsync(payPalClientId, payPalClientSecret);
+
+            try
+            {
+                // Obtener los detalles del plan para verificar si tiene ciclo de prueba y los precios actuales
+                var planDetailsRequest = new HttpRequestMessage(HttpMethod.Get, $"v1/billing/plans/{planId}");
+                planDetailsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                planDetailsRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var planDetailsResponse = await _httpClient.SendAsync(planDetailsRequest);
+                var planDetailsResponseBody = await planDetailsResponse.Content.ReadAsStringAsync();
+
+                if (!planDetailsResponse.IsSuccessStatusCode)
+                {
+                    var errorResponse = JsonConvert.DeserializeObject<PayPalErrorResponse>(planDetailsResponseBody);
+                    throw new PayPalException($"No se pudo obtener los detalles del plan con ID {planId}: {planDetailsResponse.StatusCode} - {errorResponse?.Message ?? "Error desconocido"} (Debug ID: {errorResponse?.DebugId})");
+                }
+
+                var planDetails = JsonConvert.DeserializeObject<PaypalPlanDetailsDto>(planDetailsResponseBody);
+                bool hasTrial = planDetails.BillingCycles.Any(bc => bc.TenureType == "TRIAL");
+
+                // Obtener los precios actuales del plan
+                decimal? currentTrialPrice = null;
+                decimal? currentRegularPrice = null;
+
+                foreach (var cycle in planDetails.BillingCycles)
+                {
+                    if (cycle.TenureType == "TRIAL" && cycle.PricingScheme?.FixedPrice?.Value != null)
+                    {
+                        currentTrialPrice = decimal.Parse(cycle.PricingScheme.FixedPrice.Value, CultureInfo.InvariantCulture);
+                    }
+                    else if (cycle.TenureType == "REGULAR" && cycle.PricingScheme?.FixedPrice?.Value != null)
+                    {
+                        currentRegularPrice = decimal.Parse(cycle.PricingScheme.FixedPrice.Value, CultureInfo.InvariantCulture);
+                    }
+                }
+
+                // Construir el cuerpo de la solicitud
+                var pricingSchemes = new List<UpdatePricingSchemes>();
+
+                // Agregar el ciclo de prueba si existe, se proporcionó trialAmount, y es diferente al actual
+                if (hasTrial && trialAmount.HasValue && trialAmount != currentTrialPrice)
+                {
+                    pricingSchemes.Add(new UpdatePricingSchemes
+                    {
+                        BillingCycleSequence = 1,
+                        PricingScheme = new UpdatePricingScheme
+                        {
+                            FixedPrice = new UpdateFixedPrice
+                            {
+                                Value = trialAmount.Value.ToString("0.00", CultureInfo.InvariantCulture),
+                                CurrencyCode = currency
+                            }
+                        }
+                    });
+                    _logger.LogInformation($"Incluyendo ciclo de prueba para el plan {planId} con precio {trialAmount}.");
+                }
+                else if (hasTrial && trialAmount.HasValue && trialAmount == currentTrialPrice)
+                {
+                    _logger.LogInformation($"El precio de prueba {trialAmount} es idéntico al actual ({currentTrialPrice}) para el plan {planId}. Se omite el ciclo de prueba.");
+                }
+                else if (hasTrial && !trialAmount.HasValue)
+                {
+                    _logger.LogInformation($"No se proporcionó un precio de prueba para el plan {planId}. Se omite el ciclo de prueba.");
+                }
+
+                // Agregar el ciclo regular si es diferente al actual
+                if (regularAmount != currentRegularPrice)
+                {
+                    pricingSchemes.Add(new UpdatePricingSchemes
+                    {
+                        BillingCycleSequence = hasTrial ? 2 : 1,
+                        PricingScheme = new UpdatePricingScheme
+                        {
+                            FixedPrice = new UpdateFixedPrice
+                            {
+                                Value = regularAmount.ToString("0.00", CultureInfo.InvariantCulture),
+                                CurrencyCode = currency
+                            }
+                        }
+                    });
+                    _logger.LogInformation($"Incluyendo ciclo regular para el plan {planId} con precio {regularAmount}.");
+                }
+                else
+                {
+                    _logger.LogInformation($"El precio regular {regularAmount} es idéntico al actual ({currentRegularPrice}) para el plan {planId}. Se omite el ciclo regular.");
+                }
+
+                // Validar que pricing_schemes no esté vacío
+                if (!pricingSchemes.Any())
+                {
+                    throw new PayPalException("No se proporcionaron esquemas de precios válidos para actualizar el plan. Los precios enviados son idénticos a los actuales o no se proporcionaron cambios.");
+                }
+
+                var planRequest = new UpdatePricingPlan
+                {
+                    PricingSchemes = pricingSchemes
+                };
+
+                // Enviar la solicitud de actualización de precios
+                var updatePricingRequest = new HttpRequestMessage(HttpMethod.Post, $"v1/billing/plans/{planId}/update-pricing-schemes");
+                updatePricingRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                updatePricingRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                updatePricingRequest.Content = new StringContent(JsonConvert.SerializeObject(planRequest), Encoding.UTF8, "application/json");
+
+                var updatePricingResponse = await _httpClient.SendAsync(updatePricingRequest);
+                var updatePricingResponseBody = await updatePricingResponse.Content.ReadAsStringAsync();
+
+                if (updatePricingResponse.IsSuccessStatusCode)
+                {
+                    // Verificar que se recibió un 204 No Content
+                    if (updatePricingResponse.StatusCode != System.Net.HttpStatusCode.NoContent)
+                    {
+                        throw new PayPalException($"Respuesta inesperada al actualizar el precio del plan con ID {planId}: {updatePricingResponse.StatusCode}");
+                    }
+
+                    // Consultar los detalles actualizados del plan
+                    var verifyPlanDetailsRequest = new HttpRequestMessage(HttpMethod.Get, $"v1/billing/plans/{planId}");
+                    verifyPlanDetailsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                    verifyPlanDetailsRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                    var verifyPlanDetailsResponse = await _httpClient.SendAsync(verifyPlanDetailsRequest);
+                    var verifyPlanDetailsResponseBody = await verifyPlanDetailsResponse.Content.ReadAsStringAsync();
+
+                    if (verifyPlanDetailsResponse.IsSuccessStatusCode)
+                    {
+                        var updatedPlanDetails = JsonConvert.DeserializeObject<PaypalPlanDetailsDto>(verifyPlanDetailsResponseBody);
+                        // Guardar los precios actualizados en la base de datos
+                        await _unitOfWork.PaypalRepository.SavePlanPriceUpdateAsync(planId, planRequest);
+                        return "Precio del plan actualizado con éxito";
+                    }
+                    else
+                    {
+                        var errorResponse = JsonConvert.DeserializeObject<PayPalErrorResponse>(verifyPlanDetailsResponseBody);
+                        throw new PayPalException($"No se pudo obtener los detalles actualizados del plan con ID {planId}: {verifyPlanDetailsResponse.StatusCode} - {errorResponse?.Message ?? "Error desconocido"} (Debug ID: {errorResponse?.DebugId})");
+                    }
+                }
+                else
+                {
+                    var errorResponse = JsonConvert.DeserializeObject<PayPalErrorResponse>(updatePricingResponseBody);
+                    if (errorResponse?.Name == "PRICING_SCHEME_INVALID_AMOUNT")
+                    {
+                        throw new PayPalException("El precio proporcionado para uno de los ciclos de facturación es idéntico al precio actual. Por favor, proporciona un precio diferente.");
+                    }
+                    if (errorResponse?.Name == "PRICING_SCHEME_UPDATE_NOT_ALLOWED")
+                    {
+                        throw new PayPalException("No se puede actualizar el precio de un plan activo con suscripciones asociadas. Por favor, crea un nuevo plan o actualiza las suscripciones individualmente.");
+                    }
+                    throw new PayPalException($"No se pudo actualizar el precio del plan con ID {planId}: {updatePricingResponse.StatusCode} - {errorResponse?.Message ?? "Error desconocido"} (Debug ID: {errorResponse?.DebugId})");
+                }
+            }
+            catch (PayPalException ex)
+            {
+                _logger.LogError(ex, "Error al actualizar el precio del plan");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error inesperado al actualizar el precio del plan");
+                throw new PayPalException($"Error inesperado al actualizar el precio del plan: {ex.Message}");
+            }
+        }
+      
+
+       
         #region Editar producto vinculado a un plan
         public async Task<string> EditarProducto(string id, string name, string description)
         {
