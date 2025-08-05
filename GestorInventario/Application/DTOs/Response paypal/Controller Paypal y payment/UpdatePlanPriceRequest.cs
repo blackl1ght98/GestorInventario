@@ -15,6 +15,6 @@ namespace GestorInventario.Application.DTOs.Response_paypal.Controller_Paypal_y_
         public decimal? TrialAmount { get; set; }
 
         [Required(ErrorMessage = "La moneda es requerida.")]
-        public string Currency { get; set; } = "USD";
+        public string Currency { get; set; } 
     }
 }
