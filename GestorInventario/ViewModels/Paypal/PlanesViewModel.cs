@@ -13,5 +13,6 @@ namespace GestorInventario.ViewModels.Paypal
         public DateTime createTime { get; set; }
         public List<BillingCycle> billing_cycles { get; set; }
         public Taxes Taxes { get; set; }
+        public string CurrencyCode { get; set; }
     }
 }

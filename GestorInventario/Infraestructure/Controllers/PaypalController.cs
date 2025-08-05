@@ -3,6 +3,7 @@ using GestorInventario.Application.Classes;
 using GestorInventario.Application.DTOs;
 using GestorInventario.Application.DTOs.Response_paypal.Controller_Paypal_y_payment;
 using GestorInventario.Application.DTOs.Response_paypal.POST;
+using GestorInventario.Application.Exceptions;
 using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
 using GestorInventario.enums;
@@ -141,7 +142,8 @@ namespace GestorInventario.Infraestructure.Controllers
                             usage_type = plan.UsageType,
                             createTime = plan.CreateTime,
                             billing_cycles = MapBillingCycles(plan.BillingCycles),
-                            Taxes = MapTaxes(plan.Taxes)
+                            Taxes = MapTaxes(plan.Taxes),
+                            CurrencyCode = plan.BillingCycles?.FirstOrDefault()?.PricingScheme?.FixedPrice?.CurrencyCode ?? string.Empty,
                         };
                         planesViewModel.Add(viewModel);
                     }
@@ -168,7 +170,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     TienePaginaAnterior = pagina > 1,
                     CantidadAMostrar = cantidadAMostrar
                 };
-
+                ViewBag.Monedas = new SelectList(await _policyExecutor.ExecutePolicyAsync(() => _carritoRepository.ObtenerMoneda()), "Codigo", "Codigo");
                 return View(model);
             }
             catch (Exception ex)
@@ -724,7 +726,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 return StatusCode(500, new { success = false, errorMessage = $"Error al suspender la suscripción: {ex.Message}" });
             }
         }
-      
+
+
         [HttpPost]
         public async Task<IActionResult> ActualizarPrecioPlan([FromBody] UpdatePlanPriceRequest request)
         {
@@ -743,15 +746,38 @@ namespace GestorInventario.Infraestructure.Controllers
                     return NotFound(new { success = false, errorMessage = $"No se encontró el plan con ID {request.PlanId}" });
                 }
 
+                // Obtener los detalles del plan desde PayPal para verificar la moneda
+                var planDetails = await _policyExecutor.ExecutePolicyAsync(() => _paypalService.ObtenerDetallesPlan(request.PlanId));
+                string planCurrency = planDetails.BillingCycles?.FirstOrDefault(c => c.PricingScheme?.FixedPrice?.CurrencyCode != null)
+                    ?.PricingScheme.FixedPrice.CurrencyCode;
+                if (string.IsNullOrEmpty(planCurrency))
+                {
+                    return BadRequest(new { success = false, errorMessage = "No se pudo determinar la moneda del plan." });
+                }
+
+                // Validar que la moneda solicitada coincida con la del plan
+                if (request.Currency != planCurrency)
+                {
+                    return BadRequest(new { success = false, errorMessage = $"La moneda {request.Currency} no coincide con la moneda del plan ({planCurrency})." });
+                }
+
                 // Llamar al servicio para actualizar el precio
                 string result = await _paypalService.UpdatePricingPlanAsync(request.PlanId, request.TrialAmount, request.RegularAmount, request.Currency);
 
                 TempData["SuccessMessage"] = "Precio del plan actualizado con éxito.";
                 return Ok(new { success = true, message = "Precio del plan actualizado con éxito." });
             }
-            catch (Exception ex) when (ex.Message.Contains("PRICING_SCHEME_UPDATE_NOT_ALLOWED"))
+            catch (PayPalException ex) when (ex.Message.Contains("No se proporcionaron esquemas de precios válidos"))
+            {
+                return BadRequest(new { success = false, errorMessage = "No se proporcionaron precios diferentes a los actuales para actualizar el plan." });
+            }
+            catch (PayPalException ex) when (ex.Message.Contains("PRICING_SCHEME_UPDATE_NOT_ALLOWED"))
             {
                 return BadRequest(new { success = false, errorMessage = "No se puede actualizar el precio de un plan activo con suscripciones asociadas. Por favor, crea un nuevo plan o actualiza las suscripciones individualmente." });
+            }
+            catch (PayPalException ex) when (ex.Message.Contains("CURRENCY_MISMATCH"))
+            {
+                return BadRequest(new { success = false, errorMessage = "La moneda no coincide con la moneda del plan." });
             }
             catch (Exception ex)
             {
@@ -759,7 +785,9 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
 
-       
+
+
+
         public async Task<IActionResult> DetallesSuscripcion(string id)
         {
             System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
