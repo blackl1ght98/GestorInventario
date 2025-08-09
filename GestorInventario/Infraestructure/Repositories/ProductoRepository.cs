@@ -1,5 +1,8 @@
-﻿using GestorInventario.Domain.Models;
+﻿
+using GestorInventario.Domain.Models;
+using GestorInventario.enums;
 using GestorInventario.Interfaces;
+using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.ViewModels.product;
@@ -13,16 +16,16 @@ namespace GestorInventario.Infraestructure.Repositories
         private readonly IGestorArchivos _gestorArchivos;
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly ILogger<ProductoRepository> _logger;   
-        private readonly IConfiguration _configuration; 
+      
         private readonly ICarritoRepository _carritoRepository;
         public ProductoRepository(GestorInventarioContext context, IGestorArchivos gestorArchivos, IHttpContextAccessor contextAccessor,
-        ILogger<ProductoRepository> logger, IConfiguration configuration, ICarritoRepository carrito)
+        ILogger<ProductoRepository> logger,  ICarritoRepository carrito)
         {
             _context = context;
             _gestorArchivos = gestorArchivos;
             _contextAccessor = contextAccessor;
             _logger = logger;      
-            _configuration = configuration;
+      
             _carritoRepository=carrito;
         }    
      
@@ -33,6 +36,8 @@ namespace GestorInventario.Infraestructure.Repositories
             using var transaction= await _context.Database.BeginTransactionAsync();
             try
             {
+               
+
                 var producto = new Producto()
                 {
                     NombreProducto = model.NombreProducto,
@@ -42,6 +47,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     Precio = model.Precio,
                     FechaCreacion = DateTime.Now,
                     IdProveedor = model.IdProveedor,
+                   
                 };
                 if (producto.Imagen != null)
                 {

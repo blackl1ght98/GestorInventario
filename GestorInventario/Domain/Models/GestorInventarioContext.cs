@@ -6,16 +6,13 @@ namespace GestorInventario.Domain.Models;
 
 public partial class GestorInventarioContext : DbContext
 {
-    private readonly IConfiguration _configuration;
-
     public GestorInventarioContext()
     {
     }
 
-    public GestorInventarioContext(DbContextOptions<GestorInventarioContext> options,IConfiguration conf)
+    public GestorInventarioContext(DbContextOptions<GestorInventarioContext> options)
         : base(options)
     {
-        _configuration = conf;
     }
 
     public virtual DbSet<DetalleHistorialPedido> DetalleHistorialPedidos { get; set; }
@@ -76,7 +73,6 @@ public partial class GestorInventarioContext : DbContext
             optionsBuilder.UseSqlServer(connectionString);
         }
     }
-
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -452,6 +448,9 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false);
             entity.Property(e => e.Precio).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.UpcCode)
+                .HasMaxLength(20)
+                .IsUnicode(false);
 
             entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.Productos)
                 .HasForeignKey(d => d.IdProveedor)
