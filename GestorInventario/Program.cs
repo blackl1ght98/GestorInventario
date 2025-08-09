@@ -3,6 +3,7 @@ using GestorInventario.Application.Classes;
 using GestorInventario.Application.Politicas_Resilencia;
 using GestorInventario.Application.Services;
 using GestorInventario.Application.Services.Authentication;
+
 using GestorInventario.Configuracion;
 using GestorInventario.Configuracion.Strategies;
 using GestorInventario.Domain.Models;
@@ -97,7 +98,13 @@ builder.Services.AddAutoMapper(cfg =>
     cfg.AddMaps(Assembly.GetExecutingAssembly());
 });
 
-
+// Configurar logging detallado
+builder.Services.AddLogging(logging =>
+{
+    logging.AddConsole();
+    logging.AddDebug();
+    logging.SetMinimumLevel(LogLevel.Debug);
+});
 
 
 

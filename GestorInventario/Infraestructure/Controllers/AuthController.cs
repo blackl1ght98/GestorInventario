@@ -31,10 +31,8 @@ namespace GestorInventario.Infraestructure.Controllers
             _hashService = hashService;
             _emailService = emailService;
             _tokenService = tokenService;
-            _authRepository = adminRepository;
-          
-            _logger = logger;
-      
+            _authRepository = adminRepository;         
+            _logger = logger;     
             _policyExecutor = executor;
         }
         //Metodo para mostrar la vista de login

@@ -4,60 +4,69 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Create" enctype="multipart/form-data">
+        <form asp-action="Create" enctype="multipart/form-data" id="createProductForm">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-               
-                <label asp-for="NombreProducto" class="control-label"></label>
+                <label asp-for="NombreProducto" class="control-label">Nombre Producto</label>
                 <input asp-for="NombreProducto" class="form-control" />
+                <span asp-validation-for="NombreProducto" class="text-danger"></span>
             </div>
             <div class="form-group">
-
-                <label asp-for="Descripcion" class="control-label"></label>
+                <label asp-for="Descripcion" class="control-label">Descripción</label>
                 <input asp-for="Descripcion" class="form-control" />
+                <span asp-validation-for="Descripcion" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Imagen1" class="control-label"></label>
-                <input asp-for="Imagen1" type="file" class="form-control" />
-            </div>
-
-            <div class="form-group">
-
-                <label asp-for="Cantidad" class="control-label"></label>
-                <input asp-for="Cantidad" class="form-control" />
+                <label asp-for="Imagen1" class="control-label">Imagen</label>
+                <input asp-for="Imagen1" type="file" class="form-control" accept=".jpg,.jpeg,.png,.gif" id="imagenInput" />
+                <span asp-validation-for="Imagen1" class="text-danger"></span>
             </div>
             <div class="form-group">
-
-                <label asp-for="Precio" class="control-label"></label>
-                <input asp-for="Precio" class="form-control" />
+                <label asp-for="Cantidad" class="control-label">Cantidad</label>
+                <input asp-for="Cantidad" class="form-control" type="number" min="1" />
+                <span asp-validation-for="Cantidad" class="text-danger"></span>
             </div>
             <div class="form-group">
-
-                <label asp-for="IdProveedor" class="control-label"></label>
-              
+                <label asp-for="Precio" class="control-label">Precio</label>
+                <input asp-for="Precio" class="form-control" type="number" step="0.01" min="0.01" />
+                <span asp-validation-for="Precio" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="IdProveedor" class="control-label">Proveedor</label>
                 <select asp-for="IdProveedor" class="form-select" asp-items="ViewBag.Productos"></select>
+                <span asp-validation-for="IdProveedor" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="Crear" class="btn btn-primary" />
-
+                <input type="submit" value="Crear" class="btn btn-primary" id="submitButton" />
             </div>
         </form>
     </div>
-
 </div>
+
 @if (TempData["ErrorMessage"] != null)
 {
     <div class="alert alert-warning">
         @TempData["ErrorMessage"]
     </div>
 }
-<!--Para que funcionen las validaciones que hemos puesto tenemos que poner un section, un section es para poner algo
-    en un lugar de tu pantalla principal la pantalla principal es el _Layaout.cshtml que comparten las vistas
-    ¿porque se tiene que llamar Scripts? la razon es sencilla porque en el layaout principal se llama asi aqui se puede poner
-    codigo js o otro tipo de codigo
--->
+
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    <script>
+        console.log('Vista Create cargada');
+
+        // Depurar selección de archivo
+        document.getElementById('imagenInput').addEventListener('change', function (e) {
+            console.log('Evento change disparado');
+            try {
+                if (e.target.files.length > 0) {
+                    const file = e.target.files[0];
+                    console.log('Archivo:', file.name, 'Tamaño:', file.size, 'Tipo:', file.type);
+                } else {
+                    console.log('No se seleccionó ningún archivo');
+                }
+            } catch (error) {
+                console.error('Error en evento change:', error);
+            }
+        });
+    </script>
 }

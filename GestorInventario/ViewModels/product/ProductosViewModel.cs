@@ -11,6 +11,7 @@ namespace GestorInventario.ViewModels.product
         public string Descripcion { get; set; }
         public int Cantidad { get; set; }
         public string? Imagen { get; set; }
+        [PesoArchivoValidacion(5)]
         [TipoArchivoValidacion(GrupoTipoArchivo.Imagen)]
         public IFormFile? Imagen1 { get; set; }
         public DateTime? FechaCreacion { get; set; }

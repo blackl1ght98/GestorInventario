@@ -431,7 +431,7 @@ namespace GestorInventario.Infraestructure.Repositories
             {
                 return intValue;
             }
-            // Si el valor es una cadena, intenta convertirlo a int
+          
             if (value is string stringValue)
             {
                 if (int.TryParse(stringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var result))
@@ -460,12 +460,12 @@ namespace GestorInventario.Infraestructure.Repositories
             {
                 return null;
             }
-            // Si el valor ya es un DateTime, simplemente lo devuelve
+           
             if (value is DateTime dateTimeValue)
             {
                 return dateTimeValue;
             }
-            // Convertir el valor a cadena si no es ya un string
+            // Convertir el valor a cadena si no es un string
             string stringValue;
             if (value is string strValue)
             {
@@ -473,7 +473,7 @@ namespace GestorInventario.Infraestructure.Repositories
             }
             else
             {
-                // Convertir el valor a cadena, asumiendo que es un tipo no-string
+                // Convertir el valor a cadena, asumiendo que puede que cambie la api de paypal
                 stringValue = value.ToString();
             }
             // Quitar corchetes si están presentes
@@ -499,5 +499,19 @@ namespace GestorInventario.Infraestructure.Repositories
 
             return null;
         }
+        private void GenerateBarCode()
+        {
+            // Implementación de la generación de código de barras
+            // Aquí puedes usar una librería como ZXing.Net para generar códigos de barras
+            // Ejemplo:
+            // var barcodeWriter = new BarcodeWriter();
+            // barcodeWriter.Format = BarcodeFormat.CODE_128;
+            // barcodeWriter.Options.Width = 300;
+            // barcodeWriter.Options.Height = 150;
+            // var result = barcodeWriter.Write("Texto del código de barras");
+            // result.Save("ruta/del/archivo.png");
+
+        }
     }
+    
 }
