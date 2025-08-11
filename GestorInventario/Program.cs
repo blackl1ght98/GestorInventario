@@ -3,7 +3,7 @@ using GestorInventario.Application.Classes;
 using GestorInventario.Application.Politicas_Resilencia;
 using GestorInventario.Application.Services;
 using GestorInventario.Application.Services.Authentication;
-
+using GestorInventario.Application.Services.Generic_Services;
 using GestorInventario.Configuracion;
 using GestorInventario.Configuracion.Strategies;
 using GestorInventario.Domain.Models;
@@ -91,20 +91,14 @@ builder.Services.AddHttpClient<IPaypalService, PaypalService>(client =>
     client.BaseAddress = new Uri("https://api-m.sandbox.paypal.com/");
     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 });
-
+builder.Services.AddTransient<IBarCodeService, BarCodeService>();
 builder.Services.AddAutoMapper(cfg =>
 {
     // Configurar AutoMapper para escanear los perfiles en el ensamblado actual
     cfg.AddMaps(Assembly.GetExecutingAssembly());
 });
 
-// Configurar logging detallado
-builder.Services.AddLogging(logging =>
-{
-    logging.AddConsole();
-    logging.AddDebug();
-    logging.SetMinimumLevel(LogLevel.Debug);
-});
+
 
 
 

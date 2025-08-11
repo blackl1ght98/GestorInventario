@@ -1,4 +1,5 @@
 ﻿
+using GestorInventario.Application.Services.Generic_Services;
 using GestorInventario.Domain.Models;
 using GestorInventario.enums;
 using GestorInventario.Interfaces;
@@ -16,29 +17,41 @@ namespace GestorInventario.Infraestructure.Repositories
         private readonly IGestorArchivos _gestorArchivos;
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly ILogger<ProductoRepository> _logger;   
-      
+       private readonly IBarCodeService _barCodeService;
         private readonly ICarritoRepository _carritoRepository;
         public ProductoRepository(GestorInventarioContext context, IGestorArchivos gestorArchivos, IHttpContextAccessor contextAccessor,
-        ILogger<ProductoRepository> logger,  ICarritoRepository carrito)
+        ILogger<ProductoRepository> logger,  ICarritoRepository carrito, IBarCodeService code)
         {
             _context = context;
             _gestorArchivos = gestorArchivos;
             _contextAccessor = contextAccessor;
-            _logger = logger;      
-      
+            _logger = logger;
+            _barCodeService = code;
             _carritoRepository=carrito;
         }    
      
-        public IQueryable<Producto> ObtenerTodoProducto()=>from p in _context.Productos.Include(x => x.IdProveedorNavigation)orderby p.Id  select p;             
-      
+        public IQueryable<Producto> ObtenerTodoProducto()=>from p in _context.Productos.Include(x => x.IdProveedorNavigation)orderby p.Id  select p;
+
         public async Task<Producto> CrearProducto(ProductosViewModel model)
         {
-            using var transaction= await _context.Database.BeginTransactionAsync();
+            if (model == null)
+            {
+                _logger.LogError("El modelo ProductosViewModel es nulo.");
+                throw new ArgumentNullException(nameof(model));
+            }
+
+            _logger.LogInformation("Iniciando creación de producto: {NombreProducto}", model.NombreProducto);
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-               
 
-                var producto = new Producto()
+
+
+                var barcodeResult = await _barCodeService.GenerateUniqueBarCodeAsync(BarcodeType.UPC_A, "", true); // Cambiar a true para generar imagen
+
+                // Crear entidad Producto
+                var producto = new Producto
                 {
                     NombreProducto = model.NombreProducto,
                     Descripcion = model.Descripcion,
@@ -46,40 +59,52 @@ namespace GestorInventario.Infraestructure.Repositories
                     Cantidad = model.Cantidad,
                     Precio = model.Precio,
                     FechaCreacion = DateTime.Now,
+                    FechaModificacion = DateTime.Now,
                     IdProveedor = model.IdProveedor,
-                   
+                    UpcCode = barcodeResult.Code
                 };
-                if (producto.Imagen != null)
+
+                // Procesar imagen si existe
+                if (model.Imagen1 != null && model.Imagen1.Length > 0)
                 {
-                    //MemoryStream--> guarda en memoria la imagen
-                    using (var memoryStream = new MemoryStream())
-                    {                     
-                            //Realiza una copia de la imagen
-                            await model.Imagen1.CopyToAsync(memoryStream);
-                            //La informacion de la imgen se convierte a un array
-                            var contenido = memoryStream.ToArray();
-                            //Se obtiene el formato de la imagen .png, .jpg etc
-                            var extension = Path.GetExtension(model.Imagen1.FileName);
-                            //Guarda la imagen en la carpeta imagenes
-                            producto.Imagen = await _gestorArchivos.GuardarArchivo(contenido, extension, "imagenes");
-                            
+                    _logger.LogDebug("Procesando imagen: {FileName}, Tamaño: {Length} bytes", model.Imagen1.FileName, model.Imagen1.Length);
+                    try
+                    {
+                        using var memoryStream = new MemoryStream();
+                        await model.Imagen1.CopyToAsync(memoryStream);
+                        var contenido = memoryStream.ToArray();
+                        var extension = Path.GetExtension(model.Imagen1.FileName)?.ToLowerInvariant();
+                        if (string.IsNullOrEmpty(extension))
+                        {
+                            _logger.LogWarning("No se pudo determinar la extensión del archivo: {FileName}", model.Imagen1.FileName);
+                            throw new InvalidOperationException("No se pudo determinar la extensión del archivo.");
+                        }
+                        producto.Imagen = await _gestorArchivos.GuardarArchivo(contenido, extension, "imagenes");
+                    }
+                    catch (IOException ex)
+                    {
+                        _logger.LogError(ex, "Error al procesar la imagen: {FileName}", model.Imagen1.FileName);
+                        throw new InvalidOperationException("Error al procesar la imagen.", ex);
                     }
                 }
-               await _context.AddEntityAsync(producto);
-                await CrearHistorial(producto);
-                await transaction.CommitAsync();
-                return producto;
 
+                // Guardar producto
+                _logger.LogDebug("Agregando producto a la base de datos: {NombreProducto}", producto.NombreProducto);
+                await _context.AddEntityAsync(producto); // Corregido: Usar Productos.AddAsync
+                await CrearHistorial(producto);
+              
+                await transaction.CommitAsync();
+
+                _logger.LogInformation("Producto creado exitosamente: {NombreProducto}, UpcCode: {UpcCode}", producto.NombreProducto, producto.UpcCode);
+                return producto;
             }
             catch (Exception ex)
             {
-
-                _logger.LogError("Error al crear el producto", ex);
+                _logger.LogError(ex, "Error al crear el producto: {NombreProducto}", model.NombreProducto);
                 await transaction.RollbackAsync();
-                return null;
+                throw; // Relanzar excepción en lugar de devolver null
             }
-
-        }   
+        }
         private async Task CrearHistorial(Producto producto)
         {
          

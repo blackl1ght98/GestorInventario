@@ -17,7 +17,7 @@
                                     <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
                                         <i class="bi bi-envelope" style="color: var(--secondary);"></i>
                                     </span>
-                                    <input type="email" class="form-control form-control-lg" id="email" asp-for="Email" placeholder="Correo Electrónico" required />
+                                    <input type="email" class="form-control form-control-lg" id="email" asp-for="Email" name="email" autocomplete="on" placeholder="Correo Electrónico" required />
                                 </div>
                                 <span asp-validation-for="Email" class="text-danger"></span>
                                

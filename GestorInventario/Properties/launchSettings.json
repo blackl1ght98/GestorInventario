@@ -38,7 +38,8 @@
         "DB_USERNAME": "sa",
         "DB_SA_PASSWORD": "SQL#1234",
         "IS_DOCKER": "false"
-      }
+      },
+      "ancmHostingModel": "OutOfProcess"
     },
     "Container (Dockerfile)": {
       "commandName": "Docker",
