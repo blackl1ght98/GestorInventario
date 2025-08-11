@@ -159,7 +159,7 @@ namespace GestorInventario.Middlewares.Strategis
             context.Response.Cookies.Append("auth", newAccessToken.Token, new CookieOptions
             {
                 HttpOnly = true,
-                SameSite = SameSiteMode.Lax,
+                SameSite = SameSiteMode.Unspecified,
                 Domain = "localhost",
                 Secure = true,
                 Expires = DateTime.UtcNow.AddMinutes(10)
@@ -168,7 +168,7 @@ namespace GestorInventario.Middlewares.Strategis
             context.Response.Cookies.Append("refreshToken", newRefreshToken, new CookieOptions
             {
                 HttpOnly = true,
-                SameSite = SameSiteMode.Lax,
+                SameSite = SameSiteMode.Unspecified,
                 Domain = "localhost",
                 Secure = true,
                 Expires = DateTime.UtcNow.AddHours(24)
