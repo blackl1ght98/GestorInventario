@@ -1,5 +1,6 @@
-﻿
-using GestorInventario.Application.Services;
+﻿using GestorInventario.Application.Services;
+using GestorInventario.Domain.Models;
+using GestorInventario.enums;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
@@ -24,20 +25,23 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IHttpContextAccessor _contextAccessor;            
         private readonly IPdfService _pdfservice;
         private readonly PolicyExecutor _policyExecutor;
+        private readonly IPaypalService _paypalService;
+        private readonly GestorInventarioContext _context;
         public PedidosController( GenerarPaginas generarPaginas, ILogger<PedidosController> logger, 
-            IPedidoRepository pedido, IHttpContextAccessor contextAccessor,  IPdfService pdf, PolicyExecutor executor)
+            IPedidoRepository pedido, IHttpContextAccessor contextAccessor,  IPdfService pdf, PolicyExecutor executor, IPaypalService paypal, GestorInventarioContext context)
         {
       
             _generarPaginas = generarPaginas;
             _logger = logger;
             _pedidoRepository = pedido;
             _contextAccessor = contextAccessor;
-            _pdfservice= pdf;
-          
+            _pdfservice= pdf;   
             _policyExecutor = executor;
+            _paypalService = paypal;
+            _context = context;
         }
        
-        //Metodo que muestra todos los pedidos
+     
         public async Task<IActionResult> Index(string buscar, DateTime? fechaInicio, DateTime? fechaFin, [FromQuery] Paginacion paginacion)
         {
             try
@@ -332,7 +336,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
-        //Metodo que edita el pedido
+        
         [HttpPost]
         public async Task<ActionResult> Edit(EditPedidoViewModel model)
         {
@@ -552,7 +556,15 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
+       
       
+        [HttpPost]
+        public async Task<IActionResult> AgregarInfoEnvio(int pedidoId, Carrier carrier)
+        {
+            var pedido = await _context.Pedidos.FindAsync(pedidoId);
+            await _paypalService.SeguimientoPedido(pedido.Id,carrier);
+            return RedirectToAction(nameof(Index), new {message="Info Agregada con exito"});
+        }
        
     }
 }

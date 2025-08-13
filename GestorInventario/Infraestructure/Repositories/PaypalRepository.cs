@@ -5,6 +5,8 @@ using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
+using System.Security.Policy;
+using System.Threading;
 
 namespace GestorInventario.Infraestructure.Repositories
 {
@@ -42,7 +44,7 @@ namespace GestorInventario.Infraestructure.Repositories
             return await _context.SubscriptionDetails
                 .FirstOrDefaultAsync(x => x.SubscriptionId == subscription_id);
         }
-
+       
         public async Task SavePlanDetailsAsync(string planId, PaypalPlanDetailsDto planDetails)
         {
             try
@@ -134,7 +136,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     .ThenInclude(d => d.Producto)
                     .FirstOrDefaultAsync(p => p.Id == pedidoId);
 
-                if (pedido == null || string.IsNullOrEmpty(pedido.SaleId))
+                if (pedido == null || string.IsNullOrEmpty(pedido.CaptureId))
                     throw new ArgumentException("Pedido no encontrado o SaleId no disponible.");
 
                 if (string.IsNullOrEmpty(pedido.Currency))
@@ -150,7 +152,36 @@ namespace GestorInventario.Infraestructure.Repositories
                 throw;
             }
         }
+       
+        public async Task<(Pedido Pedido, List<DetallePedido> Detalles)> GetPedidoConDetallesAsync(int pedidoId)
+        {
+            try
+            {
+                var pedido = await _context.Pedidos
+                    .Include(p => p.DetallePedidos)
+                    .ThenInclude(d => d.Producto)
+                    .FirstOrDefaultAsync(p => p.Id == pedidoId);
 
+                if (pedido == null || string.IsNullOrEmpty(pedido.CaptureId))
+                {
+                    _logger.LogWarning($"Pedido {pedidoId} no encontrado o sin SaleId");
+                    return (null, null);
+                }
+
+                if (string.IsNullOrEmpty(pedido.Currency))
+                {
+                    _logger.LogWarning($"Pedido {pedidoId} sin moneda definida");
+                    return (null, null);
+                }
+
+                return (pedido, pedido.DetallePedidos?.ToList());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al obtener el pedido {pedidoId}");
+                throw;
+            }
+        }
         public async Task UpdatePedidoStatusAsync(int pedidoId, string status,string refundId)
         {
             try
@@ -172,6 +203,28 @@ namespace GestorInventario.Infraestructure.Repositories
                 throw;
             }
         }
+        public async Task AddInfoTrackingOrder(int pedidoId, string tracking, string url, string carrier)
+        {
+            try
+            {
+                var pedido = await _context.Pedidos.FindAsync(pedidoId);
+                if (pedido == null)
+                    throw new ArgumentException($"Pedido con ID {pedidoId} no encontrado.");
+
+                pedido.TrackingNumber = tracking;
+                pedido.UrlTracking = url;
+                pedido.Transportista = carrier;
+                _context.Update(pedido);
+                await _context.SaveChangesAsync();
+               
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al actualizar el estado del pedido {pedidoId}");
+                throw;
+            }
+        }
+       
         public async Task UpdatePlanStatusInDatabase(string planId, string status)
         {
             var planDetails = await _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId);
@@ -241,6 +294,6 @@ namespace GestorInventario.Infraestructure.Repositories
                 throw;
             }
         }
-
+      
     }
 }

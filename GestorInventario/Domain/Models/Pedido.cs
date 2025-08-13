@@ -15,17 +15,23 @@ public partial class Pedido
 
     public int? IdUsuario { get; set; }
 
-    public string? SaleId { get; set; }
+    public string? CaptureId { get; set; }
 
     public string? Total { get; set; }
 
     public string? Currency { get; set; }
 
-    public string? PagoId { get; set; }
+    public string? OrderId { get; set; }
 
     public bool EsCarrito { get; set; }
 
     public string? RefundId { get; set; }
+
+    public string? TrackingNumber { get; set; }
+
+    public string? UrlTracking { get; set; }
+
+    public string? Transportista { get; set; }
 
     public virtual ICollection<DetallePedido> DetallePedidos { get; set; } = new List<DetallePedido>();
 

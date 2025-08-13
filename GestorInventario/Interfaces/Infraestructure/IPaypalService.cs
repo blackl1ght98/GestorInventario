@@ -1,6 +1,7 @@
 ﻿using GestorInventario.Application.Classes;
 using GestorInventario.Application.DTOs;
 using GestorInventario.Application.DTOs.Response_paypal.GET;
+using GestorInventario.enums;
 using GestorInventario.ViewModels.Paypal;
 
 namespace GestorInventario.Interfaces.Infraestructure
@@ -21,16 +22,13 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<string> SuspenderSuscripcion(string subscription_id,string reason);
         Task<string> ActivarSuscripcion(string subscription_id, string reason);
         Task<string> EditarProducto(string id, string name, string description);
-
         Task<string> UpdatePricingPlanAsync(string planId, decimal? trialAmount, decimal regularAmount, string currency);
         Task<PaypalSubscriptionResponse> ObtenerDetallesSuscripcion(string subscription_id);  
         Task<PaypalPlanResponse> ObtenerDetallesPlan(string id);
         Task<(PaypalProductListResponse ProductsResponse, bool HasNextPage)> GetProductsAsync(int page = 1, int pageSize = 10);
-       
-    
         Task<(List<PaypalPlanResponse> plans, bool HasNextPage)> GetSubscriptionPlansAsyncV2(int page = 1, int pageSize = 6);
         Task<string> CreateProductAndNotifyAsync(string productName, string productDescription, string productType, string productCategory);
-        
+        Task<string> SeguimientoPedido(int pedidoId, Carrier carrier);
 
 
     }
