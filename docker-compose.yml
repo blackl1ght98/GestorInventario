@@ -1,45 +1,100 @@
 
 
+networks:
+  gestor:
+    driver: bridge
+
 services:
+  sql-server:
+    image: mcr.microsoft.com/mssql/server
+    container_name: SQL-Server-Local
+    user: root  # Forzamos ejecución como root para evitar problemas de permisos
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=SQL#1234
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql-data:/var/opt/mssql
+      - ./GestorInventario-2025629-10-14-552.bak:/var/opt/mssql/data/GestorInventario-2025629-10-14-552.bak
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P SQL#1234 -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    command: 
+      - /bin/bash
+      - -c 
+      - |
+        # Iniciar SQL Server en segundo plano
+        /opt/mssql/bin/sqlservr &
+        
+        # Esperar a que SQL Server esté listo
+        sleep 30
+        
+        # Instalar herramientas necesarias
+        apt-get update && apt-get install -y curl gnupg
+        curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
+        curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list > /etc/apt/sources.list.d/mssql-release.list
+        apt-get update
+        ACCEPT_EULA=Y apt-get install -y mssql-tools
+        
+        # Configurar PATH para mssql-tools
+        echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
+        source ~/.bashrc
+        
+        # Restaurar la base de datos
+        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P SQL#1234 -Q "RESTORE DATABASE GestorInventario FROM DISK = '/var/opt/mssql/data/GestorInventario-2025629-10-14-552.bak' WITH MOVE 'GestorInventario' TO '/var/opt/mssql/data/GestorInventario.mdf', MOVE 'GestorInventario_log' TO '/var/opt/mssql/data/GestorInventario_log.ldf', REPLACE;"
+        
+        # Mantener el contenedor en ejecución
+        wait
+    networks:
+      - gestor
+
   gestorinventario:
     container_name: gestor-inventario
     image: ${DOCKER_REGISTRY-}gestorinventario
     build:
       context: .
       dockerfile: Dockerfile
-
     ports:
-     
       - "8080:8080"
       - "8081:8081"
-     
     environment:
-      - DB_HOST=${DB_HOST}
-      - DB_NAME=${DB_NAME}
-      - DB_SA_PASSWORD=${DB_SA_PASSWORD}
+      - DB_HOST=sql-server
+      - DB_NAME=GestorInventario
+      - DB_SA_PASSWORD=SQL#1234
       - IS_DOCKER=true
-      - USE_REDIS=true 
+      - USE_REDIS=true
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/GestorInventario.pfx
       - ASPNETCORE_Kestrel__Certificates__Default__Password=password
       - ClaveJWT=${ClaveJWT}
-      - REDIS_CONNECTION_STRING=${REDIS_CONNECTION_STRING} 
+      - REDIS_CONNECTION_STRING=redis:6379
       - JwtIssuer=${JwtIssuer}
       - JwtAudience=${JwtAudience}
       - PublicKey=${PublicKey}
-      - PrivateKey=${PrivateKey} 
-      - DB_USERNAME=${DB_USERNAME} 
+      - PrivateKey=${PrivateKey}
+      - DB_USERNAME=${DB_USERNAME}
       - Paypal_ClientId=${Paypal_ClientId}
       - Paypal_ClientSecret=${Paypal_ClientSecret}
       - Paypal_Mode=${Paypal_Mode}
       - Paypal_returnUrlConDocker=${Paypal_returnUrlConDocker}
-      - Paypal_returnUrlSinDocker=${Paypal_returnUrlSinDocker} 
+      - Paypal_returnUrlSinDocker=${Paypal_returnUrlSinDocker}
       - Email__Host=${Email__Host}
       - Email__Port=${Email__Port}
       - Email__Username=${Email__Username}
-      - Email__Password=${Email__Password} 
-
+      - Email__Password=${Email__Password}
     volumes:
-       - C:/Users/guill/AppData/Roaming/ASP.NET/Https/GestorInventario.pfx:/https/GestorInventario.pfx:ro
+      - C:/Users/guill/AppData/Roaming/ASP.NET/Https/GestorInventario.pfx:/https/GestorInventario.pfx:ro
+    depends_on:
+      sql-server:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - gestor
+
   redis:
     image: redis:latest
     container_name: redis
@@ -47,9 +102,13 @@ services:
       - "6379:6379"
     volumes:
       - redisdata:/data
+    networks:
+      - gestor
 
 volumes:
-  appdata:
+  sql-data:
     driver: local
   redisdata:
+    driver: local
+  appdata:
     driver: local

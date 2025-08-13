@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.Application.DTOs.Response_paypal.POST
+﻿namespace GestorInventario.enums
 {
     public enum Carrier
     {
@@ -10,6 +10,6 @@
         TNT,
         ARAMEX,
         DPD,
-        OTHER // Para transportistas no listados
+       
     }
 }

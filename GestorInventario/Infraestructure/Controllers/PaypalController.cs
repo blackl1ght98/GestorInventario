@@ -17,7 +17,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Net.Http.Headers;
 using System.Security.Claims;
@@ -50,7 +49,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _configuration = config;
         }
 
-        //Metodo que muestra los productos creados en paypal
+      
         [HttpGet]
         public async Task<IActionResult> MostrarProductos(int pagina = 1)
         {
@@ -360,12 +359,12 @@ namespace GestorInventario.Infraestructure.Controllers
       
 
 
-        //Metodo que muestra la vista para editar
+      
         public IActionResult EditarProductoPaypal()
         {
             return View();
         }
-        //Metodo que edita el producto de paypal
+       
         [HttpPost]
         public async Task<IActionResult> EditarProductoPaypal(string id, EditProductPaypal model)
         {
@@ -635,7 +634,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     return BadRequest(new { success = false, errorMessage = "El ID de la suscripción es requerido." });
                 }
 
-                // Llamar al servicio para cancelar la suscripción en PayPal
+                
                 string result = await _paypalService.CancelarSuscripcion(request.subscription_id, "No satisfecho");
 
                 // Obtener los detalles actualizados de la suscripción
@@ -670,7 +669,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     return BadRequest(new { success = false, errorMessage = "El motivo de la suspensión es requerido." });
                 }
 
-                // Llamar al servicio para suspender la suscripción en PayPal
+                
                 string result = await _paypalService.SuspenderSuscripcion(request.Id, request.Reason);
 
                 // Obtener los detalles actualizados de la suscripción
@@ -705,7 +704,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     return BadRequest(new { success = false, errorMessage = "El motivo de la activacion es requerido." });
                 }
 
-                // Llamar al servicio para activar la suscripción en PayPal
+               
                 string result = await _paypalService.ActivarSuscripcion(request.Id, request.Reason);
 
                 // Obtener los detalles actualizados de la suscripción

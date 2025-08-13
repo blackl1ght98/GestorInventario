@@ -35,7 +35,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _logger = logger;     
             _policyExecutor = executor;
         }
-        //Metodo para mostrar la vista de login
+        
         [AllowAnonymous]
         [HttpGet]
         public IActionResult Login()
@@ -47,7 +47,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             return View();
         }
-        //Metodo para realizar el login
+      
         [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel model)
@@ -131,7 +131,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
 
 
-        //Metodo que cierra sesion
+      
         [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> Logout()

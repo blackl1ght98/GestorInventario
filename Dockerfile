@@ -12,10 +12,11 @@ RUN dotnet publish "GestorInventario.csproj" -c Release -o /app/publish
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-CMD printenv
+
 ENTRYPOINT ["dotnet", "GestorInventario.dll"]
-CMD printenv
+
 EXPOSE 8080 8081
+
 
 # Primero ejecutar dotnet publish -c Release -o out
 

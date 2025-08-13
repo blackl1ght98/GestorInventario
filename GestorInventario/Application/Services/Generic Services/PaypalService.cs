@@ -8,13 +8,12 @@ using GestorInventario.Application.DTOs.Response_paypal.GET;
 using GestorInventario.Application.DTOs.Response_paypal.PATCH;
 using GestorInventario.Application.DTOs.Response_paypal.POST;
 using GestorInventario.Application.Exceptions;
-using GestorInventario.Domain.Models;
+using GestorInventario.enums;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using StackExchange.Redis;
+using Newtonsoft.Json.Serialization;
 using System.Globalization;
 using System.Net.Http.Headers;
 using System.Security.Claims;
@@ -31,8 +30,10 @@ namespace GestorInventario.Application.Services
         private readonly IHttpContextAccessor _contextAccesor;
         private readonly IEmailService _emailService;
         private readonly HttpClient _httpClient;
+        private readonly IServiceProvider _serviceProvider;
+
         public PaypalService(IConfiguration configuration, ILogger<PaypalService> logger, HttpClient http,
-            IMemoryCache memory, IUnitOfWork unit, IHttpContextAccessor contex, IEmailService email)
+            IMemoryCache memory, IUnitOfWork unit, IHttpContextAccessor contex, IEmailService email, IServiceProvider serviceProvider)
         {
 
             _configuration = configuration;
@@ -42,6 +43,7 @@ namespace GestorInventario.Application.Services
             _unitOfWork = unit;
             _emailService = email;
             _httpClient = http;
+            _serviceProvider = serviceProvider;
         }
         #region Generacion token paypal
 
@@ -278,6 +280,105 @@ namespace GestorInventario.Application.Services
             return subscriptionDetails;
         }
         #endregion
+        #region Seguimiento pedido
+
+        public async Task<string> SeguimientoPedido(int pedidoId, Carrier carrier)
+        {
+            try
+            {
+               
+                // 1. Obtener información del pedido y sus detalles en una sola consulta
+                var (pedido, detalles) = await _unitOfWork.PaypalRepository.GetPedidoConDetallesAsync(pedidoId);
+
+                if (pedido == null || detalles == null)
+                {
+                    throw new Exception("No se pudo obtener la información completa del pedido.");
+                }
+               
+
+                // 2. Mapear los items para el tracking
+                var trackingItems = detalles.Select(item => new TrackingItems
+                {
+                    Name = item.Producto?.NombreProducto ?? "Producto no disponible",
+                    Sku = item.Producto?.Descripcion ?? "N/A",
+                    Quantity = item.Cantidad ?? 1,
+                    Upc = new Upc
+                    {
+                        Type = "UPC-A",
+                        Code = item.Producto?.UpcCode ?? "N/A"
+                    },
+                    ImageUrl = item.Producto?.Imagen ?? string.Empty,
+                    Url = string.Empty
+                }).ToList();
+
+                // 3. Crear el objeto de seguimiento
+                var trackingInfo = new PayPalTrackingInfo
+                {
+                    CaptureId = pedido.CaptureId,
+                    TrackingNumber = GenerarNumeroSeguimiento(),
+                    Carrier = carrier,
+                    NotifyPayer = true,
+                    Items = trackingItems
+                };
+
+                // Resto del método (autenticación, envío a PayPal, etc.)
+                var (clientId, clientSecret) = GetPaypalCredentials();
+                var authToken = await GetAccessTokenAsync(clientId, clientSecret);
+
+                if (string.IsNullOrEmpty(authToken))
+                {
+                    throw new Exception("No se pudo obtener el token de autenticación de PayPal.");
+                }
+
+                var request = new HttpRequestMessage(
+                    HttpMethod.Post,
+                    $"v2/checkout/orders/{pedido.OrderId}/track");
+
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+                request.Content = new StringContent(
+                    JsonConvert.SerializeObject(trackingInfo, new JsonSerializerSettings
+                    {
+                        NullValueHandling = NullValueHandling.Ignore,
+                        ContractResolver = new CamelCasePropertyNamesContractResolver()
+                    }),
+                    Encoding.UTF8,
+                    "application/json");
+
+                var response = await _httpClient.SendAsync(request);
+                var responseBody = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError($"Error al agregar seguimiento. Status: {response.StatusCode}, Response: {responseBody}");
+                    throw new Exception($"Error al agregar el seguimiento: {response.StatusCode}");
+                }
+                // Actualizar el estado del pedido usando UnitOfWork
+                await _unitOfWork.PaypalRepository.AddInfoTrackingOrder(pedidoId,trackingInfo.TrackingNumber,"", carrier.ToString());
+
+                _logger.LogInformation("Seguimiento agregado exitosamente para el pedido {PedidoId}", pedidoId);
+                return responseBody;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al agregar seguimiento para el pedido {PedidoId}", pedidoId);
+                throw new InvalidOperationException($"No se pudo agregar el seguimiento para el pedido {pedidoId}.", ex);
+            }
+        }
+        private  string GenerarNumeroSeguimiento()
+        {
+            // Prefijo opcional para identificar el tipo de pedido
+            string prefijo = "PKG";
+
+            // Fecha y hora para hacerlo único
+            string fecha = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+
+            // Parte aleatoria para reducir riesgo de colisión
+            string aleatorio = new Random().Next(1000, 9999).ToString();
+
+            // Concatenamos todo
+            return $"{prefijo}-{fecha}-{aleatorio}";
+        }
+        #endregion
         #region Realizar reembolso pedido
         public async Task<string> RefundSaleAsync(int pedidoId, string currency)
         {
@@ -303,7 +404,7 @@ namespace GestorInventario.Application.Services
                 var authToken = await GetAccessTokenAsync(clientId, clientSecret);
                 if (string.IsNullOrEmpty(authToken))
                     throw new Exception("No se pudo obtener el token de autenticación.");
-                var request = new HttpRequestMessage(HttpMethod.Post, $"v2/payments/captures/{pedido.SaleId}/refund");
+                var request = new HttpRequestMessage(HttpMethod.Post, $"v2/payments/captures/{pedido.CaptureId}/refund");
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
                 request.Content = new StringContent(JsonConvert.SerializeObject(refundRequest), Encoding.UTF8, "application/json");
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -1065,10 +1166,7 @@ namespace GestorInventario.Application.Services
                 throw;
             }
         }
-
-
         #endregion
-
         public async Task<(PaypalProductListResponse ProductsResponse, bool HasNextPage)> GetProductsAsync(int page = 1, int pageSize = 10)
         {
 
@@ -1109,10 +1207,7 @@ namespace GestorInventario.Application.Services
                 }
             
         }
-
-
-
-
+        #region Obtener Planes de suscripcion
         public async Task<(List<PaypalPlanResponse> plans, bool HasNextPage)> GetSubscriptionPlansAsyncV2(int page = 1, int pageSize = 6)
         {
             var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
@@ -1176,7 +1271,7 @@ namespace GestorInventario.Application.Services
             
         }
 
-        
+        #endregion
         public async Task<string> CreateProductAndNotifyAsync(string productName, string productDescription, string productType, string productCategory)
         {
             // Crear el producto

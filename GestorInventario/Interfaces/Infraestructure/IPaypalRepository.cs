@@ -13,8 +13,14 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task SavePlanDetailsAsync(string planId, PaypalPlanDetailsDto planDetails);
         Task UpdatePlanStatusAsync(string planId, string status);
         Task<(Pedido Pedido, decimal TotalAmount)> GetPedidoWithDetailsAsync(int pedidoId);
+      
         Task UpdatePedidoStatusAsync(int pedidoId, string status, string refundId);
         Task UpdatePlanStatusInDatabase(string planId, string status);
         Task<PlanDetail> ObtenerPlan(string planId);
+       
+        Task<(Pedido Pedido, List<DetallePedido> Detalles)> GetPedidoConDetallesAsync(int pedidoId);
+        Task AddInfoTrackingOrder(int pedidoId, string tracking, string url, string carrier);
+
+
     }
 }

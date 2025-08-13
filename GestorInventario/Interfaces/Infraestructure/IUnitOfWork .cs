@@ -1,4 +1,6 @@
-﻿namespace GestorInventario.Interfaces.Infraestructure
+﻿using GestorInventario.Domain.Models;
+
+namespace GestorInventario.Interfaces.Infraestructure
 {
     public interface IUnitOfWork : IDisposable
     {
@@ -7,5 +9,6 @@
         Task BeginTransactionAsync();
         Task CommitTransactionAsync();
         Task RollbackTransactionAsync();
+       
     }
 }

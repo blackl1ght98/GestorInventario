@@ -61,15 +61,15 @@ namespace GestorInventario.Infraestructure.Controllers
                     throw new Exception("No se encontró un pedido en proceso para este usuario.");
                 }
 
-                pedido.SaleId = captureId; //-> Localizado en el array captures dentro de la respuesta de PayPal representa el id de la venta
+                pedido.CaptureId = captureId; //-> Localizado en el array captures dentro de la respuesta de PayPal representa el id de la venta
                 pedido.Total = total;
                 pedido.Currency = currency;
-                pedido.PagoId = orderId;
+                pedido.OrderId = orderId;
                 pedido.EstadoPedido = "Pagado";
 
-                _context.Update(pedido);
-                await _context.SaveChangesAsync();
-
+                await _context.UpdateEntityAsync(pedido);
+         
+                
                 return View();
             }
             catch (Exception ex)
@@ -131,8 +131,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 var pedido = await _policyExecutor.ExecutePolicyAsync(() => _context.Pedidos.FirstOrDefaultAsync(p => p.NumeroPedido == form.NumeroPedido));
                 var existingDetail = await _policyExecutor.ExecutePolicyAsync(()=> _context.PayPalPaymentDetails
                     .Include(d => d.PayPalPaymentItems)
-                    .FirstOrDefaultAsync(x => x.Id == pedido.PagoId)) ;
-                var detallespago = await _policyExecutor.ExecutePolicyAsync(()=> _paypalService.ObtenerDetallesPagoEjecutadoV2(pedido.PagoId)) ;
+                    .FirstOrDefaultAsync(x => x.Id == pedido.OrderId)) ;
+                var detallespago = await _policyExecutor.ExecutePolicyAsync(()=> _paypalService.ObtenerDetallesPagoEjecutadoV2(pedido.OrderId)) ;
                 if (detallespago == null)
                 {
                     return BadRequest("Error en obtener detalles");

@@ -82,13 +82,16 @@
                                         Reembolsar
                                     </button>
                                 </form>
+                                <button class="btn btn-success btn-sm activate-action-button" data-pedido-id="@pedido.Id" data-bs-toggle="tooltip" title="Agregar info envio">
+                                    <i class="bi bi-check-circle-fill nav-icon"></i> Agregar info envio
+                                </button>
                             }
                         </div>
                         @if (User.IsAdministrador())
                         {
                             <div class="mt-2">
                                 <a asp-action="Delete" asp-route-id="@pedido.Id" class="btn btn-outline-danger btn-sm w-100">Eliminar</a>
-                                <a asp-action="DetallesPagoEjecutado" asp-route-id="@pedido.PagoId" class="btn btn-outline-primary btn-sm w-100 mt-2">Detalles Pago</a>
+                                <a asp-action="DetallesPagoEjecutado" asp-route-id="@pedido.OrderId" class="btn btn-outline-primary btn-sm w-100 mt-2">Detalles Pago</a>
                             </div>
                         }
                     </div>
@@ -137,3 +140,64 @@
         </div>
     </div>
 </div>
+<!-- Modal Confirmación Agregar Info Envío -->
+<div class="modal fade" id="agregarEnvioModal" tabindex="-1" aria-labelledby="agregarEnvioModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-3">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="agregarEnvioModalLabel">Agregar información de envío</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="agregarEnvioForm" method="post" asp-controller="Pedidos" asp-action="AgregarInfoEnvio">
+                    <input type="hidden" name="pedidoId" id="pedidoIdInput" />
+
+                    <div class="mb-3">
+                        <label for="carrierSelect" class="form-label">Transportista</label>
+                        <select class="form-select" name="carrier" id="carrierSelect" required>
+                            <option value="">Seleccione transportista</option>
+                            <option value="CORREOS_ES">Correos España</option>
+                            <option value="DHL">DHL</option>
+                            <option value="FEDEX">FedEx</option>
+                            <option value="UPS">UPS</option>
+                        </select>
+                    </div>
+                </form>
+
+                <div id="loadingMessageEnvio" class="text-center mt-3" style="display: none;">
+                    <div class="spinner-border text-success" role="status"></div>
+                    <p class="mt-2">Procesando...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" id="confirmAgregarEnvioBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll(".activate-action-button").forEach(boton => {
+                boton.addEventListener("click", function () {
+                    document.getElementById("pedidoIdInput").value = this.getAttribute("data-pedido-id");
+                    new bootstrap.Modal(document.getElementById("agregarEnvioModal")).show();
+                });
+            });
+
+            document.getElementById("confirmAgregarEnvioBtn").addEventListener("click", function () {
+                if (!document.getElementById("carrierSelect").value) {
+                    alert("Por favor selecciona un transportista.");
+                    return;
+                }
+                document.getElementById("loadingMessageEnvio").style.display = "block";
+                this.disabled = true;
+                document.getElementById("agregarEnvioForm").submit();
+            });
+        });
+    </script>
+
+
+}

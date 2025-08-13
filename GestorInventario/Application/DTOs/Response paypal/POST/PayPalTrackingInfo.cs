@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using GestorInventario.enums;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace GestorInventario.Application.DTOs.Response_paypal.POST
 {
@@ -9,6 +11,7 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
         [JsonProperty("tracking_number")]
         public string TrackingNumber { get; set; }
         [JsonProperty("carrier")]
+        [JsonConverter(typeof(StringEnumConverter))]
         public Carrier Carrier { get; set; }
         [JsonProperty("notify_payer")]
         public bool NotifyPayer { get; set; }
