@@ -38,7 +38,8 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
     public class Upc
     {
         [JsonProperty("type")]
-        public string Type { get; set; } // Ejemplo: "UPC-A", "UPC-B", "EAN-13", "ISBN"
+        [JsonConverter(typeof(StringEnumConverter))]
+        public BarcodeType Type { get; set; } // Ejemplo: "UPC-A", "UPC-B", "EAN-13", "ISBN"
         [JsonProperty("code")]
         public string Code { get; set; } // Ejemplo: "upc001"
     }

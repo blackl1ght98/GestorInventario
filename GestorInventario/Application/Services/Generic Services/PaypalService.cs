@@ -284,7 +284,7 @@ namespace GestorInventario.Application.Services
         #endregion
 
         #region Seguimiento pedido
-        public async Task<string> SeguimientoPedido(int pedidoId, Carrier carrier)
+        public async Task<string> SeguimientoPedido(int pedidoId, Carrier carrier, BarcodeType barcode)
         {
             try
             {                             
@@ -293,7 +293,7 @@ namespace GestorInventario.Application.Services
                 {
                     throw new Exception("No se pudo obtener la información completa del pedido.");
                 }              
-                var trackingInfo = CrearTrackingInfo(pedido, detalles, carrier);             
+                var trackingInfo = CrearTrackingInfo(pedido, detalles, carrier, barcode);             
                 var (clientId, clientSecret) = GetPaypalCredentials();
                 var authToken = await GetAccessTokenAsync(clientId, clientSecret);
                 if (string.IsNullOrEmpty(authToken))
@@ -322,7 +322,7 @@ namespace GestorInventario.Application.Services
                 throw new InvalidOperationException($"No se pudo agregar el seguimiento para el pedido {pedidoId}.", ex);
             }
         }
-        private PayPalTrackingInfo CrearTrackingInfo(Pedido pedido, IEnumerable<DetallePedido> detalles, Carrier carrier)
+        private PayPalTrackingInfo CrearTrackingInfo(Pedido pedido, IEnumerable<DetallePedido> detalles, Carrier carrier, BarcodeType barcode)
         {
             var trackingItems = detalles.Select(item => new TrackingItems
             {
@@ -331,7 +331,7 @@ namespace GestorInventario.Application.Services
                 Quantity = item.Cantidad ?? 1,
                 Upc = new Upc
                 {
-                    Type = "UPC-A",
+                    Type = barcode,
                     Code = item.Producto?.UpcCode ?? "N/A"
                 },
                 ImageUrl = item.Producto?.Imagen ?? string.Empty,

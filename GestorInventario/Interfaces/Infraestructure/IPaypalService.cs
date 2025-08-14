@@ -28,7 +28,7 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<(PaypalProductListResponse ProductsResponse, bool HasNextPage)> GetProductsAsync(int page = 1, int pageSize = 10);
         Task<(List<PaypalPlanResponse> plans, bool HasNextPage)> GetSubscriptionPlansAsyncV2(int page = 1, int pageSize = 6);
         Task<string> CreateProductAndNotifyAsync(string productName, string productDescription, string productType, string productCategory);
-        Task<string> SeguimientoPedido(int pedidoId, Carrier carrier);
+        Task<string> SeguimientoPedido(int pedidoId, Carrier carrier, BarcodeType barcode);
 
 
     }
