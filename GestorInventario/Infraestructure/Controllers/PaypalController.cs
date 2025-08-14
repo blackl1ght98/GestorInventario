@@ -18,7 +18,6 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Globalization;
-using System.Net.Http.Headers;
 using System.Security.Claims;
 
 namespace GestorInventario.Infraestructure.Controllers
@@ -105,10 +104,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 _logger.LogError(ex, "Error al obtener los productos de PayPal");
                 return RedirectToAction("Error", "Home");
             }
-        }
-
-       
-
+        }    
         [HttpGet]
         public async Task<IActionResult> MostrarPlanes([FromQuery] int pagina = 1, [FromQuery] int cantidadAMostrar = 6)
         {
@@ -140,8 +136,8 @@ namespace GestorInventario.Infraestructure.Controllers
                             status = plan.Status,
                             usage_type = plan.UsageType,
                             createTime = plan.CreateTime,
-                            billing_cycles = MapBillingCycles(plan.BillingCycles),
-                            Taxes = MapTaxes(plan.Taxes),
+                            billing_cycles = _paypalRepository.MapBillingCycles(plan.BillingCycles),
+                            Taxes = _paypalRepository.MapTaxes(plan.Taxes),
                             CurrencyCode = plan.BillingCycles?.FirstOrDefault()?.PricingScheme?.FixedPrice?.CurrencyCode ?? string.Empty,
                         };
                         planesViewModel.Add(viewModel);
@@ -180,79 +176,8 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
 
-        // Mapear listas de BillingCycle tipadas
-        private List<BillingCycle> MapBillingCycles(List<BillingCycle> billingCycles)
-        {
-            if (billingCycles == null)
-                return new List<BillingCycle>();
-
-            // Si los tipos coinciden exactamente, solo devolvemos o clonamos (si quieres evitar referencias directas)
-            return billingCycles.Select(cycle => new BillingCycle
-            {
-                TenureType = cycle.TenureType,
-                Sequence = cycle.Sequence,
-                TotalCycles = cycle.TotalCycles,
-                Frequency = MapFrequency(cycle.Frequency),
-                PricingScheme = MapPricingScheme(cycle.PricingScheme)
-            }).ToList();
-        }
-
-        private Frequency MapFrequency(Frequency frequency)
-        {
-            if (frequency == null)
-                return null;
-
-            return new Frequency
-            {
-                IntervalUnit = frequency.IntervalUnit,
-                IntervalCount = frequency.IntervalCount
-            };
-        }
-
-        private PricingScheme MapPricingScheme(PricingScheme pricingScheme)
-        {
-            if (pricingScheme == null)
-                return null;
-
-            return new PricingScheme
-            {
-                Version = pricingScheme.Version,
-                FixedPrice = MapMoney(pricingScheme.FixedPrice),
-                CreateTime = pricingScheme.CreateTime,
-                UpdateTime = pricingScheme.UpdateTime
-            };
-        }
-
-        private Money MapMoney(Money money)
-        {
-            if (money == null)
-                return null;
-
-            return new Money
-            {
-                CurrencyCode = money.CurrencyCode,
-                Value = money.Value
-            };
-        }
-
-        private Taxes MapTaxes(Taxes taxes)
-        {
-            if (taxes == null)
-                return null;
-
-            return new Taxes
-            {
-                Percentage = taxes.Percentage,
-                Inclusive = taxes.Inclusive
-            };
-        }
-
-
-        // Método para crear la lista de categorías a partir de la enumeración
-        private List<string> GetCategoriesFromEnum()
-        {
-            return Enum.GetNames(typeof(Category)).ToList();
-        }
+     
+       
         //Metodo que obtiene los datos necesarios antes de crear el producto al que se suscribira
         public async Task<IActionResult> CrearProducto()
         {
@@ -260,7 +185,7 @@ namespace GestorInventario.Infraestructure.Controllers
             var model = new ProductViewModelPaypal();
             ViewData["Moneda"] = new SelectList(await _policyExecutor.ExecutePolicyAsync(() => _carritoRepository.ObtenerMoneda()), "Codigo", "Codigo");
             // Obtener las categorías desde la enumeración y asignarlas al modelo
-            model.Categories = GetCategoriesFromEnum();
+            model.Categories = _paypalRepository.GetCategoriesFromEnum();
 
             return View(model);
         }
@@ -309,7 +234,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
 
-            model.Categories = GetCategoriesFromEnum();
+            model.Categories = _paypalRepository.GetCategoriesFromEnum();
             return View(model);
         }
 
@@ -355,11 +280,7 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                 return StatusCode(500, $"Error al eliminar el producto y el plan: {ex.Message}");
             }
-        }
-      
-
-
-      
+        }          
         public IActionResult EditarProductoPaypal()
         {
             return View();
@@ -407,10 +328,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 TempData["ErrorMessage"] = $"Error al iniciar la suscripción: {ex.Message}";
                 return RedirectToAction("Error", "Home");
             }
-        }
-
-
-      
+        }      
         public async Task<IActionResult> ConfirmarSuscripcion(string subscription_id, string token, string ba_token)
         {
             try

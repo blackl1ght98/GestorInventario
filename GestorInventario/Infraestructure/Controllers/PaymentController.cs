@@ -108,35 +108,56 @@ namespace GestorInventario.Infraestructure.Controllers
         [HttpPost]
         public async Task<IActionResult> FormularioRembolso(RefundForm form)
         {
-            var obtenerNumeroPedido = await _policyExecutor.ExecutePolicyAsync(()=> _context.Pedidos
-                .Where(p => p.NumeroPedido == form.NumeroPedido)
-                .FirstOrDefaultAsync()) ;
-            if (obtenerNumeroPedido == null)
+            try
             {
-                return BadRequest("El numero de pedido proporcionado no existe");
-            }
-            var existeUsuario = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            int usuarioId;
-            var rembolso = new Rembolso();
-            if (int.TryParse(existeUsuario, out usuarioId))
-            {
+                var obtenerNumeroPedido = await _policyExecutor.ExecutePolicyAsync(() => _context.Pedidos
+                    .Where(p => p.NumeroPedido == form.NumeroPedido)
+                    .FirstOrDefaultAsync());
+
+                if (obtenerNumeroPedido == null)
+                {
+                    return BadRequest("El numero de pedido proporcionado no existe");
+                }
+
+                var existeUsuario = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!int.TryParse(existeUsuario, out int usuarioId))
+                {
+                    return BadRequest("Usuario no válido");
+                }
+
                 var emailCliente = await _policyExecutor.ExecutePolicyAsync(() => _context.Usuarios
                     .Where(u => u.Id == usuarioId)
                     .Select(u => u.Email)
                     .FirstOrDefaultAsync());
+
                 if (emailCliente == null)
                 {
                     return BadRequest("El cliente no existe");
                 }
-                var pedido = await _policyExecutor.ExecutePolicyAsync(() => _context.Pedidos.FirstOrDefaultAsync(p => p.NumeroPedido == form.NumeroPedido));
-                var existingDetail = await _policyExecutor.ExecutePolicyAsync(()=> _context.PayPalPaymentDetails
-                    .Include(d => d.PayPalPaymentItems)
-                    .FirstOrDefaultAsync(x => x.Id == pedido.OrderId)) ;
-                var detallespago = await _policyExecutor.ExecutePolicyAsync(()=> _paypalService.ObtenerDetallesPagoEjecutadoV2(pedido.OrderId)) ;
+
+                var pedido = await _policyExecutor.ExecutePolicyAsync(() => _context.Pedidos
+                    .FirstOrDefaultAsync(p => p.NumeroPedido == form.NumeroPedido));
+
+                if (pedido == null)
+                {
+                    return BadRequest("Pedido no encontrado");
+                }
+
+                var detallespago = await _policyExecutor.ExecutePolicyAsync(() =>
+                    _paypalService.ObtenerDetallesPagoEjecutadoV2(pedido.OrderId));
+
                 if (detallespago == null)
                 {
                     return BadRequest("Error en obtener detalles");
                 }
+
+                // Verificar que hay purchase units
+                if (detallespago.PurchaseUnits == null || !detallespago.PurchaseUnits.Any())
+                {
+                    return BadRequest("No se encontraron unidades de compra");
+                }
+
+                var firstPurchaseUnit = detallespago.PurchaseUnits.First();
 
                 var detallesSuscripcion = new PayPalPaymentDetail
                 {
@@ -144,132 +165,143 @@ namespace GestorInventario.Infraestructure.Controllers
                     Intent = detallespago.Intent,
                     Status = detallespago.Status,
                     PaymentMethod = "paypal",
-                    PayerEmail = detallespago.Payer.Email,
-                    PayerFirstName = detallespago.Payer.Name.GivenName,
-                    PayerLastName = detallespago.Payer.Name.Surname,
-                    PayerId = detallespago.Payer.PayerId,
-                    ShippingRecipientName = detallespago.PurchaseUnits.FirstOrDefault()?.Shipping.Name.FullName,
-                    ShippingLine1 = detallespago.PurchaseUnits.FirstOrDefault()?.Shipping.Address.AddressLine1,        
-                    ShippingCity = detallespago.PurchaseUnits.FirstOrDefault()?.Shipping.Address.AdminArea2,
-                    ShippingState = detallespago.PurchaseUnits.FirstOrDefault()?.Shipping.Address.AdminArea1,
-                    ShippingPostalCode = detallespago.PurchaseUnits.FirstOrDefault()?.Shipping.Address.PostalCode,
-                    ShippingCountryCode = detallespago.PurchaseUnits.FirstOrDefault()?.Shipping.Address?.CountryCode,
+                    PayerEmail = detallespago.Payer?.Email,
+                    PayerFirstName = detallespago.Payer?.Name?.GivenName,
+                    PayerLastName = detallespago.Payer?.Name?.Surname,
+                    PayerId = detallespago.Payer?.PayerId,
+                    ShippingRecipientName = firstPurchaseUnit?.Shipping?.Name?.FullName,
+                    ShippingLine1 = firstPurchaseUnit?.Shipping?.Address?.AddressLine1,
+                    ShippingCity = firstPurchaseUnit?.Shipping?.Address?.AdminArea2,
+                    ShippingState = firstPurchaseUnit?.Shipping?.Address?.AdminArea1,
+                    ShippingPostalCode = firstPurchaseUnit?.Shipping?.Address?.PostalCode,
+                    ShippingCountryCode = firstPurchaseUnit?.Shipping?.Address?.CountryCode,
                 };
 
-
-
-                // Lista para almacenar los ítems de PayPal temporalmente
-                var paypalItems = new List<PayPalPaymentItem>();
-
-                if (detallespago.PurchaseUnits != null)
+                // Procesar el amount
+                if (firstPurchaseUnit?.Amount != null)
                 {
-                    foreach (var purchaseUnit in detallespago.PurchaseUnits)
+                    detallesSuscripcion.TransactionsTotal = ConvertToDecimal(firstPurchaseUnit.Amount.Value);
+                    detallesSuscripcion.TransactionsCurrency = firstPurchaseUnit.Amount.CurrencyCode;
+
+                    if (firstPurchaseUnit.Amount.Breakdown != null)
                     {
-                        if (purchaseUnit != null)
+                        detallesSuscripcion.TransactionsSubtotal = ConvertToDecimal(
+                            firstPurchaseUnit.Amount.Breakdown.ItemTotal?.Value ?? "0");
+                        detallesSuscripcion.TransactionsShipping = ConvertToDecimal(
+                            firstPurchaseUnit.Amount.Breakdown.Shipping?.Value ?? "0");
+                    }
+                }
+
+                // Procesar payee
+                if (firstPurchaseUnit?.Payee != null)
+                {
+                    detallesSuscripcion.PayeeMerchantId = firstPurchaseUnit.Payee.MerchantId;
+                    detallesSuscripcion.PayeeEmail = firstPurchaseUnit.Payee.EmailAddress;
+                }
+
+                detallesSuscripcion.Description = firstPurchaseUnit?.Description;
+
+                // Procesar pagos y capturas
+                if (firstPurchaseUnit?.Payments?.Captures != null && firstPurchaseUnit.Payments.Captures.Any())
+                {
+                    var firstCapture = firstPurchaseUnit.Payments.Captures.First();
+                    detallesSuscripcion.SaleId = firstCapture.Id;
+                    detallesSuscripcion.SaleState = firstCapture.Status;
+
+                    if (firstCapture.Amount != null)
+                    {
+                        detallesSuscripcion.SaleTotal = ConvertToDecimal(firstCapture.Amount.Value);
+                        detallesSuscripcion.SaleCurrency = firstCapture.Amount.CurrencyCode;
+                    }
+
+                    if (firstCapture.SellerProtection != null)
+                    {
+                        detallesSuscripcion.ProtectionEligibility = firstCapture.SellerProtection.Status;
+                    }
+
+                    // Procesar seller receivable breakdown con verificaciones de nulidad
+                    if (firstCapture.SellerReceivableBreakdown != null)
+                    {
+                        detallesSuscripcion.TransactionFeeAmount = firstCapture.SellerReceivableBreakdown.PaypalFee != null ?
+                            ConvertToDecimal(firstCapture.SellerReceivableBreakdown.PaypalFee.Value) : 0;
+
+                        detallesSuscripcion.TransactionFeeCurrency = firstCapture.SellerReceivableBreakdown.PaypalFee?.CurrencyCode;
+
+                        detallesSuscripcion.ReceivableAmount = firstCapture.SellerReceivableBreakdown.NetAmount != null ?
+                            ConvertToDecimal(firstCapture.SellerReceivableBreakdown.NetAmount.Value) : 0;
+
+                        detallesSuscripcion.ReceivableCurrency = firstCapture.SellerReceivableBreakdown.NetAmount?.CurrencyCode;
+
+                        if (firstCapture.SellerReceivableBreakdown.ExchangeRate != null &&
+                            !string.IsNullOrEmpty(firstCapture.SellerReceivableBreakdown.ExchangeRate.Value))
                         {
-                            detallesSuscripcion.TransactionsTotal = ConvertToDecimal(purchaseUnit.Amount.Value);
-                            detallesSuscripcion.TransactionsCurrency = purchaseUnit.Amount.CurrencyCode;
-                            detallesSuscripcion.TransactionsSubtotal = ConvertToDecimal(purchaseUnit.Amount.Breakdown.ItemTotal.Value);
-                            if (detallesSuscripcion.TransactionsSubtotal == 0 && purchaseUnit.Items != null)
+                            if (decimal.TryParse(firstCapture.SellerReceivableBreakdown.ExchangeRate.Value,
+                                NumberStyles.Any, CultureInfo.InvariantCulture, out decimal exchangeRate))
                             {
-                                decimal? subtotal = 0;
-                                foreach (var item in purchaseUnit.Items)
-                                {
-                                    var unitAmount = ConvertToDecimal(item.UnitAmount.Value);
-                                    var quantity = ConvertToInt(item.Quantity);
-                                    subtotal += unitAmount * quantity;
-                                }
-                                detallesSuscripcion.TransactionsSubtotal = subtotal;
-                            }
-                            detallesSuscripcion.TransactionsShipping = ConvertToDecimal(purchaseUnit.Amount.Breakdown.Shipping.Value);
-                            detallesSuscripcion.PayeeMerchantId = purchaseUnit.Payee.MerchantId;
-                            detallesSuscripcion.PayeeEmail = purchaseUnit.Payee.EmailAddress;
-                            detallesSuscripcion.Description = purchaseUnit.Description;
-
-                            if (purchaseUnit.Payments.Captures != null)
-                            {
-                                foreach (var capture in purchaseUnit.Payments.Captures)
-                                {
-                                    if (capture != null)
-                                    {
-                                        detallesSuscripcion.SaleId = capture.Id;
-                                        detallesSuscripcion.SaleState = capture.Status;
-                                        detallesSuscripcion.SaleTotal = ConvertToDecimal(capture.Amount.Value);
-                                        detallesSuscripcion.SaleCurrency = capture.Amount.CurrencyCode;
-                                        detallesSuscripcion.ProtectionEligibility = capture.SellerProtection.Status;
-                                        detallesSuscripcion.TransactionFeeAmount = ConvertToDecimal(capture.SellerReceivableBreakdown.PaypalFee.Value);
-                                        detallesSuscripcion.TransactionFeeCurrency = capture.SellerReceivableBreakdown.PaypalFee.CurrencyCode;
-                                        detallesSuscripcion.ReceivableAmount = ConvertToDecimal(capture.SellerReceivableBreakdown.NetAmount.Value);
-                                        detallesSuscripcion.ReceivableCurrency = capture.SellerReceivableBreakdown.NetAmount.CurrencyCode;
-                                        string exchangeRateValue = capture.SellerReceivableBreakdown.ExchangeRate.Value;
-                                        if (!string.IsNullOrEmpty(exchangeRateValue) && decimal.TryParse(exchangeRateValue, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal exchangeRate))
-                                        {
-                                            detallesSuscripcion.ExchangeRate = exchangeRate;
-                                        }
-                                        detallesSuscripcion.CreateTime = ConvertToDateTime(capture.CreateTime);
-                                        detallesSuscripcion.UpdateTime = ConvertToDateTime(capture.UpdateTime);
-                                    }
-                                }
-                            }
-
-                            var items = purchaseUnit.Items;
-                            if (items != null)
-                            {
-                                foreach (var item in items)
-                                {
-                                    var paymentItem = new PayPalPaymentItem
-                                    {
-                                        PayPalId = detallesSuscripcion.Id,
-                                        ItemName = item.Name,
-                                        ItemSku = item.Sku,
-                                        ItemPrice = ConvertToDecimal(item.UnitAmount.Value),
-                                        ItemCurrency = item.UnitAmount.CurrencyCode,
-                                        ItemTax = ConvertToDecimal(item.Tax.Value),
-                                        ItemQuantity = ConvertToInt(item.Quantity)
-                                    };
-
-                                    paypalItems.Add(paymentItem); // Agregar a la lista temporal
-                                }
+                                detallesSuscripcion.ExchangeRate = exchangeRate;
                             }
                         }
                     }
-
                 }
 
-                if (pedido != null && existingDetail != null)
+                // Lista para almacenar los ítems de PayPal
+                var paypalItems = new List<PayPalPaymentItem>();
+
+                // Procesar items
+                if (firstPurchaseUnit?.Items != null)
                 {
-                    rembolso = new Rembolso
+                    foreach (var item in firstPurchaseUnit.Items)
                     {
-                        UsuarioId = usuarioId,
-                        NumeroPedido = form.NumeroPedido,
-                        NombreCliente = form.NombreCliente,
-                        EmailCliente = emailCliente,
-                        FechaRembolso = form.FechaRembolso,
-                        EstadoRembolso = "EN REVISION PARA APROBACION",
-                        MotivoRembolso = form.MotivoRembolso
-                     };
+                        var paymentItem = new PayPalPaymentItem
+                        {
+                            PayPalId = detallesSuscripcion.Id,
+                            ItemName = item.Name,
+                            ItemSku = item.Sku,
+                            ItemPrice = item.UnitAmount != null ? ConvertToDecimal(item.UnitAmount.Value) : 0,
+                            ItemCurrency = item.UnitAmount?.CurrencyCode,
+                            ItemTax = item.Tax != null ? ConvertToDecimal(item.Tax.Value) : 0,
+                            ItemQuantity = ConvertToInt(item.Quantity)
+                        };
 
-                    // Guardar el reembolso en la base de datos
-                  await  _context.AddEntityAsync(rembolso);
-                   
-
-                    // Preparar y enviar el correo a los empleados
-                    var emailRembolso = new EmailRembolsoDto
-                    {
-                        NumeroPedido = rembolso.NumeroPedido,
-                        NombreCliente = rembolso.NombreCliente,
-                        EmailCliente = rembolso.EmailCliente,
-                        FechaRembolso = rembolso.FechaRembolso,
-
-                        MotivoRembolso = rembolso.MotivoRembolso,
-                        Productos = paypalItems // Usar la lista de ítems recolectada
-                    };
-
-                    await _policyExecutor.ExecutePolicy(()=> _emailService.SendEmailAsyncRembolso(emailRembolso)) ;
+                        paypalItems.Add(paymentItem);
+                    }
                 }
-            }
 
-            return RedirectToAction("Index", "Admin");
+                // Crear el reembolso
+                var rembolso = new Rembolso
+                {
+                    UsuarioId = usuarioId,
+                    NumeroPedido = form.NumeroPedido,
+                    NombreCliente = form.NombreCliente,
+                    EmailCliente = emailCliente,
+                    FechaRembolso = form.FechaRembolso,
+                    EstadoRembolso = "EN REVISION PARA APROBACION",
+                    MotivoRembolso = form.MotivoRembolso
+                };
+
+                await _context.AddEntityAsync(rembolso);
+
+                // Preparar y enviar el correo a los empleados
+                var emailRembolso = new EmailRembolsoDto
+                {
+                    NumeroPedido = rembolso.NumeroPedido,
+                    NombreCliente = rembolso.NombreCliente,
+                    EmailCliente = rembolso.EmailCliente,
+                    FechaRembolso = rembolso.FechaRembolso,
+                    MotivoRembolso = rembolso.MotivoRembolso,
+                    Productos = paypalItems
+                };
+
+                await _policyExecutor.ExecutePolicy(() => _emailService.SendEmailAsyncRembolso(emailRembolso));
+
+                return RedirectToAction("Index", "Admin");
+            }
+            catch (Exception ex)
+            {
+                // Loggear el error
+                _logger.LogError(ex, "Error al procesar el reembolso");
+                return StatusCode(500, "Ocurrió un error al procesar tu solicitud");
+            }
         }
         private decimal? ConvertToDecimal(object value)
         {

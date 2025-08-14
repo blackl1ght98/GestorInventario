@@ -20,7 +20,12 @@ namespace GestorInventario.Interfaces.Infraestructure
        
         Task<(Pedido Pedido, List<DetallePedido> Detalles)> GetPedidoConDetallesAsync(int pedidoId);
         Task AddInfoTrackingOrder(int pedidoId, string tracking, string url, string carrier);
-
+        List<BillingCycle> MapBillingCycles(List<BillingCycle> billingCycles);
+        Frequency MapFrequency(Frequency frequency);
+        PricingScheme MapPricingScheme(PricingScheme pricingScheme);
+        Money MapMoney(Money money);
+        Taxes MapTaxes(Taxes taxes);
+        List<string> GetCategoriesFromEnum();
 
     }
 }

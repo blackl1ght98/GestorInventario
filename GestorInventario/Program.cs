@@ -98,7 +98,7 @@ builder.Services.AddAutoMapper(cfg =>
     // Configurar AutoMapper para escanear los perfiles en el ensamblado actual
     cfg.AddMaps(Assembly.GetExecutingAssembly());
 });
-
+builder.Services.AddTransient<IPaymentRepository, PaymentRepository>();
 
 
 
