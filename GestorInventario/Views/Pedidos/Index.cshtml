@@ -162,6 +162,17 @@
                             <option value="UPS">UPS</option>
                         </select>
                     </div>
+
+                    <div class="mb-3">
+                        <label for="barcodeSelect" class="form-label">BarCode Type</label>
+                        <select class="form-select" name="barcode" id="barcodeSelect" required>
+                            <option value="">Seleccione un codigo de barras</option>
+                            <option value="UPC_A">UPC_A</option>
+                            <option value="EAN_13">EAN_13</option>
+                            <option value="EAN_8">EAN_8</option>
+                            <option value="CODE_128">CODE_128</option>
+                        </select>
+                    </div>
                 </form>
 
                 <div id="loadingMessageEnvio" class="text-center mt-3" style="display: none;">
@@ -190,6 +201,10 @@
             document.getElementById("confirmAgregarEnvioBtn").addEventListener("click", function () {
                 if (!document.getElementById("carrierSelect").value) {
                     alert("Por favor selecciona un transportista.");
+                    return;
+                }
+                 if (!document.getElementById("barcodeSelect").value) {
+                    alert("Por favor selecciona un tipo de codigo de barras");
                     return;
                 }
                 document.getElementById("loadingMessageEnvio").style.display = "block";

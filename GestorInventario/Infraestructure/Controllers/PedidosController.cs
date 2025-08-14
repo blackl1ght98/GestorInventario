@@ -559,10 +559,10 @@ namespace GestorInventario.Infraestructure.Controllers
        
       
         [HttpPost]
-        public async Task<IActionResult> AgregarInfoEnvio(int pedidoId, Carrier carrier)
+        public async Task<IActionResult> AgregarInfoEnvio(int pedidoId, Carrier carrier, BarcodeType barcode)
         {
             var pedido = await _context.Pedidos.FindAsync(pedidoId);
-            await _paypalService.SeguimientoPedido(pedido.Id,carrier);
+            await _paypalService.SeguimientoPedido(pedido.Id,carrier, barcode);
             return RedirectToAction(nameof(Index), new {message="Info Agregada con exito"});
         }
        
