@@ -374,20 +374,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 try
                 {
-                    var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
-                    var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
-                    var authToken = await _paypalService.GetAccessTokenAsync(clientId, clientSecret);
-                    using (var httpClient = new HttpClient())
-                    {
-                        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-                        var productResponse1 = await httpClient.GetAsync($"https://api-m.sandbox.paypal.com/v1/catalogs/products/{id}");
-                        if (!productResponse1.IsSuccessStatusCode)
-                        {
-                            var errorContent = await productResponse1.Content.ReadAsStringAsync();
-                            throw new Exception($"No se pudo encontrar el producto con ID {id}: {productResponse1.StatusCode} - {errorContent}");
-                        }
-                    }
-
+                    
                     var productResponse = await _paypalService.EditarProducto(id, model.name, model.description);
                     return RedirectToAction(nameof(MostrarProductos));
                 }

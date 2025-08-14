@@ -94,6 +94,7 @@ builder.Services.AddHttpClient<IPaypalService, PaypalService>(client =>
 builder.Services.AddTransient<IBarCodeService, BarCodeService>();
 builder.Services.AddAutoMapper(cfg =>
 {
+    cfg.LicenseKey = Environment.GetEnvironmentVariable("LicenseKeyAutoMapper") ?? builder.Configuration["LicenseKeyAutoMapper"]; ;
     // Configurar AutoMapper para escanear los perfiles en el ensamblado actual
     cfg.AddMaps(Assembly.GetExecutingAssembly());
 });
