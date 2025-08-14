@@ -94,6 +94,7 @@ Dentro de Visual Studio 2022 para acceder al archivo de **Secretos del usuario**
     "returnUrlSinDocker": "https://localhost:7056/Payment/Success",
     "returnUrlConDocker": "https://localhost:8081/Payment/Success"
   },
+LicenseKeyAutoMapper:
   "Email": {
     "Host": "smtp.gmail.com",
     "Port": "587",
@@ -137,6 +138,8 @@ Dentro de Visual Studio 2022 para acceder al archivo de **Secretos del usuario**
     - **Port**: puerto del servidor de correo electronico.
     - **UserName**: usuario del correo electronico.
     - **Password**: contraseña del correo electronico.
+
+-**LicenseKeyAutoMapper**: aquí ponemos la clave de licencia de AutoMapper para ello vamos aqui [obtener licencia](https://luckypennysoftware.com/#automapper) en esta pagina nos registramos y la licencia a escoger es la community
 ## Modificación del archivo GestorInventarioContext.cs 
 Una vez que hemos ejecutado el comando que realiza el scaffold pues tenemos que modificar este archivo agregando lo siguiente lo primero que pondremos en el constructor es:
 ```sh
@@ -153,28 +156,26 @@ Una vez que hemos ejecutado el comando que realiza el scaffold pues tenemos que 
 ````
 Esto es necesario ya que lo usaremos para acceder a los valores que estan en el archivo de secretos de usuario.
 Una vez puesto el valor en el constructor vamos a modificar el metodo llamado **OnConfiguring** y lo reemplazamos por esto:
-```sh
- protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+```csharp
+  protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
  {
      var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER") == "true";
- var dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? _configuration["DataBaseConection:DBHost"];
- var dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? _configuration["DataBaseConection:DBName"];
- var dbUserName = Environment.GetEnvironmentVariable("DB_USERNAME") ?? _configuration["DataBaseConection:DBUserName"];
- var dbPassword = Environment.GetEnvironmentVariable("DB_SA_PASSWORD") ?? _configuration["DataBaseConection:DBPassword"];
 
- string connectionString;
+     if (isDocker)
+     {
+         var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
+         var dbName = Environment.GetEnvironmentVariable("DB_NAME");
+         var dbPassword = Environment.GetEnvironmentVariable("DB_SA_PASSWORD");
 
- if (isDocker)
- {
-     connectionString = $"Data Source={dbHost};Initial Catalog={dbName};User ID=sa;Password={dbPassword};TrustServerCertificate=True";
- }
- else
- {
-     // connectionString = $"Data Source={dbHost};Initial Catalog={dbName};Integrated Security=True;TrustServerCertificate=True";
-     connectionString = $"Data Source={dbHost};Initial Catalog={dbName};User ID={dbUserName};Password={dbPassword};TrustServerCertificate=True";
- }
-
- optionsBuilder.UseSqlServer(connectionString);
+         var connectionString = $"Data Source={dbHost};Initial Catalog={dbName};User ID=sa;Password={dbPassword};TrustServerCertificate=True";
+         optionsBuilder.UseSqlServer(connectionString);
+     }
+     else
+     {
+         // Cadena de conexión en duro para entorno local
+         var connectionString = "Data Source=GUILLERMO\\SQLEXPRESS;Initial Catalog=GestorInventario;User ID=sa;Password=SQL#1234;TrustServerCertificate=True";
+         optionsBuilder.UseSqlServer(connectionString);
+     }
  }
 ````
 ## Generar certificado https
@@ -250,5 +251,12 @@ El proyecto **Gestor Inventario** ofrece una amplia gama de características par
 - **Función de reembolso**: Ahora cuenta con la función de reembolsar un pedido
 -  **Creacion de planes y productos con paypal**: Actualmente cuenta con la funcionalidad de crear productos y planes en paypal 
 - **Función de suscripcion a planes**: Actualmente cuenta con la posibilidad de suscribirse a planes.
--  **Seguimiento de suscriptores, planes y productos**: Actualmente cuenta con una interfaz para ver cuantos planes y productos de paypal hay ademas de llevar un seguimiento de los suscriptores que hay
+- **Ver planes**: Los usuarios pueden ver los planes a los cuales pueden suscribirse
+- **Ver subscriptores**: El administrador puede ver cuantos subscriptores ahi subscriptos
+- **Ver Productos**: El administrador puede ver los productos que estan asociados a los planes
+- ** Cambio de precio en los planes** El administrador puede cambiar el precio de los planes
+-  **Activacion de subscripcion**: El administrador puede activar una subscripcion cancelada o suspendida
+-  **Suspender subscripcion**: El usuario puede suspender su propia subscripcion, y el administrador puede suspender las de todos
+-  **Cancelar subscripcion**: El usuario puede cancelar su propia subscripcion, y el administrador puede cancelar cualquier susbscripcion
+-  **Agregar informacion de seguimiento a pedidos**: El administrador puede agregar informacion de seguimiento a los pedidos
    
