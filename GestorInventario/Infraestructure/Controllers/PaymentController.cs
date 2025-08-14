@@ -23,8 +23,9 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IMemoryCache _memory;
         private readonly IEmailService _emailService;     
         private readonly PolicyExecutor _policyExecutor;
+        private readonly IPaymentRepository _paymentRepository;
         public PaymentController(ILogger<PaymentController> logger,  IConfiguration configuration, GestorInventarioContext context, IMemoryCache memory, 
-            IEmailService email, PolicyExecutor executor, IPaypalService service)
+            IEmailService email, PolicyExecutor executor, IPaypalService service, IPaymentRepository payment)
         {
             _logger = logger;          
             _configuration = configuration;
@@ -33,6 +34,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _emailService = email;
             _policyExecutor = executor;
             _paypalService = service;
+            _paymentRepository = payment;
         }
         public async Task<IActionResult> Success()
         {
@@ -180,14 +182,14 @@ namespace GestorInventario.Infraestructure.Controllers
                 // Procesar el amount
                 if (firstPurchaseUnit?.Amount != null)
                 {
-                    detallesSuscripcion.TransactionsTotal = ConvertToDecimal(firstPurchaseUnit.Amount.Value);
+                    detallesSuscripcion.TransactionsTotal = _paymentRepository.ConvertToDecimal(firstPurchaseUnit.Amount.Value);
                     detallesSuscripcion.TransactionsCurrency = firstPurchaseUnit.Amount.CurrencyCode;
 
                     if (firstPurchaseUnit.Amount.Breakdown != null)
                     {
-                        detallesSuscripcion.TransactionsSubtotal = ConvertToDecimal(
+                        detallesSuscripcion.TransactionsSubtotal = _paymentRepository.ConvertToDecimal(
                             firstPurchaseUnit.Amount.Breakdown.ItemTotal?.Value ?? "0");
-                        detallesSuscripcion.TransactionsShipping = ConvertToDecimal(
+                        detallesSuscripcion.TransactionsShipping = _paymentRepository.ConvertToDecimal(
                             firstPurchaseUnit.Amount.Breakdown.Shipping?.Value ?? "0");
                     }
                 }
@@ -210,7 +212,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
                     if (firstCapture.Amount != null)
                     {
-                        detallesSuscripcion.SaleTotal = ConvertToDecimal(firstCapture.Amount.Value);
+                        detallesSuscripcion.SaleTotal = _paymentRepository.ConvertToDecimal(firstCapture.Amount.Value);
                         detallesSuscripcion.SaleCurrency = firstCapture.Amount.CurrencyCode;
                     }
 
@@ -223,12 +225,12 @@ namespace GestorInventario.Infraestructure.Controllers
                     if (firstCapture.SellerReceivableBreakdown != null)
                     {
                         detallesSuscripcion.TransactionFeeAmount = firstCapture.SellerReceivableBreakdown.PaypalFee != null ?
-                            ConvertToDecimal(firstCapture.SellerReceivableBreakdown.PaypalFee.Value) : 0;
+                            _paymentRepository.ConvertToDecimal(firstCapture.SellerReceivableBreakdown.PaypalFee.Value) : 0;
 
                         detallesSuscripcion.TransactionFeeCurrency = firstCapture.SellerReceivableBreakdown.PaypalFee?.CurrencyCode;
 
                         detallesSuscripcion.ReceivableAmount = firstCapture.SellerReceivableBreakdown.NetAmount != null ?
-                            ConvertToDecimal(firstCapture.SellerReceivableBreakdown.NetAmount.Value) : 0;
+                            _paymentRepository.ConvertToDecimal(firstCapture.SellerReceivableBreakdown.NetAmount.Value) : 0;
 
                         detallesSuscripcion.ReceivableCurrency = firstCapture.SellerReceivableBreakdown.NetAmount?.CurrencyCode;
 
@@ -257,10 +259,10 @@ namespace GestorInventario.Infraestructure.Controllers
                             PayPalId = detallesSuscripcion.Id,
                             ItemName = item.Name,
                             ItemSku = item.Sku,
-                            ItemPrice = item.UnitAmount != null ? ConvertToDecimal(item.UnitAmount.Value) : 0,
+                            ItemPrice = item.UnitAmount != null ? _paymentRepository.ConvertToDecimal(item.UnitAmount.Value) : 0,
                             ItemCurrency = item.UnitAmount?.CurrencyCode,
-                            ItemTax = item.Tax != null ? ConvertToDecimal(item.Tax.Value) : 0,
-                            ItemQuantity = ConvertToInt(item.Quantity)
+                            ItemTax = item.Tax != null ? _paymentRepository.ConvertToDecimal(item.Tax.Value) : 0,
+                            ItemQuantity = _paymentRepository.ConvertToInt(item.Quantity)
                         };
 
                         paypalItems.Add(paymentItem);
@@ -303,119 +305,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 return StatusCode(500, "Ocurrió un error al procesar tu solicitud");
             }
         }
-        private decimal? ConvertToDecimal(object value)
-        {
-            if (value == null)
-            {
-                return null;
-            }
-            // Si el valor es un decimal, simplemente lo devuelve
-            if (value is decimal decimalValue)
-            {
-                return decimalValue;
-            }
-            // Si el valor es una cadena, intenta convertirlo a decimal
-            if (value is string stringValue)
-            {
-                if (decimal.TryParse(stringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var result))
-                {
-                    return result;
-                }
-            }
-            // Si el valor es de otro tipo, intenta convertirlo explícitamente a string y luego a decimal
-            try
-            {
-                var stringRepresentation = value.ToString();
-                if (decimal.TryParse(stringRepresentation, NumberStyles.Any, CultureInfo.InvariantCulture, out var result))
-                {
-                    return result;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al realizar la conversión");
-            }
-            return null; // Si no puede convertir el valor, devuelve null
-        }
-        private int? ConvertToInt(object value)
-        {
-            if (value == null)
-            {
-                return null;
-            }
-            // Si el valor ya es un int, simplemente lo devuelve
-            if (value is int intValue)
-            {
-                return intValue;
-            }
-            // Si el valor es una cadena, intenta convertirlo a int
-            if (value is string stringValue)
-            {
-                if (int.TryParse(stringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var result))
-                {
-                    return result;
-                }
-            }
-            // Si el valor es de otro tipo, intenta convertirlo explícitamente a string y luego a int
-            try
-            {
-                var stringRepresentation = value.ToString();
-                if (int.TryParse(stringRepresentation, NumberStyles.Any, CultureInfo.InvariantCulture, out var result))
-                {
-                    return result;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al realizar la conversión a int");
-            }
-            return null; // Si no puede convertir el valor, devuelve null
-        }
-        public DateTime? ConvertToDateTime(object value)
-        {
-            if (value == null)
-            {
-                return null;
-            }
-            // Si el valor ya es un DateTime, simplemente lo devuelve
-            if (value is DateTime dateTimeValue)
-            {
-                return dateTimeValue;
-            }
-            // Convertir el valor a cadena si no es ya un string
-            string stringValue;
-            if (value is string strValue)
-            {
-                stringValue = strValue;
-            }
-            else
-            {
-                // Convertir el valor a cadena, asumiendo que es un tipo no-string
-                stringValue = value.ToString();
-            }
-            // Quitar corchetes si están presentes
-            stringValue = stringValue.Trim('{', '}').Trim();
-            // Intentar convertir usando formatos específicos
-            var formats = new[]
-            {
-                "dd/MM/yyyy HH:mm:ss",   // Formato de 24 horas
-                "dd/MM/yyyy H:mm:ss",    // Formato de 24 horas sin ceros a la izquierda
-                "dd/MM/yyyy h:mm:ss tt", // Formato de 12 horas con AM/PM
-                "yyyy-MM-ddTHH:mm:ssZ",
-                "yyyy-MM-ddTHH:mm:ss",
-                "yyyy-MM-dd",
-                "MM/dd/yyyy",
-                "MM-dd-yyyy"
-            };
-            // Intentar convertir con los formatos definidos
-            if (DateTime.TryParseExact(stringValue, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var result))
-            {
-                return result;
-            }
-            Console.WriteLine($"No se pudo convertir. Formatos intentados: {string.Join(", ", formats)}");
-
-            return null;
-        }
+    
       
 
     } 
