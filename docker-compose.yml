@@ -1,5 +1,3 @@
-
-
 networks:
   gestor:
     driver: bridge
@@ -67,12 +65,13 @@ services:
       - DB_SA_PASSWORD=SQL#1234
       - IS_DOCKER=true
       - USE_REDIS=true
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/GestorInventario.pfx
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=password
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=0000
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/certificado.pfx
       - ClaveJWT=${ClaveJWT}
       - REDIS_CONNECTION_STRING=redis:6379
       - JwtIssuer=${JwtIssuer}
       - JwtAudience=${JwtAudience}
+      - LicenseKeyAutoMapper=${LicenseKeyAutoMapper}
       - PublicKey=${PublicKey}
       - PrivateKey=${PrivateKey}
       - DB_USERNAME=${DB_USERNAME}
@@ -86,7 +85,7 @@ services:
       - Email__Username=${Email__Username}
       - Email__Password=${Email__Password}
     volumes:
-      - C:/Users/guill/AppData/Roaming/ASP.NET/Https/GestorInventario.pfx:/https/GestorInventario.pfx:ro
+      - C:/Users/guill/AppData/Roaming/ASP.NET/Https/certificado.pfx:/https/certificado.pfx:ro
     depends_on:
       sql-server:
         condition: service_healthy
