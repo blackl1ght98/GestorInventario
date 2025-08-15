@@ -94,6 +94,7 @@ Dentro de Visual Studio 2022 para acceder al archivo de **Secretos del usuario**
     "returnUrlSinDocker": "https://localhost:7056/Payment/Success",
     "returnUrlConDocker": "https://localhost:8081/Payment/Success"
   },
+LicenseKeyAutoMapper:
   "Email": {
     "Host": "smtp.gmail.com",
     "Port": "587",
@@ -137,6 +138,8 @@ Dentro de Visual Studio 2022 para acceder al archivo de **Secretos del usuario**
     - **Port**: puerto del servidor de correo electronico.
     - **UserName**: usuario del correo electronico.
     - **Password**: contraseña del correo electronico.
+
+**LicenseKeyAutoMapper**: aquí ponemos la clave de licencia de AutoMapper para ello vamos aqui [obtener licencia](https://luckypennysoftware.com/#automapper) en esta pagina nos registramos y la licencia a escoger es la community
 ## Modificación del archivo GestorInventarioContext.cs 
 Una vez que hemos ejecutado el comando que realiza el scaffold pues tenemos que modificar este archivo agregando lo siguiente lo primero que pondremos en el constructor es:
 ```sh
@@ -153,28 +156,26 @@ Una vez que hemos ejecutado el comando que realiza el scaffold pues tenemos que 
 ````
 Esto es necesario ya que lo usaremos para acceder a los valores que estan en el archivo de secretos de usuario.
 Una vez puesto el valor en el constructor vamos a modificar el metodo llamado **OnConfiguring** y lo reemplazamos por esto:
-```sh
- protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+```csharp
+  protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
  {
      var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER") == "true";
- var dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? _configuration["DataBaseConection:DBHost"];
- var dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? _configuration["DataBaseConection:DBName"];
- var dbUserName = Environment.GetEnvironmentVariable("DB_USERNAME") ?? _configuration["DataBaseConection:DBUserName"];
- var dbPassword = Environment.GetEnvironmentVariable("DB_SA_PASSWORD") ?? _configuration["DataBaseConection:DBPassword"];
 
- string connectionString;
+     if (isDocker)
+     {
+         var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
+         var dbName = Environment.GetEnvironmentVariable("DB_NAME");
+         var dbPassword = Environment.GetEnvironmentVariable("DB_SA_PASSWORD");
 
- if (isDocker)
- {
-     connectionString = $"Data Source={dbHost};Initial Catalog={dbName};User ID=sa;Password={dbPassword};TrustServerCertificate=True";
- }
- else
- {
-     // connectionString = $"Data Source={dbHost};Initial Catalog={dbName};Integrated Security=True;TrustServerCertificate=True";
-     connectionString = $"Data Source={dbHost};Initial Catalog={dbName};User ID={dbUserName};Password={dbPassword};TrustServerCertificate=True";
- }
-
- optionsBuilder.UseSqlServer(connectionString);
+         var connectionString = $"Data Source={dbHost};Initial Catalog={dbName};User ID=sa;Password={dbPassword};TrustServerCertificate=True";
+         optionsBuilder.UseSqlServer(connectionString);
+     }
+     else
+     {
+         // Cadena de conexión en duro para entorno local
+         var connectionString = "Data Source=GUILLERMO\\SQLEXPRESS;Initial Catalog=GestorInventario;User ID=sa;Password=SQL#1234;TrustServerCertificate=True";
+         optionsBuilder.UseSqlServer(connectionString);
+     }
  }
 ````
 ## Generar certificado https
@@ -187,49 +188,125 @@ Para confiar en el certificado generado ponemos el comando:
 ```sh
 dotnet dev-certs https --trust
 ````
-## ¿Como configurar docker?
-Para que docker funcione en este proyecto tenemos que hacer estos pasos:
-- **Primero**:Si no tenemos un contenedor que contenga una base de datos en docker ejecutamos este comando:
-```sh
- docker run --name "SQL-Server-Local" -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=SQL#1234" -p 1433:1433 -d mcr.microsoft.com/mssql/server
-`````
-este comando creara y arrancara el contenedor de base de datos
-- **Segundo**: Creamos el archivo **.back**. Si estamos usando el programa **SQL Server** los pasos para crear este archivo son los siguientes:
-    - **Primero**:Abrimos el programa **SQL Server** y nos logueamos.
-    - **Segundo**:Una vez que nos hemos logueado veremos en el lado izquierdo el servidor de base de datos pues le hacemos clic y le damos a la carpeta **Base de datos**.
-    - **Tercero**:Localizamos la base de datos de la que queremos el archivo **.back** y hacemos clic derecho sobre esta y hacemos clic en `Tareas > Copia de seguridad`.
-    - **Cuarto**:Cuando hemos realizado el paso anterior se abrira una ventana y en esa ventana hacemos clic en **Agregar**.
-    - **Quinto**:Una vez echo el paso anterior se nos abrira otra ventana esta ventana muestra la ruta donde se guardan las copias de seguridad de base de datos y al lado de la ruta ahi un botón con el aspecto siguiente **...** pues le damos a este botón.
-    - **Sexto**: Una vez que le hemos hecho clic al boton anterior se nos abrira una ventana en la que tendremos que poner el nombre con el que se guarda la copia de seguridad ponemos el nombre que queramos lo recomendable es poner el mismo nombre que el de la base de datos y este nombre terminara en .back por ejemplo: `GestorInventario.back`.
-    - **Septimo**: Le damos a **Aceptar** y asi hasta que se cierren las ventanas abiertas
-- **Tercero**:Una vez realizado el paso anterior y los pasos dentro del paso anterior ejecutamos el comando:
-```sh
-docker cp "D:\SQL Server\MSSQL16.SQLEXPRESS\MSSQL\Backup\GestorInventario-2024710-18-27-46.bak" SQL-Server-Local:/var/opt/mssql/data
+## Docker compose
+````sh
+networks:
+  gestor:
+    driver: bridge
+services:
+  sql-server:
+    image: mcr.microsoft.com/mssql/server
+    container_name: SQL-Server-Local
+    user: root  # Forzamos ejecución como root para evitar problemas de permisos
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=SQL#1234
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql-data:/var/opt/mssql
+      - ./GestorInventario-2025629-10-14-552.bak:/var/opt/mssql/data/GestorInventario-2025629-10-14-552.bak
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P SQL#1234 -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    command: 
+      - /bin/bash
+      - -c 
+      - |
+        # Iniciar SQL Server en segundo plano
+        /opt/mssql/bin/sqlservr &
+        
+        # Esperar a que SQL Server esté listo
+        sleep 30
+        
+        # Instalar herramientas necesarias
+        apt-get update && apt-get install -y curl gnupg
+        curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
+        curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list > /etc/apt/sources.list.d/mssql-release.list
+        apt-get update
+        ACCEPT_EULA=Y apt-get install -y mssql-tools
+        
+        # Configurar PATH para mssql-tools
+        echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
+        source ~/.bashrc
+        
+        # Restaurar la base de datos
+        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P SQL#1234 -Q "RESTORE DATABASE GestorInventario FROM DISK = '/var/opt/mssql/data/GestorInventario-2025629-10-14-552.bak' WITH MOVE 'GestorInventario' TO '/var/opt/mssql/data/GestorInventario.mdf', MOVE 'GestorInventario_log' TO '/var/opt/mssql/data/GestorInventario_log.ldf', REPLACE;"
+        
+        # Mantener el contenedor en ejecución
+        wait
+    networks:
+      - gestor
+
+  gestorinventario:
+    container_name: gestor-inventario
+    image: ${DOCKER_REGISTRY-}gestorinventario
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    environment:
+      - DB_HOST=sql-server
+      - DB_NAME=GestorInventario
+      - DB_SA_PASSWORD=SQL#1234
+      - IS_DOCKER=true
+      - USE_REDIS=true
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/GestorInventario.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=password
+      - ClaveJWT=${ClaveJWT}
+      - REDIS_CONNECTION_STRING=redis:6379
+      - JwtIssuer=${JwtIssuer}
+      - JwtAudience=${JwtAudience}
+      - PublicKey=${PublicKey}
+      - PrivateKey=${PrivateKey}
+      - DB_USERNAME=${DB_USERNAME}
+      - Paypal_ClientId=${Paypal_ClientId}
+      - Paypal_ClientSecret=${Paypal_ClientSecret}
+      - Paypal_Mode=${Paypal_Mode}
+      - Paypal_returnUrlConDocker=${Paypal_returnUrlConDocker}
+      - Paypal_returnUrlSinDocker=${Paypal_returnUrlSinDocker}
+      - Email__Host=${Email__Host}
+      - Email__Port=${Email__Port}
+      - Email__Username=${Email__Username}
+      - Email__Password=${Email__Password}
+    volumes:
+      - C:/Users/guill/AppData/Roaming/ASP.NET/Https/GestorInventario.pfx:/https/GestorInventario.pfx:ro
+    depends_on:
+      sql-server:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - gestor
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    networks:
+      - gestor
+
+volumes:
+  sql-data:
+    driver: local
+  redisdata:
+    driver: local
+  appdata:
+    driver: local
 ````
-la primera parte del comando la tendremos que ajustar porque la primera parte del comando `"D:\SQL Server\MSSQL16.SQLEXPRESS\MSSQL\Backup\GestorInventario-2024710-18-27-46.bak"` es donde se ubica nuestra copia de seguridad y la segunda parte `SQL-Server-Local:/var/opt/mssql/data` se mantiene igual.
-- **Cuarto**: Creamos la red en docker para permitir la comunicacion entre la base de datos y el contenedor que contenga nuestra aplicación y los servicios que necesite para ello seguimos los pasos siguientes:
-    - **Creación de la red**: Para ello ejecutamos el comando:
-    ```sh
-      docker network create --attachable <nombre de la red>
-    ```
-    - **Conexión de contenedores a la red**: Para ello ejecutamos el comando:
-    ```sh
-    docker network connect <nombre de la red> <nombre del contenedor>
-    ````
-    - **Comprobar que los contenedores esten en la misma red**: para ello ejecutamos el comando:
-    ```sh
-    docker network inspect <nombre de la red>
-- **Quinto**: Establecemos las variables de entorno con los comandos:
-  ```sh
-  cd .\GestorInventario
-  ./SetEnvironmentVariables.ps1
-  ````
-## Establecer variables de entorno (opcional si no usas docker)
-Para ello ejecutamos estos comandos:
- ```sh
-  cd .\GestorInventario
-  ./SetEnvironmentVariables.ps1
-  ````
+**¿Como arrancarlo en docker?
+Para arrancar este proyecto en docker nos saldremos de visual studio y abriremos la terminal en la carpeta raiz y pondremos el comando 
+````sh
+docker-compose up -d --build
+````
   ## Características con las que cuenta el proyecto
 
 El proyecto **Gestor Inventario** ofrece una amplia gama de características para gestionar eficientemente el inventario:
@@ -250,5 +327,12 @@ El proyecto **Gestor Inventario** ofrece una amplia gama de características par
 - **Función de reembolso**: Ahora cuenta con la función de reembolsar un pedido
 -  **Creacion de planes y productos con paypal**: Actualmente cuenta con la funcionalidad de crear productos y planes en paypal 
 - **Función de suscripcion a planes**: Actualmente cuenta con la posibilidad de suscribirse a planes.
--  **Seguimiento de suscriptores, planes y productos**: Actualmente cuenta con una interfaz para ver cuantos planes y productos de paypal hay ademas de llevar un seguimiento de los suscriptores que hay
+- **Ver planes**: Los usuarios pueden ver los planes a los cuales pueden suscribirse
+- **Ver subscriptores**: El administrador puede ver cuantos subscriptores ahi subscriptos
+- **Ver Productos**: El administrador puede ver los productos que estan asociados a los planes
+- ** Cambio de precio en los planes** El administrador puede cambiar el precio de los planes
+-  **Activacion de subscripcion**: El administrador puede activar una subscripcion cancelada o suspendida
+-  **Suspender subscripcion**: El usuario puede suspender su propia subscripcion, y el administrador puede suspender las de todos
+-  **Cancelar subscripcion**: El usuario puede cancelar su propia subscripcion, y el administrador puede cancelar cualquier susbscripcion
+-  **Agregar informacion de seguimiento a pedidos**: El administrador puede agregar informacion de seguimiento a los pedidos
    
