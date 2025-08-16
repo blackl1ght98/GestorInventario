@@ -279,8 +279,7 @@ namespace GestorInventario.Application.DTOs.Response_paypal.GET
 
         [JsonProperty("exchange_rate")]
         public ExchangeRate ExchangeRate { get; set; }
-    }
-
+    }    
     public class PlatformFee
     {
         [JsonProperty("amount")]
