@@ -68,6 +68,10 @@
                     <p class="card-text"><strong>Fecha:</strong> @pedido.FechaPedido.ToString("dd/MM/yyyy")</p>
                     <p class="card-text"><strong>Estado:</strong> <span class="badge bg-@(pedido.EstadoPedido == "Reembolsado" ? "warning" : "success")">@pedido.EstadoPedido</span></p>
                     <p class="card-text"><strong>Cliente:</strong> @pedido.IdUsuarioNavigation?.NombreCompleto</p>
+                    @if(pedido.Transportista != null && pedido.TrackingNumber!=null){
+                    <p class="card-text"><strong>Numero de seguimiento:</strong>@pedido.TrackingNumber</p>
+                    <p class="card-text"><strong>Transportista:</strong>@pedido.Transportista</p>
+                    }
                     <div class="mt-auto">
                         <div class="btn-group w-100" role="group" aria-label="Acciones">
                             <a asp-action="DetallesPedido" asp-route-id="@pedido.Id" class="btn btn-outline-primary btn-sm">Detalles</a>

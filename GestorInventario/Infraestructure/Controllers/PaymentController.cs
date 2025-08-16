@@ -182,14 +182,14 @@ namespace GestorInventario.Infraestructure.Controllers
                 // Procesar el amount
                 if (firstPurchaseUnit?.Amount != null)
                 {
-                    detallesSuscripcion.TransactionsTotal = _paymentRepository.ConvertToDecimal(firstPurchaseUnit.Amount.Value);
-                    detallesSuscripcion.TransactionsCurrency = firstPurchaseUnit.Amount.CurrencyCode;
+                    detallesSuscripcion.AmountTotal = _paymentRepository.ConvertToDecimal(firstPurchaseUnit.Amount.Value);
+                    detallesSuscripcion.AmountCurrency = firstPurchaseUnit.Amount.CurrencyCode;
 
                     if (firstPurchaseUnit.Amount.Breakdown != null)
                     {
-                        detallesSuscripcion.TransactionsSubtotal = _paymentRepository.ConvertToDecimal(
+                        detallesSuscripcion.AmountItemTotal = _paymentRepository.ConvertToDecimal(
                             firstPurchaseUnit.Amount.Breakdown.ItemTotal?.Value ?? "0");
-                        detallesSuscripcion.TransactionsShipping = _paymentRepository.ConvertToDecimal(
+                        detallesSuscripcion.AmountShipping = _paymentRepository.ConvertToDecimal(
                             firstPurchaseUnit.Amount.Breakdown.Shipping?.Value ?? "0");
                     }
                 }
@@ -208,12 +208,12 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     var firstCapture = firstPurchaseUnit.Payments.Captures.First();
                     detallesSuscripcion.SaleId = firstCapture.Id;
-                    detallesSuscripcion.SaleState = firstCapture.Status;
+                    detallesSuscripcion.CaptureStatus = firstCapture.Status;
 
                     if (firstCapture.Amount != null)
                     {
-                        detallesSuscripcion.SaleTotal = _paymentRepository.ConvertToDecimal(firstCapture.Amount.Value);
-                        detallesSuscripcion.SaleCurrency = firstCapture.Amount.CurrencyCode;
+                        detallesSuscripcion.CaptureAmount = _paymentRepository.ConvertToDecimal(firstCapture.Amount.Value);
+                        detallesSuscripcion.CaptureCurrency = firstCapture.Amount.CurrencyCode;
                     }
 
                     if (firstCapture.SellerProtection != null)

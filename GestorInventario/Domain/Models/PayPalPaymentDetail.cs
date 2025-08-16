@@ -33,13 +33,13 @@ public partial class PayPalPaymentDetail
 
     public string? ShippingCountryCode { get; set; }
 
-    public decimal? TransactionsTotal { get; set; }
+    public decimal? AmountTotal { get; set; }
 
-    public string? TransactionsCurrency { get; set; }
+    public string? AmountCurrency { get; set; }
 
-    public decimal? TransactionsSubtotal { get; set; }
+    public decimal? AmountItemTotal { get; set; }
 
-    public decimal? TransactionsShipping { get; set; }
+    public decimal? AmountShipping { get; set; }
 
     public string? PayeeMerchantId { get; set; }
 
@@ -49,11 +49,11 @@ public partial class PayPalPaymentDetail
 
     public string? SaleId { get; set; }
 
-    public string? SaleState { get; set; }
+    public string? CaptureStatus { get; set; }
 
-    public decimal? SaleTotal { get; set; }
+    public decimal? CaptureAmount { get; set; }
 
-    public string? SaleCurrency { get; set; }
+    public string? CaptureCurrency { get; set; }
 
     public string? ProtectionEligibility { get; set; }
 
@@ -70,6 +70,14 @@ public partial class PayPalPaymentDetail
     public DateTime? CreateTime { get; set; }
 
     public DateTime? UpdateTime { get; set; }
+
+    public string? TrackingId { get; set; }
+
+    public string? TrackingStatus { get; set; }
+
+    public bool? FinalCapture { get; set; }
+
+    public string? DisputeCategories { get; set; }
 
     public virtual ICollection<PayPalPaymentItem> PayPalPaymentItems { get; set; } = new List<PayPalPaymentItem>();
 }

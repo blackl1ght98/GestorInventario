@@ -74,6 +74,7 @@ public partial class GestorInventarioContext : DbContext
         }
     }
 
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<DetalleHistorialPedido>(entity =>
@@ -183,6 +184,30 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("id");
+            entity.Property(e => e.AmountCurrency)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("amount_currency");
+            entity.Property(e => e.AmountItemTotal)
+                .HasColumnType("decimal(10, 2)")
+                .HasColumnName("amount_item_total");
+            entity.Property(e => e.AmountShipping)
+                .HasColumnType("decimal(10, 2)")
+                .HasColumnName("amount_shipping");
+            entity.Property(e => e.AmountTotal)
+                .HasColumnType("decimal(10, 2)")
+                .HasColumnName("amount_total");
+            entity.Property(e => e.CaptureAmount)
+                .HasColumnType("decimal(10, 2)")
+                .HasColumnName("capture_amount");
+            entity.Property(e => e.CaptureCurrency)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("capture_currency");
+            entity.Property(e => e.CaptureStatus)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("capture_status");
             entity.Property(e => e.CreateTime)
                 .HasColumnType("datetime")
                 .HasColumnName("create_time");
@@ -190,9 +215,14 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(255)
                 .IsUnicode(false)
                 .HasColumnName("description");
+            entity.Property(e => e.DisputeCategories)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("dispute_categories");
             entity.Property(e => e.ExchangeRate)
                 .HasColumnType("decimal(20, 10)")
                 .HasColumnName("exchange_rate");
+            entity.Property(e => e.FinalCapture).HasColumnName("final_capture");
             entity.Property(e => e.Intent)
                 .HasMaxLength(20)
                 .IsUnicode(false)
@@ -236,21 +266,10 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("receivable_currency");
-            entity.Property(e => e.SaleCurrency)
-                .HasMaxLength(10)
-                .IsUnicode(false)
-                .HasColumnName("sale_currency");
             entity.Property(e => e.SaleId)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("sale_id");
-            entity.Property(e => e.SaleState)
-                .HasMaxLength(20)
-                .IsUnicode(false)
-                .HasColumnName("sale_state");
-            entity.Property(e => e.SaleTotal)
-                .HasColumnType("decimal(10, 2)")
-                .HasColumnName("sale_total");
             entity.Property(e => e.ShippingCity)
                 .HasMaxLength(50)
                 .IsUnicode(false)
@@ -279,6 +298,14 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(20)
                 .IsUnicode(false)
                 .HasColumnName("status");
+            entity.Property(e => e.TrackingId)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("tracking_id");
+            entity.Property(e => e.TrackingStatus)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("tracking_status");
             entity.Property(e => e.TransactionFeeAmount)
                 .HasColumnType("decimal(10, 2)")
                 .HasColumnName("transaction_fee_amount");
@@ -286,19 +313,6 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("transaction_fee_currency");
-            entity.Property(e => e.TransactionsCurrency)
-                .HasMaxLength(10)
-                .IsUnicode(false)
-                .HasColumnName("transactions_currency");
-            entity.Property(e => e.TransactionsShipping)
-                .HasColumnType("decimal(10, 2)")
-                .HasColumnName("transactions_shipping");
-            entity.Property(e => e.TransactionsSubtotal)
-                .HasColumnType("decimal(10, 2)")
-                .HasColumnName("transactions_subtotal");
-            entity.Property(e => e.TransactionsTotal)
-                .HasColumnType("decimal(10, 2)")
-                .HasColumnName("transactions_total");
             entity.Property(e => e.UpdateTime)
                 .HasColumnType("datetime")
                 .HasColumnName("update_time");

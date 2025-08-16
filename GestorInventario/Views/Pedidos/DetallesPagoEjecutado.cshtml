@@ -59,7 +59,7 @@
                             </tr>
                             <tr>
                                 <th scope="row" class="bg-light">Estado de la Venta</th>
-                                <td>@Model.SaleState</td>
+                                <td>@Model.CaptureStatus</td>
                             </tr>
                         </tbody>
                     </table>
@@ -106,15 +106,15 @@
                         <tbody>
                             <tr>
                                 <th scope="row" class="bg-light" style="width: 30%;">Subtotal</th>
-                                <td>@Model.TransactionsSubtotal @Model.TransactionsCurrency</td>
+                                <td>@Model.AmountItemTotal @Model.AmountCurrency</td>
                             </tr>
                             <tr>
                                 <th scope="row" class="bg-light">Envío</th>
-                                <td>@Model.TransactionsShipping @Model.TransactionsCurrency</td>
+                                <td>@Model.AmountShipping @Model.AmountCurrency</td>
                             </tr>
                             <tr>
                                 <th scope="row" class="bg-light">Total</th>
-                                <td class="fw-bold">@Model.TransactionsTotal @Model.TransactionsCurrency</td>
+                                <td class="fw-bold">@Model.AmountTotal @Model.AmountCurrency</td>
                             </tr>
                         </tbody>
                     </table>

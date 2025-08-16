@@ -302,8 +302,7 @@ namespace GestorInventario.Application.Services
                 }
                 var request = new HttpRequestMessage(HttpMethod.Post,$"v2/checkout/orders/{pedido.OrderId}/track");
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-                request.Content = new StringContent(
-                JsonConvert.SerializeObject(trackingInfo), Encoding.UTF8, "application/json");
+                request.Content = new StringContent(JsonConvert.SerializeObject(trackingInfo), Encoding.UTF8, "application/json");
                 var response = await _httpClient.SendAsync(request);
                 var responseBody = await response.Content.ReadAsStringAsync();
                 if (!response.IsSuccessStatusCode)
