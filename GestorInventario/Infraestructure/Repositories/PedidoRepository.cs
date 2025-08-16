@@ -5,6 +5,7 @@ using GestorInventario.MetodosExtension;
 using GestorInventario.ViewModels.order;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Newtonsoft.Json;
 using System.Globalization;
 using System.Security.Claims;
 namespace GestorInventario.Infraestructure.Repositories
@@ -289,6 +290,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 detallesSuscripcion.PayerFirstName = detalles.Payer?.Name?.GivenName;
                 detallesSuscripcion.PayerLastName = detalles.Payer?.Name?.Surname;
                 detallesSuscripcion.PayerId = detalles.Payer?.PayerId;
+               
                 detallesSuscripcion.ShippingRecipientName = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Name?.FullName;
                 detallesSuscripcion.ShippingLine1 = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.AddressLine1;
                 detallesSuscripcion.ShippingCity = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.AdminArea2;
@@ -302,12 +304,12 @@ namespace GestorInventario.Infraestructure.Repositories
                     {
                         if (purchaseUnit != null)
                         {
-                            detallesSuscripcion.TransactionsTotal = ConvertToDecimal(purchaseUnit.Amount?.Value);
-                            detallesSuscripcion.TransactionsCurrency = purchaseUnit.Amount?.CurrencyCode;
-                            detallesSuscripcion.TransactionsSubtotal = ConvertToDecimal(purchaseUnit.Amount?.Breakdown?.ItemTotal?.Value);
+                            detallesSuscripcion.AmountTotal = ConvertToDecimal(purchaseUnit.Amount?.Value);
+                            detallesSuscripcion.AmountCurrency = purchaseUnit.Amount?.CurrencyCode;
+                            detallesSuscripcion.AmountItemTotal = ConvertToDecimal(purchaseUnit.Amount?.Breakdown?.ItemTotal?.Value);
 
                             // Calcular subtotal si es necesario
-                            if (detallesSuscripcion.TransactionsSubtotal == 0 && purchaseUnit.Items != null)
+                            if (detallesSuscripcion.AmountItemTotal == 0 && purchaseUnit.Items != null)
                             {
                                 decimal? subtotal = 0;
                                 foreach (var item in purchaseUnit.Items)
@@ -316,10 +318,10 @@ namespace GestorInventario.Infraestructure.Repositories
                                     var quantity = ConvertToInt(item.Quantity?.ToString());
                                     subtotal += unitAmount * quantity;
                                 }
-                                detallesSuscripcion.TransactionsSubtotal = subtotal;
+                                detallesSuscripcion.AmountItemTotal = subtotal;
                             }
 
-                            detallesSuscripcion.TransactionsShipping = ConvertToDecimal(purchaseUnit.Amount?.Breakdown?.Shipping?.Value);
+                            detallesSuscripcion.AmountShipping = ConvertToDecimal(purchaseUnit.Amount?.Breakdown?.Shipping?.Value);
                             detallesSuscripcion.PayeeMerchantId = purchaseUnit.Payee?.MerchantId;
                             detallesSuscripcion.PayeeEmail = purchaseUnit.Payee?.EmailAddress;
                             detallesSuscripcion.Description = purchaseUnit.Description;
@@ -330,10 +332,11 @@ namespace GestorInventario.Infraestructure.Repositories
                                 {
                                     if (capture != null)
                                     {
+                                       
                                         detallesSuscripcion.SaleId = capture.Id;
-                                        detallesSuscripcion.SaleState = capture.Status;
-                                        detallesSuscripcion.SaleTotal = ConvertToDecimal(capture.Amount?.Value);
-                                        detallesSuscripcion.SaleCurrency = capture.Amount?.CurrencyCode;
+                                        detallesSuscripcion.CaptureStatus = capture.Status;
+                                        detallesSuscripcion.CaptureAmount = ConvertToDecimal(capture.Amount?.Value);
+                                        detallesSuscripcion.CaptureCurrency = capture.Amount?.CurrencyCode;
                                         detallesSuscripcion.ProtectionEligibility = capture.SellerProtection?.Status;
                                         detallesSuscripcion.TransactionFeeAmount = ConvertToDecimal(capture.SellerReceivableBreakdown?.PaypalFee?.Value);
                                         detallesSuscripcion.TransactionFeeCurrency = capture.SellerReceivableBreakdown?.PaypalFee?.CurrencyCode;
@@ -347,8 +350,39 @@ namespace GestorInventario.Infraestructure.Repositories
                                         }
                                         detallesSuscripcion.CreateTime = ConvertToDateTime(capture.CreateTime);
                                         detallesSuscripcion.UpdateTime = ConvertToDateTime(capture.UpdateTime);
+
+                                    }
+
+                                }
+                                var firstPurchaseUnit = detalles.PurchaseUnits?.FirstOrDefault();
+                                if (firstPurchaseUnit != null)
+                                {
+                                    // Campos de tracking
+                                    var firstTracker = firstPurchaseUnit.Shipping?.Trackers?.FirstOrDefault();
+                                    if (firstTracker != null)
+                                    {
+                                        detallesSuscripcion.TrackingId = firstTracker.Id;
+                                        detallesSuscripcion.TrackingStatus = firstTracker.Status;
+                                    
+
+                                        var trackingLink = firstTracker.Links?.FirstOrDefault(l => l.Rel == "track");
+                                        detallesSuscripcion.TrackingUrl = trackingLink?.Href;
+                                    }
+
+                                    // Campos de captura
+                                    var firstCapture = firstPurchaseUnit.Payments?.Captures?.FirstOrDefault();
+                                    if (firstCapture != null)
+                                    {
+                                        detallesSuscripcion.FinalCapture = firstCapture.FinalCapture;
+
+                                        if (firstCapture.SellerProtection != null)
+                                        {
+                                            detallesSuscripcion.DisputeCategories =
+                                                JsonConvert.SerializeObject(firstCapture.SellerProtection.DisputeCategories);
+                                        }
                                     }
                                 }
+
                             }
 
                             var items = purchaseUnit.Items;
