@@ -418,6 +418,60 @@ namespace GestorInventario.Application.Services
                 }
             };
         }
+        public async Task<string> RefundPartialAsync(int pedidoId, string currency)
+        {
+            try
+            {
+                // Obtener el pedido y el monto total desde el repositorio
+                var (pedido, totalAmount) = await _unitOfWork.PaypalRepository.GetProductoDePedidoAsync(pedidoId);
+
+                // Crear el objeto de solicitud de reembolso
+                var refundRequest = BuildRefundPartialRequest(totalAmount, pedido);
+
+                var (clientId, clientSecret) = GetPaypalCredentials();
+                var authToken = await GetAccessTokenAsync(clientId, clientSecret);
+                if (string.IsNullOrEmpty(authToken))
+                    throw new Exception("No se pudo obtener el token de autenticación.");
+
+                var request = new HttpRequestMessage(HttpMethod.Post, $"v2/payments/captures/{pedido.Pedido.CaptureId}/refund");
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+                request.Content = new StringContent(JsonConvert.SerializeObject(refundRequest), Encoding.UTF8, "application/json");
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                // Enviamos la solicitud
+                var response = await _httpClient.SendAsync(request);
+                var responseBody = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exception($"Error al obtener los detalles del pago: {response.StatusCode} - {responseBody}");
+                }
+
+                _logger.LogInformation("Reembolso exitoso: {response}", responseBody);
+                var refundResponse = JsonConvert.DeserializeObject<PaypalRefundResponse>(responseBody);
+                string refundId = refundResponse.Id;
+                
+
+                return responseBody;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al realizar el reembolso");
+                throw new InvalidOperationException("No se pudo realizar el reembolso", ex);
+            }
+        }
+        private PaypalRefundResponse BuildRefundPartialRequest(decimal totalAmount, DetallePedido pedido)
+        {
+            return new PaypalRefundResponse
+            {
+                NotaParaElCliente = "Pedido rembolsado",
+                Amount = new AmountRefund
+                {
+                    Value = totalAmount.ToString("F2", CultureInfo.InvariantCulture),
+                    CurrencyCode = pedido.Pedido.Currency,
+                }
+            };
+        }
         #endregion   
 
         #region creacion de un producto y plan de suscripcion

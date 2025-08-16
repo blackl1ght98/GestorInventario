@@ -25,6 +25,15 @@
                             <td class="text-end">@(detalle.Producto?.Precio.ToString())</td>
                             <td class="text-end">@((detalle.Cantidad * (detalle.Producto?.Precio ?? 0)).ToString())</td>
                             <td class="text-end">@((detalle.Cantidad * (detalle.Producto?.Precio ?? 0) * 1.21m).ToString())</td>
+                            <td class="text-end">
+                                <form asp-controller="Payment" asp-action="RefundPartial" method="post" class="d-inline">
+                                <input type="hidden" name="PedidoId" value="@detalle.Id" />
+                                <input type="hidden" name="Currency" value="@detalle.Producto.Precio" />
+                                <button type="submit" class="btn btn-outline-warning btn-sm"
+                                       >
+                                    Reembolsar
+                                </button>
+                            </form></td>
                         </tr>
                     }
                 </tbody>

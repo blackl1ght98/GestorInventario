@@ -153,7 +153,29 @@ namespace GestorInventario.Infraestructure.Repositories
                 throw;
             }
         }
-       
+        public async Task<(DetallePedido Detalle, decimal PrecioProducto)> GetProductoDePedidoAsync(int detallePedidoId)
+        {
+            try
+            {
+                var detalle = await _context.DetallePedidos
+                    .Include(dp => dp.Producto)
+                    .Include(dp => dp.Pedido) // Opcional si necesitas datos del pedido
+                    .FirstOrDefaultAsync(dp => dp.Id == detallePedidoId);
+
+                if (detalle == null)
+                    throw new ArgumentException("Detalle de pedido no encontrado");
+
+                if (detalle.Producto == null)
+                    throw new ArgumentException("Producto no encontrado en el detalle");
+
+                return (detalle, detalle.Producto.Precio);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al obtener el detalle de pedido {detallePedidoId}");
+                throw;
+            }
+        }
         public async Task<(Pedido Pedido, List<DetallePedido> Detalles)> GetPedidoConDetallesAsync(int pedidoId)
         {
             try

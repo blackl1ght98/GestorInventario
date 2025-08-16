@@ -17,7 +17,7 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task UpdatePedidoStatusAsync(int pedidoId, string status, string refundId);
         Task UpdatePlanStatusInDatabase(string planId, string status);
         Task<PlanDetail> ObtenerPlan(string planId);
-       
+        Task<(DetallePedido Detalle, decimal PrecioProducto)> GetProductoDePedidoAsync(int detallePedidoId);
         Task<(Pedido Pedido, List<DetallePedido> Detalles)> GetPedidoConDetallesAsync(int pedidoId);
         Task AddInfoTrackingOrder(int pedidoId, string tracking, string url, string carrier);
         List<BillingCycle> MapBillingCycles(List<BillingCycle> billingCycles);
