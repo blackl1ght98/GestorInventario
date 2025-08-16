@@ -102,6 +102,25 @@ namespace GestorInventario.Infraestructure.Controllers
                 return StatusCode(500, $"Error al realizar el reembolso: {ex.Message}");
             }
         }
+        [HttpPost]
+        public async Task<IActionResult> RefundPartial(RefundRequestModel request)
+        {
+            if (request == null || request.PedidoId <= 0)
+            {
+                return BadRequest("Solicitud inválida.");
+            }
+
+            try
+            {
+                var refund = await _paypalService.RefundPartialAsync(request.PedidoId, request.currency);
+
+                return RedirectToAction("Index", "Pedidos");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error al realizar el reembolso: {ex.Message}");
+            }
+        }
         public async Task<IActionResult> FormularioRembolso()
         {
             return View();

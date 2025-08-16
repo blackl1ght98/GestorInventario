@@ -365,8 +365,7 @@ namespace GestorInventario.Infraestructure.Repositories
                                         detallesSuscripcion.TrackingStatus = firstTracker.Status;
                                     
 
-                                        var trackingLink = firstTracker.Links?.FirstOrDefault(l => l.Rel == "track");
-                                        detallesSuscripcion.TrackingUrl = trackingLink?.Href;
+                                      
                                     }
 
                                     // Campos de captura
