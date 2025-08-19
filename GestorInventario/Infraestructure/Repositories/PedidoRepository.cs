@@ -532,19 +532,7 @@ namespace GestorInventario.Infraestructure.Repositories
 
             return null;
         }
-        private void GenerateBarCode()
-        {
-            // Implementación de la generación de código de barras
-            // Aquí puedes usar una librería como ZXing.Net para generar códigos de barras
-            // Ejemplo:
-            // var barcodeWriter = new BarcodeWriter();
-            // barcodeWriter.Format = BarcodeFormat.CODE_128;
-            // barcodeWriter.Options.Width = 300;
-            // barcodeWriter.Options.Height = 150;
-            // var result = barcodeWriter.Write("Texto del código de barras");
-            // result.Save("ruta/del/archivo.png");
-
-        }
+       
     }
     
 }

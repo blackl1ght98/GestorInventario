@@ -78,21 +78,31 @@ namespace GestorInventario.Infraestructure.Repositories
         // Método para crear un carrito si no existe
         public async Task<Pedido> CrearCarritoUsuario(int userId)
         {
-            var carrito = await ObtenerCarritoUsuario(userId);
-            if (carrito == null)
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                carrito = new Pedido
+                var carrito = await ObtenerCarritoUsuario(userId);
+                if (carrito == null)
                 {
-                    IdUsuario = userId,
-                    NumeroPedido=GenerarNumeroPedido(),
-                    FechaPedido = DateTime.Now,
-                    EstadoPedido = "Carrito",
-                    EsCarrito = true
-                };
-                await _context.AddEntityAsync(carrito);
-             
+                    carrito = new Pedido
+                    {
+                        IdUsuario = userId,
+                        NumeroPedido = GenerarNumeroPedido(),
+                        FechaPedido = DateTime.Now,
+                        EstadoPedido = "Carrito",
+                        EsCarrito = true
+                    };
+                    await _context.AddEntityAsync(carrito);
+                    await transaction.CommitAsync();
+                }
+
+                return carrito;
             }
-            return carrito;
+            catch (Exception ex) {
+                _logger.LogError("Ocurrio un error inesperado", ex);
+                return null;
+            }
+           
         }
 
 
@@ -169,11 +179,20 @@ namespace GestorInventario.Infraestructure.Repositories
         }
         private async Task ConvertirCarritoAPedido(Pedido carrito)
         {
-            carrito.EsCarrito = false;
-            carrito.NumeroPedido = GenerarNumeroPedido();
-            carrito.FechaPedido = DateTime.Now;
-            carrito.EstadoPedido = "En Proceso";
-            await _context.UpdateEntityAsync(carrito);
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try {
+                carrito.EsCarrito = false;
+                carrito.NumeroPedido = GenerarNumeroPedido();
+                carrito.FechaPedido = DateTime.Now;
+                carrito.EstadoPedido = "En Proceso";
+                await _context.UpdateEntityAsync(carrito);
+                await transaction.CommitAsync();
+            } catch (Exception ex) {
+                await transaction.RollbackAsync();
+                _logger.LogError("Ocurrio un error inesperado", ex);
+            
+            }
+           
         }
        
         private async Task<Checkout> PrepararCheckoutParaPagoPayPal(List<DetallePedido> itemsDelCarrito, string moneda, InfoUsuario infoUsuario)
@@ -237,45 +256,69 @@ namespace GestorInventario.Infraestructure.Repositories
                 ? ip.MapToIPv4().ToString()
                 : ip?.ToString();
 
-            var historialPedido = new HistorialPedido
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                IdUsuario = pedido.IdUsuario,
-                Fecha = DateTime.Now,
-                Accion = "Nuevo pedido",
-                Ip = ipString
-            };
-            await _context.AddEntityAsync(historialPedido);
-
-            foreach (var item in itemsDelCarrito)
-            {
-                var detalleHistorialPedido = new DetalleHistorialPedido
+                // Crear el registro del historial del pedido
+                var historialPedido = new HistorialPedido
                 {
-                    HistorialPedidoId = historialPedido.Id,
-                    ProductoId = item.ProductoId,
-                    Cantidad = item.Cantidad ?? 0,
-                    NumeroPedido = pedido.NumeroPedido,
-                    FechaPedido = DateTime.Now,
-                    EstadoPedido = pedido.EstadoPedido
+                    IdUsuario = pedido.IdUsuario,
+                    Fecha = DateTime.UtcNow, 
+                    Accion = "Nuevo pedido",
+                    Ip = ipString
                 };
-                await _context.AddEntityAsync(detalleHistorialPedido);
+                await _context.AddEntityAsync(historialPedido);
+
+                // Agregar los detalles del historial
+                foreach (var item in itemsDelCarrito)
+                {
+                    var detalleHistorialPedido = new DetalleHistorialPedido
+                    {
+                        HistorialPedidoId = historialPedido.Id,
+                        ProductoId = item.ProductoId,
+                        Cantidad = item.Cantidad ?? 0,
+                        NumeroPedido = pedido.NumeroPedido,
+                        FechaPedido = DateTime.UtcNow, 
+                        EstadoPedido = pedido.EstadoPedido
+                    };
+                    await _context.AddEntityAsync(detalleHistorialPedido);
+                }
+
+                // Confirmar todas las operaciones en una sola transacción
+                await transaction.CommitAsync();
+                _logger.LogInformation($"Historial registrado para pedido {pedido.NumeroPedido}, ID {historialPedido.Id}");
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, $"Error al registrar historial para pedido {pedido.NumeroPedido}");
+                throw;
             }
         }
-
         private async Task EliminarCarritosVaciosUsuario(int userId)
         {
-            var carritosActivos = await _context.Pedidos
-                .Include(p => p.DetallePedidos)
-                .Where(p => p.IdUsuario == userId && p.EsCarrito)
-                .ToListAsync();
-            foreach (var carritoActivo in carritosActivos)
-            {
-                if (!carritoActivo.DetallePedidos.Any())
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try {
+                var carritosActivos = await _context.Pedidos
+                   .Include(p => p.DetallePedidos)
+                   .Where(p => p.IdUsuario == userId && p.EsCarrito)
+                   .ToListAsync();
+                foreach (var carritoActivo in carritosActivos)
                 {
-                    _context.Pedidos.Remove(carritoActivo);
-                    _logger.LogInformation($"Carrito vacío eliminado para el usuario {userId}, ID: {carritoActivo.Id}");
+                    if (!carritoActivo.DetallePedidos.Any())
+                    {
+                        _context.Pedidos.Remove(carritoActivo);
+                        _logger.LogInformation($"Carrito vacío eliminado para el usuario {userId}, ID: {carritoActivo.Id}");
+                    }
                 }
-            }
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync( );
+
+            } catch (Exception ex) {
+                _logger.LogError("Ocurrio un error inesperado", ex);
+                await transaction.RollbackAsync();
+           }
+           
         }
 
 

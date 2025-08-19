@@ -80,6 +80,7 @@ namespace GestorInventario.Infraestructure.Repositories
         }
         public async Task<(bool, string)> EditarProveedor(ProveedorViewModel model, int Id )
         {
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 var proveedor = await _context.Proveedores.Include(x=>x.IdUsuarioNavigation).FirstOrDefaultAsync(x => x.Id == Id);
@@ -89,10 +90,12 @@ namespace GestorInventario.Infraestructure.Repositories
                 }
           
                await ActualizarProveedor(proveedor, model);
+                await transaction.CommitAsync();
                 return (true, null);
             }
             catch (DbUpdateConcurrencyException ex)
             {
+                await transaction.RollbackAsync();
                 _logger.LogError("Error de concurrencia", ex);
                 var proveedor = await _context.Proveedores.Include(x => x.IdUsuarioNavigation).FirstOrDefaultAsync(x => x.Id == Id);
                 if (proveedor == null)
@@ -103,11 +106,12 @@ namespace GestorInventario.Infraestructure.Repositories
                 _context.Entry(proveedor).State = EntityState.Modified;
           
                 await ActualizarProveedor(proveedor, model);
+                await transaction.CommitAsync();   
                 return (true, null);
             }
             catch (Exception ex)
             {
-
+                await transaction.RollbackAsync();
                 _logger.LogError("Ocurrio una excepcion no esperada", ex);
                 return (false, null);
             }
@@ -115,11 +119,21 @@ namespace GestorInventario.Infraestructure.Repositories
         }
         private async Task ActualizarProveedor(Proveedore proveedor, ProveedorViewModel model)
         {
-            proveedor.NombreProveedor = model.NombreProveedor;
-            proveedor.Contacto = model.Contacto;
-            proveedor.Direccion = model.Direccion;
-            proveedor.IdUsuario = model.IdUsuario;
-            await _context.UpdateEntityAsync(proveedor);
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                proveedor.NombreProveedor = model.NombreProveedor;
+                proveedor.Contacto = model.Contacto;
+                proveedor.Direccion = model.Direccion;
+                proveedor.IdUsuario = model.IdUsuario;
+                await _context.UpdateEntityAsync(proveedor);
+                await transaction.CommitAsync();
+            }
+            catch (Exception ex) {
+            await transaction.RollbackAsync();
+                _logger.LogError("Ocurrio un error inesperado", ex);
+            }
+          
         }
     }
 }

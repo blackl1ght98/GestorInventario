@@ -1,16 +1,17 @@
 ﻿
-using Microsoft.AspNetCore.Mvc;
-using System.Globalization;
-using GestorInventario.Interfaces.Infraestructure;
-using GestorInventario.Domain.Models;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
-using Microsoft.Extensions.Caching.Memory;
-using GestorInventario.Interfaces.Application;
-using GestorInventario.MetodosExtension;
-using GestorInventario.Infraestructure.Utils;
-using GestorInventario.ViewModels.Paypal;
 using GestorInventario.Application.DTOs.Email;
+using GestorInventario.Application.DTOs.Response_paypal.GET;
+using GestorInventario.Domain.Models;
+using GestorInventario.Infraestructure.Utils;
+using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.MetodosExtension;
+using GestorInventario.ViewModels.Paypal;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using System.Globalization;
+using System.Security.Claims;
 
 namespace GestorInventario.Infraestructure.Controllers
 {
@@ -103,22 +104,22 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
         [HttpPost]
-        public async Task<IActionResult> RefundPartial(RefundRequestModel request)
+        public async Task<IActionResult> RefundPartial([FromBody] RefundRequestModel request)
         {
-            if (request == null || request.PedidoId <= 0)
+            if (request?.PedidoId <= 0)
             {
-                return BadRequest("Solicitud inválida.");
+                return Json(new { success = false, message = "Solicitud inválida." });
             }
 
             try
             {
-                var refund = await _paypalService.RefundPartialAsync(request.PedidoId, request.currency);
-
-                return RedirectToAction("Index", "Pedidos");
+                await _paypalService.RefundPartialAsync(request.PedidoId, request.currency,request.motivo);
+               
+                return Json(new { success = true });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error al realizar el reembolso: {ex.Message}");
+                return Json(new { success = false, message = ex.Message });
             }
         }
         public async Task<IActionResult> FormularioRembolso()
