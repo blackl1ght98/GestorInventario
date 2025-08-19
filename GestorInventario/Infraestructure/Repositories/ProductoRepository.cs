@@ -107,7 +107,7 @@ namespace GestorInventario.Infraestructure.Repositories
         }
         private async Task CrearHistorial(Producto producto)
         {
-         
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 var existeUsuario = _contextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -134,11 +134,11 @@ namespace GestorInventario.Infraestructure.Repositories
                     await _context.AddEntityAsync(detalleHistorialProducto);
                
                 }
-               
+               await transaction.CommitAsync();
             }
             catch (Exception ex)
             {
-
+                await transaction.RollbackAsync();
                 _logger.LogError("Error al crear el historial");
             }
         }
@@ -277,7 +277,7 @@ namespace GestorInventario.Infraestructure.Repositories
         }
         private async Task ActualizarProducto(ProductosViewModel model, Producto producto, int usuarioId)
         {
-           
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 // Crear el historial antes de la actualización
@@ -326,10 +326,11 @@ namespace GestorInventario.Infraestructure.Repositories
                     IdProveedor = producto.IdProveedor
                 };
                 await CrearHistorialProducto(productoActualizado, usuarioId, "Despues-PUT");
-             
+             await transaction.CommitAsync();
             }
             catch (Exception ex)
             {
+                await transaction.RollbackAsync();
                 _logger.LogError("Error con la actualización", ex);
                
             }
@@ -337,7 +338,7 @@ namespace GestorInventario.Infraestructure.Repositories
 
         private async Task CrearHistorialProducto(ProductosViewModel producto, int usuarioId, string accion)
         {
-            
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 var historialProducto = new HistorialProducto
@@ -358,11 +359,11 @@ namespace GestorInventario.Infraestructure.Repositories
                     Precio = producto.Precio,
                 };
                 await _context.AddEntityAsync(detalleHistorialProducto);
-               
+               await transaction.CommitAsync();
             }
             catch (Exception ex)
             {
-
+                await transaction.RollbackAsync();
                 _logger.LogError("Error al crear el historial", ex);
                
             }

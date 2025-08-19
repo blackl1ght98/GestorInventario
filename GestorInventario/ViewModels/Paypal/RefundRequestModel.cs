@@ -4,7 +4,8 @@
     {
         public int PedidoId { get; set; }
         public decimal amount { get; set; }
-        public string currency { get; set; } 
+        public string currency { get; set; }
+        public string motivo { get; set; }
     }
     public class RefundForm
     {

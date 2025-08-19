@@ -42,7 +42,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-#if DEBUG
+                #if DEBUG
                 var claims = User.Claims.Select(c => $"{c.Type}: {c.Value}");
                 var hasPermiso = User.HasClaim("permiso", "VerUsuarios");
                 var isInRole = User.IsInRole("Administrador");
@@ -53,7 +53,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return Forbid();
                 }
-#endif
+                #endif
 
                 var queryable = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerUsuarios());
                 if (!string.IsNullOrEmpty(buscar))

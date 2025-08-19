@@ -139,29 +139,39 @@ namespace GestorInventario.Infraestructure.Repositories
         }
         private async Task ActualizarUsuario(UsuarioEditViewModel userVM, Usuario user)
         {
-            _mapper.Map(userVM, user);
-            
-            if (user.Email != userVM.Email)
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                user.ConfirmacionEmail = false;
-                user.Email = userVM.Email;
-                var (success, error) = await _emailService.SendEmailAsyncRegister(new EmailDto { ToEmail = userVM.Email }, user);
-                if (!success)
+                _mapper.Map(userVM, user);
+
+                if (user.Email != userVM.Email)
                 {
-                    _logger.LogWarning("Error al enviar correo de confirmación: {Error}", error);
-                   
+                    user.ConfirmacionEmail = false;
+                    user.Email = userVM.Email;
+                    var (success, error) = await _emailService.SendEmailAsyncRegister(new EmailDto { ToEmail = userVM.Email }, user);
+                    if (!success)
+                    {
+                        _logger.LogWarning("Error al enviar correo de confirmación: {Error}", error);
+
+                    }
+                    _logger.LogInformation("Correo de confirmación enviado a {Email}", user.Email);
                 }
-                _logger.LogInformation("Correo de confirmación enviado a {Email}", user.Email);
-            }
 
-            // Actualizar IdRol solo si es un administrador, el rol cambió y es válido
-            if (!userVM.EsEdicionPropia && user.IdRol != userVM.IdRol && userVM.IdRol != 0)
-            {
-                user.IdRol = userVM.IdRol;
-            }
+                // Actualizar IdRol solo si es un administrador, el rol cambió y es válido
+                if (!userVM.EsEdicionPropia && user.IdRol != userVM.IdRol && userVM.IdRol != 0)
+                {
+                    user.IdRol = userVM.IdRol;
+                }
 
-            _context.EntityModified(user);
-            await _context.UpdateEntityAsync(user);
+                _context.EntityModified(user);
+                await _context.UpdateEntityAsync(user);
+                await transaction.CommitAsync();
+            }
+            catch (Exception ex) {
+                _logger.LogError("Ocurrio un error inesperado", ex);
+                await transaction.RollbackAsync();
+            }
+           
         }
         public async Task<(bool, string)> EliminarUsuario(int id)
         {
@@ -248,27 +258,37 @@ namespace GestorInventario.Infraestructure.Repositories
        
         public async Task ActualizarRolUsuario(int usuarioId, int rolId)
         {
-          
-            var usuario = await ObtenerUsuarioId(usuarioId); ;
-            if (usuario == null)
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                throw new Exception($"Usuario con Id {usuarioId} no encontrado.");
-            }
+                var usuario = await ObtenerUsuarioId(usuarioId); ;
+                if (usuario == null)
+                {
+                    throw new Exception($"Usuario con Id {usuarioId} no encontrado.");
+                }
 
-        
-            var rol = await _context.Roles.FindAsync(rolId);
-            if (rol == null)
-            {
-                throw new Exception($"Rol con Id {rolId} no encontrado.");
-            }
 
-          
-            usuario.IdRol = rolId; 
-          await  _context.UpdateEntityAsync(usuario);
+                var rol = await _context.Roles.FindAsync(rolId);
+                if (rol == null)
+                {
+                    throw new Exception($"Rol con Id {rolId} no encontrado.");
+                }
+
+
+                usuario.IdRol = rolId;
+                await _context.UpdateEntityAsync(usuario);
+                await transaction.CommitAsync();
+            }
+            catch (Exception ex) {
+                _logger.LogError("Ocurrio un error inesperado", ex);
+                await transaction.RollbackAsync();
+            }
+           
             
         }
         public async Task<(bool, string)> CrearRol(string nombreRol, List<int> permisoIds)
         {
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 
@@ -328,18 +348,20 @@ namespace GestorInventario.Infraestructure.Repositories
                   
                     _logger.LogInformation($"Permisos asignados al rol {nombreRol}: {string.Join(", ", permisoIds)}.");
                 }
-
+                await transaction.CommitAsync();
                 return (true, "Rol creado y permisos asignados con éxito.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error al crear rol {nombreRol}.");
+                await transaction.RollbackAsync();
                 return (false, $"Error al crear el rol: {ex.Message}");
             }
 
         }
         public async Task<(bool, List<int>, string)> CrearPermisos(List<NewPermisoDTO> nuevosPermisos)
         {
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 var nuevosPermisoIds = new List<int>();
@@ -370,14 +392,17 @@ namespace GestorInventario.Infraestructure.Repositories
                     };
                     await _context.AddEntityAsync(permiso);                
                     nuevosPermisoIds.Add(permiso.Id);
+
                     _logger.LogInformation($"Permiso creado: {nuevoPermiso.Nombre} (ID: {permiso.Id}).");
                 }
+                await transaction.CommitAsync();
 
                 return (true, nuevosPermisoIds, "Permisos creados con éxito.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al crear permisos.");
+                await transaction.RollbackAsync();
                 return (false, null, $"Error al crear permisos: {ex.Message}");
             }
         }

@@ -14,6 +14,7 @@
                         <th class="col-2 text-end">Precio Unitario</th>
                         <th class="col-2 text-end">Precio sin IVA</th>
                         <th class="col-2 text-end">Precio con IVA (21%)</th>
+                        <th class="col-2 text-end"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -22,18 +23,34 @@
                         <tr>
                             <td>@detalle.Producto?.NombreProducto</td>
                             <td class="text-center">@detalle.Cantidad</td>
-                            <td class="text-end">@(detalle.Producto?.Precio.ToString())</td>
+                            <td class="text-end">@(detalle.Producto?.Precio.ToString("F2"))</td>
                             <td class="text-end">@((detalle.Cantidad * (detalle.Producto?.Precio ?? 0)).ToString())</td>
                             <td class="text-end">@((detalle.Cantidad * (detalle.Producto?.Precio ?? 0) * 1.21m).ToString())</td>
                             <td class="text-end">
-                                <form asp-controller="Payment" asp-action="RefundPartial" method="post" class="d-inline">
-                                <input type="hidden" name="PedidoId" value="@detalle.Id" />
-                                <input type="hidden" name="Currency" value="@detalle.Producto.Precio" />
-                                <button type="submit" class="btn btn-outline-warning btn-sm"
-                                       >
-                                    Reembolsar
-                                </button>
-                            </form></td>
+                                @if (detalle.Pedido.DetallePedidos.Count == 1)
+                                {
+                                    <button type="button" class="btn btn-outline-warning btn-sm refund-btn"
+                                            data-bs-toggle="modal" data-bs-target="#confirmRefundModal"
+                                            data-pedido-id="@detalle.Id" data-currency="@detalle.Pedido.Currency" hidden>
+                                        Reembolsar
+                                    </button>
+                                }
+                                else
+                                {
+                                    @if (detalle.Rembolsado ?? false)
+                                    {
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" disabled>Reembolsado</button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn btn-outline-warning btn-sm refund-btn"
+                                                data-bs-toggle="modal" data-bs-target="#confirmRefundModal"
+                                                data-pedido-id="@detalle.Id" data-currency="@detalle.Pedido.Currency">
+                                            Reembolsar
+                                        </button>
+                                    }
+                                }
+                            </td>
                         </tr>
                     }
                 </tbody>
@@ -42,6 +59,7 @@
                         <td colspan="3" class="text-end fw-bold">Total:</td>
                         <td class="text-end fw-bold">@(Model.DetallePedidos.Sum(d => d.Cantidad * (d.Producto?.Precio ?? 0)).ToString())</td>
                         <td class="text-end fw-bold">@(Model.DetallePedidos.Sum(d => d.Cantidad * (d.Producto?.Precio ?? 0) * 1.21m).ToString())</td>
+                        <td></td>
                     </tr>
                 </tfoot>
             </table>
@@ -49,3 +67,125 @@
     </div>
 </div>
 
+<!-- Modal de Confirmación -->
+<div class="modal fade" id="confirmRefundModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Reembolso Parcial</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Confirmas el reembolso parcial para este producto?</p>
+                <div class="mb-3">
+                    <label for="refundReason" class="form-label fw-bold">Motivo del reembolso <span class="text-danger">*</span></label>
+                    <select class="form-select" id="refundReason" required aria-describedby="refundReasonHelp">
+                        <option value="" disabled selected>Selecciona un motivo</option>
+                        <option value="Producto defectuoso o dañado">Producto defectuoso o dañado</option>
+                        <option value="Error en el envío (producto incorrecto)">Error en el envío (producto incorrecto)</option>
+                        <option value="Artículo no entregado">Artículo no entregado</option>
+                        <option value="Compensación por demora">Compensación por demora</option>
+                        <option value="Ajuste por error de precio">Ajuste por error de precio</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                    <div id="refundReasonHelp" class="form-text">Selecciona un motivo o describe uno específico si eliges "Otro".</div>
+                    <div id="otherReasonContainer" class="mt-2" style="display: none;">
+                        <label for="otherReason" class="form-label">Especifica el motivo <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="otherReason" rows="3" placeholder="Describe el motivo del reembolso (ejemplo: 'Producto devuelto por insatisfacción')" maxlength="255"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmRefundBtn">Confirmar Reembolso</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const modal = new bootstrap.Modal(document.getElementById('confirmRefundModal'));
+            const refundReasonSelect = document.getElementById('refundReason');
+            const otherReasonContainer = document.getElementById('otherReasonContainer');
+            const otherReasonInput = document.getElementById('otherReason');
+            let currentPedidoId, currentCurrency, currentButton;
+
+            // Mostrar/ocultar campo "Otro" según selección
+            refundReasonSelect.addEventListener('change', function () {
+                if (this.value === 'Otro') {
+                    otherReasonContainer.style.display = 'block';
+                    otherReasonInput.setAttribute('required', 'required');
+                } else {
+                    otherReasonContainer.style.display = 'none';
+                    otherReasonInput.removeAttribute('required');
+                    otherReasonInput.value = '';
+                }
+            });
+
+            // Evento para todos los botones de reembolso
+            document.querySelectorAll('.refund-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    currentPedidoId = this.dataset.pedidoId;
+                    currentCurrency = this.dataset.currency;
+                    currentButton = this;
+                    // Reiniciar el formulario al abrir el modal
+                    refundReasonSelect.value = '';
+                    otherReasonContainer.style.display = 'none';
+                    otherReasonInput.value = '';
+                    otherReasonInput.removeAttribute('required');
+                });
+            });
+
+            // Confirmación del modal
+            document.getElementById('confirmRefundBtn').addEventListener('click', async function () {
+                const refundReason = refundReasonSelect.value;
+                const otherReason = otherReasonInput.value.trim();
+
+                // Validar motivo
+                if (!refundReason) {
+                    alert('Por favor, selecciona un motivo para el reembolso.');
+                    return;
+                }
+                if (refundReason === 'Otro' && !otherReason) {
+                    alert('Por favor, especifica el motivo en el campo de texto.');
+                    otherReasonInput.focus();
+                    return;
+                }
+
+                // Combinar motivo (usar el texto de "Otro" si aplica)
+                const finalReason = refundReason === 'Otro' ? otherReason : refundReason;
+
+                try {
+                    const response = await fetch('/Payment/RefundPartial', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            PedidoId: currentPedidoId,
+                            currency: currentCurrency,
+                            motivo: finalReason
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        modal.hide();
+                        currentButton.disabled = true;
+                        currentButton.classList.replace('btn-outline-warning', 'btn-outline-secondary');
+                        currentButton.textContent = 'Reembolsado';
+                        alert('Reembolso procesado con éxito.');
+                    } else {
+                        throw new Error(result.message);
+                    }
+                } catch (error) {
+                    modal.hide();
+                    alert(`Error al procesar el reembolso: ${error.message}`);
+                }
+            });
+        });
+    </script>
+}

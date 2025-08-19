@@ -27,5 +27,6 @@ namespace GestorInventario.Interfaces.Infraestructure
         Taxes MapTaxes(Taxes taxes);
         List<string> GetCategoriesFromEnum();
 
+        Task RegistrarReembolsoParcialAsync(int pedidoId, int detalleId, string status, string refundId, decimal montoReembolsado, string motivo, string estadoVenta);
     }
 }

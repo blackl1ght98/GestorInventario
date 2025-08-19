@@ -117,26 +117,39 @@ namespace GestorInventario.Infraestructure.Repositories
         }
         private async Task<(bool valido, string mensaje, Usuario usuario)> ValidarTokenCambioPass(RestoresPasswordDto cambio)
         {
-            var usuario = await ObtenerPorId(cambio.UserId);
-            if (usuario == null)
-                return (false, "Usuario no encontrado", null);
-
-            if (usuario.EnlaceCambioPass != cambio.Token)
-                return (false, "Token no válido", null);
-
-            if (usuario.FechaEnlaceCambioPass < DateTime.Now || usuario.FechaExpiracionContrasenaTemporal < DateTime.Now)
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                usuario.FechaEnlaceCambioPass = null;
-                usuario.FechaExpiracionContrasenaTemporal = null;
-                usuario.TemporaryPassword = null;
-                await _context.SaveChangesAsync();
-                return (false, "El enlace y contraseña temporal han expirado. Solicite una nueva.", null);
-            }
+                var usuario = await ObtenerPorId(cambio.UserId);
+                if (usuario == null)
+                    return (false, "Usuario no encontrado", null);
 
-            return (true, null, usuario);
+                if (usuario.EnlaceCambioPass != cambio.Token)
+                    return (false, "Token no válido", null);
+
+                if (usuario.FechaEnlaceCambioPass < DateTime.Now || usuario.FechaExpiracionContrasenaTemporal < DateTime.Now)
+                {
+                    usuario.FechaEnlaceCambioPass = null;
+                    usuario.FechaExpiracionContrasenaTemporal = null;
+                    usuario.TemporaryPassword = null;
+                    await _context.SaveChangesAsync();
+                   
+                    return (false, "El enlace y contraseña temporal han expirado. Solicite una nueva.", null);
+                }
+                await transaction.CommitAsync();
+                return (true, null, usuario);
+            }
+            catch (Exception ex) {
+            await transaction.RollbackAsync();
+            return (false,"Ocurrio un error inesperado", null);
+            
+            
+            }
+           
         }
         public async Task EliminarCarritoActivo()
         {
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 var usuarioId = _utilityClass.ObtenerUsuarioIdActual();
@@ -154,11 +167,12 @@ namespace GestorInventario.Infraestructure.Repositories
                 }
 
                 await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al eliminar carritos activos para el usuario {UsuarioId}", _utilityClass.ObtenerUsuarioIdActual());
-                throw; // O manejar el error según la lógica de tu aplicación
+               await transaction.RollbackAsync();
             }
         }
     }
