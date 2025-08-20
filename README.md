@@ -288,7 +288,7 @@ volumes:
   appdata:
     driver: local
 ````
-**¿Como arrancarlo en docker?
+**¿Como arrancarlo en docker?**
 Para arrancar este proyecto en docker nos saldremos de visual studio y abriremos la terminal en la carpeta raiz y pondremos el comando 
 ````sh
 docker-compose up -d --build
