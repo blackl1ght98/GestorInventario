@@ -8,7 +8,8 @@ namespace GestorInventario.Interfaces.Infraestructure
     {
         Task<List<SubscriptionDetail>> ObtenerSuscriptcionesActivas(string planId);
         Task<List<UserSubscription>> SusbcripcionesUsuario(string planId);
-        Task<SubscriptionDetail> ObtenerSubscripcion(string subscription_id);
+        Task<IQueryable<SubscriptionDetail>> ObtenerSubscripciones();
+        Task<IQueryable<UserSubscription>> ObtenerSubscripcionesUsuario(int usuarioId);
         Task SavePlanPriceUpdateAsync(string planId, UpdatePricingPlan planPriceUpdate);
         Task SavePlanDetailsAsync(string planId, PaypalPlanDetailsDto planDetails);
         Task UpdatePlanStatusAsync(string planId, string status);
@@ -20,13 +21,13 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<(DetallePedido Detalle, decimal PrecioProducto)> GetProductoDePedidoAsync(int detallePedidoId);
         Task<(Pedido Pedido, List<DetallePedido> Detalles)> GetPedidoConDetallesAsync(int pedidoId);
         Task AddInfoTrackingOrder(int pedidoId, string tracking, string url, string carrier);
-        List<BillingCycle> MapBillingCycles(List<BillingCycle> billingCycles);
-        Frequency MapFrequency(Frequency frequency);
-        PricingScheme MapPricingScheme(PricingScheme pricingScheme);
-        Money MapMoney(Money money);
-        Taxes MapTaxes(Taxes taxes);
         List<string> GetCategoriesFromEnum();
-
+        List<BillingCycle> MapBillingCycles(List<BillingCycle> billingCycles);
+        Taxes MapTaxes(Taxes taxes);
         Task RegistrarReembolsoParcialAsync(int pedidoId, int detalleId, string status, string refundId, decimal montoReembolsado, string motivo, string estadoVenta);
+        Task SaveOrUpdateSubscriptionDetailsAsync(SubscriptionDetail subscriptionDetails);
+        Task SaveUserSubscriptionAsync(int userId, string subscriptionId, string subscriberName, string planId);
+        Task<SubscriptionDetail> CreateSubscriptionDetailAsync(dynamic subscriptionDetails, string planId, IPaypalService paypalService);
+        Task UpdateSubscriptionStatusAsync(string subscriptionId, string status);
     }
 }
