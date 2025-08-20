@@ -179,16 +179,16 @@ namespace GestorInventario.Infraestructure.Repositories
         }
         private async Task ConvertirCarritoAPedido(Pedido carrito)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
+           
             try {
                 carrito.EsCarrito = false;
                 carrito.NumeroPedido = GenerarNumeroPedido();
                 carrito.FechaPedido = DateTime.Now;
                 carrito.EstadoPedido = "En Proceso";
                 await _context.UpdateEntityAsync(carrito);
-                await transaction.CommitAsync();
+             
             } catch (Exception ex) {
-                await transaction.RollbackAsync();
+                
                 _logger.LogError("Ocurrio un error inesperado", ex);
             
             }
@@ -256,7 +256,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 ? ip.MapToIPv4().ToString()
                 : ip?.ToString();
 
-            using var transaction = await _context.Database.BeginTransactionAsync();
+           
             try
             {
                 // Crear el registro del historial del pedido
@@ -284,20 +284,19 @@ namespace GestorInventario.Infraestructure.Repositories
                     await _context.AddEntityAsync(detalleHistorialPedido);
                 }
 
-                // Confirmar todas las operaciones en una sola transacción
-                await transaction.CommitAsync();
+               
                 _logger.LogInformation($"Historial registrado para pedido {pedido.NumeroPedido}, ID {historialPedido.Id}");
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
+               
                 _logger.LogError(ex, $"Error al registrar historial para pedido {pedido.NumeroPedido}");
                 throw;
             }
         }
         private async Task EliminarCarritosVaciosUsuario(int userId)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
+          
             try {
                 var carritosActivos = await _context.Pedidos
                    .Include(p => p.DetallePedidos)
@@ -312,11 +311,11 @@ namespace GestorInventario.Infraestructure.Repositories
                     }
                 }
                 await _context.SaveChangesAsync();
-                await transaction.CommitAsync( );
+               
 
             } catch (Exception ex) {
                 _logger.LogError("Ocurrio un error inesperado", ex);
-                await transaction.RollbackAsync();
+               
            }
            
         }
