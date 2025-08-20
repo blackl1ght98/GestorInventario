@@ -26,15 +26,17 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly GenerarPaginas _generarPaginas;      
         private readonly IMapper _mapper;
         private readonly PolicyExecutor _policyExecutor;
+        private readonly UtilityClass _utilityClass;
         public AdminController(IConfirmEmailService confirmEmailService, ILogger<AdminController> logger, IAdminRepository adminRepository,  GenerarPaginas generarPaginas, 
-        IMapper map, PolicyExecutor executor)
+        IMapper map, PolicyExecutor executor, UtilityClass utility)
         {           
             _confirmEmailService = confirmEmailService;
             _logger = logger;
             _adminrepository = adminRepository;
             _generarPaginas = generarPaginas;            
             _mapper= map;
-            _policyExecutor = executor;          
+            _policyExecutor = executor;   
+            _utilityClass = utility;
         }
 
         [Authorize(Roles = "Administrador", Policy = "VerUsuarios")]
@@ -176,15 +178,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (!int.TryParse(userIdClaim, out int usuarioActualId))
-                {
-                    TempData["ErrorMessage"] = "ID de usuario inválido.";
-                    return BadRequest("ID de usuario inválido.");
-                }
+                var userIdClaim = _utilityClass.ObtenerUsuarioIdActual();
                 // Si el id recibido es 0, significa que se quiere editar el usuario actual (obtenido desde los claims),
                 // si no, se edita el usuario cuyo id se pasó en el parámetro.
-                int usuarioAEditarId = id == 0 ? usuarioActualId : id;
+                int usuarioAEditarId = id == 0 ? userIdClaim : id;
 
                 var user = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerPorId(usuarioAEditarId));
                 if (user == null)
@@ -194,7 +191,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
                 var viewModel = _mapper.Map<UsuarioEditViewModel>(user);
-                viewModel.EsEdicionPropia = usuarioAEditarId == usuarioActualId;
+                viewModel.EsEdicionPropia = usuarioAEditarId == userIdClaim;
 
                 if (!viewModel.EsEdicionPropia)
                 {

@@ -17,8 +17,9 @@ namespace GestorInventario.Infraestructure.Repositories
         private readonly IGestorArchivos _gestorArchivos;
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly ILogger<ProductoRepository> _logger;   
-       private readonly IBarCodeService _barCodeService;
+        private readonly IBarCodeService _barCodeService;
         private readonly ICarritoRepository _carritoRepository;
+      
         public ProductoRepository(GestorInventarioContext context, IGestorArchivos gestorArchivos, IHttpContextAccessor contextAccessor,
         ILogger<ProductoRepository> logger,  ICarritoRepository carrito, IBarCodeService code)
         {
@@ -90,10 +91,10 @@ namespace GestorInventario.Infraestructure.Repositories
 
                 // Guardar producto
                 _logger.LogDebug("Agregando producto a la base de datos: {NombreProducto}", producto.NombreProducto);
-                await _context.AddEntityAsync(producto); // Corregido: Usar Productos.AddAsync
+                await _context.AddEntityAsync(producto);
                 await CrearHistorial(producto);
               
-                await transaction.CommitAsync();
+            await transaction.CommitAsync();
 
                 _logger.LogInformation("Producto creado exitosamente: {NombreProducto}, UpcCode: {UpcCode}", producto.NombreProducto, producto.UpcCode);
                 return producto;
@@ -101,13 +102,13 @@ namespace GestorInventario.Infraestructure.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al crear el producto: {NombreProducto}", model.NombreProducto);
-                await transaction.RollbackAsync();
+              await transaction.RollbackAsync();
                 throw; // Relanzar excepción en lugar de devolver null
             }
         }
         private async Task CrearHistorial(Producto producto)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
+           
             try
             {
                 var existeUsuario = _contextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -134,49 +135,61 @@ namespace GestorInventario.Infraestructure.Repositories
                     await _context.AddEntityAsync(detalleHistorialProducto);
                
                 }
-               await transaction.CommitAsync();
+            
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
+             
                 _logger.LogError("Error al crear el historial");
             }
         }
          
         public async Task<List<Proveedore>> ObtenerProveedores()=>await _context.Proveedores.ToListAsync();      
-        public async Task<Producto> EliminarProductoObtencion(int id)=>await _context.Productos.Include(p => p.IdProveedorNavigation).FirstOrDefaultAsync(m => m.Id == id);           
+        public async Task<Producto> EliminarProductoObtencion(int id)=>await _context.Productos.Include(p => p.IdProveedorNavigation).FirstOrDefaultAsync(m => m.Id == id);
         public async Task<(bool, string)> EliminarProducto(int Id)
         {
-            using var transaction=  await _context.Database.BeginTransactionAsync();
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var producto = await _context.Productos.Include(p => p.DetallePedidos).ThenInclude(dp => dp.Pedido).Include(p => p.IdProveedorNavigation).FirstOrDefaultAsync(m => m.Id == Id);
+                var producto = await _context.Productos
+                    .Include(p => p.DetallePedidos)
+                    .ThenInclude(dp => dp.Pedido)
+                    .Include(p => p.IdProveedorNavigation)
+                    .FirstOrDefaultAsync(m => m.Id == Id);
+
                 if (producto == null)
                 {
                     return (false, "No hay productos para eliminar");
                 }
-               
-               await _context.DeleteEntityAsync(producto);
-               await transaction.CommitAsync();
-               return (true, null);
 
+                if (!string.IsNullOrEmpty(producto.Imagen))
+                {
+                    // Extraer el nombre del archivo de la URL
+                    string fileName = Path.GetFileName(producto.Imagen); 
+                    await _gestorArchivos.BorrarArchivo(fileName, "imagenes");
+                }
+
+                await _context.DeleteEntityAsync(producto);
+                await _context.SaveChangesAsync();
+               
+                await transaction.CommitAsync();
+                _logger.LogInformation($"Producto con ID {Id} eliminado correctamente.");
+                return (true, null);
             }
             catch (Exception ex)
             {
-
-                _logger.LogError("Error al eliminar el producto", ex);
-                await transaction.RollbackAsync();
-                return (false,"Ocurrio un error inesperado");
+               await transaction.RollbackAsync();
+                _logger.LogError(ex, $"Error al eliminar el producto con ID {Id}");
+                return (false, "Ocurrió un error inesperado");
             }
-              
-        }      
+        }
         public async Task<Producto> ObtenerPorId(int id)=>await _context.Productos.FirstOrDefaultAsync(x => x.Id == id);
         public async Task<IQueryable<HistorialProducto>> ObtenerTodoHistorial()=>from p in _context.HistorialProductos.Include(x => x.DetalleHistorialProductos) select p;      
         public async Task<HistorialProducto> HistorialProductoPorId(int id)=>await _context.HistorialProductos.Include(hp => hp.DetalleHistorialProductos).FirstOrDefaultAsync(hp => hp.Id == id);     
         public async Task<HistorialProducto> EliminarHistorialPorId(int id)=>await _context.HistorialProductos.Include(x => x.DetalleHistorialProductos).FirstOrDefaultAsync(x => x.Id == id);               
         public async Task<(bool, string)> EliminarHistorialPorIdDefinitivo(int Id)
         {
-            using var transaction= await _context.Database.BeginTransactionAsync();
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 var historialProducto = await _context.HistorialProductos.Include(x => x.DetalleHistorialProductos).FirstOrDefaultAsync(x => x.Id == Id);
@@ -189,21 +202,21 @@ namespace GestorInventario.Infraestructure.Repositories
                 {
                     return (false, "No se puede eliminar, el historial no existe");
                 }
-                await transaction.CommitAsync();
+              await transaction.CommitAsync();
                 return (true, null);
             }
             catch (Exception ex)
             {
 
                 _logger.LogError("Error al eliminar el historial del producto", ex);
-                await transaction.RollbackAsync();
+              await transaction.RollbackAsync();
                 return (false, "Ocurrio un error inesperado");
             }
            
         }
         public async Task<List<HistorialProducto>> EliminarTodoHistorial()
         {
-            using var transaction=await _context.Database.BeginTransactionAsync();
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 var historialProductos = await _context.HistorialProductos.Include(x => x.DetalleHistorialProductos).ToListAsync();
@@ -224,7 +237,7 @@ namespace GestorInventario.Infraestructure.Repositories
             {
 
                 _logger.LogError("Error al eliminar el historial del producto", ex);
-                await transaction.RollbackAsync();
+               await transaction.RollbackAsync();
                 return null;
             }
            
@@ -232,7 +245,7 @@ namespace GestorInventario.Infraestructure.Repositories
         }
         public async Task<(bool, string)> EditarProducto(ProductosViewModel model, int usuarioId)
         {
-            using var transaction= await _context.Database.BeginTransactionAsync();
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 if (model == null || model.Id <= 0 || string.IsNullOrEmpty(model.NombreProducto))
@@ -245,42 +258,8 @@ namespace GestorInventario.Infraestructure.Repositories
                 {
                     return (false, "Producto no encontrado");
                 }
-              
-                await ActualizarProducto(model, producto, usuarioId);
-                await transaction.CommitAsync();
-                return (true, null);
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                await transaction.RollbackAsync();
-                _logger.LogCritical("Error de concurrencia en la base de datos", ex);
-                var producto = await _context.Productos.FirstOrDefaultAsync(x => x.Id == model.Id);
-                if (producto == null)
-                {
-                    return (false, "Producto no encontrado");
-                }
-                _context.ReloadEntity(producto);
-                _context.EntityModified(producto);
 
-              
-                await ActualizarProducto(model, producto, usuarioId);
-                await transaction.CommitAsync();
-                return (true, null);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Error con la ectualizacion", ex);
-                await transaction.RollbackAsync();
-                return (false, "Error al actualizar");
-            }
-
-        }
-        private async Task ActualizarProducto(ProductosViewModel model, Producto producto, int usuarioId)
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                // Crear el historial antes de la actualización
+                // Crear historial antes de la actualización
                 var productoOriginal = new ProductosViewModel
                 {
                     Id = producto.Id,
@@ -291,11 +270,11 @@ namespace GestorInventario.Infraestructure.Repositories
                     Imagen = producto.Imagen,
                     IdProveedor = producto.IdProveedor
                 };
-                await CrearHistorialProducto(productoOriginal, usuarioId, "Antes-PUT");
+                await CrearHistorialProductoAsync(productoOriginal, usuarioId, "Antes-PUT");
 
                 // Actualizar los datos del producto
                 producto.NombreProducto = model.NombreProducto;
-                producto.FechaModificacion = DateTime.Now;
+                producto.FechaModificacion = DateTime.UtcNow;
                 producto.Descripcion = model.Descripcion;
                 producto.Cantidad = model.Cantidad;
                 producto.Precio = model.Precio;
@@ -303,18 +282,23 @@ namespace GestorInventario.Infraestructure.Repositories
 
                 if (model.Imagen1 != null)
                 {
-                    using (var memoryStream = new MemoryStream())
-                    {
-                        await model.Imagen1.CopyToAsync(memoryStream);
-                        var contenido = memoryStream.ToArray();
-                        var extension = Path.GetExtension(model.Imagen1.FileName);
+                    using var memoryStream = new MemoryStream();
+                    await model.Imagen1.CopyToAsync(memoryStream);
+                    var contenido = memoryStream.ToArray();
+                    var extension = Path.GetExtension(model.Imagen1.FileName);
 
-                        // Borrar la imagen antigua y guardar la nueva
-                        await _gestorArchivos.BorrarArchivo(producto.Imagen, "imagenes");
-                        producto.Imagen = await _gestorArchivos.GuardarArchivo(contenido, extension, "imagenes");
+                    // Borrar la imagen antigua y guardar la nueva
+                    if (!string.IsNullOrEmpty(producto.Imagen))
+                    {
+                        string fileName = Path.GetFileName(producto.Imagen);
+                        await _gestorArchivos.BorrarArchivo(fileName, "imagenes");
                     }
-                }             
-                await _context.UpdateEntityAsync(producto);            
+                    producto.Imagen = await _gestorArchivos.GuardarArchivo(contenido, extension, "imagenes");
+                }
+
+                await _context.UpdateEntityAsync(producto);
+
+                // Crear historial después de la actualización
                 var productoActualizado = new ProductosViewModel
                 {
                     Id = producto.Id,
@@ -325,30 +309,116 @@ namespace GestorInventario.Infraestructure.Repositories
                     Imagen = producto.Imagen,
                     IdProveedor = producto.IdProveedor
                 };
-                await CrearHistorialProducto(productoActualizado, usuarioId, "Despues-PUT");
-             await transaction.CommitAsync();
+                await CrearHistorialProductoAsync(productoActualizado, usuarioId, "Despues-PUT");
+
+                // Guardar todos los cambios
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+                _logger.LogInformation($"Producto con ID {model.Id} actualizado correctamente por el usuario {usuarioId}.");
+                return (true, null);
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogWarning(ex, $"Error de concurrencia al actualizar el producto con ID {model.Id}");
+
+                // Reintentar la actualización
+                var producto = await _context.Productos.FirstOrDefaultAsync(x => x.Id == model.Id);
+                if (producto == null)
+                {
+                    return (false, "Producto no encontrado");
+                }
+
+                _context.Entry(producto).Reload();
+
+                // Crear historial antes del reintento
+                var productoOriginal = new ProductosViewModel
+                {
+                    Id = producto.Id,
+                    NombreProducto = producto.NombreProducto,
+                    Descripcion = producto.Descripcion,
+                    Cantidad = producto.Cantidad,
+                    Precio = producto.Precio,
+                    Imagen = producto.Imagen,
+                    IdProveedor = producto.IdProveedor
+                };
+                await CrearHistorialProductoAsync(productoOriginal, usuarioId, "Antes-PUT (Reintento)");
+
+                // Actualizar nuevamente
+                producto.NombreProducto = model.NombreProducto;
+                producto.FechaModificacion = DateTime.UtcNow;
+                producto.Descripcion = model.Descripcion;
+                producto.Cantidad = model.Cantidad;
+                producto.Precio = model.Precio;
+                producto.IdProveedor = model.IdProveedor;
+
+                if (model.Imagen1 != null)
+                {
+                    using var memoryStream = new MemoryStream();
+                    await model.Imagen1.CopyToAsync(memoryStream);
+                    var contenido = memoryStream.ToArray();
+                    var extension = Path.GetExtension(model.Imagen1.FileName);
+
+                    if (!string.IsNullOrEmpty(producto.Imagen))
+                    {
+                        string fileName = Path.GetFileName(producto.Imagen);
+                        await _gestorArchivos.BorrarArchivo(fileName, "imagenes");
+                    }
+                    producto.Imagen = await _gestorArchivos.GuardarArchivo(contenido, extension, "imagenes");
+                }
+
+                await _context.UpdateEntityAsync(producto);
+
+                // Crear historial después del reintento
+                var productoActualizado = new ProductosViewModel
+                {
+                    Id = producto.Id,
+                    NombreProducto = producto.NombreProducto,
+                    Descripcion = producto.Descripcion,
+                    Cantidad = producto.Cantidad,
+                    Precio = producto.Precio,
+                    Imagen = producto.Imagen,
+                    IdProveedor = producto.IdProveedor
+                };
+                await CrearHistorialProductoAsync(productoActualizado, usuarioId, "Despues-PUT (Reintento)");
+
+                using var retryTransaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    await _context.SaveChangesAsync();
+                    await retryTransaction.CommitAsync();
+                    _logger.LogInformation($"Producto con ID {model.Id} actualizado tras reintento de concurrencia.");
+                    return (true, null);
+                }
+                catch (Exception retryEx)
+                {
+                    await retryTransaction.RollbackAsync();
+                    _logger.LogError(retryEx, $"Error al reintentar actualizar el producto con ID {model.Id}");
+                    return (false, "Error al actualizar tras reintento de concurrencia");
+                }
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                _logger.LogError("Error con la actualización", ex);
-               
+                _logger.LogError(ex, $"Error al actualizar el producto con ID {model.Id}");
+                return (false, "Error al actualizar");
             }
         }
 
-        private async Task CrearHistorialProducto(ProductosViewModel producto, int usuarioId, string accion)
+        private async Task CrearHistorialProductoAsync(ProductosViewModel producto, int usuarioId, string accion)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 var historialProducto = new HistorialProducto
                 {
-                    Fecha = DateTime.Now,
+                    Fecha = DateTime.UtcNow,
                     UsuarioId = usuarioId,
                     Accion = accion,
-                    Ip = _contextAccessor.HttpContext.Connection.RemoteIpAddress?.ToString()
+                    Ip = _contextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString() ?? "Desconocido"
                 };
                 await _context.AddEntityAsync(historialProducto);
+                await _context.SaveChangesAsync(); // Guardar para generar el ID
 
                 var detalleHistorialProducto = new DetalleHistorialProducto
                 {
@@ -356,20 +426,17 @@ namespace GestorInventario.Infraestructure.Repositories
                     Cantidad = producto.Cantidad,
                     NombreProducto = producto.NombreProducto,
                     Descripcion = producto.Descripcion,
-                    Precio = producto.Precio,
+                    Precio = producto.Precio
                 };
                 await _context.AddEntityAsync(detalleHistorialProducto);
-               await transaction.CommitAsync();
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
-                _logger.LogError("Error al crear el historial", ex);
-               
+                _logger.LogError(ex, $"Error al crear el historial para el producto ID {producto.Id}");
+                throw; // Relanzar para que la transacción externa lo maneje
             }
-           
         }
-       
+
         public async Task<(bool, string)> AgregarProductoAlCarrito(int idProducto, int cantidad, int usuarioId)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();

@@ -6,6 +6,7 @@ using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using System.Globalization;
 using System.Security.Policy;
 using System.Threading;
@@ -41,14 +42,19 @@ namespace GestorInventario.Infraestructure.Repositories
             return await _context.UserSubscriptions
                 .Where(us => us.PaypalPlanId == planId)
                 .ToListAsync();
-        }
-
-        public async Task<SubscriptionDetail> ObtenerSubscripcion(string subscription_id)
+        }  
+        public async Task<IQueryable<SubscriptionDetail>> ObtenerSubscripciones()
         {
-            return await _context.SubscriptionDetails
-                .FirstOrDefaultAsync(x => x.SubscriptionId == subscription_id);
+            var queryable = from p in _context.SubscriptionDetails select p;
+            return queryable;
         }
-       
+        public async Task<IQueryable<UserSubscription>> ObtenerSubscripcionesUsuario(int usuarioId)
+        {
+            var queryable = _context.UserSubscriptions
+                   .Include(x => x.User)
+                   .Where(x => x.UserId == usuarioId);
+            return queryable;
+        }
         public async Task SavePlanDetailsAsync(string planId, PaypalPlanDetailsDto planDetails)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -426,7 +432,7 @@ namespace GestorInventario.Infraestructure.Repositories
             }).ToList();
         }
 
-        public Frequency MapFrequency(Frequency frequency)
+        private Frequency MapFrequency(Frequency frequency)
         {
             if (frequency == null)
                 return null;
@@ -437,8 +443,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 IntervalCount = frequency.IntervalCount
             };
         }
-
-        public PricingScheme MapPricingScheme(PricingScheme pricingScheme)
+        private PricingScheme MapPricingScheme(PricingScheme pricingScheme)
         {
             if (pricingScheme == null)
                 return null;
@@ -452,7 +457,7 @@ namespace GestorInventario.Infraestructure.Repositories
             };
         }
 
-        public Money MapMoney(Money money)
+        private Money MapMoney(Money money)
         {
             if (money == null)
                 return null;
@@ -480,6 +485,262 @@ namespace GestorInventario.Infraestructure.Repositories
         {
             return Enum.GetNames(typeof(Category)).ToList();
         }
+        public async Task<SubscriptionDetail> CreateSubscriptionDetailAsync(dynamic subscriptionDetails, string planId, IPaypalService paypalService)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
 
+                // Check if plan exists
+                var plan = await ObtenerPlan(planId);
+                if (plan == null)
+                {
+                    var planResponse = await paypalService.ObtenerDetallesPlan(planId);
+                    var planDetails = new PaypalPlanDetailsDto
+                    {
+                        Id = planResponse.Id,
+                        ProductId = planResponse.ProductId,
+                        Name = planResponse.Name,
+                        Description = planResponse.Description,
+                        Status = planResponse.Status,
+                        PaymentPreferences = new PaymentPreferencesDto
+                        {
+                            AutoBillOutstanding = planResponse.PaymentPreferences.AutoBillOutstanding,
+                            SetupFee = planResponse.PaymentPreferences.SetupFee != null
+                                ? new FixedPriceDto
+                                {
+                                    Value = planResponse.PaymentPreferences.SetupFee.Value.ToString(CultureInfo.InvariantCulture),
+                                    CurrencyCode = planResponse.PaymentPreferences.SetupFee.CurrencyCode
+                                }
+                                : null,
+                            SetupFeeFailureAction = planResponse.PaymentPreferences.SetupFeeFailureAction,
+                            PaymentFailureThreshold = planResponse.PaymentPreferences.PaymentFailureThreshold
+                        },
+                        Taxes = planResponse.Taxes != null
+                            ? new TaxesDto
+                            {
+                                Percentage = planResponse.Taxes.Percentage.ToString(CultureInfo.InvariantCulture),
+                                Inclusive = planResponse.Taxes.Inclusive
+                            }
+                            : null,
+                        BillingCycles = planResponse.BillingCycles.Select(b => new BillingCycleDto
+                        {
+                            TenureType = b.TenureType,
+                            Sequence = b.Sequence,
+                            Frequency = new FrequencyDto
+                            {
+                                IntervalUnit = b.Frequency.IntervalUnit,
+                                IntervalCount = b.Frequency.IntervalCount
+                            },
+                            TotalCycles = b.TotalCycles,
+                            PricingScheme = new PricingSchemeDto
+                            {
+                                FixedPrice = b.PricingScheme.FixedPrice != null
+                                    ? new FixedPriceDto
+                                    {
+                                        Value = b.PricingScheme.FixedPrice.Value,
+                                        CurrencyCode = b.PricingScheme.FixedPrice.CurrencyCode
+                                    }
+                                    : null
+                            }
+                        }).ToArray()
+                    };
+
+                    await SavePlanDetailsAsync(planId, planDetails);
+                    plan = await ObtenerPlan(planId);
+                }
+
+                var minSqlDate = new DateTime(1753, 1, 1);
+
+                var detallesSuscripcion = new SubscriptionDetail
+                {
+                    SubscriptionId = subscriptionDetails.Id ?? string.Empty,
+                    PlanId = subscriptionDetails.PlanId ?? string.Empty,
+                    Status = subscriptionDetails.Status ?? string.Empty,
+                    StartTime = subscriptionDetails.StartTime ?? minSqlDate,
+                    StatusUpdateTime = subscriptionDetails.StatusUpdateTime ?? minSqlDate,
+                    SubscriberName = $"{subscriptionDetails.Subscriber?.Name?.GivenName ?? string.Empty} {subscriptionDetails.Subscriber?.Name?.Surname ?? string.Empty}".Trim(),
+                    SubscriberEmail = subscriptionDetails.Subscriber?.EmailAddress ?? string.Empty,
+                    PayerId = subscriptionDetails.Subscriber?.PayerId ?? string.Empty,
+                    OutstandingBalance = subscriptionDetails.BillingInfo?.OutstandingBalance?.Value != null
+                        ? Convert.ToDecimal(subscriptionDetails.BillingInfo.OutstandingBalance.Value)
+                        : 0,
+                    OutstandingCurrency = subscriptionDetails.BillingInfo?.OutstandingBalance?.CurrencyCode ?? string.Empty,
+                    NextBillingTime = subscriptionDetails.BillingInfo?.NextBillingTime ?? minSqlDate,
+                    LastPaymentTime = subscriptionDetails.BillingInfo?.LastPayment?.Time ?? minSqlDate,
+                    LastPaymentAmount = subscriptionDetails.BillingInfo?.LastPayment?.Amount?.Value != null
+                        ? Convert.ToDecimal(subscriptionDetails.BillingInfo.LastPayment.Amount.Value)
+                        : 0,
+                    LastPaymentCurrency = subscriptionDetails.BillingInfo?.LastPayment?.Amount?.CurrencyCode ?? string.Empty,
+                    FinalPaymentTime = subscriptionDetails.BillingInfo?.FinalPaymentTime ?? minSqlDate,
+                    CyclesCompleted = subscriptionDetails.BillingInfo?.CycleExecutions != null && subscriptionDetails.BillingInfo.CycleExecutions.Count > 0
+                        ? subscriptionDetails.BillingInfo.CycleExecutions[0].CyclesCompleted
+                        : 0,
+                    CyclesRemaining = subscriptionDetails.BillingInfo?.CycleExecutions != null && subscriptionDetails.BillingInfo.CycleExecutions.Count > 0
+                        ? subscriptionDetails.BillingInfo.CycleExecutions[0].CyclesRemaining
+                        : 0,
+                    TotalCycles = subscriptionDetails.BillingInfo?.CycleExecutions != null && subscriptionDetails.BillingInfo.CycleExecutions.Count > 0
+                        ? subscriptionDetails.BillingInfo.CycleExecutions[0].TotalCycles
+                        : 0,
+                    TrialIntervalUnit = plan?.TrialIntervalUnit,
+                    TrialIntervalCount = plan?.TrialIntervalCount ?? 0,
+                    TrialTotalCycles = plan?.TrialTotalCycles ?? 0,
+                    TrialFixedPrice = plan?.TrialFixedPrice ?? 0
+                };
+
+                // Calcular la fecha del próximo pago después del período de prueba
+                if (detallesSuscripcion.Status == "ACTIVE" && detallesSuscripcion.CyclesCompleted == 1 && detallesSuscripcion.CyclesRemaining == 0)
+                {
+                    detallesSuscripcion.NextBillingTime = detallesSuscripcion.StartTime.AddDays((double)detallesSuscripcion.TrialIntervalCount * (double)detallesSuscripcion.TrialTotalCycles + 1);
+                }
+                await transaction.CommitAsync();
+                return detallesSuscripcion;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al crear detalles de suscripción para planId {planId}");
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+        public async Task SaveOrUpdateSubscriptionDetailsAsync(SubscriptionDetail subscriptionDetails)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // Verificar si la suscripción ya existe
+                var existingSubscription = await _context.SubscriptionDetails
+                    .FirstOrDefaultAsync(s => s.SubscriptionId == subscriptionDetails.SubscriptionId);
+
+                if (existingSubscription != null)
+                {
+                    // Comparar los detalles para determinar si hay cambios
+                    bool hasChanges = !(
+                        existingSubscription.PlanId == subscriptionDetails.PlanId &&
+                        existingSubscription.Status == subscriptionDetails.Status &&
+                        existingSubscription.StartTime == subscriptionDetails.StartTime &&
+                        existingSubscription.StatusUpdateTime == subscriptionDetails.StatusUpdateTime &&
+                        existingSubscription.SubscriberName == subscriptionDetails.SubscriberName &&
+                        existingSubscription.SubscriberEmail == subscriptionDetails.SubscriberEmail &&
+                        existingSubscription.PayerId == subscriptionDetails.PayerId &&
+                        existingSubscription.OutstandingBalance == subscriptionDetails.OutstandingBalance &&
+                        existingSubscription.OutstandingCurrency == subscriptionDetails.OutstandingCurrency &&
+                        existingSubscription.NextBillingTime == subscriptionDetails.NextBillingTime &&
+                        existingSubscription.LastPaymentTime == subscriptionDetails.LastPaymentTime &&
+                        existingSubscription.LastPaymentAmount == subscriptionDetails.LastPaymentAmount &&
+                        existingSubscription.LastPaymentCurrency == subscriptionDetails.LastPaymentCurrency &&
+                        existingSubscription.FinalPaymentTime == subscriptionDetails.FinalPaymentTime &&
+                        existingSubscription.CyclesCompleted == subscriptionDetails.CyclesCompleted &&
+                        existingSubscription.CyclesRemaining == subscriptionDetails.CyclesRemaining &&
+                        existingSubscription.TotalCycles == subscriptionDetails.TotalCycles &&
+                        existingSubscription.TrialIntervalUnit == subscriptionDetails.TrialIntervalUnit &&
+                        existingSubscription.TrialIntervalCount == subscriptionDetails.TrialIntervalCount &&
+                        existingSubscription.TrialTotalCycles == subscriptionDetails.TrialTotalCycles &&
+                        existingSubscription.TrialFixedPrice == subscriptionDetails.TrialFixedPrice
+                    );
+
+                    if (hasChanges)
+                    {
+                        _context.SubscriptionDetails.Update(subscriptionDetails);
+                        await _context.SaveChangesAsync();
+                        _logger.LogInformation($"Suscripción actualizada: {subscriptionDetails.SubscriptionId}");
+                    }
+                }
+                else
+                {
+                    await _context.AddEntityAsync(subscriptionDetails);
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation($"Suscripción creada: {subscriptionDetails.SubscriptionId}");
+                }
+                await transaction.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al guardar o actualizar detalles de suscripción {subscriptionDetails.SubscriptionId}");
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task SaveUserSubscriptionAsync(int userId, string subscriptionId, string subscriberName, string planId)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // Verificar si la relación ya existe
+                var existingRelation = await _context.UserSubscriptions
+                    .FirstOrDefaultAsync(us => us.UserId == userId && us.SubscriptionId == subscriptionId);
+
+                if (existingRelation == null)
+                {
+                    var userSubscription = new UserSubscription
+                    {
+                        UserId = userId,
+                        SubscriptionId = subscriptionId,
+                        NombreSusbcriptor = subscriberName,
+                        PaypalPlanId = planId
+                    };
+
+                    await _context.AddEntityAsync(userSubscription);
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation($"Relación UserSubscription creada para usuario {userId}, suscripción {subscriptionId}");
+                    await transaction.CommitAsync( );
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al guardar UserSubscription para usuario {userId}, suscripción {subscriptionId}");
+                await transaction.RollbackAsync( );
+                throw;
+            }
+        }
+      
+        public async Task UpdateSubscriptionStatusAsync(string subscriptionId, string status)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var subscription = await _context.SubscriptionDetails
+                    .FirstOrDefaultAsync(s => s.SubscriptionId == subscriptionId);
+
+                if (subscription == null)
+                {
+                    _logger.LogWarning($"No se encontró la suscripción con ID {subscriptionId}");
+                    return; // No throw, as the controller can decide how to handle this
+                }
+
+                // For activation, only allow transition from CANCELLED or SUSPENDED
+                if (status == "ACTIVE" && subscription.Status != "CANCELLED" && subscription.Status != "SUSPENDED")
+                {
+                    _logger.LogInformation($"No se puede activar la suscripción {subscriptionId} porque no está en estado CANCELLED o SUSPENDED (estado actual: {subscription.Status})");
+                    return;
+                }
+                // For suspension, only allow transition from ACTIVE
+                else if (status == "SUSPENDED" && subscription.Status != "ACTIVE")
+                {
+                    _logger.LogInformation($"No se puede suspender la suscripción {subscriptionId} porque no está en estado ACTIVE (estado actual: {subscription.Status})");
+                    return;
+                }
+                // For cancellation, allow from ACTIVE or SUSPEND
+                else if (status == "CANCELLED" && subscription.Status != "ACTIVE" && subscription.Status != "SUSPEND")
+                {
+                    _logger.LogInformation($"No se puede cancelar la suscripción {subscriptionId} porque no está en estado ACTIVE o SUSPEND (estado actual: {subscription.Status})");
+                    return;
+                }
+
+                subscription.Status = status;
+                await _context.UpdateEntityAsync(subscription);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation($"Estado de la suscripción {subscriptionId} actualizado a {status}");
+
+                await transaction.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, $"Error al actualizar el estado de la suscripción {subscriptionId} a {status}");
+                throw;
+            }
+        }
     }
 }

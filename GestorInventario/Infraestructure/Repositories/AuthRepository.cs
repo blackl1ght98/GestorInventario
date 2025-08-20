@@ -149,7 +149,7 @@ namespace GestorInventario.Infraestructure.Repositories
         }
         public async Task EliminarCarritoActivo()
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
+           
             try
             {
                 var usuarioId = _utilityClass.ObtenerUsuarioIdActual();
@@ -167,12 +167,12 @@ namespace GestorInventario.Infraestructure.Repositories
                 }
 
                 await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
+          
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al eliminar carritos activos para el usuario {UsuarioId}", _utilityClass.ObtenerUsuarioIdActual());
-               await transaction.RollbackAsync();
+             
             }
         }
     }
