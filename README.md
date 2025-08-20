@@ -141,21 +141,7 @@ LicenseKeyAutoMapper:
 
 **LicenseKeyAutoMapper**: aquí ponemos la clave de licencia de AutoMapper para ello vamos aqui [obtener licencia](https://luckypennysoftware.com/#automapper) en esta pagina nos registramos y la licencia a escoger es la community
 ## Modificación del archivo GestorInventarioContext.cs 
-Una vez que hemos ejecutado el comando que realiza el scaffold pues tenemos que modificar este archivo agregando lo siguiente lo primero que pondremos en el constructor es:
-```sh
- private readonly IConfiguration _configuration;
-  public GestorInventarioContext()
-  {
-  }
-
-  public GestorInventarioContext(DbContextOptions<GestorInventarioContext> options, IConfiguration configuration)
-      : base(options)
-  {
-      _configuration = configuration;
-  }
-````
-Esto es necesario ya que lo usaremos para acceder a los valores que estan en el archivo de secretos de usuario.
-Una vez puesto el valor en el constructor vamos a modificar el metodo llamado **OnConfiguring** y lo reemplazamos por esto:
+Una vez que hemos ejecutado el comando que realiza el scaffold pues tenemos que modificar este archivo agregando lo siguiente al metodo **OnConfiguring**
 ```csharp
   protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
  {
