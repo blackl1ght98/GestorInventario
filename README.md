@@ -316,7 +316,7 @@ El proyecto **Gestor Inventario** ofrece una amplia gama de características par
 - **Ver planes**: Los usuarios pueden ver los planes a los cuales pueden suscribirse
 - **Ver subscriptores**: El administrador puede ver cuantos subscriptores ahi subscriptos
 - **Ver Productos**: El administrador puede ver los productos que estan asociados a los planes
-- ** Cambio de precio en los planes** El administrador puede cambiar el precio de los planes
+- **Cambio de precio en los planes**: El administrador puede cambiar el precio de los planes
 
 ## Novedades
 - **Rembolsos parciales**: esta nueva funcion permite devolver parte de los productos de un pedido, esta funcion la veremos siempre y cuando el pedido que se realice tenga mas de un producto
