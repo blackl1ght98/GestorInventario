@@ -117,7 +117,7 @@ namespace GestorInventario.Infraestructure.Repositories
         }
         private async Task<(bool valido, string mensaje, Usuario usuario)> ValidarTokenCambioPass(RestoresPasswordDto cambio)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
+            
             try
             {
                 var usuario = await ObtenerPorId(cambio.UserId);
@@ -136,11 +136,11 @@ namespace GestorInventario.Infraestructure.Repositories
                    
                     return (false, "El enlace y contraseña temporal han expirado. Solicite una nueva.", null);
                 }
-                await transaction.CommitAsync();
+              ;
                 return (true, null, usuario);
             }
             catch (Exception ex) {
-            await transaction.RollbackAsync();
+           
             return (false,"Ocurrio un error inesperado", null);
             
             

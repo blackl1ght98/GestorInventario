@@ -119,7 +119,7 @@ namespace GestorInventario.Infraestructure.Repositories
         }
         private async Task ActualizarProveedor(Proveedore proveedor, ProveedorViewModel model)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
+         
             try
             {
                 proveedor.NombreProveedor = model.NombreProveedor;
@@ -127,10 +127,10 @@ namespace GestorInventario.Infraestructure.Repositories
                 proveedor.Direccion = model.Direccion;
                 proveedor.IdUsuario = model.IdUsuario;
                 await _context.UpdateEntityAsync(proveedor);
-                await transaction.CommitAsync();
+               
             }
             catch (Exception ex) {
-            await transaction.RollbackAsync();
+           
                 _logger.LogError("Ocurrio un error inesperado", ex);
             }
           

@@ -139,7 +139,7 @@ namespace GestorInventario.Infraestructure.Repositories
         }
         private async Task ActualizarUsuario(UsuarioEditViewModel userVM, Usuario user)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
+            
             try
             {
                 _mapper.Map(userVM, user);
@@ -165,11 +165,11 @@ namespace GestorInventario.Infraestructure.Repositories
 
                 _context.EntityModified(user);
                 await _context.UpdateEntityAsync(user);
-                await transaction.CommitAsync();
+               
             }
             catch (Exception ex) {
                 _logger.LogError("Ocurrio un error inesperado", ex);
-                await transaction.RollbackAsync();
+               
             }
            
         }
