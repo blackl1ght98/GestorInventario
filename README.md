@@ -317,8 +317,12 @@ El proyecto **Gestor Inventario** ofrece una amplia gama de características par
 - **Ver subscriptores**: El administrador puede ver cuantos subscriptores ahi subscriptos
 - **Ver Productos**: El administrador puede ver los productos que estan asociados a los planes
 - ** Cambio de precio en los planes** El administrador puede cambiar el precio de los planes
+
+## Novedades
+- **Rembolsos parciales**: esta nueva funcion permite devolver parte de los productos de un pedido, esta funcion la veremos siempre y cuando el pedido que se realice tenga mas de un producto
+- **Generacion de codigos de barras**: nueva funcion que permite simular como si fuese una tienda.
+- **Agregar informacion de envio**: con esta nueva funcionalidad  podemos agregar informacion sobre que empresa se encarga de repartir el pedido
 -  **Activacion de subscripcion**: El administrador puede activar una subscripcion cancelada o suspendida
 -  **Suspender subscripcion**: El usuario puede suspender su propia subscripcion, y el administrador puede suspender las de todos
 -  **Cancelar subscripcion**: El usuario puede cancelar su propia subscripcion, y el administrador puede cancelar cualquier susbscripcion
 -  **Agregar informacion de seguimiento a pedidos**: El administrador puede agregar informacion de seguimiento a los pedidos
-   
