@@ -141,21 +141,7 @@ LicenseKeyAutoMapper:
 
 **LicenseKeyAutoMapper**: aquí ponemos la clave de licencia de AutoMapper para ello vamos aqui [obtener licencia](https://luckypennysoftware.com/#automapper) en esta pagina nos registramos y la licencia a escoger es la community
 ## Modificación del archivo GestorInventarioContext.cs 
-Una vez que hemos ejecutado el comando que realiza el scaffold pues tenemos que modificar este archivo agregando lo siguiente lo primero que pondremos en el constructor es:
-```sh
- private readonly IConfiguration _configuration;
-  public GestorInventarioContext()
-  {
-  }
-
-  public GestorInventarioContext(DbContextOptions<GestorInventarioContext> options, IConfiguration configuration)
-      : base(options)
-  {
-      _configuration = configuration;
-  }
-````
-Esto es necesario ya que lo usaremos para acceder a los valores que estan en el archivo de secretos de usuario.
-Una vez puesto el valor en el constructor vamos a modificar el metodo llamado **OnConfiguring** y lo reemplazamos por esto:
+Una vez que hemos ejecutado el comando que realiza el scaffold pues tenemos que modificar este archivo agregando lo siguiente al metodo **OnConfiguring**
 ```csharp
   protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
  {
@@ -302,7 +288,7 @@ volumes:
   appdata:
     driver: local
 ````
-**¿Como arrancarlo en docker?
+**¿Como arrancarlo en docker?**
 Para arrancar este proyecto en docker nos saldremos de visual studio y abriremos la terminal en la carpeta raiz y pondremos el comando 
 ````sh
 docker-compose up -d --build
@@ -330,9 +316,13 @@ El proyecto **Gestor Inventario** ofrece una amplia gama de características par
 - **Ver planes**: Los usuarios pueden ver los planes a los cuales pueden suscribirse
 - **Ver subscriptores**: El administrador puede ver cuantos subscriptores ahi subscriptos
 - **Ver Productos**: El administrador puede ver los productos que estan asociados a los planes
-- ** Cambio de precio en los planes** El administrador puede cambiar el precio de los planes
+- **Cambio de precio en los planes**: El administrador puede cambiar el precio de los planes
+
+## Novedades
+- **Rembolsos parciales**: esta nueva funcion permite devolver parte de los productos de un pedido, esta funcion la veremos siempre y cuando el pedido que se realice tenga mas de un producto
+- **Generacion de codigos de barras**: nueva funcion que permite simular como si fuese una tienda.
+- **Agregar informacion de envio**: con esta nueva funcionalidad  podemos agregar informacion sobre que empresa se encarga de repartir el pedido
 -  **Activacion de subscripcion**: El administrador puede activar una subscripcion cancelada o suspendida
 -  **Suspender subscripcion**: El usuario puede suspender su propia subscripcion, y el administrador puede suspender las de todos
 -  **Cancelar subscripcion**: El usuario puede cancelar su propia subscripcion, y el administrador puede cancelar cualquier susbscripcion
 -  **Agregar informacion de seguimiento a pedidos**: El administrador puede agregar informacion de seguimiento a los pedidos
-   
