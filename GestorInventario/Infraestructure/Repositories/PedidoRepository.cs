@@ -12,16 +12,14 @@ namespace GestorInventario.Infraestructure.Repositories
 {
     public class PedidoRepository : IPedidoRepository
     {
-        private readonly GestorInventarioContext _context;
-        private readonly IMemoryCache _cache;
+        private readonly GestorInventarioContext _context;      
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly IPaypalService _paypalService;
         private readonly ILogger<PedidoRepository> _logger;
-        public PedidoRepository(GestorInventarioContext context, IMemoryCache memory, IHttpContextAccessor contextAccessor,
+        public PedidoRepository(GestorInventarioContext context, IHttpContextAccessor contextAccessor,
             IPaypalService service, ILogger<PedidoRepository> logger)
         {
-            _context = context;
-            _cache = memory;
+            _context = context;           
             _contextAccessor = contextAccessor;
             _paypalService = service;
             _logger = logger;
