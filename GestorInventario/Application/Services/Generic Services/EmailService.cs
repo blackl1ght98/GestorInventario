@@ -37,7 +37,7 @@ namespace GestorInventario.Application.Services
             _serviceProvider = serviceProvider;
             _hashService = hashService;
         }
-        //En este servicio esta la logica para enviar correo electronico
+        
         public async Task<(bool, string)> SendEmailAsyncRegister(EmailDto userDataRegister, Usuario usuarioDB)
         {
             try

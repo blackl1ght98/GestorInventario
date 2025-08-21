@@ -117,14 +117,38 @@ namespace GestorInventario.Application.Services.Generic_Services
 
         private string GenerateEAN13Code()
         {
-            // Implementar generación de EAN-13 si es necesario
-            throw new NotImplementedException("Generación de EAN-13 no implementada.");
+            Random random = new Random();
+            char[] digits = new char[12];
+            for (int i = 0; i < 12; i++)
+            {
+                digits[i] = (char)(random.Next(0, 10) + '0');
+            }
+
+            int oddSum = 0;
+            int evenSum = 0;
+            for (int i = 0; i < 12; i++)
+            {
+                int digit = digits[i] - '0';
+                if (i % 2 == 0)
+                    oddSum += digit;
+                else
+                    evenSum += digit;
+            }
+            int total = oddSum + evenSum * 3;
+            int checkDigit = (10 - (total % 10)) % 10;
+
+            return new string(digits) + checkDigit.ToString();
         }
 
         private string GenerateCode128(string data)
         {
-            // Implementar generación de Code 128 si es necesario
-            throw new NotImplementedException("Generación de Code 128 no implementada.");
+           
+            if (string.IsNullOrEmpty(data))
+            {
+                data = Guid.NewGuid().ToString();
+                _logger.LogInformation("Generado GUID único para Code 128: {Data}", data);
+            }
+            return data;
         }
 
         private async Task<string> GenerateBarcodeImage(string barcode, BarcodeType type)
