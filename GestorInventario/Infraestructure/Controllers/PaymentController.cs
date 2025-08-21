@@ -25,8 +25,9 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IEmailService _emailService;     
         private readonly PolicyExecutor _policyExecutor;
         private readonly IPaymentRepository _paymentRepository;
+        private readonly UtilityClass _utilityClass;
         public PaymentController(ILogger<PaymentController> logger,  IConfiguration configuration, GestorInventarioContext context, IMemoryCache memory, 
-            IEmailService email, PolicyExecutor executor, IPaypalService service, IPaymentRepository payment)
+            IEmailService email, PolicyExecutor executor, IPaypalService service, IPaymentRepository payment, UtilityClass utility)
         {
             _logger = logger;          
             _configuration = configuration;
@@ -36,6 +37,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _policyExecutor = executor;
             _paypalService = service;
             _paymentRepository = payment;
+            _utilityClass = utility;
         }
         public async Task<IActionResult> Success()
         {
@@ -141,24 +143,16 @@ namespace GestorInventario.Infraestructure.Controllers
                     return BadRequest("El numero de pedido proporcionado no existe");
                 }
 
-                var existeUsuario = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (!int.TryParse(existeUsuario, out int usuarioId))
-                {
-                    return BadRequest("Usuario no válido");
-                }
+                int usuarioActual = _utilityClass.ObtenerUsuarioIdActual();
 
-                var emailCliente = await _policyExecutor.ExecutePolicyAsync(() => _context.Usuarios
-                    .Where(u => u.Id == usuarioId)
-                    .Select(u => u.Email)
-                    .FirstOrDefaultAsync());
+                var emailCliente = await _policyExecutor.ExecutePolicyAsync(() => _paymentRepository.ObtenerEmailUsuarioAsync(usuarioActual));
 
                 if (emailCliente == null)
                 {
                     return BadRequest("El cliente no existe");
                 }
 
-                var pedido = await _policyExecutor.ExecutePolicyAsync(() => _context.Pedidos
-                    .FirstOrDefaultAsync(p => p.NumeroPedido == form.NumeroPedido));
+                var pedido = await _policyExecutor.ExecutePolicyAsync(() =>_paymentRepository.ObtenerNumeroPedido(form));
 
                 if (pedido == null)
                 {
@@ -292,7 +286,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 // Crear el reembolso
                 var rembolso = new Rembolso
                 {
-                    UsuarioId = usuarioId,
+                    UsuarioId = usuarioActual,
                     NumeroPedido = form.NumeroPedido,
                     NombreCliente = form.NombreCliente,
                     EmailCliente = emailCliente,

@@ -500,7 +500,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
 
-                var (success, errorMessage, bytes) = await _policyExecutor.ExecutePolicyAsync(() => _pdfservice.DescargarPDF());
+                var (success, errorMessage, bytes) = await _policyExecutor.ExecutePolicyAsync(() => _pdfservice.GenerarReporteHistorialPedidosAsync());
                 if (!success)
                 {
                     TempData["ErrorMessage"] = errorMessage;
