@@ -5,12 +5,7 @@ using System.Security.Cryptography;
 namespace GestorInventario.Interfaces.Application
 {
     public interface ITokenGenerator
-    {
- 
-        Task<LoginResponseDto> GenerateTokenAsync(Usuario credencialesUsuario);
-       
-      
-
-
+    { 
+        Task<LoginResponseDto> GenerateTokenAsync(Usuario credencialesUsuario);          
     }
 }

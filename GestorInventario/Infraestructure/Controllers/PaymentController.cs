@@ -18,19 +18,17 @@ namespace GestorInventario.Infraestructure.Controllers
     public class PaymentController : Controller
     {
         private readonly ILogger<PaymentController> _logger;
-        private readonly IPaypalService _paypalService;
-        private readonly IConfiguration _configuration;
+        private readonly IPaypalService _paypalService;        
         private readonly GestorInventarioContext _context;
         private readonly IMemoryCache _memory;
         private readonly IEmailService _emailService;     
         private readonly PolicyExecutor _policyExecutor;
         private readonly IPaymentRepository _paymentRepository;
         private readonly UtilityClass _utilityClass;
-        public PaymentController(ILogger<PaymentController> logger,  IConfiguration configuration, GestorInventarioContext context, IMemoryCache memory, 
+        public PaymentController(ILogger<PaymentController> logger,   GestorInventarioContext context, IMemoryCache memory, 
             IEmailService email, PolicyExecutor executor, IPaypalService service, IPaymentRepository payment, UtilityClass utility)
         {
-            _logger = logger;          
-            _configuration = configuration;
+            _logger = logger;                     
             _context = context;
             _memory = memory;
             _emailService = email;

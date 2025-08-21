@@ -15,16 +15,14 @@ namespace GestorInventario.Infraestructure.Repositories
     {
         private readonly GestorInventarioContext _context;
         private readonly IEmailService _emailService;
-        private readonly HashService _hashService;
-        private readonly IHttpContextAccessor _contextAccessor;
+        private readonly HashService _hashService;      
         private readonly ILogger<AdminRepository> _logger;
         private readonly IMapper _mapper;
-        public AdminRepository(GestorInventarioContext context, IEmailService email, HashService hash, IHttpContextAccessor accessor, ILogger<AdminRepository> logger, IMapper mapper )
+        public AdminRepository(GestorInventarioContext context, IEmailService email, HashService hash,  ILogger<AdminRepository> logger, IMapper mapper )
         {
             _context = context;
             _emailService = email;
-            _hashService = hash;
-          _contextAccessor = accessor;
+            _hashService = hash;         
             _logger = logger;
             _mapper = mapper;
         }

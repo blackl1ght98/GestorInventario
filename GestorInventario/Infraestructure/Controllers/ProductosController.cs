@@ -19,26 +19,20 @@ namespace GestorInventario.Infraestructure.Controllers
         
        
         private readonly PaginacionMetodo _paginarMetodo;
-        private readonly ILogger<ProductosController> _logger;
-    
+        private readonly ILogger<ProductosController> _logger;   
         private readonly IEmailService _emailService;
-        private readonly IProductoRepository _productoRepository;
-        private readonly PolicyHandler _PolicyHandler;
-        private readonly GenerarPaginas _generarPaginas;
-       
+        private readonly IProductoRepository _productoRepository;            
         private readonly IPdfService _pdfService;
         private readonly PolicyExecutor _policyExecutor;
-        public ProductosController(  PaginacionMetodo paginacionMetodo, GenerarPaginas paginas, PolicyExecutor executor,
-        ILogger<ProductosController> logger, IEmailService emailService, IProductoRepository producto, PolicyHandler retry,  IPdfService pdf
+        public ProductosController(  PaginacionMetodo paginacionMetodo,  PolicyExecutor executor,
+        ILogger<ProductosController> logger, IEmailService emailService, IProductoRepository producto,   IPdfService pdf
        )
         {
                    
             _paginarMetodo = paginacionMetodo;
             _logger = logger;         
             _emailService = emailService;
-            _productoRepository = producto;
-           _PolicyHandler= retry;
-            _generarPaginas= paginas;
+            _productoRepository = producto;         
             _policyExecutor = executor;
             _pdfService = pdf;
         }
