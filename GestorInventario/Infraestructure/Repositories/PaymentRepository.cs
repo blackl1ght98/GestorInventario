@@ -1,5 +1,7 @@
 ﻿using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.ViewModels.Paypal;
+using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 
 namespace GestorInventario.Infraestructure.Repositories
@@ -15,6 +17,15 @@ namespace GestorInventario.Infraestructure.Repositories
 
             _logger = logger;
         }
+        public async Task<string?> ObtenerEmailUsuarioAsync(int usuarioId)
+        {
+            return await _context.Usuarios
+                .Where(u => u.Id == usuarioId)
+                .Select(u => u.Email)
+                .FirstOrDefaultAsync();
+        }
+        public async Task<Pedido> ObtenerNumeroPedido(RefundForm form)=>await _context.Pedidos.FirstOrDefaultAsync(p => p.NumeroPedido == form.NumeroPedido);
+        
         public decimal? ConvertToDecimal(object value)
         {
             if (value == null)
@@ -47,7 +58,7 @@ namespace GestorInventario.Infraestructure.Repositories
             {
                 _logger.LogError(ex, "Error al realizar la conversión");
             }
-            return null; // Si no puede convertir el valor, devuelve null
+            return null; 
         }
         public int? ConvertToInt(object value)
         {
@@ -81,7 +92,7 @@ namespace GestorInventario.Infraestructure.Repositories
             {
                 _logger.LogError(ex, "Error al realizar la conversión a int");
             }
-            return null; // Si no puede convertir el valor, devuelve null
+            return null; 
         }
         public DateTime? ConvertToDateTime(object value)
         {
