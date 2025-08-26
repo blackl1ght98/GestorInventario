@@ -78,7 +78,7 @@ namespace GestorInventario.Infraestructure.Repositories
         // Método para crear un carrito si no existe
         public async Task<Pedido> CrearCarritoUsuario(int userId)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
+           
             try
             {
                 var carrito = await ObtenerCarritoUsuario(userId);
@@ -93,7 +93,7 @@ namespace GestorInventario.Infraestructure.Repositories
                         EsCarrito = true
                     };
                     await _context.AddEntityAsync(carrito);
-                    await transaction.CommitAsync();
+                   
                 }
 
                 return carrito;

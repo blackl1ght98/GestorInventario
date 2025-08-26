@@ -9,6 +9,7 @@ namespace GestorInventario.Interfaces.Application
         Task<(bool, string, string)> SendEmailAsyncResetPassword(EmailDto userDataResetPassword);
         Task SendEmailAsyncLowStock(EmailDto correo, Producto producto);
         Task SendEmailCreateProduct(EmailDto correo, string productName);     
-        Task SendEmailAsyncRembolso(EmailRembolsoDto correo);
+        Task EnviarEmailSolicitudRembolso(EmailRembolsoDto correo);
+        Task EnviarNotificacionReembolsoAsync(EmailReembolsoAprobadoDto correo);
     }
 }

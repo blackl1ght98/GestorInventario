@@ -397,7 +397,7 @@ namespace GestorInventario.Application.Services
                 string refundId = refundResponse.Id;
                 // Actualizar el estado del pedido usando UnitOfWork
                 await _unitOfWork.PaypalRepository.UpdatePedidoStatusAsync(pedidoId, "Reembolsado", refundId);
-
+                await _unitOfWork.PaypalRepository.EnviarEmailNotificacionRembolso(pedidoId, totalAmount, "Rembolso Aprobado");
                 return responseBody;
             }
             catch (Exception ex)
@@ -427,14 +427,50 @@ namespace GestorInventario.Application.Services
                 if (detalle == null)
                     throw new ArgumentException($"No se encontró el detalle del pedido con ID {pedidoId}.");
 
-                if (detalle.Rembolsado?? false)
+                if (detalle.Rembolsado ?? false)
                     throw new InvalidOperationException("El detalle del pedido ya ha sido reembolsado.");
 
+                // Obtener detalles de la captura
                 var captureDetails = await ObtenerDetallesPagoEjecutadoV2(pedido.Pedido.OrderId);
-                if (captureDetails == null )
-                    throw new InvalidOperationException("El monto del reembolso excede el monto capturado disponible.");
+                if (captureDetails == null)
+                    throw new InvalidOperationException("No se pudieron obtener los detalles de la captura.");
+
+                // Obtener el net_amount y calcular el monto disponible
+                var capture = captureDetails.PurchaseUnits[0].Payments.Captures[0];
+                var netAmount = decimal.Parse(capture.SellerReceivableBreakdown.NetAmount.Value, CultureInfo.InvariantCulture);
+
+                // Calcular el monto total reembolsado desde los reembolsos previos
+                var refundedAmount = captureDetails.PurchaseUnits[0].Payments.Refunds?.Sum(r => decimal.Parse(r.SellerPayableBreakdown.NetAmount.Value, CultureInfo.InvariantCulture)) ?? 0m;
+                var availableAmount = netAmount - refundedAmount;
+
+                _logger.LogInformation("Monto neto: {NetAmount} AUD, Monto reembolsado previamente: {RefundedAmount} AUD, Monto disponible: {AvailableAmount} AUD, Monto solicitado: {TotalAmount} AUD",
+                    netAmount, refundedAmount, availableAmount, totalAmount);
+
+                if (totalAmount > availableAmount)
+                {
+                    _logger.LogWarning(
+                        "El monto solicitado para el reembolso ({TotalAmount} {Currency}) excede el monto disponible ({AvailableAmount} AUD) para el pedido {PedidoId}. Ajustando a {AvailableAmount} AUD.",
+                        totalAmount, currency, availableAmount, pedidoId, availableAmount);
+                    totalAmount = availableAmount;
+                }
+
+                if (availableAmount <= 0)
+                {
+                    _logger.LogError("No hay monto disponible para reembolsar para el pedido {PedidoId}.", pedidoId);
+                    throw new InvalidOperationException("No hay monto disponible para reembolsar.");
+                }
+
+                // Verificar que la moneda coincida
+                var captureCurrency = capture.Amount.CurrencyCode;
+                if (currency != captureCurrency)
+                {
+                    _logger.LogWarning("La moneda solicitada ({Currency}) no coincide con la moneda de la captura ({CaptureCurrency})", currency, captureCurrency);
+                    throw new InvalidOperationException($"La moneda del reembolso ({currency}) no coincide con la moneda de la captura ({captureCurrency}).");
+                }
 
                 var refundRequest = BuildRefundPartialRequest(totalAmount, pedido);
+                var requestJson = JsonConvert.SerializeObject(refundRequest);
+                _logger.LogInformation("Refund request JSON: {RequestJson}", requestJson);
 
                 var (clientId, clientSecret) = GetPaypalCredentials();
                 var authToken = await GetAccessTokenAsync(clientId, clientSecret);
@@ -443,11 +479,14 @@ namespace GestorInventario.Application.Services
 
                 var request = new HttpRequestMessage(HttpMethod.Post, $"v2/payments/captures/{pedido.Pedido.CaptureId}/refund");
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-                request.Content = new StringContent(JsonConvert.SerializeObject(refundRequest), Encoding.UTF8, "application/json");
+                request.Content = new StringContent(requestJson, Encoding.UTF8, "application/json");
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
                 var response = await _httpClient.SendAsync(request);
                 var responseBody = await response.Content.ReadAsStringAsync();
+
+                // Consultar el estado de la captura después del reembolso (o en caso de error para verificar falsos positivos)
+                var updatedCapture = await ObtenerDetallesPagoEjecutadoV2(pedido.Pedido.OrderId);
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -455,14 +494,27 @@ namespace GestorInventario.Application.Services
                     string errorMessage = $"Error al procesar el reembolso: {response.StatusCode} - {errorDetails?.Message ?? "Error desconocido"}";
                     if (errorDetails?.Details?.Any(d => d.Issue == "REFUND_AMOUNT_EXCEEDED") == true)
                     {
-                        errorMessage = "El monto del reembolso excede el monto disponible en la captura.";
+                        errorMessage = $"El monto del reembolso ({totalAmount} {currency}) excede el monto disponible ({availableAmount} AUD).";
+                        // Verificar si el reembolso ya se procesó
+                        var recentRefund = updatedCapture?.PurchaseUnits[0].Payments.Refunds?
+                            .FirstOrDefault(r => r.Amount.Value == totalAmount.ToString("F2", CultureInfo.InvariantCulture));
+                        if (recentRefund != null)
+                        {
+                            _logger.LogWarning("Falso positivo detectado: Reembolso de {TotalAmount} AUD ya procesado con ID {RefundId}.", totalAmount, recentRefund.Id);
+                            responseBody = JsonConvert.SerializeObject(new PaypalRefundResponse { Id = recentRefund.Id });
+                        }
+                        else
+                        {
+                            _logger.LogError("Error en la solicitud de reembolso a PayPal: {errorMessage}. Response: {responseBody}", errorMessage, responseBody);
+                            throw new InvalidOperationException(errorMessage);
+                        }
                     }
                     else if (errorDetails?.Details?.Any(d => d.Issue != null) == true)
                     {
                         errorMessage += $". Detalles: {string.Join(", ", errorDetails.Details.Select(d => $"{d.Issue}: {d.Description}"))}";
+                        _logger.LogError("Error en la solicitud de reembolso a PayPal: {errorMessage}. Response: {responseBody}", errorMessage, responseBody);
+                        throw new InvalidOperationException(errorMessage);
                     }
-                    _logger.LogError("Error en la solicitud de reembolso a PayPal: {errorMessage}. Response: {responseBody}", errorMessage, responseBody);
-                    throw new InvalidOperationException(errorMessage);
                 }
 
                 _logger.LogInformation("Reembolso exitoso: {response}", responseBody);
@@ -471,9 +523,16 @@ namespace GestorInventario.Application.Services
                 var producto = pedido.Producto.NombreProducto;
                 string cadena = $"El producto reembolsado es {producto}";
 
-                // Consultar el estado de la captura después del reembolso
-                var updatedCapture = await ObtenerDetallesPagoEjecutadoV2(pedido.Pedido.OrderId);
-                string estadoVenta = updatedCapture?.PurchaseUnits[0].Payments.Captures[0].Status ?? "PARTIALLY_REFUNDED"; // Asumir PARTIALLY_REFUNDED si no se obtiene
+                // Truncar la cadena para evitar errores de longitud en la base de datos
+                const int maxLength = 30;
+                if (cadena.Length > maxLength)
+                {
+                    cadena = cadena.Substring(0, maxLength - 3) + "...";
+                    _logger.LogWarning("EstadoRembolso truncado a {MaxLength} caracteres: {Cadena}", maxLength, cadena);
+                }
+
+                // Usar updatedCapture para obtener el estado de la captura
+                string estadoVenta = updatedCapture?.PurchaseUnits[0].Payments.Captures[0].Status ?? "PARTIALLY_REFUNDED";
 
                 await _unitOfWork.PaypalRepository.RegistrarReembolsoParcialAsync(
                     pedido.Pedido.Id,
@@ -484,6 +543,17 @@ namespace GestorInventario.Application.Services
                     motivo,
                     estadoVenta
                 );
+
+                // Enviar notificación por correo
+                var (emailSuccess, emailMessage) = await _unitOfWork.PaypalRepository.EnviarEmailNotificacionRembolso(
+                    pedido.Pedido.Id,
+                    totalAmount,
+                    motivo
+                );
+                if (!emailSuccess)
+                {
+                    _logger.LogWarning("No se pudo enviar el correo de notificación: {EmailMessage}", emailMessage);
+                }
 
                 return responseBody;
             }

@@ -73,7 +73,6 @@ public partial class GestorInventarioContext : DbContext
             optionsBuilder.UseSqlServer(connectionString);
         }
     }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<DetalleHistorialPedido>(entity =>
@@ -510,7 +509,7 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false);
             entity.Property(e => e.EstadoRembolso)
-                .HasMaxLength(50)
+                .HasMaxLength(100)
                 .IsUnicode(false);
             entity.Property(e => e.EstadoVenta)
                 .HasMaxLength(50)
