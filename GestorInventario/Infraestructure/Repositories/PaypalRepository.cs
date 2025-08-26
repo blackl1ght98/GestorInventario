@@ -1,8 +1,10 @@
 ﻿using GestorInventario.Application.DTOs;
+using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Application.DTOs.Response_paypal.POST;
 using GestorInventario.Domain.Models;
 using GestorInventario.enums;
 using GestorInventario.Infraestructure.Utils;
+using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using Microsoft.EntityFrameworkCore;
@@ -19,10 +21,11 @@ namespace GestorInventario.Infraestructure.Repositories
      
         private readonly ILogger<PaypalRepository> _logger;
         private readonly UtilityClass _utilityClass;
-        public PaypalRepository(GestorInventarioContext context, ILogger<PaypalRepository> logger, UtilityClass utility)
+        private readonly IEmailService _emailService;
+        public PaypalRepository(GestorInventarioContext context, ILogger<PaypalRepository> logger, UtilityClass utility, IEmailService email)
         {
             _context = context;
-          
+            _emailService = email;
             _logger = logger;
             _utilityClass = utility;
         }
@@ -158,6 +161,9 @@ namespace GestorInventario.Infraestructure.Repositories
                     .ThenInclude(d => d.Producto)
                     .FirstOrDefaultAsync(p => p.Id == pedidoId);
 
+              
+                
+               
                 if (pedido == null || string.IsNullOrEmpty(pedido.CaptureId))
                     throw new ArgumentException("Pedido no encontrado o SaleId no disponible.");
 
@@ -172,6 +178,60 @@ namespace GestorInventario.Infraestructure.Repositories
             {
                 _logger.LogError(ex, $"Error al obtener el pedido {pedidoId}");
                 throw;
+            }
+        }
+        public async Task<(bool Success, string Message)> EnviarEmailNotificacionRembolso(int pedidoId, decimal montoReembolsado, string motivo)
+        {
+            try
+            {
+                var pedido = await _context.Pedidos
+                    .Include(p => p.DetallePedidos)
+                    .ThenInclude(d => d.Producto)
+                    .Include(p => p.IdUsuarioNavigation)
+                    .FirstOrDefaultAsync(p => p.Id == pedidoId);
+
+                if (pedido == null)
+                {
+                    _logger.LogWarning("No se encontró el pedido con ID {PedidoId}", pedidoId);
+                    return (false, "Pedido no encontrado");
+                }
+
+                var usuarioPedido = pedido.IdUsuarioNavigation?.Email ?? "Email no disponible";
+                var nombreCliente = pedido.IdUsuarioNavigation?.NombreCompleto ?? "Cliente";
+
+                // Extraer la lista de productos con detalles
+                var productosConDetalles = pedido.DetallePedidos?
+                    .Select(detalle => new PayPalPaymentItem
+                    {
+                        ItemName = detalle.Producto?.NombreProducto ?? "N/A",
+                        ItemQuantity = detalle.Cantidad ?? 0, // Manejo de int? con valor por defecto
+                        ItemPrice = detalle.Producto?.Precio ?? 0,
+                        ItemCurrency = pedido.Currency ?? "USD",
+                        ItemSku = detalle.Producto?.Descripcion ?? "N/A"
+                    })
+                    .ToList() ?? new List<PayPalPaymentItem>();
+
+                // Crear DTO para el correo
+                var correo = new EmailReembolsoAprobadoDto
+                {
+                    NumeroPedido = pedido.NumeroPedido,
+                    NombreCliente = nombreCliente,
+                    EmailCliente = usuarioPedido,
+                    FechaRembolso = DateTime.UtcNow,
+                    CantidadADevolver = montoReembolsado,
+                    MotivoRembolso = motivo,
+                    Productos = productosConDetalles
+                };
+
+                // Enviar el correo
+                await _emailService.EnviarNotificacionReembolsoAsync(correo);
+
+                return (true, "Correo de notificación de reembolso enviado correctamente");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al enviar notificación de reembolso para el pedido ID {PedidoId}", pedidoId);
+                return (false, $"Error al enviar el correo: {ex.Message}");
             }
         }
         public async Task<(DetallePedido Detalle, decimal PrecioProducto)> GetProductoDePedidoAsync(int detallePedidoId)

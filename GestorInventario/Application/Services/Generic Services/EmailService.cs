@@ -230,7 +230,7 @@ namespace GestorInventario.Application.Services
             await smtp.SendAsync(email);
             await smtp.DisconnectAsync(true);
         }
-        public async Task SendEmailAsyncRembolso(EmailRembolsoDto correo)
+        public async Task EnviarEmailSolicitudRembolso(EmailRembolsoDto correo)
         {
            
             var empleados = await _context.Usuarios
@@ -278,6 +278,39 @@ namespace GestorInventario.Application.Services
 
             }
            
+        }
+        public async Task EnviarNotificacionReembolsoAsync(EmailReembolsoAprobadoDto correo)
+        {
+            try
+            {
+                var email = new MimeMessage();
+                email.From.Add(MailboxAddress.Parse(_config.GetSection("Email:UserName").Value));
+                email.To.Add(MailboxAddress.Parse(correo.EmailCliente)); // Enviar solo al usuario
+                email.Subject = $"Tu reembolso para el pedido #{correo.NumeroPedido} ha sido aprobado";
+
+                email.Body = new TextPart(TextFormat.Html)
+                {
+                    Text = await RenderViewToStringAsync("ViewsEmailService/ViewRembolsoAprobado", correo)
+                };
+
+                using var smtp = new SmtpClient();
+                await smtp.ConnectAsync(
+                    _config.GetSection("Email:Host").Value,
+                    Convert.ToInt32(_config.GetSection("Email:Port").Value),
+                    SecureSocketOptions.StartTls
+                );
+                await smtp.AuthenticateAsync(
+                    _config.GetSection("Email:UserName").Value,
+                    _config.GetSection("Email:PassWord").Value
+                );
+                await smtp.SendAsync(email);
+                await smtp.DisconnectAsync(true);
+
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
         private async Task<string> RenderViewToStringAsync(string viewName, object model)
         {

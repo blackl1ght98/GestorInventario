@@ -306,7 +306,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     Productos = paypalItems
                 };
 
-                await _policyExecutor.ExecutePolicy(() => _emailService.SendEmailAsyncRembolso(emailRembolso));
+                await _policyExecutor.ExecutePolicy(() => _emailService.EnviarEmailSolicitudRembolso(emailRembolso));
 
                 return RedirectToAction("Index", "Admin");
             }

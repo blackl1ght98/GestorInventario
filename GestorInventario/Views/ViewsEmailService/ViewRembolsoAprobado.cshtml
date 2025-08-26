@@ -1,0 +1,98 @@
+﻿@using GestorInventario.Application.DTOs.Email
+@model EmailReembolsoAprobadoDto
+
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+            .table th, .table td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+
+            .table th {
+                background-color: #4CAF50;
+                color: white;
+            }
+
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Reembolso Aprobado</h2>
+        </div>
+        <div class="content">
+            <p>Estimado/a @Model.NombreCliente,</p>
+            <p>Nos complace informarte que tu solicitud de reembolso para el pedido #@Model.NumeroPedido ha sido aprobada.</p>
+            <p><strong>Detalles del reembolso:</strong></p>
+            <ul>
+                <li><strong>Fecha del reembolso:</strong> @Model.FechaRembolso.ToString("dd/MM/yyyy HH:mm")</li>
+                <li><strong>Monto reembolsado:</strong> @Model.CantidadADevolver.ToString()</li>
+                <li><strong>Motivo:</strong> @Model.MotivoRembolso</li>
+            </ul>
+            <h3>Productos reembolsados:</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unitario</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var producto in Model.Productos)
+                    {
+                        <tr>
+                            <td>@producto.ItemName</td>
+                            <td>@producto.ItemQuantity</td>
+                            <td>@producto.ItemPrice.ToString()</td>
+                            <td>@(producto.ItemPrice* producto.ItemQuantity)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <p>El monto será acreditado en tu cuenta en un plazo de 3-5 días hábiles, dependiendo de tu método de pago.</p>
+            <p>Si tienes alguna pregunta, contáctanos en soporte@gestorinventario.com.</p>
+        </div>
+        <div class="footer">
+            <p>GestorInventario &copy; @DateTime.Now.Year</p>
+        </div>
+    </div>
+</body>
+</html>
