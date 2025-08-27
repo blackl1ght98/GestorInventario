@@ -82,6 +82,7 @@ builder.Services.AddTransient<IPaypalService,PaypalService>();
 builder.Services.AddTransient<IPedidoRepository, PedidoRepository>();
 builder.Services.AddTransient<PolicyHandler>();
 builder.Services.AddTransient<IProductoRepository, ProductoRepository>();
+builder.Services.AddTransient<IRembolsoRepository, RembolsoRepository>();
 builder.Services.AddTransient<IProveedorRepository, ProveedorRepository>();
 builder.Services.AddTransient<IPdfService, PdfService>();
 builder.Services.AddTransient<IPaypalRepository, PaypalRepository>();
