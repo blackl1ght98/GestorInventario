@@ -1,0 +1,106 @@
+﻿@model RembolsosViewModel
+
+@using GestorInventario.ViewModels
+
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 fw-bold" style="color: var(--primary);">Gestión de Rembolsos</h1>
+        
+    </div>
+
+    <!-- Formulario de búsqueda -->
+    <form asp-action="Index" method="get" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="buscar" value="@Model.Buscar" class="form-control" placeholder="Buscar por numero de pedido " />
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-search"></i> Buscar
+            </button>
+        </div>
+    </form>
+
+   
+    <div class="row g-4">
+        @foreach (var rembolso in Model.Rembolsos)
+        {
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm hover-card h-100">
+                    <div class="card-body p-4">
+                        <h5 class="card-title mb-3" style="color: var(--primary);">@rembolso.NombreCliente</h5>
+                        <p class="card-text">
+                            <i class="bi bi-envelope nav-icon text-muted"></i> <strong>Estado rembolso:</strong> @rembolso.EstadoRembolso<br />
+                            <i class="bi bi-calendar nav-icon text-muted"></i> <strong>Email cliente:</strong> @rembolso.EmailCliente<br />
+                            <i class="bi bi-person-badge nav-icon text-muted"></i> <strong>Fecha Rembolso:</strong> @rembolso.FechaRembolso<br />
+                            <i class="bi bi-person-badge nav-icon text-muted"></i> <strong>Estado Rembolso:</strong> @rembolso.EstadoRembolso<br />
+                            <i class="bi bi-person-badge nav-icon text-muted"></i> <strong>Estado Venta:</strong> @rembolso.EstadoVenta<br />
+                            <i class="bi bi-person-badge nav-icon text-muted"></i> <strong>Motivo Rembolso:</strong> @rembolso.MotivoRembolso<br />
+                            <i class="bi bi-person-badge nav-icon text-muted"></i> <strong>Numero de pedido:</strong> @rembolso.NumeroPedido<br />
+                            <i class="bi bi-person-badge nav-icon text-muted"></i> <strong> Rembolso realizado:</strong> @rembolso.RembosoRealizado<br />
+                           
+                        </p>
+                    </div>
+                    <div class="card-footer bg-light p-3">
+                        <div class="d-flex flex-wrap gap-2 justify-content-center">
+
+
+                            <button class="user-action-button"
+                                    data-rembolso-id="@rembolso.Id"
+                                    data-user-action="Eliminar">
+                                Eliminar
+                            </button>
+
+                         
+                           
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+   
+    </div>
+
+    <!-- Paginación -->
+    @if (Model.Paginas != null && Model.Paginas.Any())
+    {
+        <nav aria-label="Navegación de páginas" class="mt-5">
+            <ul class="pagination justify-content-center">
+                @foreach (var pagina in Model.Paginas)
+                {
+                    <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
+                        <a class="page-link"
+                           href="@Url.Action("Index", new { pagina = pagina.Pagina, buscar = Model.Buscar })"
+                           style="transition: background-color 0.2s;">
+                            @pagina.Texto
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 1rem;">
+            <div class="modal-header" style="background-color: var(--primary); color: white;">
+                <h5 class="modal-title" id="confirmModalLabel">Confirmación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">¿Estás seguro de que deseas realizar esta acción?</p>
+                <p id="loadingMessage" class="d-none text-muted">Procesando...</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmActionBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/eliminar-rembolso.js" asp-append-version="true"></script>
+}
