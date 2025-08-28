@@ -18,7 +18,9 @@ namespace GestorInventario.Infraestructure.Repositories
 
         public Task<IQueryable<Rembolso>> ObtenerRembolsos()
         {
-            return Task.FromResult(_context.Rembolsos.AsQueryable());
+            return Task.FromResult(_context.Rembolsos
+        .Include(x => x.Pedido)  // Carga la navegación Pedido
+        .AsQueryable());
         }
         public async Task<(bool, string)> EliminarRembolso(int id)
         {

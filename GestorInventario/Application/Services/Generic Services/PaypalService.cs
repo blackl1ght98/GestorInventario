@@ -393,10 +393,12 @@ namespace GestorInventario.Application.Services
                 }
 
                 _logger.LogInformation("Reembolso exitoso: {response}", responseBody);
+               
                 var refundResponse = JsonConvert.DeserializeObject<PaypalRefundResponse>(responseBody);
                 string refundId = refundResponse.Id;
-                // Actualizar el estado del pedido usando UnitOfWork
-                await _unitOfWork.PaypalRepository.UpdatePedidoStatusAsync(pedidoId, "Reembolsado", refundId);
+                var updatedCapture = await ObtenerDetallesPagoEjecutadoV2(pedido.OrderId);
+                string estadoVenta = updatedCapture?.PurchaseUnits[0].Payments.Captures[0].Status;
+                await _unitOfWork.PaypalRepository.UpdatePedidoStatusAsync(pedidoId, "Reembolsado", refundId,estadoVenta);
                 await _unitOfWork.PaypalRepository.EnviarEmailNotificacionRembolso(pedidoId, totalAmount, "Rembolso Aprobado");
                 return responseBody;
             }

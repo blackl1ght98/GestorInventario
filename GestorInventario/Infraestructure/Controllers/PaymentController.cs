@@ -290,7 +290,8 @@ namespace GestorInventario.Infraestructure.Controllers
                     EmailCliente = emailCliente,
                     FechaRembolso = form.FechaRembolso,
                     EstadoRembolso = "EN REVISION PARA APROBACION",
-                    MotivoRembolso = form.MotivoRembolso
+                    MotivoRembolso = form.MotivoRembolso,
+                    PedidoId= obtenerNumeroPedido.Id,
                 };
 
                 await _context.AddEntityAsync(rembolso);
