@@ -25,5 +25,9 @@ public partial class Rembolso
 
     public string? EstadoVenta { get; set; }
 
+    public int? PedidoId { get; set; }
+
+    public virtual Pedido? Pedido { get; set; }
+
     public virtual Usuario? Usuario { get; set; }
 }

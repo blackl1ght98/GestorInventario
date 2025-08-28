@@ -525,6 +525,10 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false);
 
+            entity.HasOne(d => d.Pedido).WithMany(p => p.Rembolsos)
+                .HasForeignKey(d => d.PedidoId)
+                .HasConstraintName("FK_PedidoId");
+
             entity.HasOne(d => d.Usuario).WithMany(p => p.Rembolsos)
                 .HasForeignKey(d => d.UsuarioId)
                 .HasConstraintName("FK_rembolso");

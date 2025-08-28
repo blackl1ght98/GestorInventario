@@ -49,7 +49,14 @@
                                     data-user-action="Eliminar">
                                 Eliminar
                             </button>
-
+                            <form asp-controller="Payment" asp-action="RefundSale" method="post" class="d-inline">
+                                <input type="hidden" name="PedidoId" value="@rembolso.Pedido.Id" />
+                                <input type="hidden" name="Currency" value="@rembolso.Pedido.Currency" />
+                                <button type="submit" class="btn btn-outline-warning btn-sm"
+                                        @(rembolso.Pedido.EstadoPedido == "Reembolsado" ? "disabled" : "")>
+                                    Reembolsar
+                                </button>
+                            </form>
                          
                            
                         </div>

@@ -286,7 +286,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 throw;
             }
         }
-        public async Task UpdatePedidoStatusAsync(int pedidoId, string status,string refundId)
+        public async Task UpdatePedidoStatusAsync(int pedidoId, string status, string refundId, string estadoVenta)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -300,6 +300,39 @@ namespace GestorInventario.Infraestructure.Repositories
                 pedido.RefundId = refundId;
 
                 _context.Update(pedido);
+
+                var usuarioActual = _utilityClass.ObtenerUsuarioIdActual();
+
+                // Crear o actualizar registro de reembolso
+                var obtenerRembolso = await _context.Rembolsos.FirstOrDefaultAsync(x => x.NumeroPedido == pedido.NumeroPedido);
+
+                if (obtenerRembolso == null)
+                {
+                    var rembolso = new Rembolso
+                    {
+                        NumeroPedido = pedido.NumeroPedido,
+                        NombreCliente = pedido.IdUsuarioNavigation?.NombreCompleto,
+                        EmailCliente = pedido.IdUsuarioNavigation?.Email,
+                        FechaRembolso = DateTime.UtcNow,
+                        MotivoRembolso = "Rembolso solicitado por el usuario",
+                        EstadoRembolso = "REMBOLSO APROVADO",
+                        RembosoRealizado = true,
+                        UsuarioId = usuarioActual,
+                        EstadoVenta = estadoVenta
+                    };
+                    await _context.AddEntityAsync(rembolso);
+                }
+                else
+                {
+                    obtenerRembolso.EstadoRembolso = "REMBOLSO APROVADO";
+                    obtenerRembolso.RembosoRealizado = true;
+                    obtenerRembolso.EstadoVenta = estadoVenta;
+                    obtenerRembolso.FechaRembolso = DateTime.UtcNow; // Actualizar fecha si es necesario
+                                                                     // Puedes agregar o actualizar otros campos si es requerido
+
+                    _context.Update(obtenerRembolso);
+                }
+
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
                 _logger.LogInformation($"Estado del pedido {pedidoId} actualizado a {status}");

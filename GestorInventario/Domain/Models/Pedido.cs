@@ -36,4 +36,6 @@ public partial class Pedido
     public virtual ICollection<DetallePedido> DetallePedidos { get; set; } = new List<DetallePedido>();
 
     public virtual Usuario? IdUsuarioNavigation { get; set; }
+
+    public virtual ICollection<Rembolso> Rembolsos { get; set; } = new List<Rembolso>();
 }
