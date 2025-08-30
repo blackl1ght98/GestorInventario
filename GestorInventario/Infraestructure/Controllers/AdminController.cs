@@ -57,7 +57,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
                 #endif
 
-                var queryable = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerUsuarios());
+                var queryable =  _policyExecutor.ExecutePolicy(() => _adminrepository.ObtenerUsuarios());
                 if (!string.IsNullOrEmpty(buscar))
                 {
                     queryable = queryable.Where(s => s.NombreCompleto.Contains(buscar));
@@ -115,7 +115,8 @@ namespace GestorInventario.Infraestructure.Controllers
                     if (success)
                     {
                         TempData["SuccessMessage"] = "Usuario creado con exito";
-                        if (User.IsInRole("administrador")&& User.Identity.IsAuthenticated) {
+                        if (User.IsInRole("administrador")&& (User.Identity?.IsAuthenticated ?? false)) 
+                        {
                             return RedirectToAction(nameof(Index));
                         }
                         else
@@ -149,7 +150,14 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {               
-                var usuarioDB = await  _adminrepository.ObtenerPorId(confirmar.UserId);              
+                var (usuarioDB,mensaje) = await  _adminrepository.ObtenerPorId(confirmar.UserId);
+
+                if(usuarioDB is null)
+                {
+                    TempData["ErrorMessage"] = mensaje; 
+                    _logger.LogWarning("Intento de confirmar un usuario inexistente con ID {UserId}", confirmar.UserId);
+                    return RedirectToAction("Login", "Auth");
+                }
                 if (usuarioDB.ConfirmacionEmail != false)
                 {
                     TempData["ErrorMessage"] = "Usuario ya validado con anterioridad";
@@ -183,11 +191,12 @@ namespace GestorInventario.Infraestructure.Controllers
                 // si no, se edita el usuario cuyo id se pasó en el parámetro.
                 int usuarioAEditarId = id == 0 ? userIdClaim : id;
 
-                var user = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerPorId(usuarioAEditarId));
-                if (user == null)
+                var (user,mensaje) = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerPorId(usuarioAEditarId));
+                if (user is null)
                 {
-                    TempData["ErrorMessage"] = "Usuario no encontrado.";
-                    return BadRequest("Usuario no encontrado.");
+                    TempData["ErrorMessage"] = mensaje;
+                    _logger.LogWarning("Intento de editar un usuario inexistente con ID {UserId}", id);
+                    return RedirectToAction(nameof(Index));
                 }
 
                 var viewModel = _mapper.Map<UsuarioEditViewModel>(user);
@@ -213,10 +222,11 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
+                if (!(User.Identity?.IsAuthenticated ?? false))
                 {
                     return RedirectToAction("Login", "Auth");
                 }
+
 
                 // Cargar roles para la vista en caso de error
                 if (!userVM.EsEdicionPropia)
@@ -258,10 +268,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {             
-                var user = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.UsuarioConPedido(id));            
+                var (user,mensaje) = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerUsuarioConPedido(id));            
                 if (user == null)
                 {
-                    TempData["ErrorMessage"] = "Usuario no encontrado";
+                    TempData["ErrorMessage"] = mensaje;
                 }        
                 return View(user);
             }
@@ -338,7 +348,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var queryable = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerRolesConUsuarios());
+                var queryable =  _policyExecutor.ExecutePolicy(() => _adminrepository.ObtenerRolesConUsuarios());
 
                 // Aplicar paginación usando PaginarAsync
                 var (roles, totalItems) = await _policyExecutor.ExecutePolicyAsync(() => queryable.PaginarAsync(paginacion));
@@ -369,7 +379,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var rol = (await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerRolesConUsuarios()))
+                var rol = ( _policyExecutor.ExecutePolicy(() => _adminrepository.ObtenerRolesConUsuarios()))
                     .FirstOrDefault(r => r.Id == id);
                 if (rol == null)
                 {
@@ -377,7 +387,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("ObtenerRoles");
                 }
 
-                var usuariosQueryable = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerUsuariosPorRol(id));
+                var usuariosQueryable =  _policyExecutor.ExecutePolicy(() => _adminrepository.ObtenerUsuariosPorRol(id));
                 var (usuariosPaginados, totalItems) = await _policyExecutor.ExecutePolicyAsync(() => usuariosQueryable.PaginarAsync(paginacion));
                 var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
                 var paginas = _generarPaginas.GenerarListaPaginas(totalPaginas, paginacion.Pagina, paginacion.Radio);
@@ -461,10 +471,10 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
               
-                var usuario = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerPorId(request.Id));
+                var (usuario,mensaje) = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerPorId(request.Id));
                 if (usuario == null)
                 {
-                    return Json(new { success = false, errorMessage = "Usuario no encontrado." });
+                    return Json(new { success = false, errorMessage = mensaje });
                 }
 
                

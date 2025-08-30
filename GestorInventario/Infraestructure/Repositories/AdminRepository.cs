@@ -27,24 +27,37 @@ namespace GestorInventario.Infraestructure.Repositories
             _mapper = mapper;
         }
 
-        public Task<IQueryable<Usuario>> ObtenerUsuarios()
+        public IQueryable<Usuario> ObtenerUsuarios()
         {
-            return Task.FromResult(_context.Usuarios.Include(x => x.IdRolNavigation).AsQueryable());
+            return _context.Usuarios.Include(x => x.IdRolNavigation).AsQueryable();
         }
-        public async Task<Usuario> ObtenerPorId(int id)=>await _context.Usuarios.Include(x=>x.IdRolNavigation).FirstOrDefaultAsync(x=>x.Id==id);
-        public  async Task<List<Role>> ObtenerRoles()=> await _context.Roles.ToListAsync();
-        public async Task<Usuario> UsuarioConPedido(int id)=>await _context.Usuarios.Include(p => p.Pedidos).FirstOrDefaultAsync(m => m.Id == id);
-        public async Task<Usuario> ObtenerUsuarioId(int id) => await _context.Usuarios.FirstOrDefaultAsync(u => u.Id == id);
-        public Task<IQueryable<Role>> ObtenerRolesConUsuarios()
+        public async Task<(Usuario?, string)> ObtenerPorId(int id)
         {
-            return Task.FromResult(_context.Roles.Include(x => x.Usuarios).AsQueryable());
+            var usuario = await _context.Usuarios
+                .Include(x => x.IdRolNavigation)
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            return usuario is null
+                ? (null, "Usuario no encontrado")
+                : (usuario, "Usuario encontrado");
         }
-        public Task<IQueryable<Usuario>> ObtenerUsuariosPorRol(int rolId)
+
+        public async Task<List<Role>> ObtenerRoles() => await _context.Roles.ToListAsync();
+        public async Task<(Usuario?,string)> ObtenerUsuarioConPedido(int id)
         {
-            return Task.FromResult(_context.Usuarios
+            var usuario = await _context.Usuarios.Include(p => p.Pedidos).FirstOrDefaultAsync(m => m.Id == id);
+            return usuario is null ? (null, "Este usuario no tiene pedidos") : (usuario, "Usuario con pedidos encontrado");
+        }      
+        public IQueryable<Role> ObtenerRolesConUsuarios()
+        {
+            return _context.Roles.Include(x => x.Usuarios).AsQueryable();
+        }
+        public IQueryable<Usuario> ObtenerUsuariosPorRol(int rolId)
+        {
+            return _context.Usuarios
                 .Where(u => u.IdRol == rolId)
                 .Include(u => u.IdRolNavigation)
-                .AsQueryable());
+                .AsQueryable();
         }
         public async Task<List<Permiso>> ObtenerPermisos() => await _context.Permisos.ToListAsync();
         public async Task<(bool, string)> CrearUsuario(UserViewModel model)
@@ -66,20 +79,15 @@ namespace GestorInventario.Infraestructure.Repositories
                 var (success, error) = await _emailService.SendEmailAsyncRegister(new EmailDto { ToEmail = model.Email }, user);
                 if (success)
                 {
-
                     _logger.LogInformation("Correo de confirmación enviado a {Email}", user.Email);
                     await transaction.CommitAsync();
-                    return (true, null);
+                    return (true, "Correo de confirmacion enviado con exito");
                 }
                 else
                 {
-
                     await transaction.RollbackAsync();
                     return (false, "Error al enviar el correo de confirmación. Por favor, intenta de nuevo.");
-
                 }
-
-
             }
             catch (Exception ex)
             {
@@ -96,10 +104,10 @@ namespace GestorInventario.Infraestructure.Repositories
             {
                 
 
-                var user = await ObtenerUsuarioId(userVM.Id);
+                var (user,mensaje) = await ObtenerPorId(userVM.Id);
                 if (user == null)
                 {
-                    return (false, "Usuario no encontrado");
+                    return (false, mensaje);
                 }
 
                 // Validar IdRol solo si es un administrador y se proporciona un nuevo rol
@@ -118,10 +126,10 @@ namespace GestorInventario.Infraestructure.Repositories
             catch (DbUpdateConcurrencyException)
             {
                 await transaction.RollbackAsync();
-                var user = await ObtenerUsuarioId(userVM.Id);
+                var (user, mensaje) = await ObtenerPorId(userVM.Id);
                 if (user == null)
                 {
-                    return (false, "Usuario no encontrado");
+                    return (false, mensaje);
                 }
                 _context.ReloadEntity(user);
                 await ActualizarUsuario(userVM, user);
@@ -166,10 +174,10 @@ namespace GestorInventario.Infraestructure.Repositories
                
             }
             catch (Exception ex) {
-                _logger.LogError("Ocurrio un error inesperado", ex);
-               
+                _logger.LogError(ex, "Error al procesar usuario {UserId}", user.Id);
+
             }
-           
+
         }
         public async Task<(bool, string)> EliminarUsuario(int id)
         {
@@ -195,7 +203,7 @@ namespace GestorInventario.Infraestructure.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError("Error al eliminar un usuario");
+                _logger.LogError(ex, "Error al eliminar un usuario con {id}",id);
                 await transaction.RollbackAsync();
                 return (false, "Ocurrio un error inesperado por favor contacte con el administrador o intentelo de nuevo mas tarde");
                
@@ -207,16 +215,16 @@ namespace GestorInventario.Infraestructure.Repositories
             using var transaction= await _context.Database.BeginTransactionAsync();
             try
             {
-                var usuarioDB = await ObtenerUsuarioId(id);
+                var (usuarioDB, mensaje) = await ObtenerPorId(id);
                 if (usuarioDB == null)
                 {
                     return (false, "El usuario que intenta dar de baja no existe");
                 }
                 usuarioDB.BajaUsuario = true;
 
-             await   _context.UpdateEntityAsync(usuarioDB);
+                await   _context.UpdateEntityAsync(usuarioDB);
                 await transaction.CommitAsync();
-                return (true, null);
+                return (true, "Usuario dado de baja con exito");
             }
             catch (Exception ex)
             {
@@ -232,7 +240,7 @@ namespace GestorInventario.Infraestructure.Repositories
             using var transaction=await _context.Database.BeginTransactionAsync();
             try
             {
-                var usuarioDB = await ObtenerUsuarioId(id);
+                var (usuarioDB, mensaje) = await ObtenerPorId(id);
                 if (usuarioDB == null)
                 {
                     return (false, "El usuario que intenta dar de baja no existe");
@@ -241,7 +249,7 @@ namespace GestorInventario.Infraestructure.Repositories
 
                 await  _context.UpdateEntityAsync(usuarioDB);
                 await transaction.CommitAsync();
-                return (true, null);
+                return (true, "Usuario dado de alta con exito");
             }
             catch (Exception ex)
             {
@@ -259,30 +267,25 @@ namespace GestorInventario.Infraestructure.Repositories
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var usuario = await ObtenerUsuarioId(usuarioId); ;
+                var (usuario, mensaje) = await ObtenerPorId(usuarioId); ;
                 if (usuario == null)
                 {
                     throw new Exception($"Usuario con Id {usuarioId} no encontrado.");
                 }
-
-
                 var rol = await _context.Roles.FindAsync(rolId);
                 if (rol == null)
                 {
                     throw new Exception($"Rol con Id {rolId} no encontrado.");
                 }
 
-
                 usuario.IdRol = rolId;
                 await _context.UpdateEntityAsync(usuario);
                 await transaction.CommitAsync();
             }
             catch (Exception ex) {
-                _logger.LogError("Ocurrio un error inesperado", ex);
+                _logger.LogError(ex, "Ocurrio un error inesperado al intentar actualizar el rol");
                 await transaction.RollbackAsync();
-            }
-           
-            
+            }                       
         }
         public async Task<(bool, string)> CrearRol(string nombreRol, List<int> permisoIds)
         {
@@ -374,13 +377,14 @@ namespace GestorInventario.Infraestructure.Repositories
                     if (string.IsNullOrWhiteSpace(nuevoPermiso.Nombre))
                     {
                         _logger.LogWarning("Intento de crear permiso con nombre vacío.");
-                        return (false, null, "El nombre del permiso no puede estar vacío.");
+                        return (false, new List<int>(), "El nombre del permiso no puede estar vacío.");
+
                     }
 
                     if (await _context.Permisos.AnyAsync(p => p.Nombre == nuevoPermiso.Nombre))
                     {
                         _logger.LogWarning($"Intento de crear permiso duplicado: {nuevoPermiso.Nombre}.");
-                        return (false, null, $"El permiso '{nuevoPermiso.Nombre}' ya existe.");
+                        return (false, new List<int>(), $"El permiso '{nuevoPermiso.Nombre}' ya existe.");
                     }
 
                     var permiso = new Permiso
@@ -401,7 +405,7 @@ namespace GestorInventario.Infraestructure.Repositories
             {
                 _logger.LogError(ex, "Error al crear permisos.");
                 await transaction.RollbackAsync();
-                return (false, null, $"Error al crear permisos: {ex.Message}");
+                return (false, new List<int>(), $"Error al crear permisos: {ex.Message}");
             }
         }
     }

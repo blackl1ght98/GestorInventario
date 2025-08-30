@@ -145,7 +145,7 @@ namespace GestorInventario.Middlewares.Strategis
                 return;
             }
 
-            var user = await userService.ObtenerPorId(int.Parse(userId));
+            var (user,mensaje) = await userService.ObtenerPorId(int.Parse(userId));
             if (user == null)
             {
                 logger.Warn($"Usuario con ID {userId} no encontrado.");
