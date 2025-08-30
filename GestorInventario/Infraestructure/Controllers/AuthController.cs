@@ -41,7 +41,7 @@ namespace GestorInventario.Infraestructure.Controllers
         public IActionResult Login()
         {
 
-            if (User.Identity.IsAuthenticated)
+            if ((User.Identity?.IsAuthenticated ?? false))
             {
                 return RedirectToAction("Index", "Home");
             }
@@ -58,7 +58,7 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
                 // Si ya está autenticado, redirige
-                if (User.Identity.IsAuthenticated)
+                if ((User.Identity?.IsAuthenticated ?? false))
                     return RedirectToAction("Index", "Home");
 
                 // Eliminar cookies existentes para mayor seguridad
@@ -68,7 +68,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
                 // Buscar usuario
-                var user = await _policyExecutor.ExecutePolicyAsync(() => _authRepository.Login(model.Email));
+                var (user,mensaje) = await _policyExecutor.ExecutePolicyAsync(() => _authRepository.Login(model.Email));
                 if (user == null)
                 {
                     ModelState.AddModelError("", "El email y/o la contraseña son incorrectos.");
@@ -195,17 +195,17 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
 
-        [AllowAnonymous]
+       [AllowAnonymous]
        [HttpGet("auth/restore-password/{UserId}/{Token}")]
         public async Task<IActionResult> RestorePassword(int UserId, string Token)
         {
-            var result = await PrepareRestorePassModel(UserId, Token);
-            if (!result.success)
+            var (success, mensaje, modelo) = await _authRepository.PrepareRestorePassModel(UserId, Token);
+            if (!success)
             {
-                TempData["ErrorMessage"] = result.errorMessage;
+                TempData["ErrorMessage"] = mensaje;
                 return RedirectToAction("ResetPasswordOlvidada");
             }
-            return View(result.model);
+            return View(modelo);
         }
 
         [AllowAnonymous]
@@ -217,19 +217,19 @@ namespace GestorInventario.Infraestructure.Controllers
                 return View("RestorePassword", cambio);
             }
 
-            var result = await PrepareRestorePassModel(cambio.UserId, cambio.Token);
-            if (!result.success)
+            var (success,mensaje,modelo) = await _authRepository.PrepareRestorePassModel(cambio.UserId, cambio.Token);
+            if (!success)
             {
-                TempData["ErrorMessage"] = result.errorMessage;
+                TempData["ErrorMessage"] =mensaje;
                 return RedirectToAction("ResetPasswordOlvidada");
             }
 
             try
             {
-                var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _authRepository.SetNewPasswordAsync(cambio));
-                if (success)
+                var (exito, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _authRepository.SetNewPasswordAsync(cambio));
+                if (exito)
                 {
-                    if (User.Identity.IsAuthenticated && User.IsAdministrador())
+                    if ((User.Identity?.IsAuthenticated ?? false) && User.IsAdministrador())
                         return RedirectToAction("Index", "Admin");
 
                     return RedirectToAction(nameof(Login));
@@ -288,29 +288,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-        // Método privado para validar token y preparar modelo
-        private async Task<(bool success, string errorMessage, RestoresPasswordDto model)> PrepareRestorePassModel(int userId, string token)
-        {
-            try
-            {
-                var cambio = new RestoresPasswordDto
-                {
-                    UserId = userId,
-                    Token = token
-                };
-
-                var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _authRepository.ValidateResetTokenAsync(cambio));
-                if (!success)
-                    return (false, errorMessage, null);
-
-                return (true, null, cambio);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al validar el token de restauración de contraseña");
-                return (false, "El servidor tardó mucho en responder, inténtelo de nuevo más tarde", null);
-            }
-        }
+       
+      
         public IActionResult ChangePassword()
         {
             return View();
@@ -322,7 +301,7 @@ namespace GestorInventario.Infraestructure.Controllers
             var (succes, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _authRepository.ChangePassword(passwordAnterior, passwordActual));
             if (succes)
             {
-                if (User.Identity.IsAuthenticated && User.IsAdministrador())
+                if ((User.Identity?.IsAuthenticated ?? false) && User.IsAdministrador())
                 {
                     return RedirectToAction("Index", "Admin");
                 }
@@ -337,9 +316,6 @@ namespace GestorInventario.Infraestructure.Controllers
                 return View(nameof(ChangePassword));
             }
 
-        }
-     
-      
-       
+        }                
     }
 }
