@@ -153,8 +153,8 @@ namespace GestorInventario.Infraestructure.Repositories
         private async Task<InfoUsuario> ValidarUsuarioYObtenerInfo()
         {
             var usuarioId = _utilityClass.ObtenerUsuarioIdActual();
-            var usuarioActual = await _admin.ObtenerUsuarioId(usuarioId);
-
+            var (usuarioActual,mensaje) = await _admin.ObtenerPorId(usuarioId);
+           
             // Recolectar información del usuario
             return new InfoUsuario
             {

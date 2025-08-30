@@ -124,7 +124,7 @@ namespace GestorInventario.Middlewares.Strategis
                 return;
             }
 
-            var user = await userService.ObtenerPorId(userIdParsed);
+            var (user,mensaje) = await userService.ObtenerPorId(userIdParsed);
             if (user == null)
             {
                 
