@@ -17,8 +17,9 @@ namespace GestorInventario.Infraestructure.Repositories
         private readonly ILogger<AuthRepository> _logger;
         private readonly UtilityClass _utilityClass;
         private readonly ICarritoRepository _carritoRepository;
+        private readonly IAdminRepository _adminRepository;
         public AuthRepository(GestorInventarioContext context, HashService hash, IHttpContextAccessor httpcontextAccessor, 
-            ILogger<AuthRepository> logger, UtilityClass utilityClass, ICarritoRepository carritoRepository)
+            ILogger<AuthRepository> logger, UtilityClass utilityClass, ICarritoRepository carritoRepository, IAdminRepository adminRepository)
         {
             _context = context;
             _hashService = hash;
@@ -26,10 +27,15 @@ namespace GestorInventario.Infraestructure.Repositories
             _logger = logger;
             _utilityClass = utilityClass;
             _carritoRepository = carritoRepository;
+            _adminRepository = adminRepository;
         }
-        //Los metodos que hay aqui estan todos en AuthController
-        public async Task<Usuario> Login(string email)=>await _context.Usuarios.Include(x => x.IdRolNavigation).FirstOrDefaultAsync(u => u.Email == email);
-        public async Task<Usuario> ObtenerPorId(int id)=>await _context.Usuarios.FindAsync(id);
+
+        public async Task<(Usuario?, string)> Login(string email)
+        {
+            var login = await _context.Usuarios.Include(x => x.IdRolNavigation).FirstOrDefaultAsync(u => u.Email == email);
+            return login is null ? (null, "Email no encontrado") : (login, "Login exitoso");
+        }
+      
         public async Task<(bool, string)> ValidateResetTokenAsync(RestoresPasswordDto cambio)
         {
             try
@@ -53,7 +59,10 @@ namespace GestorInventario.Infraestructure.Repositories
                 var (valido, mensaje, usuarioDB) = await ValidarTokenCambioPass(cambio);
                 if (!valido)
                     return (false, mensaje);
-
+                if (usuarioDB == null)
+                {
+                    return (false, "Usuario no encontrado");
+                }
                 if (string.IsNullOrEmpty(cambio.Password))
                     return (false, "La contraseña no puede estar vacía");
 
@@ -68,7 +77,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 await _context.UpdateEntityAsync(usuarioDB);
                 await transaction.CommitAsync();
 
-                return (true, null);
+                return (true, "Contraseña establecida con exito");
             }
             catch (Exception ex)
             {
@@ -83,10 +92,7 @@ namespace GestorInventario.Infraestructure.Repositories
             using var transaction= await _context.Database.BeginTransactionAsync();
             try
             {
-                var existeUsuario = _contextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int usuarioId;
-                if (int.TryParse(existeUsuario, out usuarioId))
-                {
+                    var usuarioId = _utilityClass.ObtenerUsuarioIdActual();
                     var usuarioDB = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == usuarioId);
                     if (usuarioDB == null)
                     {
@@ -102,27 +108,24 @@ namespace GestorInventario.Infraestructure.Repositories
                     usuarioDB.Salt = actualPassword.Salt;
                     await _context.UpdateEntityAsync(usuarioDB);
                     await transaction.CommitAsync();
-                    return (true, null);
-                }
-                return (false, null);
+                    return (true, "Contraseña actualizada con exito");                             
             }
             catch (Exception ex)
             {
-
                 _logger.LogError(ex, "Error al cambiar la contraseña");
                 await transaction.RollbackAsync();
                 return (false, "Ocurrio un error inesperado por favor contacte con el administrador o intentelo de nuevo mas tarde");
             }
            
         }
-        private async Task<(bool valido, string mensaje, Usuario usuario)> ValidarTokenCambioPass(RestoresPasswordDto cambio)
+        private async Task<(bool valido, string mensaje, Usuario? usuario)> ValidarTokenCambioPass(RestoresPasswordDto cambio)
         {
             
             try
             {
-                var usuario = await ObtenerPorId(cambio.UserId);
+                var (usuario,mensaje) = await _adminRepository.ObtenerPorId(cambio.UserId);
                 if (usuario == null)
-                    return (false, "Usuario no encontrado", null);
+                    return (false, mensaje, null);
 
                 if (usuario.EnlaceCambioPass != cambio.Token)
                     return (false, "Token no válido", null);
@@ -135,13 +138,12 @@ namespace GestorInventario.Infraestructure.Repositories
                     await _context.SaveChangesAsync();
                    
                     return (false, "El enlace y contraseña temporal han expirado. Solicite una nueva.", null);
-                }
-              ;
-                return (true, null, usuario);
+                };
+                return (true, "Token valido", usuario);
             }
             catch (Exception ex) {
-           
-            return (false,"Ocurrio un error inesperado", null);
+                _logger.LogCritical(ex, "Error al validar el token");
+                return (false,"Ocurrio un error inesperado al validar el token", null);
             
             
             }
@@ -173,6 +175,28 @@ namespace GestorInventario.Infraestructure.Repositories
             {
                 _logger.LogError(ex, "Error al eliminar carritos activos para el usuario {UsuarioId}", _utilityClass.ObtenerUsuarioIdActual());
              
+            }
+        }
+        public async Task<(bool, string, RestoresPasswordDto?)> PrepareRestorePassModel(int userId, string token)
+        {
+            try
+            {
+                var cambio = new RestoresPasswordDto
+                {
+                    UserId = userId,
+                    Token = token
+                };
+
+                var (success, errorMessage) = await ValidateResetTokenAsync(cambio);
+                if (!success)
+                    return (false, errorMessage, null);
+
+                return (true, "Modelo preparado con exito", cambio);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al validar el token de restauración de contraseña");
+                return (false, "El servidor tardó mucho en responder, inténtelo de nuevo más tarde", null);
             }
         }
     }
