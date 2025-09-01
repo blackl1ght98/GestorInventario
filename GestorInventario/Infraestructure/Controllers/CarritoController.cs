@@ -32,13 +32,13 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
+                if (!(User.Identity?.IsAuthenticated ?? false))
                 {
                     return RedirectToAction("Login", "Auth");
                 }
 
                 int usuarioId = _utilityClass.ObtenerUsuarioIdActual();
-                var carrito = await _policyExecutor.ExecutePolicyAsync(() => _carritoRepository.ObtenerCarritoUsuario(usuarioId));
+                var (carrito,mensaje)  = await _policyExecutor.ExecutePolicyAsync(() => _carritoRepository.ObtenerCarritoUsuario(usuarioId));
 
                 // Si no existe un carrito, crearlo automáticamente
                 if (carrito == null)
@@ -46,7 +46,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     carrito = await _policyExecutor.ExecutePolicyAsync(() => _carritoRepository.CrearCarritoUsuario(usuarioId));
                 }
 
-                var itemsDelCarrito = _policyExecutor.ExecutePolicy(() => _carritoRepository.ObtenerItems(carrito.Id));
+                var itemsDelCarrito = _policyExecutor.ExecutePolicy(() => _carritoRepository.ObtenerItemsConDetalles(carrito.Id));
                 var (itemsPaginados, totalItems) = await _policyExecutor.ExecutePolicyAsync(() => itemsDelCarrito.PaginarAsync(paginacion));
                 var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
                 var paginas = _generarPaginas.GenerarListaPaginas(totalPaginas, paginacion.Pagina, paginacion.Radio);
@@ -84,8 +84,8 @@ namespace GestorInventario.Infraestructure.Controllers
                System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
                 try
                 {
-                    if (!User.Identity.IsAuthenticated)
-                    {
+                if (!(User.Identity?.IsAuthenticated ?? false))
+                {
                         return RedirectToAction("Login", "Auth");
                     }
                
@@ -115,7 +115,7 @@ namespace GestorInventario.Infraestructure.Controllers
         [HttpPost]
         public async Task<ActionResult> Incrementar(int id)
         {
-            if (!User.Identity.IsAuthenticated)
+            if (!(User.Identity?.IsAuthenticated ?? false))
             {
                 return RedirectToAction("Login", "Auth");
             }
@@ -135,7 +135,7 @@ namespace GestorInventario.Infraestructure.Controllers
         [HttpPost]
         public async Task<ActionResult> Decrementar(int id)
         {
-            if (!User.Identity.IsAuthenticated)
+            if (!(User.Identity?.IsAuthenticated ?? false))
             {
                 return RedirectToAction("Login", "Auth");
             }
@@ -158,7 +158,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
+                if (!(User.Identity?.IsAuthenticated ?? false))
                 {
                     return RedirectToAction("Login", "Auth");
                 }
