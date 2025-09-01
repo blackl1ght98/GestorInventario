@@ -1,9 +1,13 @@
-﻿namespace GestorInventario.Application.Classes
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace GestorInventario.Application.Classes
 {
     public class Checkout
     {
+       
         public List<ItemModel> items { get; set; }
         public decimal totalAmount { get; set; }
+       
         public string returnUrl { get; set; }
         public string cancelUrl { get; set; }
         public string currency { get; set; }

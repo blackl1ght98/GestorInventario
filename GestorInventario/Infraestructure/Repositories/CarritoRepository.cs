@@ -30,10 +30,11 @@ namespace GestorInventario.Infraestructure.Repositories
         }
 
         // Obtener el carrito del usuario (Pedidos con EsCarrito = 1)
-        public async Task<Pedido> ObtenerCarritoUsuario(int userId)
+        public async Task<(Pedido?,string)> ObtenerCarritoUsuario(int userId)
         {
-            return await _context.Pedidos
+            var carrito = await _context.Pedidos
                 .FirstOrDefaultAsync(x => x.IdUsuario == userId && x.EsCarrito);
+            return carrito is null ? (null,"No se puede obtener el carrito del usuario"): (carrito,"Carrito obtenido con exito");
         }
 
         // Obtener ítems del carrito (DetallePedido para un Pedido con EsCarrito = 1)
@@ -45,15 +46,17 @@ namespace GestorInventario.Infraestructure.Repositories
         }
 
         // Obtener un ítem específico del carrito por ID
-        public async Task<DetallePedido> ItemsDelCarrito(int id)
+        public async Task<(DetallePedido?,string)> ItemsDelCarrito(int id)
         {
-            return await _context.DetallePedidos
+            var itemsCarrito = await _context.DetallePedidos
                 .FirstOrDefaultAsync(x => x.Id == id);
+            return itemsCarrito is null ? (null, "No hay productos en el carrito") : (itemsCarrito, "Productos obtenidos");
         }
 
         // Obtener ítems con datos relacionados (producto y proveedor)
-        public IQueryable<DetallePedido> ObtenerItems(int pedidoId)
+        public IQueryable<DetallePedido> ObtenerItemsConDetalles(int pedidoId)
         {
+            
             return _context.DetallePedidos
                 .Include(i => i.Producto)
                 .Include(i => i.Producto.IdProveedorNavigation)
@@ -76,12 +79,12 @@ namespace GestorInventario.Infraestructure.Repositories
         }
 
         // Método para crear un carrito si no existe
-        public async Task<Pedido> CrearCarritoUsuario(int userId)
+        public async Task<Pedido?> CrearCarritoUsuario(int userId)
         {
            
             try
             {
-                var carrito = await ObtenerCarritoUsuario(userId);
+                var (carrito,mensaje) = await ObtenerCarritoUsuario(userId);
                 if (carrito == null)
                 {
                     carrito = new Pedido
@@ -99,7 +102,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 return carrito;
             }
             catch (Exception ex) {
-                _logger.LogError("Ocurrio un error inesperado", ex);
+                _logger.LogError(ex,"Ocurrio un error inesperado");
                 return null;
             }
            
@@ -112,18 +115,15 @@ namespace GestorInventario.Infraestructure.Repositories
             try
             {
                 // Recolectar información del usuario
-                var infoUsuario = await ValidarUsuarioYObtenerInfo();
-                
+                var (infoUsuario,mensaje) = await ValidarUsuarioYObtenerInfo();
+
                 //Validar y obtener items del carrito
-                var (carrito, itemsDelCarrito)= await ValidarCarritoYObtenerItems(userId);
-                if (carrito == null)
+                var (success, message, carrito, itemsDelCarrito) = await ValidarCarritoYObtenerItems(userId);
+                if (!success)
                 {
-                    return (false, "No se encontró un carrito para el usuario.", null);
+                    return (false, message, "");
                 }
-                if (!itemsDelCarrito.Any())
-                {
-                    return (false, "El carrito está vacío.", null);
-                }
+
                 // Convertir el carrito en un pedido
                 await ConvertirCarritoAPedido(carrito);
 
@@ -131,11 +131,11 @@ namespace GestorInventario.Infraestructure.Repositories
                 moneda = string.IsNullOrEmpty(moneda) ? "EUR" : moneda;
                 var checkout = await PrepararCheckoutParaPagoPayPal(itemsDelCarrito, moneda, infoUsuario);
                 // Iniciar pago con PayPal
-                var (success, message, approvalUrl) = await ProcesarPagoPayPal(checkout);
-                if (!success)
+                var (paypalSuccess, paypalMessage, approvalUrl) = await ProcesarPagoPayPal(checkout);
+                if (!paypalSuccess)
                 {
                     await transaction.RollbackAsync();
-                    return (false, message, null);
+                    return (false, paypalMessage, "");
                 }
                 await RegistrarHistorialPedido(carrito, itemsDelCarrito);
                 await EliminarCarritosVaciosUsuario(userId);
@@ -147,35 +147,44 @@ namespace GestorInventario.Infraestructure.Repositories
             {
                 _logger.LogError(ex, "Error al realizar el pago");
                 await transaction.RollbackAsync();
-                return (false, "Ocurrió un error inesperado. Por favor, contacte con el administrador o intentelo de nuevo más tarde.", null);
+                return (false, "Ocurrió un error inesperado. Por favor, contacte con el administrador o intentelo de nuevo más tarde.", "");
             }
         }
-        private async Task<InfoUsuario> ValidarUsuarioYObtenerInfo()
+        private async Task<(InfoUsuario?,string)> ValidarUsuarioYObtenerInfo()
         {
             var usuarioId = _utilityClass.ObtenerUsuarioIdActual();
             var (usuarioActual,mensaje) = await _admin.ObtenerPorId(usuarioId);
-           
-            // Recolectar información del usuario
-            return new InfoUsuario
+            if(usuarioActual == null)
             {
-                nombreCompletoUsuario = usuarioActual.NombreCompleto,
-                telefono = usuarioActual.Telefono,
-                codigoPostal = usuarioActual.CodigoPostal,
-                ciudad = usuarioActual.Ciudad,
+                return (null, "El usuario no existe");
+            }
+            var infoUsuario = new InfoUsuario
+            {
+                nombreCompletoUsuario = usuarioActual.NombreCompleto ?? "Nombre no facilitado",
+                telefono = usuarioActual.Telefono ?? "Telefono no facilitado",
+                codigoPostal = usuarioActual.CodigoPostal ?? "Codigo Postal no facilitado",
+                ciudad = usuarioActual.Ciudad ?? "Ciudad no facilitado",
                 line1 = usuarioActual.Direccion.Split(",")[0].Trim(),
                 line2 = usuarioActual.Direccion.Split(",").Length > 1 ? usuarioActual.Direccion.Split(",")[1].Trim() : ""
             };
+           
+            return (infoUsuario,"Informacion obtenida");
         }
-        private async Task<(Pedido, List<DetallePedido>)> ValidarCarritoYObtenerItems(int userId)
+        private async Task<(bool Success, string Message, Pedido? Carrito, List<DetallePedido> Items)> ValidarCarritoYObtenerItems(int userId)
         {
-            // Obtener el carrito del usuario
-            var carrito = await ObtenerCarritoUsuario(userId);
+            var (carrito, mensaje) = await ObtenerCarritoUsuario(userId);
             if (carrito == null)
             {
-                return (null, null);
+                return (false, "No se encontró un carrito para el usuario.", null, new List<DetallePedido>());
             }
+
             var itemsDelCarrito = await ObtenerItemsDelCarritoUsuario(carrito.Id);
-            return (carrito, itemsDelCarrito);
+            if (!itemsDelCarrito.Any())
+            {
+                return (false, "El carrito está vacío.", carrito, itemsDelCarrito);
+            }
+
+            return (true, string.Empty, carrito, itemsDelCarrito);
         }
         private async Task ConvertirCarritoAPedido(Pedido carrito)
         {
@@ -189,7 +198,7 @@ namespace GestorInventario.Infraestructure.Repositories
              
             } catch (Exception ex) {
                 
-                _logger.LogError("Ocurrio un error inesperado", ex);
+                _logger.LogError(ex,"Ocurrio un error inesperado");
             
             }
            
@@ -199,26 +208,30 @@ namespace GestorInventario.Infraestructure.Repositories
         {
             var items = new List<ItemModel>();
             decimal totalAmount = 0;
-
-            foreach (var item in itemsDelCarrito)
-            {
-                var producto = await _context.Productos.FindAsync(item.ProductoId);
-                var paypalItem = new ItemModel
+           
+                foreach (var item in itemsDelCarrito)
                 {
-                    name = producto.NombreProducto,
-                    currency = moneda,
-                    price = producto.Precio,
-                    quantity = item.Cantidad.Value.ToString(),
-                    sku = producto.Descripcion
-                };
-                items.Add(paypalItem);
-                totalAmount += Convert.ToDecimal(producto.Precio) * Convert.ToDecimal(item.Cantidad ?? 0);
-            }
+               
+                    var producto = await _context.Productos.FindAsync(item.ProductoId);
+                    if (producto != null)
+                    {
+                   
+                        var paypalItem = new ItemModel
+                        {
+                            name = producto.NombreProducto,
+                            currency = moneda,
+                            price = producto.Precio,
+                            quantity = item.Cantidad.Value.ToString(),
+                            sku = producto.Descripcion
+                        };
+                        items.Add(paypalItem);
+                        totalAmount += Convert.ToDecimal(producto.Precio) * Convert.ToDecimal(item.Cantidad ?? 0);
+                    }
 
-            var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER") == "true";
-            string returnUrl = isDocker
-                ? _configuration["Paypal:returnUrlConDocker"] ?? Environment.GetEnvironmentVariable("Paypal_returnUrlConDocker")
-                : _configuration["Paypal:returnUrlSinDocker"] ?? Environment.GetEnvironmentVariable("Paypal_returnUrlSinDocker");
+                
+            }
+          
+            string returnUrl = ObtenerReturnUrl();
             string cancelUrl = "https://localhost:7056/Payment/Cancel";
 
             return new Checkout
@@ -236,6 +249,15 @@ namespace GestorInventario.Infraestructure.Repositories
                 line2 = infoUsuario.line2
             };
         }
+        private string ObtenerReturnUrl()
+        {
+            var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER") == "true";
+            var configKey = isDocker ? "Paypal:returnUrlConDocker" : "Paypal:returnUrlSinDocker";
+            var envVarKey = isDocker ? "Paypal_returnUrlConDocker" : "Paypal_returnUrlSinDocker";
+
+            var returnUrl = _configuration[configKey] ?? Environment.GetEnvironmentVariable(envVarKey);
+            return returnUrl ?? throw new InvalidOperationException($"La URL de retorno no está configurada. Verifique la clave '{configKey}' o la variable de entorno '{envVarKey}'.");
+        }
         private async Task<(bool, string, string)> ProcesarPagoPayPal(Checkout checkout)
         {
             var createdPaymentJson = await _paypalService.CreateOrderWithPaypalAsync(checkout);
@@ -245,18 +267,28 @@ namespace GestorInventario.Infraestructure.Repositories
             {
                 return (true, "Redirigiendo a PayPal para completar el pago", approvalUrl);
             }
-            return (false, "Fallo al iniciar el pago con PayPal", null);
+            return (false, "Fallo al iniciar el pago con PayPal", "");
         }
 
 
         private async Task RegistrarHistorialPedido(Pedido pedido, List<DetallePedido> itemsDelCarrito)
         {
-            var ip = _contextAccessor.HttpContext.Connection.RemoteIpAddress;
-            string ipString = (ip != null && ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
-                ? ip.MapToIPv4().ToString()
-                : ip?.ToString();
+            string ipString;
+            if (_contextAccessor.HttpContext == null)
+            {
+                ipString = string.Empty; 
+            }
+            else
+            {
+                var ip = _contextAccessor.HttpContext.Connection.RemoteIpAddress;
+                ipString = ip != null
+                    ? ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6
+                        ? ip.MapToIPv4().ToString()
+                        : ip.ToString()
+                    : string.Empty;
+            }
 
-           
+
             try
             {
                 // Crear el registro del historial del pedido
@@ -314,7 +346,7 @@ namespace GestorInventario.Infraestructure.Repositories
                
 
             } catch (Exception ex) {
-                _logger.LogError("Ocurrio un error inesperado", ex);
+                _logger.LogError(ex,"Ocurrio un error inesperado");
                
            }
            
@@ -326,10 +358,10 @@ namespace GestorInventario.Infraestructure.Repositories
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var detalle = await ItemsDelCarrito(id);
+                var (detalle,mensaje) = await ItemsDelCarrito(id);
                 if (detalle == null)
                 {
-                    return (false, "El producto no está en el carrito.");
+                    return (false, mensaje);
                 }
 
                 detalle.Cantidad++;
@@ -345,7 +377,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 producto.Cantidad--;
                 await _context.UpdateEntityAsync(producto);
                 await transaction.CommitAsync();
-                return (true, null);
+                return (true, "");
             }
             catch (Exception ex)
             {
@@ -360,10 +392,10 @@ namespace GestorInventario.Infraestructure.Repositories
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var detalle = await ItemsDelCarrito(id);
+                var (detalle,mensaje) = await ItemsDelCarrito(id);
                 if (detalle == null)
                 {
-                    return (false, "El producto no está en el carrito.");
+                    return (false, mensaje);
                 }
 
                 detalle.Cantidad--;
@@ -387,7 +419,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 await _context.UpdateEntityAsync(producto);
 
                 await transaction.CommitAsync();
-                return (true, null);
+                return (true, "");
             }
             catch (Exception ex)
             {
@@ -417,7 +449,7 @@ namespace GestorInventario.Infraestructure.Repositories
 
                 await _context.DeleteEntityAsync(detalle);
                 await transaction.CommitAsync();
-                return (true, null);
+                return (true, "");
             }
             catch (Exception ex)
             {
