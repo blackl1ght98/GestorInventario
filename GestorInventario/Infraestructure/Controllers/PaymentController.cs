@@ -19,19 +19,17 @@ namespace GestorInventario.Infraestructure.Controllers
     {
         private readonly ILogger<PaymentController> _logger;
         private readonly IPaypalService _paypalService;        
-        private readonly GestorInventarioContext _context;
+       
         private readonly IMemoryCache _memory;
-        private readonly IEmailService _emailService;     
+         
         private readonly PolicyExecutor _policyExecutor;
         private readonly IPaymentRepository _paymentRepository;
         private readonly UtilityClass _utilityClass;
-        public PaymentController(ILogger<PaymentController> logger,   GestorInventarioContext context, IMemoryCache memory, 
-            IEmailService email, PolicyExecutor executor, IPaypalService service, IPaymentRepository payment, UtilityClass utility)
+        public PaymentController(ILogger<PaymentController> logger,  IMemoryCache memory, 
+            PolicyExecutor executor, IPaypalService service, IPaymentRepository payment, UtilityClass utility)
         {
-            _logger = logger;                     
-            _context = context;
-            _memory = memory;
-            _emailService = email;
+            _logger = logger;                               
+            _memory = memory;          
             _policyExecutor = executor;
             _paypalService = service;
             _paymentRepository = payment;
@@ -48,29 +46,9 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 var (captureId, total, currency) = await _paypalService.CapturarPagoAsync(orderId);
 
-                var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (!int.TryParse(existeUsuario, out int usuarioId))
-                {
-                    throw new Exception("No se pudo obtener el ID del usuario autenticado.");
-                }
+                var usuarioActual = _utilityClass.ObtenerUsuarioIdActual();
 
-                var pedido = await _context.Pedidos
-                    .Where(p => p.IdUsuario == usuarioId && p.EstadoPedido == "En Proceso")
-                    .OrderByDescending(p => p.FechaPedido)
-                    .FirstOrDefaultAsync();
-
-                if (pedido == null)
-                {
-                    throw new Exception("No se encontró un pedido en proceso para este usuario.");
-                }
-
-                pedido.CaptureId = captureId; //-> Localizado en el array captures dentro de la respuesta de PayPal representa el id de la venta
-                pedido.Total = total;
-                pedido.Currency = currency;
-                pedido.OrderId = orderId;
-                pedido.EstadoPedido = "Pagado";
-
-                await _context.UpdateEntityAsync(pedido);
+                var pedido =  await _paymentRepository.AgregarInfoPedido(usuarioActual,captureId,total,currency,orderId);
          
                 
                 return View();
@@ -89,7 +67,8 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             if (request == null || request.PedidoId <= 0)
             {
-                return BadRequest("Solicitud inválida.");
+                _logger.LogWarning("Solicitud de reembolso inválida: PedidoId={PedidoId}, Currency={Currency}",
+            request?.PedidoId, request?.currency);
             }
 
             try
@@ -122,7 +101,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
-        public async Task<IActionResult> FormularioRembolso()
+        public IActionResult FormularioRembolso()
         {
             return View();
         }
@@ -132,29 +111,27 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var obtenerNumeroPedido = await _policyExecutor.ExecutePolicyAsync(() => _context.Pedidos
-                    .Where(p => p.NumeroPedido == form.NumeroPedido)
-                    .FirstOrDefaultAsync());
+                var (obtenerNumeroPedido,_) = await _policyExecutor.ExecutePolicyAsync(() => _paymentRepository.ObtenerNumeroPedido(form));
 
                 if (obtenerNumeroPedido == null)
                 {
-                    return BadRequest("El numero de pedido proporcionado no existe");
+                    _logger.LogInformation("El numero de pedido proporcionado no existe " + obtenerNumeroPedido);
                 }
 
                 int usuarioActual = _utilityClass.ObtenerUsuarioIdActual();
 
                 var emailCliente = await _policyExecutor.ExecutePolicyAsync(() => _paymentRepository.ObtenerEmailUsuarioAsync(usuarioActual));
-
-                if (emailCliente == null)
+                if(emailCliente == null)
                 {
-                    return BadRequest("El cliente no existe");
+                    _logger.LogInformation("El email proporcionado no se encuentra registrado "+ emailCliente);
                 }
+              
 
-                var pedido = await _policyExecutor.ExecutePolicyAsync(() =>_paymentRepository.ObtenerNumeroPedido(form));
+                var (pedido,mensaje) = await _policyExecutor.ExecutePolicyAsync(() =>_paymentRepository.ObtenerNumeroPedido(form));
 
                 if (pedido == null)
                 {
-                    return BadRequest("Pedido no encontrado");
+                   _logger.LogInformation("El pedido con el numero de pedido proporcionado no existe ");
                 }
 
                 var detallespago = await _policyExecutor.ExecutePolicyAsync(() =>
@@ -162,152 +139,21 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 if (detallespago == null)
                 {
-                    return BadRequest("Error en obtener detalles");
+                    _logger.LogInformation("No se ha podido obtener los detalles del pago");
                 }
 
                 // Verificar que hay purchase units
                 if (detallespago.PurchaseUnits == null || !detallespago.PurchaseUnits.Any())
                 {
-                    return BadRequest("No se encontraron unidades de compra");
+                    _logger.LogInformation("No se encuntran las unidades de pago en la peticion");
                 }
 
                 var firstPurchaseUnit = detallespago.PurchaseUnits.First();
 
-                var detallesSuscripcion = new PayPalPaymentDetail
-                {
-                    Id = detallespago.Id,
-                    Intent = detallespago.Intent,
-                    Status = detallespago.Status,
-                    PaymentMethod = "paypal",
-                    PayerEmail = detallespago.Payer?.Email,
-                    PayerFirstName = detallespago.Payer?.Name?.GivenName,
-                    PayerLastName = detallespago.Payer?.Name?.Surname,
-                    PayerId = detallespago.Payer?.PayerId,
-                    ShippingRecipientName = firstPurchaseUnit?.Shipping?.Name?.FullName,
-                    ShippingLine1 = firstPurchaseUnit?.Shipping?.Address?.AddressLine1,
-                    ShippingCity = firstPurchaseUnit?.Shipping?.Address?.AdminArea2,
-                    ShippingState = firstPurchaseUnit?.Shipping?.Address?.AdminArea1,
-                    ShippingPostalCode = firstPurchaseUnit?.Shipping?.Address?.PostalCode,
-                    ShippingCountryCode = firstPurchaseUnit?.Shipping?.Address?.CountryCode,
-                };
-
-                // Procesar el amount
-                if (firstPurchaseUnit?.Amount != null)
-                {
-                    detallesSuscripcion.AmountTotal = _paymentRepository.ConvertToDecimal(firstPurchaseUnit.Amount.Value);
-                    detallesSuscripcion.AmountCurrency = firstPurchaseUnit.Amount.CurrencyCode;
-
-                    if (firstPurchaseUnit.Amount.Breakdown != null)
-                    {
-                        detallesSuscripcion.AmountItemTotal = _paymentRepository.ConvertToDecimal(
-                            firstPurchaseUnit.Amount.Breakdown.ItemTotal?.Value ?? "0");
-                        detallesSuscripcion.AmountShipping = _paymentRepository.ConvertToDecimal(
-                            firstPurchaseUnit.Amount.Breakdown.Shipping?.Value ?? "0");
-                    }
-                }
-
-                // Procesar payee
-                if (firstPurchaseUnit?.Payee != null)
-                {
-                    detallesSuscripcion.PayeeMerchantId = firstPurchaseUnit.Payee.MerchantId;
-                    detallesSuscripcion.PayeeEmail = firstPurchaseUnit.Payee.EmailAddress;
-                }
-
-                detallesSuscripcion.Description = firstPurchaseUnit?.Description;
-
-                // Procesar pagos y capturas
-                if (firstPurchaseUnit?.Payments?.Captures != null && firstPurchaseUnit.Payments.Captures.Any())
-                {
-                    var firstCapture = firstPurchaseUnit.Payments.Captures.First();
-                    detallesSuscripcion.SaleId = firstCapture.Id;
-                    detallesSuscripcion.CaptureStatus = firstCapture.Status;
-
-                    if (firstCapture.Amount != null)
-                    {
-                        detallesSuscripcion.CaptureAmount = _paymentRepository.ConvertToDecimal(firstCapture.Amount.Value);
-                        detallesSuscripcion.CaptureCurrency = firstCapture.Amount.CurrencyCode;
-                    }
-
-                    if (firstCapture.SellerProtection != null)
-                    {
-                        detallesSuscripcion.ProtectionEligibility = firstCapture.SellerProtection.Status;
-                    }
-
-                    // Procesar seller receivable breakdown con verificaciones de nulidad
-                    if (firstCapture.SellerReceivableBreakdown != null)
-                    {
-                        detallesSuscripcion.TransactionFeeAmount = firstCapture.SellerReceivableBreakdown.PaypalFee != null ?
-                            _paymentRepository.ConvertToDecimal(firstCapture.SellerReceivableBreakdown.PaypalFee.Value) : 0;
-
-                        detallesSuscripcion.TransactionFeeCurrency = firstCapture.SellerReceivableBreakdown.PaypalFee?.CurrencyCode;
-
-                        detallesSuscripcion.ReceivableAmount = firstCapture.SellerReceivableBreakdown.NetAmount != null ?
-                            _paymentRepository.ConvertToDecimal(firstCapture.SellerReceivableBreakdown.NetAmount.Value) : 0;
-
-                        detallesSuscripcion.ReceivableCurrency = firstCapture.SellerReceivableBreakdown.NetAmount?.CurrencyCode;
-
-                        if (firstCapture.SellerReceivableBreakdown.ExchangeRate != null &&
-                            !string.IsNullOrEmpty(firstCapture.SellerReceivableBreakdown.ExchangeRate.Value))
-                        {
-                            if (decimal.TryParse(firstCapture.SellerReceivableBreakdown.ExchangeRate.Value,
-                                NumberStyles.Any, CultureInfo.InvariantCulture, out decimal exchangeRate))
-                            {
-                                detallesSuscripcion.ExchangeRate = exchangeRate;
-                            }
-                        }
-                    }
-                }
+                var detallesSuscripcion = _paymentRepository.ProcesarDetallesSuscripcion(detallespago);
 
                 // Lista para almacenar los ítems de PayPal
-                var paypalItems = new List<PayPalPaymentItem>();
-
-                // Procesar items
-                if (firstPurchaseUnit?.Items != null)
-                {
-                    foreach (var item in firstPurchaseUnit.Items)
-                    {
-                        var paymentItem = new PayPalPaymentItem
-                        {
-                            PayPalId = detallesSuscripcion.Id,
-                            ItemName = item.Name,
-                            ItemSku = item.Sku,
-                            ItemPrice = item.UnitAmount != null ? _paymentRepository.ConvertToDecimal(item.UnitAmount.Value) : 0,
-                            ItemCurrency = item.UnitAmount?.CurrencyCode,
-                            ItemTax = item.Tax != null ? _paymentRepository.ConvertToDecimal(item.Tax.Value) : 0,
-                            ItemQuantity = _paymentRepository.ConvertToInt(item.Quantity)
-                        };
-
-                        paypalItems.Add(paymentItem);
-                    }
-                }
-
-                // Crear el reembolso
-                var rembolso = new Rembolso
-                {
-                    UsuarioId = usuarioActual,
-                    NumeroPedido = form.NumeroPedido,
-                    NombreCliente = form.NombreCliente,
-                    EmailCliente = emailCliente,
-                    FechaRembolso = form.FechaRembolso,
-                    EstadoRembolso = "EN REVISION PARA APROBACION",
-                    MotivoRembolso = form.MotivoRembolso,
-                    PedidoId= obtenerNumeroPedido.Id,
-                };
-
-                await _context.AddEntityAsync(rembolso);
-
-                // Preparar y enviar el correo a los empleados
-                var emailRembolso = new EmailRembolsoDto
-                {
-                    NumeroPedido = rembolso.NumeroPedido,
-                    NombreCliente = rembolso.NombreCliente,
-                    EmailCliente = rembolso.EmailCliente,
-                    FechaRembolso = rembolso.FechaRembolso,
-                    MotivoRembolso = rembolso.MotivoRembolso,
-                    Productos = paypalItems
-                };
-
-                await _policyExecutor.ExecutePolicy(() => _emailService.EnviarEmailSolicitudRembolso(emailRembolso));
+                var paypalItems = await _paymentRepository.ProcesarRembolso(firstPurchaseUnit, detallesSuscripcion,usuarioActual,form,obtenerNumeroPedido,emailCliente);
 
                 return RedirectToAction("Index", "Admin");
             }
@@ -318,11 +164,6 @@ namespace GestorInventario.Infraestructure.Controllers
                 return StatusCode(500, "Ocurrió un error al procesar tu solicitud");
             }
         }
-    
-      
-
-    } 
-   
-
-    
+       
+    }      
 }
