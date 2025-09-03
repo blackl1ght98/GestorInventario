@@ -212,7 +212,7 @@ namespace GestorInventario.Infraestructure.Repositories
 
             await _context.AddEntityAsync(rembolso);
 
-            // Preparar y enviar el correo a los empleados
+            
             var emailRembolso = new EmailRembolsoDto
             {
                 NumeroPedido = rembolso.NumeroPedido,
@@ -233,7 +233,7 @@ namespace GestorInventario.Infraestructure.Repositories
             {
                 return null;
             }
-            // Si el valor es un decimal, simplemente lo devuelve
+            
             if (value is decimal decimalValue)
             {
                 return decimalValue;
@@ -267,7 +267,7 @@ namespace GestorInventario.Infraestructure.Repositories
             {
                 return null;
             }
-            // Si el valor ya es un int, simplemente lo devuelve
+           
             if (value is int intValue)
             {
                 return intValue;
@@ -314,7 +314,7 @@ namespace GestorInventario.Infraestructure.Repositories
             }
             else
             {
-                // Convertir el valor a cadena, asumiendo que es un tipo no-string
+                
                 stringValue = value.ToString();
             }
             // Quitar corchetes si están presentes

@@ -8,10 +8,8 @@ using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
 using System.Globalization;
-using System.Security.Policy;
-using System.Threading;
+
 
 namespace GestorInventario.Infraestructure.Repositories
 {
@@ -327,8 +325,8 @@ namespace GestorInventario.Infraestructure.Repositories
                     obtenerRembolso.EstadoRembolso = "REMBOLSO APROVADO";
                     obtenerRembolso.RembosoRealizado = true;
                     obtenerRembolso.EstadoVenta = estadoVenta;
-                    obtenerRembolso.FechaRembolso = DateTime.UtcNow; // Actualizar fecha si es necesario
-                                                                     // Puedes agregar o actualizar otros campos si es requerido
+                    obtenerRembolso.FechaRembolso = DateTime.UtcNow; 
+                                                                    
 
                     _context.Update(obtenerRembolso);
                 }
