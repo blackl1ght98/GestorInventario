@@ -181,7 +181,7 @@ namespace GestorInventario.Infraestructure.Controllers
      
        
         //Metodo que obtiene los datos necesarios antes de crear el producto al que se suscribira
-        public async Task<IActionResult> CrearProducto()
+        public async Task<IActionResult> CrearProductoYPlan()
         {
           
             var model = new ProductViewModelPaypal();
@@ -192,9 +192,9 @@ namespace GestorInventario.Infraestructure.Controllers
             return View(model);
         }
 
-      //Metodo que crea el producto  y plan al que se suscribira el usuario
+        //Metodo que crea el producto  y plan al que se suscribira el usuario
         [HttpPost]
-        public async Task<IActionResult> CrearProducto(ProductViewModelPaypal model, string monedaSeleccionada)
+        public async Task<IActionResult> CrearProductoYPlan(ProductViewModelPaypal model, string monedaSeleccionada)
         {
             // Cambia la cultura actual del hilo a InvariantCulture
             System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
@@ -566,7 +566,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 _logger.LogInformation("Página solicitada: {Pagina}, CantidadAMostrar: {Cantidad}", paginacion.Pagina, paginacion.CantidadAMostrar);
 
                 // Consulta inicial para obtener los detalles de suscripción
-                var queryable = await _paypalRepository.ObtenerSubscripciones();
+                var queryable =  _paypalRepository.ObtenerSubscripciones();
 
                 // Calcular el número total de páginas
                 var totalItems = await queryable.CountAsync();
@@ -623,7 +623,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     paginacion.Pagina, paginacion.CantidadAMostrar, usuarioActual);
 
                 // Consulta inicial para obtener las suscripciones del usuario
-                var queryable = await _paypalRepository.ObtenerSubscripcionesUsuario(usuarioActual);
+                var queryable =  _paypalRepository.ObtenerSubscripcionesUsuario(usuarioActual);
 
                 // Calcular el número total de páginas
                 var totalItems = await queryable.CountAsync();
