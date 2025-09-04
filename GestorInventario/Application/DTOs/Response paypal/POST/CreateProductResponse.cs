@@ -4,6 +4,8 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
 {
     public class CreateProductResponse
     {
+        [JsonProperty("id")]
+        public string Id { get; set; }
         [JsonProperty("name")]
         public string Nombre { get; set; }
         [JsonProperty("description")] 
