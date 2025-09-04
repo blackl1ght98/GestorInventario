@@ -13,7 +13,7 @@ namespace GestorInventario.Interfaces.Infraestructure
         int? ConvertToInt(object value);
         DateTime? ConvertToDateTime(object value);
         PayPalPaymentDetail ProcesarDetallesSuscripcion(CheckoutDetails detallespago);
-        Task<PayPalPaymentItem> ProcesarRembolso(PurchaseUnitsBse firstPurchaseUnit, PayPalPaymentDetail detallesSuscripcion, int usuarioActual, RefundForm form, Pedido obtenerNumeroPedido, string emailCliente);
+        Task<(PayPalPaymentItem?, string)> ProcesarRembolso(PurchaseUnitsBse firstPurchaseUnit, PayPalPaymentDetail detallesSuscripcion, int usuarioActual, RefundForm form, Pedido obtenerNumeroPedido, string emailCliente);
 
     }
 }

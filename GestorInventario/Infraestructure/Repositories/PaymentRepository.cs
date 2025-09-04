@@ -172,7 +172,7 @@ namespace GestorInventario.Infraestructure.Repositories
 
             return detallesSuscripcion;
         }
-        public async Task<PayPalPaymentItem> ProcesarRembolso(PurchaseUnitsBse firstPurchaseUnit, PayPalPaymentDetail detallesSuscripcion,int usuarioActual, RefundForm form,Pedido obtenerNumeroPedido, string emailCliente)
+        public async Task<(PayPalPaymentItem?,string)> ProcesarRembolso(PurchaseUnitsBse firstPurchaseUnit, PayPalPaymentDetail detallesSuscripcion,int usuarioActual, RefundForm form,Pedido obtenerNumeroPedido, string emailCliente)
         {
             // Lista para almacenar los ítems de PayPal
             var paypalItems = new List<PayPalPaymentItem>();
@@ -224,7 +224,12 @@ namespace GestorInventario.Infraestructure.Repositories
             };
             await  _emailService.EnviarEmailSolicitudRembolso(emailRembolso);
 
-            return paypalItems.FirstOrDefault();
+            if (!paypalItems.Any())
+            {
+                _logger.LogError($"No se encontraron ítems en PurchaseUnits para el reembolso del pedido {form.NumeroPedido}.");
+                return (null,"No se puede procesar un reembolso sin ítems asociados.");
+            }
+            return (paypalItems.First(),"Rembolso procesado con exito");
 
         }
         public decimal? ConvertToDecimal(object value)
