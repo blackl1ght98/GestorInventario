@@ -8,17 +8,17 @@ namespace GestorInventario.Interfaces.Infraestructure
     {
         Task<List<SubscriptionDetail>> ObtenerSuscriptcionesActivas(string planId);
         Task<List<UserSubscription>> SusbcripcionesUsuario(string planId);
-        Task<IQueryable<SubscriptionDetail>> ObtenerSubscripciones();
-        Task<IQueryable<UserSubscription>> ObtenerSubscripcionesUsuario(int usuarioId);
+        IQueryable<SubscriptionDetail> ObtenerSubscripciones();
+        IQueryable<UserSubscription> ObtenerSubscripcionesUsuario(int usuarioId);
+        Task<(Pedido? Pedido, List<DetallePedido>? Detalles)> GetPedidoConDetallesAsync(int pedidoId);
+        Task<(Pedido Pedido, decimal TotalAmount)> GetPedidoWithDetailsAsync(int pedidoId);
+        Task<(DetallePedido Detalle, decimal PrecioProducto)> GetProductoDePedidoAsync(int detallePedidoId);
+        Task<PlanDetail> ObtenerPlan(string planId);
         Task SavePlanPriceUpdateAsync(string planId, UpdatePricingPlan planPriceUpdate);
         Task SavePlanDetailsAsync(string planId, PaypalPlanDetailsDto planDetails);
-        Task UpdatePlanStatusAsync(string planId, string status);
-        Task<(Pedido Pedido, decimal TotalAmount)> GetPedidoWithDetailsAsync(int pedidoId);
+        Task UpdatePlanStatusAsync(string planId, string status);      
         Task UpdatePedidoStatusAsync(int pedidoId, string status, string refundId, string estadoVenta);
-        Task UpdatePlanStatusInDatabase(string planId, string status);
-        Task<PlanDetail> ObtenerPlan(string planId);
-        Task<(DetallePedido Detalle, decimal PrecioProducto)> GetProductoDePedidoAsync(int detallePedidoId);
-        Task<(Pedido Pedido, List<DetallePedido> Detalles)> GetPedidoConDetallesAsync(int pedidoId);
+        Task UpdatePlanStatusInDatabase(string planId, string status);       
         Task AddInfoTrackingOrder(int pedidoId, string tracking, string url, string carrier);
         List<string> GetCategoriesFromEnum();
         List<BillingCycle> MapBillingCycles(List<BillingCycle> billingCycles);

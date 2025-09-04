@@ -36,25 +36,107 @@ namespace GestorInventario.Infraestructure.Repositories
         }
         public async Task<PlanDetail> ObtenerPlan(string planId)
         {
-            return await _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId);
+            var plan= await _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId);
+            return plan;
         }
+
         public async Task<List<UserSubscription>> SusbcripcionesUsuario(string planId)
         {
             return await _context.UserSubscriptions
                 .Where(us => us.PaypalPlanId == planId)
                 .ToListAsync();
         }  
-        public async Task<IQueryable<SubscriptionDetail>> ObtenerSubscripciones()
+        public IQueryable<SubscriptionDetail> ObtenerSubscripciones()
         {
             var queryable = from p in _context.SubscriptionDetails select p;
             return queryable;
         }
-        public async Task<IQueryable<UserSubscription>> ObtenerSubscripcionesUsuario(int usuarioId)
+        public  IQueryable<UserSubscription> ObtenerSubscripcionesUsuario(int usuarioId)
         {
             var queryable = _context.UserSubscriptions
                    .Include(x => x.User)
                    .Where(x => x.UserId == usuarioId);
             return queryable;
+        }
+        public async Task<(Pedido Pedido, decimal TotalAmount)> GetPedidoWithDetailsAsync(int pedidoId)
+        {
+            try
+            {
+                var pedido = await _context.Pedidos
+                    .Include(p => p.DetallePedidos)
+                    .ThenInclude(d => d.Producto)
+                    .FirstOrDefaultAsync(p => p.Id == pedidoId);
+
+
+
+
+                if (pedido == null || string.IsNullOrEmpty(pedido.CaptureId))
+                    throw new ArgumentException("Pedido no encontrado o SaleId no disponible.");
+
+                if (string.IsNullOrEmpty(pedido.Currency))
+                    throw new ArgumentException("El código de moneda no está definido.");
+
+                decimal totalAmount = pedido.DetallePedidos.Sum(d => d.Producto.Precio * (d.Cantidad ?? 0));
+
+                return (pedido, totalAmount);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al obtener el pedido {pedidoId}");
+                throw;
+            }
+        }
+        public async Task<(DetallePedido Detalle, decimal PrecioProducto)> GetProductoDePedidoAsync(int detallePedidoId)
+        {
+            try
+            {
+                var detalle = await _context.DetallePedidos
+                    .Include(dp => dp.Producto)
+                    .Include(dp => dp.Pedido)
+                    .FirstOrDefaultAsync(dp => dp.Id == detallePedidoId);
+
+                if (detalle == null)
+                    throw new ArgumentException("Detalle de pedido no encontrado");
+
+                if (detalle.Producto == null)
+                    throw new ArgumentException("Producto no encontrado en el detalle");
+
+                return (detalle, detalle.Producto.Precio);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al obtener el detalle de pedido {detallePedidoId}");
+                throw;
+            }
+        }
+        public async Task<(Pedido? Pedido, List<DetallePedido>? Detalles)> GetPedidoConDetallesAsync(int pedidoId)
+        {
+            try
+            {
+                var pedido = await _context.Pedidos
+                    .Include(p => p.DetallePedidos)
+                    .ThenInclude(d => d.Producto)
+                    .FirstOrDefaultAsync(p => p.Id == pedidoId);
+
+                if (pedido == null || string.IsNullOrEmpty(pedido.CaptureId))
+                {
+                    _logger.LogWarning($"Pedido {pedidoId} no encontrado o sin SaleId");
+                    return (null, null);
+                }
+
+                if (string.IsNullOrEmpty(pedido.Currency))
+                {
+                    _logger.LogWarning($"Pedido {pedidoId} sin moneda definida");
+                    return (null, null);
+                }
+
+                return (pedido, pedido.DetallePedidos?.ToList());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al obtener el pedido {pedidoId}");
+                throw;
+            }
         }
         public async Task SavePlanDetailsAsync(string planId, PaypalPlanDetailsDto planDetails)
         {
@@ -144,40 +226,13 @@ namespace GestorInventario.Infraestructure.Repositories
                 }
                 await transaction.CommitAsync();
             } catch(Exception ex) {
-                _logger.LogError("Ocurrio un error inesperado", ex); 
+                _logger.LogError(ex,"Ocurrio un error inesperado"); 
                 await transaction.RollbackAsync();
             }
             
         }
 
-        public async Task<(Pedido Pedido, decimal TotalAmount)> GetPedidoWithDetailsAsync(int pedidoId)
-        {
-            try
-            {
-                var pedido = await _context.Pedidos
-                    .Include(p => p.DetallePedidos)
-                    .ThenInclude(d => d.Producto)
-                    .FirstOrDefaultAsync(p => p.Id == pedidoId);
-
-              
-                
-               
-                if (pedido == null || string.IsNullOrEmpty(pedido.CaptureId))
-                    throw new ArgumentException("Pedido no encontrado o SaleId no disponible.");
-
-                if (string.IsNullOrEmpty(pedido.Currency))
-                    throw new ArgumentException("El código de moneda no está definido.");
-
-                decimal totalAmount = pedido.DetallePedidos.Sum(d => d.Producto.Precio * (d.Cantidad ?? 0));
-
-                return (pedido, totalAmount);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error al obtener el pedido {pedidoId}");
-                throw;
-            }
-        }
+       
         public async Task<(bool Success, string Message)> EnviarEmailNotificacionRembolso(int pedidoId, decimal montoReembolsado, string motivo)
         {
             try
@@ -232,58 +287,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 return (false, $"Error al enviar el correo: {ex.Message}");
             }
         }
-        public async Task<(DetallePedido Detalle, decimal PrecioProducto)> GetProductoDePedidoAsync(int detallePedidoId)
-        {
-            try
-            {
-                var detalle = await _context.DetallePedidos
-                    .Include(dp => dp.Producto)
-                    .Include(dp => dp.Pedido) // Opcional si necesitas datos del pedido
-                    .FirstOrDefaultAsync(dp => dp.Id == detallePedidoId);
-
-                if (detalle == null)
-                    throw new ArgumentException("Detalle de pedido no encontrado");
-
-                if (detalle.Producto == null)
-                    throw new ArgumentException("Producto no encontrado en el detalle");
-
-                return (detalle, detalle.Producto.Precio);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error al obtener el detalle de pedido {detallePedidoId}");
-                throw;
-            }
-        }
-        public async Task<(Pedido Pedido, List<DetallePedido> Detalles)> GetPedidoConDetallesAsync(int pedidoId)
-        {
-            try
-            {
-                var pedido = await _context.Pedidos
-                    .Include(p => p.DetallePedidos)
-                    .ThenInclude(d => d.Producto)
-                    .FirstOrDefaultAsync(p => p.Id == pedidoId);
-
-                if (pedido == null || string.IsNullOrEmpty(pedido.CaptureId))
-                {
-                    _logger.LogWarning($"Pedido {pedidoId} no encontrado o sin SaleId");
-                    return (null, null);
-                }
-
-                if (string.IsNullOrEmpty(pedido.Currency))
-                {
-                    _logger.LogWarning($"Pedido {pedidoId} sin moneda definida");
-                    return (null, null);
-                }
-
-                return (pedido, pedido.DetallePedidos?.ToList());
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error al obtener el pedido {pedidoId}");
-                throw;
-            }
-        }
+       
         public async Task UpdatePedidoStatusAsync(int pedidoId, string status, string refundId, string estadoVenta)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -438,7 +442,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 await transaction.CommitAsync();
             }
             catch (Exception ex) {
-                _logger.LogError("Ocurrio un error inesperado", ex);
+                _logger.LogError(ex,"Ocurrio un error inesperado");
                 await transaction.RollbackAsync();
             }
            
@@ -465,7 +469,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 foreach (var pricingScheme in planPriceUpdate.PricingSchemes)
                 {
                     int billingCycleSequence = pricingScheme.BillingCycleSequence;
-                    string priceValue = pricingScheme.PricingScheme.FixedPrice?.Value;
+                    string priceValue = pricingScheme.PricingScheme.FixedPrice.Value;
 
                     if (string.IsNullOrEmpty(priceValue))
                     {
