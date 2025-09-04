@@ -1,4 +1,4 @@
-﻿using GestorInventario.Application.Classes;
+﻿ using GestorInventario.Application.Classes;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Infraestructure;

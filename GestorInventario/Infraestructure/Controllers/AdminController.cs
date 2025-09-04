@@ -222,7 +222,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!(User.Identity?.IsAuthenticated ?? false))
+                if (User.Identity.IsAuthenticated)
                 {
                     return RedirectToAction("Login", "Auth");
                 }

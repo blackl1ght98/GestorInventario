@@ -41,7 +41,7 @@ namespace GestorInventario.Infraestructure.Controllers
         public IActionResult Login()
         {
 
-            if ((User.Identity?.IsAuthenticated ?? false))
+            if (User.Identity.IsAuthenticated)
             {
                 return RedirectToAction("Index", "Home");
             }
@@ -58,7 +58,7 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
                 // Si ya está autenticado, redirige
-                if ((User.Identity?.IsAuthenticated ?? false))
+                if (User.Identity.IsAuthenticated)
                     return RedirectToAction("Index", "Home");
 
                 // Eliminar cookies existentes para mayor seguridad
@@ -301,7 +301,7 @@ namespace GestorInventario.Infraestructure.Controllers
             var (succes, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _authRepository.ChangePassword(passwordAnterior, passwordActual));
             if (succes)
             {
-                if ((User.Identity?.IsAuthenticated ?? false) && User.IsAdministrador())
+                if (User.Identity.IsAuthenticated && User.IsAdministrador())
                 {
                     return RedirectToAction("Index", "Admin");
                 }
