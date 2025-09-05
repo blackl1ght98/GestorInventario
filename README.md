@@ -61,7 +61,7 @@ Si **no tienes instalado Docker Desktop**, Visual Studio puede mostrar un error 
 ### ➕ Nota adicional
 - Si más adelante instalas **Docker Desktop**, puedes volver a habilitar `docker-compose` haciendo clic derecho en el proyecto y seleccionando **“Volver a cargar”** (*Reload Project*).  
 
-## Instalación
+# Instalación
 
 ## Restaurar la copia de seguridad
 
