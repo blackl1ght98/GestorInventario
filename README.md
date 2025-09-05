@@ -12,7 +12,7 @@
    - [Generar certificado HTTPS](#generar-certificado-https)
    - [Docker](#docker)
 4. [Credenciales de prueba](#credenciales-para-probar)
-5. [Características](#-características)
+5. [Características](#características)
 6. [Novedades](#novedades)
 
 
