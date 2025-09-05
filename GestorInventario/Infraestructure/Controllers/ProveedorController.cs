@@ -18,18 +18,14 @@ namespace GestorInventario.Infraestructure.Controllers
         
         private readonly ILogger<ProveedorController> _logger;
         private readonly GenerarPaginas _generarPaginas;   
-        private readonly IProveedorRepository _proveedorRepository;
-        private readonly GestorInventarioContext _context;
+        private readonly IProveedorRepository _proveedorRepository;     
         private readonly PolicyExecutor _policyExecutor;
         public ProveedorController( ILogger<ProveedorController> logger, GenerarPaginas generarPaginas, 
-            IProveedorRepository proveedor, GestorInventarioContext context, PolicyExecutor executor)
-        {
-            
+            IProveedorRepository proveedor,  PolicyExecutor executor)
+        {           
             _logger = logger;
-            _generarPaginas = generarPaginas;
-           
-            _proveedorRepository= proveedor;
-            _context = context;
+            _generarPaginas = generarPaginas;           
+            _proveedorRepository= proveedor;           
             _policyExecutor = executor;
         }
       
@@ -61,12 +57,9 @@ namespace GestorInventario.Infraestructure.Controllers
                     Paginas = paginas,
                     TotalPaginas = totalPaginas,
                     PaginaActual = paginacion.Pagina,
-                    Buscar = buscar,
-                 
+                    Buscar = buscar,                 
                    
-                };
-               
-
+                };              
                 return View(viewModel);
             }
             catch (Exception ex)
@@ -85,13 +78,9 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
             // Cargar los usuarios desde la base de datos
-            var usuarios = await _context.Usuarios 
-                .Select(u => new SelectListItem
-                {
-                    Value = u.Id.ToString(),
-                    Text = u.NombreCompleto 
-                })
-                .ToListAsync();
+            var usuarios = new SelectList(await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.ObtenerProveedoresLista()), "Id", "NombreCompleto");
+
+          
 
             var model = new ProveedorViewModel
             {
@@ -143,10 +132,10 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
 
-                var proveedor = await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.ObtenerProveedorId(id));
+                var (proveedor,mensaje) = await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.ObtenerProveedorId(id));
                 if (proveedor == null)
                 {
-                    return NotFound("El proveedor no fue encontrado");
+                    TempData["NotFoundError"]= mensaje;
                 }
 
                 return View(proveedor);
@@ -200,15 +189,10 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
-                
-                var usuarios = await _context.Usuarios
-                    .Select(u => new SelectListItem
-                    {
-                        Value = u.Id.ToString(),
-                        Text = u.NombreCompleto
-                    })
-                    .ToListAsync();
-                var proveedores = await _proveedorRepository.ObtenerProveedorId(id);
+
+                var usuarios = new SelectList(await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.ObtenerProveedoresLista()), "Id", "NombreCompleto");
+
+                var (proveedores,mensaje) = await _proveedorRepository.ObtenerProveedorId(id);
                 var model = new ProveedorViewModel
                 {
                     NombreProveedor= proveedores.NombreProveedor,
@@ -237,20 +221,18 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
-                
-                    var (success,errorMessage)=await _policyExecutor.ExecutePolicyAsync(()=> _proveedorRepository.EditarProveedor(model,Id)) ;
-                    if (success)
-                    {
-                        return RedirectToAction("Index");
-                    }
-                    else
-                    {
-                        TempData["ErrorMessage"] = errorMessage;
-                    }
-                      
+                var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.EditarProveedor(model, Id));
+                if (success)
+                {
                     return RedirectToAction("Index");
-                
-               
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = errorMessage;
+                }
+
+                return RedirectToAction("Index");
+
             }
             catch (Exception ex)
             {

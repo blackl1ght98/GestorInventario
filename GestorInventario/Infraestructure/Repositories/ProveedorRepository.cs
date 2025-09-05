@@ -19,8 +19,13 @@ namespace GestorInventario.Infraestructure.Repositories
         public IQueryable<Proveedore> ObtenerProveedores()
         {
             return _context.Proveedores
-                .Include(p => p.IdUsuarioNavigation); // Carga la entidad relacionada
+                .Include(p => p.IdUsuarioNavigation); 
         }
+        public async Task<List<Usuario>> ObtenerProveedoresLista()
+        {
+            return await _context.Usuarios.ToListAsync();
+        }
+
         public async Task<(bool, string)> CrearProveedor(ProveedorViewModel model)
         {
            
@@ -36,20 +41,23 @@ namespace GestorInventario.Infraestructure.Repositories
                 };
                 await _context.AddEntityAsync(proveedor);
                 await transaction.CommitAsync();
-                return (true, null);
+                return (true, "Proveedor creado con exito");
             }
             catch (Exception ex)
             {
 
-                _logger.LogError("Error al crear el proveedor",ex);
+                _logger.LogError(ex,"Error al crear el proveedor");
                 await transaction.RollbackAsync();
                 return (false, "Error al crear el proveedor");
             }
            
         }
-        public async Task<Proveedore> ObtenerProveedorId(int id)=>await _context.Proveedores.FirstOrDefaultAsync(m => m.Id == id);
-          
-        
+        public async Task<(Proveedore?,string)> ObtenerProveedorId(int id)
+        {
+            var proveedor= await _context.Proveedores.FirstOrDefaultAsync(m => m.Id == id);
+            return proveedor is null ? (null, "Proveedor no encontrado") : (proveedor, "Proveedor encontrado");
+        }
+
         public async Task<(bool, string)> EliminarProveedor(int Id)
         {
             using var transaction= await _context.Database.BeginTransactionAsync();
@@ -66,73 +74,65 @@ namespace GestorInventario.Infraestructure.Repositories
                 }
                 await _context.DeleteEntityAsync(proveedor);
                 await transaction.CommitAsync();
-                return (true, null);
+                return (true, "Proveedor eliminado con exito");
 
             }
             catch (Exception ex)
             {
 
-                _logger.LogError("Error al eliminar el proveedor", ex);
+                _logger.LogError(ex,"Error al eliminar el proveedor");
                 await transaction.RollbackAsync();
                 return (false, "Error al eliminar el proveedor");
             }
            
         }
-        public async Task<(bool, string)> EditarProveedor(ProveedorViewModel model, int Id )
+        public async Task<(bool, string)> EditarProveedor(ProveedorViewModel model, int Id)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var proveedor = await _context.Proveedores.Include(x=>x.IdUsuarioNavigation).FirstOrDefaultAsync(x => x.Id == Id);
+                var proveedor = await _context.Proveedores.FirstOrDefaultAsync(x => x.Id == Id); 
                 if (proveedor == null)
                 {
                     return (false, "El proveedor no existe");
                 }
-          
-               await ActualizarProveedor(proveedor, model);
+
+                await ActualizarProveedor(proveedor, model);
                 await transaction.CommitAsync();
-                return (true, null);
+                return (true, "Proveedor editado con exito");
             }
             catch (DbUpdateConcurrencyException ex)
             {
                 await transaction.RollbackAsync();
-                _logger.LogError("Error de concurrencia", ex);
-                var proveedor = await _context.Proveedores.Include(x => x.IdUsuarioNavigation).FirstOrDefaultAsync(x => x.Id == Id);
+                _logger.LogError(ex, "Error de concurrencia");
+                var proveedor = await _context.Proveedores.FirstOrDefaultAsync(x => x.Id == Id); // Removed Include
                 if (proveedor == null)
                 {
                     return (false, "El proveedor no existe");
                 }
                 _context.Entry(proveedor).Reload();
                 _context.Entry(proveedor).State = EntityState.Modified;
-          
+
                 await ActualizarProveedor(proveedor, model);
-                await transaction.CommitAsync();   
-                return (true, null);
+                await transaction.CommitAsync();
+                return (true, "Proveedor editado con exito");
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                _logger.LogError("Ocurrio una excepcion no esperada", ex);
-                return (false, null);
+                _logger.LogError(ex, "Ocurrio un error inesperado al editar el proveedor");
+                return (false, "Ocurrio un error inesperado al editar el proveedor");
             }
-           
+
         }
-        private async Task ActualizarProveedor(Proveedore proveedor, ProveedorViewModel model)
+
+        private async Task ActualizarProveedor(Proveedore proveedor, ProveedorViewModel model) 
         {
-         
-            try
-            {
-                proveedor.NombreProveedor = model.NombreProveedor;
-                proveedor.Contacto = model.Contacto;
-                proveedor.Direccion = model.Direccion;
-                proveedor.IdUsuario = model.IdUsuario;
-                await _context.UpdateEntityAsync(proveedor);
-               
-            }
-            catch (Exception ex) {
-           
-                _logger.LogError("Ocurrio un error inesperado", ex);
-            }
+            proveedor.NombreProveedor = model.NombreProveedor;
+            proveedor.Contacto = model.Contacto;
+            proveedor.Direccion = model.Direccion;
+            proveedor.IdUsuario = model.IdUsuario;
+            await _context.UpdateEntityAsync(proveedor);
           
         }
     }
