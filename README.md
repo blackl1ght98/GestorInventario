@@ -186,8 +186,8 @@ Para arrancar este proyecto en docker nos saldremos de visual studio y abriremos
 docker-compose up -d --build
 ````
 # Credenciales para probar
-Email: keuppa@yopmail.com
-Contraseña: 1A2a3A4a5@
+- **Email**: keuppa@yopmail.com
+- **Contraseña**: 1A2a3A4a5@
 Estas credenciales para probar son del usuario administrador.
 ## Características con las que cuenta el proyecto
 
