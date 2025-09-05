@@ -94,7 +94,7 @@ Dentro de Visual Studio 2022 para acceder al archivo de **Secretos del usuario**
     "returnUrlSinDocker": "https://localhost:7056/Payment/Success",
     "returnUrlConDocker": "https://localhost:8081/Payment/Success"
   },
-LicenseKeyAutoMapper:
+"LicenseKeyAutoMapper":
   "Email": {
     "Host": "smtp.gmail.com",
     "Port": "587",
