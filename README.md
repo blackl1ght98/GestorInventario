@@ -1,24 +1,66 @@
 # Guía de instalación para usar el proyecto Gestor Inventario
 
-## Requisitos
+## 📑 Índice
+1. [Requisitos](#-requisitos)
+2. [Notas](#-notas)
+3. [Instalación](#-instalación)
+   - [Problema con Docker y Visual Studio](#-problema-con-docker-y-visual-studio)
+   - [Restaurar la base de datos](#-restaurar-la-base-de-datos)
+   - [Scaffold-DbContext](#-scaffold-dbcontext)
+   - [Secretos de usuario](#-secretos-de-usuario)
+   - [Modificar GestorInventarioContext.cs](#-modificación-del-archivo-gestorinventariocontextcs)
+   - [Certificado HTTPS](#-generar-certificado-https)
+   - [Docker](#-docker)
+4. [Credenciales de prueba](#-credenciales-para-probar)
+5. [Características](#-características)
+6. [Novedades](#-novedades)
 
-- **Visual Studio 2022** en su última versión.
-- **SQL Server** en su última versión.
-- **Redis** (si usas Docker).
-- **Docker**.(opcional)
-- **.NET 9.0** instalado.
-- **Sistema operativo**: Windows 10 (verificado), Windows 11 (verificado).
-### Notas
-No testeado en **Linux** 
-## ❌ Problema con Docker y Visual Studio
-Si **Docker Desktop no está instalado**, Visual Studio puede dar un error de compilación al intentar interpretar `docker-compose`. Para evitarlo:
 
-1. Abre Visual Studio y ve al **Explorador de Soluciones**.
-2. **Haz clic derecho en el proyecto `docker-compose`**.
-3. Selecciona **"Descargar proyecto"** (`Unload Project`).
-4. Ahora puedes compilar sin errores.
+## ✅ Requisitos
 
-Si en el futuro instalas Docker Desktop, puedes volver a habilitar `docker-compose` haciendo clic derecho en el proyecto y seleccionando **"Volver a cargar" (`Reload Project`)**.
+Antes de comenzar asegúrate de tener instalado lo siguiente:
+
+- 💻 **Sistema operativo**:  
+  - Windows 10 (verificado)  
+  - Windows 11 (verificado)  
+  > ⚠️ No testeado en Linux ni MacOS  
+
+- 🛠️ **Herramientas de desarrollo**:  
+  - [Visual Studio 2022](https://visualstudio.microsoft.com/) (última versión, con carga de trabajo **ASP.NET y desarrollo web**)  
+  - [.NET 9.0 SDK](https://dotnet.microsoft.com/)  
+
+- 🗄️ **Base de datos**:  
+  - [SQL Server](https://www.microsoft.com/es-es/sql-server/sql-server-downloads) (última versión)  
+  - [SQL Server Management Studio (SSMS)](https://aka.ms/ssmsfullsetup)  para gestionar la BD  
+
+- ⚡ **Servicios adicionales**:  
+  - [Redis](https://redis.io/) → solo si vas a usar Docker  
+  - [Docker Desktop](https://www.docker.com/products/docker-desktop/) *(opcional, para despliegues en contenedor)*  
+
+
+## 📝 Notas
+
+- ✅ Proyecto probado en **Windows 10** y **Windows 11**.  
+- ⚠️ **No testeado en Linux ni MacOS** (puede requerir ajustes adicionales).  
+- 🔧 Se recomienda instalar y usar **SQL Server Express** con **SQL Server Management Studio** (SSMS) .  
+- 🔑 Mantener credenciales y claves JWT en **User Secrets** o variables de entorno (no en el código fuente) en caso de integrar nuevas.  
+- 💳 La integración con PayPal funciona en **modo sandbox** por defecto.  
+- 🌐 Si quieres pasar a producción, recuerda cambiar `Mode: sandbox` → `Mode: live` y registrar tus credenciales reales en PayPal Developer.
+
+## 🐳 Problema común: Docker y Visual Studio
+
+Si **no tienes instalado Docker Desktop**, Visual Studio puede mostrar un error de compilación al intentar interpretar el archivo `docker-compose`.
+
+### 🔧 Solución rápida
+
+1. Abre **Visual Studio** y ve al **Explorador de Soluciones**.  
+2. Haz **clic derecho** sobre el proyecto `docker-compose`.  
+3. Selecciona **“Descargar proyecto”** (*Unload Project*).  
+4. Vuelve a compilar el proyecto → ya no tendrás el error. ✅  
+
+### ➕ Nota adicional
+- Si más adelante instalas **Docker Desktop**, puedes volver a habilitar `docker-compose` haciendo clic derecho en el proyecto y seleccionando **“Volver a cargar”** (*Reload Project*).  
+
 
 ## Restaurar la copia de seguridad
 
