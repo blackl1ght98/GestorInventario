@@ -188,7 +188,7 @@ docker-compose up -d --build
 # Credenciales para probar
 - **Email**: keuppa@yopmail.com
 - **Contraseña**: 1A2a3A4a5@
-Estas credenciales para probar son del usuario administrador.
+- Estas credenciales para probar son del usuario administrador.
 ## Características con las que cuenta el proyecto
 
 El proyecto **Gestor Inventario** ofrece una amplia gama de características para gestionar eficientemente el inventario:
