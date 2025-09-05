@@ -47,6 +47,7 @@ Antes de comenzar asegúrate de tener instalado lo siguiente:
 - 💳 La integración con PayPal funciona en **modo sandbox** por defecto.  
 - 🌐 Si quieres pasar a producción, recuerda cambiar `Mode: sandbox` → `Mode: live` y registrar tus credenciales reales en PayPal Developer.
 
+# Instalación
 ## 🐳 Problema común: Docker y Visual Studio
 
 Si **no tienes instalado Docker Desktop**, Visual Studio puede mostrar un error de compilación al intentar interpretar el archivo `docker-compose`.
@@ -61,7 +62,7 @@ Si **no tienes instalado Docker Desktop**, Visual Studio puede mostrar un error 
 ### ➕ Nota adicional
 - Si más adelante instalas **Docker Desktop**, puedes volver a habilitar `docker-compose` haciendo clic derecho en el proyecto y seleccionando **“Volver a cargar”** (*Reload Project*).  
 
-# Instalación
+
 
 ## Restaurar la copia de seguridad
 
