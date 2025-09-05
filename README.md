@@ -1,8 +1,8 @@
 # Guía de instalación para usar el proyecto Gestor Inventario
 
 ## 📑 Índice
-1. [Requisitos](#requisitos)
-2. [Notas](#notas)
+1. [Requisitos](#-requisitos)
+2. [Notas](#-notas)
 3. [Instalación](#instalación)
    - [Problema común: Docker y Visual Studio](#problema-común-docker-y-visual-studio)
    - [Restaurar la copia de seguridad](#restaurar-la-copia-de-seguridad)
