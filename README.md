@@ -3,7 +3,7 @@
 ## 📑 Índice
 1. [Requisitos](#-requisitos)
 2. [Notas](#-notas)
-3. [Instalación](#instalacion)
+3. [Instalación](#-instalacion)
    - [Problema común: Docker y Visual Studio](#problema-comun-docker-y-visual-studio)
    - [Restaurar la copia de seguridad](#restaurar-la-copia-de-seguridad)
    - [Scaffold-DbContext](#scaffold-dbcontext)
