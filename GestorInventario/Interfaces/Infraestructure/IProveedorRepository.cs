@@ -7,8 +7,9 @@ namespace GestorInventario.Interfaces.Infraestructure
     {
         IQueryable<Proveedore> ObtenerProveedores();
         Task<(bool, string)> CrearProveedor(ProveedorViewModel model);
-        Task<Proveedore> ObtenerProveedorId(int id);
+       Task<(Proveedore?,string)> ObtenerProveedorId(int id);
         Task<(bool, string)> EliminarProveedor(int Id);
         Task<(bool, string)> EditarProveedor(ProveedorViewModel model, int Id);
+        Task<List<Usuario>> ObtenerProveedoresLista();
     }
 }
