@@ -583,14 +583,14 @@ namespace GestorInventario.Application.Services
             };
         }
 
-        #endregion   
+        #endregion
 
         #region creacion de un producto y plan de suscripcion
-        public async Task<HttpResponseMessage> CreateProductAsync(string productName, string productDescription, string productType, string productCategory)
+        public async Task<CreateProductResponse> CreateProductAsync(string productName, string productDescription, string productType, string productCategory)
         {
             var (clientId, clientSecret) = GetPaypalCredentials();
             var authToken = await GetAccessTokenAsync(clientId, clientSecret);
-            
+
             var productRequest = BuildProductRequest(productName, productDescription, productType, productCategory);
 
             var request = new HttpRequestMessage(HttpMethod.Post, $"v1/catalogs/products/");
@@ -599,14 +599,20 @@ namespace GestorInventario.Application.Services
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             var response = await _httpClient.SendAsync(request);
-            var responseBody = await response.Content.ReadAsStringAsync();
 
-            return response;
-            
+            // Check if the request was successful
+            response.EnsureSuccessStatusCode(); // Throws if not successful, you can catch and handle errors as needed
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var productResponse = JsonConvert.DeserializeObject<CreateProductResponse>(responseBody);
+
+            return productResponse;
         }
-        private CreateProductResponse BuildProductRequest(string productName, string productDescription, string productType, string productCategory)
+
+        // Update the BuildProductRequest to use the request DTO
+        private CreateProductRequest BuildProductRequest(string productName, string productDescription, string productType, string productCategory)
         {
-            return new CreateProductResponse
+            return new CreateProductRequest
             {
                 Nombre = productName,
                 Description = productDescription,
@@ -1485,31 +1491,26 @@ namespace GestorInventario.Application.Services
         }
         #endregion
 
-        public async Task<string> CreateProductAndNotifyAsync(string productName, string productDescription, string productType, string productCategory)
+        public async Task<CreateProductResponse> CreateProductAndNotifyAsync(string productName, string productDescription, string productType, string productCategory)
         {
             // Crear el producto
-            var response = await CreateProductAsync(productName, productDescription, productType, productCategory);
+            var product = await CreateProductAsync(productName, productDescription, productType, productCategory);
 
-            if (response.IsSuccessStatusCode)
+            // If we reach here, it was successful (since EnsureSuccessStatusCode throws in CreateProductAsync)
+
+            var email = _contextAccesor.HttpContext.User.FindFirstValue(ClaimTypes.Email);
+            // Enviar el correo electrónico
+            var emailDto = new EmailDto
             {
-                var email = _contextAccesor.HttpContext.User.FindFirstValue(ClaimTypes.Email);
-                // Enviar el correo electrónico
-                var emailDto = new EmailDto
-                {
-                    ToEmail = email,
-                    NombreProducto = productName
-                };
+                ToEmail = email,
+                NombreProducto = productName
+            };
 
-                await _emailService.SendEmailCreateProduct(emailDto, productName);
+            await _emailService.SendEmailCreateProduct(emailDto, productName);
 
-                return response.Content.ReadAsStringAsync().Result;
-            }
-            else
-            {
-                throw new Exception($"Error al crear el producto: {response.StatusCode} - {response.Content.ReadAsStringAsync().Result}");
-            }
+            return product;
         }
-        
+
 
     }
 }
