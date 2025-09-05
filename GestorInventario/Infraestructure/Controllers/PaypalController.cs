@@ -205,10 +205,11 @@ namespace GestorInventario.Infraestructure.Controllers
                 try
                 {
                     // Crear un producto usando los datos del formulario
-                    var productResponse = await _paypalService.CreateProductAndNotifyAsync(model.Name, model.Description, model.Type, model.Category);
-                    dynamic productJson = JsonConvert.DeserializeObject(productResponse);
-                    string productId = productJson.id;
+                    var product = await _paypalService.CreateProductAsync(model.Name, model.Description, model.Type, model.Category); // Assuming method name adjusted
+                    string productId = product.Id; // Now typed, no deserialization needed here
+
                     ViewData["Moneda"] = new SelectList(await _carritoRepository.ObtenerMoneda(), "Codigo", "Codigo");
+
                     // Crear el plan de suscripción
                     string planResponse = await _paypalService.CreateSubscriptionPlanAsync(
                         productId,
@@ -220,7 +221,6 @@ namespace GestorInventario.Infraestructure.Controllers
                         model.HasTrialPeriod ? model.TrialAmount : 0.00m   // Pasamos el costo del periodo de prueba
                     );
 
-
                     if (planResponse.Contains("\"error\""))
                     {
                         return StatusCode(500, $"Error al crear el plan de suscripción: {planResponse}");
@@ -230,11 +230,9 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
                 catch (Exception ex)
                 {
-
                     return StatusCode(500, $"Error inesperado: {ex.Message}");
                 }
             }
-
 
             model.Categories = _paypalRepository.GetCategoriesFromEnum();
             return View(model);
