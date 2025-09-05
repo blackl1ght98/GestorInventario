@@ -4,7 +4,6 @@
 
 - **Visual Studio 2022** en su última versión.
 - **SQL Server** en su última versión.
-- **Azure Data Studio** (para Docker).
 - **Redis** (si usas Docker).
 - **Docker**.(opcional)
 - **.NET 9.0** instalado.
