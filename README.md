@@ -1,19 +1,19 @@
 # Guía de instalación para usar el proyecto Gestor Inventario
 
 ## 📑 Índice
-1. [Requisitos](#-requisitos)
-2. [Notas](#-notas)
-3. [Instalación](#-instalacion)
-   - [Problema común: Docker y Visual Studio](#problema-comun-docker-y-visual-studio)
+1. [Requisitos](#requisitos)
+2. [Notas](#notas)
+3. [Instalación](#instalación)
+   - [Problema común: Docker y Visual Studio](#problema-común-docker-y-visual-studio)
    - [Restaurar la copia de seguridad](#restaurar-la-copia-de-seguridad)
    - [Scaffold-DbContext](#scaffold-dbcontext)
    - [Secretos de usuario](#secretos-de-usuario)
-   - [Modificación del archivo GestorInventarioContext.cs](#modificacion-del-archivo-gestorinventariocontextcs)
+   - [Modificación del archivo GestorInventarioContext.cs](#modificación-del-archivo-gestorinventariocontextcs)
    - [Generar certificado HTTPS](#generar-certificado-https)
    - [Docker](#docker)
-4. [Credenciales de prueba](#-credenciales-para-probar)
-5. [Características](#-características)
-6. [Novedades](#-novedades)
+4. [Credenciales de prueba](#credenciales-para-probar)
+5. [Características](#características)
+6. [Novedades](#novedades)
 
 
 ## ✅ Requisitos
