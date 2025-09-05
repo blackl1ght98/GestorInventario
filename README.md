@@ -4,7 +4,7 @@
 1. [Requisitos](#-requisitos)
 2. [Notas](#-notas)
 3. [Instalación](#instalación)
-   - [Problema común: Docker y Visual Studio](#problema-común-docker-y-visual-studio)
+   - [Problema común: Docker y Visual Studio](#-problema-común-docker-y-visual-studio)
    - [Restaurar la copia de seguridad](#restaurar-la-copia-de-seguridad)
    - [Scaffold-DbContext](#scaffold-dbcontext)
    - [Secretos de usuario](#secretos-de-usuario)
