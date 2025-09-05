@@ -164,136 +164,32 @@ Una vez que hemos ejecutado el comando que realiza el scaffold pues tenemos que 
      }
  }
 ````
-## Generar certificado https
+## Generar certificado HTTPS en caso de no tenerlo
+### Generar certificado https
 Para generar el certificado https ponemos el comando:
 ```sh
-dotnet dev-certs https -ep C:\Users\guill\.aspnet\https\aspnetapp.pfx -p password
+dotnet dev-certs https -ep C:\Users\<TU USUARIO>\.aspnet\https\aspnetapp.pfx -p password
 ````
-La ruta solo tendran que cambiar el nombre de usuario.
+En la ruta tendremos que poner el nombre de usuario de nuestro pc por ejemplo
+```sh
+dotnet dev-certs https -ep C:\Users\guillermo\.aspnet\https\aspnetapp.pfx -p password
+
+````
 Para confiar en el certificado generado ponemos el comando:
 ```sh
 dotnet dev-certs https --trust
 ````
-## Docker compose
-````sh
-networks:
-  gestor:
-    driver: bridge
-services:
-  sql-server:
-    image: mcr.microsoft.com/mssql/server
-    container_name: SQL-Server-Local
-    user: root  # Forzamos ejecución como root para evitar problemas de permisos
-    environment:
-      - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=SQL#1234
-      - MSSQL_PID=Developer
-    ports:
-      - "1433:1433"
-    volumes:
-      - sql-data:/var/opt/mssql
-      - ./GestorInventario-2025629-10-14-552.bak:/var/opt/mssql/data/GestorInventario-2025629-10-14-552.bak
-    healthcheck:
-      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P SQL#1234 -Q "SELECT 1" || exit 1
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    command: 
-      - /bin/bash
-      - -c 
-      - |
-        # Iniciar SQL Server en segundo plano
-        /opt/mssql/bin/sqlservr &
-        
-        # Esperar a que SQL Server esté listo
-        sleep 30
-        
-        # Instalar herramientas necesarias
-        apt-get update && apt-get install -y curl gnupg
-        curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
-        curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list > /etc/apt/sources.list.d/mssql-release.list
-        apt-get update
-        ACCEPT_EULA=Y apt-get install -y mssql-tools
-        
-        # Configurar PATH para mssql-tools
-        echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
-        source ~/.bashrc
-        
-        # Restaurar la base de datos
-        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P SQL#1234 -Q "RESTORE DATABASE GestorInventario FROM DISK = '/var/opt/mssql/data/GestorInventario-2025629-10-14-552.bak' WITH MOVE 'GestorInventario' TO '/var/opt/mssql/data/GestorInventario.mdf', MOVE 'GestorInventario_log' TO '/var/opt/mssql/data/GestorInventario_log.ldf', REPLACE;"
-        
-        # Mantener el contenedor en ejecución
-        wait
-    networks:
-      - gestor
-
-  gestorinventario:
-    container_name: gestor-inventario
-    image: ${DOCKER_REGISTRY-}gestorinventario
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
-      - "8081:8081"
-    environment:
-      - DB_HOST=sql-server
-      - DB_NAME=GestorInventario
-      - DB_SA_PASSWORD=SQL#1234
-      - IS_DOCKER=true
-      - USE_REDIS=true
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/GestorInventario.pfx
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=password
-      - ClaveJWT=${ClaveJWT}
-      - REDIS_CONNECTION_STRING=redis:6379
-      - JwtIssuer=${JwtIssuer}
-      - JwtAudience=${JwtAudience}
-      - PublicKey=${PublicKey}
-      - PrivateKey=${PrivateKey}
-      - DB_USERNAME=${DB_USERNAME}
-      - Paypal_ClientId=${Paypal_ClientId}
-      - Paypal_ClientSecret=${Paypal_ClientSecret}
-      - Paypal_Mode=${Paypal_Mode}
-      - Paypal_returnUrlConDocker=${Paypal_returnUrlConDocker}
-      - Paypal_returnUrlSinDocker=${Paypal_returnUrlSinDocker}
-      - Email__Host=${Email__Host}
-      - Email__Port=${Email__Port}
-      - Email__Username=${Email__Username}
-      - Email__Password=${Email__Password}
-    volumes:
-      - C:/Users/guill/AppData/Roaming/ASP.NET/Https/GestorInventario.pfx:/https/GestorInventario.pfx:ro
-    depends_on:
-      sql-server:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    networks:
-      - gestor
-
-  redis:
-    image: redis:latest
-    container_name: redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redisdata:/data
-    networks:
-      - gestor
-
-volumes:
-  sql-data:
-    driver: local
-  redisdata:
-    driver: local
-  appdata:
-    driver: local
-````
-**¿Como arrancarlo en docker?**
-Para arrancar este proyecto en docker nos saldremos de visual studio y abriremos la terminal en la carpeta raiz y pondremos el comando 
+# Docker
+**¿Como arrancar el proyecto en docker?**
+Para arrancar este proyecto en docker nos saldremos de visual studio y abriremos la terminal en la carpeta raiz del proyecto y pondremos el comando 
 ````sh
 docker-compose up -d --build
 ````
-  ## Características con las que cuenta el proyecto
+# Credenciales para probar
+Email: keuppa@yopmail.com
+Contraseña: 1A2a3A4a5@
+Estas credenciales para probar son del usuario administrador.
+## Características con las que cuenta el proyecto
 
 El proyecto **Gestor Inventario** ofrece una amplia gama de características para gestionar eficientemente el inventario:
 
