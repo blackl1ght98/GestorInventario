@@ -329,7 +329,7 @@ app.UseStaticFiles(new StaticFileOptions
     {
        
           var extension = Path.GetExtension(ctx.File.Name).ToLowerInvariant();
-        if (extension is ".css" or ".js" or ".png" or ".jpg" or ".jpeg" or ".gif" or ".webp")
+        if (extension is ".css" or ".js" or ".png" or ".jpg" or ".jpeg" or ".gif" or ".webp" or ".woff2")
         {
             var durationInSeconds = 60 * 60 * 24 * 365; // 1 año
             ctx.Context.Response.Headers[HeaderNames.CacheControl] = $"public, max-age={durationInSeconds}, immutable";

@@ -7,40 +7,7 @@
     ViewData["MetaDescription"] = "Explora nuestro catálogo completo de productos. Gestiona inventario, realiza pedidos y administra productos con nuestro sistema integral.";
 }
 
-<style>
-    /* CSS optimizado para prevenir CLS - Mantenemos lo esencial, reducimos transiciones innecesarias para mejor rendimiento */
-    .card {
-        min-height: 40px; 
-    }
 
-    .product-image {
-        width: 100%;
-        height: 200px;
-        object-fit: cover;
-        background-color: #f8f9fa; 
-    }
-
-   
-
-    .alert.alert-primary {
-        min-height: 60px;
-    }
-
-    .btn {
-        min-height: 38px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .input-group {
-        min-height: 38px;
-    }
-
-    .pagination {
-        min-height: 50px;
-    }
-</style>
 
 <h1 class="display-5 mb-4 text-primary">Productos</h1>
 
@@ -95,16 +62,11 @@
 </div>
 
 <div class="row">
-    @{
-        int index = 0;
-    }
     @foreach (var producto in Model.Productos)
     {
-        index++;
-        bool isLcpCandidate = index <= 3;
-
         <div class="col-md-4 mb-4">
-            <div class="card h-100 border-0 shadow-sm hover-card" style="min-height: 350px; aspect-ratio: 388 / 350;">
+            <div class="card h-100 border-0 shadow-sm hover-card">
+                <!-- Imagen del producto -->
                 <img src="@producto.Imagen?width=388"
                      srcset="@producto.Imagen?width=194 194w,
                                  @producto.Imagen?width=388 388w,
@@ -117,50 +79,56 @@
                      style="aspect-ratio: 388 / 218;"
                      width="388"
                      height="218"
-                     loading="@(isLcpCandidate ? "eager" : "lazy")"
-                     fetchpriority="@(isLcpCandidate ? "high" : "auto")" />
+                     loading="lazy" />
+
+                <!-- Contenido principal -->
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title text-primary">@producto.NombreProducto</h5>
                     <p class="card-text flex-grow-1">@producto.Descripcion</p>
                     <p class="card-text"><strong>Precio:</strong> @producto.Precio.ToString("C")</p>
                     <p class="card-text"><small class="text-muted">Stock: @producto.Cantidad</small></p>
                     <p class="card-text"><small class="text-muted">Proveedor: @producto.IdProveedorNavigation?.NombreProveedor</small></p>
-                    <div class="mt-auto">
-                        @if (User.IsInRole("Administrador"))
-                        {
-                            <div class="d-grid gap-2 mb-2">
-                                <a href="@Url.Action("Edit", new { id = producto.Id })" class="btn btn-outline-primary" data-bs-toggle="tooltip" title="Editar producto">Editar</a>
-                            </div>
-                        }
-                        <form asp-action="AgregarAlCarrito" method="post">
-                            <input type="hidden" name="idProducto" value="@producto.Id" />
-                            <div class="input-group mb-2">
-                                <input type="number" name="cantidad" class="form-control" min="1" max="@producto.Cantidad" value="1" style="min-height: 38px;" />
-                                <button type="submit" class="btn btn-success" data-bs-toggle="tooltip" title="Agregar al carrito">
-                                    <i class="bi bi-cart-plus me-2"></i>Agregar
-                                </button>
-                            </div>
-                            @if (TempData["ErrorMessage"] != null)
-                            {
-                                <div class="alert alert-success rounded-3" style="min-height: 60px;">
-                                    @TempData["ErrorMessage"]
-                                </div>
-                            }
-                        </form>
-                        @if (User.IsInRole("Administrador"))
-                        {
-                            <div class="d-grid">
-                                <a href="@Url.Action("Delete", new { id = producto.Id })" class="btn btn-outline-danger" data-bs-toggle="tooltip" title="Eliminar producto">Eliminar</a>
-                            </div>
-                        }
-                    </div>
+                </div>
+
+                <!-- Footer con acciones -->
+                <div class="card-footer bg-white border-0">
+                    @if (User.IsInRole("Administrador"))
+                    {
+                        <div class="d-grid gap-2 mb-2">
+                            <a href="@Url.Action("Edit", new { id = producto.Id })"
+                               class="btn btn-outline-primary">
+                                Editar
+                            </a>
+                        </div>
+                    }
+
+                    <form asp-action="AgregarAlCarrito" method="post" class="mb-2">
+                        <input type="hidden" name="idProducto" value="@producto.Id" />
+                        <div class="input-group">
+                            <input type="number" name="cantidad" class="form-control"
+                                   min="1" max="@producto.Cantidad" value="1" />
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-cart-plus me-2"></i>Agregar
+                            </button>
+                        </div>
+                    </form>
+
+                    @if (User.IsInRole("Administrador"))
+                    {
+                        <div class="d-grid">
+                            <a href="@Url.Action("Delete", new { id = producto.Id })"
+                               class="btn btn-outline-danger">
+                                Eliminar
+                            </a>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
     }
 </div>
 
-<!-- Paginación (sin cambios, ya es eficiente) -->
+<!-- Paginación centrada -->
 @if (Model.Paginas != null && Model.Paginas.Any())
 {
     <nav aria-label="Page navigation" class="mt-5">
@@ -168,7 +136,7 @@
             @foreach (var pagina in Model.Paginas)
             {
                 <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
-                    <a class="page-link page-link-custom @(pagina.Activa ? "active" : "")"
+                    <a class="page-link @(pagina.Activa ? "active" : "")"
                        href="@Url.Action("Index", new { pagina = pagina.Pagina, buscar = Model.Buscar, ordenarPorPrecio = Model.OrdenarPorPrecio, idProveedor = Model.IdProveedor })">
                         @if (pagina.Texto == "Anterior")
                         {
@@ -188,6 +156,7 @@
         </ul>
     </nav>
 }
+
 
 @section Scripts {
     <script>
