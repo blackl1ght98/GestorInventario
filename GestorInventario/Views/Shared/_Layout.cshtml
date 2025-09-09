@@ -7,18 +7,35 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="@ViewData["MetaDescription"]" /> @* Dinámico para SEO *@
     <title>@ViewData["Title"] - GestorInventario</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <meta name="csrf-token" content="@tokens.RequestToken" />
 
-    <style>
-     
-    </style>
+    <!-- DNS Prefetch para Google Fonts (mantenido para font files) -->
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+
+  
+
+    <!-- Preload de fuentes WOFF2 -->
+    <link rel="preload" href="https://fonts.gstatic.com/s/inter/v13/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7.woff2" as="font" type="font/woff2" crossorigin>
+
+    <!-- Preload de CSS local -->
+    <link rel="preload" href="~/lib/bootstrap/dist/css/bootstrap.min.css" as="style" onload="this.rel='stylesheet'" asp-append-version="true">
+    <link rel="preload" href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css" as="style" onload="this.rel='stylesheet'" asp-append-version="true">
+    <link rel="preload" href="~/css/site.css" as="style" onload="this.rel='stylesheet'" asp-append-version="true">
+
+    <!-- Fallback para navegadores sin JS -->
+    <noscript>
+        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" asp-append-version="true">
+        <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css" asp-append-version="true">
+        <link rel="stylesheet" href="~/css/site.css" asp-append-version="true">
+    </noscript>
+
+  
 </head>
 <body>
+    <!-- CSRF token en body para aligerar head -->
+    <meta name="csrf-token" content="@tokens.RequestToken" />
+
     <header>
         <nav class="navbar navbar-expand-sm navbar-dark">
             <div class="container-fluid">
@@ -32,7 +49,6 @@
                     <ul class="navbar-nav me-auto mb-2 mb-sm-0">
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index" data-bs-toggle="tooltip" title="Página principal"><i class="bi bi-house nav-icon"></i> Inicio</a>
-                           
                         </li>
                         @if (User.IsInRole("Administrador"))
                         {
@@ -52,7 +68,6 @@
                         }
                         @if (User.IsInRole("Administrador") || User.IsInRole("Usuario"))
                         {
-                            <!-- Desplegable: Gestión de Inventario -->
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="gestionInventarioDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip" title="Gestión de inventario">
                                     <i class="bi bi-boxes nav-icon"></i> Inventario
@@ -78,12 +93,10 @@
                                     </li>
                                 </ul>
                             </li>
-                            <!-- Productos como elemento independiente -->
                             <li class="nav-item">
                                 <a class="nav-link" asp-area="" asp-controller="Productos" asp-action="Index" data-bs-toggle="tooltip" title="Ver productos"><i class="bi bi-box nav-icon"></i> Productos</a>
                             </li>
                         }
-                        <!-- Desplegable: Transacciones -->
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="transaccionesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip" title="Gestión de transacciones">
                                 <i class="bi bi-wallet nav-icon"></i> Transacciones
@@ -148,17 +161,23 @@
             © 2025 - GestorInventario - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacidad</a>
         </div>
     </footer>
-    <script src="~/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <!-- Scripts con defer para no bloquear rendering -->
+    <script src="~/lib/bootstrap/js/bootstrap.bundle.min.js" asp-append-version="true" defer></script>
+    <script src="~/js/site.js" asp-append-version="true" defer></script>
+
+    <!-- Inicialización condicional de tooltips -->
     <script>
-        // Inicializar tooltips
         document.addEventListener('DOMContentLoaded', function () {
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            if (tooltipTriggerList.length) {
+                tooltipTriggerList.forEach(tooltipTriggerEl => {
+                    new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+            }
         });
     </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

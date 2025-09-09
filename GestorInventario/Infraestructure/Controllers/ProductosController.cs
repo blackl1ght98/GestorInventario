@@ -1,7 +1,4 @@
-﻿using GestorInventario.Application.DTOs;
-using GestorInventario.Application.DTOs.Email;
-using GestorInventario.Application.Politicas_Resilencia;
-using GestorInventario.Application.Services;
+﻿using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
@@ -132,7 +129,7 @@ namespace GestorInventario.Infraestructure.Controllers
             catch (Exception ex)
             {
                 TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError("Error al verificar el stock", ex);
+                _logger.LogError(ex,"Error al verificar el stock");
             }
            
         }
@@ -195,10 +192,10 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
                 
-                var producto = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.EliminarProductoObtencion(id));    
+                var (producto,mensaje) = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProductoPorId(id));    
                 if (producto == null)
                 {
-                    TempData["ErrorMessage"] = "Producto no encontrado";
+                    TempData["ErrorMessage"] = mensaje;
                 }             
                 return View(producto);
             }
@@ -243,7 +240,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
 
                 TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError("Error al eliminar el producto", ex);
+                _logger.LogError(ex,"Error al eliminar el producto");
                 return RedirectToAction("Error", "Home");
             }                    
         }
@@ -257,7 +254,11 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
 
-                var producto = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerPorId(id));
+                var (producto,mensaje) = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProductoPorId(id));
+                if (producto == null)
+                {
+                    TempData["ErrorMessage"] = mensaje;
+                }
                 
                 ViewData["Productos"] = new SelectList(await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProveedores()), "Id", "NombreProveedor");
                 ProductosViewModel viewModel = new ProductosViewModel()
@@ -435,7 +436,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
 
-                var historialProducto = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.HistorialProductoPorId(id));
+                var historialProducto = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerHistorialProductoPorId(id));
                 if (historialProducto == null)
                 {
                     TempData["ErrorMessage"] = "Detalles del historial no encontrado";
@@ -459,7 +460,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
-                var historialProducto = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.EliminarHistorialPorId(id));
+                var historialProducto = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerHistorialProductoPorId(id));
                 if (historialProducto == null)
                 {
 
@@ -489,7 +490,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {
-                    var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.EliminarHistorialPorIdDefinitivo(Id));
+                    var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.EliminarHistorialPorId(Id));
                     if (success)
                     {
 

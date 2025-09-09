@@ -1,13 +1,10 @@
-﻿using AutoMapper;
-using GestorInventario.Application.Classes;
-using GestorInventario.Application.Politicas_Resilencia;
+﻿using GestorInventario.Application.Politicas_Resilencia;
 using GestorInventario.Application.Services;
 using GestorInventario.Application.Services.Authentication;
 using GestorInventario.Application.Services.Generic_Services;
 using GestorInventario.Configuracion;
 using GestorInventario.Configuracion.Strategies;
 using GestorInventario.Domain.Models;
-using GestorInventario.Infraestructure.Controllers;
 using GestorInventario.Infraestructure.Repositories;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces;
@@ -17,14 +14,16 @@ using GestorInventario.Middlewares;
 using GestorInventario.Middlewares.Strategis;
 using GestorInventario.PaginacionLogica;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Net.Http.Headers;
 using StackExchange.Redis;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text.Json.Serialization;
+using AspNetCoreHttp = Microsoft.AspNetCore.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 // Agregar variables de entorno a la configuración
@@ -101,8 +100,17 @@ builder.Services.AddAutoMapper(cfg =>
 });
 builder.Services.AddTransient<IPaymentRepository, PaymentRepository>();
 
+builder.Services.AddWebOptimizer(pipeline =>
+{
+    // Minificar CSS y JS
+    pipeline.MinifyCssFiles("css/**/*.css");
+    pipeline.MinifyJsFiles("js/**/*.js");
 
-
+    // Agrupar archivos (bundle)
+    pipeline.AddCssBundle("/css/bundle.css", "css/*.css");
+    pipeline.AddJavaScriptBundle("/js/bundle.js", "js/*.js");
+});
+builder.Services.AddTransient<ImageOptimizerService>();
 
 
 
@@ -217,7 +225,12 @@ IAuthenticationStrategy strategy = authStrategy switch
 
 var configurator = new AuthenticationConfigurator(strategy);
 configurator.Configure(builder, builder.Configuration);
-
+builder.Services.AddAntiforgery(options =>
+{
+    options.Cookie.SameSite = AspNetCoreHttp.SameSiteMode.None;
+   
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+});
 
 builder.Services.AddAuthorization(options =>
 {
@@ -285,7 +298,12 @@ builder.Services.AddSession(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
-
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+});
 // Seleccionar la estrategia usando un switch expression
 IAuthProcessingStrategy strategyMiddleware = authStrategy switch
 {
@@ -295,7 +313,7 @@ IAuthProcessingStrategy strategyMiddleware = authStrategy switch
     _ => throw new ArgumentException("Estrategia de autenticación no válida.")
 };
 var app = builder.Build();
-
+app.UseWebOptimizer();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -303,7 +321,70 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+app.UseResponseCompression();
+// Configurar cache para archivos estáticos
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+       
+          var extension = Path.GetExtension(ctx.File.Name).ToLowerInvariant();
+        if (extension is ".css" or ".js" or ".png" or ".jpg" or ".jpeg" or ".gif" or ".webp")
+        {
+            var durationInSeconds = 60 * 60 * 24 * 365; // 1 año
+            ctx.Context.Response.Headers[HeaderNames.CacheControl] = $"public, max-age={durationInSeconds}, immutable";
+        }
+        else
+        {
+            ctx.Context.Response.Headers[HeaderNames.CacheControl] = "no-cache";
+        }
+        
+    }
+});
+// Middleware para procesar imágenes con parámetros
+app.Use(async (context, next) =>
+{
+    var path = context.Request.Path.Value;
+
+    if (path.StartsWith("/imagenes/") && context.Request.QueryString.HasValue)
+    {
+        var query = context.Request.Query;
+        if (query.ContainsKey("width") || query.ContainsKey("height"))
+        {
+            int? width = query.TryGetValue("width", out var widthValue) &&
+                         int.TryParse(widthValue, out var w) ? w : null;
+
+            int? height = query.TryGetValue("height", out var heightValue) &&
+                          int.TryParse(heightValue, out var h) ? h : null;
+
+            var imagePath = path.Split('?')[0]; // Remover query string
+            var imageService = context.RequestServices.GetService<ImageOptimizerService>();
+
+            var processedImage = await imageService.ProcessImageOnDemand(imagePath, width, height);
+
+            if (processedImage != null)
+            {
+                context.Response.ContentType = GetContentType(imagePath);
+                await processedImage.CopyToAsync(context.Response.Body);
+                return;
+            }
+        }
+    }
+
+    await next();
+});
+
+ string GetContentType(string path)
+{
+    return Path.GetExtension(path).ToLowerInvariant() switch
+    {
+        ".webp" => "image/webp",
+        ".png" => "image/png",
+        ".jpg" or ".jpeg" => "image/jpeg",
+        ".gif" => "image/gif",
+        _ => "application/octet-stream"
+    };
+}
 app.UseCors();
 app.UseRouting();
 app.UseAuthentication(); // Identifica al usuario

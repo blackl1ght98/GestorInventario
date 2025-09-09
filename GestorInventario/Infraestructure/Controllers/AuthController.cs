@@ -103,7 +103,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 Response.Cookies.Append("auth", tokenResponse.Token, new CookieOptions
                 {
                     HttpOnly = true,
-                    SameSite = SameSiteMode.Unspecified,
+                    SameSite = SameSiteMode.None,
                     Domain = "localhost",
                     Secure = true,
                     Expires = DateTime.UtcNow.AddMinutes(10)
@@ -112,7 +112,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 Response.Cookies.Append("refreshToken", tokenResponse.RefreshToken, new CookieOptions
                 {
                     HttpOnly = true,
-                    SameSite = SameSiteMode.Unspecified,
+                    SameSite = SameSiteMode.None,
                     Domain = "localhost",
                     Secure = true,
                     Expires = DateTime.UtcNow.AddHours(24)
