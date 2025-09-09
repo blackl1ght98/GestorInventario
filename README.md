@@ -1,25 +1,68 @@
 # Guía de instalación para usar el proyecto Gestor Inventario
 
-## Requisitos
+## 📑 Índice
+1. [Requisitos](#-requisitos)
+2. [Notas](#-notas)
+3. [Instalación](#instalación)
+   - [Problema común: Docker y Visual Studio](#-problema-común-docker-y-visual-studio)
+   - [Restaurar la copia de seguridad](#restaurar-la-copia-de-seguridad)
+   - [Scaffold-DbContext](#scaffold-dbcontext)
+   - [Secretos de usuario](#secretos-de-usuario)
+   - [Modificación del archivo GestorInventarioContext.cs](#modificación-del-archivo-gestorinventariocontextcs)
+   - [Generar certificado HTTPS](#generar-certificado-https)
+   - [Docker](#docker)
+4. [Credenciales de prueba](#credenciales-para-probar)
+5. [Características](#características)
+6. [Novedades](#novedades)
 
-- **Visual Studio 2022** en su última versión.
-- **SQL Server** en su última versión.
-- **Azure Data Studio** (para Docker).
-- **Redis** (si usas Docker).
-- **Docker**.(opcional)
-- **.NET 9.0** instalado.
-- **Sistema operativo**: Windows 10 (verificado), Windows 11 (verificado).
-### Notas
-No testeado en **Linux** 
-## ❌ Problema con Docker y Visual Studio
-Si **Docker Desktop no está instalado**, Visual Studio puede dar un error de compilación al intentar interpretar `docker-compose`. Para evitarlo:
 
-1. Abre Visual Studio y ve al **Explorador de Soluciones**.
-2. **Haz clic derecho en el proyecto `docker-compose`**.
-3. Selecciona **"Descargar proyecto"** (`Unload Project`).
-4. Ahora puedes compilar sin errores.
+## ✅ Requisitos
 
-Si en el futuro instalas Docker Desktop, puedes volver a habilitar `docker-compose` haciendo clic derecho en el proyecto y seleccionando **"Volver a cargar" (`Reload Project`)**.
+Antes de comenzar asegúrate de tener instalado lo siguiente:
+
+- 💻 **Sistema operativo**:  
+  - Windows 10 (verificado)  
+  - Windows 11 (verificado)  
+  > ⚠️ No testeado en Linux ni MacOS  
+
+- 🛠️ **Herramientas de desarrollo**:  
+  - [Visual Studio 2022](https://visualstudio.microsoft.com/) (última versión, con carga de trabajo **ASP.NET y desarrollo web**)  
+  - [.NET 9.0 SDK](https://dotnet.microsoft.com/)  
+
+- 🗄️ **Base de datos**:  
+  - [SQL Server](https://www.microsoft.com/es-es/sql-server/sql-server-downloads) (última versión)  
+  - [SQL Server Management Studio (SSMS)](https://aka.ms/ssmsfullsetup)  para gestionar la BD  
+
+- ⚡ **Servicios adicionales**:  
+  - [Redis](https://redis.io/) → solo si vas a usar Docker  
+  - [Docker Desktop](https://www.docker.com/products/docker-desktop/) *(opcional, para despliegues en contenedor)*  
+
+
+## 📝 Notas
+
+- ✅ Proyecto probado en **Windows 10** y **Windows 11**.  
+- ⚠️ **No testeado en Linux ni MacOS** (puede requerir ajustes adicionales).  
+- 🔧 Se recomienda instalar y usar **SQL Server Express** con **SQL Server Management Studio** (SSMS) .  
+- 🔑 Mantener credenciales y claves JWT en **User Secrets** o variables de entorno (no en el código fuente) en caso de integrar nuevas.  
+- 💳 La integración con PayPal funciona en **modo sandbox** por defecto.  
+- 🌐 Si quieres pasar a producción, recuerda cambiar `Mode: sandbox` → `Mode: live` y registrar tus credenciales reales en PayPal Developer.
+
+# Instalación
+## 🐳 Problema común: Docker y Visual Studio
+
+Si **no tienes instalado Docker Desktop**, Visual Studio puede mostrar un error de compilación al intentar interpretar el archivo `docker-compose`.
+
+### 🔧 Solución rápida
+
+1. Abre **Visual Studio** y ve al **Explorador de Soluciones**.  
+2. Haz **clic derecho** sobre el proyecto `docker-compose`.  
+3. Selecciona **“Descargar proyecto”** (*Unload Project*).  
+4. Vuelve a compilar el proyecto → ya no tendrás el error. ✅  
+
+### ➕ Nota adicional
+- Si más adelante instalas **Docker Desktop**, puedes volver a habilitar `docker-compose` haciendo clic derecho en el proyecto y seleccionando **“Volver a cargar”** (*Reload Project*).  
+
+
 
 ## Restaurar la copia de seguridad
 
@@ -94,7 +137,7 @@ Dentro de Visual Studio 2022 para acceder al archivo de **Secretos del usuario**
     "returnUrlSinDocker": "https://localhost:7056/Payment/Success",
     "returnUrlConDocker": "https://localhost:8081/Payment/Success"
   },
-LicenseKeyAutoMapper:
+"LicenseKeyAutoMapper":
   "Email": {
     "Host": "smtp.gmail.com",
     "Port": "587",
@@ -164,136 +207,33 @@ Una vez que hemos ejecutado el comando que realiza el scaffold pues tenemos que 
      }
  }
 ````
-## Generar certificado https
+## Generar certificado HTTPS en caso de no tenerlo
+### Generar certificado https
 Para generar el certificado https ponemos el comando:
 ```sh
-dotnet dev-certs https -ep C:\Users\guill\.aspnet\https\aspnetapp.pfx -p password
+dotnet dev-certs https -ep C:\Users\<TU USUARIO>\.aspnet\https\aspnetapp.pfx -p password
 ````
-La ruta solo tendran que cambiar el nombre de usuario.
+En la ruta tendremos que poner el nombre de usuario de nuestro pc por ejemplo
+```sh
+dotnet dev-certs https -ep C:\Users\guillermo\.aspnet\https\aspnetapp.pfx -p password
+
+````
 Para confiar en el certificado generado ponemos el comando:
 ```sh
 dotnet dev-certs https --trust
 ````
-## Docker compose
-````sh
-networks:
-  gestor:
-    driver: bridge
-services:
-  sql-server:
-    image: mcr.microsoft.com/mssql/server
-    container_name: SQL-Server-Local
-    user: root  # Forzamos ejecución como root para evitar problemas de permisos
-    environment:
-      - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=SQL#1234
-      - MSSQL_PID=Developer
-    ports:
-      - "1433:1433"
-    volumes:
-      - sql-data:/var/opt/mssql
-      - ./GestorInventario-2025629-10-14-552.bak:/var/opt/mssql/data/GestorInventario-2025629-10-14-552.bak
-    healthcheck:
-      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P SQL#1234 -Q "SELECT 1" || exit 1
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    command: 
-      - /bin/bash
-      - -c 
-      - |
-        # Iniciar SQL Server en segundo plano
-        /opt/mssql/bin/sqlservr &
-        
-        # Esperar a que SQL Server esté listo
-        sleep 30
-        
-        # Instalar herramientas necesarias
-        apt-get update && apt-get install -y curl gnupg
-        curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
-        curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list > /etc/apt/sources.list.d/mssql-release.list
-        apt-get update
-        ACCEPT_EULA=Y apt-get install -y mssql-tools
-        
-        # Configurar PATH para mssql-tools
-        echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
-        source ~/.bashrc
-        
-        # Restaurar la base de datos
-        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P SQL#1234 -Q "RESTORE DATABASE GestorInventario FROM DISK = '/var/opt/mssql/data/GestorInventario-2025629-10-14-552.bak' WITH MOVE 'GestorInventario' TO '/var/opt/mssql/data/GestorInventario.mdf', MOVE 'GestorInventario_log' TO '/var/opt/mssql/data/GestorInventario_log.ldf', REPLACE;"
-        
-        # Mantener el contenedor en ejecución
-        wait
-    networks:
-      - gestor
-
-  gestorinventario:
-    container_name: gestor-inventario
-    image: ${DOCKER_REGISTRY-}gestorinventario
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
-      - "8081:8081"
-    environment:
-      - DB_HOST=sql-server
-      - DB_NAME=GestorInventario
-      - DB_SA_PASSWORD=SQL#1234
-      - IS_DOCKER=true
-      - USE_REDIS=true
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/GestorInventario.pfx
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=password
-      - ClaveJWT=${ClaveJWT}
-      - REDIS_CONNECTION_STRING=redis:6379
-      - JwtIssuer=${JwtIssuer}
-      - JwtAudience=${JwtAudience}
-      - PublicKey=${PublicKey}
-      - PrivateKey=${PrivateKey}
-      - DB_USERNAME=${DB_USERNAME}
-      - Paypal_ClientId=${Paypal_ClientId}
-      - Paypal_ClientSecret=${Paypal_ClientSecret}
-      - Paypal_Mode=${Paypal_Mode}
-      - Paypal_returnUrlConDocker=${Paypal_returnUrlConDocker}
-      - Paypal_returnUrlSinDocker=${Paypal_returnUrlSinDocker}
-      - Email__Host=${Email__Host}
-      - Email__Port=${Email__Port}
-      - Email__Username=${Email__Username}
-      - Email__Password=${Email__Password}
-    volumes:
-      - C:/Users/guill/AppData/Roaming/ASP.NET/Https/GestorInventario.pfx:/https/GestorInventario.pfx:ro
-    depends_on:
-      sql-server:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    networks:
-      - gestor
-
-  redis:
-    image: redis:latest
-    container_name: redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redisdata:/data
-    networks:
-      - gestor
-
-volumes:
-  sql-data:
-    driver: local
-  redisdata:
-    driver: local
-  appdata:
-    driver: local
-````
-**¿Como arrancarlo en docker?**
-Para arrancar este proyecto en docker nos saldremos de visual studio y abriremos la terminal en la carpeta raiz y pondremos el comando 
+# Docker
+**¿Como arrancar el proyecto en docker?**
+Para arrancar este proyecto en docker nos saldremos de visual studio y abriremos la terminal en la carpeta raiz del proyecto y pondremos el comando 
 ````sh
 docker-compose up -d --build
 ````
-  ## Características con las que cuenta el proyecto
+# Credenciales para probar
+- **Email**: keuppa@yopmail.com
+- **Contraseña**: 1A2a3A4a5@
+- Estas credenciales para probar son del usuario administrador.
+
+# Características 
 
 El proyecto **Gestor Inventario** ofrece una amplia gama de características para gestionar eficientemente el inventario:
 
