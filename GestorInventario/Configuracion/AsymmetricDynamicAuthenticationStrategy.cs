@@ -17,7 +17,7 @@ namespace GestorInventario.Configuracion.Strategies
             {
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
-                options.Cookie.SameSite = SameSiteMode.Lax;
+                options.Cookie.SameSite = SameSiteMode.None;
                 options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
                 options.LoginPath = "/Auth/Login";
                 options.LogoutPath = "/Auth/Logout";

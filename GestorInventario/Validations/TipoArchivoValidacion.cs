@@ -17,7 +17,7 @@ namespace GestorInventario.Validations
         {
             if (grupoTipoArchivo == GrupoTipoArchivo.Imagen)
             {
-                tiposValidos = new string[] { "image/jpeg", "image/png", "image/gif" };
+                tiposValidos = new string[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
             }
             if (grupoTipoArchivo == GrupoTipoArchivo.PDF)
             {
