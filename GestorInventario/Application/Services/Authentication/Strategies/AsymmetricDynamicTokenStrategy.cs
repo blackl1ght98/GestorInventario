@@ -35,8 +35,8 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
         {
             var usuarioDB = await _context.Usuarios
                 .Include(u => u.IdRolNavigation)
-                .ThenInclude(r => r.RolePermisos)
-                .ThenInclude(rp => rp.Permiso)
+                
+               
                 .FirstOrDefaultAsync(u => u.Id == credencialesUsuario.Id);
 
             if (usuarioDB == null)
@@ -54,12 +54,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
             // Log para verificar el rol
             _logger.LogInformation($"Rol del usuario {credencialesUsuario.Id}: {usuarioDB.IdRolNavigation.Nombre}");
 
-            // Verificar los permisos asociados al rol
-            var permisos = usuarioDB.IdRolNavigation.RolePermisos?.Select(rp => rp.Permiso?.Nombre) ?? Enumerable.Empty<string>();
-            var permisosList = permisos.ToList();
-
-            // Log para verificar los permisos
-            _logger.LogInformation($"Permisos encontrados para el usuario {credencialesUsuario.Id}: {string.Join(", ", permisosList)}");
+       
 
             // Creamos las Claims que el usuario tendrá
             var claims = new List<Claim>()
@@ -69,18 +64,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
                 new Claim(ClaimTypes.NameIdentifier, credencialesUsuario.Id.ToString())
             };
 
-            foreach (var permiso in permisosList)
-            {
-                if (!string.IsNullOrEmpty(permiso))
-                {
-                    claims.Add(new Claim("permiso", permiso, ClaimValueTypes.String, issuer: "GestorInvetarioEmisor"));
-                    _logger.LogInformation($"Claim añadido en refresh token: permiso={permiso}");
-                }
-                else
-                {
-                    _logger.LogWarning($"Permiso vacío encontrado para el usuario {credencialesUsuario.Id}.");
-                }
-            }
+          
 
             
             using (var rsa = new RSACryptoServiceProvider(2048))

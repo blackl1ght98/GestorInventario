@@ -23,11 +23,9 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
         {
             var usuarioDB = await _context.Usuarios
                  .Include(u => u.IdRolNavigation)
-                 .ThenInclude(r => r.RolePermisos)
-                 .ThenInclude(rp => rp.Permiso)
+                
                  .FirstOrDefaultAsync(u => u.Id == credencialesUsuario.Id);
-            var permisos = usuarioDB.IdRolNavigation.RolePermisos?.Select(rp => rp.Permiso?.Nombre) ?? Enumerable.Empty<string>();
-            var permisosList = permisos.ToList();
+         
             var claims = new List<Claim>()
             {
                   new Claim(ClaimTypes.Email, credencialesUsuario.Email),
@@ -36,18 +34,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
 
 
             };
-             foreach (var permiso in permisosList)
-            {
-                if (!string.IsNullOrEmpty(permiso))
-                {
-                    claims.Add(new Claim("permiso", permiso, ClaimValueTypes.String, issuer: "GestorInvetarioEmisor"));
-                    //_logger.LogInformation($"Claim añadido en refresh token: permiso={permiso}");
-                }
-                else
-                {
-                    //_logger.LogWarning($"Permiso vacío encontrado para el usuario {credencialesUsuario.Id}.");
-                }
-            }
+           
             var clave = Environment.GetEnvironmentVariable("ClaveJWT") ?? _configuration["ClaveJWT"];
             var claveKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(clave));
             var signinCredentials = new SigningCredentials(claveKey, SecurityAlgorithms.HmacSha256);

@@ -39,23 +39,12 @@ namespace GestorInventario.Infraestructure.Controllers
             _utilityClass = utility;
         }
 
-        [Authorize(Roles = "Administrador", Policy = "VerUsuarios")]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Index(string buscar, [FromQuery] Paginacion paginacion)
         {
             try
             {
-                #if DEBUG
-                var claims = User.Claims.Select(c => $"{c.Type}: {c.Value}");
-                var hasPermiso = User.HasClaim("permiso", "VerUsuarios");
-                var isInRole = User.IsInRole("Administrador");
-                _logger.LogInformation($"Claims del usuario: {string.Join(", ", claims)}");
-                _logger.LogInformation($"Tiene permiso VerUsuarios: {hasPermiso}");
-                _logger.LogInformation($"Es Administrador: {isInRole}");
-                if (!hasPermiso || !isInRole)
-                {
-                    return Forbid();
-                }
-                #endif
+              
 
                 var queryable =  _policyExecutor.ExecutePolicy(() => _adminrepository.ObtenerUsuarios());
                 if (!string.IsNullOrEmpty(buscar))
@@ -222,7 +211,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (User.Identity.IsAuthenticated)
+                if (!User.Identity.IsAuthenticated)
                 {
                     return RedirectToAction("Login", "Auth");
                 }
@@ -413,56 +402,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-        [Authorize(Roles = "Administrador")]
-        [HttpGet]
-        public async Task<IActionResult> CreateRole()
-        {
-            var permisos = await _adminrepository.ObtenerPermisos();
-            var model = new CreateRoleDTO
-            {
-                Permisos = permisos.Select(p => new PermisoDTO
-                {
-                    Id = p.Id,
-                    Nombre = p.Nombre,
-                    Descripcion = p.Descripcion
-                }).ToList()
-            };
-            return View(model);
-        }
-        [Authorize(Roles = "Administrador")]
-        [HttpPost]
-        public async Task<IActionResult> CreateRole(string nombreRol, List<int> permisoIds)
-        {
-            try
-            {
-                var (success, message) = await _adminrepository.CrearRol(nombreRol, permisoIds);
-                if (success)
-                {
-                    _logger.LogInformation($"Rol creado con éxito: {nombreRol}");
-                    return RedirectToAction(nameof(ObtenerRoles));
-                }
-                ModelState.AddModelError("", message);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error al crear rol {nombreRol}.");
-                ModelState.AddModelError("", "Error al crear el rol. Intente de nuevo.");
-            }
-
-            var permisos = await _adminrepository.ObtenerPermisos();
-            var model = new CreateRoleDTO
-            {
-                NombreRol = nombreRol,
-                Permisos = permisos.Select(p => new PermisoDTO
-                {
-                    Id = p.Id,
-                    Nombre = p.Nombre,
-                    Descripcion = p.Descripcion
-                }).ToList(),
-                PermisoIds = permisoIds
-            };
-            return View(model);
-        }
+       
         //Metodo para editar el rol se llama desde el script ver-usuario-rol.js
         [HttpPost]
         [Authorize(Roles = "Administrador")]
@@ -517,36 +457,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 return Json(new { success = false, errorMessage = "El servidor ha tardado mucho en responder, intenta de nuevo más tarde." });
             }
         }
-        [HttpGet]
-        [Authorize(Roles = "Administrador")]
-        public IActionResult CreatePermission()
-        {
-            var model = new List<NewPermisoDTO> { new NewPermisoDTO() }; 
-            return View(model);
-        }
-
-        [HttpPost]
-        [Authorize(Roles = "Administrador")]
-        public async Task<IActionResult> CreatePermission(List<NewPermisoDTO> model)
-        {
-            try
-            {
-                var (success, _, message) = await _adminrepository.CrearPermisos(model);
-                if (success)
-                {
-                    _logger.LogInformation("Permisos creados con éxito.");
-                    return RedirectToAction(nameof(CreateRole));
-                }
-                ModelState.AddModelError("", message);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al crear permisos.");
-                ModelState.AddModelError("", "Error al crear permisos. Intente de nuevo.");
-            }
-
-            return View(model);
-        }
+       
         private async Task CargarRolesEnViewData()
         {
             var roles = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerRoles());
