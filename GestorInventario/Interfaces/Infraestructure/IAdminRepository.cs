@@ -14,7 +14,7 @@ namespace GestorInventario.Interfaces.Infraestructure
         IQueryable<Role> ObtenerRolesConUsuarios();
         Task<(Usuario?, string)> ObtenerUsuarioConPedido(int id);
         IQueryable<Usuario> ObtenerUsuariosPorRol(int rolId);
-        Task<List<Permiso>> ObtenerPermisos();
+       
         Task<(bool, string?)> EditarUsuario(UsuarioEditViewModel userVM);   
         Task<(bool, string)> CrearUsuario(UserViewModel model);
         Task<(bool, string)> EliminarUsuario(int id);        
@@ -23,8 +23,8 @@ namespace GestorInventario.Interfaces.Infraestructure
 
        
         Task ActualizarRolUsuario(int usuarioId, int rolId);
-        Task<(bool, string)> CrearRol(string nombreRol, List<int> permisoIds);
+        Task<(bool, string)> CrearRol(string nombreRol);
   
-        Task<(bool, List<int>, string)> CrearPermisos(List<NewPermisoDTO> nuevosPermisos);
+     
     }
 }

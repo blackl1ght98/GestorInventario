@@ -193,6 +193,7 @@ builder.Services.AddTransient<ITokenGenerator, TokenGenerator>(provider =>
     return new TokenGenerator(context, configuration, httpContextAccessor, memoryCache, logger, redis, connectionMultiplexer);
 
 });
+
 builder.Services.AddTransient<IRefreshTokenMethod, RefreshTokenMethod>(provider =>
 {
     var redis = provider.GetRequiredService<IDistributedCache>();
@@ -232,35 +233,7 @@ builder.Services.AddAntiforgery(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
-builder.Services.AddAuthorization(options =>
-{
-    using var scope = builder.Services.BuildServiceProvider().CreateScope();
-    var context = scope.ServiceProvider.GetRequiredService<GestorInventarioContext>();
-    var permisos = context.Permisos.ToList();
 
-    foreach (var permiso in permisos)
-    {
-        options.AddPolicy(permiso.Nombre, policy =>
-        {
-            policy.RequireClaim("permiso", permiso.Nombre);
-            policy.RequireAssertion(context =>
-            {
-                if (context.Resource is HttpContext httpContext)
-                {
-                    var logger = httpContext.RequestServices.GetService<ILogger<Program>>();
-                    var hasClaim = context.User.HasClaim("permiso", permiso.Nombre);
-                    logger?.LogInformation($"Evaluando política {permiso.Nombre}: Tiene permiso={hasClaim}");
-                    return hasClaim;
-                }
-                var defaultLogger = context.User.Identity?.IsAuthenticated == true
-                    ? context.User.Identity.Name
-                    : "Usuario no autenticado";
-                Console.WriteLine($"Evaluando política {permiso.Nombre}: Resource no es HttpContext para {defaultLogger}, permiso=false");
-                return false;
-            });
-        });
-    }
-});
 /*
 
     * options.Preload = true;: Esta opción indica que quieres incluir tu sitio en la lista de precarga de HSTS. 
@@ -284,6 +257,7 @@ builder.Services.AddHsts(options =>
     //options.ExcludedHosts.Add("www.example.com");
 });
 builder.Services.AddMvc();
+
 builder.Services.AddSession(options =>
 {
     //Si el usuario esta inactivo 20 minutos la sesion se cierra automaticamente
@@ -298,12 +272,8 @@ builder.Services.AddSession(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
-builder.Services.AddResponseCompression(options =>
-{
-    options.EnableForHttps = true;
-    options.Providers.Add<BrotliCompressionProvider>();
-    options.Providers.Add<GzipCompressionProvider>();
-});
+
+
 // Seleccionar la estrategia usando un switch expression
 IAuthProcessingStrategy strategyMiddleware = authStrategy switch
 {
@@ -317,11 +287,12 @@ app.UseWebOptimizer();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
+  
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
-app.UseResponseCompression();
+
 // Configurar cache para archivos estáticos
 app.UseStaticFiles(new StaticFileOptions
 {

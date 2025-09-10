@@ -59,7 +59,6 @@ namespace GestorInventario.Infraestructure.Repositories
                 .Include(u => u.IdRolNavigation)
                 .AsQueryable();
         }
-        public async Task<List<Permiso>> ObtenerPermisos() => await _context.Permisos.ToListAsync();
         public async Task<(bool, string)> CrearUsuario(UserViewModel model)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -287,7 +286,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 await transaction.RollbackAsync();
             }                       
         }
-        public async Task<(bool, string)> CrearRol(string nombreRol, List<int> permisoIds)
+        public async Task<(bool, string)> CrearRol(string nombreRol)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -313,42 +312,10 @@ namespace GestorInventario.Infraestructure.Repositories
                 }
 
                
-                if (permisoIds != null && permisoIds.Any())
-                {
-                    var permisosExistentes = await _context.Permisos
-                        .Where(p => permisoIds.Contains(p.Id))
-                        .Select(p => p.Id)
-                        .ToListAsync();
-
-                    if (permisosExistentes.Count != permisoIds.Count)
-                    {
-                        var permisosNoEncontrados = permisoIds.Except(permisosExistentes).ToList();
-                        _logger.LogWarning($"Permisos no encontrados: {string.Join(", ", permisosNoEncontrados)}.");
-                        return (false, $"Los siguientes permisos no existen: {string.Join(", ", permisosNoEncontrados)}.");
-                    }
-                }
+               
 
               
-                var rol = new Role { Nombre = nombreRol };
-                await _context.AddEntityAsync(rol);
-             
-                _logger.LogInformation($"Rol creado: {nombreRol} (ID: {rol.Id}).");
-
                
-                if (permisoIds != null && permisoIds.Any())
-                {
-                    foreach (var permisoId in permisoIds)
-                    {
-                        var rolPermiso = new RolePermiso
-                        {
-                            RoleId = rol.Id,
-                            PermisoId = permisoId
-                        };
-                      await  _context.AddEntityAsync(rolPermiso);
-                    }
-                  
-                    _logger.LogInformation($"Permisos asignados al rol {nombreRol}: {string.Join(", ", permisoIds)}.");
-                }
                 await transaction.CommitAsync();
                 return (true, "Rol creado y permisos asignados con éxito.");
             }
@@ -360,53 +327,6 @@ namespace GestorInventario.Infraestructure.Repositories
             }
 
         }
-        public async Task<(bool, List<int>, string)> CrearPermisos(List<NewPermisoDTO> nuevosPermisos)
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                var nuevosPermisoIds = new List<int>();
-
-                if (nuevosPermisos == null || !nuevosPermisos.Any())
-                {
-                    return (true, nuevosPermisoIds, "No se proporcionaron nuevos permisos.");
-                }
-
-                foreach (var nuevoPermiso in nuevosPermisos)
-                {
-                    if (string.IsNullOrWhiteSpace(nuevoPermiso.Nombre))
-                    {
-                        _logger.LogWarning("Intento de crear permiso con nombre vacío.");
-                        return (false, new List<int>(), "El nombre del permiso no puede estar vacío.");
-
-                    }
-
-                    if (await _context.Permisos.AnyAsync(p => p.Nombre == nuevoPermiso.Nombre))
-                    {
-                        _logger.LogWarning($"Intento de crear permiso duplicado: {nuevoPermiso.Nombre}.");
-                        return (false, new List<int>(), $"El permiso '{nuevoPermiso.Nombre}' ya existe.");
-                    }
-
-                    var permiso = new Permiso
-                    {
-                        Nombre = nuevoPermiso.Nombre,
-                        Descripcion = nuevoPermiso.Descripcion
-                    };
-                    await _context.AddEntityAsync(permiso);                
-                    nuevosPermisoIds.Add(permiso.Id);
-
-                    _logger.LogInformation($"Permiso creado: {nuevoPermiso.Nombre} (ID: {permiso.Id}).");
-                }
-                await transaction.CommitAsync();
-
-                return (true, nuevosPermisoIds, "Permisos creados con éxito.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al crear permisos.");
-                await transaction.RollbackAsync();
-                return (false, new List<int>(), $"Error al crear permisos: {ex.Message}");
-            }
-        }
+       
     }
 }
