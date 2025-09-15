@@ -21,7 +21,7 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<HistorialPedido> DetallesHistorial(int id);
         Task<(bool, string)> EliminarHitorial();  
         DateTime? ConvertToDateTime(object value); 
-        Task<(PayPalPaymentDetail, bool, string)> ObtenerDetallePagoEjecutadoV2(string id);
+        Task<(PayPalPaymentDetail?, bool, string)> ObtenerDetallePagoEjecutadoV2(string id);
         Task<Pedido> ObtenerDetallesPedido(int id);
 
 

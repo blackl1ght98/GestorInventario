@@ -370,7 +370,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
-                var historialProductos = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerTodoHistorial());
+                var historialProductos =  _policyExecutor.ExecutePolicy(() => _productoRepository.ObtenerTodoHistorial());
                 ViewData["Buscar"] = buscar;
                 if (!String.IsNullOrEmpty(buscar))
                 {

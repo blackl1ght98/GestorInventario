@@ -10,8 +10,8 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<List<Proveedore>> ObtenerProveedores();
         Task<(Producto?, string)> ObtenerProductoPorId(int id);
         Task<(bool, string)> EliminarProducto(int Id);
-             
-        Task<IQueryable<HistorialProducto>> ObtenerTodoHistorial();
+
+        IQueryable<HistorialProducto> ObtenerTodoHistorial();
         Task<HistorialProducto> ObtenerHistorialProductoPorId(int id);
         
         Task<(bool, string)> EliminarHistorialPorId(int Id);

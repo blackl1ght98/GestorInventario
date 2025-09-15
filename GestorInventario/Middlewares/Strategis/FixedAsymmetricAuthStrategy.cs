@@ -30,10 +30,8 @@ namespace GestorInventario.Middlewares.Strategis
                     var (jwtToken, principal) = await ValidateToken(token, builder);
                     if (jwtToken != null && principal != null)
                     {
-                        // Establecer el ClaimsPrincipal en HttpContext.User
                         context.User = principal;
-                        //_logger.LogInformation("Claims establecidos en HttpContext.User: {Claims}",
-                        //    string.Join(", ", principal.Claims.Select(c => $"{c.Type}: {c.Value}")));
+                       
                     }
                     else if (!string.IsNullOrEmpty(refreshToken))
                     {

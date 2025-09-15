@@ -7,32 +7,32 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
     public class PayPalTrackingInfo
     {
         [JsonProperty("capture_id")]
-        public string CaptureId { get; set; }
+        public required string CaptureId { get; set; }
         [JsonProperty("tracking_number")]
-        public string TrackingNumber { get; set; }
+        public required string TrackingNumber { get; set; }
         [JsonProperty("carrier")]
         [JsonConverter(typeof(StringEnumConverter))]
-        public Carrier Carrier { get; set; }
+        public required Carrier Carrier { get; set; }
         [JsonProperty("notify_payer")]
-        public bool NotifyPayer { get; set; }
+        public required bool NotifyPayer { get; set; }
         [JsonProperty("items")]
-        public List<TrackingItems> Items { get; set; }
+        public required List<TrackingItems> Items { get; set; }
 
     }
     public class TrackingItems
     {
         [JsonProperty("name")]
-        public string Name { get; set; }
+        public required string Name { get; set; }
         [JsonProperty("sku")]
-        public string Sku { get; set; }
+        public required string Sku { get; set; }
         [JsonProperty("quantity")]
-        public int Quantity { get; set; }
+        public required int Quantity { get; set; }
         [JsonProperty("upc")]
-        public Upc Upc { get; set; }
+        public required Upc Upc { get; set; }
         [JsonProperty("image_url")]
-        public string ImageUrl { get; set; }
+        public required string ImageUrl { get; set; }
         [JsonProperty("url")]
-        public string Url { get; set; }
+        public required string Url { get; set; }
       
     }
     public class Upc
@@ -41,6 +41,6 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
         [JsonConverter(typeof(StringEnumConverter))]
         public BarcodeType Type { get; set; } // Ejemplo: "UPC-A", "UPC-B", "EAN-13", "ISBN"
         [JsonProperty("code")]
-        public string Code { get; set; } // Ejemplo: "upc001"
+        public required string Code { get; set; } // Ejemplo: "upc001"
     }
 }

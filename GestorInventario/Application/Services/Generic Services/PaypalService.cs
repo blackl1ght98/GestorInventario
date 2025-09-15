@@ -10,14 +10,15 @@ using GestorInventario.Application.DTOs.Response_paypal.POST;
 using GestorInventario.Application.Exceptions;
 using GestorInventario.Domain.Models;
 using GestorInventario.enums;
+using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
-using System.Security.Claims;
 using System.Text;
 
 namespace GestorInventario.Application.Services
@@ -32,8 +33,9 @@ namespace GestorInventario.Application.Services
         private readonly IEmailService _emailService;
         private readonly HttpClient _httpClient;
         private readonly IServiceProvider _serviceProvider;
-
-        public PaypalService(IConfiguration configuration, ILogger<PaypalService> logger, HttpClient http,
+        private readonly UtilityClass _utilityClass;
+        private readonly GestorInventarioContext _context;
+        public PaypalService(IConfiguration configuration, ILogger<PaypalService> logger, HttpClient http, UtilityClass utility, GestorInventarioContext context,
             IMemoryCache memory, IUnitOfWork unit, IHttpContextAccessor contex, IEmailService email, IServiceProvider serviceProvider)
         {
 
@@ -45,6 +47,8 @@ namespace GestorInventario.Application.Services
             _emailService = email;
             _httpClient = http;
             _serviceProvider = serviceProvider;
+            _utilityClass = utility;
+            _context = context;
         }
         #region Generacion token paypal
 
@@ -105,7 +109,7 @@ namespace GestorInventario.Application.Services
                 }
 
                 var jsonResponse = JsonConvert.DeserializeObject<PayPalOrderResponse>(responseBody);
-                string orderId = jsonResponse?.id;
+                string orderId = jsonResponse?.Id;
 
                 if (!string.IsNullOrEmpty(orderId))
                 {
@@ -132,30 +136,30 @@ namespace GestorInventario.Application.Services
                 {
                     Amount = new AmountBase
                     {
-                        CurrencyCode = pagar.currency,
-                        Value = pagar.totalAmount.ToString("F2", CultureInfo.InvariantCulture),
+                        CurrencyCode = pagar.Currency,
+                        Value = pagar.TotalAmount.ToString("F2", CultureInfo.InvariantCulture),
                         Breakdown = new Breakdown
                         {
                             ItemTotal = new MoneyOrder
                             {
-                                CurrencyCode = pagar.currency,
-                                Value = pagar.totalAmount.ToString("F2", CultureInfo.InvariantCulture)
+                                CurrencyCode = pagar.Currency,
+                                Value = pagar.TotalAmount.ToString("F2", CultureInfo.InvariantCulture)
                             },
                             TaxTotal = new MoneyOrder
                             {
-                                CurrencyCode = pagar.currency,
+                                CurrencyCode = pagar.Currency,
                                 Value = "0.00"
                             },
                             ShippingAmount = new MoneyOrder
                             {
-                                CurrencyCode = pagar.currency,
+                                CurrencyCode = pagar.Currency,
                                 Value = "0.00"
                             }
                         }
                     },
                     Description = "The payment transaction description.",
                     InvoiceId = Guid.NewGuid().ToString(),
-                    Items = pagar.items.ConvertAll(item => new Item
+                    Items = pagar.Items.ConvertAll(item => new Item
                     {
                         Name = item.name,
                         Description = item.description,
@@ -163,12 +167,12 @@ namespace GestorInventario.Application.Services
                         UnitAmount = new MoneyOrder
                         {
                             Value = item.price.ToString("F2", CultureInfo.InvariantCulture),
-                            CurrencyCode = pagar.currency
+                            CurrencyCode = pagar.Currency
                         },
                         Tax = new MoneyOrder
                         {
                             Value = "0.00",
-                            CurrencyCode = pagar.currency
+                            CurrencyCode = pagar.Currency
                         },
                         Sku = item.sku
                     }),
@@ -176,15 +180,15 @@ namespace GestorInventario.Application.Services
                     {
                         Name = new NameClientOrder
                         {
-                            FullName = pagar.nombreCompleto
+                            FullName = pagar.NombreCompleto
                         },
                         Address = new Address
                         {
-                            AddressLine1 = pagar.line1,
-                            AddressLine2 = pagar.line2 ?? "",
-                            City = pagar.ciudad,
+                            AddressLine1 = pagar.Line1,
+                            AddressLine2 = pagar.Line2 ?? "",
+                            City = pagar.Ciudad,
                             State = "ES",
-                            PostalCode = pagar.codigoPostal,
+                            PostalCode = pagar.CodigoPostal,
                             CountryCode = "ES"
                         }
                     }
@@ -197,8 +201,8 @@ namespace GestorInventario.Application.Services
                             ExperienceContext = new ExperienceContext
                             {
                                 PaymentMethodPreference = "IMMEDIATE_PAYMENT_REQUIRED",
-                                ReturnUrl = pagar.returnUrl,
-                                CancelUrl = pagar.cancelUrl
+                                ReturnUrl = pagar.ReturnUrl,
+                                CancelUrl = pagar.CancelUrl
                             }
                         }
                     }
@@ -1495,19 +1499,16 @@ namespace GestorInventario.Application.Services
         {
             // Crear el producto
             var product = await CreateProductAsync(productName, productDescription, productType, productCategory);
+            var usuarioActual =_utilityClass.ObtenerUsuarioIdActual();
+            var email = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == usuarioActual);
 
-            // If we reach here, it was successful (since EnsureSuccessStatusCode throws in CreateProductAsync)
-
-            var email = _contextAccesor.HttpContext.User.FindFirstValue(ClaimTypes.Email);
             // Enviar el correo electrónico
             var emailDto = new EmailDto
             {
-                ToEmail = email,
+                ToEmail = email.Email,
                 NombreProducto = productName
             };
-
             await _emailService.SendEmailCreateProduct(emailDto, productName);
-
             return product;
         }
 

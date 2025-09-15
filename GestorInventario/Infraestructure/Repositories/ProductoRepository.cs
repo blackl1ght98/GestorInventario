@@ -1,8 +1,7 @@
-﻿
-using GestorInventario.Application.DTOs.Response_paypal.GET;
-using GestorInventario.Application.Services;
+﻿using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
 using GestorInventario.enums;
+using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
@@ -21,9 +20,10 @@ namespace GestorInventario.Infraestructure.Repositories
         private readonly IBarCodeService _barCodeService;
         private readonly ICarritoRepository _carritoRepository;
         private readonly ImageOptimizerService _imageOptimizerService;
+        private readonly UtilityClass _utilityClass;
       
         public ProductoRepository(GestorInventarioContext context, IGestorArchivos gestorArchivos, IHttpContextAccessor contextAccessor,
-        ILogger<ProductoRepository> logger,  ICarritoRepository carrito, IBarCodeService code, ImageOptimizerService optimizer)
+        ILogger<ProductoRepository> logger,  ICarritoRepository carrito, IBarCodeService code, ImageOptimizerService optimizer, UtilityClass utility)
         {
             _context = context;
             _gestorArchivos = gestorArchivos;
@@ -32,6 +32,7 @@ namespace GestorInventario.Infraestructure.Repositories
             _barCodeService = code;
             _carritoRepository=carrito;
             _imageOptimizerService=optimizer;
+            _utilityClass=utility;
         }    
      
         public IQueryable<Producto> ObtenerTodoProducto()=>from p in _context.Productos.Include(x => x.IdProveedorNavigation)orderby p.Id  select p;
@@ -111,11 +112,8 @@ namespace GestorInventario.Infraestructure.Repositories
         {
            
             try
-            {
-                var existeUsuario = _contextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int usuarioId;
-                if (int.TryParse(existeUsuario, out usuarioId))
-                {
+            {             
+                    int usuarioId= _utilityClass.ObtenerUsuarioIdActual();              
                     var historialProducto = new HistorialProducto()
                     {
                         UsuarioId = usuarioId,
@@ -134,9 +132,7 @@ namespace GestorInventario.Infraestructure.Repositories
                         Precio = producto.Precio
                     };
                     await _context.AddEntityAsync(detalleHistorialProducto);
-               
-                }
-            
+                                          
             }
             catch (Exception ex)
             {
@@ -151,7 +147,7 @@ namespace GestorInventario.Infraestructure.Repositories
             var producto = await _context.Productos.Include(p => p.IdProveedorNavigation).FirstOrDefaultAsync(m => m.Id == id);
             return producto is null ? (null,"Producto no encontrado"): (producto,"Producto encontrado");
         }
-        public async Task<IQueryable<HistorialProducto>> ObtenerTodoHistorial() => from p in _context.HistorialProductos.Include(x => x.DetalleHistorialProductos) select p;
+        public  IQueryable<HistorialProducto> ObtenerTodoHistorial() => from p in _context.HistorialProductos.Include(x => x.DetalleHistorialProductos) select p;
         public async Task<HistorialProducto> ObtenerHistorialProductoPorId(int id) => await _context.HistorialProductos.Include(hp => hp.DetalleHistorialProductos).FirstOrDefaultAsync(hp => hp.Id == id);
         public async Task<(bool, string)> EliminarProducto(int Id)
         {
@@ -209,7 +205,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     return (false, "No se puede eliminar, el historial no existe");
                 }
               await transaction.CommitAsync();
-                return (true, null);
+                return (true, "Historial eliminado");
             }
             catch (Exception ex)
             {
@@ -437,32 +433,32 @@ namespace GestorInventario.Infraestructure.Repositories
                 {
                     return (false, "No hay suficientes productos en stock.");
                 }
-
                 // Obtener o crear el carrito
                 var carrito = await _carritoRepository.CrearCarritoUsuario(usuarioId);
-
-                // Verificar si el producto ya está en el carrito
-                var detalleExistente = await _context.DetallePedidos
-                    .FirstOrDefaultAsync(d => d.PedidoId == carrito.Id && d.ProductoId == idProducto);
-
-                if (detalleExistente != null)
+                if(carrito != null)
                 {
-                    // Sumar la cantidad al ítem existente
-                    detalleExistente.Cantidad += cantidad;
-                    await _context.UpdateEntityAsync(detalleExistente);
-                }
-                else
-                {
-                    // Crear un nuevo ítem en el carrito
-                    var detalle = new DetallePedido
+                    var detalleExistente = await _context.DetallePedidos
+                  .FirstOrDefaultAsync(d => d.PedidoId == carrito.Id && d.ProductoId == idProducto);
+                    if (detalleExistente != null)
                     {
-                        PedidoId = carrito.Id,
-                        ProductoId = idProducto,
-                        Cantidad = cantidad
-                    };
-                    await _context.AddEntityAsync(detalle);
-                }
+                        // Sumar la cantidad al ítem existente
+                        detalleExistente.Cantidad += cantidad;
+                        await _context.UpdateEntityAsync(detalleExistente);
+                    }
+                    else
+                    {
+                        // Crear un nuevo ítem en el carrito
+                        var detalle = new DetallePedido
+                        {
+                            PedidoId = carrito.Id,
+                            ProductoId = idProducto,
+                            Cantidad = cantidad
+                        };
+                        await _context.AddEntityAsync(detalle);
+                    }
 
+                }
+                
                 // Actualizar el inventario del producto
                 producto.Cantidad -= cantidad;
                 await _context.UpdateEntityAsync(producto);

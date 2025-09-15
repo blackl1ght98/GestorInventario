@@ -3,8 +3,8 @@
     public class EditProductPaypal
     {
        
-        public string name { get; set; }
-        public string description { get; set; }
+        public required string Name { get; set; }
+        public required string Description { get; set; }
         
     }
 }

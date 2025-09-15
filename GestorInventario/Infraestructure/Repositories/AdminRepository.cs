@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using GestorInventario.Application.DTOs;
 using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
@@ -259,8 +258,7 @@ namespace GestorInventario.Infraestructure.Repositories
             }
            
         }
-        
-       
+              
         public async Task ActualizarRolUsuario(int usuarioId, int rolId)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -310,12 +308,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     _logger.LogWarning($"Intento de crear rol duplicado: {nombreRol}.");
                     return (false, "El nombre del rol ya existe. Proporcione otro nombre.");
                 }
-
-               
-               
-
-              
-               
+                                                     
                 await transaction.CommitAsync();
                 return (true, "Rol creado y permisos asignados con éxito.");
             }

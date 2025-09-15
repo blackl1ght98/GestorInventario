@@ -18,9 +18,9 @@ namespace GestorInventario.Infraestructure.Repositories
 
         public Task<IQueryable<Rembolso>> ObtenerRembolsos()
         {
-            return Task.FromResult(_context.Rembolsos
-        .Include(x => x.Pedido)  // Carga la navegación Pedido
-        .AsQueryable());
+             return Task.FromResult(_context.Rembolsos
+            .Include(x => x.Pedido)  
+            .AsQueryable());
         }
         public async Task<(bool, string)> EliminarRembolso(int id)
         {
@@ -36,7 +36,7 @@ namespace GestorInventario.Infraestructure.Repositories
 
                 await _context.DeleteEntityAsync(rembolso);
                 await transaction.CommitAsync();
-                return (true, null);
+                return (true, "Rembolso eliminado");
             }
             catch (Exception ex)
             {

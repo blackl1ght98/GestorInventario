@@ -6,7 +6,6 @@ using GestorInventario.Application.DTOs.Response_paypal.POST;
 using GestorInventario.Application.Exceptions;
 using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
-using GestorInventario.enums;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
@@ -16,8 +15,6 @@ using GestorInventario.ViewModels.product;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using System.Globalization;
 using System.Security.Claims;
 
 namespace GestorInventario.Infraestructure.Controllers
@@ -296,7 +293,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 try
                 {
                     
-                    var productResponse = await _paypalService.EditarProducto(id, model.name, model.description);
+                    var productResponse = await _paypalService.EditarProducto(id, model.Name, model.Description);
                     return RedirectToAction(nameof(MostrarProductos));
                 }
                 catch (Exception ex)

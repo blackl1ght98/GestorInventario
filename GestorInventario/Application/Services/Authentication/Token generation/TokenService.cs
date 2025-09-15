@@ -1,12 +1,4 @@
-﻿using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using GestorInventario.Domain.Models;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
-using Microsoft.Extensions.Caching.Memory;
+﻿using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Application.DTOs.User;
 
@@ -23,12 +15,10 @@ namespace GestorInventario.Application.Services
             _tokenService = tokenService;
             _refreshTokenMethod = refresh;
         }
-       
-
+      
         public async Task<LoginResponseDto> GenerarToken(Usuario credencialesUsuario)
         {
             // Generar el token principal
-            //var tokenPrincipal = await _tokenService.GenerarTokenAsimetricoDinamico(credencialesUsuario);
             var tokenPrincipal = await _tokenService.GenerateTokenAsync(credencialesUsuario);
             // Generar el token de refresco
             var tokenRefresco = await _refreshTokenMethod.GenerarTokenRefresco(credencialesUsuario);

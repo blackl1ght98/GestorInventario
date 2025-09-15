@@ -1,14 +1,10 @@
 ﻿using GestorInventario.Application.DTOs;
-using GestorInventario.Application.DTOs.User;
 using GestorInventario.Application.Services;
-using GestorInventario.Infraestructure.Repositories;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.PaginacionLogica;
 using GestorInventario.ViewModels;
-using GestorInventario.ViewModels.user;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GestorInventario.Infraestructure.Controllers
