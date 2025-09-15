@@ -1,13 +1,12 @@
 ﻿
 using GestorInventario.Domain.Models;
+using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.ViewModels.order;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using System.Globalization;
-using System.Security.Claims;
 namespace GestorInventario.Infraestructure.Repositories
 {
     public class PedidoRepository : IPedidoRepository
@@ -16,13 +15,15 @@ namespace GestorInventario.Infraestructure.Repositories
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly IPaypalService _paypalService;
         private readonly ILogger<PedidoRepository> _logger;
+        private readonly UtilityClass _utilityClass;
         public PedidoRepository(GestorInventarioContext context, IHttpContextAccessor contextAccessor,
-            IPaypalService service, ILogger<PedidoRepository> logger)
+            IPaypalService service, ILogger<PedidoRepository> logger, UtilityClass utility)
         {
             _context = context;           
             _contextAccessor = contextAccessor;
             _paypalService = service;
             _logger = logger;
+            _utilityClass = utility;
         }
    
         public IQueryable<Pedido> ObtenerPedidos()=>
@@ -84,7 +85,7 @@ namespace GestorInventario.Infraestructure.Repositories
 
                 await transaction.CommitAsync();
 
-                return (true, null);
+                return (true, "Pedido creado con exito");
             }
             catch (Exception ex)
             {
@@ -116,7 +117,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     await transaction.CommitAsync();
                 }
 
-                return (true, null);
+                return (true, "Pedido eliminado con exito");
             }
             catch (Exception ex)
             {
@@ -144,7 +145,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 {
                     return (false, "No se puede eliminar, el historial no existe");
                 }
-                return (true, null);
+                return (true, "Historial eliminado con exito");
             }
             catch (Exception ex)
             {
@@ -162,10 +163,8 @@ namespace GestorInventario.Infraestructure.Repositories
 
             try
             {
-                var existeUsuario = _contextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int usuarioId;
-                if (int.TryParse(existeUsuario, out usuarioId))
-                {
+                
+                    int usuarioId= _utilityClass.ObtenerUsuarioIdActual();             
                     var pedidoOriginal = await _context.Pedidos.Include(p => p.DetallePedidos).FirstOrDefaultAsync(x => x.Id == model.id);
                     if (pedidoOriginal == null)
                     {
@@ -197,9 +196,7 @@ namespace GestorInventario.Infraestructure.Repositories
                         await _context.AddEntityAsync(nuevoDetalle);
                     }
                     await transaction.CommitAsync();
-                    return (true, null);
-                }
-                return (false, "No puede realizar esta  accion no dispone de permisos");
+                    return (true, "Pedido editado con exito");                             
             }
             catch (Exception ex)
             {
@@ -233,7 +230,7 @@ namespace GestorInventario.Infraestructure.Repositories
 
                 }
                 await transaction.CommitAsync();
-                return (true, null);
+                return (true, "Historial eliminado");
             }
             catch (Exception ex)
             {
@@ -246,7 +243,7 @@ namespace GestorInventario.Infraestructure.Repositories
            
         }
 
-        public async Task<(PayPalPaymentDetail, bool, string)> ObtenerDetallePagoEjecutadoV2(string id)
+        public async Task<(PayPalPaymentDetail?, bool, string)> ObtenerDetallePagoEjecutadoV2(string id)
         {
             using var transaccion = await _context.Database.BeginTransactionAsync();
             try
@@ -312,6 +309,7 @@ namespace GestorInventario.Infraestructure.Repositories
                                 decimal? subtotal = 0;
                                 foreach (var item in purchaseUnit.Items)
                                 {
+                                   
                                     var unitAmount = ConvertToDecimal(item.UnitAmount?.Value.ToString());
                                     var quantity = ConvertToInt(item.Quantity?.ToString());
                                     subtotal += unitAmount * quantity;
@@ -402,13 +400,10 @@ namespace GestorInventario.Infraestructure.Repositories
                             }
                         }
                     }
-                }
-
-                // Guardar los cambios en la base de datos
+                }               
                 await _context.SaveChangesAsync();
                 await transaccion.CommitAsync();
-
-                return (detallesSuscripcion, true, null);
+                return (detallesSuscripcion, true, "Detalle guardado con exito");
             }
             catch (Exception ex)
             {

@@ -14,7 +14,6 @@ using GestorInventario.Middlewares;
 using GestorInventario.Middlewares.Strategis;
 using GestorInventario.PaginacionLogica;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;

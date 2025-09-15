@@ -5,7 +5,6 @@ using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
 namespace GestorInventario.Infraestructure.Repositories
 {
@@ -164,7 +163,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     var itemsCarrito = await _carritoRepository.ObtenerItemsDelCarritoUsuario(carritoActivo.Id);
                     if (!itemsCarrito.Any()) // Solo eliminar carritos vacíos
                     {
-                        _context.Pedidos.Remove(carritoActivo);
+                      await  _context.DeleteEntityAsync(carritoActivo);
                     }
                 }
 

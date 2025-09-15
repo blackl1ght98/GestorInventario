@@ -236,17 +236,17 @@ namespace GestorInventario.Infraestructure.Repositories
 
             return new Checkout
             {
-                totalAmount = totalAmount,
-                currency = moneda,
-                items = items,
-                nombreCompleto = infoUsuario.nombreCompletoUsuario,
-                returnUrl = returnUrl,
-                cancelUrl = cancelUrl,
-                telefono = infoUsuario.telefono,
-                ciudad = infoUsuario.ciudad,
-                codigoPostal = infoUsuario.codigoPostal,
-                line1 = infoUsuario.line1,
-                line2 = infoUsuario.line2
+                TotalAmount = totalAmount,
+                Currency = moneda,
+                Items = items,
+                NombreCompleto = infoUsuario.nombreCompletoUsuario,
+                ReturnUrl = returnUrl,
+                CancelUrl = cancelUrl,
+                Telefono = infoUsuario.telefono,
+                Ciudad = infoUsuario.ciudad,
+                CodigoPostal = infoUsuario.codigoPostal,
+                Line1 = infoUsuario.line1,
+                Line2 = infoUsuario.line2
             };
         }
         private string ObtenerReturnUrl()
@@ -262,7 +262,7 @@ namespace GestorInventario.Infraestructure.Repositories
         {
             var createdPaymentJson = await _paypalService.CreateOrderWithPaypalAsync(checkout);
             var createdPayment = JsonConvert.DeserializeObject<PayPalOrderResponse>(createdPaymentJson);
-            var approvalUrl = createdPayment?.links?.FirstOrDefault(x => x.rel == "payer-action")?.href;
+            var approvalUrl = createdPayment?.Links?.FirstOrDefault(x => x.Rel == "payer-action")?.Href;
             if (!string.IsNullOrEmpty(approvalUrl))
             {
                 return (true, "Redirigiendo a PayPal para completar el pago", approvalUrl);
@@ -338,7 +338,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 {
                     if (!carritoActivo.DetallePedidos.Any())
                     {
-                        _context.Pedidos.Remove(carritoActivo);
+                        await _context.DeleteEntityAsync(carritoActivo);
                         _logger.LogInformation($"Carrito vacío eliminado para el usuario {userId}, ID: {carritoActivo.Id}");
                     }
                 }

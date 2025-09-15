@@ -4,7 +4,7 @@ using GestorInventario.enums;
 using GestorInventario.Interfaces;
 using GestorInventario.Interfaces.Application;
 using Microsoft.EntityFrameworkCore;
-using System.Net.NetworkInformation;
+
 using ZXing;
 
 namespace GestorInventario.Application.Services.Generic_Services

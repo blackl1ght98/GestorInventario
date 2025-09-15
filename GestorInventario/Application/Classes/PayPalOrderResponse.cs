@@ -1,17 +1,25 @@
-﻿namespace GestorInventario.Application.Classes
+﻿using Newtonsoft.Json;
+
+namespace GestorInventario.Application.Classes
 {
     public class PayPalOrderResponse
     {
-        public string id { get; set; }
-        public string status { get; set; }
-        public List<PayPalLink> links { get; set; }
+        [JsonProperty("id")]
+        public required string Id { get; set; }
+        [JsonProperty("status")]
+        public required string Status { get; set; }
+        [JsonProperty("links")]
+        public required List<PayPalLink> Links { get; set; }
     }
 
     public class PayPalLink
     {
-        public string href { get; set; }
-        public string rel { get; set; }
-        public string method { get; set; }
+        [JsonProperty("href")]
+        public required string Href { get; set; }
+        [JsonProperty("rel")]
+        public required string Rel { get; set; }
+        [JsonProperty("method")]
+        public required string Method { get; set; }
     }
 
 }

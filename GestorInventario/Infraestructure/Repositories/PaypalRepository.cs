@@ -67,9 +67,6 @@ namespace GestorInventario.Infraestructure.Repositories
                     .ThenInclude(d => d.Producto)
                     .FirstOrDefaultAsync(p => p.Id == pedidoId);
 
-
-
-
                 if (pedido == null || string.IsNullOrEmpty(pedido.CaptureId))
                     throw new ArgumentException("Pedido no encontrado o SaleId no disponible.");
 
@@ -230,9 +227,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 await transaction.RollbackAsync();
             }
             
-        }
-
-       
+        }      
         public async Task<(bool Success, string Message)> EnviarEmailNotificacionRembolso(int pedidoId, decimal montoReembolsado, string motivo)
         {
             try
@@ -257,7 +252,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     .Select(detalle => new PayPalPaymentItem
                     {
                         ItemName = detalle.Producto?.NombreProducto ?? "N/A",
-                        ItemQuantity = detalle.Cantidad ?? 0, // Manejo de int? con valor por defecto
+                        ItemQuantity = detalle.Cantidad ?? 0, 
                         ItemPrice = detalle.Producto?.Precio ?? 0,
                         ItemCurrency = pedido.Currency ?? "USD",
                         ItemSku = detalle.Producto?.Descripcion ?? "N/A"
@@ -301,7 +296,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 pedido.EstadoPedido = status;
                 pedido.RefundId = refundId;
 
-                _context.Update(pedido);
+               await _context.UpdateEntityAsync(pedido);
 
                 var usuarioActual = _utilityClass.ObtenerUsuarioIdActual();
 
@@ -329,13 +324,12 @@ namespace GestorInventario.Infraestructure.Repositories
                     obtenerRembolso.EstadoRembolso = "REMBOLSO APROVADO";
                     obtenerRembolso.RembosoRealizado = true;
                     obtenerRembolso.EstadoVenta = estadoVenta;
-                    obtenerRembolso.FechaRembolso = DateTime.UtcNow; 
-                                                                    
+                    obtenerRembolso.FechaRembolso = DateTime.UtcNow;
 
-                    _context.Update(obtenerRembolso);
+
+                    await _context.UpdateEntityAsync(obtenerRembolso);
                 }
-
-                await _context.SaveChangesAsync();
+               
                 await transaction.CommitAsync();
                 _logger.LogInformation($"Estado del pedido {pedidoId} actualizado a {status}");
             }
@@ -415,9 +409,8 @@ namespace GestorInventario.Infraestructure.Repositories
                 pedido.TrackingNumber = tracking;
                 pedido.UrlTracking = url;
                 pedido.Transportista = carrier;
-                _context.Update(pedido);
-                await _context.SaveChangesAsync();
-               await transaction.CommitAsync();
+                await _context.UpdateEntityAsync(pedido);              
+                await transaction.CommitAsync();
             }
             catch (Exception ex)
             {
@@ -436,8 +429,8 @@ namespace GestorInventario.Infraestructure.Repositories
                 if (planDetails != null)
                 {
                     planDetails.Status = status;
-                    _context.PlanDetails.Update(planDetails);
-                    await _context.SaveChangesAsync();
+                    await _context.UpdateEntityAsync(planDetails);
+                   
                 }
                 await transaction.CommitAsync();
             }
@@ -497,9 +490,8 @@ namespace GestorInventario.Infraestructure.Repositories
                     }
                 }
 
-                // Guardar los cambios en la base de datos
-                _context.PlanDetails.Update(planDetail);
-                await _context.SaveChangesAsync();
+               
+                await _context.UpdateEntityAsync(planDetail);              
                 await transaction.CommitAsync();
                 _logger.LogInformation($"Precios del plan {planId} actualizados exitosamente en la base de datos.");
             }
@@ -736,15 +728,13 @@ namespace GestorInventario.Infraestructure.Repositories
 
                     if (hasChanges)
                     {
-                        _context.SubscriptionDetails.Update(subscriptionDetails);
-                        await _context.SaveChangesAsync();
+                        await _context.UpdateEntityAsync(subscriptionDetails);                     
                         _logger.LogInformation($"Suscripción actualizada: {subscriptionDetails.SubscriptionId}");
                     }
                 }
                 else
                 {
-                    await _context.AddEntityAsync(subscriptionDetails);
-                    await _context.SaveChangesAsync();
+                    await _context.AddEntityAsync(subscriptionDetails);                 
                     _logger.LogInformation($"Suscripción creada: {subscriptionDetails.SubscriptionId}");
                 }
                 await transaction.CommitAsync();
@@ -777,7 +767,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     };
 
                     await _context.AddEntityAsync(userSubscription);
-                    await _context.SaveChangesAsync();
+                    
                     _logger.LogInformation($"Relación UserSubscription creada para usuario {userId}, suscripción {subscriptionId}");
                     await transaction.CommitAsync( );
                 }
@@ -801,22 +791,22 @@ namespace GestorInventario.Infraestructure.Repositories
                 if (subscription == null)
                 {
                     _logger.LogWarning($"No se encontró la suscripción con ID {subscriptionId}");
-                    return; // No throw, as the controller can decide how to handle this
+                    return;
                 }
 
-                // For activation, only allow transition from CANCELLED or SUSPENDED
+                
                 if (status == "ACTIVE" && subscription.Status != "CANCELLED" && subscription.Status != "SUSPENDED")
                 {
                     _logger.LogInformation($"No se puede activar la suscripción {subscriptionId} porque no está en estado CANCELLED o SUSPENDED (estado actual: {subscription.Status})");
                     return;
                 }
-                // For suspension, only allow transition from ACTIVE
+               
                 else if (status == "SUSPENDED" && subscription.Status != "ACTIVE")
                 {
                     _logger.LogInformation($"No se puede suspender la suscripción {subscriptionId} porque no está en estado ACTIVE (estado actual: {subscription.Status})");
                     return;
                 }
-                // For cancellation, allow from ACTIVE or SUSPEND
+               
                 else if (status == "CANCELLED" && subscription.Status != "ACTIVE" && subscription.Status != "SUSPEND")
                 {
                     _logger.LogInformation($"No se puede cancelar la suscripción {subscriptionId} porque no está en estado ACTIVE o SUSPEND (estado actual: {subscription.Status})");
@@ -825,7 +815,7 @@ namespace GestorInventario.Infraestructure.Repositories
 
                 subscription.Status = status;
                 await _context.UpdateEntityAsync(subscription);
-                await _context.SaveChangesAsync();
+          
                 _logger.LogInformation($"Estado de la suscripción {subscriptionId} actualizado a {status}");
 
                 await transaction.CommitAsync();

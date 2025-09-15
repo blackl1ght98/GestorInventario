@@ -7,55 +7,55 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
     public class PaypalCreateOrder
     {
         [JsonProperty("intent")]
-        public string Intent { get; set; }
+        public required string Intent { get; set; }
 
         [JsonProperty("purchase_units")]
-        public List<PurchaseUnit> PurchaseUnits { get; set; } = new List<PurchaseUnit>();
+        public required List<PurchaseUnit> PurchaseUnits { get; set; } = new List<PurchaseUnit>();
 
         [JsonProperty("payment_source")]
-        public PaymentSource PaymentSource { get; set; }
-    }
+        public required PaymentSource PaymentSource { get; set; }
+    } 
 
     public class PurchaseUnit
     {
         [JsonProperty("amount")]
-        public AmountBase Amount { get; set; }
+        public required AmountBase Amount { get; set; }
 
         [JsonProperty("description")]
-        public string Description { get; set; }
+        public required string Description { get; set; }
 
         [JsonProperty("invoice_id")]
-        public string InvoiceId { get; set; }
+        public required string InvoiceId { get; set; }
 
         [JsonProperty("items")]
-        public List<Item> Items { get; set; } = new List<Item>();
+        public required List<Item> Items { get; set; } = new List<Item>();
 
         [JsonProperty("shipping")]
-        public Shipping Shipping { get; set; }
+        public required Shipping Shipping { get; set; }
     }
 
     public class AmountBase
     {
         [JsonProperty("currency_code")]
-        public string CurrencyCode { get; set; }
+        public required string CurrencyCode { get; set; }
 
         [JsonProperty("value")]
-        public string Value { get; set; }
+        public required string Value { get; set; }
 
         [JsonProperty("breakdown")]
-        public Breakdown Breakdown { get; set; }
+        public required Breakdown Breakdown { get; set; }
     }
 
     public class Breakdown
     {
         [JsonProperty("item_total")]
-        public MoneyOrder ItemTotal { get; set; }
+        public required MoneyOrder ItemTotal { get; set; }
 
         [JsonProperty("tax_total")]
-        public MoneyOrder TaxTotal { get; set; }
+        public required MoneyOrder TaxTotal { get; set; }
 
         [JsonProperty("shipping")]
-        public MoneyOrder ShippingAmount { get; set; }
+        public required MoneyOrder ShippingAmount { get; set; }
     }
 
 
@@ -63,91 +63,91 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
     public class Item
     {
         [JsonProperty("name")]
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
         [JsonProperty("description")]
-        public string Description { get; set; }
+        public required string Description { get; set; }
 
         [JsonProperty("quantity")]
-        public string Quantity { get; set; }
+        public required string Quantity { get; set; }
 
         [JsonProperty("unit_amount")]
-        public MoneyOrder UnitAmount { get; set; }
+        public required MoneyOrder UnitAmount { get; set; }
 
         [JsonProperty("tax")]
-        public MoneyOrder Tax { get; set; }
+        public required MoneyOrder Tax { get; set; }
 
         [JsonProperty("sku")]
-        public string Sku { get; set; }
+        public required string Sku { get; set; }
     }
 
     public class Shipping
     {
         [JsonProperty("name")]
-        public NameClientOrder Name { get; set; }
+        public required NameClientOrder Name { get; set; }
 
         [JsonProperty("address")]
-        public Address Address { get; set; }
+        public required Address Address { get; set; }
     }
 
     public class NameClientOrder
     {
         [JsonProperty("full_name")]
-        public string FullName { get; set; }
+        public required string FullName { get; set; }
     }
 
     public class Address
     {
         [JsonProperty("address_line_1")]
-        public string AddressLine1 { get; set; }
+        public required string AddressLine1 { get; set; }
 
         [JsonProperty("address_line_2")]
-        public string AddressLine2 { get; set; }
+        public required string AddressLine2 { get; set; }
 
         [JsonProperty("admin_area_2")]
-        public string City { get; set; }
+        public required string City { get; set; }
 
         [JsonProperty("admin_area_1")]
-        public string State { get; set; }
+        public required string State { get; set; }
 
         [JsonProperty("postal_code")]
-        public string PostalCode { get; set; }
+        public required string PostalCode { get; set; }
 
         [JsonProperty("country_code")]
-        public string CountryCode { get; set; }
+        public required string CountryCode { get; set; }
     }
 
     public class PaymentSource
     {
         [JsonProperty("paypal")]
-        public Paypal Paypal { get; set; }
+        public required Paypal Paypal { get; set; }
     }
 
     public class Paypal
     {
         [JsonProperty("experience_context")]
-        public ExperienceContext ExperienceContext { get; set; }
+        public required ExperienceContext ExperienceContext { get; set; }
     }
 
     public class ExperienceContext
     {
         [JsonProperty("payment_method_preference")]
-        public string PaymentMethodPreference { get; set; }
+        public required string PaymentMethodPreference { get; set; }
 
         [JsonProperty("return_url")]
-        public string ReturnUrl { get; set; }
+        public required string ReturnUrl { get; set; }
 
         [JsonProperty("cancel_url")]
-        public string CancelUrl { get; set; }
+        public required string CancelUrl { get; set; }
     }
     public class MoneyOrder
     {
         [JsonProperty("currency_code")]
         [Required(ErrorMessage = "El código de moneda es requerido.")]
-        public string CurrencyCode { get; set; }
+        public required string CurrencyCode { get; set; }
 
         [JsonProperty("value")]
         [Required(ErrorMessage = "El valor del monto es requerido.")]
-        public string Value { get; set; }
+        public required string Value { get; set; }
     }
 }

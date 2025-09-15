@@ -114,11 +114,10 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
                     signingCredentials: signinCredentials);
 
                 var tokenString = new JwtSecurityTokenHandler().WriteToken(securityToken);
-                // Log del token completo para inspección
-                _logger.LogInformation($"Token generado: {tokenString}");
+              
                 var tokenPayload = new JwtSecurityTokenHandler().ReadJwtToken(tokenString).Claims
                     .Select(c => $"{c.Type}: {c.Value}");
-                _logger.LogInformation($"Claims en el token: {string.Join(", ", tokenPayload)}");
+               
                 return new LoginResponseDto()
                 {
                     Id = credencialesUsuario.Id,
@@ -146,7 +145,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
             }
             catch (Exception ex)
             {
-                _logger.LogCritical("Error al cifrar", ex);
+                _logger.LogCritical(ex,"Error al cifrar");
                 throw;
             }
         }
