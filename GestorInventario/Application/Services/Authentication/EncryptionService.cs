@@ -75,7 +75,7 @@ namespace GestorInventario.Application.Services.Authentication
             {
                 _httpContextAccessor.HttpContext?.Response.Redirect("/Auth/Login");
             }
-            _logger.LogCritical("Error al descifrar", ex);
+            _logger.LogCritical(ex,"Error al descifrar");
         }
     }
 }

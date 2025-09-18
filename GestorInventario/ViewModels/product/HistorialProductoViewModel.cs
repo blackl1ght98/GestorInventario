@@ -6,8 +6,8 @@ namespace GestorInventario.ViewModels.product
 {
     public class HistorialProductoViewModel
     {
-        public List<HistorialProducto> Historial { get; set; }
-        public List<PaginasModel> Paginas { get; set; }
+        public required List<HistorialProducto> Historial { get; set; }
+        public required List<PaginasModel> Paginas { get; set; }
         public int TotalPaginas { get; set; }
         public int PaginaActual { get; set; }
       

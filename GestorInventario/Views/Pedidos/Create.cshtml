@@ -60,7 +60,7 @@
                                 <div class="d-flex align-items-center">
                                     <input type="checkbox" asp-for="ProductosSeleccionados[i]" class="form-check-input me-2" id="producto-@i" />
                                     <label class="form-check-label me-3" for="producto-@i">@ViewBag.Productos[i].NombreProducto</label>
-                                    <input type="hidden" asp-for="IdsProducto[i]" value="@ViewBag.Productos[i].Id" />
+                                    <input type="hidden" asp-for="Productos[i]" value="@ViewBag.Productos[i].Id" />
                                     <input type="number" asp-for="Cantidades[i]" class="form-control w-25" min="0" placeholder="0" />
                                 </div>
                             </div>

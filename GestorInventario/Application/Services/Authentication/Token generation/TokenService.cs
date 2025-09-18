@@ -33,7 +33,5 @@ namespace GestorInventario.Application.Services
             };
         }
 
-
-
     }
 }

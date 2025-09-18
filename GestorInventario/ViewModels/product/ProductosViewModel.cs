@@ -7,8 +7,8 @@ namespace GestorInventario.ViewModels.product
     public class ProductosViewModel
     {
         public int Id { get; set; }
-        public string NombreProducto { get; set; }
-        public string Descripcion { get; set; }
+        public required string NombreProducto { get; set; }
+        public required string Descripcion { get; set; }
         public int Cantidad { get; set; }
         public string? Imagen { get; set; }
         [PesoArchivoValidacion(5)]

@@ -74,8 +74,9 @@ namespace GestorInventario.Application.Services.Authentication
 
                 case "AsymmetricDynamic":
                     // Usar claves dinámicas para el enfoque asimétrico dinámico
-                    string privateKeyJson;
-                    string publicKeyJson;
+                    // Dentro del case "AsymmetricDynamic":
+                    string? privateKeyJson;
+                    string? publicKeyJson;
                     RSAParameters privateKey;
                     RSAParameters publicKey;
 
@@ -85,56 +86,81 @@ namespace GestorInventario.Application.Services.Authentication
                     {
                         privateKeyJson = await _redis.GetStringAsync(credencialesUsuario.Id.ToString() + "PrivateKeyRefresco");
                         publicKeyJson = await _redis.GetStringAsync(credencialesUsuario.Id.ToString() + "PublicKeyRefresco");
+
+                        // Verificar si las claves existen en Redis
+                        if (string.IsNullOrEmpty(privateKeyJson) || string.IsNullOrEmpty(publicKeyJson))
+                        {
+                            using (var rsa = new RSACryptoServiceProvider(2048))
+                            {
+                                privateKey = rsa.ExportParameters(true);
+                                publicKey = rsa.ExportParameters(false);
+
+                                privateKeyJson = JsonConvert.SerializeObject(privateKey);
+                                publicKeyJson = JsonConvert.SerializeObject(publicKey);
+
+                                await _redis.SetStringAsync(credencialesUsuario.Id.ToString() + "PrivateKeyRefresco", privateKeyJson, new DistributedCacheEntryOptions
+                                {
+                                    AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(30)
+                                });
+                                await _redis.SetStringAsync(credencialesUsuario.Id.ToString() + "PublicKeyRefresco", publicKeyJson, new DistributedCacheEntryOptions
+                                {
+                                    AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(30)
+                                });
+                            }
+                        }
+                        else
+                        {
+                            // Las claves existen, deserializarlas
+                            privateKey = JsonConvert.DeserializeObject<RSAParameters>(privateKeyJson); 
+                            publicKey = JsonConvert.DeserializeObject<RSAParameters>(publicKeyJson);
+                        }
                     }
                     else
                     {
                         _memoryCache.TryGetValue(credencialesUsuario.Id.ToString() + "PrivateKeyRefresco", out privateKeyJson);
                         _memoryCache.TryGetValue(credencialesUsuario.Id.ToString() + "PublicKeyRefresco", out publicKeyJson);
-                    }
 
-                    if (string.IsNullOrEmpty(privateKeyJson) || string.IsNullOrEmpty(publicKeyJson))
-                    {
-                        using (var rsa = new RSACryptoServiceProvider(2048))
+                        if (string.IsNullOrEmpty(privateKeyJson) || string.IsNullOrEmpty(publicKeyJson))
                         {
-                            privateKey = rsa.ExportParameters(true);
-                            publicKey = rsa.ExportParameters(false);
-
-                            privateKeyJson = JsonConvert.SerializeObject(privateKey);
-                            publicKeyJson = JsonConvert.SerializeObject(publicKey);
-
-                            if (useRedis)
+                            using (var rsa = new RSACryptoServiceProvider(2048))
                             {
-                                await _redis.SetStringAsync(credencialesUsuario.Id.ToString() + "PrivateKeyRefresco", privateKeyJson, new DistributedCacheEntryOptions
-                                {
-                                    AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(30)
-                                });
-                                await _redis.SetStringAsync(credencialesUsuario.Id.ToString() + "PublicKeyRefresco",
-                                   publicKeyJson,
-                                   new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(30) });
-                            }
-                            else
-                            {
+                                privateKey = rsa.ExportParameters(true);
+                                publicKey = rsa.ExportParameters(false);
+
+                                privateKeyJson = JsonConvert.SerializeObject(privateKey);
+                                publicKeyJson = JsonConvert.SerializeObject(publicKey);
+
                                 _memoryCache.Set(credencialesUsuario.Id.ToString() + "PrivateKeyRefresco", privateKeyJson);
                                 _memoryCache.Set(credencialesUsuario.Id.ToString() + "PublicKeyRefresco", publicKeyJson);
                             }
                         }
-                    }
-                    else
-                    {
-                        privateKey = JsonConvert.DeserializeObject<RSAParameters>(privateKeyJson);
-                        publicKey = JsonConvert.DeserializeObject<RSAParameters>(publicKeyJson);
+                        else
+                        {
+                            privateKey = JsonConvert.DeserializeObject<RSAParameters>(privateKeyJson!);
+                            publicKey = JsonConvert.DeserializeObject<RSAParameters>(publicKeyJson!);
+                        }
                     }
 
                     var rsaSecurityKeyDynamic = new RsaSecurityKey(privateKey)
                     {
-                        KeyId = credencialesUsuario.Id.ToString() 
+                        KeyId = credencialesUsuario.Id.ToString()
                     };
                     signingCredentials = new SigningCredentials(rsaSecurityKeyDynamic, SecurityAlgorithms.RsaSha256);
                     break;
 
                 case "Symmetric":
-                    // Usar clave simétrica para el enfoque simétrico
-                    var key = Encoding.UTF8.GetBytes(_configuration["ClaveJWT"]);
+                    var claveJwt = _configuration["ClaveJWT"];
+                    if (string.IsNullOrEmpty(claveJwt))
+                    {
+                        _logger.LogError("La clave JWT no está configurada en la configuración.");
+                        throw new InvalidOperationException("La clave JWT no está configurada.");
+                    }
+                    var key = Encoding.UTF8.GetBytes(claveJwt);
+                    if (key.Length < 32)
+                    {
+                        _logger.LogError("La clave JWT es demasiado corta para HMAC-SHA256.");
+                        throw new InvalidOperationException("La clave JWT debe tener al menos 32 bytes.");
+                    }
                     signingCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256);
                     break;
 

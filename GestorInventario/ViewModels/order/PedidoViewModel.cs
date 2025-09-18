@@ -5,13 +5,10 @@ namespace GestorInventario.ViewModels.order
 {
     public class PedidoViewModel
     {
-
-        public List<Pedido> Pedidos { get; set; }
-        public List<PaginasModel> Paginas { get; set; }
+        public required List<Pedido> Pedidos { get; set; }
+        public required List<PaginasModel> Paginas { get; set; }
         public int TotalPaginas { get; set; }
         public int PaginaActual { get; set; }
-        public string Buscar { get; set; }
-        public DateTime? FechaInicio { get; set; }
-        public DateTime? FechaFin { get; set; }
+        public required string Buscar { get; set; }    
     }
 }

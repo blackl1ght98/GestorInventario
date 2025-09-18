@@ -7,22 +7,22 @@ namespace GestorInventario.ViewModels.user
         public int Id { get; set; }
 
         [Required]
-        public string Email { get; set; } = null!;
+        public required string Email { get; set; }
      
         [Required]
-        public string NombreCompleto { get; set; } = null!;
+        public required string NombreCompleto { get; set; }
 
         [Required]
         public DateTime? FechaNacimiento { get; set; }
 
         [Required]
-        public string? Telefono { get; set; }
+        public  string? Telefono { get; set; }
 
         [Required]
-        public string Direccion { get; set; } = null!;
+        public required string Direccion { get; set; } 
         public int IdRol { get; set; }
-        public string Ciudad { get; set; }
-        public string  codigoPostal { get; set; }
+        public required string Ciudad { get; set; }
+        public required string  CodigoPostal { get; set; }
         public bool EsEdicionPropia { get; set; }
 
     }

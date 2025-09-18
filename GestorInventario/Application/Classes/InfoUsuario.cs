@@ -5,21 +5,14 @@ namespace GestorInventario.Application.Classes
     public class InfoUsuario
     {
         [Required] 
-        public string nombreCompletoUsuario { get; set; }
+        public required string NombreCompletoUsuario { get; set; }
         [Required]
-        public string telefono { get; set; }
+        public required string Telefono { get; set; }
         [Required]
-        public string codigoPostal { get; set; }
+        public required string CodigoPostal { get; set; }
         [Required]
-        public string ciudad { get; set; }
-        public string direccion { get; set; }
-        public string line1 { get; set; }
-        public string line2 { get; set; }
-    }
-   
-        
-       
-      
-     
-    
+        public required string Ciudad { get; set; }       
+        public required string Line1 { get; set; }
+        public required string Line2 { get; set; }
+    }                           
 }

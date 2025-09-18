@@ -58,14 +58,14 @@ namespace GestorInventario.Infraestructure.Repositories
                 };
                 await _context.AddEntityAsync(historialPedido);
 
-                for (var i = 0; i < model.IdsProducto.Count; i++)
+                for (var i = 0; i < model.Productos.Count; i++)
                 {
                     if (model.ProductosSeleccionados[i])
                     {
                         var detallePedido = new DetallePedido
                         {
                             PedidoId = pedido.Id,
-                            ProductoId = model.IdsProducto[i],
+                            ProductoId = model.Productos[i],
                             Cantidad = model.Cantidades[i]
                         };
                         await _context.AddEntityAsync(detallePedido);
@@ -73,7 +73,7 @@ namespace GestorInventario.Infraestructure.Repositories
                         var detalleHistorialPedido = new DetalleHistorialPedido
                         {
                             HistorialPedidoId = historialPedido.Id,
-                            ProductoId = model.IdsProducto[i],
+                            ProductoId = model.Productos[i],
                             Cantidad = model.Cantidades[i],
                             EstadoPedido = model.EstadoPedido,
                             FechaPedido = model.FechaPedido,
@@ -165,13 +165,13 @@ namespace GestorInventario.Infraestructure.Repositories
             {
                 
                     int usuarioId= _utilityClass.ObtenerUsuarioIdActual();             
-                    var pedidoOriginal = await _context.Pedidos.Include(p => p.DetallePedidos).FirstOrDefaultAsync(x => x.Id == model.id);
+                    var pedidoOriginal = await _context.Pedidos.Include(p => p.DetallePedidos).FirstOrDefaultAsync(x => x.Id == model.Id);
                     if (pedidoOriginal == null)
                     {
                         return (false, "Pedido no encontrado, no es posible editar un pedido que no existe");
                     }
-                    pedidoOriginal.FechaPedido = model.fechaPedido;
-                    pedidoOriginal.EstadoPedido = model.estadoPedido;
+                    pedidoOriginal.FechaPedido = model.FechaPedido;
+                    pedidoOriginal.EstadoPedido = model.EstadoPedido;
                     await _context.UpdateEntityAsync(pedidoOriginal);
                   
                     var historialPedido = new HistorialPedido

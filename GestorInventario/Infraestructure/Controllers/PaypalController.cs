@@ -128,14 +128,14 @@ namespace GestorInventario.Infraestructure.Controllers
                     {
                         var viewModel = new PlanesViewModel
                         {
-                            id = plan.Id,
+                            Id = plan.Id,
                             productId = plan.ProductId,
-                            name = plan.Name,
-                            description = plan.Description,
-                            status = plan.Status,
-                            usage_type = plan.UsageType,
-                            createTime = plan.CreateTime,
-                            billing_cycles = _paypalRepository.MapBillingCycles(plan.BillingCycles),
+                            Name = plan.Name,
+                            Description = plan.Description,
+                            Status = plan.Status,
+                            Usage_type = plan.UsageType,
+                            CreateTime = plan.CreateTime,
+                            Billing_cycles = _paypalRepository.MapBillingCycles(plan.BillingCycles),
                             Taxes = _paypalRepository.MapTaxes(plan.Taxes),
                             CurrencyCode = plan.BillingCycles?.FirstOrDefault()?.PricingScheme?.FixedPrice?.CurrencyCode ?? string.Empty,
                         };

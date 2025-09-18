@@ -6,13 +6,13 @@ namespace GestorInventario.ViewModels.product
 {
     public class ProductsViewModel
     {
-        public List<Producto> Productos { get; set; }
-        public List<PaginasModel> Paginas { get; set; }
+        public required List<Producto> Productos { get; set; }
+        public required List<PaginasModel> Paginas { get; set; }
         public int TotalPaginas { get; set; }
         public int PaginaActual { get; set; }
-        public string Buscar { get; set; }
-        public string OrdenarPorPrecio { get; set; }
+        public required string Buscar { get; set; }
+        public required string OrdenarPorPrecio { get; set; }
         public int? IdProveedor { get; set; }
-        public SelectList Proveedores { get; set; }
+        public required  SelectList Proveedores { get; set; }
     }
 }

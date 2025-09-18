@@ -15,5 +15,4 @@ namespace GestorInventario.ViewModels.Paypal
         public int CantidadAMostrar { get; set; }
     }
   
-
 }

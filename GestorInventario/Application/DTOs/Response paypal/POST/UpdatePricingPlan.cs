@@ -5,7 +5,7 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
     public class UpdatePricingPlan
     {
         [JsonProperty("pricing_schemes")]
-        public List<UpdatePricingSchemes> PricingSchemes { get; set; }
+        public required List<UpdatePricingSchemes> PricingSchemes { get; set; }
     }
 
     public class UpdatePricingSchemes
@@ -14,39 +14,39 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
         public int BillingCycleSequence { get; set; } 
 
         [JsonProperty("pricing_scheme")]
-        public UpdatePricingScheme PricingScheme { get; set; }
+        public  UpdatePricingScheme? PricingScheme { get; set; }
     }
 
     public class UpdatePricingScheme
     {
         [JsonProperty("fixed_price")]
-        public UpdateFixedPrice FixedPrice { get; set; }
+        public required UpdateFixedPrice FixedPrice { get; set; }
 
         [JsonProperty("pricing_model")]
-        public string PricingModel { get; set; } 
+        public  string? PricingModel { get; set; } 
 
         [JsonProperty("tiers")]
-        public List<Tier> Tiers { get; set; } 
+        public  List<Tier>? Tiers { get; set; } 
     }
 
     public class UpdateFixedPrice
     {
         [JsonProperty("value")]
-        public string Value { get; set; }
+        public string? Value { get; set; }
 
         [JsonProperty("currency_code")]
-        public string CurrencyCode { get; set; }
+        public required string CurrencyCode { get; set; }
     }
 
     public class Tier
     {
         [JsonProperty("starting_quantity")]
-        public string StartingQuantity { get; set; }
+        public required string StartingQuantity { get; set; }
 
         [JsonProperty("ending_quantity")]
-        public string EndingQuantity { get; set; } 
+        public required string EndingQuantity { get; set; } 
 
         [JsonProperty("amount")]
-        public UpdateFixedPrice Amount { get; set; }
+        public required UpdateFixedPrice Amount { get; set; }
     }
 }

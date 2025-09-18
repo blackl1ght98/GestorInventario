@@ -1,5 +1,4 @@
-﻿
-using GestorInventario.Application.Classes;
+﻿using GestorInventario.Application.Classes;
 using GestorInventario.Application.DTOs;
 using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Application.DTOs.Response.PayPal;
@@ -69,15 +68,22 @@ namespace GestorInventario.Application.Services
             response.EnsureSuccessStatusCode();
 
             var responseString = await response.Content.ReadAsStringAsync();
-            dynamic responseJson = JsonConvert.DeserializeObject(responseString);
+            var responseJson = JsonConvert.DeserializeObject<TokenResponsePayPal>(responseString);
+            if (responseJson?.AccessToken == null)
+            {
+                throw new InvalidOperationException("No se pudo obtener el token de acceso.");
+            }
 
-            return responseJson.access_token;
+            return responseJson.AccessToken;
         }
         private (string clientId, string clientSecret) GetPaypalCredentials()
         {
             var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
             var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
-
+            if (clientId == null || clientSecret == null)
+            {
+                throw new InvalidOperationException("No se puede obtener el cliente id o secreto de cliente");
+            }
             return (clientId, clientSecret);
         }
 
@@ -109,7 +115,8 @@ namespace GestorInventario.Application.Services
                 }
 
                 var jsonResponse = JsonConvert.DeserializeObject<PayPalOrderResponse>(responseBody);
-                string orderId = jsonResponse?.Id;
+               
+                var orderId = jsonResponse?.Id;
 
                 if (!string.IsNullOrEmpty(orderId))
                 {
@@ -161,12 +168,12 @@ namespace GestorInventario.Application.Services
                     InvoiceId = Guid.NewGuid().ToString(),
                     Items = pagar.Items.ConvertAll(item => new Item
                     {
-                        Name = item.name,
-                        Description = item.description,
-                        Quantity = item.quantity.ToString(),
+                        Name = item.Name,
+                        Description = item.Description,
+                        Quantity = item.Quantity.ToString(),
                         UnitAmount = new MoneyOrder
                         {
-                            Value = item.price.ToString("F2", CultureInfo.InvariantCulture),
+                            Value = item.Price.ToString("F2", CultureInfo.InvariantCulture),
                             CurrencyCode = pagar.Currency
                         },
                         Tax = new MoneyOrder
@@ -174,7 +181,7 @@ namespace GestorInventario.Application.Services
                             Value = "0.00",
                             CurrencyCode = pagar.Currency
                         },
-                        Sku = item.sku
+                        Sku = item.Sku
                     }),
                     Shipping = new Shipping
                     {
@@ -224,7 +231,7 @@ namespace GestorInventario.Application.Services
                 var request = new HttpRequestMessage(HttpMethod.Post, $"v2/checkout/orders/{orderId}/capture");
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                request.Content = new StringContent("{}", Encoding.UTF8, "application/json"); // cuerpo vacío necesario debido a que es una "confirmacion"
+                request.Content = new StringContent("{}", Encoding.UTF8, "application/json"); 
 
                 var response = await _httpClient.SendAsync(request);
                 var responseBody = await response.Content.ReadAsStringAsync();
@@ -283,7 +290,12 @@ namespace GestorInventario.Application.Services
 
             // Deserializamos la respuesta al DTO correspondiente
             var subscriptionDetails = JsonConvert.DeserializeObject<CheckoutDetails>(responseBody);
+            if(subscriptionDetails == null)
+            {
+                throw new ArgumentNullException("No se puede obtener los detalles de la subscripcion");
+            }
             return subscriptionDetails;
+           
         }
         #endregion
 
@@ -373,7 +385,7 @@ namespace GestorInventario.Application.Services
             {
                 // Obtener el pedido y el monto total desde el repositorio
                 var (pedido, totalAmount) = await _unitOfWork.PaypalRepository.GetPedidoWithDetailsAsync(pedidoId);
-
+               
                 // Crear el objeto de solicitud de reembolso
                 var refundRequest = BuildRefundRequest(totalAmount, pedido);
 
@@ -399,9 +411,17 @@ namespace GestorInventario.Application.Services
                 _logger.LogInformation("Reembolso exitoso: {response}", responseBody);
                
                 var refundResponse = JsonConvert.DeserializeObject<PaypalRefundResponse>(responseBody);
+                if(refundResponse == null)
+                {
+                    throw new  ArgumentNullException("No se pudo obtener los destalles de la devolucion");
+                }
                 string refundId = refundResponse.Id;
                 var updatedCapture = await ObtenerDetallesPagoEjecutadoV2(pedido.OrderId);
-                string estadoVenta = updatedCapture?.PurchaseUnits[0].Payments.Captures[0].Status;
+                if (updatedCapture == null)
+                {
+                    throw new ArgumentNullException("No se pudo obtener los detalles actualizados");
+                }
+                string estadoVenta = updatedCapture.PurchaseUnits[0].Payments.Captures[0].Status;
                 await _unitOfWork.PaypalRepository.UpdatePedidoStatusAsync(pedidoId, "Reembolsado", refundId,estadoVenta);
                 await _unitOfWork.PaypalRepository.EnviarEmailNotificacionRembolso(pedidoId, totalAmount, "Rembolso Aprobado");
                 return responseBody;
@@ -605,11 +625,14 @@ namespace GestorInventario.Application.Services
             var response = await _httpClient.SendAsync(request);
 
             // Check if the request was successful
-            response.EnsureSuccessStatusCode(); // Throws if not successful, you can catch and handle errors as needed
+            response.EnsureSuccessStatusCode(); 
 
             var responseBody = await response.Content.ReadAsStringAsync();
             var productResponse = JsonConvert.DeserializeObject<CreateProductResponse>(responseBody);
-
+            if (productResponse == null) 
+            {
+                throw new ArgumentNullException("No se pudo obtener el producto");
+            }
             return productResponse;
         }
 
@@ -804,7 +827,7 @@ namespace GestorInventario.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al actualizar el producto con ID {ProductId}", id);
-                throw; // Relanzar la excepción para que el controlador la maneje
+                throw new  Exception("Ocurrio un error al actualizar el producto"); 
             }
         }
 
@@ -1123,6 +1146,11 @@ namespace GestorInventario.Application.Services
 
                 var responseContent = await response.Content.ReadAsStringAsync();
                 var jsonResponse = JsonConvert.DeserializeObject<PaypalProductListResponse>(responseContent);
+                if(jsonResponse == null)
+                {
+                    throw new ArgumentNullException("No se ha podido obtener los productos");
+                    
+                }
                 bool hasNextPage = jsonResponse.Links.Any(link => link.Rel == "next");
 
                return (jsonResponse, hasNextPage);
@@ -1167,7 +1195,10 @@ namespace GestorInventario.Application.Services
 
             // Deserializamos usando el DTO tipado para la lista
             var plansListResponse = JsonConvert.DeserializeObject<PaypalPlansListResponse>(responseContent);
-
+            if (plansListResponse == null)
+            {
+                throw new ArgumentNullException("No se pudo obtener los planes");
+            }
             bool hasNextPage = plansListResponse.Links.Any(link => link.Rel == "next");
 
             var detailedPlans = new List<PaypalPlanResponse>();
@@ -1233,8 +1264,11 @@ namespace GestorInventario.Application.Services
             if (response.IsSuccessStatusCode)
             {
                 var subscriptionJson = JsonConvert.DeserializeObject<SubscriptionCreateResponse>(responseBody);
-
-                var approvalLink = subscriptionJson.Links.FirstOrDefault(link => link.Rel == "approve").Href;
+                if(subscriptionJson == null)
+                {
+                    throw new ArgumentNullException("No se pudo iniciar el proceso para suscribirse");
+                }
+                var approvalLink = subscriptionJson?.Links?.FirstOrDefault(link => link.Rel == "approve")?.Href;
                 if (string.IsNullOrEmpty(approvalLink))
                 {
                     throw new Exception("No se encontró el enlace de aprobación en la respuesta de PayPal.");
@@ -1281,10 +1315,15 @@ namespace GestorInventario.Application.Services
 
             var response = await _httpClient.SendAsync(request);
             var responseBody = await response.Content.ReadAsStringAsync();
-                 
+
             if (response.IsSuccessStatusCode)
             {
-                return JsonConvert.DeserializeObject<PaypalSubscriptionResponse>(responseBody);
+                var subscriptionDetails = JsonConvert.DeserializeObject<PaypalSubscriptionResponse>(responseBody);
+                if (subscriptionDetails == null)
+                {
+                    throw new InvalidOperationException("No se pudieron obtener los detalles de la suscripción: la respuesta del servidor no es válida.");
+                }
+                return subscriptionDetails;
             }
             else
             {
@@ -1317,6 +1356,10 @@ namespace GestorInventario.Application.Services
                 if (planDetailsResponse.IsSuccessStatusCode)
                 {
                     var planDetails = JsonConvert.DeserializeObject<PaypalPlanDetailsDto>(planDetailsResponseBody);
+                    if(planDetails == null)
+                    {
+                        throw new ArgumentNullException("No se puede desactivar el plan: respuesta del servidor no valida");
+                    }
                     string planStatusResult = planDetails.Status;
                     await _unitOfWork.PaypalRepository.UpdatePlanStatusInDatabase(planId, planStatusResult);
                 }
@@ -1357,6 +1400,10 @@ namespace GestorInventario.Application.Services
                 if (planDetailsResponse.IsSuccessStatusCode)
                 {
                     var planDetails = JsonConvert.DeserializeObject<PaypalPlanDetailsDto>(planDetailsResponseBody);
+                    if (planDetails == null) 
+                    {
+                        throw new ArgumentNullException("No se puede activar el plan: respuesta del servidor no valida");
+                    }
                     string planStatusResult = planDetails.Status;
                     await _unitOfWork.PaypalRepository.UpdatePlanStatusInDatabase(planId, planStatusResult);
                 }
@@ -1435,6 +1482,10 @@ namespace GestorInventario.Application.Services
                 if (subscriptionDetailsResponse.IsSuccessStatusCode)
                 {
                     var planDetails = JsonConvert.DeserializeObject<PaypalPlanDetailsDto>(planDetailsResponseBody);
+                    if (planDetails == null) 
+                    {
+                        throw new ArgumentNullException("No se puede suspender la suscripcion: respuesta del servidor no valida");
+                    }
                     string planStatusResult = planDetails.Status;
               
                 }
@@ -1478,17 +1529,22 @@ namespace GestorInventario.Application.Services
                 if (subscriptionDetailsResponse.IsSuccessStatusCode)
                 {
                     var planDetails = JsonConvert.DeserializeObject<PaypalPlanDetailsDto>(planDetailsResponseBody);
+                    if(planDetails == null)
+                    {
+                        throw new ArgumentNullException("No se puede activar la suscripcion: respuesta del servidor no valida");
+                    }
                     string planStatusResult = planDetails.Status;
 
                 }
                 else
                 {
-                    throw new Exception($"No se pudo obtener los detalles de la suscripcion con ID {subscription_id}: {subscriptionDetailsResponse.StatusCode} - {planDetailsResponseBody}");
+                    _logger.LogError($"No se pudo obtener los detalles de la suscripcion con ID {subscription_id}: {subscriptionDetailsResponse.StatusCode} - {planDetailsResponseBody}");
                 }
             }
             else
             {
-                throw new Exception($"No se pudo activar la subscripcion con ID {subscription_id}: {suspendSubscriptionResponse.StatusCode} - {suspendSubscriptionResponse}");
+                _logger.LogError($"No se pudo activar la subscripcion con ID {subscription_id}: {suspendSubscriptionResponse.StatusCode} - {suspendSubscriptionResponse}");
+                
             }
 
             return "Subscripcion activada con éxito";

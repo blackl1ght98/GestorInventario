@@ -4,10 +4,9 @@ namespace GestorInventario.ViewModels.order
 {
     public class EditPedidoViewModel
     {
-        public int id { get; set; }
-        public DateTime fechaPedido { get; set; }
-
-        public string estadoPedido { get; set; }
+        public int Id { get; set; }
+        public DateTime FechaPedido { get; set; }
+        public required string EstadoPedido { get; set; }
       
     }
 }

@@ -7,19 +7,19 @@ namespace GestorInventario.Application.DTOs.Response.PayPal
     public class SubscriptionCreateResponse
     {
         [JsonProperty("id")]
-        public  string Id { get; set; }
+        public  string? Id { get; set; }
 
         [JsonProperty("plan_id")]
         public required string PlanId { get; set; }
 
         [JsonProperty("status")]
-        public  string Status { get; set; }
+        public  string? Status { get; set; }
 
         [JsonProperty("application_context")]
         public required ApplicationContext ApplicationContext { get; set; }
 
         [JsonProperty("links")]
-        public  List<Link> Links { get; set; }
+        public  List<Link>? Links { get; set; }
     }
 
     public class ApplicationContext

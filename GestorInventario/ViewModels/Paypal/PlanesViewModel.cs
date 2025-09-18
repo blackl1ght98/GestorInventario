@@ -4,15 +4,15 @@ namespace GestorInventario.ViewModels.Paypal
 {
     public class PlanesViewModel
     {
-        public string id { get; set; }
-        public string productId { get; set; }
-        public string name { get; set; }
-        public string description { get; set; }
-        public string status { get; set; }
-        public string usage_type { get; set; }
-        public DateTime createTime { get; set; }
-        public List<BillingCycle> billing_cycles { get; set; }
-        public Taxes Taxes { get; set; }
-        public string CurrencyCode { get; set; }
+        public required string Id { get; set; }
+        public required string productId { get; set; }
+        public required string Name { get; set; }
+        public required string Description { get; set; }
+        public required string Status { get; set; }
+        public required string Usage_type { get; set; }
+        public DateTime CreateTime { get; set; }
+        public required List<BillingCycle> Billing_cycles { get; set; }
+        public required Taxes Taxes { get; set; }
+        public required string CurrencyCode { get; set; }
     }
 }

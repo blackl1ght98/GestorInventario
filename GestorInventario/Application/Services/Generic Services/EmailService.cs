@@ -25,8 +25,9 @@ namespace GestorInventario.Application.Services
         private readonly ICompositeViewEngine _viewEngine;
         private readonly ITempDataProvider _tempDataProvider;
         private readonly HashService _hashService;
+        private readonly ILogger<EmailService> _logger;
         public EmailService(IConfiguration config, IHttpContextAccessor httpContextAccessor,
-            GestorInventarioContext context, ITempDataProvider tempDataProvider,
+            GestorInventarioContext context, ITempDataProvider tempDataProvider, ILogger<EmailService> logger,
             ICompositeViewEngine viewEngine, IServiceProvider serviceProvider, HashService hashService)
         {
             _config = config;
@@ -36,6 +37,7 @@ namespace GestorInventario.Application.Services
             _viewEngine = viewEngine;
             _serviceProvider = serviceProvider;
             _hashService = hashService;
+            _logger = logger;
         }
         
         public async Task<(bool, string)> SendEmailAsyncRegister(EmailDto userDataRegister, Usuario usuarioDB)
@@ -150,22 +152,18 @@ namespace GestorInventario.Application.Services
                 }
                 catch (Exception ex) {
                     await transaction.RollbackAsync();
-                   // _logger.LogError(ex, "Error al enviar correo de restablecimiento de contraseña");
-                    return (false, $"Error al enviar el correo: {ex.Message}", null);
+                    _logger.LogError(ex, "Error al enviar correo de restablecimiento de contraseña");
+                    return (false, $"Error al enviar el correo: {ex.Message}", "");
 
                 }
                
-
-            }
+            }           
            
-           
-        }
-      
+        }     
         private string GenerarContrasenaTemporal()
         {
-            var length = 12; // Aumenta la longitud de la contraseña
-            var random = new Random();
-            // Incluye caracteres especiales además de letras y números
+            var length = 12;
+            var random = new Random();      
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
             return new string(Enumerable.Repeat(chars, length)
            .Select(s => s[random.Next(s.Length)]).ToArray());
@@ -187,9 +185,7 @@ namespace GestorInventario.Application.Services
             email.Body = new TextPart(TextFormat.Html)
             {
                 Text = await RenderViewToStringAsync("ViewsEmailService/ViewLowStock", model)
-            };
-
-            
+            };          
             using var smtp = new SmtpClient();
             await smtp.ConnectAsync(
                 _config.GetSection("Email:Host").Value,
@@ -248,11 +244,8 @@ namespace GestorInventario.Application.Services
                     MotivoRembolso = correo.MotivoRembolso,
                     Productos = correo.Productos
                 };
-
-
                 var email = new MimeMessage();
                 email.From.Add(MailboxAddress.Parse(_config.GetSection("Email:UserName").Value));
-
                 // Agregar cada empleado como destinatario
                 foreach (var empleadoEmail in empleados)
                 {
@@ -264,8 +257,6 @@ namespace GestorInventario.Application.Services
                 {
                     Text = await RenderViewToStringAsync("ViewsEmailService/ViewRembolso", model)
                 };
-
-
                 using var smtp = new SmtpClient();
                 await smtp.ConnectAsync(
                     _config.GetSection("Email:Host").Value,
@@ -309,6 +300,7 @@ namespace GestorInventario.Application.Services
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex,"Se ha producido un error al enviar la notificacion");
                 throw;
             }
         }

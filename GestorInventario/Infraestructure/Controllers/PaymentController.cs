@@ -68,12 +68,12 @@ namespace GestorInventario.Infraestructure.Controllers
             if (request == null || request.PedidoId <= 0)
             {
                 _logger.LogWarning("Solicitud de reembolso inválida: PedidoId={PedidoId}, Currency={Currency}",
-            request?.PedidoId, request?.currency);
+            request?.PedidoId, request?.Currency);
             }
 
             try
             {
-                var refund = await _paypalService.RefundSaleAsync(request.PedidoId, request.currency);
+                var refund = await _paypalService.RefundSaleAsync(request.PedidoId, request.Currency);
 
                 return RedirectToAction("Index", "Pedidos");
             }
@@ -92,7 +92,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
             try
             {
-                await _paypalService.RefundPartialAsync(request.PedidoId, request.currency,request.motivo);
+                await _paypalService.RefundPartialAsync(request.PedidoId, request.Currency,request.Motivo);
                
                 return Json(new { success = true });
             }

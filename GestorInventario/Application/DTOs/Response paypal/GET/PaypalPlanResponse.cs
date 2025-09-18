@@ -7,57 +7,57 @@ namespace GestorInventario.Application.DTOs
     public class PaypalPlansListResponse
     {
         [JsonProperty("plans")]
-        public List<PaypalPlanResponse> Plans { get; set; }
+        public required List<PaypalPlanResponse> Plans { get; set; }
 
         [JsonProperty("links")]
-        public List<Link> Links { get; set; }
+        public required List<Link> Links { get; set; }
     }
     public class PaypalPlanResponse
     {
         [JsonProperty("id")]
         [Required(ErrorMessage = "El ID del plan es requerido.")]
-        public string Id { get; set; }
+        public required string Id { get; set; }
 
         [JsonProperty("product_id")]
         [Required(ErrorMessage = "El ID del producto es requerido.")]
-        public string ProductId { get; set; }
+        public required string ProductId { get; set; }
 
         [JsonProperty("name")]
         [Required(ErrorMessage = "El nombre del plan es requerido.")]
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
         [JsonProperty("status")]
         [Required(ErrorMessage = "El estado del plan es requerido.")]
-        public string Status { get; set; }
+        public required string Status { get; set; }
 
         [JsonProperty("description")]
-        public string Description { get; set; }
+        public required string Description { get; set; }
 
         [JsonProperty("usage_type")]
-        public string UsageType { get; set; }
+        public required string UsageType { get; set; }
 
         [JsonProperty("billing_cycles")]
         [Required(ErrorMessage = "Los ciclos de facturación son requeridos.")]
-        public List<BillingCycle> BillingCycles { get; set; }
+        public required List<BillingCycle> BillingCycles { get; set; }
 
         [JsonProperty("payment_preferences")]
         [Required(ErrorMessage = "Las preferencias de pago son requeridas.")]
-        public PaymentPreferences PaymentPreferences { get; set; }
+        public required PaymentPreferences PaymentPreferences { get; set; }
 
         [JsonProperty("taxes")]
-        public Taxes Taxes { get; set; }
+        public required Taxes Taxes { get; set; }
 
         [JsonProperty("quantity_supported")]
-        public bool QuantitySupported { get; set; }
+        public required bool QuantitySupported { get; set; }
 
         [JsonProperty("create_time")]
-        public DateTime CreateTime { get; set; }
+        public required DateTime CreateTime { get; set; }
 
         [JsonProperty("update_time")]
-        public DateTime UpdateTime { get; set; }
+        public required DateTime UpdateTime { get; set; }
 
         [JsonProperty("links")]
-        public List<Link> Links { get; set; }
+        public required List<Link> Links { get; set; }
     }
 
     // DTO para los ciclos de facturación
@@ -65,18 +65,18 @@ namespace GestorInventario.Application.DTOs
     {
         [JsonProperty("pricing_scheme")]
         [Required(ErrorMessage = "El esquema de precios es requerido.")]
-        public PricingScheme PricingScheme { get; set; }
+        public required PricingScheme PricingScheme { get; set; }
 
         [JsonProperty("frequency")]
         [Required(ErrorMessage = "La frecuencia es requerida.")]
-        public Frequency Frequency { get; set; }
+        public required Frequency Frequency { get; set; }
 
         [JsonProperty("tenure_type")]
         [Required(ErrorMessage = "El tipo de tenencia es requerido.")]
-        public string TenureType { get; set; }
+        public required string TenureType { get; set; }
 
         [JsonProperty("sequence")]
-        public int Sequence { get; set; }
+        public   int Sequence { get; set; }
 
         [JsonProperty("total_cycles")]
         public int TotalCycles { get; set; }
@@ -90,7 +90,7 @@ namespace GestorInventario.Application.DTOs
 
         [JsonProperty("fixed_price")]
         [Required(ErrorMessage = "El precio fijo es requerido.")]
-        public Money FixedPrice { get; set; }
+        public required Money FixedPrice { get; set; }
 
         [JsonProperty("create_time")]
         public DateTime CreateTime { get; set; }
@@ -104,11 +104,11 @@ namespace GestorInventario.Application.DTOs
     {
         [JsonProperty("currency_code")]
         [Required(ErrorMessage = "El código de moneda es requerido.")]
-        public string CurrencyCode { get; set; }
+        public required string CurrencyCode { get; set; }
 
         [JsonProperty("value")]
         [Required(ErrorMessage = "El valor del monto es requerido.")]
-        public string Value { get; set; }
+        public required string Value { get; set; }
     }
 
     // DTO para la frecuencia
@@ -116,7 +116,7 @@ namespace GestorInventario.Application.DTOs
     {
         [JsonProperty("interval_unit")]
         [Required(ErrorMessage = "La unidad de intervalo es requerida.")]
-        public string IntervalUnit { get; set; }
+        public required string IntervalUnit { get; set; }
 
         [JsonProperty("interval_count")]
         public int IntervalCount { get; set; }
@@ -126,16 +126,16 @@ namespace GestorInventario.Application.DTOs
     public class PaymentPreferences
     {
         [JsonProperty("service_type")]
-        public string ServiceType { get; set; }
+        public required string ServiceType { get; set; }
 
         [JsonProperty("auto_bill_outstanding")]
         public bool AutoBillOutstanding { get; set; }
 
         [JsonProperty("setup_fee")]
-        public Money SetupFee { get; set; }
+        public required Money SetupFee { get; set; }
 
         [JsonProperty("setup_fee_failure_action")]
-        public string SetupFeeFailureAction { get; set; }
+        public required string SetupFeeFailureAction { get; set; }
 
         [JsonProperty("payment_failure_threshold")]
         public int PaymentFailureThreshold { get; set; }
@@ -145,7 +145,7 @@ namespace GestorInventario.Application.DTOs
     public class Taxes
     {
         [JsonProperty("percentage")]
-        public string Percentage { get; set; }
+        public required string Percentage { get; set; }
 
         [JsonProperty("inclusive")]
         public bool Inclusive { get; set; }
@@ -155,15 +155,15 @@ namespace GestorInventario.Application.DTOs
     public class Link
     {
         [JsonProperty("href")]
-        public string Href { get; set; }
+        public required string Href { get; set; }
 
         [JsonProperty("rel")]
-        public string Rel { get; set; }
+        public required string Rel { get; set; }
 
         [JsonProperty("method")]
-        public string Method { get; set; }
+        public required string Method { get; set; }
 
         [JsonProperty("encType")]
-        public string EncType { get; set; }
+        public required string EncType { get; set; }
     }
 }
