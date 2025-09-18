@@ -322,8 +322,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 var pedido = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerPedidoId(id)) ;
                 EditPedidoViewModel pedidosViewModel = new EditPedidoViewModel
                 {
-                    fechaPedido = pedido.FechaPedido,
-                    estadoPedido = pedido.EstadoPedido,
+                    FechaPedido = pedido.FechaPedido,
+                    EstadoPedido = pedido.EstadoPedido,
 
                 };
                 return View(pedidosViewModel);

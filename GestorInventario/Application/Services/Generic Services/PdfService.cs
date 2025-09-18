@@ -45,7 +45,7 @@ namespace GestorInventario.Application.Services
             page.Paragraphs.Add(titulo);
 
             // Crear tabla principal
-            Aspose.Pdf.Table table = new Aspose.Pdf.Table();
+            Table table = new Table();
             table.VerticalAlignment = VerticalAlignment.Top;
             table.Alignment = HorizontalAlignment.Left;
             table.DefaultCellBorder = new BorderInfo(BorderSide.None, 0.1F);
@@ -89,7 +89,7 @@ namespace GestorInventario.Application.Services
                 if (historial.DetalleHistorialPedidos.Any())
                 {
                     // Crear tabla de detalles dentro de la celda
-                    Aspose.Pdf.Table detalleTable = new Aspose.Pdf.Table();
+                   Table detalleTable = new Table();
                     detalleTable.DefaultCellBorder = new BorderInfo(BorderSide.All, 0.5F, Color.LightGray);
                     detalleTable.Border = new BorderInfo(BorderSide.All, 1F, Color.DarkBlue);
                     detalleTable.ColumnWidths = "20% 25% 15% 20% 20%";
@@ -97,7 +97,7 @@ namespace GestorInventario.Application.Services
                     detalleTable.Margin = new MarginInfo(5, 5, 5, 5);
 
                     // Encabezados de la tabla de detalles
-                    Aspose.Pdf.Row detalleHeaderRow = detalleTable.Rows.Add();
+                    Row detalleHeaderRow = detalleTable.Rows.Add();
                     AddDetailHeaderCell(detalleHeaderRow, "ID Producto");
                     AddDetailHeaderCell(detalleHeaderRow, "Producto");
                     AddDetailHeaderCell(detalleHeaderRow, "Cantidad");
@@ -107,7 +107,7 @@ namespace GestorInventario.Application.Services
                     // Datos de detalles
                     foreach (var detalle in historial.DetalleHistorialPedidos)
                     {
-                        Aspose.Pdf.Row detalleRow = detalleTable.Rows.Add();
+                        Row detalleRow = detalleTable.Rows.Add();
                         AddDetailCell(detalleRow, detalle.ProductoId.ToString(), HorizontalAlignment.Center);
                         AddDetailCell(detalleRow, detalle.Producto?.NombreProducto ?? "N/A", HorizontalAlignment.Left);
                         AddDetailCell(detalleRow, detalle.Cantidad.ToString(), HorizontalAlignment.Center);
@@ -210,8 +210,8 @@ namespace GestorInventario.Application.Services
             // Crear un documento PDF con orientación horizontal
             Document document = new Document();
             //Margenes y tamaño del documento
-            document.PageInfo.Width = Aspose.Pdf.PageSize.PageLetter.Width;
-            document.PageInfo.Height = Aspose.Pdf.PageSize.PageLetter.Height;
+            document.PageInfo.Width = PageSize.PageLetter.Width;
+            document.PageInfo.Height = PageSize.PageLetter.Height;
             document.PageInfo.Margin = new MarginInfo(1, 10, 10, 10); // Ajustar márgenes
             // Agregar una nueva página al documento con orientación horizontal
             Page page = document.Pages.Add();
@@ -219,19 +219,19 @@ namespace GestorInventario.Application.Services
             page.PageInfo.Margin.Left = 35;
             page.PageInfo.Margin.Right = 0;
             //Controla la horientacion actualmente es horizontal
-            page.SetPageSize(Aspose.Pdf.PageSize.PageLetter.Width, Aspose.Pdf.PageSize.PageLetter.Height);
+            page.SetPageSize(PageSize.PageLetter.Width, PageSize.PageLetter.Height);
             // Crear una tabla para mostrar las mediciones
-            Aspose.Pdf.Table table = new Aspose.Pdf.Table();
+            Table table = new Table();
             table.VerticalAlignment = VerticalAlignment.Center;
             table.Alignment = HorizontalAlignment.Left;
-            table.DefaultCellBorder = new Aspose.Pdf.BorderInfo(Aspose.Pdf.BorderSide.All, 0.1F);
-            table.Border = new Aspose.Pdf.BorderInfo(Aspose.Pdf.BorderSide.All, 1F);
+            table.DefaultCellBorder = new BorderInfo(BorderSide.All, 0.1F);
+            table.Border = new BorderInfo(BorderSide.All, 1F);
             table.ColumnWidths = "55 50 45 45 45 35 45 45 45 45 35 50"; // Ancho de cada columna
 
             page.Paragraphs.Add(table);
 
             // Agregar fila de encabezado a la tabla
-            Aspose.Pdf.Row headerRow = table.Rows.Add();
+            Row headerRow = table.Rows.Add();
             headerRow.Cells.Add("Id").Alignment = HorizontalAlignment.Center;
             headerRow.Cells.Add("UsuarioId").Alignment = HorizontalAlignment.Center;
             headerRow.Cells.Add("Fecha").Alignment = HorizontalAlignment.Center;
@@ -242,8 +242,8 @@ namespace GestorInventario.Application.Services
             foreach (var historial in historialProductos)
             {
 
-                Aspose.Pdf.Row dataRow = table.Rows.Add();
-                Aspose.Pdf.Text.TextFragment textFragment1 = new Aspose.Pdf.Text.TextFragment("");
+                Row dataRow = table.Rows.Add();
+                TextFragment textFragment1 = new TextFragment("");
                 page.Paragraphs.Add(textFragment1);
                 dataRow.Cells.Add($"{historial.Id}").Alignment = HorizontalAlignment.Center;
                 dataRow.Cells.Add($"{historial.UsuarioId}").Alignment = HorizontalAlignment.Center;
@@ -252,17 +252,17 @@ namespace GestorInventario.Application.Services
                 dataRow.Cells.Add($"{historial.Ip}").Alignment = HorizontalAlignment.Center;
 
                 // Crear una segunda tabla para los detalles del producto
-                Aspose.Pdf.Table detalleTable = new Aspose.Pdf.Table();
-                detalleTable.DefaultCellBorder = new Aspose.Pdf.BorderInfo(Aspose.Pdf.BorderSide.All, 0.1F);
-                detalleTable.Border = new Aspose.Pdf.BorderInfo(Aspose.Pdf.BorderSide.All, 1F);
+                Table detalleTable = new Table();
+                detalleTable.DefaultCellBorder = new BorderInfo(BorderSide.All, 0.1F);
+                detalleTable.Border = new BorderInfo(BorderSide.All, 1F);
                 detalleTable.ColumnWidths = "100 60 60"; // Ancho de cada columna
 
                 // Agregar la segunda tabla a la página
                 page.Paragraphs.Add(detalleTable);
-                Aspose.Pdf.Text.TextFragment textFragment = new Aspose.Pdf.Text.TextFragment("");
+               TextFragment textFragment = new TextFragment("");
                 page.Paragraphs.Add(textFragment);
                 // Agregar fila de encabezado a la segunda tabla
-                Aspose.Pdf.Row detalleHeaderRow = detalleTable.Rows.Add();
+                Row detalleHeaderRow = detalleTable.Rows.Add();
                 detalleHeaderRow.Cells.Add("NombreProducto").Alignment = HorizontalAlignment.Center;
                 detalleHeaderRow.Cells.Add("Descripcion").Alignment = HorizontalAlignment.Center;
                 detalleHeaderRow.Cells.Add("IdHistorial").Alignment = HorizontalAlignment.Center;
@@ -273,7 +273,7 @@ namespace GestorInventario.Application.Services
                 // Iterar sobre los DetalleHistorialProductos de cada HistorialProducto
                 foreach (var detalle in historial.DetalleHistorialProductos)
                 {
-                    Aspose.Pdf.Row detalleRow = detalleTable.Rows.Add();
+                    Row detalleRow = detalleTable.Rows.Add();
 
                     detalleRow.Cells.Add($"{detalle.NombreProducto}").Alignment = HorizontalAlignment.Center;
                     detalleRow.Cells.Add($"{detalle.Descripcion}").Alignment = HorizontalAlignment.Center;

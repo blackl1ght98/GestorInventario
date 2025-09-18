@@ -26,7 +26,8 @@ namespace GestorInventario.Configuracion.Strategies
                 {
                     OnRedirectToLogin = context =>
                     {
-                        var logger = context.HttpContext.RequestServices.GetService<ILogger<AsymmetricDynamicAuthenticationStrategy>>();
+                        var loggerFactory = builder.Services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
+                        var logger = loggerFactory.CreateLogger<AsymmetricDynamicAuthenticationStrategy>();
                         logger.LogInformation("Redirigiendo al login desde AddCookie");
                         context.Response.Redirect(context.RedirectUri);
                         return Task.CompletedTask;

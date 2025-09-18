@@ -214,14 +214,14 @@ namespace GestorInventario.Application.DTOs.Response_paypal.GET
         public required MoneyBse NetAmount { get; set; }
 
         [JsonProperty("exchange_rate")]
-        public ExchangeRate ExchangeRate { get; set; }
+        public ExchangeRate? ExchangeRate { get; set; }
       
     }
 
     public class ExchangeRate
     {
         [JsonProperty("value")]
-        public string Value { get; set; }
+        public string? Value { get; set; }
     }
 
     public class Refund
@@ -272,7 +272,7 @@ namespace GestorInventario.Application.DTOs.Response_paypal.GET
         public required MoneyBse TotalRefundedAmount { get; set; }
 
         [JsonProperty("exchange_rate")]
-        public ExchangeRate ExchangeRate { get; set; }
+        public ExchangeRate? ExchangeRate { get; set; }
     }    
     public class PlatformFee
     {

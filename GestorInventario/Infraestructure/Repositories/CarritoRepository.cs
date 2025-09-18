@@ -160,12 +160,12 @@ namespace GestorInventario.Infraestructure.Repositories
             }
             var infoUsuario = new InfoUsuario
             {
-                nombreCompletoUsuario = usuarioActual.NombreCompleto ?? "Nombre no facilitado",
-                telefono = usuarioActual.Telefono ?? "Telefono no facilitado",
-                codigoPostal = usuarioActual.CodigoPostal ?? "Codigo Postal no facilitado",
-                ciudad = usuarioActual.Ciudad ?? "Ciudad no facilitado",
-                line1 = usuarioActual.Direccion.Split(",")[0].Trim(),
-                line2 = usuarioActual.Direccion.Split(",").Length > 1 ? usuarioActual.Direccion.Split(",")[1].Trim() : ""
+                NombreCompletoUsuario = usuarioActual.NombreCompleto ?? "Nombre no facilitado",
+                Telefono = usuarioActual.Telefono ?? "Telefono no facilitado",
+                CodigoPostal = usuarioActual.CodigoPostal ?? "Codigo Postal no facilitado",
+                Ciudad = usuarioActual.Ciudad ?? "Ciudad no facilitado",
+                Line1 = usuarioActual.Direccion.Split(",")[0].Trim(),
+                Line2 = usuarioActual.Direccion.Split(",").Length > 1 ? usuarioActual.Direccion.Split(",")[1].Trim() : ""
             };
            
             return (infoUsuario,"Informacion obtenida");
@@ -218,11 +218,12 @@ namespace GestorInventario.Infraestructure.Repositories
                    
                         var paypalItem = new ItemModel
                         {
-                            name = producto.NombreProducto,
-                            currency = moneda,
-                            price = producto.Precio,
-                            quantity = item.Cantidad.Value.ToString(),
-                            sku = producto.Descripcion
+                            Name = producto.NombreProducto,
+                            Currency = moneda,
+                            Price = producto.Precio,
+                          
+                            Quantity = item.Cantidad.Value.ToString(),
+                            Sku = producto.Descripcion
                         };
                         items.Add(paypalItem);
                         totalAmount += Convert.ToDecimal(producto.Precio) * Convert.ToDecimal(item.Cantidad ?? 0);
@@ -239,14 +240,14 @@ namespace GestorInventario.Infraestructure.Repositories
                 TotalAmount = totalAmount,
                 Currency = moneda,
                 Items = items,
-                NombreCompleto = infoUsuario.nombreCompletoUsuario,
+                NombreCompleto = infoUsuario.NombreCompletoUsuario,
                 ReturnUrl = returnUrl,
                 CancelUrl = cancelUrl,
-                Telefono = infoUsuario.telefono,
-                Ciudad = infoUsuario.ciudad,
-                CodigoPostal = infoUsuario.codigoPostal,
-                Line1 = infoUsuario.line1,
-                Line2 = infoUsuario.line2
+                Telefono = infoUsuario.Telefono,
+                Ciudad = infoUsuario.Ciudad,
+                CodigoPostal = infoUsuario.CodigoPostal,
+                Line1 = infoUsuario.Line1,
+                Line2 = infoUsuario.Line2
             };
         }
         private string ObtenerReturnUrl()

@@ -4,12 +4,12 @@
     
     public class ProductViewModelPaypal
     {
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public string Type { get; set; }
-        public string Category { get; set; }
-        public string PlanName { get; set; }
-        public string PlanDescription { get; set; }
+        public  string? Name { get; set; }
+        public string? Description { get; set; }
+        public string? Type { get; set; }
+        public string? Category { get; set; }
+        public string? PlanName { get; set; }
+        public string? PlanDescription { get; set; }
         public decimal Amount { get; set; }
         public List<string> Categories { get; set; } = new List<string>();
         // Propiedades para el periodo de prueba

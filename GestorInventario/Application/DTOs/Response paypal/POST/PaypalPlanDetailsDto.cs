@@ -6,7 +6,7 @@ namespace GestorInventario.Application.DTOs
     public class PaypalPlanDetailsDto
     {
         [JsonProperty("id")]
-        public  string Id { get; set; } // ID del plan en PayPal
+        public  string? Id { get; set; } // ID del plan en PayPal
 
         [JsonProperty("product_id")]
         public required string ProductId { get; set; } // ID del producto asociado

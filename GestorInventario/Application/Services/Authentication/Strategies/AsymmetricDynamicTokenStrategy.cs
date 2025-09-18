@@ -34,9 +34,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
         public async Task<LoginResponseDto> GenerateTokenAsync(Usuario credencialesUsuario)
         {
             var usuarioDB = await _context.Usuarios
-                .Include(u => u.IdRolNavigation)
-                
-               
+                .Include(u => u.IdRolNavigation)                             
                 .FirstOrDefaultAsync(u => u.Id == credencialesUsuario.Id);
 
             if (usuarioDB == null)
@@ -53,25 +51,19 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
 
             // Log para verificar el rol
             _logger.LogInformation($"Rol del usuario {credencialesUsuario.Id}: {usuarioDB.IdRolNavigation.Nombre}");
-
-       
-
+     
             // Creamos las Claims que el usuario tendrá
             var claims = new List<Claim>()
             {
                  new Claim(ClaimTypes.Email, credencialesUsuario.Email),
                 new Claim(ClaimTypes.Role, usuarioDB.IdRolNavigation.Nombre),
                 new Claim(ClaimTypes.NameIdentifier, credencialesUsuario.Id.ToString())
-            };
-
-          
-
-            
+            };                   
             using (var rsa = new RSACryptoServiceProvider(2048))
             {
                 var privateKey = rsa.ExportParameters(true);
                 var publicKey = rsa.ExportParameters(false);
-
+               
                 var aes = Aes.Create();
                 aes.GenerateKey();
                 var aesKey = aes.Key;

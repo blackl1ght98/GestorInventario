@@ -15,26 +15,26 @@ namespace GestorInventario.Application.DTOs.Response_paypal.GET
     public class Products
     {
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public required string Id { get; set; }
         [JsonProperty("name")]
-        public string Name { get; set; }
+        public required string Name { get; set; }
         [JsonProperty("description")]
-        public string Description { get; set; }
+        public required string Description { get; set; }
         [JsonProperty("create_time")]
-        public string CreateTime { get; set; }
+        public required string CreateTime { get; set; }
         [JsonProperty("links")]
-        public List<Links> Links { get; set; }
+        public required List<Links> Links { get; set; }
     }
     public class Links
     {
         [JsonProperty("href")]
-        public string Href { get; set; }
+        public required string Href { get; set; }
 
         [JsonProperty("rel")]
-        public string Rel { get; set; }
+        public required string Rel { get; set; }
 
         [JsonProperty("method")]
-        public string Method { get; set; }
+        public required string Method { get; set; }
 
     }
 }

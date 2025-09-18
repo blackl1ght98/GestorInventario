@@ -27,24 +27,24 @@
                 <div class="col-md-4 mb-4">
                     <div class="card h-100 border-0 shadow-sm hover-card animate-fade-in">
                         <div class="card-body d-flex flex-column">
-                            <h5 class="card-title text-center text-primary">@plan.name</h5>
-                            <p class="card-text text-center text-muted mb-3">@plan.description</p>
+                            <h5 class="card-title text-center text-primary">@plan.Name</h5>
+                            <p class="card-text text-center text-muted mb-3">@plan.Description</p>
 
                             <!-- Información general -->
                             <div class="mb-3">
                                 <p class="card-text">
                                     <strong><i class="bi bi-info-circle me-2"></i>Estado:</strong>
-                                    <span class="badge @(plan.status == "ACTIVE" ? "bg-success" : "bg-danger")">@plan.status</span>
+                                    <span class="badge @(plan.Status == "ACTIVE" ? "bg-success" : "bg-danger")">@plan.Status</span>
                                 </p>
                             </div>
 
                             <!-- Detalles de facturación -->
-                            @if (plan.billing_cycles != null && plan.billing_cycles.Any())
+                            @if (plan.Billing_cycles != null && plan.Billing_cycles.Any())
                             {
                                 <div class="mb-3">
                                     <p class="card-text"><strong><i class="bi bi-wallet me-2"></i>Detalles de Facturación:</strong></p>
                                     <ul class="list-unstyled">
-                                        @foreach (var cycle in plan.billing_cycles)
+                                        @foreach (var cycle in plan.Billing_cycles)
                                         {
                                             <li class="mb-2">
                                                 @if (cycle.TenureType == "TRIAL")
@@ -74,7 +74,7 @@
                                         string currencyCode = null;
                                         string intervalUnit = null;
 
-                                        var regularCycle = plan.billing_cycles.FirstOrDefault(c => c.TenureType == "REGULAR");
+                                        var regularCycle = plan.Billing_cycles.FirstOrDefault(c => c.TenureType == "REGULAR");
                                         if (regularCycle != null && plan.Taxes != null && decimal.TryParse(plan.Taxes.Percentage, NumberStyles.Any, CultureInfo.InvariantCulture, out var taxPercentage))
                                         {
                                             if (taxPercentage >= 0 && taxPercentage <= 100)
@@ -122,10 +122,10 @@
                             {
                                 <hr class="my-3" />
                                 <div class="mb-3">
-                                    <p class="card-text"><strong><i class="bi bi-key me-2"></i>ID del Plan:</strong> @plan.id</p>
+                                    <p class="card-text"><strong><i class="bi bi-key me-2"></i>ID del Plan:</strong> @plan.Id</p>
                                     <p class="card-text"><strong><i class="bi bi-box me-2"></i>Producto:</strong> @plan.productId</p>
-                                    <p class="card-text"><strong><i class="bi bi-tag me-2"></i>Tipo:</strong> @plan.usage_type</p>
-                                    <p class="card-text"><strong><i class="bi bi-calendar me-2"></i>Fecha de Creación:</strong> @plan.createTime</p>
+                                    <p class="card-text"><strong><i class="bi bi-tag me-2"></i>Tipo:</strong> @plan.Usage_type</p>
+                                    <p class="card-text"><strong><i class="bi bi-calendar me-2"></i>Fecha de Creación:</strong> @plan.CreateTime</p>
                                 </div>
                             }
 
@@ -134,24 +134,24 @@
                                 <div class="btn-group w-100" role="group" aria-label="Acciones">
                                     <!-- Botón de suscripción -->
                                     <form asp-action="IniciarSuscripcion" method="post" class="w-@(User.IsInRole("Administrador") ? "50 pe-1" : "100")">
-                                        <input type="hidden" name="plan_id" value="@plan.id" />
-                                        <input type="hidden" name="planName" value="@plan.name" />
+                                        <input type="hidden" name="plan_id" value="@plan.Id" />
+                                        <input type="hidden" name="planName" value="@plan.Name" />
                                         <button type="submit" class="btn btn-success w-100"><i class="bi bi-check-circle-fill me-2"></i>Suscribirse</button>
                                     </form>
 
                                     <!-- Botón de desactivar para administradores -->
                                     <form asp-action="DesactivarPlan" method="post" class="w-50 ms-1">
-                                        <input type="hidden" name="id" value="@plan.id" />
+                                        <input type="hidden" name="id" value="@plan.Id" />
                                         <button type="submit" class="btn btn-danger w-100">
                                             <i class="bi bi-x-circle-fill me-2"></i>Desactivar
                                         </button>
                                     </form>
                                     <form asp-action="ActivarPlan" method="post" class="w-50 ms-1">
-                                        <input type="hidden" name="id" value="@plan.id" />
+                                        <input type="hidden" name="id" value="@plan.Id" />
                                         <button type="submit" class="btn btn-success w-100"><i class="bi bi-check-circle-fill me-2"></i>Activar</button>
 
                                     </form>
-                                    <button class="btn btn-warning btn-sm update-plan-price-button" data-plan-id="@plan.id" data-currency="@plan.CurrencyCode" data-bs-toggle="tooltip" title="Actualizar precio del plan">
+                                    <button class="btn btn-warning btn-sm update-plan-price-button" data-plan-id="@plan.Id" data-currency="@plan.CurrencyCode" data-bs-toggle="tooltip" title="Actualizar precio del plan">
                                         <i class="bi bi-currency-exchange nav-icon"></i> Actualizar Precio
                                     </button>
                                 </div>

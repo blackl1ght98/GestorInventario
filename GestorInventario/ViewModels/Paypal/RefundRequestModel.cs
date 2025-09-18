@@ -3,17 +3,17 @@
     public class RefundRequestModel
     {
         public int PedidoId { get; set; }
-        public decimal amount { get; set; }
-        public string currency { get; set; }
-        public string motivo { get; set; }
+        public decimal Amount { get; set; }
+        public required string Currency { get; set; }
+        public required string Motivo { get; set; }
     }
     public class RefundForm
     {
-        public string NumeroPedido { get; set; }
-        public string NombreCliente { get; set; }
-        public string EmailCliente { get; set; }
+        public required string NumeroPedido { get; set; }
+        public required string NombreCliente { get; set; }
+        public required string EmailCliente { get; set; }
         public DateTime FechaRembolso { get; set; }
        
-        public string MotivoRembolso { get; set; }
+        public required string MotivoRembolso { get; set; }
     }
 }

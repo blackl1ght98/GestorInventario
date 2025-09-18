@@ -2,14 +2,12 @@
 {
     public class ItemModel
     {
-        public string name { get; set; }
-        public string description { get; set; }
-        public decimal price { get; set; }
-        public string currency { get; set; }
-        public string quantity { get; set; }
-        public string sku { get; set; }
-        public string imageUrl { get; set; }
-        
-    
+        public required string Name { get; set; }
+        public   string? Description { get; set; }
+        public required decimal Price { get; set; }
+        public required string Currency { get; set; }
+        public required string Quantity { get; set; }
+        public required string Sku { get; set; }
+        public string? ImageUrl { get; set; }         
     }
 }

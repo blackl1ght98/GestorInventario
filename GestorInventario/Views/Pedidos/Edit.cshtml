@@ -3,21 +3,21 @@
 <link rel="stylesheet" href="~/css/pedidoEdit.css" />
 <div class="card hover-card">
     <div class="card-header bg-primary text-white">
-        <h2 class="h4 mb-0">Editar Pedido #@Model.id</h2>
+        <h2 class="h4 mb-0">Editar Pedido #@Model.Id</h2>
     </div>
     <div class="card-body">
        
         <form asp-action="Edit" asp-controller="Pedidos" method="post">
-            <input type="hidden" asp-for="id" />
+            <input type="hidden" asp-for="Id" />
             <div class="form-group mb-3">
-                <label asp-for="fechaPedido" class="form-label">Fecha del Pedido</label>
-                <input type="date" class="form-control" asp-for="fechaPedido" required />
-                <span asp-validation-for="fechaPedido" class="text-danger"></span>
+                <label asp-for="FechaPedido" class="form-label">Fecha del Pedido</label>
+                <input type="date" class="form-control" asp-for="FechaPedido" required />
+                <span asp-validation-for="FechaPedido" class="text-danger"></span>
             </div>
             <div class="form-group mb-3">
-                <label asp-for="estadoPedido" class="form-label">Estado del Pedido</label>
-                <input type="text" class="form-control" asp-for="estadoPedido" required />
-                <span asp-validation-for="estadoPedido" class="text-danger"></span>
+                <label asp-for="EstadoPedido" class="form-label">Estado del Pedido</label>
+                <input type="text" class="form-control" asp-for="EstadoPedido" required />
+                <span asp-validation-for="EstadoPedido" class="text-danger"></span>
             </div>
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary">Guardar Cambios</button>
