@@ -113,24 +113,27 @@ Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=NOMBREBA
 **NOMBREUSUARIO**: Usuario de la base de datos por ejemplo `sa`  
 **CONTRASEÑAUSUARIO**: Contraseña de ese usuario  
 En este proyecto se ha empleado la segunda opcion del comando scaffold
-## Secretos de usuario
-Dentro de Visual Studio 2022 para acceder al archivo de **Secretos del usuario** hacemos lo siguiente. `Clic derecho sobre el proyecto > Administrar secretos de usuario`, una vez que le hemos dado ha **Administrar secretos del usuario** tenemos que poner estos valores:
-```sh
+## 🔐 Secretos de usuario
+
+Para acceder al archivo de **Secretos del usuario** en Visual Studio 2022:  
+`Clic derecho sobre el proyecto > Administrar secretos de usuario`.
+
+Luego, agrega los siguientes valores en formato JSON:
+
+```json
 {
   "Redis": {
     "ConnectionString": "redis:6379",
     "ConnectionStringLocal": "127.0.0.1:6379"
-
   },
- "AuthMode": "Symmetric", // "Symmetric", "AsymmetricFixed", "AsymmetricDynamic"
+  "AuthMode": "Symmetric",
   "JwtIssuer": "",
   "JwtAudience": "",
   "JWT": {
     "PublicKey": "",
     "PrivateKey": ""
-
   },
-   "ClaveJWT": "",
+  "ClaveJWT": "",
   "DataBaseConection": {
     "DBHost": "",
     "DockerDbHost": "",
@@ -138,7 +141,6 @@ Dentro de Visual Studio 2022 para acceder al archivo de **Secretos del usuario**
     "DBUserName": "",
     "DBPassword": "SQL#1234"
   },
- 
   "Paypal": {
     "ClientId": "",
     "ClientSecret": "",
@@ -146,52 +148,50 @@ Dentro de Visual Studio 2022 para acceder al archivo de **Secretos del usuario**
     "returnUrlSinDocker": "https://localhost:7056/Payment/Success",
     "returnUrlConDocker": "https://localhost:8081/Payment/Success"
   },
-"LicenseKeyAutoMapper":
+  "LicenseKeyAutoMapper": "",
   "Email": {
     "Host": "smtp.gmail.com",
     "Port": "587",
     "UserName": "",
     "PassWord": ""
   }
-
-
 }
 ````
-### ¿Como obtener cada valor del archivo de secretos?
-- **AuthMode**: este valor se encarga de manejar el modo de autenticacion
-- **JwtIssuer**: este valor se encarga de verificar el token. El valor que tiene que tener es el que nosotros queramos por ejemplo:
+### Significado de cada valor
+- **AuthMode**: este valor se encarga de almacenar el modo de autenticacion tenemos 3 modos: `Symmetric`,`AsymmetricFixed` y `AsymmetricDynamic`
+- **JwtIssuer**: este valor sirve para verificar el token, por ejemplo:
 ```sh
 "JwtIssuer": "GestorInvetarioEmisor"
 ````
-- **JwtAudience**: este valor se encarga de verificar el token. El valor que tiene que tener es el que nosotros queramos por ejemplo:
+- **JwtAudience**: este sirve para verificar el token,  por ejemplo:
 ```sh
 "JwtAudience": "GestorInventarioCliente"
 ````
 - **JWT**: 
-  - **PublicKey y PrivateKey**: para obtener estos valores he dejado en el repositorio el código necesario para obtener estos valores, para ello vamos a la carpeta **GeneracionClaves**.
+  - **PublicKey y PrivateKey**: para obtener estos valores vamos al siguiente al siguiente enlace: .
 **GeneracionClaves**
-- **ClaveJWT**: tiene que ser un valor largo ya que ese valor se usa para cifrar y descifrar minimo una longitud de **38 digitos alfanumericos**. Por ejemplo:
+- **ClaveJWT**: Cadena larga para cifrar/descifrar tokens (mínimo 38 caracteres). Por ejemplo:
 ```sh
 "ClaveJWT": "Curso@.net#2023_Arelance_MiClaveSecretaMuyLarga"
 ````
-- **DataBaseConection**: aquí pondremos los valores sensibles correspondientes a la **cadena de conexión**, de esta manera como hemos dicho la cadena de conexion se podra poner en el **Program.cs** pero los valores sensibles estan aquí  en el archivo de secretos.
-    - **DBHost**: Aquí pondremos el nombre del servidor de nuestra base de datos por ejemplo. ` "DBHost": "DESKTOP-2TL9C3O\\SQLEXPRESS"`.
-    - **DockerDbHost**: Aquí ponemos el nombre del contenedor de base de datos de docker por ejemplo. ` "DockerDbHost": "SQL-Server-Local"`
-    - **DBName**: Aquí ponemos el nombre de base de datos.
-    - **DBUserName**: Aquí ponemos el nombre de usuario para acceder a esa base de datos.
-    - **DBPassword**: Aquí ponemos la contraseña del usuario para acceder a base de datos.
--**Paypal**: Agregar función de pago:
-    - **ClientId y ClientSecret**: Para obtener estos datos primero tenemos que tener una cuenta de paypal y despues ir a esta dirección [aqui](https://developer.paypal.com/home) una vez que hemos realizado el login en esta pagina podemos obtener estos valores.
-    - **Mode**: este modo se quedara tal y como esta en **sandbox** este modo es el modo prueba de paypal para hacer transacciones.
-    - **returnUrlSinDocker**: esta url es cuando paypal nos reedirige a nuestra aplicación esta url es para cuando no estamos usando docker.
-    - **returnUrlConDocker**: esta url es para cuando estamos usando docker cumple lo mismo que la anterior redirigir de paypal a la aplicación.
-- **Email**: Para el envio de correo electronicos
-    - **Host**: servidor de correo electronico.
-    - **Port**: puerto del servidor de correo electronico.
-    - **UserName**: usuario del correo electronico.
-    - **Password**: contraseña del correo electronico.
+- **DataBaseConection**: Información sensible de la base de datos  
+    - **DBHost**: Nombre del servidor SQL. Por ejemplo. ` "DBHost": "DESKTOP-2TL9C3O\\SQLEXPRESS"`.  
+    - **DockerDbHost**: Nombre del contenedor Docker de la base de datos. Por ejemplo. `SQL-Server-Local`  
+    - **DBName**: Nombre de la base de datos.  
+    - **DBUserName**: Usuario de la base de datos.  
+    - **DBPassword**: Contraseña del usuario.  
+-**Paypal**:Configuración para la pasarela de pagos.  
+    - **ClientId y ClientSecret**: Se obtienen creando una cuenta en [aqui](https://developer.paypal.com/home)   
+    - **Mode**: `sandbox` para pruebas, `live`  para producción.    
+    - **returnUrlSinDocker**: URL de retorno cuando no se usa Docker.  
+    - **returnUrlConDocker**: URL de retorno cuando se usa Docker.  
+- **Email**: Configuración para envío de correos.  
+    - **Host**: Servidor SMTP. Por ejemplo `smtp.gmail.com`  
+    - **Port**: Puerto del servidor. Por ejemplo `587`  
+    - **UserName y Password**: Credenciales de la cuenta de correo.
+   
 
-**LicenseKeyAutoMapper**: aquí ponemos la clave de licencia de AutoMapper para ello vamos aqui [obtener licencia](https://luckypennysoftware.com/#automapper) en esta pagina nos registramos y la licencia a escoger es la community
+**LicenseKeyAutoMapper**: Clave de licencia de AutoMapper. Se obtiene registrándose en [obtener licencia](https://luckypennysoftware.com/#automapper) y usando la licencia Community.
 ## Modificación del archivo GestorInventarioContext.cs 
 Una vez que hemos ejecutado el comando que realiza el scaffold pues tenemos que modificar este archivo agregando lo siguiente al metodo **OnConfiguring**
 ```csharp
