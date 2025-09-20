@@ -110,8 +110,8 @@ Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=NOMBREBA
 ```sh
 Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=NOMBREBASEDATOS;User ID=NOMBREUSUARIO;Password=CONTRASEÑAUSUARIO;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -Force -Project NOMBREPROYECTO
 ````
-**NOMBREUSUARIO**: Usuario de la base de datos por ejemplo `sa`
-**CONTRASEÑAUSUARIO**: Contraseña de ese usuario
+**NOMBREUSUARIO**: Usuario de la base de datos por ejemplo `sa`  
+**CONTRASEÑAUSUARIO**: Contraseña de ese usuario  
 En este proyecto se ha empleado la segunda opcion del comando scaffold
 ## Secretos de usuario
 Dentro de Visual Studio 2022 para acceder al archivo de **Secretos del usuario** hacemos lo siguiente. `Clic derecho sobre el proyecto > Administrar secretos de usuario`, una vez que le hemos dado ha **Administrar secretos del usuario** tenemos que poner estos valores:
