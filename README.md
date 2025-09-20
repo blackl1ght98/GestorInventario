@@ -89,36 +89,30 @@ Para usar la base de datos del proyecto, primero debes restaurar la copia de seg
    - Confirma con **Aceptar**.  
 7. Haz clic en **Aceptar** nuevamente para iniciar la restauración ✅. 
 
-## Scaffold-DbContext
+## ⚙️ Scaffold-DbContext
 
-Una vez la base de datos ha sido restaurada, en Visual Studio, si está activo, veremos la **Consola del administrador de paquetes**. Si no está activo, debemos activarlo: `Ver > Otras ventanas > Consola del Administrador de paquetes`.
-En la consola del **Consola del Administrador de paquetes**, ejecutamos el siguiente comando:
+Una vez restaurada la base de datos, necesitamos generar las clases de modelo en el proyecto con **Entity Framework Core** mediante el comando `Scaffold-DbContext`.
+
+---
+
+### 📌 Abrir la Consola del Administrador de Paquetes
+En **Visual Studio**:  
+1. Activa la consola desde: `Ver > Otras ventanas > Consola del Administrador de paquetes`.  
+2. Ejecuta el siguiente comando (ajustando los parámetros a tu entorno):
 
 ```sh
-Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=NOMBREBASEDATOS;Integrated Security=True;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -force -project NOMBREPROYECTO
+Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=NOMBREBASEDATOS;Integrated Security=True;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -Force -Project NOMBREPROYECTO
 ````
-### ¿Como se obtienen los parametros del comando anterior?
-- **NOMBRESERVIDORBASEDATOS**:  Se obtiene al abrir el programa SQL Server. Lo normal es que sea el nombre del equipo.
-- **NOMBREBASEDATOS**:Aquí pondremos el nombre de la base de datos en este caso el nombre de la base de datos es **GestorInventario**.
-- **NOMBREPROYECTO**:Aquí pondremos el nombre del proyecto en este caso es **GestorInventario**.
->Ejemplo del comando **Scaffold**:
+**NOMBRESERVIDORBASEDATOS**: Nombre del servidor de SQL Server. Suele ser el nombre del equipo `DESKTOP-XXXX\SQLEXPRESS`
+**NOMBREBASEDATOS**:Nombre de la base de datos. En este caso: `GestorInventario`.
+**NOMBREPROYECTO**: Nombre del proyecto de Visual Studio. En este caso: `GestorInventario` 
+## 🔑 Scaffold-DbContext con usuario y contraseña (recomendado)
 ```sh
-Scaffold-DbContext "Data Source=DESKTOP-2TL9C3O\SQLEXPRESS;Initial Catalog=GestorInventario;Integrated Security=True;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -force -project GestorInventario
+Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=NOMBREBASEDATOS;User ID=NOMBREUSUARIO;Password=CONTRASEÑAUSUARIO;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -Force -Project NOMBREPROYECTO
 ````
-### Scaffold-DbContext con contraseña (uso recomendado)
-Aunque la anterior cadena de conexión sigue pudiendose usar, pero lo recomendable es ponerlo con contraseña para evitar que cualquier persona acceda a contenido no autorizado.
-```sh
-Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=NOMBREBASEDATOS;User ID=NOMBREUSUARIO;Password=CONTRASEÑAUSUARIO;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -force -project NOMBREPROYECTO
-```
-### ¿Como se obtienen los parametros del comando anterior?
-Parecido al anterior comando pero con dos propiedades nuevas.
-- **NOMBREUSUARIO**:Aquí pondremos el nombre del usuario de la base de datos.
-- **CONTRASEÑAUSUARIO**:Aquí pondremos la contraseña de base de datos.
-Esta cadena de conexión tiene que estar mas protegida que la anterior porque tiene las credenciales de acceso a base de datos. Esto lo pondremos en el archivo de secretos de usuario de visual studio. Dependiendo de como queramos manejar el como almacenarlo podemos poner la cadena de conexión en el **Program.cs** y los datos delicados ponerlos en el archivo de secretos a continuación veremos el como hacerlo.
->Ejemplo del comando **Scaffold** con contraseña
-```sh
-Scaffold-DbContext "Data Source=DESKTOP-2TL9C3O\SQLEXPRESS;Initial Catalog=GestorInventario;User ID=pepe;Password=pepe1234;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -force -project GestorInventario
-````
+**NOMBREUSUARIO**:Usuario de la base de datos por ejemplo `sa`
+**CONTRASEÑAUSUARIO**: Contraseña de ese usuario
+En este proyecto se ha empleado la segunda opcion del comando scaffold
 ## Secretos de usuario
 Dentro de Visual Studio 2022 para acceder al archivo de **Secretos del usuario** hacemos lo siguiente. `Clic derecho sobre el proyecto > Administrar secretos de usuario`, una vez que le hemos dado ha **Administrar secretos del usuario** tenemos que poner estos valores:
 ```sh
