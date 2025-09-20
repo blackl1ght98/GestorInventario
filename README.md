@@ -104,13 +104,13 @@ En **Visual Studio**:
 Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=NOMBREBASEDATOS;Integrated Security=True;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -Force -Project NOMBREPROYECTO
 ````
 **NOMBRESERVIDORBASEDATOS**: Nombre del servidor de SQL Server. Suele ser el nombre del equipo `DESKTOP-XXXX\SQLEXPRESS`
-**NOMBREBASEDATOS**:Nombre de la base de datos. En este caso: `GestorInventario`.
+**NOMBREBASEDATOS**: Nombre de la base de datos. En este caso: `GestorInventario`.
 **NOMBREPROYECTO**: Nombre del proyecto de Visual Studio. En este caso: `GestorInventario` 
 ## 🔑 Scaffold-DbContext con usuario y contraseña (recomendado)
 ```sh
 Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=NOMBREBASEDATOS;User ID=NOMBREUSUARIO;Password=CONTRASEÑAUSUARIO;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -Force -Project NOMBREPROYECTO
 ````
-**NOMBREUSUARIO**:Usuario de la base de datos por ejemplo `sa`
+**NOMBREUSUARIO**: Usuario de la base de datos por ejemplo `sa`
 **CONTRASEÑAUSUARIO**: Contraseña de ese usuario
 En este proyecto se ha empleado la segunda opcion del comando scaffold
 ## Secretos de usuario
