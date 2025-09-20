@@ -5,7 +5,7 @@
 2. [Notas](#-notas)
 3. [Instalación](#instalación)
    - [Problema común: Docker y Visual Studio](#-problema-común-docker-y-visual-studio)
-   - [Restaurar la copia de seguridad](#restaurar-la-copia-de-seguridad)
+   - [Restaurar la copia de seguridad](#-restaurar-la-copia-de-seguridad)
    - [Scaffold-DbContext](#scaffold-dbcontext)
    - [Secretos de usuario](#secretos-de-usuario)
    - [Modificación del archivo GestorInventarioContext.cs](#modificación-del-archivo-gestorinventariocontextcs)
