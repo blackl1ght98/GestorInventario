@@ -64,15 +64,30 @@ Si **no tienes instalado Docker Desktop**, Visual Studio puede mostrar un error 
 
 
 
-## Restaurar la copia de seguridad
+## 📂 Restaurar la copia de seguridad
 
-Primero, restaurar la copia de seguridad **GestorInventarioDB** usando Microsoft SQL Server. Si no disponen de este programa tendrán que descargarlo de la página web de Microsoft. Puedes descargarlo desde [aquí](https://www.microsoft.com/es-es/sql-server/sql-server-downloads). Instalamos la versión **Express** y seguimos los pasos de instalación del instalador. Una vez se complete, tendremos que instalar la interfaz gráfica de SQL Server, que puedes descargar desde [aquí](https://learn.microsoft.com/es-es/sql/ssms/download-sql-server-management-studio-ssms?view=sql-server-ver16).
+Para usar la base de datos del proyecto, primero debes restaurar la copia de seguridad **`GestorInventarioDB.bak`** en **SQL Server**.  
 
-Una vez instalado, procedemos a abrirlo. Aparecerá una ventana que mostrará el tipo de servidor, nombre del servidor, autenticación. Esto lo dejaremos tal y como viene sin poner contraseña. Luego, hacemos clic en **Conectar**.
+### 🔧 Pasos en SQL Server Management Studio (SSMS)
 
-Nos dirigimos a la parte izquierda de la pantalla y veremos **Servidores registrados**. Sobre la carpeta **Base de datos**, hacemos clic derecho y seleccionamos **Restaurar base de datos**.
-
-En la ventana que se abre, seleccionamos **Dispositivo** y, al final a la derecha, hay un botón con tres puntos. Hacemos clic ahí, y en la nueva ventana seleccionamos **Agregar** y localizamos la base de datos. Una vez seleccionada, clic en **Aceptar**. Funciona en la última versión de SQL Server, y también en la última versión de Azure Data Studio.
+1. Descarga e instala **SQL Server Express** desde [aquí](https://www.microsoft.com/es-es/sql-server/sql-server-downloads).  
+2. Descarga e instala **SQL Server Management Studio (SSMS)** desde [aquí](https://aka.ms/ssmsfullsetup).  
+3. Abre **SSMS** e inicia sesión con la configuración predeterminada:  
+   - **Servidor**: Nombre del equipo (ejemplo: `DESKTOP-XXXX\SQLEXPRESS`)  
+   - **Autenticación**: Windows Authentication (no requiere contraseña).  
+4. En el **Explorador de objetos**, haz clic derecho en **Bases de datos** → **Restaurar base de datos**.  
+5. Antes de continuar, copia el archivo de respaldo **`GestorInventarioDB.bak`** a la carpeta de backups de SQL Server, ya que el explorador de SSMS no muestra todas las rutas del sistema.  
+   - Ruta típica:  
+     ```
+     E:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\Backup
+     ```  
+   - Si tu instalación está en otra ubicación, copia el archivo en la carpeta **Backup** equivalente.  
+6. En la ventana de restauración:  
+   - Selecciona **Dispositivo**.  
+   - Haz clic en el botón `...` (a la derecha).  
+   - Pulsa **Agregar** y busca el archivo `GestorInventarioDB.bak` en la carpeta `Backup`.  
+   - Confirma con **Aceptar**.  
+7. Haz clic en **Aceptar** nuevamente para iniciar la restauración ✅. 
 
 ## Scaffold-DbContext
 
