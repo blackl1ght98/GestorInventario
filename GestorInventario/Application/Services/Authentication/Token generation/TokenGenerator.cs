@@ -14,11 +14,11 @@ namespace GestorInventario.Application.Services
         private readonly GestorInventarioContext _context;
         private readonly ITokenStrategy _tokenStrategy;
 
-        // ✅ Constructor SIMPLIFICADO - solo 2 dependencias
+      
         public TokenGenerator(GestorInventarioContext context, ITokenStrategyFactory factory)
         {
             _context = context;
-            _tokenStrategy = factory.CreateStrategy(); // La factory hace el trabajo duro
+            _tokenStrategy = factory.CreateStrategy(); 
         }
 
         public async Task<LoginResponseDto> GenerateTokenAsync(Usuario credencialesUsuario)

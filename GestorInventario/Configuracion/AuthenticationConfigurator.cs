@@ -11,9 +11,9 @@ namespace GestorInventario.Configuracion
             _strategy = strategy;
         }
 
-        public IServiceCollection Configure(WebApplicationBuilder builder, IConfiguration configuration)
+        public IServiceCollection Configure(IServiceCollection services, IConfiguration configuration)
         {
-            return _strategy.ConfigureAuthentication(builder, configuration);
+            return _strategy.ConfigureAuthentication(services, configuration);
         }
     }
 }

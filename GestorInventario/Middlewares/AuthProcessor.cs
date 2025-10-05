@@ -2,6 +2,7 @@
 
 namespace GestorInventario.Middlewares
 {
+    // Capa 2: Processor - Coordinación
     public class AuthProcessor
     {
         private IAuthProcessingStrategy _strategy;
@@ -11,14 +12,12 @@ namespace GestorInventario.Middlewares
             _strategy = strategy;
         }
 
-        public void SetStrategy(IAuthProcessingStrategy strategy)
-        {
-            _strategy = strategy;
-        }
+      
 
-        public async Task ExecuteAuthentication(HttpContext context, WebApplicationBuilder builder, Func<Task> next)
+        public async Task ExecuteAuthentication(HttpContext context, Func<Task> next)
         {
-            await _strategy.ProcessAuthentication(context, builder, next);
+            // Responsabilidad: ORQUESTAR el proceso de autenticación
+            await _strategy.ProcessAuthentication(context, next);
         }
     }
 }

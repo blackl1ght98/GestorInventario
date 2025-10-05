@@ -2,6 +2,6 @@
 {
     public interface IAuthenticationStrategy
     {
-        IServiceCollection ConfigureAuthentication(WebApplicationBuilder builder, IConfiguration configuration);
+        IServiceCollection ConfigureAuthentication(IServiceCollection services, IConfiguration configuration);
     }
 }
