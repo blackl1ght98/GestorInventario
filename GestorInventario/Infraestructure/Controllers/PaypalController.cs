@@ -202,8 +202,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 try
                 {
                     // Crear un producto usando los datos del formulario
-                    var product = await _paypalService.CreateProductAsync(model.Name, model.Description, model.Type, model.Category); // Assuming method name adjusted
-                    string productId = product.Id; // Now typed, no deserialization needed here
+                    var product = await _paypalService.CreateProductAsync(model.Name, model.Description, model.Type, model.Category);
+                    string productId = product.Id; 
 
                     ViewData["Moneda"] = new SelectList(await _carritoRepository.ObtenerMoneda(), "Codigo", "Codigo");
 
@@ -262,12 +262,8 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var activeSubscriptions = await _paypalRepository.ObtenerSuscriptcionesActivas(id);
-                var userSubscriptions = await _paypalRepository.SusbcripcionesUsuario(id);
-                if (activeSubscriptions.Any() || userSubscriptions.Any())
-                {
-                    return StatusCode(400, "No se puede cancelar el plan porque hay suscriptores activos.");
-                }
+               
+            
                 var activateResponse = await _paypalService.ActivarPlan(id);
 
 
