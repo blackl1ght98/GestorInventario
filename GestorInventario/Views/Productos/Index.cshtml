@@ -163,11 +163,7 @@
 
 @section Scripts {
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-
-      
-
-        // Observador de LCP para debugging (agregado como sugeriste, úsalo en dev para verificar)
+        document.addEventListener('DOMContentLoaded', function() {           
         new PerformanceObserver((list) => {
             const latestEntry = list.getEntries().at(-1);
             if (latestEntry?.element?.getAttribute('loading') === 'lazy') {

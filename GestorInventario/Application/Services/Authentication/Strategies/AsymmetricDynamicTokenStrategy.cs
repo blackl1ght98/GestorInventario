@@ -49,13 +49,12 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
                 throw new InvalidOperationException("El usuario no tiene un rol asignado.");
             }
 
-            // Log para verificar el rol
             _logger.LogInformation($"Rol del usuario {credencialesUsuario.Id}: {usuarioDB.IdRolNavigation.Nombre}");
      
             // Creamos las Claims que el usuario tendrá
             var claims = new List<Claim>()
             {
-                 new Claim(ClaimTypes.Email, credencialesUsuario.Email),
+                new Claim(ClaimTypes.Email, credencialesUsuario.Email),
                 new Claim(ClaimTypes.Role, usuarioDB.IdRolNavigation.Nombre),
                 new Claim(ClaimTypes.NameIdentifier, credencialesUsuario.Id.ToString())
             };                   

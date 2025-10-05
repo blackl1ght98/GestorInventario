@@ -1,6 +1,7 @@
 ﻿using GestorInventario.Application.Politicas_Resilencia;
 using GestorInventario.Application.Services;
 using GestorInventario.Application.Services.Authentication;
+using GestorInventario.Application.Services.Authentication.Token_generation;
 using GestorInventario.Application.Services.Generic_Services;
 using GestorInventario.Configuracion;
 using GestorInventario.Configuracion.Strategies;
@@ -27,9 +28,13 @@ using AspNetCoreHttp = Microsoft.AspNetCore.Http;
 var builder = WebApplication.CreateBuilder(args);
 // Agregar variables de entorno a la configuración
 builder.Configuration.AddEnvironmentVariables();
-string secret = Environment.GetEnvironmentVariable("ClaveJWT")?? builder.Configuration["ClaveJWT"];
 //Para que no salte una excepcion en consultas que son recursivas
 builder.Services.AddControllersWithViews().AddJsonOptions(options => options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+/**
+ ------------------------------------------------------------------
+                    CONFIGURATION DB
+ ------------------------------------------------------------------
+ */
 var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER") == "true";
 var dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? builder.Configuration["DataBaseConection:DBHost"];
 var dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? builder.Configuration["DataBaseConection:DBName"];
@@ -50,8 +55,12 @@ builder.Services.AddDbContext<GestorInventarioContext>(options =>
     options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
 });
 
-builder.Services.AddMvc();
 
+/**
+ ------------------------------------------------------------------
+                    CONFIGURATION CORS
+ ------------------------------------------------------------------
+ */
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(builder =>
@@ -59,6 +68,14 @@ builder.Services.AddCors(options =>
         builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
     });
 });
+/**
+ ------------------------------------------------------------------
+                    CONFIGURATION SERVICES
+ ------------------------------------------------------------------
+ */
+
+builder.Services.AddMemoryCache();
+builder.Services.AddMvc();
 builder.Logging.AddLog4Net();
 builder.Services.AddAntiforgery();
 // Servicio usado para peticiones HTTP
@@ -85,7 +102,8 @@ builder.Services.AddTransient<IProveedorRepository, ProveedorRepository>();
 builder.Services.AddTransient<IPdfService, PdfService>();
 builder.Services.AddTransient<IPaypalRepository, PaypalRepository>();
 builder.Services.AddTransient<IEncryptionService, EncryptionService>();
-builder.Services.AddHttpClient<IPaypalService, PaypalService>(client =>
+builder.Services.AddTransient<IPaypalService,PaypalService>();
+builder.Services.AddHttpClient("PayPal", client =>
 {
     client.BaseAddress = new Uri("https://api-m.sandbox.paypal.com/");
     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -94,11 +112,17 @@ builder.Services.AddTransient<IBarCodeService, BarCodeService>();
 builder.Services.AddAutoMapper(cfg =>
 {
     cfg.LicenseKey = Environment.GetEnvironmentVariable("LicenseKeyAutoMapper") ?? builder.Configuration["LicenseKeyAutoMapper"]; ;
-    // Configurar AutoMapper para escanear los perfiles en el ensamblado actual
+    
     cfg.AddMaps(Assembly.GetExecutingAssembly());
 });
 builder.Services.AddTransient<IPaymentRepository, PaymentRepository>();
-
+builder.Services.AddTransient<ImageOptimizerService>();
+builder.Services.AddTransient<ITokenGenerator, TokenGenerator>();
+/**
+ ------------------------------------------------------------------
+                    CONFIGURATION OPTIMIZATION
+ ------------------------------------------------------------------
+ */
 builder.Services.AddWebOptimizer(pipeline =>
 {
     // Minificar CSS y JS
@@ -109,11 +133,15 @@ builder.Services.AddWebOptimizer(pipeline =>
     pipeline.AddCssBundle("/css/bundle.css", "css/*.css");
     pipeline.AddJavaScriptBundle("/js/bundle.js", "js/*.js");
 });
-builder.Services.AddTransient<ImageOptimizerService>();
 
 
 
 
+/**
+ ------------------------------------------------------------------
+                    CONFIGURATION REDIS
+ ------------------------------------------------------------------
+ */
 // Comprobamos si Redis se está usando...
 bool useRedis = bool.Parse(Environment.GetEnvironmentVariable("USE_REDIS") ?? "false");
 
@@ -167,19 +195,25 @@ if (useRedis)
         Console.WriteLine($"Using local Redis connection string: {redisConnectionStringLocal}");
     }
 }
-// Servicio usado para guardar datos en memoria
-builder.Services.AddMemoryCache();
 
-// Se configura el servicio ITokenGenerator con sus dependencias
-builder.Services.AddTransient<ITokenGenerator, TokenGenerator>(provider =>
-{
+
+
+
+/**
+ ------------------------------------------------------------------
+                 CONFIGURATION SERVICES PERSONALIZED
+ ------------------------------------------------------------------
+ */
+
+builder.Services.AddTransient<ITokenStrategyFactory, TokenStrategyFactory>(provider => {
+
     //Se resuelve las dependencias necesarias para crear una instancia de "TokenGenerator", esto asegura que se configure correctamente
     var redis = provider.GetRequiredService<IDistributedCache>();
     var memoryCache = provider.GetRequiredService<IMemoryCache>();
     var configuration = provider.GetRequiredService<IConfiguration>();
     var context = provider.GetRequiredService<GestorInventarioContext>();
     var logger = provider.GetRequiredService<ILogger<TokenGenerator>>();
-    var httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
+ 
     // Inicialmente se establece en null ya que el valor se asignará si se está usando Redis
     IConnectionMultiplexer connectionMultiplexer = null;
     // Si se está usando Redis...
@@ -188,9 +222,8 @@ builder.Services.AddTransient<ITokenGenerator, TokenGenerator>(provider =>
         // Se obtiene la conexión de Redis del proveedor de servicios
         connectionMultiplexer = provider.GetService<IConnectionMultiplexer>();
     }
-    // Devuelve una nueva instancia de TokenGenerator con sus dependencias
-    return new TokenGenerator(context, configuration, httpContextAccessor, memoryCache, logger, redis, connectionMultiplexer);
-
+    // Devuelve una nueva instancia de TokenGenerator con sus dependencia
+    return new TokenStrategyFactory(configuration,context,redis,memoryCache,connectionMultiplexer,logger);
 });
 
 builder.Services.AddTransient<IRefreshTokenMethod, RefreshTokenMethod>(provider =>
@@ -212,8 +245,12 @@ builder.Services.AddTransient<IRefreshTokenMethod, RefreshTokenMethod>(provider 
 });
 
 
+/**
+ ------------------------------------------------------------------
+                    CONFIGURATION SECURITY
+ ------------------------------------------------------------------
+ */
 
-// Selecciona la estrategia según una configuración (puedes usar appsettings.json o variables de entorno)
 string authStrategy = builder.Configuration["AuthMode"] ?? "Symmetric";
 IAuthenticationStrategy strategy = authStrategy switch
 {
@@ -225,6 +262,8 @@ IAuthenticationStrategy strategy = authStrategy switch
 
 var configurator = new AuthenticationConfigurator(strategy);
 configurator.Configure(builder, builder.Configuration);
+
+
 builder.Services.AddAntiforgery(options =>
 {
     options.Cookie.SameSite = AspNetCoreHttp.SameSiteMode.None;
@@ -233,29 +272,15 @@ builder.Services.AddAntiforgery(options =>
 });
 
 
-/*
 
-    * options.Preload = true;: Esta opción indica que quieres incluir tu sitio en la lista de precarga de HSTS. 
-    Los navegadores mantienen esta lista de sitios que deben ser accedidos solo a través de HTTPS.
-
-    * options.IncludeSubDomains = true;: Esta opción indica que la política de HSTS debe aplicarse a todos los subdominios 
-    del dominio actual.
-
-    * options.MaxAge = TimeSpan.FromDays(60);: Esta opción establece la cantidad de tiempo que los navegadores deben recordar 
-    que este sitio solo debe ser accedido usando HTTPS.
-
-    * options.ExcludedHosts.Add("example.com"); y options.ExcludedHosts.Add("www.example.com");: Estas opciones permiten excluir 
-    ciertos hosts de la política de HSTS. En este caso, “example.com” y “www.example.com” están excluidos.
-*/
 builder.Services.AddHsts(options =>
 {
     options.Preload = true;
     options.IncludeSubDomains = true;
     options.MaxAge = TimeSpan.FromDays(60);
-    //options.ExcludedHosts.Add("example.com");
-    //options.ExcludedHosts.Add("www.example.com");
+
 });
-builder.Services.AddMvc();
+
 
 builder.Services.AddSession(options =>
 {
