@@ -13,9 +13,10 @@ using System.Security.Cryptography;
 
 namespace GestorInventario.Middlewares.Strategis
 {
+    // Capa 4: Implementación - Lógica específica
     public class DynamicAsymmetricAuthStrategy : IAuthProcessingStrategy
     {
-        public async Task ProcessAuthentication(HttpContext context, WebApplicationBuilder builder, Func<Task> next)
+        public async Task ProcessAuthentication(HttpContext context,  Func<Task> next)
         {
             try
             {
@@ -30,12 +31,13 @@ namespace GestorInventario.Middlewares.Strategis
                 var redis = context.RequestServices.GetService<IDistributedCache>();
                 var memoryCache = context.RequestServices.GetService<IMemoryCache>();
                 var connectionMultiplexer = context.RequestServices.GetService<IConnectionMultiplexer>();
+                var configuration= context.RequestServices.GetService<IConfiguration>();
                 bool useRedis = connectionMultiplexer?.IsConnected ?? false;
 
                 // Validar el token principal
                 if (!string.IsNullOrEmpty(token))
                 {
-                    var (jwtToken, principal) = await ValidateToken(token, builder, tokenService, redis, memoryCache, encryptionService, useRedis);
+                    var (jwtToken, principal) = await ValidateToken(token,configuration, tokenService, redis, memoryCache, encryptionService, useRedis);
                     if (jwtToken != null && principal != null)
                     {
                         // Establecer el ClaimsPrincipal en HttpContext.User
@@ -45,12 +47,12 @@ namespace GestorInventario.Middlewares.Strategis
                     }
                     else if (!string.IsNullOrEmpty(refreshToken))
                     {
-                        await HandleExpiredToken(context, refreshToken, builder, tokenService, userService, redis, memoryCache, refreshTokenMethod, useRedis);
+                        await HandleExpiredToken(context, refreshToken, configuration, tokenService, userService, redis, memoryCache, refreshTokenMethod, useRedis);
                     }
                 }
                 else if (!string.IsNullOrEmpty(refreshToken))
                 {
-                    await HandleExpiredToken(context, refreshToken, builder, tokenService, userService, redis, memoryCache, refreshTokenMethod, useRedis);
+                    await HandleExpiredToken(context, refreshToken, configuration, tokenService, userService, redis, memoryCache, refreshTokenMethod, useRedis);
                 }
             }
             catch (Exception ex)
@@ -62,7 +64,7 @@ namespace GestorInventario.Middlewares.Strategis
             await next();
         }
 
-        private static async Task<(JwtSecurityToken?, ClaimsPrincipal?)> ValidateToken(string token, WebApplicationBuilder builder, ITokenGenerator tokenService, IDistributedCache? redis, IMemoryCache? memoryCache, IEncryptionService encryptionService, bool useRedis)
+        private static async Task<(JwtSecurityToken?, ClaimsPrincipal?)> ValidateToken(string token,IConfiguration configuration, ITokenGenerator tokenService, IDistributedCache? redis, IMemoryCache? memoryCache, IEncryptionService encryptionService, bool useRedis)
         {
             var handler = new JwtSecurityTokenHandler();
             var logger = log4net.LogManager.GetLogger(typeof(DynamicAsymmetricAuthStrategy));
@@ -101,9 +103,9 @@ namespace GestorInventario.Middlewares.Strategis
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new RsaSecurityKey(RSA.Create(rsaParameters)),
                     ValidateIssuer = true,
-                    ValidIssuer = builder.Configuration["JwtIssuer"],
+                    ValidIssuer = configuration["JwtIssuer"],
                     ValidateAudience = true,
-                    ValidAudience = builder.Configuration["JwtAudience"],
+                    ValidAudience = configuration["JwtAudience"],
                     ValidateLifetime = true
                 };
 
@@ -121,10 +123,10 @@ namespace GestorInventario.Middlewares.Strategis
             }
         }
 
-        private static async Task HandleExpiredToken(HttpContext context, string refreshToken, WebApplicationBuilder builder, ITokenGenerator tokenService, IAdminRepository userService, IDistributedCache? redis,
+        private static async Task HandleExpiredToken(HttpContext context, string refreshToken,IConfiguration configuration,  ITokenGenerator tokenService, IAdminRepository userService, IDistributedCache? redis,
                                                      IMemoryCache? memoryCache, IRefreshTokenMethod refreshTokenMethod, bool useRedis)
         {
-            var refreshTokenValid = await ValidateRefreshToken(refreshToken, builder, redis, memoryCache, useRedis);
+            var refreshTokenValid = await ValidateRefreshToken(refreshToken,configuration,  redis, memoryCache, useRedis);
             var logger = log4net.LogManager.GetLogger(typeof(DynamicAsymmetricAuthStrategy));
 
             if (!refreshTokenValid)
@@ -199,7 +201,7 @@ namespace GestorInventario.Middlewares.Strategis
             return (null, null, null);
         }
 
-        private static async Task<bool> ValidateRefreshToken(string refreshToken, WebApplicationBuilder builder, IDistributedCache? redis, IMemoryCache? memoryCache, bool useRedis)
+        private static async Task<bool> ValidateRefreshToken(string refreshToken,IConfiguration configuration, IDistributedCache? redis, IMemoryCache? memoryCache, bool useRedis)
         {
             try
             {
@@ -227,9 +229,9 @@ namespace GestorInventario.Middlewares.Strategis
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = rsaSecurityKey,
                     ValidateIssuer = true,
-                    ValidIssuer = builder.Configuration["JwtIssuer"],
+                    ValidIssuer = configuration["JwtIssuer"],
                     ValidateAudience = true,
-                    ValidAudience = builder.Configuration["JwtAudience"]
+                    ValidAudience = configuration["JwtAudience"]
                 };
 
                 handler.ValidateToken(refreshToken, validationParameters, out _);

@@ -5,9 +5,9 @@ namespace GestorInventario.Configuracion.Strategies
 {
     public class AsymmetricDynamicAuthenticationStrategy : IAuthenticationStrategy
     {
-        public IServiceCollection ConfigureAuthentication(WebApplicationBuilder builder, IConfiguration configuration)
+        public IServiceCollection ConfigureAuthentication(IServiceCollection services, IConfiguration configuration)
         {
-            builder.Services.AddAuthentication(options =>
+            services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -26,7 +26,7 @@ namespace GestorInventario.Configuracion.Strategies
                 {
                     OnRedirectToLogin = context =>
                     {
-                        var loggerFactory = builder.Services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
+                        var loggerFactory = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
                         var logger = loggerFactory.CreateLogger<AsymmetricDynamicAuthenticationStrategy>();
                         logger.LogInformation("Redirigiendo al login desde AddCookie");
                         context.Response.Redirect(context.RedirectUri);
@@ -35,7 +35,7 @@ namespace GestorInventario.Configuracion.Strategies
                 };
             });
 
-            return builder.Services;
+            return services;
         }
     }
 }

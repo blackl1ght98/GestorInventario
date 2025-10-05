@@ -13,7 +13,7 @@ namespace GestorInventario.Middlewares.Strategis
     {
       
 
-        public async Task ProcessAuthentication(HttpContext context, WebApplicationBuilder builder, Func<Task> next)
+        public async Task ProcessAuthentication(HttpContext context,  Func<Task> next)
         {
             try
             {
@@ -23,11 +23,11 @@ namespace GestorInventario.Middlewares.Strategis
                 var tokenService = context.RequestServices.GetRequiredService<ITokenGenerator>();
                 var userService = context.RequestServices.GetRequiredService<IAdminRepository>();
                 var refreshTokenMethod = context.RequestServices.GetRequiredService<IRefreshTokenMethod>();
-
+                var configuration = context.RequestServices.GetService<IConfiguration>();
                 // Validar el token principal
                 if (!string.IsNullOrEmpty(token))
                 {
-                    var (jwtToken, principal) = await ValidateToken(token, builder);
+                    var (jwtToken, principal) = await ValidateToken(token, configuration);
                     if (jwtToken != null && principal != null)
                     {
                         context.User = principal;
@@ -35,12 +35,12 @@ namespace GestorInventario.Middlewares.Strategis
                     }
                     else if (!string.IsNullOrEmpty(refreshToken))
                     {
-                        await HandleExpiredToken(context, refreshToken, builder, tokenService, userService, refreshTokenMethod);
+                        await HandleExpiredToken(context, refreshToken,configuration,  tokenService, userService, refreshTokenMethod);
                     }
                 }
                 else if (!string.IsNullOrEmpty(refreshToken))
                 {
-                    await HandleExpiredToken(context, refreshToken, builder, tokenService, userService, refreshTokenMethod);
+                    await HandleExpiredToken(context, refreshToken,configuration, tokenService, userService, refreshTokenMethod);
                 }
                 else
                 {
@@ -55,7 +55,7 @@ namespace GestorInventario.Middlewares.Strategis
             await next();
         }
 
-        private async Task<(JwtSecurityToken?, ClaimsPrincipal?)> ValidateToken(string token, WebApplicationBuilder builder)
+        private async Task<(JwtSecurityToken?, ClaimsPrincipal?)> ValidateToken(string token,IConfiguration configuration)
         {
             var handler = new JwtSecurityTokenHandler();
             try
@@ -67,7 +67,7 @@ namespace GestorInventario.Middlewares.Strategis
                     return (null, null);
                 }
 
-                var publicKey = builder.Configuration["Jwt:PublicKey"];
+                var publicKey = configuration["Jwt:PublicKey"];
                 if (string.IsNullOrEmpty(publicKey))
                 {
                    // _logger.LogError("La clave pública JWT no está configurada en Jwt:PublicKey.");
@@ -90,9 +90,9 @@ namespace GestorInventario.Middlewares.Strategis
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new RsaSecurityKey(rsa),
                     ValidateIssuer = true,
-                    ValidIssuer = builder.Configuration["JwtIssuer"],
+                    ValidIssuer = configuration["JwtIssuer"],
                     ValidateAudience = true,
-                    ValidAudience = builder.Configuration["JwtAudience"],
+                    ValidAudience = configuration["JwtAudience"],
                     ValidateLifetime = true
                 };
 
@@ -109,10 +109,10 @@ namespace GestorInventario.Middlewares.Strategis
             }
         }
 
-        private async Task HandleExpiredToken(HttpContext context, string refreshToken, WebApplicationBuilder builder,
+        private async Task HandleExpiredToken(HttpContext context, string refreshToken,IConfiguration configuration,
             ITokenGenerator tokenService, IAdminRepository userService, IRefreshTokenMethod refreshTokenMethod)
         {
-            var refreshTokenValid = await ValidateRefreshToken(refreshToken, builder);
+            var refreshTokenValid = await ValidateRefreshToken(refreshToken,configuration);
             if (!refreshTokenValid)
             {
                // _logger.LogWarning("Refresh token no válido o expirado para la ruta {Path}", context.Request.Path);
@@ -170,7 +170,7 @@ namespace GestorInventario.Middlewares.Strategis
            // _logger.LogInformation("Nuevos tokens generados para el usuario {UserId} en la ruta {Path}", userId, context.Request.Path);
         }
 
-        private async Task<bool> ValidateRefreshToken(string refreshToken, WebApplicationBuilder builder)
+        private async Task<bool> ValidateRefreshToken(string refreshToken,IConfiguration configuration)
         {
             try
             {
@@ -182,7 +182,7 @@ namespace GestorInventario.Middlewares.Strategis
                     return false;
                 }
 
-                var publicKey = builder.Configuration["Jwt:PublicKey"];
+                var publicKey = configuration["Jwt:PublicKey"];
                 if (string.IsNullOrEmpty(publicKey))
                 {
                    // _logger.LogError("La clave pública JWT no está configurada en Jwt:PublicKey.");
@@ -205,9 +205,9 @@ namespace GestorInventario.Middlewares.Strategis
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new RsaSecurityKey(rsa),
                     ValidateIssuer = true,
-                    ValidIssuer = builder.Configuration["JwtIssuer"],
+                    ValidIssuer = configuration["JwtIssuer"],
                     ValidateAudience = true,
-                    ValidAudience = builder.Configuration["JwtAudience"],
+                    ValidAudience = configuration["JwtAudience"],
                     ValidateLifetime = true
                 };
 

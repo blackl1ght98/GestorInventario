@@ -9,9 +9,9 @@ namespace GestorInventario.Configuracion.Strategies
 {
     public class AsymmetricFixedAuthenticationStrategy : IAuthenticationStrategy
     {
-        public IServiceCollection ConfigureAuthentication(WebApplicationBuilder builder, IConfiguration configuration)
+        public IServiceCollection ConfigureAuthentication(IServiceCollection services, IConfiguration configuration)
         {
-            var loggerFactory = builder.Services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
+            var loggerFactory = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
             var logger = loggerFactory.CreateLogger<AsymmetricFixedAuthenticationStrategy>();
 
             var publicKey = configuration["Jwt:PublicKey"] ?? Environment.GetEnvironmentVariable("PublicKey");
@@ -32,7 +32,7 @@ namespace GestorInventario.Configuracion.Strategies
                 throw new InvalidOperationException("La clave pública RSA es inválida.", ex);
             }
 
-            builder.Services.AddAuthentication(options =>
+            services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -87,7 +87,7 @@ namespace GestorInventario.Configuracion.Strategies
                 };
             });
 
-            return builder.Services;
+            return services;
         }
     }
 }

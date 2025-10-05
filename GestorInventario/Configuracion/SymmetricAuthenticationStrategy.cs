@@ -9,9 +9,9 @@ namespace GestorInventario.Configuracion.Strategies
 {
     public class SymmetricAuthenticationStrategy : IAuthenticationStrategy
     {
-        public IServiceCollection ConfigureAuthentication(WebApplicationBuilder builder, IConfiguration configuration)
+        public IServiceCollection ConfigureAuthentication(IServiceCollection services, IConfiguration configuration)
         {
-            var loggerFactory = builder.Services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
+            var loggerFactory = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
             var logger = loggerFactory.CreateLogger<SymmetricAuthenticationStrategy>();
 
             var secret = configuration["ClaveJWT"] ?? Environment.GetEnvironmentVariable("ClaveJWT");
@@ -27,7 +27,7 @@ namespace GestorInventario.Configuracion.Strategies
                 throw new InvalidOperationException("La clave JWT es demasiado corta.");
             }
 
-            builder.Services.AddAuthentication(options =>
+            services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -82,7 +82,7 @@ namespace GestorInventario.Configuracion.Strategies
                 };
             });
 
-            return builder.Services;
+            return services;
         }
     }
 }
