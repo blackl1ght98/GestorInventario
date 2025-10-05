@@ -5,8 +5,8 @@
 2. [Notas](#-notas)
 3. [Instalación](#instalación)
    - [Problema común: Docker y Visual Studio](#-problema-común-docker-y-visual-studio)
-   - [Restaurar la copia de seguridad](#restaurar-la-copia-de-seguridad)
-   - [Scaffold-DbContext](#scaffold-dbcontext)
+   - [Restaurar la copia de seguridad](#-restaurar-la-copia-de-seguridad)
+   - [Scaffold-DbContext](#%EF%B8%8F-scaffold-dbcontext)
    - [Secretos de usuario](#secretos-de-usuario)
    - [Modificación del archivo GestorInventarioContext.cs](#modificación-del-archivo-gestorinventariocontextcs)
    - [Generar certificado HTTPS](#generar-certificado-https)
@@ -64,64 +64,76 @@ Si **no tienes instalado Docker Desktop**, Visual Studio puede mostrar un error 
 
 
 
-## Restaurar la copia de seguridad
+## 📂 Restaurar la copia de seguridad
 
-Primero, restaurar la copia de seguridad **GestorInventarioDB** usando Microsoft SQL Server. Si no disponen de este programa tendrán que descargarlo de la página web de Microsoft. Puedes descargarlo desde [aquí](https://www.microsoft.com/es-es/sql-server/sql-server-downloads). Instalamos la versión **Express** y seguimos los pasos de instalación del instalador. Una vez se complete, tendremos que instalar la interfaz gráfica de SQL Server, que puedes descargar desde [aquí](https://learn.microsoft.com/es-es/sql/ssms/download-sql-server-management-studio-ssms?view=sql-server-ver16).
+Para usar la base de datos del proyecto, primero debes restaurar la copia de seguridad **`GestorInventarioDB.bak`** en **SQL Server**.  
 
-Una vez instalado, procedemos a abrirlo. Aparecerá una ventana que mostrará el tipo de servidor, nombre del servidor, autenticación. Esto lo dejaremos tal y como viene sin poner contraseña. Luego, hacemos clic en **Conectar**.
+### 🔧 Pasos en SQL Server Management Studio (SSMS)
 
-Nos dirigimos a la parte izquierda de la pantalla y veremos **Servidores registrados**. Sobre la carpeta **Base de datos**, hacemos clic derecho y seleccionamos **Restaurar base de datos**.
+1. Descarga e instala **SQL Server Express** desde [aquí](https://www.microsoft.com/es-es/sql-server/sql-server-downloads).  
+2. Descarga e instala **SQL Server Management Studio (SSMS)** desde [aquí](https://aka.ms/ssmsfullsetup).  
+3. Abre **SSMS** e inicia sesión con la configuración predeterminada:  
+   - **Servidor**: Nombre del equipo (ejemplo: `DESKTOP-XXXX\SQLEXPRESS`)  
+   - **Autenticación**: Windows Authentication (no requiere contraseña).  
+4. En el **Explorador de objetos**, haz clic derecho en **Bases de datos** → **Restaurar base de datos**.  
+5. Antes de continuar, copia el archivo de respaldo **`GestorInventarioDB.bak`** a la carpeta de backups de SQL Server, ya que el explorador de SSMS no muestra todas las rutas del sistema.  
+   - Ruta típica:  
+     ```
+     E:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\Backup
+     ```  
+   - Si tu instalación está en otra ubicación, copia el archivo en la carpeta **Backup** equivalente.  
+6. En la ventana de restauración:  
+   - Selecciona **Dispositivo**.  
+   - Haz clic en el botón `...` (a la derecha).  
+   - Pulsa **Agregar** y busca el archivo `GestorInventarioDB.bak` en la carpeta `Backup`.  
+   - Confirma con **Aceptar**.  
+7. Haz clic en **Aceptar** nuevamente para iniciar la restauración ✅. 
 
-En la ventana que se abre, seleccionamos **Dispositivo** y, al final a la derecha, hay un botón con tres puntos. Hacemos clic ahí, y en la nueva ventana seleccionamos **Agregar** y localizamos la base de datos. Una vez seleccionada, clic en **Aceptar**. Funciona en la última versión de SQL Server, y también en la última versión de Azure Data Studio.
+## ⚙️ Scaffold-DbContext
 
-## Scaffold-DbContext
+Una vez restaurada la base de datos, necesitamos generar las clases de modelo en el proyecto con **Entity Framework Core** mediante el comando `Scaffold-DbContext`.
 
-Una vez la base de datos ha sido restaurada, en Visual Studio, si está activo, veremos la **Consola del administrador de paquetes**. Si no está activo, debemos activarlo: `Ver > Otras ventanas > Consola del Administrador de paquetes`.
-En la consola del **Consola del Administrador de paquetes**, ejecutamos el siguiente comando:
+---
+
+### 📌 Abrir la Consola del Administrador de Paquetes
+En **Visual Studio**:  
+1. Activa la consola desde: `Ver > Otras ventanas > Consola del Administrador de paquetes`.  
+2. Ejecuta el siguiente comando (ajustando los parámetros a tu entorno):
 
 ```sh
-Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=NOMBREBASEDATOS;Integrated Security=True;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -force -project NOMBREPROYECTO
+Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=NOMBREBASEDATOS;Integrated Security=True;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -Force -Project NOMBREPROYECTO
 ````
-### ¿Como se obtienen los parametros del comando anterior?
-- **NOMBRESERVIDORBASEDATOS**:  Se obtiene al abrir el programa SQL Server. Lo normal es que sea el nombre del equipo.
-- **NOMBREBASEDATOS**:Aquí pondremos el nombre de la base de datos en este caso el nombre de la base de datos es **GestorInventario**.
-- **NOMBREPROYECTO**:Aquí pondremos el nombre del proyecto en este caso es **GestorInventario**.
->Ejemplo del comando **Scaffold**:
+**NOMBRESERVIDORBASEDATOS**: Nombre del servidor de SQL Server. Suele ser el nombre del equipo `DESKTOP-XXXX\SQLEXPRESS`
+**NOMBREBASEDATOS**: Nombre de la base de datos. En este caso: `GestorInventario`.
+**NOMBREPROYECTO**: Nombre del proyecto de Visual Studio. En este caso: `GestorInventario` 
+## 🔑 Scaffold-DbContext con usuario y contraseña (recomendado)
 ```sh
-Scaffold-DbContext "Data Source=DESKTOP-2TL9C3O\SQLEXPRESS;Initial Catalog=GestorInventario;Integrated Security=True;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -force -project GestorInventario
+Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=NOMBREBASEDATOS;User ID=NOMBREUSUARIO;Password=CONTRASEÑAUSUARIO;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -Force -Project NOMBREPROYECTO
 ````
-### Scaffold-DbContext con contraseña (uso recomendado)
-Aunque la anterior cadena de conexión sigue pudiendose usar, pero lo recomendable es ponerlo con contraseña para evitar que cualquier persona acceda a contenido no autorizado.
-```sh
-Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=NOMBREBASEDATOS;User ID=NOMBREUSUARIO;Password=CONTRASEÑAUSUARIO;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -force -project NOMBREPROYECTO
-```
-### ¿Como se obtienen los parametros del comando anterior?
-Parecido al anterior comando pero con dos propiedades nuevas.
-- **NOMBREUSUARIO**:Aquí pondremos el nombre del usuario de la base de datos.
-- **CONTRASEÑAUSUARIO**:Aquí pondremos la contraseña de base de datos.
-Esta cadena de conexión tiene que estar mas protegida que la anterior porque tiene las credenciales de acceso a base de datos. Esto lo pondremos en el archivo de secretos de usuario de visual studio. Dependiendo de como queramos manejar el como almacenarlo podemos poner la cadena de conexión en el **Program.cs** y los datos delicados ponerlos en el archivo de secretos a continuación veremos el como hacerlo.
->Ejemplo del comando **Scaffold** con contraseña
-```sh
-Scaffold-DbContext "Data Source=DESKTOP-2TL9C3O\SQLEXPRESS;Initial Catalog=GestorInventario;User ID=pepe;Password=pepe1234;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -force -project GestorInventario
-````
-## Secretos de usuario
-Dentro de Visual Studio 2022 para acceder al archivo de **Secretos del usuario** hacemos lo siguiente. `Clic derecho sobre el proyecto > Administrar secretos de usuario`, una vez que le hemos dado ha **Administrar secretos del usuario** tenemos que poner estos valores:
-```sh
+**NOMBREUSUARIO**: Usuario de la base de datos por ejemplo `sa`  
+**CONTRASEÑAUSUARIO**: Contraseña de ese usuario  
+En este proyecto se ha empleado la segunda opcion del comando scaffold
+## 🔐 Secretos de usuario
+
+Para acceder al archivo de **Secretos del usuario** en Visual Studio 2022:  
+`Clic derecho sobre el proyecto > Administrar secretos de usuario`.
+
+Luego, agrega los siguientes valores en formato JSON:
+
+```json
 {
   "Redis": {
     "ConnectionString": "redis:6379",
     "ConnectionStringLocal": "127.0.0.1:6379"
-
   },
- "AuthMode": "Symmetric", // "Symmetric", "AsymmetricFixed", "AsymmetricDynamic"
+  "AuthMode": "Symmetric",
   "JwtIssuer": "",
   "JwtAudience": "",
   "JWT": {
     "PublicKey": "",
     "PrivateKey": ""
-
   },
-   "ClaveJWT": "",
+  "ClaveJWT": "",
   "DataBaseConection": {
     "DBHost": "",
     "DockerDbHost": "",
@@ -129,7 +141,6 @@ Dentro de Visual Studio 2022 para acceder al archivo de **Secretos del usuario**
     "DBUserName": "",
     "DBPassword": "SQL#1234"
   },
- 
   "Paypal": {
     "ClientId": "",
     "ClientSecret": "",
@@ -137,52 +148,50 @@ Dentro de Visual Studio 2022 para acceder al archivo de **Secretos del usuario**
     "returnUrlSinDocker": "https://localhost:7056/Payment/Success",
     "returnUrlConDocker": "https://localhost:8081/Payment/Success"
   },
-"LicenseKeyAutoMapper":
+  "LicenseKeyAutoMapper": "",
   "Email": {
     "Host": "smtp.gmail.com",
     "Port": "587",
     "UserName": "",
     "PassWord": ""
   }
-
-
 }
 ````
-### ¿Como obtener cada valor del archivo de secretos?
-- **AuthMode**: este valor se encarga de manejar el modo de autenticacion
-- **JwtIssuer**: este valor se encarga de verificar el token. El valor que tiene que tener es el que nosotros queramos por ejemplo:
+### Significado de cada valor
+- **AuthMode**: este valor se encarga de almacenar el modo de autenticacion tenemos 3 modos: `Symmetric`,`AsymmetricFixed` y `AsymmetricDynamic`
+- **JwtIssuer**: este valor sirve para verificar el token, por ejemplo:
 ```sh
 "JwtIssuer": "GestorInvetarioEmisor"
 ````
-- **JwtAudience**: este valor se encarga de verificar el token. El valor que tiene que tener es el que nosotros queramos por ejemplo:
+- **JwtAudience**: este sirve para verificar el token,  por ejemplo:
 ```sh
 "JwtAudience": "GestorInventarioCliente"
 ````
 - **JWT**: 
-  - **PublicKey y PrivateKey**: para obtener estos valores he dejado en el repositorio el código necesario para obtener estos valores, para ello vamos a la carpeta **GeneracionClaves**.
+  - **PublicKey y PrivateKey**: para obtener estos valores vamos al siguiente al siguiente enlace: .
 **GeneracionClaves**
-- **ClaveJWT**: tiene que ser un valor largo ya que ese valor se usa para cifrar y descifrar minimo una longitud de **38 digitos alfanumericos**. Por ejemplo:
+- **ClaveJWT**: Cadena larga para cifrar/descifrar tokens (mínimo 38 caracteres). Por ejemplo:
 ```sh
 "ClaveJWT": "Curso@.net#2023_Arelance_MiClaveSecretaMuyLarga"
 ````
-- **DataBaseConection**: aquí pondremos los valores sensibles correspondientes a la **cadena de conexión**, de esta manera como hemos dicho la cadena de conexion se podra poner en el **Program.cs** pero los valores sensibles estan aquí  en el archivo de secretos.
-    - **DBHost**: Aquí pondremos el nombre del servidor de nuestra base de datos por ejemplo. ` "DBHost": "DESKTOP-2TL9C3O\\SQLEXPRESS"`.
-    - **DockerDbHost**: Aquí ponemos el nombre del contenedor de base de datos de docker por ejemplo. ` "DockerDbHost": "SQL-Server-Local"`
-    - **DBName**: Aquí ponemos el nombre de base de datos.
-    - **DBUserName**: Aquí ponemos el nombre de usuario para acceder a esa base de datos.
-    - **DBPassword**: Aquí ponemos la contraseña del usuario para acceder a base de datos.
--**Paypal**: Agregar función de pago:
-    - **ClientId y ClientSecret**: Para obtener estos datos primero tenemos que tener una cuenta de paypal y despues ir a esta dirección [aqui](https://developer.paypal.com/home) una vez que hemos realizado el login en esta pagina podemos obtener estos valores.
-    - **Mode**: este modo se quedara tal y como esta en **sandbox** este modo es el modo prueba de paypal para hacer transacciones.
-    - **returnUrlSinDocker**: esta url es cuando paypal nos reedirige a nuestra aplicación esta url es para cuando no estamos usando docker.
-    - **returnUrlConDocker**: esta url es para cuando estamos usando docker cumple lo mismo que la anterior redirigir de paypal a la aplicación.
-- **Email**: Para el envio de correo electronicos
-    - **Host**: servidor de correo electronico.
-    - **Port**: puerto del servidor de correo electronico.
-    - **UserName**: usuario del correo electronico.
-    - **Password**: contraseña del correo electronico.
+- **DataBaseConection**: Información sensible de la base de datos  
+    - **DBHost**: Nombre del servidor SQL. Por ejemplo. ` "DBHost": "DESKTOP-2TL9C3O\\SQLEXPRESS"`.  
+    - **DockerDbHost**: Nombre del contenedor Docker de la base de datos. Por ejemplo. `SQL-Server-Local`  
+    - **DBName**: Nombre de la base de datos.  
+    - **DBUserName**: Usuario de la base de datos.  
+    - **DBPassword**: Contraseña del usuario.  
+-**Paypal**:Configuración para la pasarela de pagos.  
+    - **ClientId y ClientSecret**: Se obtienen creando una cuenta en [aqui](https://developer.paypal.com/home)   
+    - **Mode**: `sandbox` para pruebas, `live`  para producción.    
+    - **returnUrlSinDocker**: URL de retorno cuando no se usa Docker.  
+    - **returnUrlConDocker**: URL de retorno cuando se usa Docker.  
+- **Email**: Configuración para envío de correos.  
+    - **Host**: Servidor SMTP. Por ejemplo `smtp.gmail.com`  
+    - **Port**: Puerto del servidor. Por ejemplo `587`  
+    - **UserName y Password**: Credenciales de la cuenta de correo.
+   
 
-**LicenseKeyAutoMapper**: aquí ponemos la clave de licencia de AutoMapper para ello vamos aqui [obtener licencia](https://luckypennysoftware.com/#automapper) en esta pagina nos registramos y la licencia a escoger es la community
+**LicenseKeyAutoMapper**: Clave de licencia de AutoMapper. Se obtiene registrándose en [obtener licencia](https://luckypennysoftware.com/#automapper) y usando la licencia Community.
 ## Modificación del archivo GestorInventarioContext.cs 
 Una vez que hemos ejecutado el comando que realiza el scaffold pues tenemos que modificar este archivo agregando lo siguiente al metodo **OnConfiguring**
 ```csharp
