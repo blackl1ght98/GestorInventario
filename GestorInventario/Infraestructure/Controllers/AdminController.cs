@@ -26,8 +26,9 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IMapper _mapper;
         private readonly PolicyExecutor _policyExecutor;
         private readonly UtilityClass _utilityClass;
+        private readonly PaginationHelper _paginationHelper;
         public AdminController(IConfirmEmailService confirmEmailService, ILogger<AdminController> logger, IAdminRepository adminRepository,  GenerarPaginas generarPaginas, 
-        IMapper map, PolicyExecutor executor, UtilityClass utility)
+        IMapper map, PolicyExecutor executor, UtilityClass utility, PaginationHelper paginationHelper)
         {           
             _confirmEmailService = confirmEmailService;
             _logger = logger;
@@ -36,6 +37,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _mapper= map;
             _policyExecutor = executor;   
             _utilityClass = utility;
+            _paginationHelper = paginationHelper;
         }
 
         [Authorize(Roles = "Administrador")]
@@ -43,25 +45,24 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-              
+                var queryable = _policyExecutor.ExecutePolicy(() => _adminrepository.ObtenerUsuarios());
 
-                var queryable =  _policyExecutor.ExecutePolicy(() => _adminrepository.ObtenerUsuarios());
                 if (!string.IsNullOrEmpty(buscar))
                 {
                     queryable = queryable.Where(s => s.NombreCompleto.Contains(buscar));
                 }
 
-                // Aplicar paginación usando PaginarAsync
-                var (usuarios, totalItems) = await _policyExecutor.ExecutePolicyAsync(() => queryable.PaginarAsync(paginacion));
-                var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
-                var paginas = _generarPaginas.GenerarListaPaginas(totalPaginas, paginacion.Pagina, paginacion.Radio);
+                // 🔹 Usamos el helper directamente
+                var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
+                    _paginationHelper.PaginarAsync(queryable, paginacion)
+                );
 
                 var viewModel = new UsuariosViewModel
                 {
-                    Usuarios = usuarios,
-                    Paginas = paginas,
-                    TotalPaginas = totalPaginas,
-                    PaginaActual = paginacion.Pagina,
+                    Usuarios = paginationResult.Items,
+                    Paginas = paginationResult.Paginas.ToList(),              // viene del helper
+                    TotalPaginas = paginationResult.TotalPaginas,    // viene del helper
+                    PaginaActual = paginationResult.PaginaActual,    // viene del helper
                     Buscar = buscar
                 };
 
@@ -70,11 +71,11 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
-               
                 _logger.LogError(ex, "Error al obtener los datos del usuario");
                 return RedirectToAction("Error", "Home");
             }
         }
+
 
         public async Task<IActionResult> Create()
         {
@@ -90,49 +91,45 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-        
+
         [HttpPost]
         public async Task<IActionResult> Create(UserViewModel model)
         {
             try
             {
-               
-                if (ModelState.IsValid)
+                if (!ModelState.IsValid)
                 {
-                    var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.CrearUsuario(model));
-                    if (success)
-                    {
-                        TempData["SuccessMessage"] = "Usuario creado con exito";
-                        if (User.IsInRole("administrador")&& (User.Identity?.IsAuthenticated ?? false)) 
-                        {
-                            return RedirectToAction(nameof(Index));
-                        }
-                        else
-                        {
-                            return RedirectToAction("Login", "Auth");
-                        }
-                       
-                    }
-                    else
-                    {
-                        TempData["ErrorMessage"] = errorMessage;
-                    }
-                 await   CargarRolesEnViewData();
-
-
-                    return RedirectToAction("Login", "Auth");
+                    await CargarRolesEnViewData();
+                    return View(model);
                 }
-                return View(model);
+
+                var result = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.CrearUsuario(model));
+
+                if (!result.Success)
+                {
+                    TempData["ErrorMessage"] = result.Message;
+                    await CargarRolesEnViewData();
+                    return View(model);
+                }
+
+                TempData["SuccessMessage"] = result.Message;
+
+                if (User.IsInRole("administrador") && (User.Identity?.IsAuthenticated ?? false))
+                {
+                    return RedirectToAction(nameof(Index));
+                }
+
+                return RedirectToAction("Login", "Auth");
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
+                TempData["ConectionError"] = "El servidor tardó mucho en responder, inténtelo de nuevo más tarde.";
                 _logger.LogError(ex, "Error al realizar el registro del usuario");
                 return RedirectToAction("Error", "Home");
-            }         
+            }
         }
-        
-        [AllowAnonymous]
+
+            [AllowAnonymous]
         [HttpGet("admin/confirm-registration/{UserId}/{Token}")]
         public async Task<IActionResult> ConfirmRegistration(ConfirmRegistrationDto confirmar)
         {
@@ -215,24 +212,20 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
 
-
                 // Cargar roles para la vista en caso de error
                 if (!userVM.EsEdicionPropia)
                 {
                     await CargarRolesEnViewData();
-                }
-
-            
-
+                }           
                 if (!ModelState.IsValid)
                 {
                     return View(userVM);
                 }
-
-                var (success, errorMessage) = await _adminrepository.EditarUsuario(userVM);
-                if (success)
+                var result= await _adminrepository.EditarUsuario(userVM);
+               
+                if (result.Success)
                 {
-                    TempData["SuccessMessage"] = "Usuario actualizado con éxito";
+                    TempData["SuccessMessage"] = result.Message;
                     if (User.IsAdministrador() && User.Identity.IsAuthenticated)
                     {
                         return RedirectToAction(nameof(Index));
@@ -240,7 +233,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Index", "Home");
                 }
 
-                TempData["ErrorMessage"] = errorMessage;
+                TempData["ErrorMessage"] = result.Message;
                 return View(userVM);
             }
             catch (Exception ex)
@@ -278,16 +271,16 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
+               var result = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.EliminarUsuario(Id));
                
-                var (success, message) = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.EliminarUsuario(Id));
-                if (success)
+                if (result.Success)
                 {
-                    TempData["SuccessMessage"] = message;
+                    TempData["SuccessMessage"] = result.Message;
                     return RedirectToAction(nameof(Index));
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = message;
+                    TempData["ErrorMessage"] = result.Message;
                     return RedirectToAction(nameof(Delete), new { id = Id });
                 }
             }
@@ -303,15 +296,16 @@ namespace GestorInventario.Infraestructure.Controllers
         [Authorize(Roles ="Administrador")]
         public async Task<IActionResult> BajaUsuarioPost([FromBody] UsuarioRequest request)
         {
-            var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.BajaUsuario(request.Id));
-            if (success)
+            var result = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.BajaUsuario(request.Id));
+         
+            if (result.Success)
             {
                 return Json(new { success = true });
             }
             else
             {
-                TempData["ErrorMessage"] = errorMessage;
-                return Json(new { success = false, errorMessage = errorMessage });
+                TempData["ErrorMessage"] = result.Message;
+                return Json(new { success = false, errorMessage = result.Message });
             }
         }
         //Metodo que da de alta el usuario, este metodo se llaman desde el script alta-baja-usuario.js
@@ -319,15 +313,16 @@ namespace GestorInventario.Infraestructure.Controllers
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> AltaUsuarioPost([FromBody] UsuarioRequest request)
         {
-            var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.AltaUsuario(request.Id));
-            if (success)
+            var result = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.AltaUsuario(request.Id));
+          
+            if (result.Success)
             {
                 return Json(new { success = true });
             }
             else
             {
-                TempData["ErrorMessage"] = errorMessage;
-                return Json(new { success = false, errorMessage = errorMessage });
+                TempData["ErrorMessage"] = result.Message;
+                return Json(new { success = false, errorMessage = result.Message });
             }
         }
         [Authorize(Roles ="Administrador")]

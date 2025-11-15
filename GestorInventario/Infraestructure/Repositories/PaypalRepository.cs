@@ -228,7 +228,7 @@ namespace GestorInventario.Infraestructure.Repositories
             }
             
         }      
-        public async Task<(bool Success, string Message)> EnviarEmailNotificacionRembolso(int pedidoId, decimal montoReembolsado, string motivo)
+        public async Task<OperationResult<string>> EnviarEmailNotificacionRembolso(int pedidoId, decimal montoReembolsado, string motivo)
         {
             try
             {
@@ -241,7 +241,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 if (pedido == null)
                 {
                     _logger.LogWarning("No se encontró el pedido con ID {PedidoId}", pedidoId);
-                    return (false, "Pedido no encontrado");
+                    return OperationResult<string>.Fail("Pedido no encontrado");
                 }
 
                 var usuarioPedido = pedido.IdUsuarioNavigation?.Email ?? "Email no disponible";
@@ -273,13 +273,14 @@ namespace GestorInventario.Infraestructure.Repositories
 
                 // Enviar el correo
                 await _emailService.EnviarNotificacionReembolsoAsync(correo);
-
-                return (true, "Correo de notificación de reembolso enviado correctamente");
+                return OperationResult<string>.Ok("Correo de notificación de reembolso enviado correctamente");
+               
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al enviar notificación de reembolso para el pedido ID {PedidoId}", pedidoId);
-                return (false, $"Error al enviar el correo: {ex.Message}");
+                return OperationResult<string>.Fail("Error al enviar el correo");
+              
             }
         }
        

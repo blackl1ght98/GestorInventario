@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Domain.Models;
+using GestorInventario.Infraestructure.Utils;
 using GestorInventario.ViewModels.product;
 
 namespace GestorInventario.Interfaces.Infraestructure
@@ -9,14 +10,14 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<Producto> CrearProducto(ProductosViewModel model);      
         Task<List<Proveedore>> ObtenerProveedores();
         Task<(Producto?, string)> ObtenerProductoPorId(int id);
-        Task<(bool, string)> EliminarProducto(int Id);
+        Task<OperationResult<string>> EliminarProducto(int Id);
 
         IQueryable<HistorialProducto> ObtenerTodoHistorial();
         Task<HistorialProducto> ObtenerHistorialProductoPorId(int id);
-        
-        Task<(bool, string)> EliminarHistorialPorId(int Id);
+
+        Task<OperationResult<string>> EliminarHistorialPorId(int Id);
         Task<List<HistorialProducto>> EliminarTodoHistorial();
-        Task<(bool, string)> EditarProducto(ProductosViewModel model, int usuarioId);       
-        Task<(bool, string)> AgregarProductoAlCarrito(int userId, int idProducto, int cantidad);
+        Task<OperationResult<string>> EditarProducto(ProductosViewModel model, int usuarioId);
+        Task<OperationResult<string>> AgregarProductoAlCarrito(int userId, int idProducto, int cantidad);
     }
 }

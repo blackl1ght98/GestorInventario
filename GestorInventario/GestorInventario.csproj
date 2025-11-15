@@ -7,6 +7,7 @@
     <UserSecretsId>1e6d9d2a-9d51-467e-b611-b6db2e3b055e</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
+
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +15,7 @@
     <PackageReference Include="AutoMapper" Version="15.0.1" />
     <PackageReference Include="LigerShark.WebOptimizer.Core" Version="3.0.477" />
     <PackageReference Include="MailKit" Version="4.13.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="9.0.9" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.StackExchangeRedis" Version="9.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.7" />
@@ -34,6 +36,7 @@
 
   <ItemGroup>
     <Folder Include="Documentación tecnica\Guias\" />
+    <Folder Include="MetodosExtension\Interfaces\" />
     <Folder Include="wwwroot\imagenes\" />
   </ItemGroup>
 

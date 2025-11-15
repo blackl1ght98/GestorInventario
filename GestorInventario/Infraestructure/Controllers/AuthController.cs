@@ -217,17 +217,17 @@ namespace GestorInventario.Infraestructure.Controllers
                 return View("RestorePassword", cambio);
             }
 
-            var (success,mensaje,modelo) = await _authRepository.PrepareRestorePassModel(cambio.UserId, cambio.Token);
-            if (!success)
+            var resultado = await _authRepository.PrepareRestorePassModel(cambio.UserId, cambio.Token);
+            if (!resultado.Success)
             {
-                TempData["ErrorMessage"] =mensaje;
+                TempData["ErrorMessage"] =resultado.Message;
                 return RedirectToAction("ResetPasswordOlvidada");
             }
 
             try
             {
-                var (exito, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _authRepository.SetNewPasswordAsync(cambio));
-                if (exito)
+                var result = await _policyExecutor.ExecutePolicyAsync(() => _authRepository.SetNewPasswordAsync(cambio));
+                if (result.Success)
                 {
                     if ((User.Identity?.IsAuthenticated ?? false) && User.IsAdministrador())
                         return RedirectToAction("Index", "Admin");
@@ -236,7 +236,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = errorMessage;
+                    TempData["ErrorMessage"] = result.Message;
                     return View("RestorePassword", cambio);
                 }
             }
@@ -298,8 +298,8 @@ namespace GestorInventario.Infraestructure.Controllers
         public async Task<IActionResult> ChangePassword(string passwordAnterior, string passwordActual)
         {
 
-            var (succes, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _authRepository.ChangePassword(passwordAnterior, passwordActual));
-            if (succes)
+            var resultado = await _policyExecutor.ExecutePolicyAsync(() => _authRepository.ChangePassword(passwordAnterior, passwordActual));
+            if (resultado.Success)
             {
                 if (User.Identity.IsAuthenticated && User.IsAdministrador())
                 {
@@ -312,7 +312,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             else
             {
-                TempData["ErrorMessage"] = errorMessage;
+                TempData["ErrorMessage"] = resultado.Message;
                 return View(nameof(ChangePassword));
             }
 

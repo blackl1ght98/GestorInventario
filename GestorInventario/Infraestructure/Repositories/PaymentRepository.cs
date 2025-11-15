@@ -1,6 +1,7 @@
 ﻿using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Application.DTOs.Response_paypal.GET;
 using GestorInventario.Domain.Models;
+using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
@@ -29,12 +30,16 @@ namespace GestorInventario.Infraestructure.Repositories
                 .FirstOrDefaultAsync();
             return email;
         }
-        public async Task<(Pedido?,string)> ObtenerNumeroPedido(RefundForm form)
+        public async Task<OperationResult<Pedido>> ObtenerNumeroPedido(RefundForm form)
         {
             var numeroPedido= await _context.Pedidos.FirstOrDefaultAsync(p => p.NumeroPedido == form.NumeroPedido);
-            return numeroPedido is null ? (null,"El numero del pedido no se encuentra"):(numeroPedido,"NumeroPedido encontrado");
+            if(numeroPedido is null)
+            {
+                return OperationResult<Pedido>.Fail("El numero de pedido no se encuentra");
+            }
+            return OperationResult<Pedido>.Ok("", numeroPedido);
         }
-        public async Task<(Pedido?, string)> AgregarInfoPedido(int usuarioActual, string? captureId, string? total, string? currency, string? orderId)
+        public async Task<OperationResult<Pedido>> AgregarInfoPedido(int usuarioActual, string? captureId, string? total, string? currency, string? orderId)
         {
             // Validar parámetros de entrada
             if (string.IsNullOrWhiteSpace(captureId) || string.IsNullOrWhiteSpace(total) ||
@@ -42,7 +47,7 @@ namespace GestorInventario.Infraestructure.Repositories
             {
                 _logger.LogWarning("Parámetros inválidos en AgregarInfoPedido: usuarioActual={UsuarioId}, captureId={CaptureId}, total={Total}, currency={Currency}, orderId={OrderId}",
                     usuarioActual, captureId, total, currency, orderId);
-                return (null, "Los datos proporcionados son inválidos.");
+                return OperationResult<Pedido>.Fail("Datos no validos");
             }
 
             var pedido = await _context.Pedidos
@@ -53,7 +58,7 @@ namespace GestorInventario.Infraestructure.Repositories
             if (pedido == null)
             {
                 _logger.LogWarning("No se encontró un pedido en proceso para el usuario {UsuarioId}", usuarioActual);
-                return (null, "No se encontró un pedido en proceso para este usuario.");
+                return OperationResult<Pedido>.Fail("Pedido no encontrado para el usuario especificado");
             }
 
             try
@@ -65,20 +70,20 @@ namespace GestorInventario.Infraestructure.Repositories
                 pedido.EstadoPedido = "Pagado";
 
                 await _context.UpdateEntityAsync(pedido);
-                return (pedido, string.Empty);
+                return OperationResult<Pedido>.Ok("",pedido);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al actualizar el pedido para usuario {UsuarioId}, captureId={CaptureId}", usuarioActual, captureId);
-                return (null, "Ocurrió un error al actualizar el pedido.");
+                return OperationResult<Pedido>.Fail("Ocurrio un error al agregar el pedido");
             }
         }
-        public PayPalPaymentDetail ProcesarDetallesSuscripcion( CheckoutDetails detallespago)
+        public PayPalPaymentDetail ProcesarDetallesSuscripcion(CheckoutDetails detallespago)
         {
             if (detallespago.PurchaseUnits == null || !detallespago.PurchaseUnits.Any())
             {
                 _logger.LogInformation("No se encuentran las unidades de pago en la peticion");
-                throw new InvalidOperationException("No purchase units found");
+                throw new InvalidOperationException("No se encuentran las unidades de pago en la peticion");
             }
 
             var firstPurchaseUnit = detallespago.PurchaseUnits.First();
@@ -170,7 +175,7 @@ namespace GestorInventario.Infraestructure.Repositories
 
             return detallesSuscripcion;
         }
-        public async Task<(PayPalPaymentItem?,string)> ProcesarRembolso(PurchaseUnitsBse firstPurchaseUnit, PayPalPaymentDetail detallesSuscripcion,int usuarioActual, RefundForm form,Pedido obtenerNumeroPedido, string emailCliente)
+        public async Task<OperationResult<PayPalPaymentItem>> ProcesarRembolso(PurchaseUnitsBse firstPurchaseUnit, PayPalPaymentDetail detallesSuscripcion,int usuarioActual, RefundForm form,Pedido obtenerNumeroPedido, string emailCliente)
         {
             // Lista para almacenar los ítems de PayPal
             var paypalItems = new List<PayPalPaymentItem>();
@@ -225,9 +230,9 @@ namespace GestorInventario.Infraestructure.Repositories
             if (!paypalItems.Any())
             {
                 _logger.LogError($"No se encontraron ítems en PurchaseUnits para el reembolso del pedido {form.NumeroPedido}.");
-                return (null,"No se puede procesar un reembolso sin ítems asociados.");
+                return OperationResult<PayPalPaymentItem>.Fail("No se puede procesar el rembolso sin items asociados");
             }
-            return (paypalItems.First(),"Rembolso procesado con exito");
+            return OperationResult<PayPalPaymentItem>.Ok("",paypalItems.First());
 
         }
         public decimal? ConvertToDecimal(object value)

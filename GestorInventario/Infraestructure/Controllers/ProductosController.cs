@@ -221,15 +221,15 @@ namespace GestorInventario.Infraestructure.Controllers
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {                  
-                    var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.EliminarProducto(Id));
-                    if (success)
+                    var success = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.EliminarProducto(Id));
+                    if (success.Success)
                     {
                        
                         return RedirectToAction(nameof(Index));
                     }
                     else
                     {
-                        TempData["ErrorMessage"] = errorMessage;
+                        TempData["ErrorMessage"] = success.Message;
                         return RedirectToAction(nameof(Delete), new { id = Id });
                     }
                 }
@@ -300,14 +300,14 @@ namespace GestorInventario.Infraestructure.Controllers
                         if (int.TryParse(existeUsuario, out usuarioId))
                         {
 
-                            var (success,errorMesage)= await _policyExecutor.ExecutePolicyAsync(()=> _productoRepository.EditarProducto(model, usuarioId))  ;
-                            if (success)
+                            var success= await _policyExecutor.ExecutePolicyAsync(()=> _productoRepository.EditarProducto(model, usuarioId))  ;
+                            if (success.Success)
                             {
                                 return RedirectToAction(nameof(Index));
                             }
                             else
                             {
-                                TempData["ErrorMessage"] = errorMesage;
+                                TempData["ErrorMessage"] = success.Message;
                             }
 
                            
@@ -338,15 +338,15 @@ namespace GestorInventario.Infraestructure.Controllers
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {
-                    var (success,errorMessage)= await _policyExecutor.ExecutePolicyAsync(()=> _productoRepository.AgregarProductoAlCarrito(idProducto, cantidad, usuarioId)) ;
-                    if (success) 
+                    var success= await _policyExecutor.ExecutePolicyAsync(()=> _productoRepository.AgregarProductoAlCarrito(idProducto, cantidad, usuarioId)) ;
+                    if (success.Success) 
                     {
                         return RedirectToAction("Index");
 
                     }
                     else
                     {
-                        TempData["ErrorMessage"] = errorMessage;
+                        TempData["ErrorMessage"] = success.Message;
                     }
                 }
                 return RedirectToAction("Index");
@@ -490,15 +490,15 @@ namespace GestorInventario.Infraestructure.Controllers
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {
-                    var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.EliminarHistorialPorId(Id));
-                    if (success)
+                    var success = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.EliminarHistorialPorId(Id));
+                    if (success.Success)
                     {
 
                         return RedirectToAction(nameof(HistorialProducto));
                     }
                     else
                     {
-                        TempData["ErrorMessage"] = errorMessage;
+                        TempData["ErrorMessage"] = success.Message;
                         return RedirectToAction(nameof(Delete), new { id = Id });
                     }
 

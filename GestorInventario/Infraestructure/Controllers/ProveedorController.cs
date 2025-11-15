@@ -102,8 +102,8 @@ namespace GestorInventario.Infraestructure.Controllers
 
                
 
-                    var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.CrearProveedor(model));
-                    if (success)
+                    var success = await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.CrearProveedor(model));
+                    if (success.Success)
                     {
                         TempData["SuccessMessage"] = "Los datos se han creado con éxito.";
                     }
@@ -132,13 +132,13 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
 
-                var (proveedor,mensaje) = await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.ObtenerProveedorId(id));
+                var proveedor = await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.ObtenerProveedorId(id));
                 if (proveedor == null)
                 {
-                    TempData["NotFoundError"]= mensaje;
+                    TempData["NotFoundError"]= proveedor.Message;
                 }
 
-                return View(proveedor);
+                return View(proveedor.Data);
             }
             catch (Exception ex)
             {
@@ -159,15 +159,15 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
                
-                var (success,errorMessagee)=await _policyExecutor.ExecutePolicyAsync(()=> _proveedorRepository.EliminarProveedor(Id)) ;
-                if (success)
+                var success = await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.EliminarProveedor(Id));
+                if (success.Success)
                 {
                     TempData["SuccessMessage"] = "Los datos se han eliminado con éxito.";
                     return RedirectToAction(nameof(Index));
                 }
                 else
                 {
-                    TempData["ErrorMessage"]=errorMessagee;
+                    TempData["ErrorMessage"]=success.Message;
                     return RedirectToAction(nameof(Delete), new { id = Id });
                 }
               
@@ -192,13 +192,13 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 var usuarios = new SelectList(await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.ObtenerProveedoresLista()), "Id", "NombreCompleto");
 
-                var (proveedores,mensaje) = await _proveedorRepository.ObtenerProveedorId(id);
+                var proveedores = await _proveedorRepository.ObtenerProveedorId(id);
                 var model = new ProveedorViewModel
                 {
-                    NombreProveedor= proveedores.NombreProveedor,
-                    Contacto = proveedores.Contacto,
-                    Direccion = proveedores.Direccion,
-                    IdUsuario = proveedores.IdUsuario,
+                    NombreProveedor= proveedores.Data.NombreProveedor,
+                    Contacto = proveedores.Data.Contacto,
+                    Direccion = proveedores.Data.Direccion,
+                    IdUsuario = proveedores.Data.IdUsuario,
                     Usuarios = usuarios
                 };
                 return View(model);
@@ -221,14 +221,14 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
-                var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.EditarProveedor(model, Id));
-                if (success)
+                var success = await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.EditarProveedor(model, Id));
+                if (success.Success)
                 {
                     return RedirectToAction("Index");
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = errorMessage;
+                    TempData["ErrorMessage"] = success.Message;
                 }
 
                 return RedirectToAction("Index");

@@ -1,4 +1,5 @@
 ﻿ using GestorInventario.Application.Classes;
+using GestorInventario.Application.DTOs;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Infraestructure;
@@ -30,11 +31,15 @@ namespace GestorInventario.Infraestructure.Repositories
         }
 
         // Obtener el carrito del usuario (Pedidos con EsCarrito = 1)
-        public async Task<(Pedido?,string)> ObtenerCarritoUsuario(int userId)
+        public async Task<OperationResult<Pedido>> ObtenerCarritoUsuario(int userId)
         {
             var carrito = await _context.Pedidos
                 .FirstOrDefaultAsync(x => x.IdUsuario == userId && x.EsCarrito);
-            return carrito is null ? (null,"No se puede obtener el carrito del usuario"): (carrito,"Carrito obtenido con exito");
+            if (carrito == null) {
+                return OperationResult<Pedido>.Fail("No se puede obtener el carrito del usuario");
+            }
+            return OperationResult<Pedido>.Ok("Carrito obtenido con exito", carrito);
+            
         }
 
         // Obtener ítems del carrito (DetallePedido para un Pedido con EsCarrito = 1)
@@ -46,12 +51,17 @@ namespace GestorInventario.Infraestructure.Repositories
         }
 
         // Obtener un ítem específico del carrito por ID
-        public async Task<(DetallePedido?,string)> ItemsDelCarrito(int id)
+        public async Task<OperationResult<DetallePedido>> ItemsDelCarrito(int id)
         {
-            var itemsCarrito = await _context.DetallePedidos
+            var item = await _context.DetallePedidos
                 .FirstOrDefaultAsync(x => x.Id == id);
-            return itemsCarrito is null ? (null, "No hay productos en el carrito") : (itemsCarrito, "Productos obtenidos");
+
+            if (item is null)
+                return OperationResult<DetallePedido>.Fail("No hay productos en el carrito");
+
+            return OperationResult<DetallePedido>.Ok("Productos obtenidos",item);
         }
+
 
         // Obtener ítems con datos relacionados (producto y proveedor)
         public IQueryable<DetallePedido> ObtenerItemsConDetalles(int pedidoId)
@@ -84,7 +94,8 @@ namespace GestorInventario.Infraestructure.Repositories
            
             try
             {
-                var (carrito,mensaje) = await ObtenerCarritoUsuario(userId);
+                var resultado = await ObtenerCarritoUsuario(userId);
+                var carrito = resultado.Data;
                 if (carrito == null)
                 {
                     carrito = new Pedido
@@ -109,21 +120,22 @@ namespace GestorInventario.Infraestructure.Repositories
         }
 
 
-        public async Task<(bool, string, string)> PagarV2(string moneda, int userId)
+        public async Task<OperationResult<string>> PagarV2(string moneda, int userId)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 // Recolectar información del usuario
-                var (infoUsuario,mensaje) = await ValidarUsuarioYObtenerInfo();
-
+                var result = await ValidarUsuarioYObtenerInfo();
+                var infoUsuario = result.Data;
                 //Validar y obtener items del carrito
-                var (success, message, carrito, itemsDelCarrito) = await ValidarCarritoYObtenerItems(userId);
-                if (!success)
+                var resultado = await ValidarCarritoYObtenerItems(userId);
+                if (!resultado.Success)
                 {
-                    return (false, message, "");
+                    return OperationResult<string>.Fail(resultado.Message);
                 }
-
+                var carrito = resultado.Data.Carrito;
+                var itemsDelCarrito = resultado.Data.Items;
                 // Convertir el carrito en un pedido
                 await ConvertirCarritoAPedido(carrito);
 
@@ -131,32 +143,34 @@ namespace GestorInventario.Infraestructure.Repositories
                 moneda = string.IsNullOrEmpty(moneda) ? "EUR" : moneda;
                 var checkout = await PrepararCheckoutParaPagoPayPal(itemsDelCarrito, moneda, infoUsuario);
                 // Iniciar pago con PayPal
-                var (paypalSuccess, paypalMessage, approvalUrl) = await ProcesarPagoPayPal(checkout);
-                if (!paypalSuccess)
+                var  approvalUrl = await ProcesarPagoPayPal(checkout);
+                if (!approvalUrl.Success)
                 {
                     await transaction.RollbackAsync();
-                    return (false, paypalMessage, "");
+                    return OperationResult<string>.Fail(approvalUrl.Message);
                 }
                 await RegistrarHistorialPedido(carrito, itemsDelCarrito);
                 await EliminarCarritosVaciosUsuario(userId);
 
                 await transaction.CommitAsync();
-                return (true, "Redirigiendo a PayPal para completar el pago", approvalUrl);
+                return OperationResult<string>.Ok("Redirigiendo a PayPal para completar el pago", approvalUrl.Data);
+               
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al realizar el pago");
                 await transaction.RollbackAsync();
-                return (false, "Ocurrió un error inesperado. Por favor, contacte con el administrador o intentelo de nuevo más tarde.", "");
+                return OperationResult<string>.Fail("Ocurrió un error inesperado. Por favor, contacte con el administrador o intentelo de nuevo más tarde.");
+                
             }
         }
-        private async Task<(InfoUsuario?,string)> ValidarUsuarioYObtenerInfo()
+        private async Task<OperationResult<InfoUsuario>> ValidarUsuarioYObtenerInfo()
         {
             var usuarioId = _utilityClass.ObtenerUsuarioIdActual();
             var (usuarioActual,mensaje) = await _admin.ObtenerPorId(usuarioId);
             if(usuarioActual == null)
             {
-                return (null, "El usuario no existe");
+                return OperationResult<InfoUsuario>.Fail("El usuario no existe");
             }
             var infoUsuario = new InfoUsuario
             {
@@ -168,24 +182,32 @@ namespace GestorInventario.Infraestructure.Repositories
                 Line2 = usuarioActual.Direccion.Split(",").Length > 1 ? usuarioActual.Direccion.Split(",")[1].Trim() : ""
             };
            
-            return (infoUsuario,"Informacion obtenida");
+            return OperationResult<InfoUsuario>.Ok("Validacion exitosa",infoUsuario);
         }
-        private async Task<(bool Success, string Message, Pedido? Carrito, List<DetallePedido> Items)> ValidarCarritoYObtenerItems(int userId)
+        private async Task<OperationResult<CarritoConItems>> ValidarCarritoYObtenerItems(int userId)
         {
-            var (carrito, mensaje) = await ObtenerCarritoUsuario(userId);
+            var result = await ObtenerCarritoUsuario(userId);
+            var carrito = result.Data;
             if (carrito == null)
             {
-                return (false, "No se encontró un carrito para el usuario.", null, new List<DetallePedido>());
+                return OperationResult<CarritoConItems>.Fail("No se encontró un carrito para el usuario.");
             }
 
             var itemsDelCarrito = await ObtenerItemsDelCarritoUsuario(carrito.Id);
             if (!itemsDelCarrito.Any())
             {
-                return (false, "El carrito está vacío.", carrito, itemsDelCarrito);
+                return OperationResult<CarritoConItems>.Fail("El carrito está vacío.");
             }
 
-            return (true, string.Empty, carrito, itemsDelCarrito);
+            var resultado = new CarritoConItems
+            {
+                Carrito = carrito,
+                Items = itemsDelCarrito
+            };
+
+            return OperationResult<CarritoConItems>.Ok("Validacion exitosa",resultado);
         }
+
         private async Task ConvertirCarritoAPedido(Pedido carrito)
         {
            
@@ -259,16 +281,17 @@ namespace GestorInventario.Infraestructure.Repositories
             var returnUrl = _configuration[configKey] ?? Environment.GetEnvironmentVariable(envVarKey);
             return returnUrl ?? throw new InvalidOperationException($"La URL de retorno no está configurada. Verifique la clave '{configKey}' o la variable de entorno '{envVarKey}'.");
         }
-        private async Task<(bool, string, string)> ProcesarPagoPayPal(Checkout checkout)
+        private async Task<OperationResult<string>> ProcesarPagoPayPal(Checkout checkout)
         {
             var createdPaymentJson = await _paypalService.CreateOrderWithPaypalAsync(checkout);
             var createdPayment = JsonConvert.DeserializeObject<PayPalOrderResponse>(createdPaymentJson);
             var approvalUrl = createdPayment?.Links?.FirstOrDefault(x => x.Rel == "payer-action")?.Href;
             if (!string.IsNullOrEmpty(approvalUrl))
             {
-                return (true, "Redirigiendo a PayPal para completar el pago", approvalUrl);
+                return OperationResult<string>.Ok("Redirigiendo a PayPal para completar el pago", approvalUrl);
+                
             }
-            return (false, "Fallo al iniciar el pago con PayPal", "");
+            return OperationResult<string>.Fail("Error al procesar el pago con paypal");
         }
 
 
@@ -354,15 +377,16 @@ namespace GestorInventario.Infraestructure.Repositories
         }
 
 
-        public async Task<(bool, string)> Incremento(int id)
+        public async Task<OperationResult<string>> Incremento(int id)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var (detalle,mensaje) = await ItemsDelCarrito(id);
+                var resultado = await ItemsDelCarrito(id);
+                var detalle = resultado.Data;
                 if (detalle == null)
                 {
-                    return (false, mensaje);
+                    return OperationResult<string>.Fail(resultado.Message);
                 }
 
                 detalle.Cantidad++;
@@ -372,31 +396,33 @@ namespace GestorInventario.Infraestructure.Repositories
                 if (producto == null || producto.Cantidad <= 0)
                 {
                     await transaction.RollbackAsync();
-                    return (false, "No hay suficiente inventario para el producto seleccionado.");
+                    return OperationResult<string>.Fail("Inventario insuficiente para el producto elegido");
                 }
 
                 producto.Cantidad--;
                 await _context.UpdateEntityAsync(producto);
                 await transaction.CommitAsync();
-                return (true, "");
+                return OperationResult<string>.Ok("Incremento realizado con exito");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al realizar el incremento");
                 await transaction.RollbackAsync();
-                return (false, "Ocurrió un error inesperado. Por favor, contacte con el administrador o intentelo de nuevo más tarde.");
+                return OperationResult<string>.Fail("Ocurrio un error inesperado al incrementar el producto, intentelo de nuevo mas tarde");
+               
             }
         }
 
-        public async Task<(bool, string)> Decremento(int id)
+        public async Task<OperationResult<string>> Decremento(int id)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var (detalle,mensaje) = await ItemsDelCarrito(id);
+                var resultado = await ItemsDelCarrito(id);
+                var detalle = resultado.Data;
                 if (detalle == null)
                 {
-                    return (false, mensaje);
+                    return OperationResult<string>.Fail(resultado.Message);
                 }
 
                 detalle.Cantidad--;
@@ -413,24 +439,24 @@ namespace GestorInventario.Infraestructure.Repositories
                 if (producto == null)
                 {
                     await transaction.RollbackAsync();
-                    return (false, "El producto no existe.");
+                    return OperationResult<string>.Fail("El producto no existe");
                 }
 
                 producto.Cantidad++;
                 await _context.UpdateEntityAsync(producto);
 
                 await transaction.CommitAsync();
-                return (true, "");
+                return OperationResult<string>.Ok("Incremento realizado con exito");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al realizar el decremento");
                 await transaction.RollbackAsync();
-                return (false, "Ocurrió un error inesperado. Por favor, contacte con el administrador o intentelo de nuevo más tarde.");
+                return OperationResult<string>.Fail("Ocurrio un error inesperado al decrementar el producto, intentelo de nuevo mas tarde");
             }
         }
 
-        public async Task<(bool, string)> EliminarProductoCarrito(int id)
+        public async Task<OperationResult<string>> EliminarProductoCarrito(int id)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -438,7 +464,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 var detalle = await _context.DetallePedidos.FirstOrDefaultAsync(x => x.Id == id);
                 if (detalle == null)
                 {
-                    return (false, "No se puede eliminar porque no hay productos.");
+                    return OperationResult<string>.Fail("No se puede eliminar porque no hay productos");
                 }
 
                 var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == detalle.ProductoId);
@@ -450,13 +476,14 @@ namespace GestorInventario.Infraestructure.Repositories
 
                 await _context.DeleteEntityAsync(detalle);
                 await transaction.CommitAsync();
-                return (true, "");
+                return OperationResult<string>.Ok("Eliminacion exitosa del producto");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al realizar la eliminación del producto del carrito");
                 await transaction.RollbackAsync();
-                return (false, "Ocurrió un error inesperado. Por favor, contacte con el administrador o intentelo de nuevo más tarde.");
+                return OperationResult<string>.Fail("Ocurrió un error inesperado. Por favor, contacte con el administrador o intentelo de nuevo más tarde.");
+                
             }
         }
     }

@@ -7,6 +7,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GestorInventario", "GestorI
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{DF1CEC75-5666-4E37-B7B8-C88D8C76DF86}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PruebasUnitarias", "..\PruebasUnitarias\PruebasUnitarias.csproj", "{A0E3B7E6-DC06-446A-A08D-B67FE1B035EF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E2F2198E-0D35-4F40-94BF-F27498B73586} = {E2F2198E-0D35-4F40-94BF-F27498B73586}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +26,10 @@ Global
 		{DF1CEC75-5666-4E37-B7B8-C88D8C76DF86}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DF1CEC75-5666-4E37-B7B8-C88D8C76DF86}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DF1CEC75-5666-4E37-B7B8-C88D8C76DF86}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0E3B7E6-DC06-446A-A08D-B67FE1B035EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0E3B7E6-DC06-446A-A08D-B67FE1B035EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0E3B7E6-DC06-446A-A08D-B67FE1B035EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0E3B7E6-DC06-446A-A08D-B67FE1B035EF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

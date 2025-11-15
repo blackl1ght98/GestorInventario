@@ -35,39 +35,43 @@ namespace GestorInventario.Infraestructure.Repositories
             return login is null ? (null, "Email no encontrado") : (login, "Login exitoso");
         }
       
-        public async Task<(bool, string)> ValidateResetTokenAsync(RestoresPasswordDto cambio)
+        public async Task<OperationResult<string>> ValidateResetTokenAsync(RestoresPasswordDto cambio)
         {
             try
             {
-                var (valido, mensaje, _) = await ValidarTokenCambioPass(cambio);
-                return (valido, mensaje);
+                var resultado = await ValidarTokenCambioPass(cambio);
+                return OperationResult<string>.Ok("Validacion exitosa");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al restaurar la contraseña");
-                return (false, "Ocurrió un error inesperado. Por favor, contacte al administrador o intente nuevamente.");
+                return OperationResult<string>.Fail("Ocurrió un error inesperado. Por favor, contacte al administrador o intente nuevamente.");
+                
             }
         }
 
 
-        public async Task<(bool, string)> SetNewPasswordAsync(RestoresPasswordDto cambio)
+        public async Task<OperationResult<string>> SetNewPasswordAsync(RestoresPasswordDto cambio)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var (valido, mensaje, usuarioDB) = await ValidarTokenCambioPass(cambio);
-                if (!valido)
-                    return (false, mensaje);
+                var resultadoValidacion = await ValidarTokenCambioPass(cambio);
+
+                if (!resultadoValidacion.Success)
+                    return OperationResult<string>.Fail(resultadoValidacion.Message);
+
+                var usuarioDB = resultadoValidacion.Data;
+
                 if (usuarioDB == null)
-                {
-                    return (false, "Usuario no encontrado");
-                }
+                    return OperationResult<string>.Fail("Usuario no encontrado");
+
                 if (string.IsNullOrEmpty(cambio.Password))
-                    return (false, "La contraseña no puede estar vacía");
+                    return OperationResult<string>.Fail("La contraseña no puede estar vacía");
 
                 var resultadoHashTemp = _hashService.Hash(cambio.TemporaryPassword, usuarioDB.Salt);
                 if (usuarioDB.TemporaryPassword != resultadoHashTemp.Hash)
-                    return (false, "La contraseña temporal no es válida");
+                    return OperationResult<string>.Fail("La contraseña temporal no es válida");
 
                 var resultadoHash = _hashService.Hash(cambio.Password);
                 usuarioDB.Password = resultadoHash.Hash;
@@ -76,17 +80,18 @@ namespace GestorInventario.Infraestructure.Repositories
                 await _context.UpdateEntityAsync(usuarioDB);
                 await transaction.CommitAsync();
 
-                return (true, "Contraseña establecida con exito");
+                return OperationResult<string>.Ok("Contraseña cambiada con exito");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al actualizar la contraseña");
                 await transaction.RollbackAsync();
-                return (false, "Ocurrió un error inesperado. Por favor, contacte al administrador o intente nuevamente.");
+                return OperationResult<string>.Fail("Ocurrió un error inesperado. Por favor, contacte al administrador o intente nuevamente.");
             }
         }
 
-        public async Task<(bool, string)> ChangePassword(string passwordAnterior, string passwordActual)
+
+        public async Task<OperationResult<string>> ChangePassword(string passwordAnterior, string passwordActual)
         {
             using var transaction= await _context.Database.BeginTransactionAsync();
             try
@@ -95,39 +100,40 @@ namespace GestorInventario.Infraestructure.Repositories
                     var usuarioDB = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == usuarioId);
                     if (usuarioDB == null)
                     {
-                        return (false, "Usuario no encontrado");
+                        return OperationResult<string>.Fail("Usuario no encontrado");
                     }
                     var anteriorpass = _hashService.Hash(passwordAnterior, usuarioDB.Salt);
                     if (usuarioDB.Password != anteriorpass.Hash)
                     {
-                        return (false, "Contraseña anterior incorrecta");
+                        return OperationResult<string>.Fail("Contraseña anterior incorrecta");
                     }
                     var actualPassword = _hashService.Hash(passwordActual);
                     usuarioDB.Password = actualPassword.Hash;
                     usuarioDB.Salt = actualPassword.Salt;
                     await _context.UpdateEntityAsync(usuarioDB);
                     await transaction.CommitAsync();
-                    return (true, "Contraseña actualizada con exito");                             
+                    return OperationResult<string>.Ok("Contraseña cambiada con exito");                             
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al cambiar la contraseña");
                 await transaction.RollbackAsync();
-                return (false, "Ocurrio un error inesperado por favor contacte con el administrador o intentelo de nuevo mas tarde");
+                return OperationResult<string>.Fail("Ocurrio un error inesperado por favor contacte con el administrador o intentelo de nuevo mas tarde");
+                
             }
            
         }
-        private async Task<(bool valido, string mensaje, Usuario? usuario)> ValidarTokenCambioPass(RestoresPasswordDto cambio)
+        private async Task<OperationResult<Usuario>> ValidarTokenCambioPass(RestoresPasswordDto cambio)
         {
             
             try
             {
                 var (usuario,mensaje) = await _adminRepository.ObtenerPorId(cambio.UserId);
                 if (usuario == null)
-                    return (false, mensaje, null);
+                    return OperationResult<Usuario>.Fail("El usuario no existe");
 
                 if (usuario.EnlaceCambioPass != cambio.Token)
-                    return (false, "Token no válido", null);
+                    return OperationResult<Usuario>.Fail("El token no es valido");
 
                 if (usuario.FechaEnlaceCambioPass < DateTime.Now || usuario.FechaExpiracionContrasenaTemporal < DateTime.Now)
                 {
@@ -136,13 +142,13 @@ namespace GestorInventario.Infraestructure.Repositories
                     usuario.TemporaryPassword = null;
                     await _context.SaveChangesAsync();
                    
-                    return (false, "El enlace y contraseña temporal han expirado. Solicite una nueva.", null);
+                    return OperationResult<Usuario>.Fail("El enlace y contraseña temporal han expirado. Solicite una nueva");
                 };
-                return (true, "Token valido", usuario);
+                return OperationResult<Usuario>.Ok("Token valido", usuario);
             }
             catch (Exception ex) {
                 _logger.LogCritical(ex, "Error al validar el token");
-                return (false,"Ocurrio un error inesperado al validar el token", null);
+                return OperationResult<Usuario>.Fail("Ocurrió un error inesperado al validar el token.");
             
             
             }
@@ -176,7 +182,7 @@ namespace GestorInventario.Infraestructure.Repositories
              
             }
         }
-        public async Task<(bool, string, RestoresPasswordDto?)> PrepareRestorePassModel(int userId, string token)
+        public async Task<OperationResult<RestoresPasswordDto>> PrepareRestorePassModel(int userId, string token)
         {
             try
             {
@@ -186,16 +192,16 @@ namespace GestorInventario.Infraestructure.Repositories
                     Token = token
                 };
 
-                var (success, errorMessage) = await ValidateResetTokenAsync(cambio);
-                if (!success)
-                    return (false, errorMessage, null);
+                var resultado = await ValidateResetTokenAsync(cambio);
+                if (!resultado.Success)
+                    return OperationResult<RestoresPasswordDto>.Fail(resultado.Message);
 
-                return (true, "Modelo preparado con exito", cambio);
+                return OperationResult<RestoresPasswordDto>.Ok("Modelo preparado con éxito", cambio);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al validar el token de restauración de contraseña");
-                return (false, "El servidor tardó mucho en responder, inténtelo de nuevo más tarde", null);
+                return OperationResult<RestoresPasswordDto>.Fail("El servidor tardó mucho en responder, inténtelo de nuevo más tarde");
             }
         }
     }

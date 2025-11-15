@@ -1,6 +1,7 @@
 ﻿using GestorInventario.Application.DTOs;
 using GestorInventario.Application.DTOs.Response_paypal.POST;
 using GestorInventario.Domain.Models;
+using GestorInventario.Infraestructure.Utils;
 
 namespace GestorInventario.Interfaces.Infraestructure
 {
@@ -28,6 +29,6 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task SaveUserSubscriptionAsync(int userId, string subscriptionId, string subscriberName, string planId);
         Task<SubscriptionDetail> CreateSubscriptionDetailAsync(dynamic subscriptionDetails, string planId, IPaypalService paypalService);
         Task UpdateSubscriptionStatusAsync(string subscriptionId, string status);
-        Task<(bool Success, string Message)> EnviarEmailNotificacionRembolso(int pedidoId, decimal montoReembolsado, string motivo);
+        Task<OperationResult<string>> EnviarEmailNotificacionRembolso(int pedidoId, decimal montoReembolsado, string motivo);
     }
 }

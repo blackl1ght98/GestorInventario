@@ -575,14 +575,14 @@ namespace GestorInventario.Application.Services
                 );
 
                 // Enviar notificación por correo
-                var (emailSuccess, emailMessage) = await _unitOfWork.PaypalRepository.EnviarEmailNotificacionRembolso(
+                var emailSuccess = await _unitOfWork.PaypalRepository.EnviarEmailNotificacionRembolso(
                     pedido.Pedido.Id,
                     totalAmount,
                     motivo
                 );
-                if (!emailSuccess)
+                if (!emailSuccess.Success)
                 {
-                    _logger.LogWarning("No se pudo enviar el correo de notificación: {EmailMessage}", emailMessage);
+                    _logger.LogWarning("No se pudo enviar el correo de notificación: {EmailMessage}", emailSuccess.Message);
                 }
 
                 return responseBody;

@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Domain.Models;
+using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using Microsoft.EntityFrameworkCore;
@@ -22,7 +23,7 @@ namespace GestorInventario.Infraestructure.Repositories
             .Include(x => x.Pedido)  
             .AsQueryable());
         }
-        public async Task<(bool, string)> EliminarRembolso(int id)
+        public async Task<OperationResult<string>> EliminarRembolso(int id)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -30,20 +31,21 @@ namespace GestorInventario.Infraestructure.Repositories
                 var rembolso = await _context.Rembolsos.FindAsync(id);
                 if (rembolso == null)
                 {
-                    return (false, "El rembolso que intenta eliminar no existe");
+                    return OperationResult<string>.Fail("El rembolso no existe");
                 }
               
 
                 await _context.DeleteEntityAsync(rembolso);
                 await transaction.CommitAsync();
-                return (true, "Rembolso eliminado");
+                return OperationResult<string>.Ok("Rembolso eliminado con exito");
             }
             catch (Exception ex)
             {
 
                 _logger.LogError(ex, "Error al dar de baja el usuario");
                 await transaction.RollbackAsync();
-                return (false, "Ocurrio un error inesperado por favor contacte con el administrador o intentelo de nuevo mas tarde");
+                return OperationResult<string>.Fail("Ocurrio un error inesperado por favor contacte con el administrador o intentelo de nuevo mas tarde");
+               
             }
 
         }

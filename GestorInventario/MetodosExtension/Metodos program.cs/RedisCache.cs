@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.DataProtection;
+﻿
+using Microsoft.AspNetCore.DataProtection;
 using StackExchange.Redis;
 
 namespace GestorInventario.MetodosExtension.Metodos_program.cs
