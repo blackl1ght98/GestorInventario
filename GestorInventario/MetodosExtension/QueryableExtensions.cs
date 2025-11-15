@@ -6,12 +6,10 @@ namespace GestorInventario.MetodosExtension
     public static class QueryableExtensions
     {
         public static async Task<(List<T> Items, int TotalItems)> PaginarAsync<T>(
-            this IQueryable<T> queryable, Paginacion paginacion)
+     this IQueryable<T> queryable, Paginacion paginacion, bool calcularTotal = true)
         {
-            // Calcular el total de ítems
-            int totalItems = await queryable.CountAsync();
+            int totalItems = calcularTotal ? await queryable.CountAsync() : 0;
 
-            // Aplicar paginación directamente en la consulta
             var items = await queryable
                 .Skip((paginacion.Pagina - 1) * paginacion.CantidadAMostrar)
                 .Take(paginacion.CantidadAMostrar)

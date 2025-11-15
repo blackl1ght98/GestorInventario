@@ -66,15 +66,15 @@ namespace GestorInventario.Infraestructure.Controllers
         [HttpDelete]
         public async Task<IActionResult> EliminarRembolso([FromBody] RembolsoRequest request)
         {
-            var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _rembolsoRepository.EliminarRembolso(request.Id));
-            if (success)
+            var success = await _policyExecutor.ExecutePolicyAsync(() => _rembolsoRepository.EliminarRembolso(request.Id));
+            if (success.Success)
             {
                 return Json(new { success = true });
             }
             else
             {
-                TempData["ErrorMessage"] = errorMessage;
-                return Json(new { success = false, errorMessage = errorMessage });
+                TempData["ErrorMessage"] = success.Message;
+                return Json(new { success = false, errorMessage = success.Message });
             }
         }
 

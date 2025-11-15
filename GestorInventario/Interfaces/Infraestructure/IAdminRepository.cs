@@ -1,6 +1,7 @@
 ﻿using GestorInventario.Application.DTOs;
 using GestorInventario.Domain.Models;
 using GestorInventario.Domain.Models.ViewModels;
+using GestorInventario.Infraestructure.Utils;
 using GestorInventario.ViewModels.user;
 
 namespace GestorInventario.Interfaces.Infraestructure
@@ -14,16 +15,16 @@ namespace GestorInventario.Interfaces.Infraestructure
         IQueryable<Role> ObtenerRolesConUsuarios();
         Task<(Usuario?, string)> ObtenerUsuarioConPedido(int id);
         IQueryable<Usuario> ObtenerUsuariosPorRol(int rolId);
-       
-        Task<(bool, string?)> EditarUsuario(UsuarioEditViewModel userVM);   
-        Task<(bool, string)> CrearUsuario(UserViewModel model);
-        Task<(bool, string)> EliminarUsuario(int id);        
-        Task<(bool, string)> BajaUsuario(int id);
-        Task<(bool, string)> AltaUsuario(int id);
+
+        Task<OperationResult<string>> EditarUsuario(UsuarioEditViewModel userVM);
+        Task<OperationResult<string>> CrearUsuario(UserViewModel model);
+        Task<OperationResult<string>> EliminarUsuario(int id);
+        Task<OperationResult<string>> BajaUsuario(int id);
+        Task<OperationResult<string>> AltaUsuario(int id);
 
        
         Task ActualizarRolUsuario(int usuarioId, int rolId);
-        Task<(bool, string)> CrearRol(string nombreRol);
+     
   
      
     }

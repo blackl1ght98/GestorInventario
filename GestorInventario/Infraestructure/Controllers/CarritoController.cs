@@ -17,14 +17,16 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly ILogger<CarritoController> _logger;        
         private readonly PolicyExecutor _policyExecutor;
         private readonly UtilityClass _utilityClass;
+        private readonly PaginationHelper _paginationHelper;
         public CarritoController( ICarritoRepository carritorepository,  GenerarPaginas generarPaginas, 
-        ILogger<CarritoController> logger,  PolicyExecutor executor, UtilityClass utility)
+        ILogger<CarritoController> logger,  PolicyExecutor executor, UtilityClass utility, PaginationHelper pagination)
         {          
             _carritoRepository = carritorepository;       
             _generarPaginas = generarPaginas;
             _logger = logger;              
             _policyExecutor=executor;
             _utilityClass = utility;
+            _paginationHelper = pagination;
         }
        
         [HttpGet]
@@ -38,30 +40,42 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
                 int usuarioId = _utilityClass.ObtenerUsuarioIdActual();
-                var (carrito,mensaje)  = await _policyExecutor.ExecutePolicyAsync(() => _carritoRepository.ObtenerCarritoUsuario(usuarioId));
-
-                // Si no existe un carrito, crearlo automáticamente
+                var resultado = await _policyExecutor.ExecutePolicyAsync(
+                    () => _carritoRepository.ObtenerCarritoUsuario(usuarioId)
+                );
+                var carrito = resultado.Data;
+                // 🔹 Crear carrito automáticamente si no existe
                 if (carrito == null)
                 {
-                    carrito = await _policyExecutor.ExecutePolicyAsync(() => _carritoRepository.CrearCarritoUsuario(usuarioId));
+                    carrito = await _policyExecutor.ExecutePolicyAsync(
+                        () => _carritoRepository.CrearCarritoUsuario(usuarioId)
+                    );
                 }
 
-                var itemsDelCarrito = _policyExecutor.ExecutePolicy(() => _carritoRepository.ObtenerItemsConDetalles(carrito.Id));
-                var (itemsPaginados, totalItems) = await _policyExecutor.ExecutePolicyAsync(() => itemsDelCarrito.PaginarAsync(paginacion));
-                var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
-                var paginas = _generarPaginas.GenerarListaPaginas(totalPaginas, paginacion.Pagina, paginacion.Radio);
+                var itemsDelCarrito = _policyExecutor.ExecutePolicy(
+                    () => _carritoRepository.ObtenerItemsConDetalles(carrito.Id)
+                );
 
-                var subtotal = itemsPaginados.Sum(item => item.Producto.Precio * (item.Cantidad ?? 0)) ;
+                // ✅ Aquí usamos el mismo helper que en el controlador de usuarios
+                var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
+                    _paginationHelper.PaginarAsync(itemsDelCarrito, paginacion)
+                );
+
+                var subtotal = paginationResult.Items.Sum(item => item.Producto.Precio * (item.Cantidad ?? 0));
                 var shipping = 2.99m;
                 var total = subtotal + shipping;
 
                 var viewModel = new CarritoViewModel
                 {
-                    Productos = itemsPaginados.ToList(), 
-                    Monedas = new SelectList(await _policyExecutor.ExecutePolicyAsync(() => _carritoRepository.ObtenerMoneda()), "Codigo", "Codigo"),
-                    Paginas = paginas,
-                    TotalPaginas = totalPaginas,
-                    PaginaActual = paginacion.Pagina,
+                    Productos = paginationResult.Items.ToList(),
+                    Monedas = new SelectList(
+                        await _policyExecutor.ExecutePolicyAsync(() => _carritoRepository.ObtenerMoneda()),
+                        "Codigo",
+                        "Codigo"
+                    ),
+                    Paginas = paginationResult.Paginas.ToList(),
+                    TotalPaginas = paginationResult.TotalPaginas,
+                    PaginaActual = paginationResult.PaginaActual,
                     Subtotal = subtotal,
                     Shipping = shipping,
                     Total = total
@@ -75,6 +89,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
+
         //Metodo que realiza el pago
         [HttpPost]
         public async Task<IActionResult> Checkout(string monedaSeleccionada)
@@ -91,14 +106,14 @@ namespace GestorInventario.Infraestructure.Controllers
                
                     int usuarioId= _utilityClass.ObtenerUsuarioIdActual();   
                         
-                    var (success, message, approvalUrl) = await _policyExecutor.ExecutePolicyAsync(()=> _carritoRepository.PagarV2(monedaSeleccionada, usuarioId))  ;
-                    if (success)
+                    var resultado = await _policyExecutor.ExecutePolicyAsync(()=> _carritoRepository.PagarV2(monedaSeleccionada, usuarioId))  ;
+                    if (resultado.Success)
                     {
-                        return Redirect(approvalUrl);
+                        return Redirect(resultado.Data);
                     }
                     else
                     {
-                        TempData["ErrorMessage"] = message;
+                        TempData["ErrorMessage"] = resultado.Message;
                     }
                     
                     return RedirectToAction("Index", "Home");
@@ -119,14 +134,14 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                 return RedirectToAction("Login", "Auth");
             }
-            var (success, errorMessage)= await _carritoRepository.Incremento(id);
-            if (success)
+            var resultado= await _carritoRepository.Incremento(id);
+            if (resultado.Success)
             {
                 return RedirectToAction(nameof(Index));
             }
             else
             {
-                TempData["ErrorMessage"]=errorMessage;
+                TempData["ErrorMessage"]=resultado.Message;
             }
            
             return RedirectToAction(nameof(Index));
@@ -140,15 +155,15 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Login", "Auth");
             }
 
-            var (success,errorMessage)= await _carritoRepository.Decremento(id);
-            if (success)
+            var resultado= await _carritoRepository.Decremento(id);
+            if (resultado.Success)
             {
                 return RedirectToAction("Index");
 
             }
             else
             {
-                TempData["ErrorMessage"] = errorMessage;
+                TempData["ErrorMessage"] = resultado.Message;
             }          
             return RedirectToAction("Index");
         }
@@ -162,14 +177,14 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
-                var (success, errorMessage) = await _carritoRepository.EliminarProductoCarrito(id);
-                if (success)
+                var resultado = await _carritoRepository.EliminarProductoCarrito(id);
+                if (resultado.Success)
                 {
                     return RedirectToAction("Index");
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = errorMessage;
+                    TempData["ErrorMessage"] = resultado.Message;
                 }
                 return RedirectToAction("Index");
 

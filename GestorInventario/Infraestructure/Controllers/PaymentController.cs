@@ -8,10 +8,9 @@ using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.ViewModels.Paypal;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+
 using Microsoft.Extensions.Caching.Memory;
-using System.Globalization;
-using System.Security.Claims;
+
 
 namespace GestorInventario.Infraestructure.Controllers
 {
@@ -111,7 +110,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var (obtenerNumeroPedido,_) = await _policyExecutor.ExecutePolicyAsync(() => _paymentRepository.ObtenerNumeroPedido(form));
+                var obtenerNumeroPedido= await _policyExecutor.ExecutePolicyAsync(() => _paymentRepository.ObtenerNumeroPedido(form));
 
                 if (obtenerNumeroPedido == null)
                 {
@@ -127,7 +126,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
               
 
-                var (pedido,mensaje) = await _policyExecutor.ExecutePolicyAsync(() =>_paymentRepository.ObtenerNumeroPedido(form));
+                var pedido = await _policyExecutor.ExecutePolicyAsync(() =>_paymentRepository.ObtenerNumeroPedido(form));
 
                 if (pedido == null)
                 {
@@ -135,7 +134,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
                 var detallespago = await _policyExecutor.ExecutePolicyAsync(() =>
-                    _paypalService.ObtenerDetallesPagoEjecutadoV2(pedido.OrderId));
+                    _paypalService.ObtenerDetallesPagoEjecutadoV2(pedido.Data.OrderId));
 
                 if (detallespago == null)
                 {
@@ -153,9 +152,17 @@ namespace GestorInventario.Infraestructure.Controllers
                 var detallesSuscripcion = _paymentRepository.ProcesarDetallesSuscripcion(detallespago);
 
                 // Lista para almacenar los ítems de PayPal
-                var paypalItems = await _paymentRepository.ProcesarRembolso(firstPurchaseUnit, detallesSuscripcion,usuarioActual,form,obtenerNumeroPedido,emailCliente);
+                var paypalItems = await _paymentRepository.ProcesarRembolso(firstPurchaseUnit, detallesSuscripcion,usuarioActual,form,obtenerNumeroPedido.Data,emailCliente);
+                if (User.IsAdministrador())
+                {
+                    return RedirectToAction("Index", "Admin");
+                }
+                else
+                {
+                    return RedirectToAction("Index", "Pedido");
+                }
 
-                return RedirectToAction("Index", "Admin");
+               
             }
             catch (Exception ex)
             {

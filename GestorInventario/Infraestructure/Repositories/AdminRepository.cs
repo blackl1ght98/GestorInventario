@@ -2,6 +2,7 @@
 using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
+using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
@@ -58,7 +59,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 .Include(u => u.IdRolNavigation)
                 .AsQueryable();
         }
-        public async Task<(bool, string)> CrearUsuario(UserViewModel model)
+        public async Task<OperationResult<string>> CrearUsuario(UserViewModel model)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -66,8 +67,9 @@ namespace GestorInventario.Infraestructure.Repositories
                 var existingUser = await _context.Usuarios.FirstOrDefaultAsync(x => x.Email == model.Email);
                 if (existingUser != null)
                 {
-                    return (false, "El Email ya existe en base de datos");
+                    return OperationResult<string>.Fail("Ya existe un usuario registrado con este correo electrónico.");
                 }
+
                 var resultadoHash = _hashService.Hash(model.Password);
                 var user = _mapper.Map<Usuario>(model);
                 user.Password = resultadoHash.Hash;
@@ -79,12 +81,14 @@ namespace GestorInventario.Infraestructure.Repositories
                 {
                     _logger.LogInformation("Correo de confirmación enviado a {Email}", user.Email);
                     await transaction.CommitAsync();
-                    return (true, "Correo de confirmacion enviado con exito");
+                    return OperationResult<string>.Ok("Correo de confirmacion enviado con exito");
+                   
                 }
                 else
                 {
                     await transaction.RollbackAsync();
-                    return (false, "Error al enviar el correo de confirmación. Por favor, intenta de nuevo.");
+                    return OperationResult<string>.Fail("Error al enviar el correo de confirmación. Por favor, intenta de nuevo.");
+                    
                 }
             }
             catch (Exception ex)
@@ -92,10 +96,11 @@ namespace GestorInventario.Infraestructure.Repositories
 
                 _logger.LogError(ex, "Error crear el usuario");
                 await transaction.RollbackAsync();
-                return (false, "Ocurrio un error inesperado por favor contacte con el administrador o intentelo de nuevo mas tarde");
+                return OperationResult<string>.Fail("Hubo un error al crear el usuario, intentelo de nuevo mas tarde si el error persiste contacte con el equipo administrativo");
+               
             }
         }
-        public async Task<(bool, string?)> EditarUsuario(UsuarioEditViewModel userVM)
+        public async Task<OperationResult<string>> EditarUsuario(UsuarioEditViewModel userVM)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -105,7 +110,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 var (user,mensaje) = await ObtenerPorId(userVM.Id);
                 if (user == null)
                 {
-                    return (false, mensaje);
+                    return OperationResult<string>.Fail(mensaje);
                 }
 
                 // Validar IdRol solo si es un administrador y se proporciona un nuevo rol
@@ -113,13 +118,13 @@ namespace GestorInventario.Infraestructure.Repositories
                 {
                     if (userVM.IdRol == 0 || !await _context.Roles.AnyAsync(r => r.Id == userVM.IdRol))
                     {
-                        return (false, "El rol seleccionado no es válido");
+                        return OperationResult<string>.Fail("El rol seleccionado no es válido");
                     }
                 }
 
                 await ActualizarUsuario(userVM, user);
                 await transaction.CommitAsync();
-                return (true, null);
+                return OperationResult<string>.Ok("Edicion realizada con exito");
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -127,18 +132,19 @@ namespace GestorInventario.Infraestructure.Repositories
                 var (user, mensaje) = await ObtenerPorId(userVM.Id);
                 if (user == null)
                 {
-                    return (false, mensaje);
+                    return OperationResult<string>.Fail(mensaje);
                 }
                 _context.ReloadEntity(user);
                 await ActualizarUsuario(userVM, user);
                 await transaction.CommitAsync();
-                return (true, null);
+                return OperationResult<string>.Ok("Edicion realizada con exito");
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
                 _logger.LogError(ex, "Error inesperado al editar el usuario: {Message}", ex.Message);
-                return (false, "Ocurrió un error inesperado. Por favor, contacte con el administrador o inténtelo de nuevo más tarde.");
+                return OperationResult<string>.Fail("Hubo un error al editar el usuario, intentelo de nuevo mas tarde si el error persiste contacte con el equipo administrativo");
+               
             }
         }
         private async Task ActualizarUsuario(UsuarioEditViewModel userVM, Usuario user)
@@ -177,7 +183,7 @@ namespace GestorInventario.Infraestructure.Repositories
             }
 
         }
-        public async Task<(bool, string)> EliminarUsuario(int id)
+        public async Task<OperationResult<string>> EliminarUsuario(int id)
         {
             using var transaction= await _context.Database.BeginTransactionAsync();
             try
@@ -185,30 +191,32 @@ namespace GestorInventario.Infraestructure.Repositories
                 var user = await _context.Usuarios.Include(x => x.Pedidos).FirstOrDefaultAsync(m => m.Id == id);
                 if (user == null)
                 {
-                    return (false, "Usuario no encontrado");
+                    return OperationResult<string>.Fail("El usuario no existe");
                 }
                 if (user.Pedidos.Any())
                 {
-                    return (false, "El usuario no se puede eliminar porque tiene pedidos asociados.");
+                    return OperationResult<string>.Fail("El usuario no se puede eliminar porque tiene pedidos asociado");
                 }
                 if (user.HistorialPedidos.Any())
                 {
-                    return (false, "El usuario no se puede eliminar porque tiene historial de pedidos asociados.");
+                    return OperationResult<string>.Fail("El usuario no se puede eliminar porque tiene historial de pedidos asociados.");
+                   
                 }
                 await _context.DeleteEntityAsync(user);
                 await transaction.CommitAsync();
-                return (true, "Usuario eliminado con éxito");
+                return OperationResult<string>.Ok("Usuario eliminado con exito");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al eliminar un usuario con {id}",id);
                 await transaction.RollbackAsync();
-                return (false, "Ocurrio un error inesperado por favor contacte con el administrador o intentelo de nuevo mas tarde");
+                return OperationResult<string>.Fail("Hubo un error al eliminar el usuario, intentelo de nuevo mas tarde si el error persiste contacte con el equipo administrativo");
+              
                
             }
            
         } 
-        public async Task<(bool, string)> BajaUsuario(int id)
+        public async Task<OperationResult<string>> BajaUsuario(int id)
         {
             using var transaction= await _context.Database.BeginTransactionAsync();
             try
@@ -216,24 +224,25 @@ namespace GestorInventario.Infraestructure.Repositories
                 var (usuarioDB, mensaje) = await ObtenerPorId(id);
                 if (usuarioDB == null)
                 {
-                    return (false, "El usuario que intenta dar de baja no existe");
+                    return OperationResult<string>.Fail("El usuario no existe");
                 }
                 usuarioDB.BajaUsuario = true;
 
                 await   _context.UpdateEntityAsync(usuarioDB);
                 await transaction.CommitAsync();
-                return (true, "Usuario dado de baja con exito");
+                return OperationResult<string>.Ok("Usuario dado de baja con exito");
             }
             catch (Exception ex)
             {
 
                 _logger.LogError(ex, "Error al dar de baja el usuario");
                 await transaction.RollbackAsync();
-                return (false, "Ocurrio un error inesperado por favor contacte con el administrador o intentelo de nuevo mas tarde");
+                return OperationResult<string>.Fail("Hubo un error al dar de baja el usuario, intentelo de nuevo mas tarde si el error persiste contacte con el equipo administrativo");
+               
             }
             
         }
-        public async Task<(bool, string)> AltaUsuario(int id)
+        public async Task<OperationResult<string>> AltaUsuario(int id)
         {
             using var transaction=await _context.Database.BeginTransactionAsync();
             try
@@ -241,20 +250,21 @@ namespace GestorInventario.Infraestructure.Repositories
                 var (usuarioDB, mensaje) = await ObtenerPorId(id);
                 if (usuarioDB == null)
                 {
-                    return (false, "El usuario que intenta dar de baja no existe");
+                    return OperationResult<string>.Fail("El usuario no existe");
                 }
                 usuarioDB.BajaUsuario = false;
 
                 await  _context.UpdateEntityAsync(usuarioDB);
                 await transaction.CommitAsync();
-                return (true, "Usuario dado de alta con exito");
+                return OperationResult<string>.Ok("Usuario dado de alta con exito");
             }
             catch (Exception ex)
             {
 
                 _logger.LogError(ex, "Error al dar de alta el usuario");
                 await transaction.RollbackAsync();
-                return (false, "Ocurrio un error inesperado por favor contacte con el administrador o intentelo de nuevo mas tarde");
+                return OperationResult<string>.Fail("Hubo un error al dar de alta el usuario, intentelo de nuevo mas tarde si el error persiste contacte con el equipo administrativo");
+               
             }
            
         }
@@ -284,42 +294,9 @@ namespace GestorInventario.Infraestructure.Repositories
                 await transaction.RollbackAsync();
             }                       
         }
-        public async Task<(bool, string)> CrearRol(string nombreRol)
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                
-                if (string.IsNullOrWhiteSpace(nombreRol))
-                {
-                    _logger.LogWarning("Intento de crear rol con nombre vacío.");
-                    return (false, "El nombre del rol no puede estar vacío.");
-                }
+      
 
-                if (!Regex.IsMatch(nombreRol, @"^[a-zA-Z0-9]+$"))
-                {
-                    _logger.LogWarning($"Nombre de rol inválido: {nombreRol}. Solo se permiten letras y números.");
-                    return (false, "El nombre del rol solo puede contener letras y números.");
-                }
-
-               
-                if (await _context.Roles.AnyAsync(r => r.Nombre == nombreRol))
-                {
-                    _logger.LogWarning($"Intento de crear rol duplicado: {nombreRol}.");
-                    return (false, "El nombre del rol ya existe. Proporcione otro nombre.");
-                }
-                                                     
-                await transaction.CommitAsync();
-                return (true, "Rol creado y permisos asignados con éxito.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error al crear rol {nombreRol}.");
-                await transaction.RollbackAsync();
-                return (false, $"Error al crear el rol: {ex.Message}");
-            }
-
-        }
-       
     }
+       
 }
+

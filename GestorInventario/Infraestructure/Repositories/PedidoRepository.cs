@@ -34,7 +34,7 @@ namespace GestorInventario.Infraestructure.Repositories
         
         public async Task<List<Producto>> ObtenerProductos()=>await _context.Productos.ToListAsync();      
         public async Task<List<Usuario>> ObtenerUsuarios()=>await _context.Usuarios.ToListAsync();                  
-        public async Task<(bool, string)> CrearPedido(PedidosViewModel model)
+        public async Task<OperationResult<string>> CrearPedido(PedidosViewModel model)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -84,18 +84,18 @@ namespace GestorInventario.Infraestructure.Repositories
                 }
 
                 await transaction.CommitAsync();
-
-                return (true, "Pedido creado con exito");
+                return OperationResult<string>.Ok("Pedido creado con exito");
+             
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al crear el pedido");
                 await transaction.RollbackAsync();
-                return (false, "Error al crear el pedido");
+                return OperationResult<string>.Fail("error al crear el pedido");
             }
         }
         public async Task<Pedido> ObtenerPedidoEliminacion(int id)=>await _context.Pedidos.Include(p => p.DetallePedidos).ThenInclude(dp => dp.Producto).Include(p => p.IdUsuarioNavigation).FirstOrDefaultAsync(m => m.Id == id);            
-        public async Task<(bool, string)> EliminarPedido(int Id)
+        public async Task<OperationResult<string>> EliminarPedido(int Id)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -103,12 +103,11 @@ namespace GestorInventario.Infraestructure.Repositories
                 var pedido = await _context.Pedidos.Include(p => p.DetallePedidos).FirstOrDefaultAsync(m => m.Id == Id);
                 if (pedido == null)
                 {
-                    return (false, "No hay pedido a eliminar");
+                    return OperationResult<string>.Fail("No hay pedido para eliminar");
                 }
                 if (pedido.EstadoPedido != "Entregado" && pedido.DetallePedidos.Any())
                 {
-                    return (false, "El pedido tiene que tener el estado Entregado para ser eliminado y no tener historial asociado");
-
+                    return OperationResult<string>.Fail("El pedido tiene que tener el estado Entregado para ser eliminado y no tener historial asociado");
                 }
                 else
                 {
@@ -117,19 +116,19 @@ namespace GestorInventario.Infraestructure.Repositories
                     await transaction.CommitAsync();
                 }
 
-                return (true, "Pedido eliminado con exito");
+                return OperationResult<string>.Ok("Pedido eliminado con exito");
             }
             catch (Exception ex)
             {
 
                 _logger.LogError(ex, "Error al eliminar el pedido");
                 await transaction.RollbackAsync();
-                return (false, "Error al eliminar el pedido");
+                return OperationResult<string>.Fail("Error al eliminar el pedido");
             }
           
         }
         public async Task<HistorialPedido> EliminarHistorialPorId(int id)=> await _context.HistorialPedidos.Include(x => x.DetalleHistorialPedidos).FirstOrDefaultAsync(x => x.Id == id);    
-        public async Task<(bool, string)> EliminarHistorialPorIdDefinitivo(int Id)
+        public async Task<OperationResult<string>> EliminarHistorialPorIdDefinitivo(int Id)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -143,21 +142,22 @@ namespace GestorInventario.Infraestructure.Repositories
                 }
                 else
                 {
-                    return (false, "No se puede eliminar, el historial no existe");
+                    return OperationResult<string>.Fail("El historial no existe");
+                   
                 }
-                return (true, "Historial eliminado con exito");
+                return OperationResult<string>.Ok("Historial eliminado con exito");
             }
             catch (Exception ex)
             {
 
                 _logger.LogError(ex, "Error al el historial");
                 await transaction.RollbackAsync();
-                return (false, "Error al eliminar el historial");
+                return OperationResult<string>.Fail("Error al eliminar el historial");
             }
            
         }      
         public async Task<Pedido> ObtenerPedidoId(int id)=> await _context.Pedidos.FirstOrDefaultAsync(x => x.Id == id);               
-        public async Task<(bool, string)> EditarPedido(EditPedidoViewModel model)
+        public async Task<OperationResult<string>> EditarPedido(EditPedidoViewModel model)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -168,7 +168,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     var pedidoOriginal = await _context.Pedidos.Include(p => p.DetallePedidos).FirstOrDefaultAsync(x => x.Id == model.Id);
                     if (pedidoOriginal == null)
                     {
-                        return (false, "Pedido no encontrado, no es posible editar un pedido que no existe");
+                        return OperationResult<string>.Fail("Pedido no encontrado");
                     }
                     pedidoOriginal.FechaPedido = model.FechaPedido;
                     pedidoOriginal.EstadoPedido = model.EstadoPedido;
@@ -196,14 +196,14 @@ namespace GestorInventario.Infraestructure.Repositories
                         await _context.AddEntityAsync(nuevoDetalle);
                     }
                     await transaction.CommitAsync();
-                    return (true, "Pedido editado con exito");                             
+                    return OperationResult<string>.Ok("Pedido editado con exito");                             
             }
             catch (Exception ex)
             {
 
                 _logger.LogError(ex, "Error al editar el pedido");
                 await transaction.RollbackAsync();
-                return (false, "Error al editar el pedido");
+                return OperationResult<string>.Fail("Error al editar el pedido");
             }
          
         }
@@ -212,7 +212,7 @@ namespace GestorInventario.Infraestructure.Repositories
         public IQueryable<HistorialPedido> ObtenerPedidosHistorialUsuario(int usuarioId)=> _context.HistorialPedidos.Where(p => p.IdUsuario == usuarioId).Include(dp => dp.DetalleHistorialPedidos).ThenInclude(p => p.Producto).Include(u => u.IdUsuarioNavigation);
         public async Task<HistorialPedido> DetallesHistorial(int id)=>await _context.HistorialPedidos.Include(p => p.DetalleHistorialPedidos).ThenInclude(dp => dp.Producto).Include(p => p.IdUsuarioNavigation).FirstOrDefaultAsync(p => p.Id == id);          
        
-        public async Task<(bool, string)> EliminarHitorial()
+        public async Task<OperationResult<string>> EliminarHitorial()
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -220,7 +220,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 var historialPedidos = await _context.HistorialPedidos.Include(x => x.DetalleHistorialPedidos).ToListAsync();
                 if (historialPedidos == null || historialPedidos.Count == 0)
                 {
-                    return (false, "No hay datos en el historial para eliminar");
+                    return OperationResult<string>.Fail("No hay datos en el historial para eliminar");
                 }
                 // Eliminar todos los registros
                 foreach (var historialProducto in historialPedidos)
@@ -230,7 +230,7 @@ namespace GestorInventario.Infraestructure.Repositories
 
                 }
                 await transaction.CommitAsync();
-                return (true, "Historial eliminado");
+                return OperationResult<string>.Ok("Historial eliminado");
             }
             catch (Exception ex)
             {
@@ -238,12 +238,12 @@ namespace GestorInventario.Infraestructure.Repositories
 
                 _logger.LogError(ex, "Error al eliminar todo el historial");
                 await transaction.RollbackAsync();
-                return (false, "Error al eliminar todo el historial");
+                return OperationResult<string>.Fail("Error al eliminar todo el historial");
             }
            
         }
 
-        public async Task<(PayPalPaymentDetail?, bool, string)> ObtenerDetallePagoEjecutadoV2(string id)
+        public async Task<OperationResult<PayPalPaymentDetail>> ObtenerDetallePagoEjecutadoV2(string id)
         {
             using var transaccion = await _context.Database.BeginTransactionAsync();
             try
@@ -257,7 +257,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 var detalles = await _paypalService.ObtenerDetallesPagoEjecutadoV2(id);
                 if (detalles == null)
                 {
-                    return (null, false, "No se ha encontrado el pago para generar la factura");
+                    return OperationResult<PayPalPaymentDetail>.Fail("Detalles del pedido no encontrados para generar la factura");
                 }
 
                 // Si el detalle no existe, crear uno nuevo; si existe, actualizarlo
@@ -403,13 +403,13 @@ namespace GestorInventario.Infraestructure.Repositories
                 }               
                 await _context.SaveChangesAsync();
                 await transaccion.CommitAsync();
-                return (detallesSuscripcion, true, "Detalle guardado con exito");
+                return OperationResult<PayPalPaymentDetail>.Ok("",detallesSuscripcion);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al obtener los Junta detalles del pago");
                 await transaccion.RollbackAsync();
-                return (null, false, "Ha ocurrido un error");
+                return OperationResult<PayPalPaymentDetail>.Fail("Ha ocurrido un error");
             }
         }
         private decimal? ConvertToDecimal(object value)

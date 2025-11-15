@@ -144,8 +144,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (ModelState.IsValid)
                 {
                    
-                    var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.CrearPedido(model)) ;
-                    if (success)
+                    var success = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.CrearPedido(model)) ;
+                    if (success.Success)
                     {
                         // Se establecen las listas de productos y clientes para la vista.
                         ViewData["Productos"] = new SelectList(await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerProductos()) , "Id", "NombreProducto");
@@ -157,7 +157,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     }
                     else
                     {
-                        TempData["ErrorMessage"] = errorMessage;
+                        TempData["ErrorMessage"] = success.Message;
                     }
                  
                 }
@@ -220,8 +220,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {
                     
-                    var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.EliminarPedido(Id)) ;
-                    if (success)
+                    var success = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.EliminarPedido(Id)) ;
+                    if (success.Success)
                     {
                        
                         
@@ -229,7 +229,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     }
                     else
                     {
-                        TempData["ErrorMessage"] = errorMessage;
+                        TempData["ErrorMessage"] = success.Message;
                       
                         return RedirectToAction(nameof(Delete), new { id = Id });
 
@@ -287,15 +287,15 @@ namespace GestorInventario.Infraestructure.Controllers
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {
-                    var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.EliminarHistorialPorIdDefinitivo(Id));
-                    if (success)
+                    var success = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.EliminarHistorialPorIdDefinitivo(Id));
+                    if (success.Success)
                     {
 
                         return RedirectToAction(nameof(HistorialPedidos));
                     }
                     else
                     {
-                        TempData["ErrorMessage"] = errorMessage;
+                        TempData["ErrorMessage"] = success.Message;
                         return RedirectToAction(nameof(Delete), new { id = Id });
                     }
 
@@ -349,14 +349,14 @@ namespace GestorInventario.Infraestructure.Controllers
                 try
                 {
                     
-                    var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.EditarPedido(model)) ;
-                    if (success)
+                    var success = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.EditarPedido(model));
+                    if (success.Success)
                     {
                         TempData["SuccessMessage"] = "Los datos se han modificado con éxito.";
                     }
                     else
                     {
-                        TempData["ErrorMessage"] = errorMessage;
+                        TempData["ErrorMessage"] = success.Message;
                     }
 
                 }
@@ -364,14 +364,14 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     _logger.LogError(ex, "Error de concurrencia");
                   
-                    var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.EditarPedido(model)) ;
-                    if (success)
+                    var success = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.EditarPedido(model));
+                    if (success.Success)
                     {
                         TempData["SuccessMessage"] = "Los datos se han modificado con éxito.";
                     }
                     else
                     {
-                        TempData["ErrorMessage"] = errorMessage;
+                        TempData["ErrorMessage"] = success.Message;
                     }
                 
                 
@@ -527,10 +527,10 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
 
-                var (success, errorMessage) = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.EliminarHitorial());
-                if (!success)
+                var success = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.EliminarHitorial());
+                if (!success.Success)
                 {
-                    TempData["ErrorMessage"] = errorMessage;
+                    TempData["ErrorMessage"] = success.Message;
                     return RedirectToAction(nameof(HistorialPedidos));
                 }
                 return RedirectToAction(nameof(HistorialPedidos));
@@ -545,14 +545,14 @@ namespace GestorInventario.Infraestructure.Controllers
         //Metodo para obtener los detalles del pago
         public async Task<IActionResult> DetallesPagoEjecutado(string id)
         {
-            var (detallepago,success,errorMessage)= await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerDetallePagoEjecutadoV2(id));
-            if (success)
+            var detallepago= await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerDetallePagoEjecutadoV2(id));
+            if (detallepago.Success)
             {
-                return View(detallepago);
+                return View(detallepago.Data);
             }
             else
             {
-                TempData["ErrorMessage"]=errorMessage;
+                TempData["ErrorMessage"]=detallepago.Message;
                 return RedirectToAction("Error", "Home");
             }
         }

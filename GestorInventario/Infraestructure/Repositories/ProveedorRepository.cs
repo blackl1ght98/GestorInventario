@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Domain.Models;
+using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.ViewModels.provider;
@@ -26,7 +27,7 @@ namespace GestorInventario.Infraestructure.Repositories
             return await _context.Usuarios.ToListAsync();
         }
 
-        public async Task<(bool, string)> CrearProveedor(ProveedorViewModel model)
+        public async Task<OperationResult<string>> CrearProveedor(ProveedorViewModel model)
         {
            
             using var transaction= await _context.Database.BeginTransactionAsync();
@@ -41,24 +42,29 @@ namespace GestorInventario.Infraestructure.Repositories
                 };
                 await _context.AddEntityAsync(proveedor);
                 await transaction.CommitAsync();
-                return (true, "Proveedor creado con exito");
+                return OperationResult<string>.Ok("Proveedor creado con exito");
             }
             catch (Exception ex)
             {
 
                 _logger.LogError(ex,"Error al crear el proveedor");
                 await transaction.RollbackAsync();
-                return (false, "Error al crear el proveedor");
+                return OperationResult<string>.Fail("Error al crear el proveedor");
             }
            
         }
-        public async Task<(Proveedore?,string)> ObtenerProveedorId(int id)
+        public async Task<OperationResult<Proveedore>> ObtenerProveedorId(int id)
         {
             var proveedor= await _context.Proveedores.FirstOrDefaultAsync(m => m.Id == id);
-            return proveedor is null ? (null, "Proveedor no encontrado") : (proveedor, "Proveedor encontrado");
+            if (proveedor is null) 
+            {
+                return OperationResult<Proveedore>.Fail("Proveedor no encontrado");
+            
+            }
+            return OperationResult<Proveedore>.Ok("",proveedor);
         }
 
-        public async Task<(bool, string)> EliminarProveedor(int Id)
+        public async Task<OperationResult<string>> EliminarProveedor(int Id)
         {
             using var transaction= await _context.Database.BeginTransactionAsync();
             try
@@ -66,15 +72,15 @@ namespace GestorInventario.Infraestructure.Repositories
                 var proveedor = await _context.Proveedores.Include(p => p.Productos).FirstOrDefaultAsync(m => m.Id == Id);
                 if (proveedor == null)
                 {
-                    return (false, "Proveedor no encontrado");
+                    return OperationResult<string>.Fail("Proveedor no encontrado");
                 }
                 if (proveedor.Productos.Any())
                 {
-                    return (false, "El proveedor no se puede eliminar porque tiene productos asociados");
+                    return OperationResult<string>.Fail("El proveedor no se puede eliminar porque tiene productos asociados");
                 }
                 await _context.DeleteEntityAsync(proveedor);
                 await transaction.CommitAsync();
-                return (true, "Proveedor eliminado con exito");
+                return OperationResult<string>.Ok("Proveedor eliminado con exito");
 
             }
             catch (Exception ex)
@@ -82,11 +88,11 @@ namespace GestorInventario.Infraestructure.Repositories
 
                 _logger.LogError(ex,"Error al eliminar el proveedor");
                 await transaction.RollbackAsync();
-                return (false, "Error al eliminar el proveedor");
+                return OperationResult<string>.Fail("Error al eliminar el proveedor");
             }
            
         }
-        public async Task<(bool, string)> EditarProveedor(ProveedorViewModel model, int Id)
+        public async Task<OperationResult<string>> EditarProveedor(ProveedorViewModel model, int Id)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -94,12 +100,12 @@ namespace GestorInventario.Infraestructure.Repositories
                 var proveedor = await _context.Proveedores.FirstOrDefaultAsync(x => x.Id == Id); 
                 if (proveedor == null)
                 {
-                    return (false, "El proveedor no existe");
+                    return OperationResult<string>.Fail("El proveedor no existe");
                 }
 
                 await ActualizarProveedor(proveedor, model);
                 await transaction.CommitAsync();
-                return (true, "Proveedor editado con exito");
+                return OperationResult<string>.Ok("Proveedor editado con exito");
             }
             catch (DbUpdateConcurrencyException ex)
             {
@@ -108,20 +114,20 @@ namespace GestorInventario.Infraestructure.Repositories
                 var proveedor = await _context.Proveedores.FirstOrDefaultAsync(x => x.Id == Id); // Removed Include
                 if (proveedor == null)
                 {
-                    return (false, "El proveedor no existe");
+                    return OperationResult<string>.Fail("El proveedor no existe");
                 }
                 _context.Entry(proveedor).Reload();
                 _context.Entry(proveedor).State = EntityState.Modified;
 
                 await ActualizarProveedor(proveedor, model);
                 await transaction.CommitAsync();
-                return (true, "Proveedor editado con exito");
+                return OperationResult<string>.Ok("Proveedor editado con exito");
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
                 _logger.LogError(ex, "Ocurrio un error inesperado al editar el proveedor");
-                return (false, "Ocurrio un error inesperado al editar el proveedor");
+                return OperationResult<string>.Fail("Ocurrio un error inesperado al editar el proveedor");
             }
 
         }

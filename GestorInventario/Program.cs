@@ -1,4 +1,5 @@
-﻿using GestorInventario.MetodosExtension.Metodos_program.cs;
+﻿using GestorInventario.Infraestructure.Utils;
+using GestorInventario.MetodosExtension.Metodos_program.cs;
 using GestorInventario.Middlewares;
 using Microsoft.Net.Http.Headers;
 
@@ -37,10 +38,15 @@ builder.Services.AddHttpContextAccessor();
 
 //Servicios especificos y transient
 builder.Services.AddTransientServices();
+builder.Services.AddScoped<PaginationHelper>();
 builder.Services.AddHttpClientPayPal();
 builder.Services.AddAutoMapper(builder.Configuration);
 builder.Services.AddWebOptimizer();
+//builder.Services.AddAuthentication().AddGoogle(cfg => {
+//    cfg.ClientId = "";
+//cfg.ClientSecret = "password";
 
+//});
 // Si estamos usando Redis
 if (useRedis)
 {

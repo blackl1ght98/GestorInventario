@@ -149,7 +149,7 @@ namespace GestorInventario.Infraestructure.Repositories
         }
         public  IQueryable<HistorialProducto> ObtenerTodoHistorial() => from p in _context.HistorialProductos.Include(x => x.DetalleHistorialProductos) select p;
         public async Task<HistorialProducto> ObtenerHistorialProductoPorId(int id) => await _context.HistorialProductos.Include(hp => hp.DetalleHistorialProductos).FirstOrDefaultAsync(hp => hp.Id == id);
-        public async Task<(bool, string)> EliminarProducto(int Id)
+        public async Task<OperationResult<string>> EliminarProducto(int Id)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -162,7 +162,7 @@ namespace GestorInventario.Infraestructure.Repositories
 
                 if (producto == null)
                 {
-                    return (false, "No hay productos para eliminar");
+                    return OperationResult<string>.Fail("No hay productos para eliminar");
                 }
 
                 if (!string.IsNullOrEmpty(producto.Imagen))
@@ -177,19 +177,17 @@ namespace GestorInventario.Infraestructure.Repositories
                
                 await transaction.CommitAsync();
                 _logger.LogInformation($"Producto con ID {Id} eliminado correctamente.");
-                return (true, "Producto eliminado con exito");
+                return OperationResult<string>.Ok("Producto eliminado con exito");
             }
             catch (Exception ex)
             {
                await transaction.RollbackAsync();
                 _logger.LogError(ex, $"Error al eliminar el producto con ID {Id}");
-                return (false, "Ocurrió un error inesperado");
+                return OperationResult<string>.Fail("Ocurrió un error inesperado");
             }
         }
-       
-          
-                       
-        public async Task<(bool, string)> EliminarHistorialPorId(int Id)
+             
+        public async Task<OperationResult<string>> EliminarHistorialPorId(int Id)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -202,17 +200,17 @@ namespace GestorInventario.Infraestructure.Repositories
                 }
                 else
                 {
-                    return (false, "No se puede eliminar, el historial no existe");
+                    return OperationResult<string>.Fail("No se puede eliminar, el historial no existe");
                 }
               await transaction.CommitAsync();
-                return (true, "Historial eliminado");
+                return OperationResult<string>.Ok("Historial eliminado");
             }
             catch (Exception ex)
             {
 
                 _logger.LogError(ex,"Error al eliminar el historial del producto" );
                 await transaction.RollbackAsync();
-                return (false, "Ocurrio un error inesperado al eliminar el historial del producto");
+                return OperationResult<string>.Fail("Ocurrio un error inesperado al eliminar el historial del producto");
             }
            
         }
@@ -244,11 +242,11 @@ namespace GestorInventario.Infraestructure.Repositories
            
 
         }
-        public async Task<(bool, string)> EditarProducto(ProductosViewModel model, int usuarioId)
+        public async Task<OperationResult<string>> EditarProducto(ProductosViewModel model, int usuarioId)
         {
             if (model == null || model.Id <= 0 || string.IsNullOrEmpty(model.NombreProducto))
             {
-                return (false, "Modelo inválido");
+                return OperationResult<string>.Fail("Modelo inválido");
             }
 
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -257,7 +255,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 var producto = await _context.Productos.FirstOrDefaultAsync(x => x.Id == model.Id);
                 if (producto == null)
                 {
-                    return (false, "Producto no encontrado");
+                    return OperationResult<string>.Fail("Producto no encontrado");
                 }
                 // Crear historial antes de la actualización
                 var productoOriginal = new ProductosViewModel
@@ -277,7 +275,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
                 _logger.LogInformation($"Producto con ID {model.Id} actualizado correctamente por el usuario {usuarioId}.");
-                return (true, "Producto editado con exito");
+                return OperationResult<string>.Ok("Producto editado con exito");
             }
             catch (DbUpdateConcurrencyException ex)
             {
@@ -288,7 +286,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 var producto = await _context.Productos.FirstOrDefaultAsync(x => x.Id == model.Id);
                 if (producto == null)
                 {
-                    return (false, "Producto no encontrado");
+                    return OperationResult<string>.Fail("Producto no encontrado");
                 }
 
                 _context.Entry(producto).Reload();
@@ -315,20 +313,20 @@ namespace GestorInventario.Infraestructure.Repositories
                     await _context.SaveChangesAsync();
                     await retryTransaction.CommitAsync();
                     _logger.LogInformation($"Producto con ID {model.Id} actualizado tras reintento de concurrencia.");
-                    return (true, "Producto editado con exito");
+                    return OperationResult<string>.Ok("Producto editado con exito");
                 }
                 catch (Exception retryEx)
                 {
                     await retryTransaction.RollbackAsync();
                     _logger.LogError(retryEx, $"Error al reintentar actualizar el producto con ID {model.Id}");
-                    return (false, "Error al actualizar tras reintento de concurrencia");
+                    return OperationResult<string>.Fail("Error al actualizar tras reintento de concurrencia");
                 }
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
                 _logger.LogError(ex, $"Error al actualizar el producto con ID {model.Id}");
-                return (false, "Error al actualizar");
+                return OperationResult<string>.Fail("Error al actualizar");
             }
         }
 
@@ -412,7 +410,7 @@ namespace GestorInventario.Infraestructure.Repositories
             }
         }
 
-        public async Task<(bool, string)> AgregarProductoAlCarrito(int idProducto, int cantidad, int usuarioId)
+        public async Task<OperationResult<string>> AgregarProductoAlCarrito(int idProducto, int cantidad, int usuarioId)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -420,18 +418,18 @@ namespace GestorInventario.Infraestructure.Repositories
                 // Validar cantidad
                 if (cantidad <= 0)
                 {
-                    return (false, "La cantidad debe ser mayor a cero.");
+                    return OperationResult<string>.Fail("La cantidad debe ser mayor a cero.");
                 }
 
                 // Validar existencia del producto y stock
                 var producto = await _context.Productos.FirstOrDefaultAsync(x => x.Id == idProducto);
                 if (producto == null)
                 {
-                    return (false, "El producto no existe.");
+                    return OperationResult<string>.Fail("El producto no existe.");
                 }
                 if (producto.Cantidad < cantidad)
                 {
-                    return (false, "No hay suficientes productos en stock.");
+                    return OperationResult<string>.Fail("No hay suficientes productos en stock.");
                 }
                 // Obtener o crear el carrito
                 var carrito = await _carritoRepository.CrearCarritoUsuario(usuarioId);
@@ -464,13 +462,13 @@ namespace GestorInventario.Infraestructure.Repositories
                 await _context.UpdateEntityAsync(producto);
 
                 await transaction.CommitAsync();
-                return (true, "Producto agregado con exito");
+                return OperationResult<string>.Ok("Producto agregado con exito");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al agregar producto al carrito");
                 await transaction.RollbackAsync();
-                return (false, "Ocurrió un error inesperado. Por favor, contacte con el administrador o intentelo de nuevo más tarde.");
+                return OperationResult<string>.Fail("Ocurrió un error inesperado. Por favor, contacte con el administrador o intentelo de nuevo más tarde.");
             }
         }
     }
