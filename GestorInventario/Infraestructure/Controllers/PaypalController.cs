@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using GestorInventario.Application.Classes;
 using GestorInventario.Application.DTOs;
+using GestorInventario.Application.DTOs.Response_paypal;
 using GestorInventario.Application.DTOs.Response_paypal.Controller_Paypal_y_payment;
 using GestorInventario.Application.DTOs.Response_paypal.POST;
 using GestorInventario.Application.Exceptions;
@@ -66,13 +67,13 @@ namespace GestorInventario.Infraestructure.Controllers
                 var (respuestaProductos, tienePaginaSiguiente) = await _policyExecutor.ExecutePolicyAsync(() =>
                     _paypalService.GetProductsAsync(pagina, cantidadAMostrar));
 
-                // Mapear productos a ProductoPaypalViewModel
-                var productos = respuestaProductos?.Products?.Select(p => new ProductoPaypalViewModel
+                // Mapear productos a ProductoPaypalDto
+                var productos = respuestaProductos?.Products?.Select(p => new ProductoPaypalDto
                 {
                     Id = p.Id,
                     Nombre = p.Name,
                     Descripcion = p.Description
-                }).ToList() ?? new List<ProductoPaypalViewModel>();
+                }).ToList() ?? new List<ProductoPaypalDto>();
 
                 // Calcular total de páginas (PayPal no proporciona totalItems, usamos tienePaginaSiguiente)
                 var totalPaginas = tienePaginaSiguiente ? pagina + 1 : pagina;
@@ -122,13 +123,13 @@ namespace GestorInventario.Infraestructure.Controllers
                 var (plans, hasNextPage) = await _policyExecutor.ExecutePolicyAsync(() =>
                     _paypalService.GetSubscriptionPlansAsyncV2(pagina, cantidadAMostrar)); 
 
-                var planesViewModel = new List<PlanesViewModel>();
+                var planesViewModel = new List<PlanesDto>();
 
                 if (plans != null)
                 {
                     foreach (var plan in plans)
                     {
-                        var viewModel = new PlanesViewModel
+                        var viewModel = new PlanesDto
                         {
                             Id = plan.Id,
                             productId = plan.ProductId,

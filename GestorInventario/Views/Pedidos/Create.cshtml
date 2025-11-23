@@ -54,20 +54,22 @@
                 <div class="form-group mb-3">
                     <label class="form-label fw-bold"><i class="bi bi-box-seam me-2"></i>Productos</label>
                     <div class="row">
-                        @for (var i = 0; i < ViewBag.Productos.Count; i++)
+                        @for (int i = 0; i < Model.Productos.Count; i++)
                         {
                             <div class="col-md-6 mb-2">
                                 <div class="d-flex align-items-center">
-                                    <input type="checkbox" asp-for="ProductosSeleccionados[i]" class="form-check-input me-2" id="producto-@i" />
-                                    <label class="form-check-label me-3" for="producto-@i">@ViewBag.Productos[i].NombreProducto</label>
-                                    <input type="hidden" asp-for="Productos[i]" value="@ViewBag.Productos[i].Id" />
-                                    <input type="number" asp-for="Cantidades[i]" class="form-control w-25" min="0" placeholder="0" />
+                                    <input asp-for="Productos[i].Seleccionado" type="checkbox" class="form-check-input me-2" />
+                                    <label class="form-check-label me-3">@Model.Productos[i].Nombre</label>
+
+                                    <input asp-for="Productos[i].ProductoId" type="hidden" />
+
+                                    <input asp-for="Productos[i].Cantidad" class="form-control w-25" type="number" min="0" placeholder="0" />
                                 </div>
                             </div>
                         }
+
                     </div>
-                    <span asp-validation-for="ProductosSeleccionados" class="text-danger"></span>
-                    <span asp-validation-for="Cantidades" class="text-danger"></span>
+                   
                 </div>
 
                 <div class="form-group mb-3">

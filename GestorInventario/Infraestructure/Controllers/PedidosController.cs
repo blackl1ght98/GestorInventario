@@ -1,4 +1,5 @@
-﻿using GestorInventario.Application.Services;
+﻿
+using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
 using GestorInventario.enums;
 using GestorInventario.Infraestructure.Utils;
@@ -110,10 +111,19 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
+                var productos = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.ObtenerProductos());
+
                 var model = new PedidosViewModel
                 {
                     NumeroPedido = GenerarNumeroPedido(),
-                    FechaPedido = DateTime.Now
+                    FechaPedido = DateTime.Now,
+                    Productos = productos.Select(p => new ProductoPedidoViewModel
+                    {
+                        ProductoId = p.Id,
+                        Nombre = p.NombreProducto,
+                        Seleccionado = false,
+                        Cantidad = 0
+                    }).ToList()
                 };
                 //Obtenemos los datos para generar los desplegables
                 ViewData["Productos"] = new SelectList(await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerProductos()) , "Id", "NombreProducto");

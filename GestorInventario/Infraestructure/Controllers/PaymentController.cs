@@ -1,9 +1,6 @@
 ﻿
-using GestorInventario.Application.DTOs.Email;
-using GestorInventario.Application.DTOs.Response_paypal.GET;
-using GestorInventario.Domain.Models;
+using GestorInventario.Application.DTOs.Response_paypal;
 using GestorInventario.Infraestructure.Utils;
-using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.ViewModels.Paypal;
@@ -17,10 +14,8 @@ namespace GestorInventario.Infraestructure.Controllers
     public class PaymentController : Controller
     {
         private readonly ILogger<PaymentController> _logger;
-        private readonly IPaypalService _paypalService;        
-       
-        private readonly IMemoryCache _memory;
-         
+        private readonly IPaypalService _paypalService;             
+        private readonly IMemoryCache _memory;        
         private readonly PolicyExecutor _policyExecutor;
         private readonly IPaymentRepository _paymentRepository;
         private readonly UtilityClass _utilityClass;
@@ -106,7 +101,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> FormularioRembolso(RefundForm form)
+        public async Task<IActionResult> FormularioRembolso(RefundFormViewModel form)
         {
             try
             {

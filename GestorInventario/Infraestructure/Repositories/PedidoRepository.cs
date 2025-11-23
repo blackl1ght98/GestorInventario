@@ -58,30 +58,29 @@ namespace GestorInventario.Infraestructure.Repositories
                 };
                 await _context.AddEntityAsync(historialPedido);
 
-                for (var i = 0; i < model.Productos.Count; i++)
+                foreach (var item in model.Productos.Where(p => p.Seleccionado))
                 {
-                    if (model.ProductosSeleccionados[i])
+                    var detallePedido = new DetallePedido
                     {
-                        var detallePedido = new DetallePedido
-                        {
-                            PedidoId = pedido.Id,
-                            ProductoId = model.Productos[i],
-                            Cantidad = model.Cantidades[i]
-                        };
-                        await _context.AddEntityAsync(detallePedido);
+                        PedidoId = pedido.Id,
+                        ProductoId = item.ProductoId,
+                        Cantidad = item.Cantidad
+                    };
+                    await _context.AddEntityAsync(detallePedido);
 
-                        var detalleHistorialPedido = new DetalleHistorialPedido
-                        {
-                            HistorialPedidoId = historialPedido.Id,
-                            ProductoId = model.Productos[i],
-                            Cantidad = model.Cantidades[i],
-                            EstadoPedido = model.EstadoPedido,
-                            FechaPedido = model.FechaPedido,
-                            NumeroPedido = model.NumeroPedido
-                        };
-                        await _context.AddEntityAsync(detalleHistorialPedido);
-                    }
+                    var detalleHistorial = new DetalleHistorialPedido
+                    {
+                        HistorialPedidoId = historialPedido.Id,
+                        ProductoId = item.ProductoId,
+                        Cantidad = item.Cantidad,
+                        EstadoPedido = model.EstadoPedido,
+                        FechaPedido = model.FechaPedido,
+                        NumeroPedido = model.NumeroPedido
+                    };
+
+                    await _context.AddEntityAsync(detalleHistorial);
                 }
+
 
                 await transaction.CommitAsync();
                 return OperationResult<string>.Ok("Pedido creado con exito");

@@ -30,7 +30,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 .FirstOrDefaultAsync();
             return email;
         }
-        public async Task<OperationResult<Pedido>> ObtenerNumeroPedido(RefundForm form)
+        public async Task<OperationResult<Pedido>> ObtenerNumeroPedido(RefundFormViewModel form)
         {
             var numeroPedido= await _context.Pedidos.FirstOrDefaultAsync(p => p.NumeroPedido == form.NumeroPedido);
             if(numeroPedido is null)
@@ -175,7 +175,7 @@ namespace GestorInventario.Infraestructure.Repositories
 
             return detallesSuscripcion;
         }
-        public async Task<OperationResult<PayPalPaymentItem>> ProcesarRembolso(PurchaseUnitsBse firstPurchaseUnit, PayPalPaymentDetail detallesSuscripcion,int usuarioActual, RefundForm form,Pedido obtenerNumeroPedido, string emailCliente)
+        public async Task<OperationResult<PayPalPaymentItem>> ProcesarRembolso(PurchaseUnitsBse firstPurchaseUnit, PayPalPaymentDetail detallesSuscripcion,int usuarioActual, RefundFormViewModel form,Pedido obtenerNumeroPedido, string emailCliente)
         {
             // Lista para almacenar los ítems de PayPal
             var paypalItems = new List<PayPalPaymentItem>();

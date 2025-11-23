@@ -6,7 +6,7 @@ namespace GestorInventario.ViewModels.Paypal
 {
     public class PlanesPaginadosViewModel
     {
-        public List<PlanesViewModel> Planes { get; set; } = new List<PlanesViewModel>();
+        public List<PlanesDto> Planes { get; set; } = new List<PlanesDto>();
         public List<PaginasModel> Paginas { get; set; } = new List<PaginasModel>();
         public int TotalPaginas { get; set; }
         public int PaginaActual { get; set; }

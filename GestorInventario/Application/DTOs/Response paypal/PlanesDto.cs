@@ -2,7 +2,7 @@
 
 namespace GestorInventario.ViewModels.Paypal
 {
-    public class PlanesViewModel
+    public class PlanesDto
     {
         public required string Id { get; set; }
         public required string productId { get; set; }
