@@ -36,7 +36,6 @@
 
   <ItemGroup>
     <Folder Include="Documentación tecnica\Guias\" />
-    <Folder Include="MetodosExtension\Interfaces\" />
     <Folder Include="wwwroot\imagenes\" />
   </ItemGroup>
 

@@ -15,13 +15,17 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IRembolsoRepository _rembolsoRepository;
         private readonly GenerarPaginas _generarPaginas;
         private readonly ILogger<RembolsoController> _logger;
+        private readonly PaginationHelper _paginationHelper;
 
-        public RembolsoController(PolicyExecutor policyExecutor, IRembolsoRepository rembolsoRepository, GenerarPaginas generarPaginas, ILogger<RembolsoController> logger)
+        public RembolsoController(PolicyExecutor policyExecutor, IRembolsoRepository rembolsoRepository, 
+            GenerarPaginas generarPaginas, ILogger<RembolsoController> logger, PaginationHelper paginationHelper)
         {
             _policyExecutor = policyExecutor;
             _rembolsoRepository = rembolsoRepository;
             _generarPaginas = generarPaginas;
             _logger = logger;
+            _paginationHelper = paginationHelper;
+
         }
 
         public async Task<IActionResult> Index(string buscar, [FromQuery] Paginacion paginacion)
@@ -36,18 +40,18 @@ namespace GestorInventario.Infraestructure.Controllers
                     queryable = queryable.Where(s => s.NumeroPedido.Contains(buscar));
                 }
 
-           
-              
 
-                var (rembolsos, totalItems) = await _policyExecutor.ExecutePolicyAsync(() => queryable.PaginarAsync(paginacion));
-                var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
-                var paginas = _generarPaginas.GenerarListaPaginas(totalPaginas, paginacion.Pagina, paginacion.Radio);
+
+                // 🔹 Usamos el helper directamente
+                var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
+                    _paginationHelper.PaginarAsync(queryable, paginacion)
+                );
 
                 var viewModel = new RembolsosViewModel
                 {
-                    Rembolsos = rembolsos, 
-                    Paginas = paginas,
-                    TotalPaginas = totalPaginas,
+                    Rembolsos = paginationResult.Items, 
+                    Paginas = paginationResult.Paginas.ToList(),
+                    TotalPaginas = paginationResult.TotalPaginas,
                     PaginaActual = paginacion.Pagina,
                     Buscar = buscar
                 };

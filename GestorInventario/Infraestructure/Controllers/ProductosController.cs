@@ -7,6 +7,7 @@ using GestorInventario.PaginacionLogica;
 using GestorInventario.ViewModels.product;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Linq;
 using System.Security.Claims;
 
 namespace GestorInventario.Infraestructure.Controllers
@@ -21,7 +22,8 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IProductoRepository _productoRepository;            
         private readonly IPdfService _pdfService;
         private readonly PolicyExecutor _policyExecutor;
-        public ProductosController(  PaginacionMetodo paginacionMetodo,  PolicyExecutor executor,
+        private readonly PaginationHelper _paginationHelper;
+        public ProductosController(  PaginacionMetodo paginacionMetodo,  PolicyExecutor executor,PaginationHelper pagination,
         ILogger<ProductosController> logger, IEmailService emailService, IProductoRepository producto,   IPdfService pdf
        )
         {
@@ -32,6 +34,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _productoRepository = producto;         
             _policyExecutor = executor;
             _pdfService = pdf;
+            _paginationHelper = pagination;
         }
         //Metodo para obtener los productos
         [HttpGet]
@@ -69,9 +72,10 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
                 // Aplicar paginación
-                var (productosPaginados, totalItems) = await _policyExecutor.ExecutePolicyAsync(() => productos.PaginarAsync(paginacion));
-                var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
-                var paginas = _paginarMetodo.GenerarListaPaginas(totalPaginas, paginacion.Pagina, paginacion.Radio);
+                // 🔹 Usamos el helper directamente
+                var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
+                    _paginationHelper.PaginarAsync(productos, paginacion)
+                );
 
                 // Obtener proveedores
                 var proveedores = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProveedores());
@@ -82,9 +86,9 @@ namespace GestorInventario.Infraestructure.Controllers
                 // Crear el ViewModel
                 var viewModel = new ProductsViewModel
                 {
-                    Productos = productosPaginados,
-                    Paginas = paginas,
-                    TotalPaginas = totalPaginas,
+                    Productos = paginationResult.Items,
+                    Paginas = paginationResult.Paginas.ToList(),
+                    TotalPaginas = paginationResult.TotalPaginas,
                     PaginaActual = paginacion.Pagina,
                     Buscar = buscar,
                     OrdenarPorPrecio = ordenarPorPrecio,
@@ -376,14 +380,15 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     historialProductos = historialProductos.Where(p => p.Accion.Contains(buscar) || p.Ip.Contains(buscar));
                 }
-                var (historialPaginado, totalItems) = await _policyExecutor.ExecutePolicyAsync(() => historialProductos.PaginarAsync(paginacion));
-                var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
-                var paginas = _paginarMetodo.GenerarListaPaginas(totalPaginas, paginacion.Pagina, paginacion.Radio);
+                // 🔹 Usamos el helper directamente
+                var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
+                    _paginationHelper.PaginarAsync(historialProductos, paginacion)
+                );
                 var viewModel = new HistorialProductoViewModel
                 {
-                    Historial = historialPaginado,
-                    Paginas = paginas,
-                    TotalPaginas = totalPaginas,
+                    Historial = paginationResult.Items,
+                    Paginas = paginationResult.Paginas.ToList(),
+                    TotalPaginas = paginationResult.TotalPaginas,
                     PaginaActual = paginacion.Pagina,
                   
                 };
@@ -409,13 +414,13 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
-                var (success, errorMessage, pdfData) = await _policyExecutor.ExecutePolicyAsync(() => _pdfService.DescargarProductoPDF());
-                if (!success)
+                var  pdfData = await _policyExecutor.ExecutePolicyAsync(() => _pdfService.GenerarPDF());
+                if (!pdfData.Success)
                 {
-                    TempData["ErrorMessage"] = errorMessage;
-                    return BadRequest(errorMessage);
+                    TempData["ErrorMessage"] = pdfData.Message;
+                   
                 }
-                return File(pdfData, "application/pdf", "historial.pdf");
+                return File(pdfData.Data, "application/pdf", "historial.pdf");
             }
             catch (Exception ex)
             {

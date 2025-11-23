@@ -24,6 +24,10 @@
     <div class="row g-4">
         @foreach (var rembolso in Model.Rembolsos)
         {
+            @if (Model.Rembolsos == null)
+            {
+                <div>Rembolsos es NULL</div>
+            }
             <div class="col-12 col-md-6 col-lg-4">
                 <div class="card border-0 shadow-sm hover-card h-100">
                     <div class="card-body p-4">

@@ -290,7 +290,7 @@ namespace GestorInventario.Infraestructure.Repositories
 
             try
             {
-                var pedido = await _context.Pedidos.FindAsync(pedidoId);
+                var pedido = await _context.Pedidos.Include(x=>x.IdUsuarioNavigation).FirstOrDefaultAsync(x=>x.Id==pedidoId);
                 if (pedido == null)
                     throw new ArgumentException($"Pedido con ID {pedidoId} no encontrado.");
 
@@ -308,6 +308,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 {
                     var rembolso = new Rembolso
                     {
+
                         NumeroPedido = pedido.NumeroPedido,
                         NombreCliente = pedido.IdUsuarioNavigation?.NombreCompleto,
                         EmailCliente = pedido.IdUsuarioNavigation?.Email,
@@ -316,6 +317,7 @@ namespace GestorInventario.Infraestructure.Repositories
                         EstadoRembolso = "REMBOLSO APROVADO",
                         RembosoRealizado = true,
                         UsuarioId = usuarioActual,
+                        PedidoId=pedido.Id,
                         EstadoVenta = estadoVenta
                     };
                     await _context.AddEntityAsync(rembolso);

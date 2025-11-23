@@ -35,14 +35,50 @@ namespace GestorInventario.Infraestructure.Utils
 
             return new PaginationResult<T>(items, totalItems, totalPaginas, paginacion.Pagina, paginas);
         }
+        public PaginationResult<T> PaginarLista<T>(
+    IEnumerable<T> lista,
+    Paginacion paginacion)
+        {
+            var totalItems = lista.Count();
+            var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
+
+            if (paginacion.Pagina < 1)
+                paginacion.Pagina = 1;
+            else if (paginacion.Pagina > totalPaginas && totalPaginas > 0)
+                paginacion.Pagina = totalPaginas;
+
+            var items = lista
+                .Skip((paginacion.Pagina - 1) * paginacion.CantidadAMostrar)
+                .Take(paginacion.CantidadAMostrar)
+                .ToList();
+
+            var paginas = _generarPaginas.GenerarListaPaginas(totalPaginas, paginacion.Pagina, paginacion.Radio);
+
+            return new PaginationResult<T>(items, totalItems, totalPaginas, paginacion.Pagina, paginas);
+        }
+
 
     }
 
-    public record PaginationResult<T>(
-     List<T> Items,
-     int TotalItems,
-     int TotalPaginas,
-     int PaginaActual,
-     IEnumerable<PaginasModel> Paginas);
+    public record PaginationResult<T>
+    {
+        public PaginationResult() { } // 👈 NECESARIO PARA POLLY
+
+        public PaginationResult(List<T> items, int totalItems, int totalPaginas, int paginaActual, IEnumerable<PaginasModel> paginas)
+        {
+            Items = items;
+            TotalItems = totalItems;
+            TotalPaginas = totalPaginas;
+            PaginaActual = paginaActual;
+            Paginas = paginas;
+        }
+
+        public List<T> Items { get; init; }
+        public int TotalItems { get; init; }
+        public int TotalPaginas { get; init; }
+        public int PaginaActual { get; init; }
+        public IEnumerable<PaginasModel> Paginas { get; init; }
+    }
+
 }
 

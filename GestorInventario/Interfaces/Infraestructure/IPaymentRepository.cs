@@ -12,7 +12,7 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<OperationResult<Pedido>> AgregarInfoPedido(int usuarioActual, string? captureId, string? total, string? currency, string? orderId);
         decimal? ConvertToDecimal(object value);
         int? ConvertToInt(object value);
-        DateTime? ConvertToDateTime(object value);
+       
         PayPalPaymentDetail ProcesarDetallesSuscripcion(CheckoutDetails detallespago);
         Task<OperationResult<PayPalPaymentItem>> ProcesarRembolso(PurchaseUnitsBse firstPurchaseUnit, PayPalPaymentDetail detallesSuscripcion, int usuarioActual, RefundForm form, Pedido obtenerNumeroPedido, string emailCliente);
 
