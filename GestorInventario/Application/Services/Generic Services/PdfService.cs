@@ -1,6 +1,7 @@
 ﻿using Aspose.Pdf;
 using Aspose.Pdf.Text;
 using GestorInventario.Domain.Models;
+using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,7 +15,7 @@ namespace GestorInventario.Application.Services
         {
             _context = context;
         }
-        public async Task<(bool, string, byte[])> GenerarReporteHistorialPedidosAsync()
+        public async Task<OperationResult<byte[]>> GenerarPDF()
         {
             var historialPedido = await _context.HistorialPedidos
                 .Include(hp => hp.DetalleHistorialPedidos)
@@ -24,7 +25,7 @@ namespace GestorInventario.Application.Services
 
             if (historialPedido == null || historialPedido.Count == 0)
             {
-                return (false, "Datos de pedidos no encontrados", null);
+                return OperationResult<byte[]>.Fail("No hay historial de pedidos");
             }
 
             // Crear documento PDF
@@ -141,7 +142,7 @@ namespace GestorInventario.Application.Services
             using (MemoryStream memoryStream = new MemoryStream())
             {
                 document.Save(memoryStream);
-                return (true, null, memoryStream.ToArray());
+                return OperationResult<byte[]>.Ok("",memoryStream.ToArray());
             }
         }
 

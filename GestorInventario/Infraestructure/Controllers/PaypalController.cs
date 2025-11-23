@@ -32,7 +32,8 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IPaypalService _paypalService;
         private readonly IConfiguration _configuration;
         private readonly UtilityClass _utilityClass;
-        public PaypalController( GenerarPaginas generar,  ILogger<PaypalController> logger, IConfiguration config, UtilityClass utility,
+        private readonly PaginationHelper _paginationHelper;
+        public PaypalController( GenerarPaginas generar,  ILogger<PaypalController> logger, IConfiguration config, UtilityClass utility, PaginationHelper pagination,
             IPaypalRepository paypalController, ICarritoRepository carritoRepository, IMapper map, PolicyExecutor executor, IPaypalService service)
         {
             
@@ -45,6 +46,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _mapper = map;
             _configuration = config;
             _utilityClass = utility;
+            _paginationHelper = pagination;
         }
 
       

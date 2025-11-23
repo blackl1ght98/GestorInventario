@@ -1,8 +1,9 @@
-﻿namespace GestorInventario.Interfaces.Application
+﻿using GestorInventario.Infraestructure.Utils;
+
+namespace GestorInventario.Interfaces.Application
 {
     public interface IPdfService
     {
-        Task<(bool, string, byte[])> GenerarReporteHistorialPedidosAsync();
-        Task<(bool, string, byte[])> DescargarProductoPDF();
+        Task<OperationResult<byte[]>> GenerarPDF();
     }
 }

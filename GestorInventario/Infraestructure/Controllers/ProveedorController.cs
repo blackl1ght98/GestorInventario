@@ -9,6 +9,7 @@ using GestorInventario.ViewModels.provider;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 
 namespace GestorInventario.Infraestructure.Controllers
@@ -20,13 +21,15 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly GenerarPaginas _generarPaginas;   
         private readonly IProveedorRepository _proveedorRepository;     
         private readonly PolicyExecutor _policyExecutor;
+        private readonly PaginationHelper _paginationHelper;
         public ProveedorController( ILogger<ProveedorController> logger, GenerarPaginas generarPaginas, 
-            IProveedorRepository proveedor,  PolicyExecutor executor)
+            IProveedorRepository proveedor,  PolicyExecutor executor, PaginationHelper pagination)
         {           
             _logger = logger;
             _generarPaginas = generarPaginas;           
             _proveedorRepository= proveedor;           
             _policyExecutor = executor;
+            _paginationHelper = pagination;
         }
       
         //Metodo que muestra todos los proveedores
@@ -47,15 +50,15 @@ namespace GestorInventario.Infraestructure.Controllers
                     proveedores = proveedores.Where(s => s.NombreProveedor.Contains(buscar));
                 }
 
-                // Aplicar paginación
-                var (proveedoresPaginados, totalItems) = await _policyExecutor.ExecutePolicyAsync(() => proveedores.PaginarAsync(paginacion));
-                var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
-                var paginas = _generarPaginas.GenerarListaPaginas(totalPaginas, paginacion.Pagina, paginacion.Radio);
+                // 🔹 Usamos el helper directamente
+                var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
+                    _paginationHelper.PaginarAsync(proveedores, paginacion)
+                );
                 var viewModel = new ProviderViewModel
                 {
-                    Proveedores = proveedoresPaginados,
-                    Paginas = paginas,
-                    TotalPaginas = totalPaginas,
+                    Proveedores = paginationResult.Items,
+                    Paginas = paginationResult.Paginas.ToList(),
+                    TotalPaginas = paginationResult.TotalPaginas,
                     PaginaActual = paginacion.Pagina,
                     Buscar = buscar,                 
                    

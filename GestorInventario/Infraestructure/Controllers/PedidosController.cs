@@ -500,13 +500,13 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
 
-                var (success, errorMessage, bytes) = await _policyExecutor.ExecutePolicyAsync(() => _pdfservice.GenerarReporteHistorialPedidosAsync());
-                if (!success)
+                var  bytes = await _policyExecutor.ExecutePolicyAsync(() => _pdfservice.GenerarPDF());
+                if (!bytes.Success)
                 {
-                    TempData["ErrorMessage"] = errorMessage;
+                    TempData["ErrorMessage"] = bytes.Message;
                     return RedirectToAction(nameof(HistorialPedidos));
                 }
-                return File(bytes, "application/pdf", "historial.pdf");
+                return File(bytes.Data, "application/pdf", "historial.pdf");
             }
             catch (Exception ex)
             {
