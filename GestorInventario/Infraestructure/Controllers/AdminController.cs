@@ -294,7 +294,7 @@ namespace GestorInventario.Infraestructure.Controllers
         //Metodo que da de baja el usuario, este metodo se llaman desde el script alta-baja-usuario.js
         [HttpPost]
         [Authorize(Roles ="Administrador")]
-        public async Task<IActionResult> BajaUsuarioPost([FromBody] UsuarioRequest request)
+        public async Task<IActionResult> BajaUsuarioPost([FromBody] UsuarioRequestDto request)
         {
             var result = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.BajaUsuario(request.Id));
          
@@ -311,7 +311,7 @@ namespace GestorInventario.Infraestructure.Controllers
         //Metodo que da de alta el usuario, este metodo se llaman desde el script alta-baja-usuario.js
         [HttpPost]
         [Authorize(Roles = "Administrador")]
-        public async Task<IActionResult> AltaUsuarioPost([FromBody] UsuarioRequest request)
+        public async Task<IActionResult> AltaUsuarioPost([FromBody] UsuarioRequestDto request)
         {
             var result = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.AltaUsuario(request.Id));
           

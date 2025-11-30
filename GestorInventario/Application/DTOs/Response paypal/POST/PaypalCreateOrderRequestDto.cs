@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace GestorInventario.Application.DTOs.Response_paypal.POST
 {
-    public class PaypalCreateOrderRequest
+    public class PaypalCreateOrderRequestDto
     {
         [JsonProperty("intent")]
         public required string Intent { get; set; }

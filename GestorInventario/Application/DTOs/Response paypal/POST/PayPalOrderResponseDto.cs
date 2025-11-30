@@ -2,7 +2,7 @@
 
 namespace GestorInventario.Application.Classes
 {
-    public class PayPalOrderResponse
+    public class PayPalOrderResponseDto
     {
         [JsonProperty("id")]
         public required string Id { get; set; }

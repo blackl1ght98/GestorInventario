@@ -1,10 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace GestorInventario.Application.Classes
+namespace GestorInventario.Application.DTOs
 {
-    public class Checkout
+    public class CheckoutDto
     {       
-        public required List<ItemModel> Items { get; set; }
+        public required List<ItemModelDto> Items { get; set; }
         public required decimal TotalAmount { get; set; }      
         public required string ReturnUrl { get; set; }
         public required string CancelUrl { get; set; }

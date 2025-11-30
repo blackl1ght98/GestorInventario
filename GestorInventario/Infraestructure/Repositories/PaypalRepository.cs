@@ -444,7 +444,7 @@ namespace GestorInventario.Infraestructure.Repositories
            
         }
 
-        public async Task SavePlanPriceUpdateAsync(string planId, UpdatePricingPlan planPriceUpdate)
+        public async Task SavePlanPriceUpdateAsync(string planId, UpdatePricingPlanDto planPriceUpdate)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
 

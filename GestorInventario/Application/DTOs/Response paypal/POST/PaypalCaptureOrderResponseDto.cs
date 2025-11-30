@@ -2,7 +2,7 @@
 
 namespace GestorInventario.Application.DTOs.Response_paypal.POST
 {
-    public class PaypalCaptureOrderResponse
+    public class PaypalCaptureOrderResponseDto
     {
         [JsonProperty("id")]
         public required string Id { get; set; }

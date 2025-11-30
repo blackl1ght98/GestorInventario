@@ -78,7 +78,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 return OperationResult<Pedido>.Fail("Ocurrio un error al agregar el pedido");
             }
         }
-        public PayPalPaymentDetail ProcesarDetallesSuscripcion(CheckoutDetails detallespago)
+        public PayPalPaymentDetail ProcesarDetallesSuscripcion(CheckoutDetailsDto detallespago)
         {
             if (detallespago.PurchaseUnits == null || !detallespago.PurchaseUnits.Any())
             {

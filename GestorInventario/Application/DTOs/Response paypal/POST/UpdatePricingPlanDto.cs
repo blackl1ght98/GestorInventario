@@ -2,7 +2,7 @@
 
 namespace GestorInventario.Application.DTOs.Response_paypal.POST
 {
-    public class UpdatePricingPlan
+    public class UpdatePricingPlanDto
     {
         [JsonProperty("pricing_schemes")]
         public required List<UpdatePricingSchemes> PricingSchemes { get; set; }

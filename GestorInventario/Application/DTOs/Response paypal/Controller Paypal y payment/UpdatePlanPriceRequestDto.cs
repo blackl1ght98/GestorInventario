@@ -2,7 +2,7 @@
 
 namespace GestorInventario.Application.DTOs.Response_paypal.Controller_Paypal_y_payment
 {
-    public class UpdatePlanPriceRequest
+    public class UpdatePlanPriceRequestDto
     {
         [Required(ErrorMessage = "El ID del plan es requerido.")]
         public required string PlanId { get; set; }

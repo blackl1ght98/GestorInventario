@@ -24,7 +24,7 @@ namespace GestorInventario.Application.Services.Generic_Services
             _logger = logger;
         }
 
-        public async Task<BarcodeResult> GenerateUniqueBarCodeAsync(BarcodeType type, string data, bool generateImage)
+        public async Task<BarcodeResultDto> GenerateUniqueBarCodeAsync(BarcodeType type, string data, bool generateImage)
         {
             _logger.LogInformation("Generando código de barras único. Tipo: {Type}, Generar imagen: {GenerateImage}", type, generateImage);
             string? imagePath=null;
@@ -59,7 +59,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                 {
                     throw new ArgumentNullException("La ruta de la imagen es nula");
                 }
-                return new BarcodeResult
+                return new BarcodeResultDto
                 {
                     Code = barcode,
                     ImagePath = imagePath

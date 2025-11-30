@@ -2,7 +2,7 @@
 
 namespace GestorInventario.Application.DTOs.Response_paypal.GET
 {
-    public class PaypalProductListResponse
+    public class PaypalProductListResponseDto
     {
         [JsonProperty("total_items")]
         public int TotalItems { get; set; }

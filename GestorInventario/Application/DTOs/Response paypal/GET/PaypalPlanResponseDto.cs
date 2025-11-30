@@ -7,12 +7,12 @@ namespace GestorInventario.Application.DTOs
     public class PaypalPlansListResponse
     {
         [JsonProperty("plans")]
-        public required List<PaypalPlanResponse> Plans { get; set; }
+        public required List<PaypalPlanResponseDto> Plans { get; set; }
 
         [JsonProperty("links")]
         public required List<Link> Links { get; set; }
     }
-    public class PaypalPlanResponse
+    public class PaypalPlanResponseDto
     {
         [JsonProperty("id")]
         [Required(ErrorMessage = "El ID del plan es requerido.")]

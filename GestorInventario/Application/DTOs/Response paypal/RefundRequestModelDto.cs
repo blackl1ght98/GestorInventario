@@ -1,6 +1,6 @@
 ﻿namespace GestorInventario.Application.DTOs.Response_paypal
 {
-    public class RefundRequestModel
+    public class RefundRequestModelDto
     {
         public int PedidoId { get; set; }
         public decimal Amount { get; set; }

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace GestorInventario.Application.DTOs.Response.PayPal
 {
     // DTO para la respuesta completa de la creación de una suscripción
-    public class SubscriptionCreateRequest
+    public class SubscriptionCreateRequestDto
     {
         [JsonProperty("id")]
         public  string? Id { get; set; }

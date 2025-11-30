@@ -57,7 +57,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
         //Si el pago es reembolsado
         [HttpPost]
-        public async Task<IActionResult> RefundSale(RefundRequestModel request)
+        public async Task<IActionResult> RefundSale(RefundRequestModelDto request)
         {
             if (request == null || request.PedidoId <= 0)
             {
@@ -77,7 +77,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
         [HttpPost]
-        public async Task<IActionResult> RefundPartial([FromBody] RefundRequestModel request)
+        public async Task<IActionResult> RefundPartial([FromBody] RefundRequestModelDto request)
         {
             if (request?.PedidoId <= 0)
             {

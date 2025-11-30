@@ -164,15 +164,15 @@ namespace GestorInventario.Infraestructure.Repositories
                 
             }
         }
-        private async Task<OperationResult<InfoUsuario>> ValidarUsuarioYObtenerInfo()
+        private async Task<OperationResult<InfoUsuarioDto>> ValidarUsuarioYObtenerInfo()
         {
             var usuarioId = _utilityClass.ObtenerUsuarioIdActual();
             var (usuarioActual,mensaje) = await _admin.ObtenerPorId(usuarioId);
             if(usuarioActual == null)
             {
-                return OperationResult<InfoUsuario>.Fail("El usuario no existe");
+                return OperationResult<InfoUsuarioDto>.Fail("El usuario no existe");
             }
-            var infoUsuario = new InfoUsuario
+            var infoUsuario = new InfoUsuarioDto
             {
                 NombreCompletoUsuario = usuarioActual.NombreCompleto ?? "Nombre no facilitado",
                 Telefono = usuarioActual.Telefono ?? "Telefono no facilitado",
@@ -182,30 +182,30 @@ namespace GestorInventario.Infraestructure.Repositories
                 Line2 = usuarioActual.Direccion.Split(",").Length > 1 ? usuarioActual.Direccion.Split(",")[1].Trim() : ""
             };
            
-            return OperationResult<InfoUsuario>.Ok("Validacion exitosa",infoUsuario);
+            return OperationResult<InfoUsuarioDto>.Ok("Validacion exitosa",infoUsuario);
         }
-        private async Task<OperationResult<CarritoConItems>> ValidarCarritoYObtenerItems(int userId)
+        private async Task<OperationResult<CarritoConItemsDto>> ValidarCarritoYObtenerItems(int userId)
         {
             var result = await ObtenerCarritoUsuario(userId);
             var carrito = result.Data;
             if (carrito == null)
             {
-                return OperationResult<CarritoConItems>.Fail("No se encontró un carrito para el usuario.");
+                return OperationResult<CarritoConItemsDto>.Fail("No se encontró un carrito para el usuario.");
             }
 
             var itemsDelCarrito = await ObtenerItemsDelCarritoUsuario(carrito.Id);
             if (!itemsDelCarrito.Any())
             {
-                return OperationResult<CarritoConItems>.Fail("El carrito está vacío.");
+                return OperationResult<CarritoConItemsDto>.Fail("El carrito está vacío.");
             }
 
-            var resultado = new CarritoConItems
+            var resultado = new CarritoConItemsDto
             {
                 Carrito = carrito,
                 Items = itemsDelCarrito
             };
 
-            return OperationResult<CarritoConItems>.Ok("Validacion exitosa",resultado);
+            return OperationResult<CarritoConItemsDto>.Ok("Validacion exitosa",resultado);
         }
 
         private async Task ConvertirCarritoAPedido(Pedido carrito)
@@ -226,9 +226,9 @@ namespace GestorInventario.Infraestructure.Repositories
            
         }
        
-        private async Task<Checkout> PrepararCheckoutParaPagoPayPal(List<DetallePedido> itemsDelCarrito, string moneda, InfoUsuario infoUsuario)
+        private async Task<CheckoutDto> PrepararCheckoutParaPagoPayPal(List<DetallePedido> itemsDelCarrito, string moneda, InfoUsuarioDto infoUsuario)
         {
-            var items = new List<ItemModel>();
+            var items = new List<ItemModelDto>();
             decimal totalAmount = 0;
            
                 foreach (var item in itemsDelCarrito)
@@ -238,7 +238,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     if (producto != null)
                     {
                    
-                        var paypalItem = new ItemModel
+                        var paypalItem = new ItemModelDto
                         {
                             Name = producto.NombreProducto,
                             Currency = moneda,
@@ -257,7 +257,7 @@ namespace GestorInventario.Infraestructure.Repositories
             string returnUrl = ObtenerReturnUrl();
             string cancelUrl = "https://localhost:7056/Payment/Cancel";
 
-            return new Checkout
+            return new CheckoutDto
             {
                 TotalAmount = totalAmount,
                 Currency = moneda,
@@ -281,10 +281,10 @@ namespace GestorInventario.Infraestructure.Repositories
             var returnUrl = _configuration[configKey] ?? Environment.GetEnvironmentVariable(envVarKey);
             return returnUrl ?? throw new InvalidOperationException($"La URL de retorno no está configurada. Verifique la clave '{configKey}' o la variable de entorno '{envVarKey}'.");
         }
-        private async Task<OperationResult<string>> ProcesarPagoPayPal(Checkout checkout)
+        private async Task<OperationResult<string>> ProcesarPagoPayPal(CheckoutDto checkout)
         {
             var createdPaymentJson = await _paypalService.CreateOrderWithPaypalAsync(checkout);
-            var createdPayment = JsonConvert.DeserializeObject<PayPalOrderResponse>(createdPaymentJson);
+            var createdPayment = JsonConvert.DeserializeObject<PayPalOrderResponseDto>(createdPaymentJson);
             var approvalUrl = createdPayment?.Links?.FirstOrDefault(x => x.Rel == "payer-action")?.Href;
             if (!string.IsNullOrEmpty(approvalUrl))
             {

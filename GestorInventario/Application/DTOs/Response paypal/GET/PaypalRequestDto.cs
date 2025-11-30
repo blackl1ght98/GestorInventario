@@ -2,7 +2,7 @@
 
 namespace GestorInventario.Application.DTOs
 {
-    public class PaypalRequest
+    public class PaypalRequestDto
     {
         public required string subscription_id { get; set; }
     }

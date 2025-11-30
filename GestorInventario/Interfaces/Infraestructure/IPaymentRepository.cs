@@ -13,7 +13,7 @@ namespace GestorInventario.Interfaces.Infraestructure
         decimal? ConvertToDecimal(object value);
         int? ConvertToInt(object value);
        
-        PayPalPaymentDetail ProcesarDetallesSuscripcion(CheckoutDetails detallespago);
+        PayPalPaymentDetail ProcesarDetallesSuscripcion(CheckoutDetailsDto detallespago);
         Task<OperationResult<PayPalPaymentItem>> ProcesarRembolso(PurchaseUnitsBse firstPurchaseUnit, PayPalPaymentDetail detallesSuscripcion, int usuarioActual, RefundFormViewModel form, Pedido obtenerNumeroPedido, string emailCliente);
 
     }

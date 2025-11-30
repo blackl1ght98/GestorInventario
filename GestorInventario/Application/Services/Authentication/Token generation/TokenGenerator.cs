@@ -9,6 +9,11 @@ using StackExchange.Redis;
 
 namespace GestorInventario.Application.Services
 {
+    /// <summary>
+    /// Servicio responsable de obtener el usuario desde la base de datos
+    /// y delegar la generación del token a la estrategia configurada.
+    /// </summary>
+
     public class TokenGenerator : ITokenGenerator
     {
         private readonly GestorInventarioContext _context;

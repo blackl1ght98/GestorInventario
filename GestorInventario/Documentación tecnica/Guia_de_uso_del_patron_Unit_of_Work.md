@@ -2,22 +2,34 @@
 
 ## Introducción
 
-El patrón **Unit of Work** (Unidad de Trabajo) es un patrón de diseño que centraliza la coordinación de operaciones relacionadas con datos, como las interacciones con una base de datos o servicios externos. Su objetivo es garantizar que múltiples operaciones se realicen de manera consistente, facilitando la gestión de transacciones y mejorando la organización del código.
+El patrón **Unit of Work** (Unidad de Trabajo) es un patrón de diseño que centraliza la coordinación 
+de operaciones relacionadas con datos, como las interacciones con una base de datos o servicios externos. 
+Su objetivo es garantizar que múltiples operaciones se realicen de manera consistente, facilitando la gestión de 
+transacciones y mejorando la organización del código.
 
 ## ¿Por Qué Usar el Patrón Unit of Work?
 
-1. **Coordinación de Operaciones**: Facilita la ejecución de operaciones que involucran múltiples repositorios o servicios, asegurando que se completen de forma conjunta.
-2. **Gestión de Transacciones**: En contextos de bases de datos, permite manejar transacciones para garantizar que todas las operaciones se confirmen o deshagan correctamente.
-3. **Mantenibilidad y Extensibilidad**: Centraliza la lógica de coordinación, haciendo el código más fácil de mantener y ampliable para futuras funcionalidades, como agregar nuevos repositorios o notificaciones.
+1. **Coordinación de Operaciones**: Facilita la ejecución de operaciones que involucran múltiples repositorios o 
+1. servicios, asegurando que se completen de forma conjunta.
+2. **Gestión de Transacciones**: En contextos de bases de datos, permite manejar transacciones para garantizar que todas 
+1. las operaciones se confirmen o deshagan correctamente.
+3. **Mantenibilidad y Extensibilidad**: Centraliza la lógica de coordinación, haciendo el código más fácil de mantener y 
+1. ampliable para futuras funcionalidades, como agregar nuevos repositorios o notificaciones.
 
 ## Regla de Oro del Unit of Work
 
-**El Unit of Work debe coordinar repositorios, no servicios, y los repositorios no deben depender de servicios que a su vez dependan de ellos.**
+**El Unit of Work debe coordinar repositorios, no servicios, y los repositorios no deben depender de servicios que a su vez 
+dependan de ellos.**
 
 ### ¿Qué significa esto?
-- **Coordinar repositorios, no servicios**: El Unit of Work debe gestionar operaciones de repositorios (que acceden directamente a la base de datos) en lugar de servicios de aplicación (que contienen lógica de negocio o interactúan con APIs externas). Esto evita que el Unit of Work se vuelva un contenedor de lógica compleja y reduce el riesgo de ciclos de dependencias.
-- **Evitar dependencias circulares**: Los repositorios no deben inyectar servicios (como `IPaypalService`) que dependan de ellos mismos, ya que esto crea ciclos de dependencias que causan errores en la inyección de dependencias (por ejemplo, `InvalidOperationException`).
-- **Por qué es importante**: Seguir esta regla mantiene el código limpio, evita errores difíciles de depurar y asegura que el Unit of Work cumpla su propósito de coordinar operaciones de datos sin mezclarse con lógica de negocio.
+- **Coordinar repositorios, no servicios**: El Unit of Work debe gestionar operaciones de repositorios (que acceden directamente a 
+- la base de datos) en lugar de servicios de aplicación (que contienen lógica de negocio o interactúan con APIs externas). 
+- Esto evita que el Unit of Work se vuelva un contenedor de lógica compleja y reduce el riesgo de ciclos de dependencias.
+- **Evitar dependencias circulares**: Los repositorios no deben inyectar servicios (como `IPaypalService`) que dependan de 
+- ellos mismos, ya que esto crea ciclos de dependencias que causan errores en la inyección de dependencias 
+- (por ejemplo, `InvalidOperationException`).
+- **Por qué es importante**: Seguir esta regla mantiene el código limpio, evita errores difíciles de depurar y 
+- asegura que el Unit of Work cumpla su propósito de coordinar operaciones de datos sin mezclarse con lógica de negocio.
 
 ### Ejemplo Práctico de la Regla
 Si un repositorio como `PaypalRepository` necesita datos de un servicio como `PaypalServices`, no debe inyectar `IPaypalService`. 
@@ -26,7 +38,9 @@ Esto rompe posibles ciclos de dependencias y mantiene las responsabilidades sepa
 
 ## Ejemplo de Implementación
 
-A continuación, se muestra un ejemplo de cómo implementar un Unit of Work que coordina operaciones de repositorios, siguiendo la regla de oro. En este caso, coordinamos la creación de un producto en PayPal (a través de un servicio) y el guardado de sus detalles en la base de datos (a través de un repositorio), junto con el envío de un correo electrónico de notificación.
+A continuación, se muestra un ejemplo de cómo implementar un Unit of Work que coordina operaciones de repositorios, 
+siguiendo la regla de oro. En este caso, coordinamos la creación de un producto en PayPal (a través de un servicio) y 
+el guardado de sus detalles en la base de datos (a través de un repositorio), junto con el envío de un correo electrónico de notificación.
 
 ### Código de Ejemplo
 

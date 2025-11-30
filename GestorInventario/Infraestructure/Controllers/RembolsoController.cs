@@ -68,7 +68,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
         [HttpDelete]
-        public async Task<IActionResult> EliminarRembolso([FromBody] RembolsoRequest request)
+        public async Task<IActionResult> EliminarRembolso([FromBody] RembolsoRequestDto request)
         {
             var success = await _policyExecutor.ExecutePolicyAsync(() => _rembolsoRepository.EliminarRembolso(request.Id));
             if (success.Success)

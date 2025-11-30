@@ -3,7 +3,12 @@ using GestorInventario.MetodosExtension.Metodos_program.cs;
 
 namespace GestorInventario.Middlewares
 {
-    // Capa 1: Extensión del Middleware - Solo configuración
+    /// <summary>
+    /// Extensión encargada de agregar al pipeline un middleware de autenticación.
+    /// Selecciona la estrategia de autenticación indicada, crea un procesador
+    /// y delega en él la ejecución del proceso de autenticación por solicitud.
+    /// </summary>
+
     public static  class AuthProcessingExtensions
     {
    
