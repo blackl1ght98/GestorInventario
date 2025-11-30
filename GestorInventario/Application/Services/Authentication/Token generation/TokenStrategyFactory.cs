@@ -7,6 +7,9 @@ using StackExchange.Redis;
 
 namespace GestorInventario.Application.Services.Authentication.Token_generation
 {
+    /**
+     Clase encargada de crear la estrategia de autenticacion
+     */
     public class TokenStrategyFactory : ITokenStrategyFactory
     {
         private readonly IConfiguration _configuration;
@@ -31,7 +34,7 @@ namespace GestorInventario.Application.Services.Authentication.Token_generation
             _connectionMultiplexer = connectionMultiplexer;
             _logger = logger;
         }
-
+        
         public ITokenStrategy CreateStrategy()
         {
             string authMode = _configuration["AuthMode"] ?? "Symmetric";

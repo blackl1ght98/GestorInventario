@@ -3,7 +3,6 @@ using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models.ViewModels;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Infraestructure;
-using GestorInventario.MetodosExtension;
 using GestorInventario.PaginacionLogica;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;

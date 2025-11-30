@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using GestorInventario.Application.Classes;
 using GestorInventario.Application.DTOs;
 using GestorInventario.Application.DTOs.Response_paypal;
 using GestorInventario.Application.DTOs.Response_paypal.Controller_Paypal_y_payment;
@@ -11,6 +10,7 @@ using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.PaginacionLogica;
+using GestorInventario.ViewModels;
 using GestorInventario.ViewModels.Paypal;
 using GestorInventario.ViewModels.product;
 using Microsoft.AspNetCore.Mvc;
@@ -369,7 +369,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CancelarSuscripcion([FromBody] PaypalRequest request)
+        public async Task<IActionResult> CancelarSuscripcion([FromBody] PaypalRequestDto request)
         {
             try
             {
@@ -393,7 +393,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SuspenderSuscripcion([FromBody] SuspendSubscriptionRequest request)
+        public async Task<IActionResult> SuspenderSuscripcion([FromBody] SuspendSubscriptionRequestDto request)
         {
             try
             {
@@ -421,7 +421,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ActivarSuscripcion([FromBody] SuspendSubscriptionRequest request)
+        public async Task<IActionResult> ActivarSuscripcion([FromBody] SuspendSubscriptionRequestDto request)
         {
             try
             {
@@ -450,7 +450,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> ActualizarPrecioPlan([FromBody] UpdatePlanPriceRequest request)
+        public async Task<IActionResult> ActualizarPrecioPlan([FromBody] UpdatePlanPriceRequestDto request)
         {
             try
             {

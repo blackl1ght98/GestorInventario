@@ -1,15 +1,11 @@
-﻿using GestorInventario.Application.Politicas_Resilencia;
-using GestorInventario.Application.Services;
-using GestorInventario.Domain.Models;
-using GestorInventario.Infraestructure.Utils;
+﻿using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Infraestructure;
-using GestorInventario.MetodosExtension;
+
 using GestorInventario.PaginacionLogica;
 using GestorInventario.ViewModels.provider;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using System.Linq;
+
 
 
 namespace GestorInventario.Infraestructure.Controllers
@@ -18,15 +14,15 @@ namespace GestorInventario.Infraestructure.Controllers
     {
         
         private readonly ILogger<ProveedorController> _logger;
-        private readonly GenerarPaginas _generarPaginas;   
+        
         private readonly IProveedorRepository _proveedorRepository;     
         private readonly PolicyExecutor _policyExecutor;
         private readonly PaginationHelper _paginationHelper;
-        public ProveedorController( ILogger<ProveedorController> logger, GenerarPaginas generarPaginas, 
+        public ProveedorController( ILogger<ProveedorController> logger, 
             IProveedorRepository proveedor,  PolicyExecutor executor, PaginationHelper pagination)
         {           
             _logger = logger;
-            _generarPaginas = generarPaginas;           
+                   
             _proveedorRepository= proveedor;           
             _policyExecutor = executor;
             _paginationHelper = pagination;

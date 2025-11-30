@@ -1,6 +1,6 @@
-﻿namespace GestorInventario.Application.Classes
+﻿namespace GestorInventario.Application.DTOs
 {
-    public class ItemModel
+    public class ItemModelDto
     {
         public required string Name { get; set; }
         public   string? Description { get; set; }

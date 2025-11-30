@@ -1,6 +1,6 @@
 ﻿namespace GestorInventario.Application.DTOs
 {
-    public class RembolsoRequest
+    public class RembolsoRequestDto
     {
         public int Id { get; set; }
     }

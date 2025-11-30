@@ -4,7 +4,7 @@ using Newtonsoft.Json.Converters;
 
 namespace GestorInventario.Application.DTOs.Response_paypal.POST
 {
-    public class PayPalTrackingInfo
+    public class PayPalTrackingInfoDto
     {
         [JsonProperty("capture_id")]
         public required string CaptureId { get; set; }

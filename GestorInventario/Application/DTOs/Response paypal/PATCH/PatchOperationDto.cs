@@ -2,7 +2,7 @@
 
 namespace GestorInventario.Application.DTOs.Response_paypal.PATCH
 {
-    public class PatchOperation
+    public class PatchOperationDto
     {
         [JsonProperty("op")]
         public  string? Operation { get; set; } // Ejemplo: "replace", "add", "remove"

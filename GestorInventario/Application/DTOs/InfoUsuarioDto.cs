@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace GestorInventario.Application.Classes
+namespace GestorInventario.Application.DTOs
 {
-    public class InfoUsuario
+    public class InfoUsuarioDto
     {
         [Required] 
         public required string NombreCompletoUsuario { get; set; }

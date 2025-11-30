@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace GestorInventario.Application.DTOs.Response_paypal.POST
 {
-    public class PaypalRefundResponse
+    public class PaypalRefundResponseDto
     {
         [JsonProperty("id")]
         public  string? Id { get; set; }

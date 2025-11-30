@@ -66,7 +66,7 @@ namespace GestorInventario.Application.Services
             response.EnsureSuccessStatusCode();
 
             var responseString = await response.Content.ReadAsStringAsync();
-            var responseJson = JsonConvert.DeserializeObject<TokenResponsePayPal>(responseString);
+            var responseJson = JsonConvert.DeserializeObject<TokenResponsePayPalDto>(responseString);
             if (responseJson?.AccessToken == null)
             {
                 throw new InvalidOperationException("No se pudo obtener el token de acceso.");
@@ -88,7 +88,7 @@ namespace GestorInventario.Application.Services
         #endregion
 
         #region Crear orden 
-        public async Task<string> CreateOrderWithPaypalAsync(Checkout pagar)
+        public async Task<string> CreateOrderWithPaypalAsync(CheckoutDto pagar)
         {
             try
             {
@@ -113,7 +113,7 @@ namespace GestorInventario.Application.Services
                     throw new Exception($"Error al crear la orden: {response.StatusCode} - {responseBody}");
                 }
 
-                var jsonResponse = JsonConvert.DeserializeObject<PayPalOrderResponse>(responseBody);
+                var jsonResponse = JsonConvert.DeserializeObject<PayPalOrderResponseDto>(responseBody);
                
                 var orderId = jsonResponse?.Id;
 
@@ -131,9 +131,9 @@ namespace GestorInventario.Application.Services
             }
         }
 
-        private PaypalCreateOrderRequest BuildOrder(Checkout pagar)
+        private PaypalCreateOrderRequestDto BuildOrder(CheckoutDto pagar)
         {
-            return new PaypalCreateOrderRequest
+            return new PaypalCreateOrderRequestDto
             {
                 Intent = "CAPTURE",
                 PurchaseUnits = new List<PurchaseUnit>
@@ -241,7 +241,7 @@ namespace GestorInventario.Application.Services
                     throw new Exception($"Error al capturar el pago: {response.StatusCode} - {responseBody}");
                 }
 
-                var paypalResponse = JsonConvert.DeserializeObject<PaypalCaptureOrderResponse>(responseBody);
+                var paypalResponse = JsonConvert.DeserializeObject<PaypalCaptureOrderResponseDto>(responseBody);
 
                 var capture = paypalResponse?.PurchaseUnits?
                     .FirstOrDefault()?.Payments?
@@ -266,7 +266,7 @@ namespace GestorInventario.Application.Services
         #endregion
 
         #region Obtener detalles del pago v2 paypal   
-        public async Task<CheckoutDetails> ObtenerDetallesPagoEjecutadoV2(string id)
+        public async Task<CheckoutDetailsDto> ObtenerDetallesPagoEjecutadoV2(string id)
         {
             var client = _httpClientFactory.CreateClient("PayPal");
             var (clientId, clientSecret) = GetPaypalCredentials();
@@ -290,7 +290,7 @@ namespace GestorInventario.Application.Services
             }
 
             // Deserializamos la respuesta al DTO correspondiente
-            var subscriptionDetails = JsonConvert.DeserializeObject<CheckoutDetails>(responseBody);
+            var subscriptionDetails = JsonConvert.DeserializeObject<CheckoutDetailsDto>(responseBody);
             if(subscriptionDetails == null)
             {
                 throw new ArgumentNullException("No se puede obtener los detalles de la subscripcion");
@@ -339,7 +339,7 @@ namespace GestorInventario.Application.Services
                 throw new InvalidOperationException($"No se pudo agregar el seguimiento para el pedido {pedidoId}.", ex);
             }
         }
-        private PayPalTrackingInfo CrearTrackingInfo(Pedido pedido, IEnumerable<DetallePedido> detalles, Carrier carrier, BarcodeType barcode)
+        private PayPalTrackingInfoDto CrearTrackingInfo(Pedido pedido, IEnumerable<DetallePedido> detalles, Carrier carrier, BarcodeType barcode)
         {
             var trackingItems = detalles.Select(item => new TrackingItems
             {
@@ -355,7 +355,7 @@ namespace GestorInventario.Application.Services
                 Url = string.Empty
             }).ToList();
 
-            return new PayPalTrackingInfo
+            return new PayPalTrackingInfoDto
             {
                 CaptureId = pedido.CaptureId,
                 TrackingNumber = GenerarNumeroSeguimiento(),
@@ -413,7 +413,7 @@ namespace GestorInventario.Application.Services
 
                 _logger.LogInformation("Reembolso exitoso: {response}", responseBody);
                
-                var refundResponse = JsonConvert.DeserializeObject<PaypalRefundResponse>(responseBody);
+                var refundResponse = JsonConvert.DeserializeObject<PaypalRefundResponseDto>(responseBody);
                 if(refundResponse == null)
                 {
                     throw new  ArgumentNullException("No se pudo obtener los destalles de la devolucion");
@@ -435,9 +435,9 @@ namespace GestorInventario.Application.Services
                 throw new InvalidOperationException("No se pudo realizar el reembolso", ex);
             }
         }
-        private PaypalRefundResponse BuildRefundRequest(decimal totalAmount, Pedido pedido)
+        private PaypalRefundResponseDto BuildRefundRequest(decimal totalAmount, Pedido pedido)
         {
-            return new PaypalRefundResponse
+            return new PaypalRefundResponseDto
             {
                 NotaParaElCliente = "Pedido rembolsado",
                 Amount = new AmountRefund
@@ -531,7 +531,7 @@ namespace GestorInventario.Application.Services
                         if (recentRefund != null)
                         {
                             _logger.LogWarning("Falso positivo detectado: Reembolso de {TotalAmount} AUD ya procesado con ID {RefundId}.", totalAmount, recentRefund.Id);
-                            responseBody = JsonConvert.SerializeObject(new PaypalRefundResponse { Id = recentRefund.Id });
+                            responseBody = JsonConvert.SerializeObject(new PaypalRefundResponseDto { Id = recentRefund.Id });
                         }
                         else
                         {
@@ -548,7 +548,7 @@ namespace GestorInventario.Application.Services
                 }
 
                 _logger.LogInformation("Reembolso exitoso: {response}", responseBody);
-                var refundResponse = JsonConvert.DeserializeObject<PaypalRefundResponse>(responseBody);
+                var refundResponse = JsonConvert.DeserializeObject<PaypalRefundResponseDto>(responseBody);
                 string refundId = refundResponse.Id;
                 var producto = pedido.Producto.NombreProducto;
                 string cadena = $"El producto reembolsado es {producto}";
@@ -598,9 +598,9 @@ namespace GestorInventario.Application.Services
                 throw new InvalidOperationException("No se pudo realizar el reembolso. Por favor, intenta de nuevo o contacta al soporte.", ex);
             }
         }
-        private PaypalRefundResponse BuildRefundPartialRequest(decimal totalAmount, DetallePedido pedido)
+        private PaypalRefundResponseDto BuildRefundPartialRequest(decimal totalAmount, DetallePedido pedido)
         {
-            return new PaypalRefundResponse
+            return new PaypalRefundResponseDto
             {
                 NotaParaElCliente = "Pedido rembolsado",
                 Amount = new AmountRefund
@@ -614,7 +614,7 @@ namespace GestorInventario.Application.Services
         #endregion
 
         #region creacion de un producto y plan de suscripcion
-        public async Task<CreateProductResponse> CreateProductAsync(string productName, string productDescription, string productType, string productCategory)
+        public async Task<CreateProductResponseDto> CreateProductAsync(string productName, string productDescription, string productType, string productCategory)
         {
             var client = _httpClientFactory.CreateClient("PayPal");
             var (clientId, clientSecret) = GetPaypalCredentials();
@@ -633,7 +633,7 @@ namespace GestorInventario.Application.Services
             response.EnsureSuccessStatusCode(); 
 
             var responseBody = await response.Content.ReadAsStringAsync();
-            var productResponse = JsonConvert.DeserializeObject<CreateProductResponse>(responseBody);
+            var productResponse = JsonConvert.DeserializeObject<CreateProductResponseDto>(responseBody);
             if (productResponse == null) 
             {
                 throw new ArgumentNullException("No se pudo obtener el producto");
@@ -642,9 +642,9 @@ namespace GestorInventario.Application.Services
         }
 
         // Update the BuildProductRequest to use the request DTO
-        private CreateProductRequest BuildProductRequest(string productName, string productDescription, string productType, string productCategory)
+        private CreateProductRequestDto BuildProductRequest(string productName, string productDescription, string productType, string productCategory)
         {
-            return new CreateProductRequest
+            return new CreateProductRequestDto
             {
                 Nombre = productName,
                 Description = productDescription,
@@ -772,7 +772,7 @@ namespace GestorInventario.Application.Services
         #endregion
 
         #region Obtener detalles del plan 
-        public async Task<PaypalPlanResponse> ObtenerDetallesPlan(string id)
+        public async Task<PaypalPlanResponseDto> ObtenerDetallesPlan(string id)
         {
             var client = _httpClientFactory.CreateClient("PayPal");
             if (string.IsNullOrEmpty(id))
@@ -804,7 +804,7 @@ namespace GestorInventario.Application.Services
                 // Deserializa la respuesta a PaypalPlanResponse
                 try
                 {
-                    var planDetails = JsonConvert.DeserializeObject<PaypalPlanResponse>(responseBody);
+                    var planDetails = JsonConvert.DeserializeObject<PaypalPlanResponseDto>(responseBody);
                     if (planDetails == null)
                     {
                         _logger.LogError($"No se pudo deserializar la respuesta del plan {id}: {responseBody}");
@@ -835,7 +835,7 @@ namespace GestorInventario.Application.Services
         #endregion
 
         #region Obtener producto asociado a un plan
-        public async Task<(PaypalProductListResponse ProductsResponse, bool HasNextPage)> GetProductsAsync(int page = 1, int pageSize = 10)
+        public async Task<(PaypalProductListResponseDto ProductsResponse, bool HasNextPage)> GetProductsAsync(int page = 1, int pageSize = 10)
         {
             var client = _httpClientFactory.CreateClient("PayPal");
             var (clientId, clientSecret) = GetPaypalCredentials();
@@ -856,7 +856,7 @@ namespace GestorInventario.Application.Services
             {
 
                 var responseContent = await response.Content.ReadAsStringAsync();
-                var jsonResponse = JsonConvert.DeserializeObject<PaypalProductListResponse>(responseContent);
+                var jsonResponse = JsonConvert.DeserializeObject<PaypalProductListResponseDto>(responseContent);
                 if (jsonResponse == null)
                 {
                     throw new ArgumentNullException("No se ha podido obtener los productos");
@@ -878,7 +878,7 @@ namespace GestorInventario.Application.Services
         #endregion
 
         #region Obtener Planes de suscripcion
-        public async Task<(List<PaypalPlanResponse> plans, bool HasNextPage)> GetSubscriptionPlansAsyncV2(int page = 1, int pageSize = 6)
+        public async Task<(List<PaypalPlanResponseDto> plans, bool HasNextPage)> GetSubscriptionPlansAsyncV2(int page = 1, int pageSize = 6)
         {
             var client = _httpClientFactory.CreateClient("PayPal");
             var (clientId, clientSecret) = GetPaypalCredentials();
@@ -913,7 +913,7 @@ namespace GestorInventario.Application.Services
             }
             bool hasNextPage = plansListResponse.Links.Any(link => link.Rel == "next");
 
-            var detailedPlans = new List<PaypalPlanResponse>();
+            var detailedPlans = new List<PaypalPlanResponseDto>();
 
             // Obtener detalles completos de cada plan (si quieres detalles completos)
             foreach (var plan in plansListResponse.Plans)
@@ -937,7 +937,7 @@ namespace GestorInventario.Application.Services
                     var planDetailsContent = await planResponse.Content.ReadAsStringAsync();
                     _logger.LogInformation("Detalles JSON para plan {PlanId}: {Content}", plan.Id, planDetailsContent);
 
-                    var planDetails = JsonConvert.DeserializeObject<PaypalPlanResponse>(planDetailsContent);
+                    var planDetails = JsonConvert.DeserializeObject<PaypalPlanResponseDto>(planDetailsContent);
 
                     if (planDetails != null)
                         detailedPlans.Add(planDetails);
@@ -1019,17 +1019,17 @@ namespace GestorInventario.Application.Services
             }
         }
 
-        private List<PatchOperation> BuildEditProductRequest(string name, string description)
+        private List<PatchOperationDto> BuildEditProductRequest(string name, string description)
         {
-            return new List<PatchOperation>
+            return new List<PatchOperationDto>
                 {
-                    new PatchOperation
+                    new PatchOperationDto
                     {
                         Operation = "replace",
                         Path = "/name",
                         Value = name
                     },
-                    new PatchOperation
+                    new PatchOperationDto
                     {
                         Operation = "replace",
                         Path = "/description",
@@ -1185,7 +1185,7 @@ namespace GestorInventario.Application.Services
         private async Task UpdatePlanPricingAsync(string planId, string accessToken, List<UpdatePricingSchemes> pricingSchemes)
         {
             var client = _httpClientFactory.CreateClient("PayPal");
-            var planRequest = new UpdatePricingPlan { PricingSchemes = pricingSchemes };
+            var planRequest = new UpdatePricingPlanDto { PricingSchemes = pricingSchemes };
 
             var updatePricingRequest = new HttpRequestMessage(HttpMethod.Post, $"v1/billing/plans/{planId}/update-pricing-schemes");
             updatePricingRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
@@ -1238,7 +1238,7 @@ namespace GestorInventario.Application.Services
             }
 
             var updatedPlanDetails = JsonConvert.DeserializeObject<PaypalPlanDetailsDto>(responseBody);
-            await _unitOfWork.PaypalRepository.SavePlanPriceUpdateAsync(planId, new UpdatePricingPlan { PricingSchemes = pricingSchemes });
+            await _unitOfWork.PaypalRepository.SavePlanPriceUpdateAsync(planId, new UpdatePricingPlanDto { PricingSchemes = pricingSchemes });
         }
 
         #endregion
@@ -1265,7 +1265,7 @@ namespace GestorInventario.Application.Services
             var responseBody = await response.Content.ReadAsStringAsync();                   
             if (response.IsSuccessStatusCode)
             {
-                var subscriptionJson = JsonConvert.DeserializeObject<SubscriptionCreateRequest>(responseBody);
+                var subscriptionJson = JsonConvert.DeserializeObject<SubscriptionCreateRequestDto>(responseBody);
                 if(subscriptionJson == null)
                 {
                     throw new ArgumentNullException("No se pudo iniciar el proceso para suscribirse");
@@ -1281,9 +1281,9 @@ namespace GestorInventario.Application.Services
             throw new Exception("Ha ocurrido un error");
 
         }
-        private SubscriptionCreateRequest BuildSubscriptionRequest(string id, string returnUrl, string cancelUrl, string planName)
+        private SubscriptionCreateRequestDto BuildSubscriptionRequest(string id, string returnUrl, string cancelUrl, string planName)
         {
-            return new SubscriptionCreateRequest
+            return new SubscriptionCreateRequestDto
             {
                 PlanId = id,
                 ApplicationContext = new ApplicationContext
@@ -1559,7 +1559,7 @@ namespace GestorInventario.Application.Services
         }
         #endregion
 
-        public async Task<CreateProductResponse> CreateProductAndNotifyAsync(string productName, string productDescription, string productType, string productCategory)
+        public async Task<CreateProductResponseDto> CreateProductAndNotifyAsync(string productName, string productDescription, string productType, string productCategory)
         {
             // Crear el producto
             var product = await CreateProductAsync(productName, productDescription, productType, productCategory);

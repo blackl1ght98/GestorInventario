@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System.Security.Claims;
 
 namespace GestorInventario.Infraestructure.Controllers
@@ -20,7 +21,7 @@ namespace GestorInventario.Infraestructure.Controllers
     public class PedidosController : Controller
     {
        
-        private readonly GenerarPaginas _generarPaginas;
+       
         private readonly ILogger<PedidosController> _logger;
         private readonly IPedidoRepository _pedidoRepository;
         private readonly IHttpContextAccessor _contextAccessor;            
@@ -28,11 +29,13 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly PolicyExecutor _policyExecutor;
         private readonly IPaypalService _paypalService;
         private readonly GestorInventarioContext _context;
-        public PedidosController( GenerarPaginas generarPaginas, ILogger<PedidosController> logger, 
+        private readonly PaginationHelper _paginationHelper;
+        private readonly UtilityClass _utilityClass;
+        public PedidosController( ILogger<PedidosController> logger, PaginationHelper pagination, UtilityClass utility,
             IPedidoRepository pedido, IHttpContextAccessor contextAccessor,  IPdfService pdf, PolicyExecutor executor, IPaypalService paypal, GestorInventarioContext context)
         {
       
-            _generarPaginas = generarPaginas;
+           
             _logger = logger;
             _pedidoRepository = pedido;
             _contextAccessor = contextAccessor;
@@ -40,6 +43,8 @@ namespace GestorInventario.Infraestructure.Controllers
             _policyExecutor = executor;
             _paypalService = paypal;
             _context = context;
+            _paginationHelper = pagination;
+            _utilityClass = utility;
         }
        
      
@@ -51,11 +56,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
-                var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int usuarioId;
-                if (int.TryParse(existeUsuario, out usuarioId))
-                {
 
+                var usuarioId =  _utilityClass.ObtenerUsuarioIdActual();
                     var pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidos());
                     if (User.IsInRole("administrador"))
                     {
@@ -78,22 +80,22 @@ namespace GestorInventario.Infraestructure.Controllers
                     {
                         pedidos = pedidos.Where(s => s.FechaPedido >= fechaInicio.Value && s.FechaPedido <= fechaFin.Value);
                     }
-                    var (orders, totalItems) = await _policyExecutor.ExecutePolicyAsync(() => pedidos.PaginarAsync(paginacion));
-                    var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
-                    var paginas = _generarPaginas.GenerarListaPaginas(totalPaginas, paginacion.Pagina, paginacion.Radio);
+                    var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
+                  _paginationHelper.PaginarAsync(pedidos, paginacion)
+                    );
                     var viewModel = new PedidoViewModel
                     {
-                        Pedidos = orders,
-                        Paginas = paginas,
-                        TotalPaginas = totalPaginas,
+                        Pedidos = paginationResult.Items,
+                        Paginas = paginationResult.Paginas.ToList(),
+                        TotalPaginas = paginationResult.TotalPaginas,
                         PaginaActual = paginacion.Pagina,
                         Buscar = buscar
                     };
 
                  
                     return View(viewModel);
-                }
-                return Unauthorized("No tienes permiso para ver el contenido o no te has logueado");
+                
+               
             }
             catch (Exception ex)
             {
@@ -432,11 +434,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
-                var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int usuarioId;
-                if (int.TryParse(existeUsuario, out usuarioId))
-                {
 
+                var usuarioId = _utilityClass.ObtenerUsuarioIdActual();
                     var pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidosHistorial());
                     if (User.IsInRole("administrador"))
                     {
@@ -449,22 +448,20 @@ namespace GestorInventario.Infraestructure.Controllers
                         pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidosHistorialUsuario(usuarioId));
                     }
                     ViewData["Buscar"] = buscar;
-                    var (orders, totalItems) = await _policyExecutor.ExecutePolicyAsync(() => pedidos.PaginarAsync(paginacion));
-                    var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
-                    var paginas = _generarPaginas.GenerarListaPaginas(totalPaginas, paginacion.Pagina, paginacion.Radio);
+                    var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
+                 _paginationHelper.PaginarAsync(pedidos, paginacion));
                     var viewModel = new HistorialPedidoViewModel
                     {
-                        HistorialPedidos = orders,
-                        Paginas = paginas,
-                        TotalPaginas = totalPaginas,
+                        HistorialPedidos = paginationResult.Items,
+                        Paginas = paginationResult.Paginas.ToList(),
+                        TotalPaginas = paginationResult.TotalPaginas,
                         PaginaActual = paginacion.Pagina,
                         Buscar = buscar
                     };
 
 
                     return View(viewModel);
-                }
-                return RedirectToAction("Index", "Home");
+                
             }
             catch (Exception ex)
             {

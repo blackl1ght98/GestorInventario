@@ -2,7 +2,7 @@
 
 namespace GestorInventario.Application.DTOs.Response_paypal.GET
 {
-    public class CheckoutDetails
+    public class CheckoutDetailsDto
     {
         [JsonProperty("id")]
         public required string Id { get; set; }
