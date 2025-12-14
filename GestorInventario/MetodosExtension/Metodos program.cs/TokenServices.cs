@@ -1,6 +1,7 @@
 ﻿using GestorInventario.Application.Services;
 using GestorInventario.Application.Services.Authentication;
 using GestorInventario.Application.Services.Authentication.Token_generation;
+
 using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application;
 using Microsoft.Extensions.Caching.Distributed;
@@ -51,6 +52,7 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
                 }
                 return new RefreshTokenMethod(context, configuration, memoryCache, redis, connectionMultiplexer, logger);
             });
+          
             return services;
         }
     }
