@@ -13,7 +13,7 @@ using System.Text;
 
 namespace GestorInventario.Application.Services.Authentication
 {
-    public class RefreshTokenMethod: IRefreshTokenMethod
+    public class RefreshTokenMethod : IRefreshTokenMethod
     {
         private GestorInventarioContext _context;
         private IConfiguration _configuration;
@@ -37,7 +37,7 @@ namespace GestorInventario.Application.Services.Authentication
             // Obtener usuario de la base de datos
             var usuarioDB = await _context.Usuarios
           .Include(u => u.IdRolNavigation)
-          
+
           .FirstOrDefaultAsync(x => x.Id == credencialesUsuario.Id);
             if (usuarioDB == null)
             {
@@ -51,7 +51,7 @@ namespace GestorInventario.Application.Services.Authentication
                 new Claim(ClaimTypes.Role, credencialesUsuario.IdRolNavigation.Nombre),
                 new Claim(ClaimTypes.NameIdentifier, credencialesUsuario.Id.ToString())
             };
-          
+
             // Determinar la estrategia basada en AuthMode en tiempo de ejecución
             string authMode = _configuration["AuthMode"] ?? "Symmetric";
             SigningCredentials signingCredentials;
@@ -68,7 +68,7 @@ namespace GestorInventario.Application.Services.Authentication
 
                     var rsaFixed = new RSACryptoServiceProvider();
                     rsaFixed.FromXmlString(privateKeyFixed);
-                    var rsaSecurityKeyFixed = new RsaSecurityKey(rsaFixed); 
+                    var rsaSecurityKeyFixed = new RsaSecurityKey(rsaFixed);
                     signingCredentials = new SigningCredentials(rsaSecurityKeyFixed, SecurityAlgorithms.RsaSha256);
                     break;
 
@@ -111,7 +111,7 @@ namespace GestorInventario.Application.Services.Authentication
                         else
                         {
                             // Las claves existen, deserializarlas
-                            privateKey = JsonConvert.DeserializeObject<RSAParameters>(privateKeyJson); 
+                            privateKey = JsonConvert.DeserializeObject<RSAParameters>(privateKeyJson);
                             publicKey = JsonConvert.DeserializeObject<RSAParameters>(publicKeyJson);
                         }
                     }
@@ -181,4 +181,3 @@ namespace GestorInventario.Application.Services.Authentication
         }
     }
 }
-

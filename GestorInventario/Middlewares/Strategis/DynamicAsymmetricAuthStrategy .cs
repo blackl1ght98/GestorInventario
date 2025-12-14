@@ -16,7 +16,7 @@ namespace GestorInventario.Middlewares.Strategis
     // Capa 4: Implementación - Lógica específica
     public class DynamicAsymmetricAuthStrategy : IAuthProcessingStrategy
     {
-        public async Task ProcessAuthentication(HttpContext context,  Func<Task> next)
+        public async Task ProcessAuthentication(HttpContext context, Func<Task> next)
         {
             try
             {
@@ -31,13 +31,13 @@ namespace GestorInventario.Middlewares.Strategis
                 var redis = context.RequestServices.GetService<IDistributedCache>();
                 var memoryCache = context.RequestServices.GetService<IMemoryCache>();
                 var connectionMultiplexer = context.RequestServices.GetService<IConnectionMultiplexer>();
-                var configuration= context.RequestServices.GetService<IConfiguration>();
+                var configuration = context.RequestServices.GetService<IConfiguration>();
                 bool useRedis = connectionMultiplexer?.IsConnected ?? false;
 
                 // Validar el token principal
                 if (!string.IsNullOrEmpty(token))
                 {
-                    var (jwtToken, principal) = await ValidateToken(token,configuration, tokenService, redis, memoryCache, encryptionService, useRedis);
+                    var (jwtToken, principal) = await ValidateToken(token, configuration, tokenService, redis, memoryCache, encryptionService, useRedis);
                     if (jwtToken != null && principal != null)
                     {
                         // Establecer el ClaimsPrincipal en HttpContext.User
@@ -64,7 +64,7 @@ namespace GestorInventario.Middlewares.Strategis
             await next();
         }
 
-        private static async Task<(JwtSecurityToken?, ClaimsPrincipal?)> ValidateToken(string token,IConfiguration configuration, ITokenGenerator tokenService, IDistributedCache? redis, IMemoryCache? memoryCache, IEncryptionService encryptionService, bool useRedis)
+        private static async Task<(JwtSecurityToken?, ClaimsPrincipal?)> ValidateToken(string token, IConfiguration configuration, ITokenGenerator tokenService, IDistributedCache? redis, IMemoryCache? memoryCache, IEncryptionService encryptionService, bool useRedis)
         {
             var handler = new JwtSecurityTokenHandler();
             var logger = log4net.LogManager.GetLogger(typeof(DynamicAsymmetricAuthStrategy));
@@ -123,10 +123,10 @@ namespace GestorInventario.Middlewares.Strategis
             }
         }
 
-        private static async Task HandleExpiredToken(HttpContext context, string refreshToken,IConfiguration configuration,  ITokenGenerator tokenService, IAdminRepository userService, IDistributedCache? redis,
+        private static async Task HandleExpiredToken(HttpContext context, string refreshToken, IConfiguration configuration, ITokenGenerator tokenService, IAdminRepository userService, IDistributedCache? redis,
                                                      IMemoryCache? memoryCache, IRefreshTokenMethod refreshTokenMethod, bool useRedis)
         {
-            var refreshTokenValid = await ValidateRefreshToken(refreshToken,configuration,  redis, memoryCache, useRedis);
+            var refreshTokenValid = await ValidateRefreshToken(refreshToken, configuration, redis, memoryCache, useRedis);
             var logger = log4net.LogManager.GetLogger(typeof(DynamicAsymmetricAuthStrategy));
 
             if (!refreshTokenValid)
@@ -147,7 +147,7 @@ namespace GestorInventario.Middlewares.Strategis
                 return;
             }
 
-            var (user,mensaje) = await userService.ObtenerPorId(int.Parse(userId));
+            var (user, mensaje) = await userService.ObtenerPorId(int.Parse(userId));
             if (user == null)
             {
                 logger.Warn($"Usuario con ID {userId} no encontrado.");
@@ -201,37 +201,60 @@ namespace GestorInventario.Middlewares.Strategis
             return (null, null, null);
         }
 
-        private static async Task<bool> ValidateRefreshToken(string refreshToken,IConfiguration configuration, IDistributedCache? redis, IMemoryCache? memoryCache, bool useRedis)
+        private static async Task<bool> ValidateRefreshToken(
+      string refreshToken,
+      IConfiguration configuration,
+      IDistributedCache? redis,
+      IMemoryCache? memoryCache,
+      bool useRedis)
         {
             try
             {
                 var handler = new JwtSecurityTokenHandler();
-                var token = handler.ReadJwtToken(refreshToken);
-                if (token.ValidTo < DateTime.UtcNow)
+                var jwtToken = handler.ReadJwtToken(refreshToken);
+
+                if (jwtToken.ValidTo < DateTime.UtcNow)
                     return false;
 
-                string kid = token.Header["kid"]?.ToString();
+                string kid = jwtToken.Header.Kid;
                 if (string.IsNullOrEmpty(kid))
                     return false;
 
-                var (privateKey, _, publicKey) = await RetrieveKeys(kid, redis, memoryCache, useRedis);
-                if (privateKey == null || publicKey == null)
+                // 🔑 recuperar PUBLIC KEY JSON
+                string? publicKeyJson = null;
+
+                if (useRedis && redis != null)
+                    publicKeyJson = await redis.GetStringAsync($"{kid}PublicKeyRefresco");
+                else if (memoryCache != null)
+                    memoryCache.TryGetValue($"{kid}PublicKeyRefresco", out publicKeyJson);
+
+                if (string.IsNullOrEmpty(publicKeyJson))
                     return false;
 
-                var rsaSecurityKey = new RsaSecurityKey(new RSAParameters
+                // 🔓 DESERIALIZAR (ESTO ES LA CLAVE)
+                var publicKeyParams =
+                    JsonConvert.DeserializeObject<RSAParameters>(publicKeyJson);
+
+                var rsa = RSA.Create();
+                rsa.ImportParameters(publicKeyParams);
+
+                var rsaSecurityKey = new RsaSecurityKey(rsa)
                 {
-                    Modulus = Convert.FromBase64String(publicKey),
-                    Exponent = new byte[] { 1, 0, 1 }
-                });
+                    KeyId = kid // 🔥 OBLIGATORIO
+                };
 
                 var validationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = rsaSecurityKey,
+
                     ValidateIssuer = true,
                     ValidIssuer = configuration["JwtIssuer"],
+
                     ValidateAudience = true,
-                    ValidAudience = configuration["JwtAudience"]
+                    ValidAudience = configuration["JwtAudience"],
+
+                    ValidateLifetime = true
                 };
 
                 handler.ValidateToken(refreshToken, validationParameters, out _);
@@ -242,6 +265,7 @@ namespace GestorInventario.Middlewares.Strategis
                 return false;
             }
         }
+
 
         private static void RedirectToLogin(HttpContext context, IRequestCookieCollection collectionCookies)
         {
