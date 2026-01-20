@@ -25,8 +25,9 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IAuthRepository _authRepository;        
         private readonly ILogger<AuthController> _logger;       
         private readonly PolicyExecutor _policyExecutor;
+        private readonly IPasswordResetService _passwordResetService;
         public AuthController(HashService hashService, IEmailService emailService, TokenService tokenService, IAuthRepository adminRepository,
-              ILogger<AuthController> logger,   PolicyExecutor executor)
+              ILogger<AuthController> logger,   PolicyExecutor executor, IPasswordResetService resetService)
         {
             _hashService = hashService;
             _emailService = emailService;
@@ -34,6 +35,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _authRepository = adminRepository;         
             _logger = logger;     
             _policyExecutor = executor;
+            _passwordResetService = resetService;
         }
         
         [AllowAnonymous]
@@ -167,25 +169,15 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(email) || !new EmailAddressAttribute().IsValid(email))
+                var (success, error, userEmail) = await _passwordResetService.EnviarCorreoResetAsync(email);
+
+                if (!success)
                 {
-                    TempData["ErrorMessage"] = "El correo electrónico no es válido.";
+                    TempData["ErrorMessage"] = error;
                     return RedirectToAction("Index", "Admin");
                 }
 
-                var (success, error, userEmail) = await _emailService.SendEmailAsyncResetPassword(new EmailDto
-                {
-                    ToEmail = email
-                });
-                if (success)
-                {
-                    _logger.LogInformation("Email de restablecimiento de contraseña enviado con éxito");
-                    return View("ResetPassword", userEmail); 
-                }
-
-                _logger.LogError("Error al enviar el email: {error}", error);
-                TempData["ErrorMessage"] = error;
-                return RedirectToAction("Index", "Admin");
+                return View("ResetPassword", userEmail);
             }
             catch (Exception ex)
             {
@@ -260,26 +252,15 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(email) || !new EmailAddressAttribute().IsValid(email))
+                var (success, error, userEmail) = await _passwordResetService.EnviarCorreoResetAsync(email);
+
+                if (!success)
                 {
-                    TempData["ErrorMessage"] = "El correo electrónico no es válido.";
-                    return View();
+                    TempData["ErrorMessage"] = error;
+                    return RedirectToAction("Error", "Home");
                 }
 
-                var (success, error, _) = await _emailService.SendEmailAsyncResetPassword(new EmailDto
-                {
-                    ToEmail = email
-                });
-                if (success)
-                {
-                    _logger.LogInformation("Correo enviado con éxito");
-                    TempData["Success"] = "Se ha enviado un correo con instrucciones para restablecer tu contraseña. Por favor, revisa tu bandeja de correo o spam.";
-                    return View();
-                }
-
-                _logger.LogError("Error al enviar el correo: {error}", error);
-                TempData["ErrorMessage"] = error;
-                return View();
+                return View("ResetPassword", userEmail);
             }
             catch (Exception ex)
             {
