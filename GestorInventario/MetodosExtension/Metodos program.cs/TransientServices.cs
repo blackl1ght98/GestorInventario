@@ -44,6 +44,7 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<ITokenGenerator, TokenGenerator>();
            
             services.AddTransient<IBarCodeService, BarCodeService>();
+           
             return services;
 
         }

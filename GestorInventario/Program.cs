@@ -2,10 +2,12 @@
 using GestorInventario.MetodosExtension.Metodos_program.cs;
 using GestorInventario.Middlewares;
 using Microsoft.Net.Http.Headers;
-
+using QuestPDF.Infrastructure;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
 // Agregar variables de entorno a la configuración
 builder.Configuration.AddEnvironmentVariables();
 
@@ -38,6 +40,7 @@ builder.Services.AddHttpContextAccessor();
 
 //Servicios especificos y transient
 builder.Services.AddTransientServices();
+QuestPDF.Settings.License = LicenseType.Community;
 builder.Services.AddScoped<PaginationHelper>();
 builder.Services.AddHttpClientPayPal();
 builder.Services.AddAutoMapper(builder.Configuration);

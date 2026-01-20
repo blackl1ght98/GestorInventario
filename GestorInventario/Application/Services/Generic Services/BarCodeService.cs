@@ -4,6 +4,7 @@ using GestorInventario.enums;
 using GestorInventario.Interfaces;
 using GestorInventario.Interfaces.Application;
 using Microsoft.EntityFrameworkCore;
+
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
@@ -27,7 +28,7 @@ namespace GestorInventario.Application.Services.Generic_Services
         public async Task<BarcodeResultDto> GenerateUniqueBarCodeAsync(BarcodeType type, string data, bool generateImage)
         {
             _logger.LogInformation("Generando código de barras único. Tipo: {Type}, Generar imagen: {GenerateImage}", type, generateImage);
-            string? imagePath=null;
+            string? imagePath = null;
 
             try
             {
@@ -55,7 +56,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                 {
                     imagePath = await GenerateBarcodeImage(barcode, type);
                 }
-                if (imagePath == null) 
+                if (imagePath == null)
                 {
                     throw new ArgumentNullException("La ruta de la imagen es nula");
                 }
@@ -107,7 +108,7 @@ namespace GestorInventario.Application.Services.Generic_Services
             // Convierte número (0-9) a carácter ('0'-'9')
             for (int i = 0; i < 11; i++)
             {
-                digitos[i] = (char)(generadorAleatorio.Next(0, 10) + '0'); 
+                digitos[i] = (char)(generadorAleatorio.Next(0, 10) + '0');
             }
 
             // Calcular el dígito de control según el estándar UPC-A
@@ -133,7 +134,7 @@ namespace GestorInventario.Application.Services.Generic_Services
             // Convierte número (0-9) a carácter ('0'-'9')
             for (int i = 0; i < 12; i++)
             {
-                digitos[i] = (char)(generadorAleatorio.Next(0, 10) + '0'); 
+                digitos[i] = (char)(generadorAleatorio.Next(0, 10) + '0');
             }
 
             // Calcular el dígito de control según el estándar EAN-13
@@ -160,7 +161,7 @@ namespace GestorInventario.Application.Services.Generic_Services
 
         private string GenerateCode128(string data)
         {
-           
+
             if (string.IsNullOrEmpty(data))
             {
                 data = Guid.NewGuid().ToString();
@@ -208,7 +209,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                 }
 
                 // Crear una imagen Bitmap a partir de los datos de píxeles
-                var pixels = pixelData.Pixels; 
+                var pixels = pixelData.Pixels;
                 using var ms = new MemoryStream();
                 using var bitmap = new Bitmap(pixelData.Width, pixelData.Height, PixelFormat.Format32bppRgb);
                 var bitmapData = bitmap.LockBits(new Rectangle(0, 0, pixelData.Width, pixelData.Height), ImageLockMode.WriteOnly, PixelFormat.Format32bppRgb);
@@ -244,5 +245,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                 throw;
             }
         }
+      
     }
 }
+

@@ -1,7 +1,5 @@
-﻿using GestorInventario.Application.Services.Authentication;
-using GestorInventario.Interfaces.Application;
+﻿using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
@@ -48,11 +46,13 @@ namespace GestorInventario.Middlewares.Strategis
                     else if (!string.IsNullOrEmpty(refreshToken))
                     {
                         await HandleExpiredToken(context, refreshToken, configuration, tokenService, userService, redis, memoryCache, refreshTokenMethod, useRedis);
+                       
                     }
                 }
                 else if (!string.IsNullOrEmpty(refreshToken))
                 {
                     await HandleExpiredToken(context, refreshToken, configuration, tokenService, userService, redis, memoryCache, refreshTokenMethod, useRedis);
+                  
                 }
             }
             catch (Exception ex)
@@ -158,6 +158,7 @@ namespace GestorInventario.Middlewares.Strategis
             var newAccessToken = await tokenService.GenerateTokenAsync(user);
             var newRefreshToken = await refreshTokenMethod.GenerarTokenRefresco(user);
 
+
             context.Response.Cookies.Append("auth", newAccessToken.Token, new CookieOptions
             {
                 HttpOnly = true,
@@ -220,7 +221,7 @@ namespace GestorInventario.Middlewares.Strategis
                 if (string.IsNullOrEmpty(kid))
                     return false;
 
-                // 🔑 recuperar PUBLIC KEY JSON
+                
                 string? publicKeyJson = null;
 
                 if (useRedis && redis != null)
@@ -231,7 +232,7 @@ namespace GestorInventario.Middlewares.Strategis
                 if (string.IsNullOrEmpty(publicKeyJson))
                     return false;
 
-                // 🔓 DESERIALIZAR (ESTO ES LA CLAVE)
+               
                 var publicKeyParams =
                     JsonConvert.DeserializeObject<RSAParameters>(publicKeyJson);
 
@@ -240,7 +241,7 @@ namespace GestorInventario.Middlewares.Strategis
 
                 var rsaSecurityKey = new RsaSecurityKey(rsa)
                 {
-                    KeyId = kid // 🔥 OBLIGATORIO
+                    KeyId = kid 
                 };
 
                 var validationParameters = new TokenValidationParameters
