@@ -414,7 +414,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
-                var  pdfData = await _policyExecutor.ExecutePolicyAsync(() => _pdfService.GenerarPDF());
+                var  pdfData = await _policyExecutor.ExecutePolicyAsync(() => _pdfService.DescargarProductoPDF());
                 if (!pdfData.Success)
                 {
                     TempData["ErrorMessage"] = pdfData.Message;
