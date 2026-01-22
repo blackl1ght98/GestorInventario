@@ -132,7 +132,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 if (usuario == null)
                     return OperationResult<Usuario>.Fail("El usuario no existe");
 
-                if (usuario.EnlaceCambioPass != cambio.Token)
+                if (usuario.EmailVerificationToken != cambio.Token)
                     return OperationResult<Usuario>.Fail("El token no es valido");
 
                 if (usuario.FechaEnlaceCambioPass < DateTime.Now || usuario.FechaExpiracionContrasenaTemporal < DateTime.Now)
