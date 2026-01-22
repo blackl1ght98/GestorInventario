@@ -13,6 +13,7 @@ using MailKit.Net.Smtp;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.MetodosExtension;
 using GestorInventario.Application.DTOs.Email;
+using GestorInventario.ViewModels;
 
 namespace GestorInventario.Application.Services
 {
@@ -56,7 +57,7 @@ namespace GestorInventario.Application.Services
                 usuarioDB.EmailVerificationToken = textoEnlace;
 
                 // Construir el enlace de recuperación
-                var model = new EmailDto
+                var model = new RegisterEmailViewmodel
                 {
                     RecoveryLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/admin/confirm-registration/{usuarioDB.Id}/{usuarioDB.EmailVerificationToken}?redirect=true",
                 };
@@ -115,7 +116,7 @@ namespace GestorInventario.Application.Services
                         usuarioDB.FechaExpiracionContrasenaTemporal = fechaExpiracion;
                         await _context.UpdateEntityAsync(usuarioDB);
                         // Crear el modelo para la vista del correo electrónico
-                        var model = new EmailDto
+                        var model = new ResetPasswordEmailViewmodel
                         {
                             //Cuando el usuario hace clic en el enlace que se le envia al correo electronico es dirigido la endpoint de restaurar la contraseña(RestorePassword)
                             RecoveryLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/auth/restore-password/{usuarioDB.Id}/{usuarioDB.EmailVerificationToken}?redirect=true",
@@ -171,7 +172,7 @@ namespace GestorInventario.Application.Services
         public async Task SendEmailAsyncLowStock(EmailDto correo, Producto producto)
         {
             // Crear el modelo para la vista del correo electrónico
-            var model = new EmailDto
+            var model = new LowStockViewmodel
             {
                 NombreProducto=producto.NombreProducto,
                 Cantidad=producto.Cantidad,
@@ -200,7 +201,7 @@ namespace GestorInventario.Application.Services
         public async Task SendEmailCreateProduct(EmailDto correo, string productName)
         {
             // Crear el modelo para la vista del correo electrónico
-            var model = new EmailDto
+            var model = new CreateProductEmailViewmodel
             {
                 NombreProducto = productName
                
@@ -234,7 +235,7 @@ namespace GestorInventario.Application.Services
                 .Select(u => u.Email)
                 .ToListAsync();
             if (empleados != null) {
-                var model = new EmailRembolsoDto
+                var model = new EmailRembolsoViewmodel
                 {
                     NumeroPedido = correo.NumeroPedido,
                     NombreCliente = correo.NombreCliente,
@@ -278,10 +279,20 @@ namespace GestorInventario.Application.Services
                 email.From.Add(MailboxAddress.Parse(_config.GetSection("Email:UserName").Value));
                 email.To.Add(MailboxAddress.Parse(correo.EmailCliente)); // Enviar solo al usuario
                 email.Subject = $"Tu reembolso para el pedido #{correo.NumeroPedido} ha sido aprobado";
+                var viewmodel = new RembolsoAprobadoViewmodel
+                {
+                    NumeroPedido = correo.NumeroPedido,
+                    NombreCliente = correo.NombreCliente,
+                    EmailCliente = correo.EmailCliente,
+                    FechaRembolso = correo.FechaRembolso,
+                    CantidadADevolver = correo.CantidadADevolver,
+                    MotivoRembolso = correo.MotivoRembolso,
+                    Productos = correo.Productos,
+                };
 
                 email.Body = new TextPart(TextFormat.Html)
                 {
-                    Text = await RenderViewToStringAsync("ViewsEmailService/ViewRembolsoAprobado", correo)
+                    Text = await RenderViewToStringAsync("ViewsEmailService/ViewRembolsoAprobado", viewmodel)
                 };
 
                 using var smtp = new SmtpClient();
