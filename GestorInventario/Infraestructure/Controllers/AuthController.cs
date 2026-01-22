@@ -191,51 +191,69 @@ namespace GestorInventario.Infraestructure.Controllers
        [HttpGet("auth/restore-password/{UserId}/{Token}")]
         public async Task<IActionResult> RestorePassword(int UserId, string Token)
         {
-            var (success, mensaje, modelo) = await _authRepository.PrepareRestorePassModel(UserId, Token);
-            if (!success)
+            var  modelo = await _authRepository.PrepareRestorePassModel(UserId, Token);
+            if (!modelo.Success)
             {
-                TempData["ErrorMessage"] = mensaje;
+                TempData["ErrorMessage"] = modelo.Message;
                 return RedirectToAction("ResetPasswordOlvidada");
             }
-            return View(modelo);
+            // Convertimos el DTO a ViewModel
+            var viewModel = new RestorePasswordViewModel
+            {
+                UserId = modelo.Data.UserId,
+                Token = modelo.Data.Token,
+                TemporaryPassword = string.Empty,  
+                Password = string.Empty,
+                
+            };
+            return View(viewModel);
         }
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> RestorePasswordUser(RestoresPasswordDto cambio)
+        public async Task<IActionResult> RestorePasswordUser(RestorePasswordViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                return View("RestorePassword", cambio);
+                return View("RestorePassword", model); 
             }
 
-            var resultado = await _authRepository.PrepareRestorePassModel(cambio.UserId, cambio.Token);
-            if (!resultado.Success)
+            var result = await _authRepository.PrepareRestorePassModel(model.UserId, model.Token);
+
+            if (!result.Success)
             {
-                TempData["ErrorMessage"] =resultado.Message;
-                return RedirectToAction("ResetPasswordOlvidada");
+                TempData["ErrorMessage"] = result.Message ?? "Enlace inválido o expirado.";
+                return RedirectToAction("Login", "Auth");
             }
+
+            // Preparar DTO para el cambio (con la nueva contraseña)
+            var cambio = new RestoresPasswordDto
+            {
+                UserId = model.UserId,
+                Token = model.Token,
+                TemporaryPassword = model.TemporaryPassword,
+                Password = model.Password
+            };
 
             try
             {
-                var result = await _policyExecutor.ExecutePolicyAsync(() => _authRepository.SetNewPasswordAsync(cambio));
-                if (result.Success)
-                {
-                    if ((User.Identity?.IsAuthenticated ?? false) && User.IsAdministrador())
-                        return RedirectToAction("Index", "Admin");
+                var setResult = await _authRepository.SetNewPasswordAsync(cambio);
 
-                    return RedirectToAction(nameof(Login));
+                if (setResult.Success)
+                {
+                    TempData["SuccessMessage"] = "Contraseña restablecida correctamente. Inicie sesión.";
+                    return RedirectToAction("Login", "Auth");
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = result.Message;
-                    return View("RestorePassword", cambio);
+                    ModelState.AddModelError("", setResult.Message ?? "Error al cambiar la contraseña.");
+                    return View("RestorePassword", model);
                 }
             }
             catch (Exception ex)
             {
-                TempData["ConnectionError"] = "El servidor tardó mucho en responder, inténtelo de nuevo más tarde";
                 _logger.LogError(ex, "Error al recuperar la contraseña");
+                TempData["ConnectionError"] = "El servidor tardó mucho en responder, inténtelo de nuevo más tarde";
                 return RedirectToAction("Error", "Home");
             }
         }
