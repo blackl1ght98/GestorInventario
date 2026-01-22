@@ -19,8 +19,6 @@ public partial class Usuario
 
     public bool BajaUsuario { get; set; }
 
-    public string? EnlaceCambioPass { get; set; }
-
     public DateTime? FechaEnlaceCambioPass { get; set; }
 
     public DateTime? FechaExpiracionContrasenaTemporal { get; set; }
@@ -40,6 +38,8 @@ public partial class Usuario
     public string? CodigoPostal { get; set; }
 
     public string? Ciudad { get; set; }
+
+    public string? EmailVerificationToken { get; set; }
 
     public virtual ICollection<HistorialPedido> HistorialPedidos { get; set; } = new List<HistorialPedido>();
 

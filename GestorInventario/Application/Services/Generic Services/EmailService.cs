@@ -53,12 +53,12 @@ namespace GestorInventario.Application.Services
                 string textoEnlace = Convert.ToBase64String(Guid.NewGuid().ToByteArray())
                     .Replace("=", "").Replace("+", "").Replace("/", "")
                     .Replace("?", "").Replace("&", "").Replace("!", "").Replace("¡", "");
-                usuarioDB.EnlaceCambioPass = textoEnlace;
+                usuarioDB.EmailVerificationToken = textoEnlace;
 
                 // Construir el enlace de recuperación
                 var model = new EmailDto
                 {
-                    RecoveryLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/admin/confirm-registration/{usuarioDB.Id}/{usuarioDB.EnlaceCambioPass}?redirect=true",
+                    RecoveryLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/admin/confirm-registration/{usuarioDB.Id}/{usuarioDB.EmailVerificationToken}?redirect=true",
                 };
 
                 // Actualizar el usuario en la base de datos
@@ -118,7 +118,7 @@ namespace GestorInventario.Application.Services
                         var model = new EmailDto
                         {
                             //Cuando el usuario hace clic en el enlace que se le envia al correo electronico es dirigido la endpoint de restaurar la contraseña(RestorePassword)
-                            RecoveryLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/auth/restore-password/{usuarioDB.Id}/{usuarioDB.EnlaceCambioPass}?redirect=true",
+                            RecoveryLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/auth/restore-password/{usuarioDB.Id}/{usuarioDB.EmailVerificationToken}?redirect=true",
                             TemporaryPassword = contrasenaTemporal
                         };
                         // Crear el correo electrónico

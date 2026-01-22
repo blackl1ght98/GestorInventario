@@ -607,7 +607,7 @@ public partial class GestorInventarioContext : DbContext
             entity.Property(e => e.Email)
                 .HasMaxLength(500)
                 .IsUnicode(false);
-            entity.Property(e => e.EnlaceCambioPass).HasMaxLength(50);
+            entity.Property(e => e.EmailVerificationToken).HasMaxLength(50);
             entity.Property(e => e.FechaEnlaceCambioPass).HasColumnType("datetime");
             entity.Property(e => e.FechaExpiracionContrasenaTemporal).HasColumnType("datetime");
             entity.Property(e => e.FechaNacimiento).HasColumnType("datetime");

@@ -148,7 +148,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     TempData["ErrorMessage"] = "Usuario ya validado con anterioridad";
                     _logger.LogInformation($"El usuario con email {usuarioDB.Email} ha intentado confirmar su correo estando confirmado");
                 }
-                if (usuarioDB.EnlaceCambioPass != confirmar.Token)
+                if (usuarioDB.EmailVerificationToken != confirmar.Token)
                 {
                     _logger.LogCritical("Intento de manipulacion del token por el usuario: " + usuarioDB.Id);
                    
