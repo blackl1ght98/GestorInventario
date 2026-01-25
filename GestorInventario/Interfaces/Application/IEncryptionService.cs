@@ -5,7 +5,7 @@ namespace GestorInventario.Interfaces.Application
     public interface IEncryptionService
     {     
         byte[] Descifrar(byte[] data, byte[] aesKey);
-        byte[] Descifrar(byte[] encryptedData, RSAParameters privateKeyParams);
+        byte[] DescifrarV1(byte[] encryptedData, byte[] privateKeyBytes);
         void HandleDecryptionError(Exception ex);
     }
 }

@@ -94,7 +94,14 @@ namespace GestorInventario.Middlewares.Strategis
                 }
 
                 // Descifrar claves y validar el token
-                var aesKey = encryptionService.Descifrar(Convert.FromBase64String(encryptedAesKey), privateKey.Value);
+                //var aesKey = encryptionService.DescifrarV1(Convert.FromBase64String(encryptedAesKey), privateKey.Value);
+                var privateKeyBytes = ToPrivateKeyBytes(privateKey.Value);
+
+                var aesKey = encryptionService.DescifrarV1(
+                    Convert.FromBase64String(encryptedAesKey),
+                    privateKeyBytes
+                );
+
                 var publicKeyBytes = encryptionService.Descifrar(Convert.FromBase64String(publicKey), aesKey);
 
                 var rsaParameters = new RSAParameters { Modulus = publicKeyBytes, Exponent = new byte[] { 1, 0, 1 } };
@@ -121,6 +128,12 @@ namespace GestorInventario.Middlewares.Strategis
                 logger.Error($"Error al validar el token: {ex.Message}", ex);
                 return (null, null);
             }
+        }
+        private static byte[] ToPrivateKeyBytes(RSAParameters parameters)
+        {
+            using var rsa = RSA.Create();
+            rsa.ImportParameters(parameters);
+            return rsa.ExportRSAPrivateKey(); // PKCS#1
         }
 
         private static async Task HandleExpiredToken(HttpContext context, string refreshToken, IConfiguration configuration, ITokenGenerator tokenService, IAdminRepository userService, IDistributedCache? redis,
