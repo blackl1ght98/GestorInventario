@@ -64,7 +64,15 @@ namespace GestorInventario.Middlewares.Strategis
             await next();
         }
 
-        private static async Task<(JwtSecurityToken?, ClaimsPrincipal?)> ValidateToken(string token, IConfiguration configuration, ITokenGenerator tokenService, IDistributedCache? redis, IMemoryCache? memoryCache, IEncryptionService encryptionService, bool useRedis)
+       
+        private static async Task<(JwtSecurityToken?, ClaimsPrincipal?)> ValidateToken(
+        string token,
+        IConfiguration configuration,
+        ITokenGenerator tokenService,
+        IDistributedCache? redis,
+        IMemoryCache? memoryCache,
+        IEncryptionService encryptionService,
+        bool useRedis)
         {
             var handler = new JwtSecurityTokenHandler();
             var logger = log4net.LogManager.GetLogger(typeof(DynamicAsymmetricAuthStrategy));
@@ -86,29 +94,29 @@ namespace GestorInventario.Middlewares.Strategis
                     return (null, null);
                 }
 
-                var (privateKey, encryptedAesKey, publicKey) = await RetrieveKeys(kid, redis, memoryCache, useRedis);
-                if (privateKey == null || string.IsNullOrEmpty(encryptedAesKey) || string.IsNullOrEmpty(publicKey))
+                // Recuperamos solo privada y AES cifrada
+                var (privateKeyParams, encryptedAesKeyBase64) = await RetrieveKeys(kid,redis,memoryCache,useRedis);
+                if (privateKeyParams == null || string.IsNullOrEmpty(encryptedAesKeyBase64))
                 {
                     logger.Warn($"No se pudieron recuperar las claves para el usuario con kid: {kid}");
                     return (null, null);
                 }
 
-                // Descifrar claves y validar el token
-                //var aesKey = encryptionService.DescifrarV1(Convert.FromBase64String(encryptedAesKey), privateKey.Value);
-                var privateKeyBytes = ToPrivateKeyBytes(privateKey.Value);
+                // Descifrar AES con la privada RSA
+                var privateKeyBytes = ToPrivateKeyBytes(privateKeyParams.Value);
 
-                var aesKey = encryptionService.DescifrarV1(
-                    Convert.FromBase64String(encryptedAesKey),
-                    privateKeyBytes
-                );
+                        var aesKey = encryptionService.Descifrar(
+                            Convert.FromBase64String(encryptedAesKeyBase64),
+                            privateKeyBytes
+                        );
 
-                var publicKeyBytes = encryptionService.Descifrar(Convert.FromBase64String(publicKey), aesKey);
+                // Crear clave de firma RSA (usamos la privada para validar)
+                var rsaSecurityKey = new RsaSecurityKey(privateKeyParams.Value);
 
-                var rsaParameters = new RSAParameters { Modulus = publicKeyBytes, Exponent = new byte[] { 1, 0, 1 } };
                 var validationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new RsaSecurityKey(RSA.Create(rsaParameters)),
+                    IssuerSigningKey = rsaSecurityKey,
                     ValidateIssuer = true,
                     ValidIssuer = configuration["JwtIssuer"],
                     ValidateAudience = true,
@@ -193,34 +201,37 @@ namespace GestorInventario.Middlewares.Strategis
             logger.Info($"Nuevos tokens generados para el usuario {userId}.");
         }
 
-        public static async Task<(RSAParameters?, string?, string?)> RetrieveKeys(string kid, IDistributedCache? redis, IMemoryCache? memoryCache, bool useRedis)
+        public static async Task<(RSAParameters?, string?)> RetrieveKeys(string kid, IDistributedCache? redis, IMemoryCache? memoryCache, bool useRedis)
         {
+            string? privateKeyJson = null;
+            string? encryptedAesKeyBase64 = null;
+
             if (useRedis && redis != null)
             {
-                var encryptedAesKey = await redis.GetStringAsync($"{kid}EncryptedAesKey");
-                var privateKeyJson = await redis.GetStringAsync($"{kid}PrivateKey");
-                var publicKey = await redis.GetStringAsync($"{kid}PublicKey");
-                var privateKey = JsonConvert.DeserializeObject<RSAParameters>(privateKeyJson ?? string.Empty);
-                return (privateKey, encryptedAesKey, publicKey);
+                privateKeyJson = await redis.GetStringAsync($"{kid}PrivateKey");
+                encryptedAesKeyBase64 = await redis.GetStringAsync($"{kid}EncryptedAesKey");
             }
             else if (memoryCache != null)
             {
-                memoryCache.TryGetValue($"{kid}EncryptedAesKey", out string? encryptedAesKey);
-                memoryCache.TryGetValue($"{kid}PrivateKey", out string? privateKeyJson);
-                memoryCache.TryGetValue($"{kid}PublicKey", out string? publicKey);
-                var privateKey = JsonConvert.DeserializeObject<RSAParameters>(privateKeyJson ?? string.Empty);
-                return (privateKey, encryptedAesKey, publicKey);
+                memoryCache.TryGetValue($"{kid}PrivateKey", out privateKeyJson);
+                memoryCache.TryGetValue($"{kid}EncryptedAesKey", out encryptedAesKeyBase64);
             }
 
-            return (null, null, null);
+            RSAParameters? privateKey = null;
+            if (!string.IsNullOrEmpty(privateKeyJson))
+            {
+                privateKey = JsonConvert.DeserializeObject<RSAParameters>(privateKeyJson);
+            }
+
+            return (privateKey, encryptedAesKeyBase64);
         }
 
         private static async Task<bool> ValidateRefreshToken(
-      string refreshToken,
-      IConfiguration configuration,
-      IDistributedCache? redis,
-      IMemoryCache? memoryCache,
-      bool useRedis)
+          string refreshToken,
+          IConfiguration configuration,
+          IDistributedCache? redis,
+          IMemoryCache? memoryCache,
+          bool useRedis)
         {
             try
             {

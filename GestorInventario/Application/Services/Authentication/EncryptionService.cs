@@ -17,7 +17,7 @@ namespace GestorInventario.Application.Services.Authentication
 
 
         // Método para descifrar la clave AES utilizando la clave privada
-        public byte[] DescifrarV1(byte[] encryptedData, byte[] privateKeyBytes)
+        public byte[] Descifrar(byte[] encryptedData, byte[] privateKeyBytes)
         {
             try
             {
@@ -34,32 +34,7 @@ namespace GestorInventario.Application.Services.Authentication
 
 
 
-        // Método para descifrar datos utilizando la clave AES
-        public byte[] Descifrar(byte[] data, byte[] aesKey)
-        {
-            try
-            {
-                using (var aes = Aes.Create())
-                {
-                    aes.Key = aesKey;
-                    aes.Mode = CipherMode.CBC;
-                    aes.Padding = PaddingMode.PKCS7;
-                    var iv = data.Take(aes.BlockSize / 8).ToArray();
-                    var cipherText = data.Skip(aes.BlockSize / 8).ToArray();
-                    aes.IV = iv;
-
-                    using (var decryptor = aes.CreateDecryptor())
-                    {
-                        return decryptor.TransformFinalBlock(cipherText, 0, cipherText.Length);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                HandleDecryptionError(ex);
-                return new byte[0];
-            }
-        }
+       
 
         // Método para manejar errores de descifrado
         public void HandleDecryptionError(Exception ex)
