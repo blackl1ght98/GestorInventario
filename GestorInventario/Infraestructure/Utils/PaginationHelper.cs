@@ -13,9 +13,7 @@ namespace GestorInventario.Infraestructure.Utils
             _generarPaginas = generarPaginas;
         }
 
-        public async Task<PaginationResult<T>> PaginarAsync<T>(
-     IQueryable<T> query,
-     Paginacion paginacion)
+        public async Task<PaginationResult<T>> PaginarAsync<T>(IQueryable<T> query,Paginacion paginacion)
         {
             var totalItems = await query.CountAsync();
             var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
@@ -35,9 +33,7 @@ namespace GestorInventario.Infraestructure.Utils
 
             return new PaginationResult<T>(items, totalItems, totalPaginas, paginacion.Pagina, paginas);
         }
-        public PaginationResult<T> PaginarLista<T>(
-    IEnumerable<T> lista,
-    Paginacion paginacion)
+        public PaginationResult<T> PaginarLista<T>(IEnumerable<T> lista, Paginacion paginacion)
         {
             var totalItems = lista.Count();
             var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
@@ -60,25 +56,7 @@ namespace GestorInventario.Infraestructure.Utils
 
     }
 
-    public record PaginationResult<T>
-    {
-        public PaginationResult() { } // 👈 NECESARIO PARA POLLY
-
-        public PaginationResult(List<T> items, int totalItems, int totalPaginas, int paginaActual, IEnumerable<PaginasModel> paginas)
-        {
-            Items = items;
-            TotalItems = totalItems;
-            TotalPaginas = totalPaginas;
-            PaginaActual = paginaActual;
-            Paginas = paginas;
-        }
-
-        public List<T> Items { get; init; }
-        public int TotalItems { get; init; }
-        public int TotalPaginas { get; init; }
-        public int PaginaActual { get; init; }
-        public IEnumerable<PaginasModel> Paginas { get; init; }
-    }
+   
 
 }
 
