@@ -3,19 +3,23 @@ using GestorInventario.MetodosExtension.Metodos_program.cs;
 
 namespace GestorInventario.Middlewares
 {
-    /// <summary>
-    /// Extensión encargada de agregar al pipeline un middleware de autenticación.
-    /// Selecciona la estrategia de autenticación indicada, crea un procesador
-    /// y delega en él la ejecución del proceso de autenticación por solicitud.
-    /// </summary>
 
+
+
+    /// <summary>
+    /// Extensiones para configurar el middleware de procesamiento de autenticación.
+    /// 
+    /// Permite inyectar diferentes estrategias de autenticación (dinámica, fija, simétrica, etc.)
+    /// de forma centralizada en la pipeline de ASP.NET Core.
+    /// </summary>
     public static  class AuthProcessingExtensions
     {
-   
+        // Metodo que recibe el modo de autenticacion elegido.
         public static IApplicationBuilder UseAuthProcessing(this IApplicationBuilder app, string authStrategy)
         {
-            IAuthProcessingStrategy strategy = StrategyFactory.CreateAuthProcessingStrategy(authStrategy);
-
+            // 1º Llama a la clase fabrica y le pasa el metodo de autenticacion elegido
+            IAuthProcessingStrategy strategy = AuthenticationProcessingFactory.CreateAuthProcessingStrategy(authStrategy);
+            // 2º Segun el metodo de autenticacion escogido el orquestador ejecutara la configuracion correspondiente
             var processor = new AuthProcessor(strategy);
 
             app.Use(async (httpContext, next) =>

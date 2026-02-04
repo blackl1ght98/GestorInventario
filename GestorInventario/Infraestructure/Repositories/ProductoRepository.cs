@@ -8,7 +8,7 @@ using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.ViewModels.product;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
+
 namespace GestorInventario.Infraestructure.Repositories
 {
     public class ProductoRepository : IProductoRepository

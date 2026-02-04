@@ -59,21 +59,21 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
                 new Claim(ClaimTypes.NameIdentifier, credencialesUsuario.Id.ToString())
             };
 
-            // 1. Generar par de claves RSA (2048 bits, seguro)
+            // 1. Generar par de claves RSA
             using var rsa = RSA.Create(2048);
-            var privateKey = rsa.ExportParameters(true);
+            var privateKey = rsa.ExportParameters(true); 
             var publicKey = rsa.ExportParameters(false);
 
-            // 2. Generar clave AES simétrica por sesión
+            // 2. AES
             using var aes = Aes.Create();
             aes.GenerateKey();
             var aesKey = aes.Key;
 
-            // 3. Cifrar la clave AES con la clave pública RSA (OAEP-SHA256)
+            // 3. Cifrar AES con pública RSA
             rsa.ImportParameters(publicKey);
             var encryptedAesKey = rsa.Encrypt(aesKey, RSAEncryptionPadding.OaepSHA256);
 
-            // 4. Guardar en Redis o MemoryCache (solo privada + AES cifrada)
+            // 4. Guardar como JSON de RSAParameters (funcional y probado)
             var privateKeyJson = JsonConvert.SerializeObject(privateKey);
             var encryptedAesKeyBase64 = Convert.ToBase64String(encryptedAesKey);
 
@@ -82,7 +82,6 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
             {
                 await _redis.SetStringAsync(credencialesUsuario.Id.ToString() + "PrivateKey", privateKeyJson);
                 await _redis.SetStringAsync(credencialesUsuario.Id.ToString() + "EncryptedAesKey", encryptedAesKeyBase64);
-
             }
             else
             {
@@ -90,20 +89,20 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
                 _memoryCache.Set(credencialesUsuario.Id.ToString() + "EncryptedAesKey", encryptedAesKeyBase64);
             }
 
-            // 5. Firmar JWT con la clave privada RSA
+            // 5. Firmar JWT con la clave original
             var rsaSecurityKey = new RsaSecurityKey(privateKey)
             {
                 KeyId = credencialesUsuario.Id.ToString()
             };
 
-            var signinCredentials = new SigningCredentials(rsaSecurityKey, SecurityAlgorithms.RsaSha256);
+            var signingCredentials = new SigningCredentials(rsaSecurityKey, SecurityAlgorithms.RsaSha256);
 
             var securityToken = new JwtSecurityToken(
                 issuer: Environment.GetEnvironmentVariable("JwtIssuer") ?? _configuration["JwtIssuer"],
                 audience: _configuration["JwtAudience"] ?? Environment.GetEnvironmentVariable("JwtAudience"),
                 claims: claims,
                 expires: DateTime.UtcNow.AddMinutes(10),
-                signingCredentials: signinCredentials);
+                signingCredentials: signingCredentials);
 
             var tokenString = new JwtSecurityTokenHandler().WriteToken(securityToken);
 

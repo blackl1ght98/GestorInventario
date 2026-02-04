@@ -58,19 +58,20 @@ namespace GestorInventario.Middlewares.Strategis
         private async Task<(JwtSecurityToken?, ClaimsPrincipal?)> ValidateToken(string token,IConfiguration configuration)
         {
             var handler = new JwtSecurityTokenHandler();
+            var logger = log4net.LogManager.GetLogger(typeof(FixedAsymmetricAuthStrategy));
             try
             {
                 var jwtToken = handler.ReadJwtToken(token);
                 if (jwtToken.ValidTo < DateTime.UtcNow)
                 {
-                   // _logger.LogWarning("Token ha expirado para la ruta {Path}", builder.WebHost);
+                  logger.Error("El token ha expirado");
                     return (null, null);
                 }
 
                 var publicKey = configuration["Jwt:PublicKey"];
                 if (string.IsNullOrEmpty(publicKey))
                 {
-                   // _logger.LogError("La clave pública JWT no está configurada en Jwt:PublicKey.");
+                   logger.Error("La clave pública JWT no es valida");
                     return (null, null);
                 }
 
@@ -81,7 +82,7 @@ namespace GestorInventario.Middlewares.Strategis
                 }
                 catch (Exception ex)
                 {
-                   // _logger.LogError(ex, "Error al cargar la clave pública RSA desde la configuración.");
+                   logger.Error("Error al cargar la clave pública RSA desde la configuración.",ex);
                     return (null, null);
                 }
 
@@ -98,13 +99,14 @@ namespace GestorInventario.Middlewares.Strategis
 
                 var principal = handler.ValidateToken(token, validationParameters, out _);
                 var tokenPayload = jwtToken.Claims.Select(c => $"{c.Type}: {c.Value}");
-              //  _logger.LogInformation("Claims validados en el token: {Claims}", string.Join(", ", tokenPayload));
+              logger.Info("Claims validos");
 
                 return (jwtToken, principal);
             }
             catch (Exception ex)
             {
-               // _logger.LogError(ex, "Error al validar el token para la ruta {Path}", builder.WebHost);
+              
+                logger.Error("Error al validar el token",ex);
                 return (null, null);
             }
         }
@@ -113,9 +115,10 @@ namespace GestorInventario.Middlewares.Strategis
             ITokenGenerator tokenService, IAdminRepository userService, IRefreshTokenMethod refreshTokenMethod)
         {
             var refreshTokenValid = await ValidateRefreshToken(refreshToken,configuration);
+            var logger = log4net.LogManager.GetLogger(typeof(FixedAsymmetricAuthStrategy));
             if (!refreshTokenValid)
             {
-               // _logger.LogWarning("Refresh token no válido o expirado para la ruta {Path}", context.Request.Path);
+               logger.Error("Refresh token no válido ");
                 RedirectToLogin(context);
                 return;
             }
@@ -126,14 +129,14 @@ namespace GestorInventario.Middlewares.Strategis
 
             if (string.IsNullOrEmpty(userId))
             {
-               // _logger.LogWarning("No se encontró userId en el refresh token para la ruta {Path}", context.Request.Path);
+               logger.Error("No se encontró userId en el refresh token ");
                 RedirectToLogin(context);
                 return;
             }
 
             if (!int.TryParse(userId, out var userIdParsed))
             {
-               // _logger.LogWarning("El userId {UserId} no es válido para la ruta {Path}", userId, context.Request.Path);
+               logger.Error("El userId {UserId} no es válido ");
                 RedirectToLogin(context);
                 return;
             }
@@ -141,7 +144,7 @@ namespace GestorInventario.Middlewares.Strategis
             var (user,mensaje) = await userService.ObtenerPorId(userIdParsed);
             if (user == null)
             {
-               // _logger.LogWarning("Usuario con ID {UserId} no encontrado para la ruta {Path}", userId, context.Request.Path);
+               logger.Error("Usuario no encontrado");
                 RedirectToLogin(context);
                 return;
             }
@@ -167,7 +170,7 @@ namespace GestorInventario.Middlewares.Strategis
                 Expires = DateTime.UtcNow.AddDays(7)
             });
 
-           // _logger.LogInformation("Nuevos tokens generados para el usuario {UserId} en la ruta {Path}", userId, context.Request.Path);
+           logger.Info("Tokens generados con exito");
         }
 
         private async Task<bool> ValidateRefreshToken(string refreshToken,IConfiguration configuration)
@@ -176,16 +179,17 @@ namespace GestorInventario.Middlewares.Strategis
             {
                 var handler = new JwtSecurityTokenHandler();
                 var token = handler.ReadJwtToken(refreshToken);
+                var logger = log4net.LogManager.GetLogger(typeof(FixedAsymmetricAuthStrategy));
                 if (token.ValidTo < DateTime.UtcNow)
                 {
-                  //  _logger.LogWarning("Refresh token expirado para la ruta {Path}", builder.WebHost);
+                  logger.Error("Refresh token expirado ");
                     return false;
                 }
 
                 var publicKey = configuration["Jwt:PublicKey"];
                 if (string.IsNullOrEmpty(publicKey))
                 {
-                   // _logger.LogError("La clave pública JWT no está configurada en Jwt:PublicKey.");
+                   logger.Error("La clave pública JWT no está configurada ");
                     return false;
                 }
 
@@ -196,7 +200,7 @@ namespace GestorInventario.Middlewares.Strategis
                 }
                 catch (Exception ex)
                 {
-                  //  _logger.LogError(ex, "Error al cargar la clave pública RSA desde la configuración.");
+                  logger.Error( "Error al cargar la clave pública RSA desde la configuración.",ex);
                     return false;
                 }
 
@@ -212,12 +216,13 @@ namespace GestorInventario.Middlewares.Strategis
                 };
 
                 handler.ValidateToken(refreshToken, validationParameters, out _);
-               // _logger.LogInformation("Refresh token validado correctamente para la ruta {Path}", builder.WebHost);
+               logger.Info("Refresh token validado correctamente ");
                 return true;
             }
             catch (Exception ex)
             {
-             //   _logger.LogError(ex, "Error al validar el refresh token para la ruta {Path}", builder.WebHost);
+                var logger = log4net.LogManager.GetLogger(typeof(FixedAsymmetricAuthStrategy));
+                logger.Error("Error al validar el token", ex);
                 return false;
             }
         }
@@ -230,7 +235,7 @@ namespace GestorInventario.Middlewares.Strategis
             }
             if (context.Request.Path != "/Auth/Login")
             {
-               // _logger.LogInformation("Redirigiendo a /Auth/Login desde la ruta {Path}", context.Request.Path);
+             
                 context.Response.Redirect("/Auth/Login");
             }
         }
