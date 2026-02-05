@@ -1,8 +1,9 @@
-﻿using GestorInventario.PaginacionLogica;
+﻿using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.PaginacionLogica;
 
 namespace GestorInventario.Application.Services
 {
-    public class GenerarPaginas
+    public class GenerarPaginas: IGenerarPaginas
     {
         //Si tienen dudas mirar documentacion tecnica de este metodo
         public List<PaginasModel> GenerarListaPaginas(int totalPaginas, int paginaActual, int? radio = 3)

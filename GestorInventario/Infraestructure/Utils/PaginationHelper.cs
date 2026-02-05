@@ -1,14 +1,15 @@
 ﻿using GestorInventario.Application.Services;
+using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.PaginacionLogica;
 using Microsoft.EntityFrameworkCore;
 
 namespace GestorInventario.Infraestructure.Utils
 {
-    public class PaginationHelper
+    public class PaginationHelper: IPaginationHelper
     {
-        private readonly GenerarPaginas _generarPaginas;
+        private readonly IGenerarPaginas _generarPaginas;
 
-        public PaginationHelper(GenerarPaginas generarPaginas)
+        public PaginationHelper(IGenerarPaginas generarPaginas)
         {
             _generarPaginas = generarPaginas;
         }

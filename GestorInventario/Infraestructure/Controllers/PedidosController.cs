@@ -1,18 +1,15 @@
 ﻿
-using GestorInventario.Application.Services;
+
 using GestorInventario.Domain.Models;
 using GestorInventario.enums;
-using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
-using GestorInventario.MetodosExtension;
 using GestorInventario.PaginacionLogica;
 using GestorInventario.ViewModels.order;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 using System.Security.Claims;
 
 namespace GestorInventario.Infraestructure.Controllers
@@ -26,14 +23,14 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IPedidoRepository _pedidoRepository;
                   
         private readonly IPdfService _pdfservice;
-        private readonly PolicyExecutor _policyExecutor;
+        private readonly IPolicyExecutor _policyExecutor;
         private readonly IPaypalService _paypalService;
         private readonly GestorInventarioContext _context;
-        private readonly PaginationHelper _paginationHelper;
+        private readonly IPaginationHelper _paginationHelper;
         private readonly IUserRepository _userRepository;
         private readonly ICurrentUserAccessor _currentUserAccessor;
-        public PedidosController( ILogger<PedidosController> logger, PaginationHelper pagination, IUserRepository user, ICurrentUserAccessor current,
-            IPedidoRepository pedido,   IPdfService pdf, PolicyExecutor executor, IPaypalService paypal, GestorInventarioContext context)
+        public PedidosController( ILogger<PedidosController> logger, IPaginationHelper pagination, IUserRepository user, ICurrentUserAccessor current,
+            IPedidoRepository pedido,   IPdfService pdf, IPolicyExecutor executor, IPaypalService paypal, GestorInventarioContext context)
         {          
             _logger = logger;
             _pedidoRepository = pedido;           

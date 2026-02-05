@@ -1,10 +1,11 @@
-﻿using Microsoft.Data.SqlClient;
-using Polly;
+﻿using GestorInventario.Interfaces.Application;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Polly;
 
 namespace GestorInventario.Application.Politicas_Resilencia
 {
-    public class PolicyHandler
+    public class PolicyHandler: IPolicyHandler
     {
         private readonly ILogger<PolicyHandler> _logger;
 

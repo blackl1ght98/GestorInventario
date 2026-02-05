@@ -1,7 +1,5 @@
 ﻿
-using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models.ViewModels;
-using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.PaginacionLogica;
@@ -14,11 +12,11 @@ namespace GestorInventario.Infraestructure.Controllers
     {       
         private readonly ICarritoRepository _carritoRepository;              
         private readonly ILogger<CarritoController> _logger;        
-        private readonly PolicyExecutor _policyExecutor;       
+        private readonly IPolicyExecutor _policyExecutor;       
         private readonly ICurrentUserAccessor _currentUserAccessor;
-        private readonly PaginationHelper _paginationHelper;
+        private readonly IPaginationHelper _paginationHelper;
         public CarritoController( ICarritoRepository carritorepository,   ICurrentUserAccessor current,
-        ILogger<CarritoController> logger,  PolicyExecutor executor,  PaginationHelper pagination)
+        ILogger<CarritoController> logger,  IPolicyExecutor executor,  IPaginationHelper pagination)
         {          
             _carritoRepository = carritorepository;       
             _logger = logger;              

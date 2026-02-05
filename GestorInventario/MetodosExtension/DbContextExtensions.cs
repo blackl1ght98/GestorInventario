@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Infraestructure.Utils;
+using GestorInventario.Interfaces.Application;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Text;
@@ -175,7 +176,7 @@ namespace GestorInventario.MetodosExtension
                 throw;
             }
         }
-        public static async Task<(bool success, string message, int affectedRows)> UpdateEntityWithPolicyAsync<T>(this DbContext context,T entity,PolicyExecutor policyExecutor,
+        public static async Task<(bool success, string message, int affectedRows)> UpdateEntityWithPolicyAsync<T>(this DbContext context,T entity,IPolicyExecutor policyExecutor,
         bool saveImmediately = true) where T : class
         {
             return await policyExecutor.ExecutePolicyAsync(async () =>
@@ -206,7 +207,7 @@ namespace GestorInventario.MetodosExtension
                 }
             });
         }
-        public static async Task<(bool success, string message, int affectedRows)> AddEntityWithPolicyAsync<T>(this DbContext context,T entity,PolicyExecutor policyExecutor,
+        public static async Task<(bool success, string message, int affectedRows)> AddEntityWithPolicyAsync<T>(this DbContext context,T entity,IPolicyExecutor policyExecutor,
         bool saveImmediately = true) where T : class
         {
             return await policyExecutor.ExecutePolicyAsync(async () =>
@@ -234,7 +235,7 @@ namespace GestorInventario.MetodosExtension
             });
         }
 
-        public static async Task<(bool success, string message, int affectedRows)> DeleteEntityWithPolicyAsync<T>(this DbContext context,T entity,PolicyExecutor policyExecutor,
+        public static async Task<(bool success, string message, int affectedRows)> DeleteEntityWithPolicyAsync<T>(this DbContext context,T entity,IPolicyExecutor policyExecutor,
         bool saveImmediately = true) where T : class
         {
             return await policyExecutor.ExecutePolicyAsync(async () =>
@@ -262,7 +263,7 @@ namespace GestorInventario.MetodosExtension
             });
         }
 
-        public static async Task<(bool success, string message, int affectedRows)> UpdateRangeEntityWithPolicyAsync<T>(this DbContext context,IEnumerable<T> entities,PolicyExecutor policyExecutor,
+        public static async Task<(bool success, string message, int affectedRows)> UpdateRangeEntityWithPolicyAsync<T>(this DbContext context,IEnumerable<T> entities,IPolicyExecutor policyExecutor,
         bool saveImmediately = true) where T : class
         {
             return await policyExecutor.ExecutePolicyAsync(async () =>

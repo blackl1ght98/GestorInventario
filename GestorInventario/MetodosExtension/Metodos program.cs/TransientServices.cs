@@ -16,9 +16,9 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
     {
         public static IServiceCollection AddTransientServices(this IServiceCollection services) {
 
-            services.AddTransient<GenerarPaginas>();
+            services.AddTransient<IGenerarPaginas,GenerarPaginas>();
             services.AddTransient<PaginacionMetodo>();
-            services.AddTransient<PolicyExecutor>();
+            services.AddTransient<IPolicyExecutor, PolicyExecutor>();
             services.AddTransient<IUserRepository,UserRepository>();
             services.AddTransient<IGestorArchivos, GestorArchivosService>();
             services.AddTransient<HashService>();
@@ -31,7 +31,7 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<IUnitOfWork, UnitOfWork>();
             services.AddTransient<IPaypalService, PaypalService>();
             services.AddTransient<IPedidoRepository, PedidoRepository>();
-            services.AddTransient<PolicyHandler>();
+            services.AddTransient<IPolicyHandler,PolicyHandler>();
             services.AddTransient<IProductoRepository, ProductoRepository>();
             services.AddTransient<IRembolsoRepository, RembolsoRepository>();
             services.AddTransient<IProveedorRepository, ProveedorRepository>();
@@ -43,8 +43,9 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<ImageOptimizerService>();
             services.AddTransient<ITokenGenerator, TokenGenerator>();           
             services.AddTransient<IBarCodeService, BarCodeService>();
-           services.AddTransient< IPasswordResetService, PasswordResetService>();
+            services.AddTransient< IPasswordResetService, PasswordResetService>();
             services.AddTransient<ICurrentUserAccessor,CurrentUserAccessor>();
+            services.AddTransient<IPaginationHelper, PaginationHelper>();
             return services;
 
         }

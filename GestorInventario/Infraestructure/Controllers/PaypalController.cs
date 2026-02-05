@@ -4,9 +4,7 @@ using GestorInventario.Application.DTOs.Response_paypal;
 using GestorInventario.Application.DTOs.Response_paypal.Controller_Paypal_y_payment;
 using GestorInventario.Application.DTOs.Response_paypal.POST;
 using GestorInventario.Application.Exceptions;
-using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
-using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
@@ -25,19 +23,19 @@ namespace GestorInventario.Infraestructure.Controllers
     {
        
        
-        private readonly GenerarPaginas _generarPaginas;   
+        private readonly IGenerarPaginas _generarPaginas;   
         private readonly ILogger<PaypalController> _logger;
         private readonly IPaypalRepository _paypalRepository;
         private readonly ICarritoRepository _carritoRepository;
         private readonly IMapper _mapper;
-        private readonly PolicyExecutor _policyExecutor;
+        private readonly IPolicyExecutor _policyExecutor;
         private readonly IPaypalService _paypalService;
         private readonly IConfiguration _configuration;
         private readonly IUserRepository _userRepository;
-        private readonly PaginationHelper _paginationHelper;
+        private readonly IPaginationHelper _paginationHelper;
         private readonly ICurrentUserAccessor _currentUserAccessor;
-        public PaypalController( GenerarPaginas generar,  ILogger<PaypalController> logger, IConfiguration config, IUserRepository user, PaginationHelper pagination,
-            IPaypalRepository paypalController, ICarritoRepository carritoRepository, IMapper map, PolicyExecutor executor, IPaypalService service, ICurrentUserAccessor current)
+        public PaypalController( IGenerarPaginas generar,  ILogger<PaypalController> logger, IConfiguration config, IUserRepository user, IPaginationHelper pagination,
+            IPaypalRepository paypalController, ICarritoRepository carritoRepository, IMapper map, IPolicyExecutor executor, IPaypalService service, ICurrentUserAccessor current)
         {
             
             _paypalService= service;

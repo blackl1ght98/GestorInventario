@@ -1,8 +1,6 @@
-﻿using GestorInventario.Application.DTOs;
-using GestorInventario.Application.DTOs.Email;
+﻿
 using GestorInventario.Application.DTOs.User;
 using GestorInventario.Application.Services;
-using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
@@ -10,7 +8,6 @@ using GestorInventario.ViewModels.user;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
 
 
 
@@ -24,10 +21,10 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly TokenService _tokenService;
         private readonly IAuthRepository _authRepository;        
         private readonly ILogger<AuthController> _logger;       
-        private readonly PolicyExecutor _policyExecutor;
+        private readonly IPolicyExecutor _policyExecutor;
         private readonly IPasswordResetService _passwordResetService;
         public AuthController(HashService hashService, IEmailService emailService, TokenService tokenService, IAuthRepository adminRepository,
-              ILogger<AuthController> logger,   PolicyExecutor executor, IPasswordResetService resetService)
+              ILogger<AuthController> logger,   IPolicyExecutor executor, IPasswordResetService resetService)
         {
             _hashService = hashService;
             _emailService = emailService;
