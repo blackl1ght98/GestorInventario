@@ -18,14 +18,15 @@ namespace GestorInventario.Application.Services.Authentication.Token_generation
         private readonly IMemoryCache _memoryCache;
         private readonly IConnectionMultiplexer _connectionMultiplexer;
         private readonly ILogger<TokenGenerator> _logger;
-
+        private readonly IEncryptionService _encryptionService;
         public TokenStrategyFactory(
             IConfiguration configuration,
             GestorInventarioContext context,
             IDistributedCache redis,
             IMemoryCache memoryCache,
             IConnectionMultiplexer connectionMultiplexer,
-            ILogger<TokenGenerator> logger)
+            ILogger<TokenGenerator> logger,
+            IEncryptionService encryptation)
         {
             _configuration = configuration;
             _context = context;
@@ -33,6 +34,7 @@ namespace GestorInventario.Application.Services.Authentication.Token_generation
             _memoryCache = memoryCache;
             _connectionMultiplexer = connectionMultiplexer;
             _logger = logger;
+            _encryptionService = encryptation;
         }
         
         public ITokenStrategy CreateStrategy()
@@ -43,7 +45,7 @@ namespace GestorInventario.Application.Services.Authentication.Token_generation
             {
                 "Symmetric" => new SymmetricTokenStrategy(_configuration, _context),
                 "AsymmetricFixed" => new AsymmetricFixedTokenStrategy(_context, _configuration),
-                "AsymmetricDynamic" => new AsymmetricDynamicTokenStrategy(_configuration, _redis, _memoryCache, _connectionMultiplexer, _logger, _context),
+                "AsymmetricDynamic" => new AsymmetricDynamicTokenStrategy(_configuration, _redis, _memoryCache, _connectionMultiplexer, _logger, _context,_encryptionService),
                 _ => throw new NotSupportedException($"Modo de autenticación no soportado: {authMode}")
             };
         }
