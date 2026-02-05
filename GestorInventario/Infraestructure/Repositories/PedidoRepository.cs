@@ -1,6 +1,7 @@
 ﻿
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
+using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.ViewModels.order;
@@ -11,19 +12,17 @@ namespace GestorInventario.Infraestructure.Repositories
 {
     public class PedidoRepository : IPedidoRepository
     {
-        private readonly GestorInventarioContext _context;      
-        private readonly IHttpContextAccessor _contextAccessor;
+        private readonly GestorInventarioContext _context;              
         private readonly IPaypalService _paypalService;
-        private readonly ILogger<PedidoRepository> _logger;
-        private readonly UtilityClass _utilityClass;
-        public PedidoRepository(GestorInventarioContext context, IHttpContextAccessor contextAccessor,
-            IPaypalService service, ILogger<PedidoRepository> logger, UtilityClass utility)
+        private readonly ILogger<PedidoRepository> _logger;        
+        private readonly ICurrentUserAccessor _currentUserAccessor;
+        public PedidoRepository(GestorInventarioContext context, 
+        IPaypalService service, ILogger<PedidoRepository> logger,  ICurrentUserAccessor current)
         {
-            _context = context;           
-            _contextAccessor = contextAccessor;
+            _context = context;                      
             _paypalService = service;
-            _logger = logger;
-            _utilityClass = utility;
+            _logger = logger;            
+            _currentUserAccessor = current;
         }
    
         public IQueryable<Pedido> ObtenerPedidos()=>
@@ -53,8 +52,8 @@ namespace GestorInventario.Infraestructure.Repositories
                 {
                     IdUsuario = pedido.IdUsuario,
                     Fecha = DateTime.Now,
-                    Accion = _contextAccessor.HttpContext.Request.Method.ToString(),
-                    Ip = _contextAccessor.HttpContext.Connection.RemoteIpAddress?.ToString()
+                    Accion = _currentUserAccessor.GetRequestMethod(),
+                    Ip = _currentUserAccessor.GetClientIpAddress(),
                 };
                 await _context.AddEntityAsync(historialPedido);
 
@@ -163,7 +162,7 @@ namespace GestorInventario.Infraestructure.Repositories
             try
             {
                 
-                    int usuarioId= _utilityClass.ObtenerUsuarioIdActual();             
+                    int usuarioId= _currentUserAccessor.GetCurrentUserId();             
                     var pedidoOriginal = await _context.Pedidos.Include(p => p.DetallePedidos).FirstOrDefaultAsync(x => x.Id == model.Id);
                     if (pedidoOriginal == null)
                     {
@@ -177,8 +176,8 @@ namespace GestorInventario.Infraestructure.Repositories
                     {
                         IdUsuario = usuarioId,
                         Fecha = DateTime.Now,
-                        Accion = _contextAccessor.HttpContext.Request.Method.ToString(),
-                        Ip = _contextAccessor.HttpContext.Connection.RemoteIpAddress?.ToString()
+                        Accion = _currentUserAccessor.GetRequestMethod(),
+                        Ip = _currentUserAccessor.GetClientIpAddress(),
                     };
                     await _context.AddEntityAsync(historialPedido);
                     foreach (var detalleOriginal in pedidoOriginal.DetallePedidos)

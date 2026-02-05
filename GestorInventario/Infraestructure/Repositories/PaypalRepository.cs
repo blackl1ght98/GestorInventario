@@ -15,17 +15,17 @@ namespace GestorInventario.Infraestructure.Repositories
 {
     public class PaypalRepository : IPaypalRepository
     {
-        public readonly GestorInventarioContext _context;
-     
-        private readonly ILogger<PaypalRepository> _logger;
-        private readonly UtilityClass _utilityClass;
+        public readonly GestorInventarioContext _context;    
+        private readonly ILogger<PaypalRepository> _logger;     
         private readonly IEmailService _emailService;
-        public PaypalRepository(GestorInventarioContext context, ILogger<PaypalRepository> logger, UtilityClass utility, IEmailService email)
+        private readonly ICurrentUserAccessor _currentUserAccessor;
+        public PaypalRepository(GestorInventarioContext context, ILogger<PaypalRepository> logger,  IEmailService email, ICurrentUserAccessor currentUserAccessor)
         {
             _context = context;
             _emailService = email;
             _logger = logger;
-            _utilityClass = utility;
+            
+            _currentUserAccessor = currentUserAccessor;
         }
 
         public async Task<List<SubscriptionDetail>> ObtenerSuscriptcionesActivas(string planId)
@@ -299,7 +299,7 @@ namespace GestorInventario.Infraestructure.Repositories
 
                await _context.UpdateEntityAsync(pedido);
 
-                var usuarioActual = _utilityClass.ObtenerUsuarioIdActual();
+                var usuarioActual = _currentUserAccessor.GetCurrentUserId();
 
                 // Crear o actualizar registro de reembolso
                 var obtenerRembolso = await _context.Rembolsos.FirstOrDefaultAsync(x => x.NumeroPedido == pedido.NumeroPedido);
@@ -367,7 +367,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 if (detalleReembolsado.Rembolsado?? false)
                     throw new InvalidOperationException($"El detalle con ID {detalleId} ya ha sido reembolsado.");
 
-                var usuarioActual = _utilityClass.ObtenerUsuarioIdActual();
+                var usuarioActual = _currentUserAccessor.GetCurrentUserId();
 
                 // Crear registro de reembolso
                 var rembolso = new Rembolso

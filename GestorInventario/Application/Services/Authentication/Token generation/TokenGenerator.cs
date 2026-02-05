@@ -4,7 +4,7 @@ using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application;
 using Microsoft.EntityFrameworkCore;
 
-using StackExchange.Redis;
+
 
 
 namespace GestorInventario.Application.Services

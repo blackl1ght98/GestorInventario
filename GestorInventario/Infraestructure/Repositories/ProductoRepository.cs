@@ -14,25 +14,22 @@ namespace GestorInventario.Infraestructure.Repositories
     public class ProductoRepository : IProductoRepository
     {
         private readonly GestorInventarioContext _context;
-        private readonly IGestorArchivos _gestorArchivos;
-        private readonly IHttpContextAccessor _contextAccessor;
+        private readonly IGestorArchivos _gestorArchivos;        
         private readonly ILogger<ProductoRepository> _logger;   
         private readonly IBarCodeService _barCodeService;
         private readonly ICarritoRepository _carritoRepository;
-        private readonly ImageOptimizerService _imageOptimizerService;
-        private readonly UtilityClass _utilityClass;
-      
-        public ProductoRepository(GestorInventarioContext context, IGestorArchivos gestorArchivos, IHttpContextAccessor contextAccessor,
-        ILogger<ProductoRepository> logger,  ICarritoRepository carrito, IBarCodeService code, ImageOptimizerService optimizer, UtilityClass utility)
+        private readonly ImageOptimizerService _imageOptimizerService;      
+        private readonly ICurrentUserAccessor _currentUserAccessor;
+        public ProductoRepository(GestorInventarioContext context, IGestorArchivos gestorArchivos,  ICurrentUserAccessor current,
+        ILogger<ProductoRepository> logger,  ICarritoRepository carrito, IBarCodeService code, ImageOptimizerService optimizer)
         {
             _context = context;
-            _gestorArchivos = gestorArchivos;
-            _contextAccessor = contextAccessor;
+            _gestorArchivos = gestorArchivos;          
             _logger = logger;
             _barCodeService = code;
             _carritoRepository=carrito;
-            _imageOptimizerService=optimizer;
-            _utilityClass=utility;
+            _imageOptimizerService=optimizer;         
+            _currentUserAccessor = current;
         }    
      
         public IQueryable<Producto> ObtenerTodoProducto()=>from p in _context.Productos.Include(x => x.IdProveedorNavigation)orderby p.Id  select p;
@@ -113,13 +110,13 @@ namespace GestorInventario.Infraestructure.Repositories
            
             try
             {             
-                    int usuarioId= _utilityClass.ObtenerUsuarioIdActual();              
+                    int usuarioId= _currentUserAccessor.GetCurrentUserId();              
                     var historialProducto = new HistorialProducto()
                     {
                         UsuarioId = usuarioId,
                         Fecha = DateTime.Now,
-                        Accion = _contextAccessor.HttpContext.Request.Method.ToString(),
-                        Ip = _contextAccessor.HttpContext.Connection.RemoteIpAddress?.ToString()
+                        Accion = _currentUserAccessor.GetRequestMethod(),
+                        Ip = _currentUserAccessor.GetClientIpAddress(),
                     };
 
                     await _context.AddEntityAsync(historialProducto);
@@ -390,7 +387,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     Fecha = DateTime.UtcNow,
                     UsuarioId = usuarioId,
                     Accion = accion,
-                    Ip = _contextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString() ?? "Desconocido"
+                    Ip = _currentUserAccessor.GetClientIpAddress(),
                 };
                 await _context.AddEntityAsync(historialProducto);            
                 var detalleHistorialProducto = new DetalleHistorialProducto

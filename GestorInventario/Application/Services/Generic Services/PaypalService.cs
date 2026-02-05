@@ -30,9 +30,9 @@ namespace GestorInventario.Application.Services
         private readonly IUnitOfWork _unitOfWork;     
         private readonly IEmailService _emailService;
         private readonly IHttpClientFactory _httpClientFactory;     
-        private readonly UtilityClass _utilityClass;
+        private readonly ICurrentUserAccessor _currentUser;
         private readonly GestorInventarioContext _context;
-        public PaypalService(IConfiguration configuration, ILogger<PaypalService> logger, IHttpClientFactory http, UtilityClass utility, GestorInventarioContext context,
+        public PaypalService(IConfiguration configuration, ILogger<PaypalService> logger, IHttpClientFactory http, ICurrentUserAccessor current, GestorInventarioContext context,
             IMemoryCache memory, IUnitOfWork unit,  IEmailService email)
         {
 
@@ -43,7 +43,7 @@ namespace GestorInventario.Application.Services
             _emailService = email;
             _httpClientFactory = http;
            
-            _utilityClass = utility;
+            _currentUser = current;
             _context = context;
         }
         #region Generacion token paypal
@@ -1563,7 +1563,7 @@ namespace GestorInventario.Application.Services
         {
             // Crear el producto
             var product = await CreateProductAsync(productName, productDescription, productType, productCategory);
-            var usuarioActual =_utilityClass.ObtenerUsuarioIdActual();
+            var usuarioActual =_currentUser.GetCurrentUserId();
             var email = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == usuarioActual);
 
             // Enviar el correo electrónico

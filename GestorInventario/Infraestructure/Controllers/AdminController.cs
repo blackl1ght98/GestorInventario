@@ -25,10 +25,11 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly GenerarPaginas _generarPaginas;      
         private readonly IMapper _mapper;
         private readonly PolicyExecutor _policyExecutor;
-        private readonly UtilityClass _utilityClass;
+        private readonly IUserRepository _userRepository;
+        private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly PaginationHelper _paginationHelper;
         public AdminController(IConfirmEmailService confirmEmailService, ILogger<AdminController> logger, IAdminRepository adminRepository,  GenerarPaginas generarPaginas, 
-        IMapper map, PolicyExecutor executor, UtilityClass utility, PaginationHelper paginationHelper)
+        IMapper map, PolicyExecutor executor, IUserRepository user, PaginationHelper paginationHelper, ICurrentUserAccessor current)
         {           
             _confirmEmailService = confirmEmailService;
             _logger = logger;
@@ -36,8 +37,9 @@ namespace GestorInventario.Infraestructure.Controllers
             _generarPaginas = generarPaginas;            
             _mapper= map;
             _policyExecutor = executor;   
-            _utilityClass = utility;
+            _userRepository = user;
             _paginationHelper = paginationHelper;
+            _currentUserAccessor = current;
         }
 
         [Authorize(Roles = "Administrador")]
@@ -135,22 +137,22 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {               
-                var (usuarioDB,mensaje) = await  _adminrepository.ObtenerPorId(confirmar.UserId);
+                var usuarioDB = await  _userRepository.ObtenerUsuarioPorId(confirmar.UserId);
 
                 if(usuarioDB is null)
                 {
-                    TempData["ErrorMessage"] = mensaje; 
+                    TempData["ErrorMessage"] = usuarioDB.Message; 
                     _logger.LogWarning("Intento de confirmar un usuario inexistente con ID {UserId}", confirmar.UserId);
                     return RedirectToAction("Login", "Auth");
                 }
-                if (usuarioDB.ConfirmacionEmail != false)
+                if (usuarioDB.Data.ConfirmacionEmail != false)
                 {
                     TempData["ErrorMessage"] = "Usuario ya validado con anterioridad";
-                    _logger.LogInformation($"El usuario con email {usuarioDB.Email} ha intentado confirmar su correo estando confirmado");
+                    _logger.LogInformation($"El usuario con email {usuarioDB.Data.Email} ha intentado confirmar su correo estando confirmado");
                 }
-                if (usuarioDB.EmailVerificationToken != confirmar.Token)
+                if (usuarioDB.Data.EmailVerificationToken != confirmar.Token)
                 {
-                    _logger.LogCritical("Intento de manipulacion del token por el usuario: " + usuarioDB.Id);
+                    _logger.LogCritical("Intento de manipulacion del token por el usuario: " + usuarioDB.Data.Id);
                    
                 }
                 await _confirmEmailService.ConfirmEmail(new ConfirmRegistrationDto
@@ -171,20 +173,20 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var userIdClaim = _utilityClass.ObtenerUsuarioIdActual();
+                var userIdClaim = _currentUserAccessor.GetCurrentUserId();
                 // Si el id recibido es 0, significa que se quiere editar el usuario actual (obtenido desde los claims),
                 // si no, se edita el usuario cuyo id se pasó en el parámetro.
                 int usuarioAEditarId = id == 0 ? userIdClaim : id;
 
-                var (user,mensaje) = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerPorId(usuarioAEditarId));
+                var user = await _policyExecutor.ExecutePolicyAsync(() => _userRepository.ObtenerUsuarioPorId(usuarioAEditarId));
                 if (user is null)
                 {
-                    TempData["ErrorMessage"] = mensaje;
+                    TempData["ErrorMessage"] = user.Message;
                     _logger.LogWarning("Intento de editar un usuario inexistente con ID {UserId}", id);
                     return RedirectToAction(nameof(Index));
                 }
 
-                var viewModel = _mapper.Map<UsuarioEditViewModel>(user);
+                var viewModel = _mapper.Map<UsuarioEditViewModel>(user.Data);
                 viewModel.EsEdicionPropia = usuarioAEditarId == userIdClaim;
 
                 if (!viewModel.EsEdicionPropia)
@@ -405,14 +407,14 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
               
-                var (usuario,mensaje) = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerPorId(request.Id));
+                var usuario = await _policyExecutor.ExecutePolicyAsync(() => _userRepository.ObtenerUsuarioPorId(request.Id));
                 if (usuario == null)
                 {
-                    return Json(new { success = false, errorMessage = mensaje });
+                    return Json(new { success = false, errorMessage = usuario.Message });
                 }
 
                
-                if (usuario.IdRolNavigation == null)
+                if (usuario.Data.IdRolNavigation == null)
                 {
                     return Json(new { success = false, errorMessage = "El rol actual del usuario no está definido." });
                 }
@@ -432,7 +434,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
                 // Evitar un cambio innecesario si el rol seleccionado es el mismo que el actual
-                if (usuario.IdRol == nuevoRol.Id)
+                if (usuario.Data.IdRol == nuevoRol.Id)
                 {
                     return Json(new { success = false, errorMessage = "El usuario ya tiene el rol seleccionado." });
                 }

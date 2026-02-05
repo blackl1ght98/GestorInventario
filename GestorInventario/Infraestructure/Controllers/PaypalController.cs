@@ -7,6 +7,7 @@ using GestorInventario.Application.Exceptions;
 using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
+using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.PaginacionLogica;
@@ -32,10 +33,11 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly PolicyExecutor _policyExecutor;
         private readonly IPaypalService _paypalService;
         private readonly IConfiguration _configuration;
-        private readonly UtilityClass _utilityClass;
+        private readonly IUserRepository _userRepository;
         private readonly PaginationHelper _paginationHelper;
-        public PaypalController( GenerarPaginas generar,  ILogger<PaypalController> logger, IConfiguration config, UtilityClass utility, PaginationHelper pagination,
-            IPaypalRepository paypalController, ICarritoRepository carritoRepository, IMapper map, PolicyExecutor executor, IPaypalService service)
+        private readonly ICurrentUserAccessor _currentUserAccessor;
+        public PaypalController( GenerarPaginas generar,  ILogger<PaypalController> logger, IConfiguration config, IUserRepository user, PaginationHelper pagination,
+            IPaypalRepository paypalController, ICarritoRepository carritoRepository, IMapper map, PolicyExecutor executor, IPaypalService service, ICurrentUserAccessor current)
         {
             
             _paypalService= service;
@@ -46,8 +48,9 @@ namespace GestorInventario.Infraestructure.Controllers
             _carritoRepository = carritoRepository;
             _mapper = map;
             _configuration = config;
-            _utilityClass = utility;
+            _userRepository = user;
             _paginationHelper = pagination;
+            _currentUserAccessor = current;
         }
 
       
@@ -611,7 +614,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
 
-                var usuarioActual = _utilityClass.ObtenerUsuarioIdActual();
+                var usuarioActual = _currentUserAccessor.GetCurrentUserId();
 
                 _logger.LogInformation("Página solicitada: {Pagina}, CantidadAMostrar: {Cantidad}, UsuarioId: {UsuarioId}",
                     paginacion.Pagina, paginacion.CantidadAMostrar, usuarioActual);

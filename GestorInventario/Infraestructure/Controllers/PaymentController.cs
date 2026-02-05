@@ -1,6 +1,7 @@
 ﻿
 using GestorInventario.Application.DTOs.Response_paypal;
 using GestorInventario.Infraestructure.Utils;
+using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.ViewModels.Paypal;
@@ -17,17 +18,17 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IPaypalService _paypalService;             
         private readonly IMemoryCache _memory;        
         private readonly PolicyExecutor _policyExecutor;
-        private readonly IPaymentRepository _paymentRepository;
-        private readonly UtilityClass _utilityClass;
-        public PaymentController(ILogger<PaymentController> logger,  IMemoryCache memory, 
-            PolicyExecutor executor, IPaypalService service, IPaymentRepository payment, UtilityClass utility)
+        private readonly IPaymentRepository _paymentRepository; 
+        private readonly ICurrentUserAccessor _currentUserAccessor;
+        public PaymentController(ILogger<PaymentController> logger,  IMemoryCache memory, ICurrentUserAccessor current,
+            PolicyExecutor executor, IPaypalService service, IPaymentRepository payment)
         {
             _logger = logger;                               
             _memory = memory;          
             _policyExecutor = executor;
             _paypalService = service;
-            _paymentRepository = payment;
-            _utilityClass = utility;
+            _paymentRepository = payment;          
+            _currentUserAccessor = current;
         }
         public async Task<IActionResult> Success()
         {
@@ -40,7 +41,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 var (captureId, total, currency) = await _paypalService.CapturarPagoAsync(orderId);
 
-                var usuarioActual = _utilityClass.ObtenerUsuarioIdActual();
+                var usuarioActual = _currentUserAccessor.GetCurrentUserId();
 
                 var pedido =  await _paymentRepository.AgregarInfoPedido(usuarioActual,captureId,total,currency,orderId);
          
@@ -112,7 +113,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     _logger.LogInformation("El numero de pedido proporcionado no existe " + obtenerNumeroPedido);
                 }
 
-                int usuarioActual = _utilityClass.ObtenerUsuarioIdActual();
+                int usuarioActual = _currentUserAccessor.GetCurrentUserId();
 
                 var emailCliente = await _policyExecutor.ExecutePolicyAsync(() => _paymentRepository.ObtenerEmailUsuarioAsync(usuarioActual));
                 if(emailCliente == null)

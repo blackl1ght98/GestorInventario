@@ -19,7 +19,7 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<GenerarPaginas>();
             services.AddTransient<PaginacionMetodo>();
             services.AddTransient<PolicyExecutor>();
-            services.AddTransient<UtilityClass>();
+            services.AddTransient<IUserRepository,UserRepository>();
             services.AddTransient<IGestorArchivos, GestorArchivosService>();
             services.AddTransient<HashService>();
             services.AddTransient<ICarritoRepository, CarritoRepository>();
@@ -44,6 +44,7 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<ITokenGenerator, TokenGenerator>();           
             services.AddTransient<IBarCodeService, BarCodeService>();
            services.AddTransient< IPasswordResetService, PasswordResetService>();
+            services.AddTransient<ICurrentUserAccessor,CurrentUserAccessor>();
             return services;
 
         }
