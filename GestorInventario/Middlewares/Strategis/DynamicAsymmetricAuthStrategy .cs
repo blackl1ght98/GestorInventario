@@ -115,7 +115,7 @@ namespace GestorInventario.Middlewares.Strategis
                 }
 
                 // 4º Recuperamos solo privada y AES cifrada
-                var (privateKeyParams, encryptedAesKeyBase64) = await RetrieveKeys(kid, redis, memoryCache, useRedis);
+                var (privateKeyParams, encryptedAesKeyBase64) = await RetrieveKeys(kid, redis, memoryCache, useRedis,encryptionService);
                 if (privateKeyParams == null || string.IsNullOrEmpty(encryptedAesKeyBase64))
                 {
                     logger.Warn($"No se pudieron recuperar las claves para el usuario con kid: {kid}");
@@ -206,7 +206,7 @@ namespace GestorInventario.Middlewares.Strategis
             }
             //7º Llamamos a los metodos para regenerar ambos token y creamos las cookies
             var newAccessToken = await tokenService.GenerateTokenAsync(user);
-            var newRefreshToken = await refreshTokenMethod.GenerarTokenRefresco(user);
+          
 
 
             context.Response.Cookies.Append("auth", newAccessToken.Token, new CookieOptions
@@ -218,40 +218,58 @@ namespace GestorInventario.Middlewares.Strategis
                 Expires = DateTime.UtcNow.AddMinutes(10)
             });
 
-            context.Response.Cookies.Append("refreshToken", newRefreshToken, new CookieOptions
-            {
-                HttpOnly = true,
-                SameSite = SameSiteMode.None,
-                Domain = "localhost",
-                Secure = true,
-                Expires = DateTime.UtcNow.AddHours(24)
-            });
+       
 
             logger.Info($"Nuevos tokens generados para el usuario {userId}.");
         }
         //Metodo encargado de recuperar las claves de la memoria
-        public static async Task<(RSAParameters?, string?)> RetrieveKeys(string kid, IDistributedCache? redis, IMemoryCache? memoryCache, bool useRedis)
+        // Metodo encargado de recuperar las claves de la memoria
+        public static async Task<(RSAParameters?, string?)> RetrieveKeys(
+            string kid,
+            IDistributedCache? redis,
+            IMemoryCache? memoryCache,
+            bool useRedis,
+            IEncryptionService encryptionService)   // ← Añade este parámetro
         {
-            string? privateKeyJson = null;
+            string? encryptedPrivateBase64 = null;
             string? encryptedAesKeyBase64 = null;
-            //1º Validamos si usamos redis si no lo usamos las extraemos de la memoria
+
             if (useRedis && redis != null)
             {
-                privateKeyJson = await redis.GetStringAsync($"{kid}PrivateKey");
+                encryptedPrivateBase64 = await redis.GetStringAsync($"{kid}PrivateKey");
                 encryptedAesKeyBase64 = await redis.GetStringAsync($"{kid}EncryptedAesKey");
             }
             else if (memoryCache != null)
             {
-                memoryCache.TryGetValue($"{kid}PrivateKey", out privateKeyJson);
+                memoryCache.TryGetValue($"{kid}PrivateKey", out encryptedPrivateBase64);
                 memoryCache.TryGetValue($"{kid}EncryptedAesKey", out encryptedAesKeyBase64);
             }
-            //2º Validamos la clave privada y si no es null la deserializamos
+
             RSAParameters? privateKey = null;
-            if (!string.IsNullOrEmpty(privateKeyJson))
+
+            if (!string.IsNullOrEmpty(encryptedPrivateBase64))
             {
-                privateKey = JsonConvert.DeserializeObject<RSAParameters>(privateKeyJson);
+                // Descifrar la clave privada cifrada usando el servicio
+                string? decryptedJson = encryptionService.DescifrarClavePrivada(encryptedPrivateBase64);
+
+                if (decryptedJson != null)
+                {
+                    try
+                    {
+                        privateKey = JsonConvert.DeserializeObject<RSAParameters>(decryptedJson);
+                    }
+                    catch (Exception ex)
+                    {
+                        var logger = log4net.LogManager.GetLogger(typeof(DynamicAsymmetricAuthStrategy));
+                        logger.Error($"Error al deserializar clave privada descifrada para kid {kid}", ex);
+                    }
+                }
+                else
+                {
+                    var logger = log4net.LogManager.GetLogger(typeof(DynamicAsymmetricAuthStrategy));
+                    logger.Warn($"Fallo al descifrar clave privada para kid {kid} (datos corruptos o clave maestra no coincide)");
+                }
             }
-            //3º devolvemos la clave privada y la clave aes encriptada
 
             return (privateKey, encryptedAesKeyBase64);
         }
