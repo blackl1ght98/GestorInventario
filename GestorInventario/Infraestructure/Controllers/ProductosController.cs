@@ -1,13 +1,10 @@
 ﻿using GestorInventario.Application.DTOs.Email;
-using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
-using GestorInventario.MetodosExtension;
 using GestorInventario.PaginacionLogica;
 using GestorInventario.ViewModels.product;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Linq;
 using System.Security.Claims;
 
 namespace GestorInventario.Infraestructure.Controllers
@@ -21,9 +18,9 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IEmailService _emailService;
         private readonly IProductoRepository _productoRepository;            
         private readonly IPdfService _pdfService;
-        private readonly PolicyExecutor _policyExecutor;
-        private readonly PaginationHelper _paginationHelper;
-        public ProductosController(   PolicyExecutor executor,PaginationHelper pagination,
+        private readonly IPolicyExecutor _policyExecutor;
+        private readonly IPaginationHelper _paginationHelper;
+        public ProductosController(IPolicyExecutor executor,IPaginationHelper pagination,
         ILogger<ProductosController> logger, IEmailService emailService, IProductoRepository producto,   IPdfService pdf
        )
         {

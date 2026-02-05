@@ -41,7 +41,7 @@ builder.Services.AddHttpContextAccessor();
 //Servicios especificos y transient
 builder.Services.AddTransientServices();
 QuestPDF.Settings.License = LicenseType.Community;
-builder.Services.AddScoped<PaginationHelper>();
+
 builder.Services.AddHttpClientPayPal();
 builder.Services.AddAutoMapper(builder.Configuration);
 builder.Services.AddWebOptimizer();

@@ -1,4 +1,5 @@
-﻿using GestorInventario.Infraestructure.Utils;
+﻿
+using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 
 using GestorInventario.PaginacionLogica;
@@ -16,10 +17,10 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly ILogger<ProveedorController> _logger;
         
         private readonly IProveedorRepository _proveedorRepository;     
-        private readonly PolicyExecutor _policyExecutor;
-        private readonly PaginationHelper _paginationHelper;
+        private readonly IPolicyExecutor _policyExecutor;
+        private readonly IPaginationHelper _paginationHelper;
         public ProveedorController( ILogger<ProveedorController> logger, 
-            IProveedorRepository proveedor,  PolicyExecutor executor, PaginationHelper pagination)
+            IProveedorRepository proveedor,  IPolicyExecutor executor, IPaginationHelper pagination)
         {           
             _logger = logger;
                    

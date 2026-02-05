@@ -1,12 +1,13 @@
 ﻿using GestorInventario.Application.Politicas_Resilencia;
+using GestorInventario.Interfaces.Application;
 
 namespace GestorInventario.Infraestructure.Utils
 {
-    public class PolicyExecutor
+    public class PolicyExecutor: IPolicyExecutor
     {
-        private readonly PolicyHandler _policyHandler;
+        private readonly IPolicyHandler _policyHandler;
 
-        public PolicyExecutor(PolicyHandler policyHandler)
+        public PolicyExecutor(IPolicyHandler policyHandler)
         {
             _policyHandler = policyHandler;
         }
@@ -16,7 +17,7 @@ namespace GestorInventario.Infraestructure.Utils
             var policy = _policyHandler.GetCombinedPolicyAsync<T>();
             return await policy.ExecuteAsync(operation);
         }
-        private async Task ExecutePolicyAsync(Func<Task> operation)
+        public async Task ExecutePolicyAsync(Func<Task> operation)
         {
             var policy = _policyHandler.GetCombinedPolicyAsync();
             await policy.ExecuteAsync(operation);
@@ -26,5 +27,7 @@ namespace GestorInventario.Infraestructure.Utils
             var policy = _policyHandler.GetCombinedPolicy<T>();
             return policy.Execute(operation);
         }
+
+        
     }
 }

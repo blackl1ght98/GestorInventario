@@ -1,8 +1,6 @@
 ﻿using AutoMapper;
 using GestorInventario.Application.DTOs;
 using GestorInventario.Application.DTOs.User;
-using GestorInventario.Application.Services;
-using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
@@ -22,14 +20,14 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IConfirmEmailService _confirmEmailService;
         private readonly ILogger<AdminController> _logger;
         private readonly IAdminRepository _adminrepository;
-        private readonly GenerarPaginas _generarPaginas;      
+        private readonly IGenerarPaginas _generarPaginas;      
         private readonly IMapper _mapper;
-        private readonly PolicyExecutor _policyExecutor;
+        private readonly IPolicyExecutor _policyExecutor;
         private readonly IUserRepository _userRepository;
         private readonly ICurrentUserAccessor _currentUserAccessor;
-        private readonly PaginationHelper _paginationHelper;
-        public AdminController(IConfirmEmailService confirmEmailService, ILogger<AdminController> logger, IAdminRepository adminRepository,  GenerarPaginas generarPaginas, 
-        IMapper map, PolicyExecutor executor, IUserRepository user, PaginationHelper paginationHelper, ICurrentUserAccessor current)
+        private readonly IPaginationHelper _paginationHelper;
+        public AdminController(IConfirmEmailService confirmEmailService, ILogger<AdminController> logger, IAdminRepository adminRepository,  IGenerarPaginas generarPaginas, 
+        IMapper map, IPolicyExecutor executor, IUserRepository user, IPaginationHelper paginationHelper, ICurrentUserAccessor current)
         {           
             _confirmEmailService = confirmEmailService;
             _logger = logger;

@@ -1,8 +1,6 @@
 ﻿using GestorInventario.Application.DTOs;
-using GestorInventario.Application.Services;
-using GestorInventario.Infraestructure.Utils;
+using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
-using GestorInventario.MetodosExtension;
 using GestorInventario.PaginacionLogica;
 using GestorInventario.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -11,13 +9,13 @@ namespace GestorInventario.Infraestructure.Controllers
 {
     public class RembolsoController : Controller
     {
-        private readonly PolicyExecutor _policyExecutor;
+        private readonly IPolicyExecutor _policyExecutor;
         private readonly IRembolsoRepository _rembolsoRepository;       
         private readonly ILogger<RembolsoController> _logger;
-        private readonly PaginationHelper _paginationHelper;
+        private readonly IPaginationHelper _paginationHelper;
 
-        public RembolsoController(PolicyExecutor policyExecutor, IRembolsoRepository rembolsoRepository, 
-             ILogger<RembolsoController> logger, PaginationHelper paginationHelper)
+        public RembolsoController(IPolicyExecutor policyExecutor, IRembolsoRepository rembolsoRepository, 
+             ILogger<RembolsoController> logger, IPaginationHelper paginationHelper)
         {
             _policyExecutor = policyExecutor;
             _rembolsoRepository = rembolsoRepository;

@@ -1,6 +1,5 @@
 ﻿
 using GestorInventario.Application.DTOs.Response_paypal;
-using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
@@ -17,11 +16,11 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly ILogger<PaymentController> _logger;
         private readonly IPaypalService _paypalService;             
         private readonly IMemoryCache _memory;        
-        private readonly PolicyExecutor _policyExecutor;
+        private readonly IPolicyExecutor _policyExecutor;
         private readonly IPaymentRepository _paymentRepository; 
         private readonly ICurrentUserAccessor _currentUserAccessor;
         public PaymentController(ILogger<PaymentController> logger,  IMemoryCache memory, ICurrentUserAccessor current,
-            PolicyExecutor executor, IPaypalService service, IPaymentRepository payment)
+            IPolicyExecutor executor, IPaypalService service, IPaymentRepository payment)
         {
             _logger = logger;                               
             _memory = memory;          
