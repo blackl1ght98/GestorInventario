@@ -10,6 +10,7 @@ using StackExchange.Redis;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace GestorInventario.Application.Services.Authentication.Strategies
 {
@@ -21,8 +22,20 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
         private readonly IConnectionMultiplexer _connectionMultiplexer;
         private readonly ILogger<TokenGenerator> _logger;
         private readonly GestorInventarioContext _context;
+
+        // Clave maestra estática: se genera SOLO UNA VEZ cuando la clase se carga
+        public static readonly byte[] MasterKey = GenerateMasterKey();
+
+        private static byte[] GenerateMasterKey()
+        {
+            var key = new byte[32]; // AES-256 requiere exactamente 32 bytes
+            RandomNumberGenerator.Fill(key);
+            return key;
+        }
+
         public AsymmetricDynamicTokenStrategy(IConfiguration configuration, IDistributedCache redis,
-            IMemoryCache memoryCache, IConnectionMultiplexer connectionMultiplexer, ILogger<TokenGenerator> logger, GestorInventarioContext context)
+            IMemoryCache memoryCache, IConnectionMultiplexer connectionMultiplexer,
+            ILogger<TokenGenerator> logger, GestorInventarioContext context)
         {
             _configuration = configuration;
             _redis = redis;
@@ -61,10 +74,10 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
 
             // 1. Generar par de claves RSA
             using var rsa = RSA.Create(2048);
-            var privateKey = rsa.ExportParameters(true); 
+            var privateKey = rsa.ExportParameters(true);
             var publicKey = rsa.ExportParameters(false);
 
-            // 2. AES
+            // 2. AES para el token
             using var aes = Aes.Create();
             aes.GenerateKey();
             var aesKey = aes.Key;
@@ -72,24 +85,32 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
             // 3. Cifrar AES con pública RSA
             rsa.ImportParameters(publicKey);
             var encryptedAesKey = rsa.Encrypt(aesKey, RSAEncryptionPadding.OaepSHA256);
-
-            // 4. Guardar como JSON de RSAParameters (funcional y probado)
-            var privateKeyJson = JsonConvert.SerializeObject(privateKey);
             var encryptedAesKeyBase64 = Convert.ToBase64String(encryptedAesKey);
 
-            bool useRedis = _connectionMultiplexer != null && _connectionMultiplexer.GetDatabase().Ping().Milliseconds >= 0;
+            // 4. Serializar la clave privada RSA a JSON
+            var privateKeyJson = JsonConvert.SerializeObject(privateKey);
+
+            // 5. CIFRAR la clave privada con la clave maestra estática
+            string encryptedPrivateBase64 = EncryptPrivateKey(privateKeyJson);
+
+            // 6. Guardar en caché: la privada CIFRADA + la AES cifrada
+            string privateKeyCacheKey = $"{credencialesUsuario.Id}PrivateKey";
+            string aesKeyCacheKey = $"{credencialesUsuario.Id}EncryptedAesKey";
+
+            bool useRedis = _connectionMultiplexer != null && _connectionMultiplexer.IsConnected;
+
             if (useRedis)
             {
-                await _redis.SetStringAsync(credencialesUsuario.Id.ToString() + "PrivateKey", privateKeyJson);
-                await _redis.SetStringAsync(credencialesUsuario.Id.ToString() + "EncryptedAesKey", encryptedAesKeyBase64);
+                await _redis.SetStringAsync(privateKeyCacheKey, encryptedPrivateBase64);
+                await _redis.SetStringAsync(aesKeyCacheKey, encryptedAesKeyBase64);
             }
             else
             {
-                _memoryCache.Set(credencialesUsuario.Id.ToString() + "PrivateKey", privateKeyJson);
-                _memoryCache.Set(credencialesUsuario.Id.ToString() + "EncryptedAesKey", encryptedAesKeyBase64);
+                _memoryCache.Set(privateKeyCacheKey, encryptedPrivateBase64);
+                _memoryCache.Set(aesKeyCacheKey, encryptedAesKeyBase64);
             }
 
-            // 5. Firmar JWT con la clave original
+            // 7. Firmar JWT con la clave privada original (en memoria)
             var rsaSecurityKey = new RsaSecurityKey(privateKey)
             {
                 KeyId = credencialesUsuario.Id.ToString()
@@ -112,6 +133,25 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
                 Token = tokenString,
                 Rol = usuarioDB.IdRolNavigation.Nombre,
             };
+        }
+
+        // Método helper para cifrar la clave privada
+        private string EncryptPrivateKey(string privateKeyJson)
+        {
+            using var aesMaster = Aes.Create();
+            aesMaster.Key = MasterKey;              // ← Usamos la clave estática
+            aesMaster.GenerateIV();                 // IV aleatorio cada vez
+
+            using var ms = new MemoryStream();
+            using var cs = new CryptoStream(ms, aesMaster.CreateEncryptor(), CryptoStreamMode.Write);
+
+            byte[] privateBytes = Encoding.UTF8.GetBytes(privateKeyJson);
+            cs.Write(privateBytes, 0, privateBytes.Length);
+            cs.FlushFinalBlock();
+
+            // Guardamos IV + ciphertext juntos
+            byte[] ivAndCipher = aesMaster.IV.Concat(ms.ToArray()).ToArray();
+            return Convert.ToBase64String(ivAndCipher);
         }
     }
 }

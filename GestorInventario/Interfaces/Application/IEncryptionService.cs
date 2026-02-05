@@ -6,6 +6,7 @@ namespace GestorInventario.Interfaces.Application
     {     
        
         byte[] Descifrar(byte[] encryptedData, byte[] privateKeyBytes);
+        string? DescifrarClavePrivada(string? encryptedBase64);
         void HandleDecryptionError(Exception ex);
     }
 }
