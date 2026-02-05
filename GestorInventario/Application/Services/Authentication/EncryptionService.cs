@@ -11,7 +11,14 @@ namespace GestorInventario.Application.Services.Authentication
     {
         private readonly ILogger<EncryptionService> _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
-       
+        // Clave maestra estática: se genera SOLO UNA VEZ cuando la clase se carga
+        public static readonly byte[] MasterKey = GenerateMasterKey();
+        private static byte[] GenerateMasterKey()
+        {
+            var key = new byte[32]; // AES-256 requiere exactamente 32 bytes
+            RandomNumberGenerator.Fill(key);
+            return key;
+        }
 
         public EncryptionService(ILogger<EncryptionService> logger, IHttpContextAccessor httpContextAccessor)
         {
@@ -46,13 +53,10 @@ namespace GestorInventario.Application.Services.Authentication
 
             try
             {
-                // ¡Aquí está el punto crítico!
-                // Necesitas la misma MasterKey que usaste al cifrar
-                // Opción temporal: acceder directamente si la hiciste pública en la otra clase
-                byte[] masterKey = AsymmetricDynamicTokenStrategy.MasterKey; // ← Solo si la declaraste public static
+               //clave maestra
+                byte[] masterKey = MasterKey; 
 
-                // Alternativa mejor: usar un helper estático compartido (CryptoHelper)
-                // byte[] masterKey = CryptoHelper.MasterKey;
+               
 
                 byte[] encryptedData = Convert.FromBase64String(encryptedBase64);
 
@@ -83,7 +87,24 @@ namespace GestorInventario.Application.Services.Authentication
                 return null;
             }
         }
-       
+        // Método helper para cifrar la clave privada
+        public string EncryptPrivateKey(string privateKeyJson)
+        {
+            using var aesMaster = Aes.Create();
+            aesMaster.Key = EncryptionService.MasterKey;
+            aesMaster.GenerateIV();
+
+            using var ms = new MemoryStream();
+            using var cs = new CryptoStream(ms, aesMaster.CreateEncryptor(), CryptoStreamMode.Write);
+
+            byte[] privateBytes = Encoding.UTF8.GetBytes(privateKeyJson);
+            cs.Write(privateBytes, 0, privateBytes.Length);
+            cs.FlushFinalBlock();
+
+            // Guardamos IV + ciphertext juntos
+            byte[] ivAndCipher = aesMaster.IV.Concat(ms.ToArray()).ToArray();
+            return Convert.ToBase64String(ivAndCipher);
+        }
         public void HandleDecryptionError(Exception ex)
         {
             var collectioncookies = _httpContextAccessor.HttpContext?.Request.Cookies;

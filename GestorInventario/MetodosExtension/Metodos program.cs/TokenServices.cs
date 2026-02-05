@@ -22,7 +22,7 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
                 var configuration = provider.GetRequiredService<IConfiguration>();
                 var context = provider.GetRequiredService<GestorInventarioContext>();
                 var logger = provider.GetRequiredService<ILogger<TokenGenerator>>();
-
+                var encryptation = provider.GetRequiredService<IEncryptionService>();
                 // Inicialmente se establece en null ya que el valor se asignará si se está usando Redis
                 IConnectionMultiplexer connectionMultiplexer = null;
                 // Si se está usando Redis...
@@ -32,7 +32,7 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
                     connectionMultiplexer = provider.GetService<IConnectionMultiplexer>();
                 }
                 // Devuelve una nueva instancia de TokenGenerator con sus dependencia
-                return new TokenStrategyFactory(configuration, context, redis, memoryCache, connectionMultiplexer, logger);
+                return new TokenStrategyFactory(configuration, context, redis, memoryCache, connectionMultiplexer, logger,encryptation);
             });
 
             services.AddTransient<IRefreshTokenMethod, RefreshTokenMethod>(provider =>
