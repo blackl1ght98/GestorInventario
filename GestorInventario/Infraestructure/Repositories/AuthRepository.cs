@@ -2,6 +2,7 @@
 using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
+using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using Microsoft.EntityFrameworkCore;
@@ -11,22 +12,20 @@ namespace GestorInventario.Infraestructure.Repositories
     public class AuthRepository : IAuthRepository
     {
         private readonly GestorInventarioContext _context;
-        private readonly HashService _hashService;
-        private readonly IHttpContextAccessor _contextAccessor;
+        private readonly HashService _hashService;        
         private readonly ILogger<AuthRepository> _logger;
-        private readonly UtilityClass _utilityClass;
-        private readonly ICarritoRepository _carritoRepository;
-        private readonly IAdminRepository _adminRepository;
-        public AuthRepository(GestorInventarioContext context, HashService hash, IHttpContextAccessor httpcontextAccessor, 
-            ILogger<AuthRepository> logger, UtilityClass utilityClass, ICarritoRepository carritoRepository, IAdminRepository adminRepository)
+        private readonly IUserRepository _userRepository;
+        private readonly ICarritoRepository _carritoRepository;       
+        private readonly ICurrentUserAccessor _currentUserAccessor;
+        public AuthRepository(GestorInventarioContext context, HashService hash, ICurrentUserAccessor current,
+            ILogger<AuthRepository> logger, IUserRepository user, ICarritoRepository carritoRepository)
         {
             _context = context;
             _hashService = hash;
-            _contextAccessor = httpcontextAccessor;
             _logger = logger;
-            _utilityClass = utilityClass;
-            _carritoRepository = carritoRepository;
-            _adminRepository = adminRepository;
+            _userRepository = user;
+            _carritoRepository = carritoRepository;          
+            _currentUserAccessor = current;
         }
 
         public async Task<(Usuario?, string)> Login(string email)
@@ -96,7 +95,7 @@ namespace GestorInventario.Infraestructure.Repositories
             using var transaction= await _context.Database.BeginTransactionAsync();
             try
             {
-                    var usuarioId = _utilityClass.ObtenerUsuarioIdActual();
+                    var usuarioId = _currentUserAccessor.GetCurrentUserId();
                     var usuarioDB = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == usuarioId);
                     if (usuarioDB == null)
                     {
@@ -128,23 +127,23 @@ namespace GestorInventario.Infraestructure.Repositories
             
             try
             {
-                var (usuario,mensaje) = await _adminRepository.ObtenerPorId(cambio.UserId);
+                var usuario = await _userRepository.ObtenerUsuarioPorId(cambio.UserId);
                 if (usuario == null)
                     return OperationResult<Usuario>.Fail("El usuario no existe");
 
-                if (usuario.EmailVerificationToken != cambio.Token)
+                if (usuario.Data.EmailVerificationToken != cambio.Token)
                     return OperationResult<Usuario>.Fail("El token no es valido");
 
-                if (usuario.FechaEnlaceCambioPass < DateTime.Now || usuario.FechaExpiracionContrasenaTemporal < DateTime.Now)
+                if (usuario.Data.FechaEnlaceCambioPass < DateTime.Now || usuario.Data.FechaExpiracionContrasenaTemporal < DateTime.Now)
                 {
-                    usuario.FechaEnlaceCambioPass = null;
-                    usuario.FechaExpiracionContrasenaTemporal = null;
-                    usuario.TemporaryPassword = null;
+                    usuario.Data.FechaEnlaceCambioPass = null;
+                    usuario.Data.FechaExpiracionContrasenaTemporal = null;
+                    usuario.Data.TemporaryPassword = null;
                     await _context.SaveChangesAsync();
                    
                     return OperationResult<Usuario>.Fail("El enlace y contraseña temporal han expirado. Solicite una nueva");
                 };
-                return OperationResult<Usuario>.Ok("Token valido", usuario);
+                return OperationResult<Usuario>.Ok("Token valido", usuario.Data);
             }
             catch (Exception ex) {
                 _logger.LogCritical(ex, "Error al validar el token");
@@ -159,7 +158,7 @@ namespace GestorInventario.Infraestructure.Repositories
            
             try
             {
-                var usuarioId = _utilityClass.ObtenerUsuarioIdActual();
+                var usuarioId = _currentUserAccessor.GetCurrentUserId();
                 var carritosActivos = await _context.Pedidos
                     .Where(p => p.IdUsuario == usuarioId && p.EsCarrito)
                     .ToListAsync();
@@ -178,7 +177,7 @@ namespace GestorInventario.Infraestructure.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al eliminar carritos activos para el usuario {UsuarioId}", _utilityClass.ObtenerUsuarioIdActual());
+                _logger.LogError(ex, "Error al eliminar carritos activos para el usuario {UsuarioId}", _currentUserAccessor.GetCurrentUserId());
              
             }
         }

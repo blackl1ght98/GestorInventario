@@ -10,7 +10,7 @@ namespace GestorInventario.Interfaces.Infraestructure
     {
 
         IQueryable<Usuario> ObtenerUsuarios();
-        Task<(Usuario?, string)> ObtenerPorId(int id);
+        
         Task<List<Role>> ObtenerRoles();      
         IQueryable<Role> ObtenerRolesConUsuarios();
         Task<(Usuario?, string)> ObtenerUsuarioConPedido(int id);

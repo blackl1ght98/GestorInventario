@@ -17,29 +17,23 @@ namespace GestorInventario.Infraestructure.Repositories
         private readonly HashService _hashService;      
         private readonly ILogger<AdminRepository> _logger;
         private readonly IMapper _mapper;
-        public AdminRepository(GestorInventarioContext context, IEmailService email, HashService hash,  ILogger<AdminRepository> logger, IMapper mapper )
+        private readonly IUserRepository _userRepository;
+        public AdminRepository(GestorInventarioContext context, IEmailService email, HashService hash,  ILogger<AdminRepository> logger, IMapper mapper,
+            IUserRepository user)
         {
             _context = context;
             _emailService = email;
             _hashService = hash;         
             _logger = logger;
             _mapper = mapper;
+            _userRepository = user;
         }
 
         public IQueryable<Usuario> ObtenerUsuarios()
         {
             return _context.Usuarios.Include(x => x.IdRolNavigation).AsQueryable();
         }
-        public async Task<(Usuario?, string)> ObtenerPorId(int id)
-        {
-            var usuario = await _context.Usuarios
-                .Include(x => x.IdRolNavigation)
-                .FirstOrDefaultAsync(x => x.Id == id);
-
-            return usuario is null
-                ? (null, "Usuario no encontrado")
-                : (usuario, "Usuario encontrado");
-        }
+       
 
         public async Task<List<Role>> ObtenerRoles() => await _context.Roles.ToListAsync();
         public async Task<(Usuario?,string)> ObtenerUsuarioConPedido(int id)
@@ -106,14 +100,14 @@ namespace GestorInventario.Infraestructure.Repositories
             {
                 
 
-                var (user,mensaje) = await ObtenerPorId(userVM.Id);
+                var user = await _userRepository.ObtenerUsuarioPorId(userVM.Id);
                 if (user == null)
                 {
-                    return OperationResult<string>.Fail(mensaje);
+                    return OperationResult<string>.Fail(user.Message);
                 }
 
                 // Validar IdRol solo si es un administrador y se proporciona un nuevo rol
-                if (!userVM.EsEdicionPropia && userVM.IdRol != user.IdRol)
+                if (!userVM.EsEdicionPropia && userVM.IdRol != user.Data.IdRol)
                 {
                     if (userVM.IdRol == 0 || !await _context.Roles.AnyAsync(r => r.Id == userVM.IdRol))
                     {
@@ -121,20 +115,20 @@ namespace GestorInventario.Infraestructure.Repositories
                     }
                 }
 
-                await ActualizarUsuario(userVM, user);
+                await ActualizarUsuario(userVM, user.Data);
                 await transaction.CommitAsync();
                 return OperationResult<string>.Ok("Edicion realizada con exito");
             }
             catch (DbUpdateConcurrencyException)
             {
                 await transaction.RollbackAsync();
-                var (user, mensaje) = await ObtenerPorId(userVM.Id);
+                var user = await _userRepository.ObtenerUsuarioPorId(userVM.Id);
                 if (user == null)
                 {
-                    return OperationResult<string>.Fail(mensaje);
+                    return OperationResult<string>.Fail(user.Message);
                 }
-                _context.ReloadEntity(user);
-                await ActualizarUsuario(userVM, user);
+                _context.ReloadEntity(user.Data);
+                await ActualizarUsuario(userVM, user.Data);
                 await transaction.CommitAsync();
                 return OperationResult<string>.Ok("Edicion realizada con exito");
             }
@@ -220,14 +214,14 @@ namespace GestorInventario.Infraestructure.Repositories
             using var transaction= await _context.Database.BeginTransactionAsync();
             try
             {
-                var (usuarioDB, mensaje) = await ObtenerPorId(id);
+                var usuarioDB = await _userRepository.ObtenerUsuarioPorId(id);
                 if (usuarioDB == null)
                 {
                     return OperationResult<string>.Fail("El usuario no existe");
                 }
-                usuarioDB.BajaUsuario = true;
+                usuarioDB.Data.BajaUsuario = true;
 
-                await   _context.UpdateEntityAsync(usuarioDB);
+                await   _context.UpdateEntityAsync(usuarioDB.Data);
                 await transaction.CommitAsync();
                 return OperationResult<string>.Ok("Usuario dado de baja con exito");
             }
@@ -246,14 +240,14 @@ namespace GestorInventario.Infraestructure.Repositories
             using var transaction=await _context.Database.BeginTransactionAsync();
             try
             {
-                var (usuarioDB, mensaje) = await ObtenerPorId(id);
+                var usuarioDB = await _userRepository.ObtenerUsuarioPorId(id);
                 if (usuarioDB == null)
                 {
                     return OperationResult<string>.Fail("El usuario no existe");
                 }
-                usuarioDB.BajaUsuario = false;
+                usuarioDB.Data.BajaUsuario = false;
 
-                await  _context.UpdateEntityAsync(usuarioDB);
+                await  _context.UpdateEntityAsync(usuarioDB.Data);
                 await transaction.CommitAsync();
                 return OperationResult<string>.Ok("Usuario dado de alta con exito");
             }
@@ -273,7 +267,7 @@ namespace GestorInventario.Infraestructure.Repositories
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var (usuario, mensaje) = await ObtenerPorId(usuarioId); ;
+                var usuario = await _userRepository.ObtenerUsuarioPorId(usuarioId); ;
                 if (usuario == null)
                 {
                     throw new Exception($"Usuario con Id {usuarioId} no encontrado.");
@@ -284,8 +278,8 @@ namespace GestorInventario.Infraestructure.Repositories
                     throw new Exception($"Rol con Id {rolId} no encontrado.");
                 }
 
-                usuario.IdRol = rolId;
-                await _context.UpdateEntityAsync(usuario);
+                usuario.Data.IdRol = rolId;
+                await _context.UpdateEntityAsync(usuario.Data);
                 await transaction.CommitAsync();
             }
             catch (Exception ex) {

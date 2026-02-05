@@ -2,6 +2,7 @@
 using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models.ViewModels;
 using GestorInventario.Infraestructure.Utils;
+using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.PaginacionLogica;
 using Microsoft.AspNetCore.Mvc;
@@ -11,21 +12,19 @@ namespace GestorInventario.Infraestructure.Controllers
 {
     public class CarritoController : Controller
     {       
-        private readonly ICarritoRepository _carritoRepository;       
-        private readonly GenerarPaginas _generarPaginas;
+        private readonly ICarritoRepository _carritoRepository;              
         private readonly ILogger<CarritoController> _logger;        
-        private readonly PolicyExecutor _policyExecutor;
-        private readonly UtilityClass _utilityClass;
+        private readonly PolicyExecutor _policyExecutor;       
+        private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly PaginationHelper _paginationHelper;
-        public CarritoController( ICarritoRepository carritorepository,  GenerarPaginas generarPaginas, 
-        ILogger<CarritoController> logger,  PolicyExecutor executor, UtilityClass utility, PaginationHelper pagination)
+        public CarritoController( ICarritoRepository carritorepository,   ICurrentUserAccessor current,
+        ILogger<CarritoController> logger,  PolicyExecutor executor,  PaginationHelper pagination)
         {          
             _carritoRepository = carritorepository;       
-            _generarPaginas = generarPaginas;
             _logger = logger;              
-            _policyExecutor=executor;
-            _utilityClass = utility;
+            _policyExecutor=executor;           
             _paginationHelper = pagination;
+            _currentUserAccessor = current;
         }
        
         [HttpGet]
@@ -38,7 +37,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
 
-                int usuarioId = _utilityClass.ObtenerUsuarioIdActual();
+                int usuarioId = _currentUserAccessor.GetCurrentUserId();
                 var resultado = await _policyExecutor.ExecutePolicyAsync(
                     () => _carritoRepository.ObtenerCarritoUsuario(usuarioId)
                 );
@@ -103,7 +102,7 @@ namespace GestorInventario.Infraestructure.Controllers
                         return RedirectToAction("Login", "Auth");
                     }
                
-                    int usuarioId= _utilityClass.ObtenerUsuarioIdActual();   
+                    int usuarioId= _currentUserAccessor.GetCurrentUserId();   
                         
                     var resultado = await _policyExecutor.ExecutePolicyAsync(()=> _carritoRepository.PagarV2(monedaSeleccionada, usuarioId))  ;
                     if (resultado.Success)

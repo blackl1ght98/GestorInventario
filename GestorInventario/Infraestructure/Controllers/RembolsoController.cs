@@ -12,17 +12,16 @@ namespace GestorInventario.Infraestructure.Controllers
     public class RembolsoController : Controller
     {
         private readonly PolicyExecutor _policyExecutor;
-        private readonly IRembolsoRepository _rembolsoRepository;
-        private readonly GenerarPaginas _generarPaginas;
+        private readonly IRembolsoRepository _rembolsoRepository;       
         private readonly ILogger<RembolsoController> _logger;
         private readonly PaginationHelper _paginationHelper;
 
         public RembolsoController(PolicyExecutor policyExecutor, IRembolsoRepository rembolsoRepository, 
-            GenerarPaginas generarPaginas, ILogger<RembolsoController> logger, PaginationHelper paginationHelper)
+             ILogger<RembolsoController> logger, PaginationHelper paginationHelper)
         {
             _policyExecutor = policyExecutor;
             _rembolsoRepository = rembolsoRepository;
-            _generarPaginas = generarPaginas;
+           
             _logger = logger;
             _paginationHelper = paginationHelper;
 

@@ -24,27 +24,26 @@ namespace GestorInventario.Infraestructure.Controllers
        
         private readonly ILogger<PedidosController> _logger;
         private readonly IPedidoRepository _pedidoRepository;
-        private readonly IHttpContextAccessor _contextAccessor;            
+                  
         private readonly IPdfService _pdfservice;
         private readonly PolicyExecutor _policyExecutor;
         private readonly IPaypalService _paypalService;
         private readonly GestorInventarioContext _context;
         private readonly PaginationHelper _paginationHelper;
-        private readonly UtilityClass _utilityClass;
-        public PedidosController( ILogger<PedidosController> logger, PaginationHelper pagination, UtilityClass utility,
-            IPedidoRepository pedido, IHttpContextAccessor contextAccessor,  IPdfService pdf, PolicyExecutor executor, IPaypalService paypal, GestorInventarioContext context)
-        {
-      
-           
+        private readonly IUserRepository _userRepository;
+        private readonly ICurrentUserAccessor _currentUserAccessor;
+        public PedidosController( ILogger<PedidosController> logger, PaginationHelper pagination, IUserRepository user, ICurrentUserAccessor current,
+            IPedidoRepository pedido,   IPdfService pdf, PolicyExecutor executor, IPaypalService paypal, GestorInventarioContext context)
+        {          
             _logger = logger;
-            _pedidoRepository = pedido;
-            _contextAccessor = contextAccessor;
+            _pedidoRepository = pedido;           
             _pdfservice= pdf;   
             _policyExecutor = executor;
             _paypalService = paypal;
             _context = context;
             _paginationHelper = pagination;
-            _utilityClass = utility;
+            _userRepository = user;
+            _currentUserAccessor = current;
         }
        
      
@@ -57,7 +56,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
 
-                var usuarioId =  _utilityClass.ObtenerUsuarioIdActual();
+                var usuarioId =  _currentUserAccessor.GetCurrentUserId();
                     var pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidos());
                     if (User.IsInRole("administrador"))
                     {
@@ -435,7 +434,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
 
-                var usuarioId = _utilityClass.ObtenerUsuarioIdActual();
+                var usuarioId = _currentUserAccessor.GetCurrentUserId();
                     var pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidosHistorial());
                     if (User.IsInRole("administrador"))
                     {

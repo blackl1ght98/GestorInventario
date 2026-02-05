@@ -39,7 +39,7 @@ namespace GestorInventario.Middlewares.Strategis
                 var httpContextAccessor = context.RequestServices.GetRequiredService<IHttpContextAccessor>();
                 var tokenService = context.RequestServices.GetRequiredService<ITokenGenerator>();
                 var encryptionService = context.RequestServices.GetRequiredService<IEncryptionService>();
-                var userService = context.RequestServices.GetRequiredService<IAdminRepository>();
+                var utility = context.RequestServices.GetRequiredService<IUserRepository>();
                 var refreshTokenMethod = context.RequestServices.GetRequiredService<IRefreshTokenMethod>();
                 var redis = context.RequestServices.GetService<IDistributedCache>();
                 var memoryCache = context.RequestServices.GetService<IMemoryCache>();
@@ -63,13 +63,13 @@ namespace GestorInventario.Middlewares.Strategis
                     else if (!string.IsNullOrEmpty(refreshToken))
                     {
                         //Manejador en caso de que expire el token de acceso "auth"
-                        await HandleExpiredToken(context, refreshToken, configuration, tokenService, userService, redis, memoryCache, refreshTokenMethod, useRedis);
+                        await HandleExpiredToken(context, refreshToken, configuration, tokenService, utility, redis, memoryCache, refreshTokenMethod, useRedis);
 
                     }
                 }
                 else if (!string.IsNullOrEmpty(refreshToken))
                 {
-                    await HandleExpiredToken(context, refreshToken, configuration, tokenService, userService, redis, memoryCache, refreshTokenMethod, useRedis);
+                    await HandleExpiredToken(context, refreshToken, configuration, tokenService, utility, redis, memoryCache, refreshTokenMethod, useRedis);
 
                 }
             }
@@ -171,7 +171,7 @@ namespace GestorInventario.Middlewares.Strategis
         }
         //Metodo que se encarga de regenerar el token de acceso en caso de expiracion
         private static async Task HandleExpiredToken(HttpContext context, string refreshToken, IConfiguration configuration, ITokenGenerator tokenService, 
-        IAdminRepository userService, IDistributedCache? redis,IMemoryCache? memoryCache, IRefreshTokenMethod refreshTokenMethod, bool useRedis)
+        IUserRepository utility, IDistributedCache? redis,IMemoryCache? memoryCache, IRefreshTokenMethod refreshTokenMethod, bool useRedis)
         {
             //1º Llamamos al metodo encargado de validar el token de refresco
             var refreshTokenValid = await ValidateRefreshToken(refreshToken, configuration, redis, memoryCache, useRedis);
@@ -197,7 +197,7 @@ namespace GestorInventario.Middlewares.Strategis
                 return;
             }
             //6º Aseguramos que exista el usuario en base de datos
-            var (user, mensaje) = await userService.ObtenerPorId(int.Parse(userId));
+            var user = await utility.ObtenerUsuarioPorId(int.Parse(userId));
             if (user == null)
             {
                 logger.Warn($"Usuario con ID {userId} no encontrado.");
@@ -205,7 +205,7 @@ namespace GestorInventario.Middlewares.Strategis
                 return;
             }
             //7º Llamamos a los metodos para regenerar ambos token y creamos las cookies
-            var newAccessToken = await tokenService.GenerateTokenAsync(user);
+            var newAccessToken = await tokenService.GenerateTokenAsync(user.Data);
           
 
 

@@ -2,6 +2,7 @@
 using GestorInventario.Application.DTOs;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
+using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using Microsoft.EntityFrameworkCore;
@@ -13,21 +14,19 @@ namespace GestorInventario.Infraestructure.Repositories
     {
         private readonly GestorInventarioContext _context;
         private readonly IPaypalService _paypalService;
-        private readonly IHttpContextAccessor _contextAccessor;
         private readonly IConfiguration _configuration;
-        private readonly ILogger<CarritoRepository> _logger;
-        private readonly IAdminRepository _admin;
-        private readonly UtilityClass _utilityClass;
-        public CarritoRepository(GestorInventarioContext context, IPaypalService service, IHttpContextAccessor contextAccessor,
-            IConfiguration configuration, ILogger<CarritoRepository> logger, IAdminRepository admin, UtilityClass utility)
+        private readonly ILogger<CarritoRepository> _logger;       
+        private readonly IUserRepository _userRepository;
+        private readonly ICurrentUserAccessor _currentUserAccessor;
+        public CarritoRepository(GestorInventarioContext context, IPaypalService service,  ICurrentUserAccessor current,
+            IConfiguration configuration, ILogger<CarritoRepository> logger,  IUserRepository user)
         {
             _context = context;
             _paypalService = service;
-            _contextAccessor = contextAccessor;
             _configuration = configuration;
-            _logger = logger;
-            _admin = admin;
-            _utilityClass = utility;
+            _logger = logger;           
+            _userRepository = user;
+            _currentUserAccessor = current;
         }
 
         // Obtener el carrito del usuario (Pedidos con EsCarrito = 1)
@@ -166,20 +165,20 @@ namespace GestorInventario.Infraestructure.Repositories
         }
         private async Task<OperationResult<InfoUsuarioDto>> ValidarUsuarioYObtenerInfo()
         {
-            var usuarioId = _utilityClass.ObtenerUsuarioIdActual();
-            var (usuarioActual,mensaje) = await _admin.ObtenerPorId(usuarioId);
+            var usuarioId = _currentUserAccessor.GetCurrentUserId();
+            var usuarioActual = await _userRepository.ObtenerUsuarioPorId(usuarioId);
             if(usuarioActual == null)
             {
                 return OperationResult<InfoUsuarioDto>.Fail("El usuario no existe");
             }
             var infoUsuario = new InfoUsuarioDto
             {
-                NombreCompletoUsuario = usuarioActual.NombreCompleto ?? "Nombre no facilitado",
-                Telefono = usuarioActual.Telefono ?? "Telefono no facilitado",
-                CodigoPostal = usuarioActual.CodigoPostal ?? "Codigo Postal no facilitado",
-                Ciudad = usuarioActual.Ciudad ?? "Ciudad no facilitado",
-                Line1 = usuarioActual.Direccion.Split(",")[0].Trim(),
-                Line2 = usuarioActual.Direccion.Split(",").Length > 1 ? usuarioActual.Direccion.Split(",")[1].Trim() : ""
+                NombreCompletoUsuario = usuarioActual.Data.NombreCompleto ?? "Nombre no facilitado",
+                Telefono = usuarioActual.Data.Telefono ?? "Telefono no facilitado",
+                CodigoPostal = usuarioActual.Data.CodigoPostal ?? "Codigo Postal no facilitado",
+                Ciudad = usuarioActual.Data.Ciudad ?? "Ciudad no facilitado",
+                Line1 = usuarioActual.Data.Direccion.Split(",")[0].Trim(),
+                Line2 = usuarioActual.Data.Direccion.Split(",").Length > 1 ? usuarioActual.Data.Direccion.Split(",")[1].Trim() : ""
             };
            
             return OperationResult<InfoUsuarioDto>.Ok("Validacion exitosa",infoUsuario);
@@ -297,22 +296,7 @@ namespace GestorInventario.Infraestructure.Repositories
 
         private async Task RegistrarHistorialPedido(Pedido pedido, List<DetallePedido> itemsDelCarrito)
         {
-            string ipString;
-            if (_contextAccessor.HttpContext == null)
-            {
-                ipString = string.Empty; 
-            }
-            else
-            {
-                var ip = _contextAccessor.HttpContext.Connection.RemoteIpAddress;
-                ipString = ip != null
-                    ? ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6
-                        ? ip.MapToIPv4().ToString()
-                        : ip.ToString()
-                    : string.Empty;
-            }
-
-
+            string ipString= _currentUserAccessor.GetClientIpAddress();           
             try
             {
                 // Crear el registro del historial del pedido

@@ -21,7 +21,7 @@ namespace GestorInventario.Middlewares.Strategis
                 var token = context.Request.Cookies["auth"];
                 var refreshToken = context.Request.Cookies["refreshToken"];
                 var tokenService = context.RequestServices.GetRequiredService<ITokenGenerator>();
-                var userService = context.RequestServices.GetRequiredService<IAdminRepository>();
+                var utility = context.RequestServices.GetRequiredService<IUserRepository>();
                 var refreshTokenMethod = context.RequestServices.GetRequiredService<IRefreshTokenMethod>();
                 var configuration = context.RequestServices.GetService<IConfiguration>();
                 // Validar el token principal
@@ -35,12 +35,12 @@ namespace GestorInventario.Middlewares.Strategis
                     }
                     else if (!string.IsNullOrEmpty(refreshToken))
                     {
-                        await HandleExpiredToken(context, refreshToken,configuration,  tokenService, userService, refreshTokenMethod);
+                        await HandleExpiredToken(context, refreshToken,configuration,  tokenService, utility, refreshTokenMethod);
                     }
                 }
                 else if (!string.IsNullOrEmpty(refreshToken))
                 {
-                    await HandleExpiredToken(context, refreshToken,configuration, tokenService, userService, refreshTokenMethod);
+                    await HandleExpiredToken(context, refreshToken,configuration, tokenService, utility, refreshTokenMethod);
                 }
                 else
                 {
@@ -112,7 +112,7 @@ namespace GestorInventario.Middlewares.Strategis
         }
 
         private async Task HandleExpiredToken(HttpContext context, string refreshToken,IConfiguration configuration,
-            ITokenGenerator tokenService, IAdminRepository userService, IRefreshTokenMethod refreshTokenMethod)
+            ITokenGenerator tokenService, IUserRepository utility, IRefreshTokenMethod refreshTokenMethod)
         {
             var refreshTokenValid = await ValidateRefreshToken(refreshToken,configuration);
             var logger = log4net.LogManager.GetLogger(typeof(FixedAsymmetricAuthStrategy));
@@ -141,7 +141,7 @@ namespace GestorInventario.Middlewares.Strategis
                 return;
             }
 
-            var (user,mensaje) = await userService.ObtenerPorId(userIdParsed);
+            var user = await utility.ObtenerUsuarioPorId(userIdParsed);
             if (user == null)
             {
                logger.Error("Usuario no encontrado");
@@ -149,8 +149,8 @@ namespace GestorInventario.Middlewares.Strategis
                 return;
             }
 
-            var newAccessToken = await tokenService.GenerateTokenAsync(user);
-            var newRefreshToken = await refreshTokenMethod.GenerarTokenRefresco(user);
+            var newAccessToken = await tokenService.GenerateTokenAsync(user.Data);
+            var newRefreshToken = await refreshTokenMethod.GenerarTokenRefresco(user.Data);
 
             context.Response.Cookies.Append("auth", newAccessToken.Token, new CookieOptions
             {
