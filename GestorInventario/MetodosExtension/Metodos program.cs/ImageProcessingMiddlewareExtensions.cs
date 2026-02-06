@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Application.Services;
+using GestorInventario.Interfaces.Application;
 
 
 namespace GestorInventario.Middlewares
@@ -17,7 +18,7 @@ namespace GestorInventario.Middlewares
                 }
                 catch (Exception ex)
                 {
-                    var logger = context.RequestServices.GetService<ILogger<ImageOptimizerService>>();
+                    var logger = context.RequestServices.GetService<ILogger<IImageOptimizerService>>();
                     logger?.LogError(ex, "Error en el procesamiento de imagen para {Path}", context.Request.Path);
 
                     // Continuar con el siguiente middleware en caso de error
@@ -38,7 +39,7 @@ namespace GestorInventario.Middlewares
                 if (HasImageProcessingParameters(query))
                 {
                     var imagePath = path.Split('?')[0];
-                    var imageService = context.RequestServices.GetService<ImageOptimizerService>();
+                    var imageService = context.RequestServices.GetService<IImageOptimizerService>();
 
                     if (imageService != null)
                     {

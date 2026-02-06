@@ -18,10 +18,10 @@ namespace GestorInventario.Infraestructure.Repositories
         private readonly ILogger<ProductoRepository> _logger;   
         private readonly IBarCodeService _barCodeService;
         private readonly ICarritoRepository _carritoRepository;
-        private readonly ImageOptimizerService _imageOptimizerService;      
+        private readonly IImageOptimizerService _imageOptimizerService;      
         private readonly ICurrentUserAccessor _currentUserAccessor;
         public ProductoRepository(GestorInventarioContext context, IGestorArchivos gestorArchivos,  ICurrentUserAccessor current,
-        ILogger<ProductoRepository> logger,  ICarritoRepository carrito, IBarCodeService code, ImageOptimizerService optimizer)
+        ILogger<ProductoRepository> logger,  ICarritoRepository carrito, IBarCodeService code, IImageOptimizerService optimizer)
         {
             _context = context;
             _gestorArchivos = gestorArchivos;          

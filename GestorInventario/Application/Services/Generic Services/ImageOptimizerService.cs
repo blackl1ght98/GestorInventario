@@ -1,13 +1,14 @@
-﻿using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Formats.Webp;
+﻿using GestorInventario.Interfaces.Application;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.Formats.Webp;
+using SixLabors.ImageSharp.Processing;
 
 namespace GestorInventario.Application.Services
 {
-    public class ImageOptimizerService
+    public class ImageOptimizerService: IImageOptimizerService
     {
         private readonly ILogger<ImageOptimizerService> _logger;
         private readonly IWebHostEnvironment _environment;
@@ -150,7 +151,7 @@ namespace GestorInventario.Application.Services
             }
         }
 
-        public bool ShouldConvertToWebP(string extension)
+        private bool ShouldConvertToWebP(string extension)
         {
             return extension != ".webp";
         }
