@@ -8,6 +8,7 @@ using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.Interfaces.Utils;
 using GestorInventario.PaginacionLogica;
 
 namespace GestorInventario.MetodosExtension.Metodos_program.cs
@@ -46,6 +47,8 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient< IPasswordResetService, PasswordResetService>();
             services.AddTransient<ICurrentUserAccessor,CurrentUserAccessor>();
             services.AddTransient<IPaginationHelper, PaginationHelper>();
+            services.AddTransient<ICarritoService, CarritoService>();
+            services.AddTransient<IConversionUtils, ConversionUtils>();
             return services;
 
         }

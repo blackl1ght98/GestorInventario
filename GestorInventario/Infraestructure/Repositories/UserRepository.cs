@@ -28,5 +28,26 @@ namespace GestorInventario.Infraestructure.Repositories
             else
                 return OperationResult<Usuario>.Ok("Usuario obtenido con exito", usuario);
         }
+        public IQueryable<Usuario> ObtenerUsuarios()
+        {
+            return _context.Usuarios
+                .Include(u => u.IdRolNavigation)
+                .AsQueryable();
+        }
+        public IQueryable<Usuario> ObtenerUsuariosPorRol(int rolId)
+        {
+            return _context.Usuarios
+                .Where(u => u.IdRol == rolId)
+                .Include(u => u.IdRolNavigation)
+                .AsQueryable();
+        }
+       
+        public async Task<List<Usuario>> ObtenerUsuariosAsync() => await ObtenerUsuarios().ToListAsync();
+        public async Task<(Usuario?, string)> ObtenerUsuarioConPedido(int id)
+        {
+            var usuario = await _context.Usuarios.Include(p => p.Pedidos).FirstOrDefaultAsync(m => m.Id == id);
+            return usuario is null ? (null, "Este usuario no tiene pedidos") : (usuario, "Usuario con pedidos encontrado");
+        }
+
     }
 }

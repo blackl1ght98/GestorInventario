@@ -34,7 +34,7 @@ namespace GestorInventario.Infraestructure.Repositories
             return login is null ? (null, "Email no encontrado") : (login, "Login exitoso");
         }
       
-        public async Task<OperationResult<string>> ValidateResetTokenAsync(RestoresPasswordDto cambio)
+        private async Task<OperationResult<string>> ValidateResetTokenAsync(RestoresPasswordDto cambio)
         {
             try
             {
@@ -153,34 +153,7 @@ namespace GestorInventario.Infraestructure.Repositories
             }
            
         }
-        public async Task EliminarCarritoActivo()
-        {
-           
-            try
-            {
-                var usuarioId = _currentUserAccessor.GetCurrentUserId();
-                var carritosActivos = await _context.Pedidos
-                    .Where(p => p.IdUsuario == usuarioId && p.EsCarrito)
-                    .ToListAsync();
-
-                foreach (var carritoActivo in carritosActivos)
-                {
-                    var itemsCarrito = await _carritoRepository.ObtenerItemsDelCarritoUsuario(carritoActivo.Id);
-                    if (!itemsCarrito.Any()) // Solo eliminar carritos vacíos
-                    {
-                      await  _context.DeleteEntityAsync(carritoActivo);
-                    }
-                }
-
-                await _context.SaveChangesAsync();
-          
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al eliminar carritos activos para el usuario {UsuarioId}", _currentUserAccessor.GetCurrentUserId());
-             
-            }
-        }
+       
         public async Task<OperationResult<RestoresPasswordDto>> PrepareRestorePassModel(int userId, string token)
         {
             try

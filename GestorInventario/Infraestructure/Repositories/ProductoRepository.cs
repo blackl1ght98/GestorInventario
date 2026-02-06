@@ -32,8 +32,8 @@ namespace GestorInventario.Infraestructure.Repositories
             _currentUserAccessor = current;
         }    
      
-        public IQueryable<Producto> ObtenerTodoProducto()=>from p in _context.Productos.Include(x => x.IdProveedorNavigation)orderby p.Id  select p;
-
+        public IQueryable<Producto> ObtenerTodosLosProductos()=>from p in _context.Productos.Include(x => x.IdProveedorNavigation)orderby p.Id  select p;
+        public async Task<List<Producto>> ObtenerProductos() => await _context.Productos.ToListAsync();
         public async Task<Producto> CrearProducto(ProductosViewModel model)
         {
             if (model == null)

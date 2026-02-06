@@ -119,7 +119,7 @@ namespace GestorInventario.Infraestructure.Repositories
         }
 
 
-        public async Task<OperationResult<string>> PagarV2(string moneda, int userId)
+        public async Task<OperationResult<string>> Pagar(string moneda, int userId)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try

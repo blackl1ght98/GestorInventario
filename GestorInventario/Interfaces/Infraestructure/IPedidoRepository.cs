@@ -8,20 +8,16 @@ namespace GestorInventario.Interfaces.Infraestructure
     {
         IQueryable<Pedido> ObtenerPedidos();
         IQueryable<Pedido> ObtenerPedidoUsuario(int userId);
-        Task<OperationResult<string>> CrearPedido(PedidosViewModel model);
-        Task<List<Producto>> ObtenerProductos();
-        Task<List<Usuario>> ObtenerUsuarios();
+        Task<OperationResult<string>> CrearPedido(PedidosViewModel model);      
         Task<Pedido> ObtenerPedidoEliminacion(int id);
         Task<OperationResult<string>> EliminarPedido(int Id);
         Task<HistorialPedido> EliminarHistorialPorId(int id);
         Task<OperationResult<string>> EliminarHistorialPorIdDefinitivo(int Id);
-        Task<Pedido> ObtenerPedidoId(int id);
+        Task<Pedido> ObtenerPedidoPorId(int id);
         Task<OperationResult<string>> EditarPedido(EditPedidoViewModel model);
-        IQueryable<HistorialPedido> ObtenerPedidosHistorial();
-        IQueryable<HistorialPedido> ObtenerPedidosHistorialUsuario(int usuarioId);
+        IQueryable<HistorialPedido> ObtenerHistorialDePedidos(int? usuarioId = null);
         Task<HistorialPedido> DetallesHistorial(int id);
         Task<OperationResult<string>> EliminarHitorial();  
-        DateTime? ConvertToDateTime(object value);
         Task<OperationResult<PayPalPaymentDetail>> ObtenerDetallePagoEjecutadoV2(string id);
         Task<Pedido> ObtenerDetallesPedido(int id);
 

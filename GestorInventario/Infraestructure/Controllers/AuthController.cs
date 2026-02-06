@@ -22,8 +22,9 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly ILogger<AuthController> _logger;       
         private readonly IPolicyExecutor _policyExecutor;
         private readonly IPasswordResetService _passwordResetService;
+        private readonly ICarritoService _carritoService;
         public AuthController(HashService hashService,  TokenService tokenService, IAuthRepository adminRepository,
-              ILogger<AuthController> logger,   IPolicyExecutor executor, IPasswordResetService resetService)
+              ILogger<AuthController> logger,   IPolicyExecutor executor, IPasswordResetService resetService, ICarritoService carrito)
         {
             _hashService = hashService;
             _tokenService = tokenService;
@@ -31,6 +32,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _logger = logger;     
             _policyExecutor = executor;
             _passwordResetService = resetService;
+            _carritoService = carrito;
         }
         
         [AllowAnonymous]
@@ -143,7 +145,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     Response.Cookies.Delete(cookie.Key);
                 }
-               await _authRepository.EliminarCarritoActivo();
+               await _carritoService.EliminarCarritosActivosAsync();
                 // Cierra la sesión.
                 await HttpContext.SignOutAsync();
 
