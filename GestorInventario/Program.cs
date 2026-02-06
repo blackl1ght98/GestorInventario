@@ -1,4 +1,4 @@
-﻿using GestorInventario.Infraestructure.Utils;
+﻿
 using GestorInventario.MetodosExtension.Metodos_program.cs;
 using GestorInventario.Middlewares;
 using Microsoft.Net.Http.Headers;
@@ -45,6 +45,7 @@ QuestPDF.Settings.License = LicenseType.Community;
 builder.Services.AddHttpClientPayPal();
 builder.Services.AddAutoMapper(builder.Configuration);
 builder.Services.AddWebOptimizer();
+//Para futuro cuando agregue autenticacion por google
 //builder.Services.AddAuthentication().AddGoogle(cfg => {
 //    cfg.ClientId = "";
 //cfg.ClientSecret = "password";
@@ -118,8 +119,6 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 app.UseImageProcessing();
-
-
 app.UseCors();
 app.UseRouting();
 app.UseAuthentication(); // Identifica al usuario

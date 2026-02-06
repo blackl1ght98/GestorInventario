@@ -40,7 +40,7 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<IEncryptionService, EncryptionService>();
             services.AddTransient<IPaypalService, PaypalService>();
             services.AddTransient<IPaymentRepository, PaymentRepository>();
-            services.AddTransient<ImageOptimizerService>();
+            services.AddTransient<IImageOptimizerService,ImageOptimizerService>();
             services.AddTransient<ITokenGenerator, TokenGenerator>();           
             services.AddTransient<IBarCodeService, BarCodeService>();
             services.AddTransient< IPasswordResetService, PasswordResetService>();
