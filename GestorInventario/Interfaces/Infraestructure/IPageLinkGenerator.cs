@@ -2,9 +2,9 @@
 
 namespace GestorInventario.Interfaces.Infraestructure
 {
-    public interface IGenerarPaginas
+    public interface IPageLinkGenerator
     {
         List<PaginasModel> GenerarListaPaginas(int totalPaginas, int paginaActual, int? radio = 3);
-        List<PaginasModel> GenerarListaPaginas(Paginacion paginacion);
+      
     }
 }

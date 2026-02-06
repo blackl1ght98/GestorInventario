@@ -1,15 +1,20 @@
-﻿namespace GestorInventario.PaginacionLogica
+﻿using GestorInventario.Interfaces.Infraestructure;
+
+namespace GestorInventario.PaginacionLogica
 {
-    public class PaginacionMetodo
+    public class PageLinkGenerator: IPageLinkGenerator
     {
-        public List<PaginasModel> GenerarListaPaginas(int totalPaginas, int paginaActual, int radio = 3)
+        //Si tienen dudas mirar documentacion tecnica de este metodo
+        public List<PaginasModel> GenerarListaPaginas(int totalPaginas, int paginaActual, int? radio = 3)
         {
+
             var paginas = new List<PaginasModel>();
+
             var paginaAnterior = paginaActual > 1 ? paginaActual - 1 : 1;
             paginas.Add(new PaginasModel(paginaAnterior, paginaActual != 1, "Anterior"));
-
             for (int i = 1; i <= totalPaginas; i++)
             {
+
                 if (i >= paginaActual - radio && i <= paginaActual + radio)
                 {
                     paginas.Add(new PaginasModel(i) { Activa = paginaActual == i });
@@ -20,5 +25,8 @@
             paginas.Add(new PaginasModel(paginaSiguiente, paginaActual != totalPaginas, "Siguiente"));
             return paginas;
         }
+       
     }
+
 }
+

@@ -16,18 +16,16 @@ namespace GestorInventario.Infraestructure.Controllers
     public class AuthController : Controller
     {
 
-        private readonly HashService _hashService;
-        private readonly IEmailService _emailService;
+        private readonly HashService _hashService;    
         private readonly TokenService _tokenService;
         private readonly IAuthRepository _authRepository;        
         private readonly ILogger<AuthController> _logger;       
         private readonly IPolicyExecutor _policyExecutor;
         private readonly IPasswordResetService _passwordResetService;
-        public AuthController(HashService hashService, IEmailService emailService, TokenService tokenService, IAuthRepository adminRepository,
+        public AuthController(HashService hashService,  TokenService tokenService, IAuthRepository adminRepository,
               ILogger<AuthController> logger,   IPolicyExecutor executor, IPasswordResetService resetService)
         {
             _hashService = hashService;
-            _emailService = emailService;
             _tokenService = tokenService;
             _authRepository = adminRepository;         
             _logger = logger;     

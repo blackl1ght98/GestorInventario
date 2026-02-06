@@ -20,8 +20,7 @@ namespace GestorInventario.Infraestructure.Controllers
        
        
         private readonly ILogger<PedidosController> _logger;
-        private readonly IPedidoRepository _pedidoRepository;
-                  
+        private readonly IPedidoRepository _pedidoRepository;                 
         private readonly IPdfService _pdfservice;
         private readonly IPolicyExecutor _policyExecutor;
         private readonly IPaypalService _paypalService;

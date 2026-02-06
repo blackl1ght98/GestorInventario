@@ -14,16 +14,14 @@ namespace GestorInventario.Infraestructure.Controllers
     public class ProveedorController : Controller
     {
         
-        private readonly ILogger<ProveedorController> _logger;
-        
+        private readonly ILogger<ProveedorController> _logger;       
         private readonly IProveedorRepository _proveedorRepository;     
         private readonly IPolicyExecutor _policyExecutor;
         private readonly IPaginationHelper _paginationHelper;
         public ProveedorController( ILogger<ProveedorController> logger, 
             IProveedorRepository proveedor,  IPolicyExecutor executor, IPaginationHelper pagination)
         {           
-            _logger = logger;
-                   
+            _logger = logger;                
             _proveedorRepository= proveedor;           
             _policyExecutor = executor;
             _paginationHelper = pagination;
