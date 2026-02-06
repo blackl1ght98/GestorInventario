@@ -7,14 +7,12 @@ using GestorInventario.Application.Exceptions;
 using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
-using GestorInventario.MetodosExtension;
 using GestorInventario.PaginacionLogica;
 using GestorInventario.ViewModels;
 using GestorInventario.ViewModels.Paypal;
 using GestorInventario.ViewModels.product;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace GestorInventario.Infraestructure.Controllers
@@ -23,7 +21,7 @@ namespace GestorInventario.Infraestructure.Controllers
     {
        
        
-        private readonly IGenerarPaginas _generarPaginas;   
+        
         private readonly ILogger<PaypalController> _logger;
         private readonly IPaypalRepository _paypalRepository;
         private readonly ICarritoRepository _carritoRepository;
@@ -34,12 +32,11 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IPaginationHelper _paginationHelper;
         private readonly ICurrentUserAccessor _currentUserAccessor;
-        public PaypalController( IGenerarPaginas generar,  ILogger<PaypalController> logger, IConfiguration config, IUserRepository user, IPaginationHelper pagination,
-            IPaypalRepository paypalController, ICarritoRepository carritoRepository, IMapper map, IPolicyExecutor executor, IPaypalService service, ICurrentUserAccessor current)
+        public PaypalController(ILogger<PaypalController> logger, IConfiguration config, IUserRepository user, IPaginationHelper pagination,
+        IPaypalRepository paypalController, ICarritoRepository carritoRepository, IMapper map, IPolicyExecutor executor, IPaypalService service, ICurrentUserAccessor current)
         {
             
-            _paypalService= service;
-            _generarPaginas = generar;
+            _paypalService= service;        
            _policyExecutor=executor;
             _logger = logger;
             _paypalRepository = paypalController;
@@ -51,9 +48,9 @@ namespace GestorInventario.Infraestructure.Controllers
             _currentUserAccessor = current;
         }
 
-      
+
         [HttpGet]
-        public async Task<IActionResult> MostrarProductos(int pagina = 1)
+        public async Task<IActionResult> MostrarProductos([FromQuery] Paginacion paginacion)
         {
             try
             {
@@ -62,13 +59,13 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
 
-                int cantidadAMostrar = 6;
+             
 
                 // Obtener productos de PayPal
                 var (respuestaProductos, tienePaginaSiguiente) = await _policyExecutor.ExecutePolicyAsync(() =>
-                    _paypalService.GetProductsAsync(pagina, cantidadAMostrar));
+                    _paypalService.GetProductsAsync(paginacion.Pagina,paginacion.CantidadAMostrar));
 
-                // Mapear productos a ProductoPaypalDto
+                // Mapear productos a DTO
                 var productos = respuestaProductos?.Products?.Select(p => new ProductoPaypalDto
                 {
                     Id = p.Id,
@@ -76,28 +73,24 @@ namespace GestorInventario.Infraestructure.Controllers
                     Descripcion = p.Description
                 }).ToList() ?? new List<ProductoPaypalDto>();
 
-                // Calcular total de páginas (PayPal no proporciona totalItems, usamos tienePaginaSiguiente)
-                var totalPaginas = tienePaginaSiguiente ? pagina + 1 : pagina;
+                // Usar el helper para generar la paginación (modo "sin total real")
+                var paginationResult = _paginationHelper.PaginarSinTotal(
+                    items: productos,
+                    paginaActual: paginacion.Pagina,
+                    hasNextPage: tienePaginaSiguiente,
+                    cantidadAMostrar: paginacion.CantidadAMostrar,
+                    radio: paginacion.Radio
+                );
 
-                // Configurar paginación
-                var paginacion = new Paginacion
-                {
-                    Pagina = pagina,
-                    CantidadAMostrar = cantidadAMostrar,
-                    TotalPaginas = totalPaginas,
-                    Radio = 3
-                };
-                var paginas = _generarPaginas.GenerarListaPaginas(paginacion);
-
-                // Crear el ViewModel
+                // Crear el ViewModel usando el resultado del helper
                 var model = new ProductosPaypalViewModel
                 {
-                    Productos = productos,
-                    Paginas = paginas,
-                    TotalPaginas = totalPaginas,
-                    PaginaActual = pagina,
-                    TienePaginaSiguiente = tienePaginaSiguiente,
-                    TienePaginaAnterior = pagina > 1
+                    Productos = paginationResult.Items,
+                    Paginas = paginationResult.Paginas.ToList(),
+                    TotalPaginas = paginationResult.TotalPaginas,
+                    PaginaActual = paginationResult.PaginaActual,
+                    TienePaginaSiguiente = paginationResult.Paginas.LastOrDefault()?.Habilitada ?? false,
+                    TienePaginaAnterior = paginacion.Pagina > 1
                 };
 
                 return View(model);
@@ -107,9 +100,9 @@ namespace GestorInventario.Infraestructure.Controllers
                 _logger.LogError(ex, "Error al obtener los productos de PayPal");
                 return RedirectToAction("Error", "Home");
             }
-        }    
+        }
         [HttpGet]
-        public async Task<IActionResult> MostrarPlanes([FromQuery] int pagina = 1, [FromQuery] int cantidadAMostrar = 6)
+        public async Task<IActionResult> MostrarPlanes([FromQuery] Paginacion paginacion)
         {
             try
             {
@@ -118,12 +111,13 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
 
-                _logger.LogInformation("Página solicitada: {Pagina}, CantidadAMostrar: {Cantidad}", pagina, cantidadAMostrar);
+                _logger.LogInformation("Página solicitada: {Pagina}, CantidadAMostrar: {Cantidad}", paginacion.Pagina, paginacion.CantidadAMostrar);
 
-                // Obtener planes tipados
+                // Obtener planes de PayPal
                 var (plans, hasNextPage) = await _policyExecutor.ExecutePolicyAsync(() =>
-                    _paypalService.GetSubscriptionPlansAsyncV2(pagina, cantidadAMostrar)); 
+                    _paypalService.GetSubscriptionPlansAsyncV2(paginacion.Pagina, paginacion.CantidadAMostrar));
 
+                // Mapear a ViewModel
                 var planesViewModel = new List<PlanesDto>();
 
                 if (plans != null)
@@ -147,40 +141,47 @@ namespace GestorInventario.Infraestructure.Controllers
                     }
                 }
 
-                int totalPaginas = hasNextPage ? pagina + 1 : pagina;
+                // ────────────────────────────────────────────────
+                // USAMOS EL HELPER → modo "sin total real" (PayPal)
+                // ────────────────────────────────────────────────
+                var paginationResult = _paginationHelper.PaginarSinTotal(
+                    items: planesViewModel,
+                    paginaActual: paginacion.Pagina,
+                    hasNextPage: hasNextPage,
+                    cantidadAMostrar: paginacion.CantidadAMostrar,
+                    radio: paginacion.Radio
+                );
 
-                var paginacion = new Paginacion
-                {
-                    Pagina = pagina,
-                    CantidadAMostrar = cantidadAMostrar,
-                    TotalPaginas = totalPaginas,
-                    Radio = 3
-                };
-                var paginas = _generarPaginas.GenerarListaPaginas(paginacion);
-
+                // Crear el ViewModel final usando el resultado del helper
                 var model = new PlanesPaginadosViewModel
                 {
-                    Planes = planesViewModel,
-                    Paginas = paginas,
-                    TotalPaginas = totalPaginas,
-                    PaginaActual = pagina,
-                    TienePaginaSiguiente = hasNextPage,
-                    TienePaginaAnterior = pagina > 1,
-                    CantidadAMostrar = cantidadAMostrar
+                    Planes = paginationResult.Items,
+                    Paginas = paginationResult.Paginas.ToList(),
+                    TotalPaginas = paginationResult.TotalPaginas,
+                    PaginaActual = paginationResult.PaginaActual,
+                    TienePaginaSiguiente = paginationResult.Paginas.LastOrDefault()?.Habilitada ?? false,
+                    TienePaginaAnterior = paginacion.Pagina > 1,
+                    CantidadAMostrar = paginacion.CantidadAMostrar
                 };
-                ViewBag.Monedas = new SelectList(await _policyExecutor.ExecutePolicyAsync(() => _carritoRepository.ObtenerMoneda()), "Codigo", "Codigo");
+
+                ViewBag.Monedas = new SelectList(
+                    await _policyExecutor.ExecutePolicyAsync(() => _carritoRepository.ObtenerMoneda()),
+                    "Codigo",
+                    "Codigo"
+                );
+
                 return View(model);
             }
             catch (Exception ex)
             {
                 TempData["ConectionError"] = "Error al obtener los planes de suscripción. Intenta de nuevo más tarde.";
-                _logger.LogError(ex, "Error al obtener los planes de suscripción para la página {Pagina}", pagina);
+                _logger.LogError(ex, "Error al obtener los planes de suscripción para la página {Pagina}", paginacion.Pagina);
                 return RedirectToAction("Error", "Home");
             }
         }
 
-     
-       
+
+
         //Metodo que obtiene los datos necesarios antes de crear el producto al que se suscribira
         public async Task<IActionResult> CrearProductoYPlan()
         {
@@ -558,38 +559,30 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
 
-                _logger.LogInformation("Página solicitada: {Pagina}, CantidadAMostrar: {Cantidad}", paginacion.Pagina, paginacion.CantidadAMostrar);
+                _logger.LogInformation(
+                    "Página solicitada: {Pagina}, CantidadAMostrar: {Cantidad}",
+                    paginacion.Pagina,
+                    paginacion.CantidadAMostrar
+                );
 
-                // Consulta inicial para obtener los detalles de suscripción
-                var queryable =  _paypalRepository.ObtenerSubscripciones();
+                // Consulta base (IQueryable)
+                var queryable = _paypalRepository.ObtenerSubscripciones();
 
-                // Calcular el número total de páginas
-                var totalItems = await queryable.CountAsync();
-                var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
+                // Usamos el helper para paginar (calcula todo: total, items, páginas)
+                var paginationResult = await _paginationHelper.PaginarAsync(
+                    query: queryable,
+                    paginacion: paginacion
+                );
 
-                // Obtener las suscripciones con paginación
-                var suscripciones = await _policyExecutor.ExecutePolicyAsync(() =>
-                    Task.FromResult(queryable.Paginar(paginacion).ToList()));
-
-                // Configurar paginación
-                var paginacionConfig = new Paginacion
-                {
-                    Pagina = paginacion.Pagina,
-                    CantidadAMostrar = paginacion.CantidadAMostrar,
-                    TotalPaginas = totalPaginas,
-                    Radio = 3
-                };
-                var paginas = _generarPaginas.GenerarListaPaginas(paginacionConfig);
-
-                // Crear el modelo para la vista
+                // Construimos el modelo usando directamente el resultado del helper
                 var model = new SuscripcionesPaginadosViewModel
                 {
-                    Suscripciones = suscripciones ?? new List<SubscriptionDetail>(),
-                    Paginas = paginas,
-                    TotalPaginas = totalPaginas,
-                    PaginaActual = paginacion.Pagina,
-                    TienePaginaSiguiente = paginacion.Pagina < totalPaginas,
-                    TienePaginaAnterior = paginacion.Pagina > 1,
+                    Suscripciones = paginationResult.Items ?? new List<SubscriptionDetail>(),
+                    Paginas = paginationResult.Paginas.ToList(),
+                    TotalPaginas = paginationResult.TotalPaginas,
+                    PaginaActual = paginationResult.PaginaActual,
+                    TienePaginaSiguiente = paginationResult.PaginaActual < paginationResult.TotalPaginas,
+                    TienePaginaAnterior = paginationResult.PaginaActual > 1,
                     CantidadAMostrar = paginacion.CantidadAMostrar
                 };
 
@@ -614,39 +607,31 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 var usuarioActual = _currentUserAccessor.GetCurrentUserId();
 
-                _logger.LogInformation("Página solicitada: {Pagina}, CantidadAMostrar: {Cantidad}, UsuarioId: {UsuarioId}",
-                    paginacion.Pagina, paginacion.CantidadAMostrar, usuarioActual);
+                _logger.LogInformation(
+                    "Página solicitada: {Pagina}, CantidadAMostrar: {Cantidad}, UsuarioId: {UsuarioId}",
+                    paginacion.Pagina,
+                    paginacion.CantidadAMostrar,
+                    usuarioActual
+                );
 
-                // Consulta inicial para obtener las suscripciones del usuario
-                var queryable =  _paypalRepository.ObtenerSubscripcionesUsuario(usuarioActual);
+                // Consulta base (IQueryable) filtrada por usuario
+                var queryable = _paypalRepository.ObtenerSubscripcionesUsuario(usuarioActual);
 
-                // Calcular el número total de páginas
-                var totalItems = await queryable.CountAsync();
-                var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
+                // Delegamos toda la paginación al helper
+                var paginationResult = await _paginationHelper.PaginarAsync(
+                    query: queryable,
+                    paginacion: paginacion
+                );
 
-                // Obtener las suscripciones con paginación
-                var suscripciones = await _policyExecutor.ExecutePolicyAsync(() =>
-                    Task.FromResult(queryable.Paginar(paginacion).ToList()));
-
-                // Configurar paginación
-                var paginacionConfig = new Paginacion
-                {
-                    Pagina = paginacion.Pagina,
-                    CantidadAMostrar = paginacion.CantidadAMostrar,
-                    TotalPaginas = totalPaginas,
-                    Radio = 3
-                };
-                var paginas = _generarPaginas.GenerarListaPaginas(paginacionConfig);
-
-                // Crear el modelo para la vista
+                // Construimos el modelo usando directamente el resultado del helper
                 var model = new SuscripcionesUsuarioPaginadosViewModel
                 {
-                    Suscripciones = suscripciones ?? new List<UserSubscription>(),
-                    Paginas = paginas,
-                    TotalPaginas = totalPaginas,
-                    PaginaActual = paginacion.Pagina,
-                    TienePaginaSiguiente = paginacion.Pagina < totalPaginas,
-                    TienePaginaAnterior = paginacion.Pagina > 1,
+                    Suscripciones = paginationResult.Items ?? new List<UserSubscription>(),
+                    Paginas = paginationResult.Paginas.ToList(),
+                    TotalPaginas = paginationResult.TotalPaginas,
+                    PaginaActual = paginationResult.PaginaActual,
+                    TienePaginaSiguiente = paginationResult.PaginaActual < paginationResult.TotalPaginas,
+                    TienePaginaAnterior = paginationResult.PaginaActual > 1,
                     CantidadAMostrar = paginacion.CantidadAMostrar
                 };
 
@@ -655,8 +640,8 @@ namespace GestorInventario.Infraestructure.Controllers
             catch (Exception ex)
             {
                 TempData["ConnectionError"] = "El servidor ha tardado mucho en responder. Inténtelo de nuevo más tarde.";
-              
-                  
+                _logger.LogError(ex, "Error al obtener las suscripciones del usuario {UsuarioId} para la página {Pagina}",
+                    _currentUserAccessor.GetCurrentUserId(), paginacion.Pagina);
                 return RedirectToAction("Error", "Home");
             }
         }

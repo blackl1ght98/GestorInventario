@@ -16,8 +16,8 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
     {
         public static IServiceCollection AddTransientServices(this IServiceCollection services) {
 
-            services.AddTransient<IGenerarPaginas,GenerarPaginas>();
-            services.AddTransient<PaginacionMetodo>();
+            services.AddTransient<IPageLinkGenerator,PageLinkGenerator>();
+           
             services.AddTransient<IPolicyExecutor, PolicyExecutor>();
             services.AddTransient<IUserRepository,UserRepository>();
             services.AddTransient<IGestorArchivos, GestorArchivosService>();

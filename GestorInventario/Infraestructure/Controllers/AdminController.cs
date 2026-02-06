@@ -19,20 +19,19 @@ namespace GestorInventario.Infraestructure.Controllers
        
         private readonly IConfirmEmailService _confirmEmailService;
         private readonly ILogger<AdminController> _logger;
-        private readonly IAdminRepository _adminrepository;
-        private readonly IGenerarPaginas _generarPaginas;      
+        private readonly IAdminRepository _adminrepository;   
         private readonly IMapper _mapper;
         private readonly IPolicyExecutor _policyExecutor;
         private readonly IUserRepository _userRepository;
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IPaginationHelper _paginationHelper;
-        public AdminController(IConfirmEmailService confirmEmailService, ILogger<AdminController> logger, IAdminRepository adminRepository,  IGenerarPaginas generarPaginas, 
+        public AdminController(IConfirmEmailService confirmEmailService, ILogger<AdminController> logger, IAdminRepository adminRepository,   
         IMapper map, IPolicyExecutor executor, IUserRepository user, IPaginationHelper paginationHelper, ICurrentUserAccessor current)
         {           
             _confirmEmailService = confirmEmailService;
             _logger = logger;
             _adminrepository = adminRepository;
-            _generarPaginas = generarPaginas;            
+                      
             _mapper= map;
             _policyExecutor = executor;   
             _userRepository = user;
@@ -325,6 +324,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 return Json(new { success = false, errorMessage = result.Message });
             }
         }
+       
         [Authorize(Roles ="Administrador")]
         [HttpGet]
         public async Task<IActionResult> ObtenerRoles([FromQuery] Paginacion paginacion)
@@ -333,17 +333,14 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                 var queryable =  _policyExecutor.ExecutePolicy(() => _adminrepository.ObtenerRolesConUsuarios());
 
-                // Aplicar paginación usando PaginarAsync
-                var (roles, totalItems) = await _policyExecutor.ExecutePolicyAsync(() => queryable.PaginarAsync(paginacion));
-                var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
-                var paginas = _generarPaginas.GenerarListaPaginas(totalPaginas, paginacion.Pagina, paginacion.Radio);
+               var paginationResult = await _policyExecutor.ExecutePolicyAsync(()=>_paginationHelper.PaginarAsync(queryable,paginacion));
 
                 var viewModel = new RolesViewModel
                 {
-                    Roles = roles,
-                    Paginas = paginas,
-                    TotalPaginas = totalPaginas,
-                    PaginaActual = paginacion.Pagina,
+                    Roles = paginationResult.Items,
+                    Paginas = paginationResult.Paginas.ToList(),
+                    TotalPaginas = paginationResult.TotalPaginas,
+                    PaginaActual = paginationResult.PaginaActual,
                    
                 };
 
@@ -356,6 +353,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
+ 
         [Authorize(Roles = "Administrador")]
         [HttpGet]
         public async Task<IActionResult> VerUsuariosPorRol(int id, [FromQuery] Paginacion paginacion)
@@ -371,17 +369,15 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
                 var usuariosQueryable =  _policyExecutor.ExecutePolicy(() => _adminrepository.ObtenerUsuariosPorRol(id));
-                var (usuariosPaginados, totalItems) = await _policyExecutor.ExecutePolicyAsync(() => usuariosQueryable.PaginarAsync(paginacion));
-                var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
-                var paginas = _generarPaginas.GenerarListaPaginas(totalPaginas, paginacion.Pagina, paginacion.Radio);
+                var paginationResult = await _policyExecutor.ExecutePolicyAsync(() => _paginationHelper.PaginarAsync(usuariosQueryable, paginacion));
 
                 var todosLosRoles = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerRoles());
 
                 var viewModel = new UsuariosPorRolViewModel
                 {
-                    Usuarios = usuariosPaginados,
-                    Paginas = paginas,
-                    TotalPaginas = totalPaginas,
+                    Usuarios = paginationResult.Items,
+                    Paginas = paginationResult.Paginas.ToList(),
+                    TotalPaginas = paginationResult.TotalPaginas,
                     PaginaActual = paginacion.Pagina,
                     RolId = id,
                     TodosLosRoles = todosLosRoles
