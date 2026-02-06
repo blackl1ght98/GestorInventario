@@ -31,8 +31,8 @@ namespace GestorInventario.Infraestructure.Repositories
       
         public IQueryable<Pedido> ObtenerPedidoUsuario(int userId)=>_context.Pedidos.Where(p => p.IdUsuario == userId).Include(dp => dp.DetallePedidos).ThenInclude(p => p.Producto).Include(u => u.IdUsuarioNavigation);
         
-        public async Task<List<Producto>> ObtenerProductos()=>await _context.Productos.ToListAsync();      
-        public async Task<List<Usuario>> ObtenerUsuarios()=>await _context.Usuarios.ToListAsync();                  
+          
+                       
         public async Task<OperationResult<string>> CrearPedido(PedidosViewModel model)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -154,7 +154,7 @@ namespace GestorInventario.Infraestructure.Repositories
             }
            
         }      
-        public async Task<Pedido> ObtenerPedidoId(int id)=> await _context.Pedidos.FirstOrDefaultAsync(x => x.Id == id);               
+        public async Task<Pedido> ObtenerPedidoPorId(int id)=> await _context.Pedidos.FirstOrDefaultAsync(x => x.Id == id);               
         public async Task<OperationResult<string>> EditarPedido(EditPedidoViewModel model)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -206,8 +206,25 @@ namespace GestorInventario.Infraestructure.Repositories
          
         }
         public async Task<Pedido> ObtenerDetallesPedido(int id)=>await _context.Pedidos.Include(p => p.DetallePedidos).ThenInclude(dp => dp.Producto).Include(p => p.IdUsuarioNavigation).FirstOrDefaultAsync(m => m.Id == id);
-        public IQueryable<HistorialPedido> ObtenerPedidosHistorial()=>from p in _context.HistorialPedidos.Include(dp => dp.DetalleHistorialPedidos).ThenInclude(p => p.Producto).Include(u => u.IdUsuarioNavigation)select p;
-        public IQueryable<HistorialPedido> ObtenerPedidosHistorialUsuario(int usuarioId)=> _context.HistorialPedidos.Where(p => p.IdUsuario == usuarioId).Include(dp => dp.DetalleHistorialPedidos).ThenInclude(p => p.Producto).Include(u => u.IdUsuarioNavigation);
+        public IQueryable<HistorialPedido> ObtenerHistorialDePedidos(int? usuarioId = null)
+        {
+            var query = from p in _context.HistorialPedidos
+                        join u in _context.Usuarios on p.IdUsuario equals u.Id into usuarios
+                        from u in usuarios.DefaultIfEmpty()
+                        select new { p, u };
+
+            query = query
+                .Include(x => x.p.DetalleHistorialPedidos)
+                    .ThenInclude(d => d.Producto)
+                .Include(x => x.u);
+
+            if (usuarioId.HasValue)
+            {
+                query = query.Where(x => x.p.IdUsuario == usuarioId.Value);
+            }
+
+            return query.Select(x => x.p);
+        }
         public async Task<HistorialPedido> DetallesHistorial(int id)=>await _context.HistorialPedidos.Include(p => p.DetalleHistorialPedidos).ThenInclude(dp => dp.Producto).Include(p => p.IdUsuarioNavigation).FirstOrDefaultAsync(p => p.Id == id);          
        
         public async Task<OperationResult<string>> EliminarHitorial()
@@ -478,7 +495,7 @@ namespace GestorInventario.Infraestructure.Repositories
             }
             return null; 
         }
-        public DateTime? ConvertToDateTime(object value)
+        private DateTime? ConvertToDateTime(object value)
         {
             if (value == null)
             {

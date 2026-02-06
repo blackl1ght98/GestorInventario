@@ -29,29 +29,14 @@ namespace GestorInventario.Infraestructure.Repositories
             _userRepository = user;
         }
 
-        public IQueryable<Usuario> ObtenerUsuarios()
-        {
-            return _context.Usuarios.Include(x => x.IdRolNavigation).AsQueryable();
-        }
-       
-
+      
         public async Task<List<Role>> ObtenerRoles() => await _context.Roles.ToListAsync();
-        public async Task<(Usuario?,string)> ObtenerUsuarioConPedido(int id)
-        {
-            var usuario = await _context.Usuarios.Include(p => p.Pedidos).FirstOrDefaultAsync(m => m.Id == id);
-            return usuario is null ? (null, "Este usuario no tiene pedidos") : (usuario, "Usuario con pedidos encontrado");
-        }      
+         
         public IQueryable<Role> ObtenerRolesConUsuarios()
         {
             return _context.Roles.Include(x => x.Usuarios).AsQueryable();
         }
-        public IQueryable<Usuario> ObtenerUsuariosPorRol(int rolId)
-        {
-            return _context.Usuarios
-                .Where(u => u.IdRol == rolId)
-                .Include(u => u.IdRolNavigation)
-                .AsQueryable();
-        }
+       
         public async Task<OperationResult<string>> CrearUsuario(UserViewModel model)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();

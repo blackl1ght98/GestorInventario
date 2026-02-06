@@ -114,7 +114,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 int usuarioActual = _currentUserAccessor.GetCurrentUserId();
 
-                var emailCliente = await _policyExecutor.ExecutePolicyAsync(() => _paymentRepository.ObtenerEmailUsuarioAsync(usuarioActual));
+                var emailCliente =  _policyExecutor.ExecutePolicy(() => _currentUserAccessor.GetCurrentUserEmail());
                 if(emailCliente == null)
                 {
                     _logger.LogInformation("El email proporcionado no se encuentra registrado "+ emailCliente);

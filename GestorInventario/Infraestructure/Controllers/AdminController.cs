@@ -44,7 +44,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var queryable = _policyExecutor.ExecutePolicy(() => _adminrepository.ObtenerUsuarios());
+                var queryable = _policyExecutor.ExecutePolicy(() => _userRepository.ObtenerUsuarios());
 
                 if (!string.IsNullOrEmpty(buscar))
                 {
@@ -248,7 +248,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {             
-                var (user,mensaje) = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerUsuarioConPedido(id));            
+                var (user,mensaje) = await _policyExecutor.ExecutePolicyAsync(() => _userRepository.ObtenerUsuarioConPedido(id));            
                 if (user == null)
                 {
                     TempData["ErrorMessage"] = mensaje;
@@ -368,7 +368,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("ObtenerRoles");
                 }
 
-                var usuariosQueryable =  _policyExecutor.ExecutePolicy(() => _adminrepository.ObtenerUsuariosPorRol(id));
+                var usuariosQueryable =  _policyExecutor.ExecutePolicy(() => _userRepository.ObtenerUsuariosPorRol(id));
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() => _paginationHelper.PaginarAsync(usuariosQueryable, paginacion));
 
                 var todosLosRoles = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerRoles());

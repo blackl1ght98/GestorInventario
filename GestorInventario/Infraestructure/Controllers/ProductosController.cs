@@ -45,7 +45,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
                 // Obtiene la consulta como IQueryable
-                var productos =  _policyExecutor.ExecutePolicy(() => _productoRepository.ObtenerTodoProducto());
+                var productos =  _policyExecutor.ExecutePolicy(() => _productoRepository.ObtenerTodosLosProductos());
 
                 // Aplicamos los filtros a la consulta
                 if (!string.IsNullOrEmpty(buscar))
@@ -113,7 +113,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 if (emailUsuario != null)
                 {
-                    var productos = _policyExecutor.ExecutePolicy(() => _productoRepository.ObtenerTodoProducto());
+                    var productos = _policyExecutor.ExecutePolicy(() => _productoRepository.ObtenerTodosLosProductos());
                     foreach (var producto in productos)
                     {
                         if (producto.Cantidad < 10) 

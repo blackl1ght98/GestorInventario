@@ -12,7 +12,7 @@ namespace GestorInventario.Interfaces.Infraestructure
         IQueryable<DetallePedido> ObtenerItemsConDetalles(int pedidoId);
         Task<List<Monedum>> ObtenerMoneda();
         Task<Pedido?> CrearCarritoUsuario(int userId);
-        Task<OperationResult<string>> PagarV2(string moneda, int userId);
+        Task<OperationResult<string>> Pagar(string moneda, int userId);
         Task<OperationResult<string>> Incremento(int id);
         Task<OperationResult<string>> Decremento(int id);
         Task<OperationResult<string>> EliminarProductoCarrito(int id);

@@ -102,7 +102,7 @@ namespace GestorInventario.Infraestructure.Controllers
                
                     int usuarioId= _currentUserAccessor.GetCurrentUserId();   
                         
-                    var resultado = await _policyExecutor.ExecutePolicyAsync(()=> _carritoRepository.PagarV2(monedaSeleccionada, usuarioId))  ;
+                    var resultado = await _policyExecutor.ExecutePolicyAsync(()=> _carritoRepository.Pagar(monedaSeleccionada, usuarioId))  ;
                     if (resultado.Success)
                     {
                         return Redirect(resultado.Data);
