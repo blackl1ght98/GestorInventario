@@ -54,7 +54,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
+                if (!(_currentUserAccessor.IsAuthenticated()))
                 {
                     return RedirectToAction("Login", "Auth");
                 }
@@ -106,7 +106,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
+                if (!(_currentUserAccessor.IsAuthenticated()))
                 {
                     return RedirectToAction("Login", "Auth");
                 }
@@ -140,17 +140,21 @@ namespace GestorInventario.Infraestructure.Controllers
                         planesViewModel.Add(viewModel);
                     }
                 }
+                else
+                {
+                    _logger.LogInformation("Hubo un valor nulo al obtene los planes");
+                }
 
-                // ────────────────────────────────────────────────
-                // USAMOS EL HELPER → modo "sin total real" (PayPal)
-                // ────────────────────────────────────────────────
-                var paginationResult = _paginationHelper.PaginarSinTotal(
-                    items: planesViewModel,
-                    paginaActual: paginacion.Pagina,
-                    hasNextPage: hasNextPage,
-                    cantidadAMostrar: paginacion.CantidadAMostrar,
-                    radio: paginacion.Radio
-                );
+                    // ────────────────────────────────────────────────
+                    // USAMOS EL HELPER → modo "sin total real" (PayPal)
+                    // ────────────────────────────────────────────────
+                    var paginationResult = _paginationHelper.PaginarSinTotal(
+                        items: planesViewModel,
+                        paginaActual: paginacion.Pagina,
+                        hasNextPage: hasNextPage,
+                        cantidadAMostrar: paginacion.CantidadAMostrar,
+                        radio: paginacion.Radio
+                    );
 
                 // Crear el ViewModel final usando el resultado del helper
                 var model = new PlanesPaginadosViewModel
@@ -208,6 +212,10 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     // Crear un producto usando los datos del formulario
                     var product = await _paypalService.CreateProductAsync(model.Name, model.Description, model.Type, model.Category);
+                    if(product == null)
+                    {
+                        _logger.LogInformation("Hubo un error al crear el producto en paypal");
+                    }
                     string productId = product.Id; 
 
                     ViewData["Moneda"] = new SelectList(await _carritoRepository.ObtenerMoneda(), "Codigo", "Codigo");
@@ -554,7 +562,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
+                if (!(_currentUserAccessor.IsAuthenticated()))
                 {
                     return RedirectToAction("Login", "Auth");
                 }
@@ -600,7 +608,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
+                if (!(_currentUserAccessor.IsAuthenticated()))
                 {
                     return RedirectToAction("Login", "Auth");
                 }

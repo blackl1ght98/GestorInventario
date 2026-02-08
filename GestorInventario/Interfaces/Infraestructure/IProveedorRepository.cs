@@ -11,6 +11,6 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<OperationResult<Proveedore>> ObtenerProveedorId(int id);
         Task<OperationResult<string>> EliminarProveedor(int Id);
         Task<OperationResult<string>> EditarProveedor(ProveedorViewModel model, int Id);
-        Task<List<Usuario>> ObtenerProveedoresLista();
+       
     }
 }

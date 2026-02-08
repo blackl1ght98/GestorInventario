@@ -20,7 +20,8 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IPdfService _pdfService;
         private readonly IPolicyExecutor _policyExecutor;
         private readonly IPaginationHelper _paginationHelper;
-        public ProductosController(IPolicyExecutor executor,IPaginationHelper pagination,
+        private readonly ICurrentUserAccessor _current;
+        public ProductosController(IPolicyExecutor executor,IPaginationHelper pagination,ICurrentUserAccessor current,
         ILogger<ProductosController> logger, IEmailService emailService, IProductoRepository producto,   IPdfService pdf
        )
         {
@@ -32,6 +33,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _policyExecutor = executor;
             _pdfService = pdf;
             _paginationHelper = pagination;
+            _current = current;
         }
         //Metodo para obtener los productos
         [HttpGet]
@@ -39,7 +41,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
+                if (!(_current.IsAuthenticated()))
                 {
                     return RedirectToAction("Login", "Auth");
                 }
@@ -139,7 +141,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
+                if (!(_current.IsAuthenticated()))
                 {
                     return RedirectToAction("Login", "Auth");
                 }
@@ -161,7 +163,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
+                if (!(_current.IsAuthenticated()))
                 {
                     return RedirectToAction("Login", "Auth");
                 }
@@ -188,7 +190,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
+                if (!(_current.IsAuthenticated()))
                 {
                     return RedirectToAction("Login", "Auth");
                 }
@@ -214,7 +216,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
+                if (!(_current.IsAuthenticated()))
                 {
                     return RedirectToAction("Login", "Auth");
                 }
@@ -250,7 +252,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
+                if (!(_current.IsAuthenticated()))
                 {
                     return RedirectToAction("Login", "Auth");
                 }
@@ -291,8 +293,8 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                  
-                        if (!User.Identity.IsAuthenticated)
+
+                        if (!(_current.IsAuthenticated()))
                         {
                             return RedirectToAction("Login", "Auth");
                         }
@@ -331,7 +333,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
+                if (!(_current.IsAuthenticated()))
                 {
                     return RedirectToAction("Login", "Auth");
                 }
@@ -367,7 +369,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
+                if (!(_current.IsAuthenticated()))
                 {
                     return RedirectToAction("Login", "Auth");
                 }
@@ -407,7 +409,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
+                 if (!(_current.IsAuthenticated()))
                 {
                     return RedirectToAction("Login", "Auth");
                 }
@@ -433,7 +435,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
+                if (!(_current.IsAuthenticated()))
                 {
                     return RedirectToAction("Login", "Auth");
                 }
@@ -458,7 +460,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
+                if (!(_current.IsAuthenticated()))
                 {
                     return RedirectToAction("Login", "Auth");
                 }
@@ -484,7 +486,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
+                if (!(_current.IsAuthenticated()))
                 {
                     return RedirectToAction("Login", "Auth");
                 }
@@ -521,7 +523,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
+                if (!(_current.IsAuthenticated()))
                 {
                     return RedirectToAction("Login", "Auth");
                 }

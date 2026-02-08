@@ -16,7 +16,7 @@ namespace GestorInventario.ViewModels.order
     public class ProductoPedidoViewModel
     {
         public int ProductoId { get; set; }
-        public string? Nombre { get; set; } // opcional, para mostrarlo en la vista
+        public string? Nombre { get; set; } 
         public bool Seleccionado { get; set; }
         public int Cantidad { get; set; }
     }

@@ -128,7 +128,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
 
-            [AllowAnonymous]
+        [AllowAnonymous]
         [HttpGet("admin/confirm-registration/{UserId}/{Token}")]
         public async Task<IActionResult> ConfirmRegistration(ConfirmRegistrationDto confirmar)
         {
@@ -136,12 +136,13 @@ namespace GestorInventario.Infraestructure.Controllers
             {               
                 var usuarioDB = await  _userRepository.ObtenerUsuarioPorId(confirmar.UserId);
 
-                if(usuarioDB is null)
+                if(usuarioDB is null|| usuarioDB.Data is null)
                 {
-                    TempData["ErrorMessage"] = usuarioDB.Message; 
+                    TempData["ErrorMessage"] = usuarioDB?.Message; 
                     _logger.LogWarning("Intento de confirmar un usuario inexistente con ID {UserId}", confirmar.UserId);
                     return RedirectToAction("Login", "Auth");
                 }
+               
                 if (usuarioDB.Data.ConfirmacionEmail != false)
                 {
                     TempData["ErrorMessage"] = "Usuario ya validado con anterioridad";
@@ -150,7 +151,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (usuarioDB.Data.EmailVerificationToken != confirmar.Token)
                 {
                     _logger.LogCritical("Intento de manipulacion del token por el usuario: " + usuarioDB.Data.Id);
-                   
+
                 }
                 await _confirmEmailService.ConfirmEmail(new ConfirmRegistrationDto
                 {
@@ -166,6 +167,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             
         }
+        [Authorize]
         public async Task<ActionResult> Edit(int id)
         {
             try
@@ -178,7 +180,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 var user = await _policyExecutor.ExecutePolicyAsync(() => _userRepository.ObtenerUsuarioPorId(usuarioAEditarId));
                 if (user is null)
                 {
-                    TempData["ErrorMessage"] = user.Message;
+                    TempData["ErrorMessage"] = user?.Message;
                     _logger.LogWarning("Intento de editar un usuario inexistente con ID {UserId}", id);
                     return RedirectToAction(nameof(Index));
                 }
@@ -200,16 +202,13 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult> Edit(UsuarioEditViewModel userVM)
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+                
 
                 // Cargar roles para la vista en caso de error
                 if (!userVM.EsEdicionPropia)
@@ -225,7 +224,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (result.Success)
                 {
                     TempData["SuccessMessage"] = result.Message;
-                    if (User.IsAdministrador() && User.Identity.IsAuthenticated)
+                    if (User.IsAdministrador())
                     {
                         return RedirectToAction(nameof(Index));
                     }
@@ -402,9 +401,9 @@ namespace GestorInventario.Infraestructure.Controllers
             {
               
                 var usuario = await _policyExecutor.ExecutePolicyAsync(() => _userRepository.ObtenerUsuarioPorId(request.Id));
-                if (usuario == null)
+                if (usuario is null || usuario.Data is null)
                 {
-                    return Json(new { success = false, errorMessage = usuario.Message });
+                    return Json(new { success = false, errorMessage = usuario?.Message });
                 }
 
                

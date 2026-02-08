@@ -18,13 +18,17 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IProveedorRepository _proveedorRepository;     
         private readonly IPolicyExecutor _policyExecutor;
         private readonly IPaginationHelper _paginationHelper;
-        public ProveedorController( ILogger<ProveedorController> logger, 
+        private readonly IUserRepository _userRepository;
+        private readonly ICurrentUserAccessor _current;
+        public ProveedorController( ILogger<ProveedorController> logger, IUserRepository user, ICurrentUserAccessor current,
             IProveedorRepository proveedor,  IPolicyExecutor executor, IPaginationHelper pagination)
         {           
             _logger = logger;                
             _proveedorRepository= proveedor;           
             _policyExecutor = executor;
             _paginationHelper = pagination;
+            _userRepository = user;
+            _current = current;
         }
       
         //Metodo que muestra todos los proveedores
@@ -32,7 +36,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
+                if (!(_current.IsAuthenticated()))
                 {
                     return RedirectToAction("Login", "Auth");
                 }
@@ -70,13 +74,13 @@ namespace GestorInventario.Infraestructure.Controllers
         //Metodo que muestra la vista para crear el proveedor
         public async Task<IActionResult> Create()
         {
-            if (!User.Identity.IsAuthenticated)
+            if (!(_current.IsAuthenticated()))
             {
                 return RedirectToAction("Login", "Auth");
             }
 
             // Cargar los usuarios desde la base de datos
-            var usuarios = new SelectList(await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.ObtenerProveedoresLista()), "Id", "NombreCompleto");
+            var usuarios = new SelectList(await _policyExecutor.ExecutePolicyAsync(() => _userRepository.ObtenerUsuariosAsync()), "Id", "NombreCompleto");
 
           
 
@@ -93,7 +97,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
+                if (!(_current.IsAuthenticated()))
                 {
                     return RedirectToAction("Login", "Auth");
                 }
@@ -125,7 +129,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
+                if (!(_current.IsAuthenticated()))
                 {
                     return RedirectToAction("Login", "Auth");
                 }
@@ -152,7 +156,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
+                if (!(_current.IsAuthenticated()))
                 {
                     return RedirectToAction("Login", "Auth");
                 }
@@ -183,12 +187,12 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
+                if (!(_current.IsAuthenticated()))
                 {
                     return RedirectToAction("Login", "Auth");
                 }
 
-                var usuarios = new SelectList(await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.ObtenerProveedoresLista()), "Id", "NombreCompleto");
+                var usuarios = new SelectList(await _policyExecutor.ExecutePolicyAsync(() => _userRepository.ObtenerUsuariosAsync()), "Id", "NombreCompleto");
 
                 var proveedores = await _proveedorRepository.ObtenerProveedorId(id);
                 var model = new ProveedorViewModel
@@ -215,7 +219,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
+                if (!(_current.IsAuthenticated()))
                 {
                     return RedirectToAction("Login", "Auth");
                 }

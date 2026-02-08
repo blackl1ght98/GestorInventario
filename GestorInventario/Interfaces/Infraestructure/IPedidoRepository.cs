@@ -15,11 +15,14 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<OperationResult<string>> EliminarHistorialPorIdDefinitivo(int Id);
         Task<Pedido> ObtenerPedidoPorId(int id);
         Task<OperationResult<string>> EditarPedido(EditPedidoViewModel model);
-        IQueryable<HistorialPedido> ObtenerHistorialDePedidos(int? usuarioId = null);
+       
         Task<HistorialPedido> DetallesHistorial(int id);
         Task<OperationResult<string>> EliminarHitorial();  
         Task<OperationResult<PayPalPaymentDetail>> ObtenerDetallePagoEjecutadoV2(string id);
         Task<Pedido> ObtenerDetallesPedido(int id);
+      
+        IQueryable<HistorialPedido> ObtenerHistorialDePedidos(int? usuarioId = null);
+
 
 
     }

@@ -54,8 +54,8 @@ namespace GestorInventario.Infraestructure.Repositories
                 user.Salt = resultadoHash.Salt;
                 user.FechaRegistro = DateTime.Now;
                 await _context.AddEntityAsync(user);
-                var (success, error) = await _emailService.SendEmailAsyncRegister(new EmailDto { ToEmail = model.Email }, user);
-                if (success)
+                var correo = await _emailService.SendEmailAsyncRegister(new EmailDto { ToEmail = model.Email }, user);
+                if (correo.IsSuccess)
                 {
                     _logger.LogInformation("Correo de confirmación enviado a {Email}", user.Email);
                     await transaction.CommitAsync();
@@ -86,7 +86,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 
 
                 var user = await _userRepository.ObtenerUsuarioPorId(userVM.Id);
-                if (user == null)
+                if (user is null || user.Data is null)
                 {
                     return OperationResult<string>.Fail(user.Message);
                 }
@@ -108,7 +108,7 @@ namespace GestorInventario.Infraestructure.Repositories
             {
                 await transaction.RollbackAsync();
                 var user = await _userRepository.ObtenerUsuarioPorId(userVM.Id);
-                if (user == null)
+                if (user is null || user.Data is null)
                 {
                     return OperationResult<string>.Fail(user.Message);
                 }
@@ -136,10 +136,10 @@ namespace GestorInventario.Infraestructure.Repositories
                 {
                     user.ConfirmacionEmail = false;
                     user.Email = userVM.Email;
-                    var (success, error) = await _emailService.SendEmailAsyncRegister(new EmailDto { ToEmail = userVM.Email }, user);
-                    if (!success)
+                    var correo  = await _emailService.SendEmailAsyncRegister(new EmailDto { ToEmail = userVM.Email }, user);
+                    if (!correo.Success)
                     {
-                        _logger.LogWarning("Error al enviar correo de confirmación: {Error}", error);
+                        _logger.LogWarning("Error al enviar correo de confirmación: {Error}", correo.Message);
 
                     }
                     _logger.LogInformation("Correo de confirmación enviado a {Email}", user.Email);
@@ -200,7 +200,7 @@ namespace GestorInventario.Infraestructure.Repositories
             try
             {
                 var usuarioDB = await _userRepository.ObtenerUsuarioPorId(id);
-                if (usuarioDB == null)
+                if (usuarioDB is null || usuarioDB.Data is null)
                 {
                     return OperationResult<string>.Fail("El usuario no existe");
                 }
@@ -226,7 +226,7 @@ namespace GestorInventario.Infraestructure.Repositories
             try
             {
                 var usuarioDB = await _userRepository.ObtenerUsuarioPorId(id);
-                if (usuarioDB == null)
+                if (usuarioDB is null || usuarioDB.Data is null)
                 {
                     return OperationResult<string>.Fail("El usuario no existe");
                 }
@@ -253,7 +253,7 @@ namespace GestorInventario.Infraestructure.Repositories
             try
             {
                 var usuario = await _userRepository.ObtenerUsuarioPorId(usuarioId); ;
-                if (usuario == null)
+                if (usuario is null || usuario.Data is null)
                 {
                     throw new Exception($"Usuario con Id {usuarioId} no encontrado.");
                 }

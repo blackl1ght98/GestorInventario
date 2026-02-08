@@ -22,10 +22,7 @@ namespace GestorInventario.Infraestructure.Repositories
             return _context.Proveedores
                 .Include(p => p.IdUsuarioNavigation); 
         }
-        public async Task<List<Usuario>> ObtenerProveedoresLista()
-        {
-            return await _context.Usuarios.ToListAsync();
-        }
+       
 
         public async Task<OperationResult<string>> CrearProveedor(ProveedorViewModel model)
         {

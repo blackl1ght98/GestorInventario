@@ -33,7 +33,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!_memory.TryGetValue("PayPalOrderId", out string orderId) || string.IsNullOrEmpty(orderId))
+                if (!_memory.TryGetValue("PayPalOrderId", out string? orderId) || string.IsNullOrEmpty(orderId))
                 {
                     throw new Exception("No se encontró el ID del pedido en el caché.");
                 }
@@ -62,7 +62,7 @@ namespace GestorInventario.Infraestructure.Controllers
             if (request == null || request.PedidoId <= 0)
             {
                 _logger.LogWarning("Solicitud de reembolso inválida: PedidoId={PedidoId}, Currency={Currency}",
-            request?.PedidoId, request?.Currency);
+                request?.PedidoId, request?.Currency);
             }
 
             try

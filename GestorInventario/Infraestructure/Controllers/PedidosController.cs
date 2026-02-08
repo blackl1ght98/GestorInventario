@@ -1,6 +1,4 @@
-﻿
-
-using GestorInventario.Domain.Models;
+﻿using GestorInventario.Domain.Models;
 using GestorInventario.enums;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
@@ -43,16 +41,13 @@ namespace GestorInventario.Infraestructure.Controllers
             _currentUserAccessor = current;
             _productoRepository = producto;
         }
-       
-     
+
+        [Authorize]
         public async Task<IActionResult> Index(string buscar, DateTime? fechaInicio, DateTime? fechaFin, [FromQuery] Paginacion paginacion)
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+               
 
                 var usuarioId =  _currentUserAccessor.GetCurrentUserId();
                     var pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidos());
@@ -101,15 +96,12 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-        //Metodo que muestra la informacion necesaria para crear el pedido
+        [Authorize]
         public async Task<IActionResult> Create()
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+               
                 var productos = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProductos());
 
                 var model = new PedidosViewModel
@@ -140,16 +132,14 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
-        //Metodo que crea el pedido
+      
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Create(PedidosViewModel model)
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+                
                 if (ModelState.IsValid)
                 {
                    
@@ -189,14 +179,12 @@ namespace GestorInventario.Infraestructure.Controllers
            .Select(s => s[random.Next(s.Length)]).ToArray());
         }
         //Metodo que obtiene la informacion necesaria para eliminar un pedido
+        [Authorize]
         public async Task<IActionResult> Delete(int id)
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return RedirectToAction("Login", "Auth");
-                }                           
+                                          
                 var pedido = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerPedidoEliminacion(id));
             
                 if (pedido == null)
@@ -214,20 +202,14 @@ namespace GestorInventario.Infraestructure.Controllers
 
         }
 
-        //Metodo que elimina un pedido
+        [Authorize]
         [HttpPost, ActionName("DeleteConfirmed")]
         public async Task<IActionResult> DeleteConfirmed(int Id)
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
-                var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int usuarioId;
-                if (int.TryParse(existeUsuario, out usuarioId))
-                {
+               
+                
                     
                     var success = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.EliminarPedido(Id)) ;
                     if (success.Success)
@@ -244,8 +226,8 @@ namespace GestorInventario.Infraestructure.Controllers
 
                     }
 
-                }
-                return RedirectToAction(nameof(Index));
+                
+              
 
             }
             catch (Exception ex)
@@ -256,15 +238,12 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
-        //Metodo que obtiene los datos necesarios para eliminar el historial
+        [Authorize]
         public async Task<IActionResult> DeleteHistorial(int id)
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+               
                 var historialProducto = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.EliminarHistorialPorId(id));
                 if (historialProducto == null)
                 {
@@ -282,20 +261,14 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
-        //Metodo que elimina el historial
+        [Authorize]
         [HttpPost, ActionName("DeleteConfirmedHistorial")]
         public async Task<IActionResult> DeleteConfirmedHistorial(int Id)
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
-                var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int usuarioId;
-                if (int.TryParse(existeUsuario, out usuarioId))
-                {
+                
+                
                     var success = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.EliminarHistorialPorIdDefinitivo(Id));
                     if (success.Success)
                     {
@@ -308,8 +281,7 @@ namespace GestorInventario.Infraestructure.Controllers
                         return RedirectToAction(nameof(Delete), new { id = Id });
                     }
 
-                }
-                return BadRequest("Error al eliminar el producto intentelo de nuevo mas tarde si el problema persiste intentelo de nuevo mas tarde si el problema persiste contacte con el administrador");
+                
 
             }
             catch (Exception ex)
@@ -319,15 +291,12 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-        //Metodo que obtiene los datos para editar un pedido
+        [Authorize]
         public async Task<ActionResult> Edit(int id)
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return RedirectToAction("Login", "Auth");
-                }                        
+                                     
                 var pedido = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerPedidoPorId(id)) ;
                 EditPedidoViewModel pedidosViewModel = new EditPedidoViewModel
                 {
@@ -345,14 +314,11 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
-        
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult> Edit(EditPedidoViewModel model)
         {
-            if (!User.Identity.IsAuthenticated)
-            {
-                return RedirectToAction("Login", "Auth");
-            }
+           
             if (ModelState.IsValid)
             {
                 try
@@ -361,7 +327,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     var success = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.EditarPedido(model));
                     if (success.Success)
                     {
-                        TempData["SuccessMessage"] = "Los datos se han modificado con éxito.";
+                        _logger.LogInformation("Datos actualizados con exito");
                     }
                     else
                     {
@@ -376,7 +342,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     var success = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.EditarPedido(model));
                     if (success.Success)
                     {
-                        TempData["SuccessMessage"] = "Los datos se han modificado con éxito.";
+                       
                     }
                     else
                     {
@@ -394,16 +360,13 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Index");
             }
             return View(model);
-        }   
-        //Metodo para obtener los detalles del pedido
+        }
+        [Authorize]
         public async Task<IActionResult> DetallesPedido(int id)
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+                
             
                var pedido= await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerDetallesPedido(id)) ;
                 if (pedido == null)
@@ -421,20 +384,17 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
-       
-        //Metodo para obtener el historial del pedido
+
+        
         public async Task<IActionResult> HistorialPedidos(string buscar, [FromQuery] Paginacion paginacion)
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+                
 
                 var usuarioId = _currentUserAccessor.GetCurrentUserId();
                     var pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerHistorialDePedidos());
-                    if (User.IsInRole("administrador"))
+                    if (User.IsInRole("administrador") || pedidos.Count() <0)
                     {
 
                         pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerHistorialDePedidos());
@@ -468,15 +428,12 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-        //Metodo para obtener los detalles del historial del pedido
+        [Authorize]
         public async Task<IActionResult> DetallesHistorialPedido(int id)
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+                
                 var pedido = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.DetallesHistorial(id)) ;
                 if (pedido == null)
                 {
@@ -493,16 +450,13 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
-        //Metodo para descargar en pdf el historial
+        [Authorize]
         [HttpGet("descargarhistorialpedidoPDF")]
         public async Task<IActionResult> DescargarHistorialPDF()
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+               
 
                 var  bytes = await _policyExecutor.ExecutePolicyAsync(() => _pdfservice.GenerarPDF());
                 if (!bytes.Success)
@@ -521,15 +475,13 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
         //Metodo para eliminar el historial
+        [Authorize]
         [HttpPost, ActionName("DeleteAllHistorial")]
         public async Task<IActionResult> DeleteAllHistorial()
         {
             try
             {
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+               
 
                 var success = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.EliminarHitorial());
                 if (!success.Success)
@@ -546,7 +498,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-        //Metodo para obtener los detalles del pago
+        
+        [Authorize]
         public async Task<IActionResult> DetallesPagoEjecutado(string id)
         {
             var detallepago= await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerDetallePagoEjecutadoV2(id));
@@ -560,8 +513,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-       
-      
+
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> AgregarInfoEnvio(int pedidoId, Carrier carrier, BarcodeType barcode)
         {
