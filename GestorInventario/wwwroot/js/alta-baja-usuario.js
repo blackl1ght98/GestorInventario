@@ -1,15 +1,18 @@
 ﻿//Evento que se ejecuta cuando la pagina esta completamente cargada
 document.addEventListener("DOMContentLoaded", function () {
-    var userId; // Variable va a ha recibir como dato el userId
-    var actionType; //Variable que va ha recibir la accion ejecutada por el usuario
-    var actionsMap = { //Las acciones que el usuario puede hacer
+    // Variable va a ha recibir como dato el userId
+    var userId; 
+    //Variable que va ha recibir la accion ejecutada por el usuario
+    var actionType;
+    //Las acciones que el usuario puede hacer
+    var actionsMap = { 
         'Alta': 'AltaUsuarioPost',
         'Baja': 'BajaUsuarioPost',
     };
     //Se asigna el evento click al boton de baja o alta
     var actionButtons = document.querySelectorAll(".user-action-button");
     /*¿Por que forEach en un boton?
-    Porque esto actionButtons devuelve un NodeList "lista" y al ser una lista es iterable y como va ha existir tantos botones como usuarios existan pues
+    Porque  actionButtons devuelve un NodeList "lista" y al ser una lista es iterable y como va ha existir tantos botones como usuarios existan pues
     es nesario recorrerlos para que cada boton tenga su dato especifico, ademas al tratarse de un array de botones se le asigna una funcion anonima con un parametro
     llamado button que dentro de esta funcion puedes configurar que va a pasar si haces click en esos botones y con asignarlo una vez basta y ya no importa
     cuantos botones haya que el evento que se ponga se propaga a todos los botones

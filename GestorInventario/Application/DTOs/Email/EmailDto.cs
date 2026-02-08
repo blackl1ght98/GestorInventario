@@ -2,9 +2,7 @@
 {
     public class EmailDto
     {
-        public  string? ToEmail { get; set; }      
-        public  string? NombreProducto { get; set; }
-       
+        public required string ToEmail { get; set; }         
        
     }
 }

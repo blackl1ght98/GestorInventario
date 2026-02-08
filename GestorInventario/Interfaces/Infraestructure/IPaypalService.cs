@@ -26,7 +26,6 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<PaypalPlanResponseDto> ObtenerDetallesPlan(string id);
         Task<(PaypalProductListResponseDto ProductsResponse, bool HasNextPage)> GetProductsAsync(int page = 1, int pageSize = 10);
         Task<(List<PaypalPlanResponseDto> plans, bool HasNextPage)> GetSubscriptionPlansAsyncV2(int page = 1, int pageSize = 6);
-        Task<CreateProductResponseDto> CreateProductAndNotifyAsync(string productName, string productDescription, string productType, string productCategory);
         Task<string> SeguimientoPedido(int pedidoId, Carrier carrier, BarcodeType barcode);
         Task<string> RefundPartialAsync(int pedidoId, string currency, string motivo);
 

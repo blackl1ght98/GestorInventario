@@ -1559,23 +1559,7 @@ namespace GestorInventario.Application.Services
         }
         #endregion
 
-        public async Task<CreateProductResponseDto> CreateProductAndNotifyAsync(string productName, string productDescription, string productType, string productCategory)
-        {
-            // Crear el producto
-            var product = await CreateProductAsync(productName, productDescription, productType, productCategory);
-            var usuarioActual =_currentUser.GetCurrentUserId();
-            var email = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == usuarioActual);
-
-            // Enviar el correo electrónico
-            var emailDto = new EmailDto
-            {
-                ToEmail = email.Email,
-                NombreProducto = productName
-            };
-            await _emailService.SendEmailCreateProduct(emailDto, productName);
-            return product;
-        }
-
+       
 
     }
 }

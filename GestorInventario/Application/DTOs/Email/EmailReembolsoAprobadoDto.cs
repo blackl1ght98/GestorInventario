@@ -8,7 +8,7 @@ namespace GestorInventario.Application.DTOs.Email
         public required string NombreCliente { get; set; }
         public required string EmailCliente { get; set; }
         public DateTime FechaRembolso { get; set; }
-        public decimal CantidadADevolver { get; set; } // Monto reembolsado
+        public decimal CantidadADevolver { get; set; } 
         public required string MotivoRembolso { get; set; }
         public required List<PayPalPaymentItem> Productos { get; set; } // Lista de productos
     }

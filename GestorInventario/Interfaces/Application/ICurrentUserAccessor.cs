@@ -10,5 +10,6 @@ namespace GestorInventario.Interfaces.Application
         ClaimsPrincipal? GetPrincipal();
         string GetClientIpAddress();
         string GetRequestMethod();
+        bool IsAuthenticated();
     }
 }

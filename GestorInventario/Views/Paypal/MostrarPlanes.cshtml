@@ -71,8 +71,8 @@
 
                                     @{
                                         decimal? totalWithTax = null;
-                                        string currencyCode = null;
-                                        string intervalUnit = null;
+                                        string? currencyCode = null;
+                                        string? intervalUnit = null;
 
                                         var regularCycle = plan.Billing_cycles.FirstOrDefault(c => c.TenureType == "REGULAR");
                                         if (regularCycle != null && plan.Taxes != null && decimal.TryParse(plan.Taxes.Percentage, NumberStyles.Any, CultureInfo.InvariantCulture, out var taxPercentage))

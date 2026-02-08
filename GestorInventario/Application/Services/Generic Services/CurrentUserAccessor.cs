@@ -57,5 +57,9 @@ namespace GestorInventario.Application.Services.Generic_Services
         {
             return _contextAccessor.HttpContext?.Request?.Method ?? "Unknown";
         }
+        public bool IsAuthenticated()
+        {
+            return _contextAccessor.HttpContext?.User?.Identity?.IsAuthenticated == true;
+        }
     }
 }

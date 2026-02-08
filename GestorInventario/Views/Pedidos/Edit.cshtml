@@ -6,7 +6,20 @@
         <h2 class="h4 mb-0">Editar Pedido #@Model.Id</h2>
     </div>
     <div class="card-body">
-       
+        @if (TempData["ConectionError"] != null)
+        {
+            <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>@TempData["ConectionError"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
         <form asp-action="Edit" asp-controller="Pedidos" method="post">
             <input type="hidden" asp-for="Id" />
             <div class="form-group mb-3">

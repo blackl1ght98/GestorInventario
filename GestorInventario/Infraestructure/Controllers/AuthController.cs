@@ -23,7 +23,8 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IPolicyExecutor _policyExecutor;
         private readonly IPasswordResetService _passwordResetService;
         private readonly ICarritoService _carritoService;
-        public AuthController(HashService hashService,  TokenService tokenService, IAuthRepository adminRepository,
+        private readonly ICurrentUserAccessor _current;
+        public AuthController(HashService hashService,  TokenService tokenService, IAuthRepository adminRepository, ICurrentUserAccessor current,
               ILogger<AuthController> logger,   IPolicyExecutor executor, IPasswordResetService resetService, ICarritoService carrito)
         {
             _hashService = hashService;
@@ -33,6 +34,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _policyExecutor = executor;
             _passwordResetService = resetService;
             _carritoService = carrito;
+            _current=current;
         }
         
         [AllowAnonymous]
@@ -40,7 +42,7 @@ namespace GestorInventario.Infraestructure.Controllers
         public IActionResult Login()
         {
 
-            if (User.Identity.IsAuthenticated)
+            if (_current.IsAuthenticated())
             {
                 return RedirectToAction("Index", "Home");
             }
@@ -56,9 +58,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
             try
             {
-                // Si ya está autenticado, redirige
-                if (User.Identity.IsAuthenticated)
-                    return RedirectToAction("Index", "Home");
+                
 
                 // Eliminar cookies existentes para mayor seguridad
                 foreach (var cookie in Request.Cookies)
@@ -98,27 +98,32 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 // Autenticación exitosa - generar tokens
                 var tokenResponse = await _tokenService.GenerarToken(user);
-
-                Response.Cookies.Append("auth", tokenResponse.Token, new CookieOptions
-                {
-                    HttpOnly = true,
-                    SameSite = SameSiteMode.None,
-                    Domain = "localhost",
-                    Secure = true,
-                    Expires = DateTime.UtcNow.AddMinutes(10)
-                });
-
-                Response.Cookies.Append("refreshToken", tokenResponse.RefreshToken, new CookieOptions
-                {
-                    HttpOnly = true,
-                    SameSite = SameSiteMode.None,
-                    Domain = "localhost",
-                    Secure = true,
-                    Expires = DateTime.UtcNow.AddHours(24)
-                });
-
                
+                    Response.Cookies.Append("auth", tokenResponse.Token, new CookieOptions
+                    {
+                        HttpOnly = true,
+                        SameSite = SameSiteMode.None,
+                        Domain = "localhost",
+                        Secure = true,
+                        Expires = DateTime.UtcNow.AddMinutes(10)
+                    });
+                    if (string.IsNullOrEmpty(tokenResponse.RefreshToken))
+                    {
+                        _logger.LogError("No se generó refresh token para el usuario {UserId}", user.Id);
 
+                      return RedirectToAction("Index", "Home");
+                }
+                Response.Cookies.Append("refreshToken", tokenResponse.RefreshToken, new CookieOptions
+                    {
+                        HttpOnly = true,
+                        SameSite = SameSiteMode.None,
+                        Domain = "localhost",
+                        Secure = true,
+                        Expires = DateTime.UtcNow.AddHours(24)
+                    });
+
+
+                
                 return RedirectToAction("Index", "Home");
             }
             catch (Exception ex)
@@ -189,7 +194,7 @@ namespace GestorInventario.Infraestructure.Controllers
         public async Task<IActionResult> RestorePassword(int UserId, string Token)
         {
             var  modelo = await _authRepository.PrepareRestorePassModel(UserId, Token);
-            if (!modelo.Success)
+            if (!modelo.Success || modelo.Data is null)
             {
                 TempData["ErrorMessage"] = modelo.Message;
                 return RedirectToAction("ResetPasswordOlvidada");
@@ -297,7 +302,7 @@ namespace GestorInventario.Infraestructure.Controllers
             var resultado = await _policyExecutor.ExecutePolicyAsync(() => _authRepository.ChangePassword(passwordAnterior, passwordActual));
             if (resultado.Success)
             {
-                if (User.Identity.IsAuthenticated && User.IsAdministrador())
+                if (_current.IsAuthenticated() && User.IsAdministrador())
                 {
                     return RedirectToAction("Index", "Admin");
                 }

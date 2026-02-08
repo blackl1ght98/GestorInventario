@@ -13,10 +13,10 @@
     </div>
 
     <!-- Mensaje de error -->
-    @if (TempData["ErrorMessage"] != null)
+    @if (TempData["ConectionError"] != null)
     {
         <div class="alert alert-warning alert-dismissible fade show" role="alert">
-            @TempData["ErrorMessage"]
+            @TempData["ConectionError"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }

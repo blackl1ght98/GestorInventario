@@ -6,8 +6,6 @@ namespace GestorInventario.Application.DTOs
     {
     
         public required string NombreCompletoUsuario { get; set; }
-
-      
         public required string CodigoPostal { get; set; }
         public string Telefono { get; set; }
         public required string Ciudad { get; set; }       

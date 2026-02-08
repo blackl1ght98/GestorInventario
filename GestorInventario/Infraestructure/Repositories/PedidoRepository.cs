@@ -6,6 +6,7 @@ using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.ViewModels.order;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using Newtonsoft.Json;
 using System.Globalization;
 namespace GestorInventario.Infraestructure.Repositories
@@ -205,25 +206,20 @@ namespace GestorInventario.Infraestructure.Repositories
             }
          
         }
-        public async Task<Pedido> ObtenerDetallesPedido(int id)=>await _context.Pedidos.Include(p => p.DetallePedidos).ThenInclude(dp => dp.Producto).Include(p => p.IdUsuarioNavigation).FirstOrDefaultAsync(m => m.Id == id);
+        public async Task<Pedido> ObtenerDetallesPedido(int id)=>await _context.Pedidos.Include(p => p.DetallePedidos).ThenInclude(dp => dp.Producto).Include(p => p.IdUsuarioNavigation).FirstOrDefaultAsync(m => m.Id == id); 
+    
         public IQueryable<HistorialPedido> ObtenerHistorialDePedidos(int? usuarioId = null)
         {
-            var query = from p in _context.HistorialPedidos
-                        join u in _context.Usuarios on p.IdUsuario equals u.Id into usuarios
-                        from u in usuarios.DefaultIfEmpty()
-                        select new { p, u };
-
-            query = query
-                .Include(x => x.p.DetalleHistorialPedidos)
+            var query = _context.HistorialPedidos
+                .Include(h => h.DetalleHistorialPedidos)
                     .ThenInclude(d => d.Producto)
-                .Include(x => x.u);
-
-            if (usuarioId.HasValue)
+                .Include(h => h.IdUsuarioNavigation);
+            if(usuarioId != null)
             {
-                query = query.Where(x => x.p.IdUsuario == usuarioId.Value);
+                query.Where(u=>u.Id==usuarioId);
             }
-
-            return query.Select(x => x.p);
+                          
+            return query;
         }
         public async Task<HistorialPedido> DetallesHistorial(int id)=>await _context.HistorialPedidos.Include(p => p.DetalleHistorialPedidos).ThenInclude(dp => dp.Producto).Include(p => p.IdUsuarioNavigation).FirstOrDefaultAsync(p => p.Id == id);          
        

@@ -17,7 +17,13 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             }
-
+            @if (TempData["ConectionError"] != null)
+            {
+                <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>@TempData["ConectionError"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
             @if (Model.DetalleHistorialPedidos == null || !Model.DetalleHistorialPedidos.Any())
             {
                 <div class="alert alert-warning text-center rounded-3 animate-fade-in">

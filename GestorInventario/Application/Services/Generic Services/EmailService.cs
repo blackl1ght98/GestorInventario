@@ -14,6 +14,8 @@ using GestorInventario.Interfaces.Application;
 using GestorInventario.MetodosExtension;
 using GestorInventario.Application.DTOs.Email;
 using GestorInventario.ViewModels;
+using System.ClientModel.Primitives;
+using GestorInventario.Infraestructure.Utils;
 
 namespace GestorInventario.Application.Services
 {
@@ -41,13 +43,13 @@ namespace GestorInventario.Application.Services
             _logger = logger;
         }
         
-        public async Task<(bool, string)> SendEmailAsyncRegister(EmailDto userDataRegister, Usuario usuarioDB)
+        public async Task<OperationResult<string>> SendEmailAsyncRegister(EmailDto userDataRegister, Usuario usuarioDB)
         {
             try
             {
                 if (usuarioDB == null)
                 {
-                    return (false, "El email no existe");
+                    return OperationResult<string>.Fail("Usuario no encontrado");
                 }
 
                 // Generar un enlace único para la confirmación
@@ -59,7 +61,7 @@ namespace GestorInventario.Application.Services
                 // Construir el enlace de recuperación
                 var model = new RegisterEmailViewmodel
                 {
-                    RecoveryLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/admin/confirm-registration/{usuarioDB.Id}/{usuarioDB.EmailVerificationToken}?redirect=true",
+                    RecoveryLink = $"{_httpContextAccessor?.HttpContext?.Request.Scheme}://{_httpContextAccessor?.HttpContext?.Request.Host}/admin/confirm-registration/{usuarioDB.Id}/{usuarioDB.EmailVerificationToken}?redirect=true",
                 };
 
                 // Actualizar el usuario en la base de datos
@@ -79,7 +81,7 @@ namespace GestorInventario.Application.Services
                 using var smtp = new SmtpClient();
                 var emailHost = Environment.GetEnvironmentVariable("Email__Host") ?? _config.GetSection("Email:Host").Value;
                 var emailPortString = Environment.GetEnvironmentVariable("Email__Port") ?? _config.GetSection("Email:Port").Value;
-                int emailPort = int.Parse(emailPortString);
+                int emailPort = int.Parse(emailPortString !=null ? emailPortString:"Puerto desconocido");
                 await smtp.ConnectAsync(emailHost, emailPort, SecureSocketOptions.StartTls);
                 var emailUserName = Environment.GetEnvironmentVariable("Email__Username") ?? _config.GetSection("Email:UserName").Value;
                 var emailPassWord = Environment.GetEnvironmentVariable("Email__Password") ?? _config.GetSection("Email:PassWord").Value;
@@ -87,15 +89,15 @@ namespace GestorInventario.Application.Services
                 await smtp.SendAsync(email);
                 await smtp.DisconnectAsync(true);
 
-                return (true, "Email de confirmación enviado con éxito");
+                return OperationResult<string>.Ok("Operacion realizada con exito");
             }
             catch (Exception ex)
             {
-                return (false, $"Error al enviar el correo: {ex.Message}");
+                return OperationResult<string>.Fail($"Ocurrio un error al enviar el email: {ex.Message}");
             }
         }
 
-        public async Task<(bool,string,string)> SendEmailAsyncResetPassword(EmailDto userDataResetPassword)
+        public async Task<OperationResult<string>> SendEmailAsyncResetPassword(EmailDto userDataResetPassword)
         {
             using (var transaction = _context.Database.BeginTransaction()) 
             {
@@ -119,7 +121,7 @@ namespace GestorInventario.Application.Services
                         var model = new ResetPasswordEmailViewmodel
                         {
                             //Cuando el usuario hace clic en el enlace que se le envia al correo electronico es dirigido la endpoint de restaurar la contraseña(RestorePassword)
-                            RecoveryLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/auth/restore-password/{usuarioDB.Id}/{usuarioDB.EmailVerificationToken}?redirect=true",
+                            RecoveryLink = $"{_httpContextAccessor?.HttpContext?.Request.Scheme}://{_httpContextAccessor?.HttpContext?.Request.Host}/auth/restore-password/{usuarioDB.Id}/{usuarioDB.EmailVerificationToken}?redirect=true",
                             TemporaryPassword = contrasenaTemporal
                         };
                         // Crear el correo electrónico
@@ -141,20 +143,19 @@ namespace GestorInventario.Application.Services
                         await smtp.SendAsync(email);
                         await smtp.DisconnectAsync(true);
                         await transaction.CommitAsync();
-                        return (true, "Email enviado con exito",userDataResetPassword.ToEmail);
+                        return OperationResult<string>.Ok("Envio de correo exitoso",userDataResetPassword.ToEmail);
                     }
                     else
                     {
-                       
-
-                        return (false, "El email no existe",null);
+                        return OperationResult<string>.Fail("Email no encontrado");
                     }
+                    
                     
                 }
                 catch (Exception ex) {
                     await transaction.RollbackAsync();
                     _logger.LogError(ex, "Error al enviar correo de restablecimiento de contraseña");
-                    return (false, $"Error al enviar el correo: {ex.Message}", "");
+                    return OperationResult<string>.Fail(ex.Message);
 
                 }
                

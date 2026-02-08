@@ -12,10 +12,8 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<List<Proveedore>> ObtenerProveedores();
         Task<(Producto?, string)> ObtenerProductoPorId(int id);
         Task<OperationResult<string>> EliminarProducto(int Id);
-
         IQueryable<HistorialProducto> ObtenerTodoHistorial();
         Task<HistorialProducto> ObtenerHistorialProductoPorId(int id);
-
         Task<OperationResult<string>> EliminarHistorialPorId(int Id);
         Task<List<HistorialProducto>> EliminarTodoHistorial();
         Task<OperationResult<string>> EditarProducto(ProductosViewModel model, int usuarioId);
