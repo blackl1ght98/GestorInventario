@@ -36,7 +36,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                     var items = await _carritoRepository.ObtenerItemsDelCarritoUsuario(carrito.Id);
 
                     // Solo eliminamos carritos vacíos
-                    if (!items.Any())
+                    if (!items.Data.Any())
                     {
                         _context.Remove(carrito);
                     }

@@ -67,7 +67,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
                 // Buscar usuario
-                var (user,mensaje) = await _policyExecutor.ExecutePolicyAsync(() => _authRepository.Login(model.Email));
+                var user = await _policyExecutor.ExecutePolicyAsync(() => _authRepository.Login(model.Email));
                 if (user == null)
                 {
                     ModelState.AddModelError("", "El email y/o la contraseña son incorrectos.");
@@ -75,29 +75,29 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
                 // Verificar confirmación de correo
-                if (!user.ConfirmacionEmail)
+                if (!user.Data.ConfirmacionEmail)
                 {
                     ModelState.AddModelError("", "Por favor, confirma tu correo electrónico antes de iniciar sesión.");
                     return View(model);
                 }
 
                 // Verificar si el usuario está dado de baja
-                if (user.BajaUsuario)
+                if (user.Data.BajaUsuario)
                 {
                     ModelState.AddModelError("", "Su usuario ha sido dado de baja, contacte con el administrador.");
                     return View(model);
                 }
 
                 // Validar contraseña
-                var resultadoHash = _hashService.Hash(model.Password, user.Salt);
-                if (user.Password != resultadoHash.Hash)
+                var resultadoHash = _hashService.Hash(model.Password, user.Data.Salt);
+                if (user.Data.Password != resultadoHash.Hash)
                 {
                     ModelState.AddModelError("", "El email y/o la contraseña son incorrectos.");
                     return View(model);
                 }
 
                 // Autenticación exitosa - generar tokens
-                var tokenResponse = await _tokenService.GenerarToken(user);
+                var tokenResponse = await _tokenService.GenerarToken(user.Data);
                
                     Response.Cookies.Append("auth", tokenResponse.Token, new CookieOptions
                     {
@@ -109,7 +109,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     });
                     if (string.IsNullOrEmpty(tokenResponse.RefreshToken))
                     {
-                        _logger.LogError("No se generó refresh token para el usuario {UserId}", user.Id);
+                        _logger.LogError("No se generó refresh token para el usuario {UserId}", user.Data.Id);
 
                       return RedirectToAction("Index", "Home");
                 }
@@ -277,7 +277,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (!success)
                 {
                     TempData["ErrorMessage"] = error;
-                    return RedirectToAction("Error", "Home");
+                    return RedirectToAction(nameof(ResetPasswordOlvidada));
                 }
 
                 return View("ResetPassword", userEmail);

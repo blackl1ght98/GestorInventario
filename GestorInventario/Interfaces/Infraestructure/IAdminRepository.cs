@@ -7,15 +7,15 @@ using GestorInventario.ViewModels.user;
 namespace GestorInventario.Interfaces.Infraestructure
 {
     public interface IAdminRepository
-    {  
-        Task<List<Role>> ObtenerRoles();      
-        IQueryable<Role> ObtenerRolesConUsuarios();   
+    {
+        Task<OperationResult<List<Role>>> ObtenerRoles();
+        OperationResult<IQueryable<Role>> ObtenerRolesConUsuarios();   
         Task<OperationResult<string>> EditarUsuario(UsuarioEditViewModel userVM);
         Task<OperationResult<string>> CrearUsuario(UserViewModel model);
         Task<OperationResult<string>> EliminarUsuario(int id);
         Task<OperationResult<string>> BajaUsuario(int id);
-        Task<OperationResult<string>> AltaUsuario(int id);   
-        Task ActualizarRolUsuario(int usuarioId, int rolId); 
+        Task<OperationResult<string>> AltaUsuario(int id);
+        Task<OperationResult<string>> ActualizarRolUsuario(int usuarioId, int rolId); 
      
     }
 }

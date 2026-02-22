@@ -35,7 +35,7 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                 if (!_memory.TryGetValue("PayPalOrderId", out string? orderId) || string.IsNullOrEmpty(orderId))
                 {
-                    throw new Exception("No se encontró el ID del pedido en el caché.");
+                    _logger.LogCritical("El Id no se ha encontrado");
                 }
 
                 var (captureId, total, currency) = await _paypalService.CapturarPagoAsync(orderId);
@@ -55,27 +55,23 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
 
-        //Si el pago es reembolsado
         [HttpPost]
-        public async Task<IActionResult> RefundSale(RefundRequestModelDto request)
+        public async Task<IActionResult> RefundSale([FromBody] RefundRequestModelDto request)
         {
             if (request == null || request.PedidoId <= 0)
-            {
-                _logger.LogWarning("Solicitud de reembolso inválida: PedidoId={PedidoId}, Currency={Currency}",
-                request?.PedidoId, request?.Currency);
-            }
+                return BadRequest("Datos inválidos");
 
             try
             {
-                var refund = await _paypalService.RefundSaleAsync(request.PedidoId, request.Currency);
-
-                return RedirectToAction("Index", "Pedidos");
+                await _paypalService.RefundSaleAsync(request.PedidoId, request.Currency);
+                return Ok(new { success = true });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error al realizar el reembolso: {ex.Message}");
+                return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
+
         [HttpPost]
         public async Task<IActionResult> RefundPartial([FromBody] RefundRequestModelDto request)
         {
@@ -147,7 +143,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 var detallesSuscripcion = _paymentRepository.ProcesarDetallesSuscripcion(detallespago);
 
                 // Lista para almacenar los ítems de PayPal
-                var paypalItems = await _paymentRepository.ProcesarRembolso(firstPurchaseUnit, detallesSuscripcion,usuarioActual,form,obtenerNumeroPedido.Data,emailCliente);
+                var paypalItems = await _paymentRepository.ProcesarRembolso(firstPurchaseUnit, detallesSuscripcion.Data,usuarioActual,form,obtenerNumeroPedido.Data,emailCliente);
                 if (User.IsAdministrador())
                 {
                     return RedirectToAction("Index", "Admin");

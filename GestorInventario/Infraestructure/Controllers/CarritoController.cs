@@ -42,11 +42,13 @@ namespace GestorInventario.Infraestructure.Controllers
                 
                 var carrito = resultado.Data;
                 // 🔹 Crear carrito automáticamente si no existe
+               
                 if (carrito == null )
                 {
-                    carrito = await _policyExecutor.ExecutePolicyAsync(
-                        () => _carritoRepository.CrearCarritoUsuario(usuarioId)
-                    );
+                    var carritoUsuario = await _policyExecutor.ExecutePolicyAsync(
+                       () => _carritoRepository.CrearCarritoUsuario(usuarioId)
+                   );
+                    carrito = carritoUsuario.Data;
                 }
 
                 var itemsDelCarrito = _policyExecutor.ExecutePolicy(
@@ -55,21 +57,19 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 // ✅ Aquí usamos el mismo helper que en el controlador de usuarios
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
-                    _paginationHelper.PaginarAsync(itemsDelCarrito, paginacion)
+                    _paginationHelper.PaginarAsync(itemsDelCarrito.Data, paginacion)
                 );
 
                 var subtotal = paginationResult.Items.Sum(item => item.Producto.Precio * (item.Cantidad ?? 0));
                 var shipping = 2.99m;
                 var total = subtotal + shipping;
-
+                var resultadoMonedas = await _policyExecutor.ExecutePolicyAsync(
+            () => _carritoRepository.ObtenerMoneda());
+                var monedas = resultadoMonedas.Data;
                 var viewModel = new CarritoViewModel
                 {
                     Productos = paginationResult.Items.ToList(),
-                    Monedas = new SelectList(
-                        await _policyExecutor.ExecutePolicyAsync(() => _carritoRepository.ObtenerMoneda()),
-                        "Codigo",
-                        "Codigo"
-                    ),
+                    Monedas = new SelectList(monedas, "Codigo", "Codigo"),
                     Paginas = paginationResult.Paginas.ToList(),
                     TotalPaginas = paginationResult.TotalPaginas,
                     PaginaActual = paginationResult.PaginaActual,

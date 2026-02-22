@@ -9,8 +9,8 @@ namespace GestorInventario.Interfaces.Infraestructure
     {
        
         Task<OperationResult<Pedido>> ObtenerNumeroPedido(RefundFormViewModel form);
-        Task<OperationResult<Pedido>> AgregarInfoPedido(int usuarioActual, string? captureId, string? total, string? currency, string? orderId);  
-        PayPalPaymentDetail ProcesarDetallesSuscripcion(CheckoutDetailsDto detallespago);
+        Task<OperationResult<Pedido>> AgregarInfoPedido(int usuarioActual, string? captureId, string? total, string? currency, string? orderId);
+        OperationResult<PayPalPaymentDetail> ProcesarDetallesSuscripcion(CheckoutDetailsDto detallespago);
         Task<OperationResult<PayPalPaymentItem>> ProcesarRembolso(PurchaseUnitsBse firstPurchaseUnit, PayPalPaymentDetail detallesSuscripcion, int usuarioActual, RefundFormViewModel form, Pedido obtenerNumeroPedido, string emailCliente);
 
     }

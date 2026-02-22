@@ -6,7 +6,7 @@ namespace GestorInventario.Interfaces.Infraestructure
 {
     public interface IAuthRepository
     {
-        Task<(Usuario?, string)> Login(string email);
+        Task<OperationResult<Usuario>> Login(string email);
         Task<OperationResult<string>> SetNewPasswordAsync(RestoresPasswordDto cambio);
         Task<OperationResult<string>> ChangePassword(string passwordAnterior, string passwordActual);  
         Task<OperationResult<RestoresPasswordDto>> PrepareRestorePassModel(int userId, string token);

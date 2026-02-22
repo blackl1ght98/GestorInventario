@@ -26,7 +26,7 @@
         "IS_DOCKER": "false"
       },
       "dotnetRunMessages": true,
-      "applicationUrl": "https://localhost:7056;http://localhost:5000"
+      "applicationUrl": "https://localhost:7056;http://localhost:5000;https://localhost:7057"
     },
     "IIS Express": {
       "commandName": "IISExpress",

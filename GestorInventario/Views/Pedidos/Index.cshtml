@@ -79,14 +79,14 @@
                             @if (User.IsAdministrador())
                             {
                                 <a asp-action="Edit" asp-route-id="@pedido.Id" class="btn btn-outline-primary btn-sm">Actualizar</a>
-                                <form asp-controller="Payment" asp-action="RefundSale" method="post" class="d-inline">
-                                    <input type="hidden" name="PedidoId" value="@pedido.Id" />
-                                    <input type="hidden" name="Currency" value="@pedido.Currency" />
-                                    <button type="submit" class="btn btn-outline-warning btn-sm"
-                                            @(pedido.EstadoPedido == "Reembolsado" ? "disabled" : "")>
-                                        Reembolsar
-                                    </button>
-                                </form>
+                                <button type="button"
+                                        class="btn btn-outline-warning btn-sm refund-total-btn"
+                                        data-pedido-id="@pedido.Id"
+                                        data-currency="@pedido.Currency"
+                                        @(pedido.EstadoPedido == "Reembolsado" ? "disabled" : "")>
+                                    Reembolsar
+                                </button>
+
                                 <button class="btn btn-success btn-sm activate-action-button" data-pedido-id="@pedido.Id" data-bs-toggle="tooltip" title="Agregar info envio">
                                     <i class="bi bi-check-circle-fill nav-icon"></i> Agregar info envio
                                 </button>
@@ -192,6 +192,36 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="confirmRefundTotalModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title">Confirmar reembolso TOTAL</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <p id="refundText">⚠️ Esta acción reembolsará el pedido completo.</p>
+
+                <!-- Mensaje dinámico -->
+                <div id="refundResult"
+                     class="alert d-none mt-3"
+                     role="alert">
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+                <button class="btn btn-danger" id="confirmRefundTotalBtn">
+                    Confirmar reembolso
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 @section Scripts{
     <script>
@@ -217,6 +247,74 @@
                 document.getElementById("agregarEnvioForm").submit();
             });
         });
+    </script>
+    <script>
+               document.addEventListener('DOMContentLoaded', () => {
+
+            const modalEl = document.getElementById('confirmRefundTotalModal');
+            const modal = new bootstrap.Modal(modalEl);
+
+            const resultBox = document.getElementById('refundResult');
+            const confirmBtn = document.getElementById('confirmRefundTotalBtn');
+
+            let pedidoId, currency, currentButton;
+
+            document.querySelectorAll('.refund-total-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    pedidoId = btn.dataset.pedidoId;
+                    currency = btn.dataset.currency;
+                    currentButton = btn;
+
+                    // Reset estado del modal
+                    resultBox.className = 'alert d-none';
+                    resultBox.textContent = '';
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = 'Confirmar reembolso';
+
+                    modal.show();
+                });
+            });
+
+            confirmBtn.addEventListener('click', async () => {
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = 'Procesando...';
+
+                try {
+                    const response = await fetch('/Payment/RefundSale', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            PedidoId: pedidoId,
+                            Currency: currency
+                        })
+                    });
+
+                    if (!response.ok) throw new Error();
+
+                    // ✅ ÉXITO
+                    resultBox.className = 'alert alert-success mt-3';
+                    resultBox.textContent = '✔️ Reembolso realizado con éxito';
+
+                    currentButton.disabled = true;
+                    currentButton.classList.replace('btn-outline-warning', 'btn-outline-secondary');
+                    currentButton.textContent = 'Reembolsado';
+
+                    setTimeout(() => {
+                        modal.hide();
+                        location.reload();
+                    }, 1200);
+
+                } catch {
+                    // ❌ ERROR
+                    resultBox.className = 'alert alert-danger mt-3';
+                    resultBox.textContent = '❌ Error al realizar el reembolso';
+
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = 'Confirmar reembolso';
+                }
+            });
+        });
+
     </script>
 
 

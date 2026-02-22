@@ -74,7 +74,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 return OperationResult<Pedido>.Fail("Ocurrio un error al agregar el pedido");
             }
         }
-        public PayPalPaymentDetail ProcesarDetallesSuscripcion(CheckoutDetailsDto detallespago)
+        public OperationResult<PayPalPaymentDetail> ProcesarDetallesSuscripcion(CheckoutDetailsDto detallespago)
         {
             if (detallespago.PurchaseUnits == null || !detallespago.PurchaseUnits.Any())
             {
@@ -169,7 +169,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 }
             }
 
-            return detallesSuscripcion;
+            return OperationResult<PayPalPaymentDetail>.Ok("", detallesSuscripcion);
         }
         public async Task<OperationResult<PayPalPaymentItem>> ProcesarRembolso(PurchaseUnitsBse firstPurchaseUnit, PayPalPaymentDetail detallesSuscripcion,int usuarioActual, RefundFormViewModel form,Pedido obtenerNumeroPedido, string emailCliente)
         {

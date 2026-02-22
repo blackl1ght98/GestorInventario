@@ -332,7 +332,7 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                 var queryable =  _policyExecutor.ExecutePolicy(() => _adminrepository.ObtenerRolesConUsuarios());
 
-               var paginationResult = await _policyExecutor.ExecutePolicyAsync(()=>_paginationHelper.PaginarAsync(queryable,paginacion));
+               var paginationResult = await _policyExecutor.ExecutePolicyAsync(()=>_paginationHelper.PaginarAsync(queryable.Data,paginacion));
 
                 var viewModel = new RolesViewModel
                 {
@@ -359,7 +359,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var rol = ( _policyExecutor.ExecutePolicy(() => _adminrepository.ObtenerRolesConUsuarios()))
+                var rol = ( _policyExecutor.ExecutePolicy(() => _adminrepository.ObtenerRolesConUsuarios()).Data)
                     .FirstOrDefault(r => r.Id == id);
                 if (rol == null)
                 {
@@ -379,7 +379,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     TotalPaginas = paginationResult.TotalPaginas,
                     PaginaActual = paginacion.Pagina,
                     RolId = id,
-                    TodosLosRoles = todosLosRoles
+                    TodosLosRoles = todosLosRoles.Data
                 };
 
                 return View(viewModel);
@@ -414,13 +414,13 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 // Obtener todos los roles disponibles
                 var roles = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerRoles());
-                if (roles == null || !roles.Any())
+                if (roles == null || !roles.Data.Any())
                 {
                     return Json(new { success = false, errorMessage = "No se encontraron roles disponibles." });
                 }
 
                 // Buscar el nuevo rol por Id
-                var nuevoRol = roles.FirstOrDefault(r => r.Id == request.RolId);
+                var nuevoRol = roles.Data.FirstOrDefault(r => r.Id == request.RolId);
                 if (nuevoRol == null)
                 {
                     return Json(new { success = false, errorMessage = "El rol seleccionado no existe." });
@@ -450,7 +450,7 @@ namespace GestorInventario.Infraestructure.Controllers
         private async Task CargarRolesEnViewData()
         {
             var roles = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.ObtenerRoles());
-            ViewData["Roles"] = new SelectList(roles, "Id", "Nombre");
+            ViewData["Roles"] = new SelectList(roles.Data, "Id", "Nombre");
         }
       
     }
