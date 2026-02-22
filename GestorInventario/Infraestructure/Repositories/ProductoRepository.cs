@@ -433,7 +433,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 if(carrito != null)
                 {
                     var detalleExistente = await _context.DetallePedidos
-                  .FirstOrDefaultAsync(d => d.PedidoId == carrito.Id && d.ProductoId == idProducto);
+                  .FirstOrDefaultAsync(d => d.PedidoId == carrito.Data.Id && d.ProductoId == idProducto);
                     if (detalleExistente != null)
                     {
                         // Sumar la cantidad al ítem existente
@@ -445,7 +445,7 @@ namespace GestorInventario.Infraestructure.Repositories
                         // Crear un nuevo ítem en el carrito
                         var detalle = new DetallePedido
                         {
-                            PedidoId = carrito.Id,
+                            PedidoId = carrito.Data.Id,
                             ProductoId = idProducto,
                             Cantidad = cantidad
                         };

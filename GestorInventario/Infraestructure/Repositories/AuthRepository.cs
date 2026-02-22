@@ -28,10 +28,10 @@ namespace GestorInventario.Infraestructure.Repositories
             _currentUserAccessor = current;
         }
 
-        public async Task<(Usuario?, string)> Login(string email)
+        public async Task<OperationResult<Usuario>> Login(string email)
         {
             var login = await _context.Usuarios.Include(x => x.IdRolNavigation).FirstOrDefaultAsync(u => u.Email == email);
-            return login is null ? (null, "Email no encontrado") : (login, "Login exitoso");
+            return OperationResult<Usuario>.Ok("",login);
         }
       
         private async Task<OperationResult<string>> ValidateResetTokenAsync(RestoresPasswordDto cambio)

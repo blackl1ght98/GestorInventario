@@ -42,11 +42,12 @@ namespace GestorInventario.Infraestructure.Repositories
         }
 
         // Obtener ítems del carrito (DetallePedido para un Pedido con EsCarrito = 1)
-        public async Task<List<DetallePedido>> ObtenerItemsDelCarritoUsuario(int pedidoId)
+        public async Task<OperationResult<List<DetallePedido>>> ObtenerItemsDelCarritoUsuario(int pedidoId)
         {
-            return await _context.DetallePedidos
+            var detallePedido = await _context.DetallePedidos
                 .Where(i => i.PedidoId == pedidoId)
                 .ToListAsync();
+            return OperationResult<List<DetallePedido>>.Ok("", detallePedido);
         }
 
         // Obtener un ítem específico del carrito por ID
@@ -63,19 +64,20 @@ namespace GestorInventario.Infraestructure.Repositories
 
 
         // Obtener ítems con datos relacionados (producto y proveedor)
-        public IQueryable<DetallePedido> ObtenerItemsConDetalles(int pedidoId)
+        public OperationResult<IQueryable<DetallePedido>> ObtenerItemsConDetalles(int pedidoId)
         {
-            
-            return _context.DetallePedidos
+            var detalle = _context.DetallePedidos
                 .Include(i => i.Producto)
                 .Include(i => i.Producto.IdProveedorNavigation)
                 .Where(i => i.PedidoId == pedidoId);
+            return OperationResult<IQueryable<DetallePedido>>.Ok("", detalle);
         }
 
         // Obtener monedas disponibles
-        public async Task<List<Monedum>> ObtenerMoneda()
+        public async Task<OperationResult<List<Monedum>>> ObtenerMoneda()
         {
-            return await _context.Moneda.ToListAsync();
+            var monedas = await _context.Moneda.ToListAsync();
+            return OperationResult<List<Monedum>>.Ok("",monedas);
         }
 
         private string GenerarNumeroPedido()
@@ -88,7 +90,7 @@ namespace GestorInventario.Infraestructure.Repositories
         }
 
         // Método para crear un carrito si no existe
-        public async Task<Pedido?> CrearCarritoUsuario(int userId)
+        public async Task<OperationResult<Pedido>> CrearCarritoUsuario(int userId)
         {
            
             try
@@ -109,7 +111,7 @@ namespace GestorInventario.Infraestructure.Repositories
                    
                 }
 
-                return carrito;
+                return OperationResult<Pedido>.Ok("",carrito);
             }
             catch (Exception ex) {
                 _logger.LogError(ex,"Ocurrio un error inesperado");
@@ -193,7 +195,7 @@ namespace GestorInventario.Infraestructure.Repositories
             }
 
             var itemsDelCarrito = await ObtenerItemsDelCarritoUsuario(carrito.Id);
-            if (!itemsDelCarrito.Any())
+            if (!itemsDelCarrito.Data.Any())
             {
                 return OperationResult<CarritoConItemsDto>.Fail("El carrito está vacío.");
             }
@@ -201,7 +203,7 @@ namespace GestorInventario.Infraestructure.Repositories
             var resultado = new CarritoConItemsDto
             {
                 Carrito = carrito,
-                Items = itemsDelCarrito
+                Items = itemsDelCarrito.Data
             };
 
             return OperationResult<CarritoConItemsDto>.Ok("Validacion exitosa",resultado);

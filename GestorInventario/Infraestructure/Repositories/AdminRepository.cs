@@ -29,14 +29,21 @@ namespace GestorInventario.Infraestructure.Repositories
             _userRepository = user;
         }
 
-      
-        public async Task<List<Role>> ObtenerRoles() => await _context.Roles.ToListAsync();
+
+        public async Task<OperationResult<List<Role>>> ObtenerRoles() {
+
+            var roles = await _context.Roles.ToListAsync();
+            return OperationResult<List<Role>>.Ok("", roles);
+
+        } 
          
-        public IQueryable<Role> ObtenerRolesConUsuarios()
+        public OperationResult<IQueryable<Role>> ObtenerRolesConUsuarios()
         {
-            return _context.Roles.Include(x => x.Usuarios).AsQueryable();
+            var roles = _context.Roles.Include(x => x.Usuarios).AsQueryable();
+            return OperationResult<IQueryable<Role>>.Ok("", roles);
         }
-       
+
+
         public async Task<OperationResult<string>> CrearUsuario(UserViewModel model)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -247,7 +254,7 @@ namespace GestorInventario.Infraestructure.Repositories
            
         }
               
-        public async Task ActualizarRolUsuario(int usuarioId, int rolId)
+        public async Task<OperationResult<string>> ActualizarRolUsuario(int usuarioId, int rolId)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -255,21 +262,24 @@ namespace GestorInventario.Infraestructure.Repositories
                 var usuario = await _userRepository.ObtenerUsuarioPorId(usuarioId); ;
                 if (usuario is null || usuario.Data is null)
                 {
-                    throw new Exception($"Usuario con Id {usuarioId} no encontrado.");
+                    return OperationResult<string>.Fail("Usuario no encontrado");
                 }
                 var rol = await _context.Roles.FindAsync(rolId);
                 if (rol == null)
                 {
-                    throw new Exception($"Rol con Id {rolId} no encontrado.");
+                    return OperationResult<string>.Fail("Rol no encontrado");
                 }
 
                 usuario.Data.IdRol = rolId;
                 await _context.UpdateEntityAsync(usuario.Data);
                 await transaction.CommitAsync();
+                return OperationResult<string>.Ok();
             }
             catch (Exception ex) {
                 _logger.LogError(ex, "Ocurrio un error inesperado al intentar actualizar el rol");
+               
                 await transaction.RollbackAsync();
+                return OperationResult<string>.Fail("Ocurrio un error al actualizar el usuario, intentelo de nuevo mas tarde si el error persiste contacte con el administrador");
             }                       
         }
       

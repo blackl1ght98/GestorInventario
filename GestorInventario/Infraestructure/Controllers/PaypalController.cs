@@ -155,7 +155,9 @@ namespace GestorInventario.Infraestructure.Controllers
                         cantidadAMostrar: paginacion.CantidadAMostrar,
                         radio: paginacion.Radio
                     );
-
+                var resultadoMonedas = await _policyExecutor.ExecutePolicyAsync(
+          () => _carritoRepository.ObtenerMoneda());
+                var monedas = resultadoMonedas.Data;
                 // Crear el ViewModel final usando el resultado del helper
                 var model = new PlanesPaginadosViewModel
                 {
@@ -169,7 +171,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 };
 
                 ViewBag.Monedas = new SelectList(
-                    await _policyExecutor.ExecutePolicyAsync(() => _carritoRepository.ObtenerMoneda()),
+                   monedas,
                     "Codigo",
                     "Codigo"
                 );
@@ -189,9 +191,11 @@ namespace GestorInventario.Infraestructure.Controllers
         //Metodo que obtiene los datos necesarios antes de crear el producto al que se suscribira
         public async Task<IActionResult> CrearProductoYPlan()
         {
-          
+            var resultadoMonedas = await _policyExecutor.ExecutePolicyAsync(
+            () => _carritoRepository.ObtenerMoneda());
+            var monedas = resultadoMonedas.Data;
             var model = new ProductViewModelPaypal();
-            ViewData["Moneda"] = new SelectList(await _policyExecutor.ExecutePolicyAsync(() => _carritoRepository.ObtenerMoneda()), "Codigo", "Codigo");
+            ViewData["Moneda"] = new SelectList(monedas, "Codigo", "Codigo");
             // Obtener las categorías desde la enumeración y asignarlas al modelo
             model.Categories = _paypalRepository.GetCategoriesFromEnum();
 
@@ -216,9 +220,11 @@ namespace GestorInventario.Infraestructure.Controllers
                     {
                         _logger.LogInformation("Hubo un error al crear el producto en paypal");
                     }
-                    string productId = product.Id; 
-
-                    ViewData["Moneda"] = new SelectList(await _carritoRepository.ObtenerMoneda(), "Codigo", "Codigo");
+                    string productId = product.Id;
+                    var resultadoMonedas = await _policyExecutor.ExecutePolicyAsync(
+                    () => _carritoRepository.ObtenerMoneda());
+                    var monedas = resultadoMonedas.Data;
+                    ViewData["Moneda"] = new SelectList(monedas, "Codigo", "Codigo");
 
                     // Crear el plan de suscripción
                     string planResponse = await _paypalService.CreateSubscriptionPlanAsync(
