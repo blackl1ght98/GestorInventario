@@ -1,5 +1,4 @@
-﻿
-using GestorInventario.Application.DTOs.User;
+﻿using GestorInventario.Application.DTOs.User;
 using GestorInventario.Application.Services;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
@@ -175,7 +174,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 if (!success)
                 {
-                    TempData["ErrorMessage"] = error;
+                    _logger.LogError("Ocurrio un error al eviar el correo electronico", error);
                     return RedirectToAction("Index", "Admin");
                 }
 
@@ -196,7 +195,7 @@ namespace GestorInventario.Infraestructure.Controllers
             var  modelo = await _authRepository.PrepareRestorePassModel(UserId, Token);
             if (!modelo.Success || modelo.Data is null)
             {
-                TempData["ErrorMessage"] = modelo.Message;
+                _logger.LogCritical("La URL a intentado ser manipulada por el usuario ", UserId);
                 return RedirectToAction("ResetPasswordOlvidada");
             }
             // Convertimos el DTO a ViewModel
@@ -224,7 +223,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
             if (!result.Success)
             {
-                TempData["ErrorMessage"] = result.Message ?? "Enlace inválido o expirado.";
+                _logger.LogCritical("La URL fue manipulada por el usuario: ", model.UserId);
                 return RedirectToAction("Login", "Auth");
             }
 
@@ -243,12 +242,12 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 if (setResult.Success)
                 {
-                    TempData["SuccessMessage"] = "Contraseña restablecida correctamente. Inicie sesión.";
+                    _logger.LogInformation("Contraseña restablecida con exito para el usuario: ", cambio.UserId);
                     return RedirectToAction("Login", "Auth");
                 }
                 else
                 {
-                    ModelState.AddModelError("", setResult.Message ?? "Error al cambiar la contraseña.");
+                    TempData["ErrorMessage"]=( setResult.Message ?? "Error al cambiar la contraseña.");
                     return View("RestorePassword", model);
                 }
             }
