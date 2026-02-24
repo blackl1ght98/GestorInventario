@@ -95,11 +95,13 @@ namespace GestorInventario.MetodosExtension
             context.Entry(entity).State = EntityState.Modified;
 
         }
+
         public static async Task UpdateEntityAsync<T>(this DbContext context, T entity) where T : class
         {
             context.Set<T>().Update(entity);
             await context.SaveChangesAsync();
         }
+
         public static async Task DeleteRangeEntityAsync<T>(this DbContext context, IEnumerable<T> entities, bool saveImmediately = true) where T : class
         {
             context.Set<T>().RemoveRange(entities);
