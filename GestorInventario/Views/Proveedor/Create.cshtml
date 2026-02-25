@@ -9,29 +9,29 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="NombreProveedor" class="control-label"></label>
-                <input asp-for="NombreProveedor" class="form-control" />
+                <input asp-for="NombreProveedor" class="form-control"  />
                 <span asp-validation-for="NombreProveedor" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Contacto" class="control-label"></label>
-                <input asp-for="Contacto" class="form-control" />
+                <input asp-for="Contacto" class="form-control"  />
                 <span asp-validation-for="Contacto" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Direccion" class="control-label"></label>
-                <input asp-for="Direccion" class="form-control" />
+                <input asp-for="Direccion" class="form-control"  />
                 <span asp-validation-for="Direccion" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="IdUsuario">Usuario</label>
-                <select asp-for="IdUsuario" asp-items="Model.Usuarios" class="form-control">
+                <select asp-for="IdUsuario" asp-items="Model.Usuarios" class="form-control" >
                     <option value="">Seleccione un usuario</option>
                 </select>
                 <span asp-validation-for="IdUsuario" class="text-danger"></span>
             </div>
             <div class="form-group">
             
-                <input type="submit" value="Crear" class="btn btn-primary mt-2" />
+                <button type="submit" value="Crear" class="btn btn-primary mt-2" />
 
             </div>
         </form>
