@@ -119,17 +119,20 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 var pedido = await _policyExecutor.ExecutePolicyAsync(() =>_paymentRepository.ObtenerNumeroPedido(form));
 
-                if (pedido == null)
+                if (pedido == null || pedido.Data== null)
                 {
+                    
                    _logger.LogInformation("El pedido con el numero de pedido proporcionado no existe ");
+                    return View(nameof(FormularioRembolso));
                 }
-
+               
                 var detallespago = await _policyExecutor.ExecutePolicyAsync(() =>
                     _paypalService.ObtenerDetallesPagoEjecutadoV2(pedido.Data.OrderId));
 
                 if (detallespago == null)
                 {
                     _logger.LogInformation("No se ha podido obtener los detalles del pago");
+                    return View(nameof(FormularioRembolso));
                 }
 
                 // Verificar que hay purchase units

@@ -64,18 +64,18 @@ namespace GestorInventario.Infraestructure.Repositories
                 };
 
                 // Procesar imagen si existe
-                if (model.Imagen1 != null && model.Imagen1.Length > 0)
+                if (model.ArchivoImagen != null && model.ArchivoImagen.Length > 0)
                 {
-                    _logger.LogDebug("Procesando imagen: {FileName}, Tamaño: {Length} bytes", model.Imagen1.FileName, model.Imagen1.Length);
+                    _logger.LogDebug("Procesando imagen: {FileName}, Tamaño: {Length} bytes", model.ArchivoImagen.FileName, model.ArchivoImagen.Length);
                     try
                     {
                         using var memoryStream = new MemoryStream();
-                        await model.Imagen1.CopyToAsync(memoryStream);
+                        await model.ArchivoImagen.CopyToAsync(memoryStream);
                         var contenido = memoryStream.ToArray();
-                        var extension = Path.GetExtension(model.Imagen1.FileName)?.ToLowerInvariant();
+                        var extension = Path.GetExtension(model.ArchivoImagen.FileName)?.ToLowerInvariant();
                         if (string.IsNullOrEmpty(extension))
                         {
-                            _logger.LogWarning("No se pudo determinar la extensión del archivo: {FileName}", model.Imagen1.FileName);
+                            _logger.LogWarning("No se pudo determinar la extensión del archivo: {FileName}", model.ArchivoImagen.FileName);
                             throw new InvalidOperationException("No se pudo determinar la extensión del archivo.");
                             
                         }
@@ -83,7 +83,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     }
                     catch (IOException ex)
                     {
-                        _logger.LogError(ex, "Error al procesar la imagen: {FileName}", model.Imagen1.FileName);
+                        _logger.LogError(ex, "Error al procesar la imagen: {FileName}", model.ArchivoImagen.FileName);
                         throw new InvalidOperationException("Error al procesar la imagen.", ex);
                     }
                 }
@@ -338,9 +338,9 @@ namespace GestorInventario.Infraestructure.Repositories
             producto.IdProveedor = model.IdProveedor;
 
             // Procesar imagen si existe - CON OPTIMIZACIÓN
-            if (model.Imagen1 != null && model.Imagen1.Length > 0)
+            if (model.ArchivoImagen != null && model.ArchivoImagen.Length > 0)
             {
-                _logger.LogDebug("Procesando imagen: {FileName}", model.Imagen1.FileName);
+                _logger.LogDebug("Procesando imagen: {FileName}", model.ArchivoImagen.FileName);
 
                 try
                 {
@@ -351,13 +351,13 @@ namespace GestorInventario.Infraestructure.Repositories
                         await _gestorArchivos.BorrarArchivo(fileName, "imagenes");
                     }
                     // Guardar imagen optimizada (sin parámetros en la URL)
-                    producto.Imagen = await _imageOptimizerService.OptimizeAndSaveImage(model.Imagen1, "imagenes");
+                    producto.Imagen = await _imageOptimizerService.OptimizeAndSaveImage(model.ArchivoImagen, "imagenes");
 
                     _logger.LogInformation("Imagen guardada: {ImagenPath}", producto.Imagen);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error al procesar la imagen: {FileName}", model.Imagen1.FileName);
+                    _logger.LogError(ex, "Error al procesar la imagen: {FileName}", model.ArchivoImagen.FileName);
                     throw new InvalidOperationException("Error al procesar la imagen.", ex);
                 }
             }

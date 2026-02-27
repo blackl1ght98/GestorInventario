@@ -96,20 +96,21 @@
                             <li class="nav-item">
                                 <a class="nav-link" asp-area="" asp-controller="Productos" asp-action="Index" data-bs-toggle="tooltip" title="Ver productos"><i class="bi bi-box nav-icon"></i> Productos</a>
                             </li>
-                        }
+                        
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="transaccionesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip" title="Gestión de transacciones">
                                 <i class="bi bi-wallet nav-icon"></i> Transacciones
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="transaccionesDropdown">
                                 <li>
-                                    <a asp-area="" asp-controller="Payment" asp-action="FormularioRembolso" class="dropdown-item" data-bs-toggle="tooltip" title="Gestionar reembolsos"><i class="bi bi-cash nav-icon"></i> Reembolsos</a>
+                                    <a asp-area="" asp-controller="Payment" asp-action="FormularioRembolso" class="dropdown-item" data-bs-toggle="tooltip" title="Gestionar reembolsos"><i class="bi bi-cash nav-icon"></i> Formulario rembolso</a>
                                 </li>
                                 <li>
                                     <a asp-area="" asp-controller="Carrito" asp-action="Index" class="dropdown-item" data-bs-toggle="tooltip" title="Ver carrito"><i class="bi bi-cart3 nav-icon"></i> Carrito</a>
                                 </li>
                             </ul>
                         </li>
+                        }
                     </ul>
                     <ul class="navbar-nav ms-auto">
                         @if (User.IsInRole("Administrador") || User.IsInRole("Usuario"))

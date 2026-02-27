@@ -1,7 +1,7 @@
 ﻿
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
-
+using GestorInventario.MetodosExtension;
 using GestorInventario.PaginacionLogica;
 using GestorInventario.ViewModels.provider;
 using Microsoft.AspNetCore.Mvc;
@@ -80,15 +80,17 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
             // Cargar los usuarios desde la base de datos
-            var usuarios = new SelectList(await _policyExecutor.ExecutePolicyAsync(() => _userRepository.ObtenerUsuariosAsync()), "Id", "NombreCompleto");
-
-          
+            var usuarios = await _policyExecutor.ExecutePolicyAsync(() => _userRepository.ObtenerUsuariosAsync());
 
             var model = new ProveedorViewModel
             {
-                Usuarios = usuarios
+                
+                Usuarios = usuarios.ToSelectList(
+                    u => u.Id,                     
+                    u => u.NombreCompleto,         
+                    placeholder: "Seleccione un usuario..."  
+                )
             };
-
             return View(model);
         }
         //Metodo que crea el proveedor
@@ -101,17 +103,26 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
-
                
+                if (!ModelState.IsValid)
+                {
+                    var usuarios = await _policyExecutor.ExecutePolicyAsync(() => _userRepository.ObtenerUsuariosAsync());
+                    model.Usuarios = usuarios.ToSelectList(
+                        u => u.Id,
+                        u => u.NombreCompleto,
+                        placeholder: "Seleccione un usuario..."
+                    );
+                    return View(model);  
+                }
 
-                    var success = await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.CrearProveedor(model));
-                    if (success.Success)
-                    {
-                        TempData["SuccessMessage"] = "Los datos se han creado con éxito.";
-                    }
+                var proveedor = await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.CrearProveedor(model));
+                if (!proveedor.IsSuccess)
+                {
+                    TempData["ErrorMessage"] = proveedor.Message;
+                    return RedirectToAction(nameof(Create));
+                }
 
-                
-                    return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index));
                 
               
             }

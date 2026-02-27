@@ -30,6 +30,11 @@ namespace GestorInventario.Infraestructure.Repositories
             using var transaction= await _context.Database.BeginTransactionAsync();
             try
             {
+               var existingProvider = await _context.Proveedores.FirstOrDefaultAsync(x=>x.NombreProveedor == model.NombreProveedor);
+                if (existingProvider != null) {
+                    return OperationResult<string>.Fail("Ya existe un proveedor registrado con ese nombre");
+                
+                }
                 var proveedor = new Proveedore()
                 {
                     NombreProveedor = model.NombreProveedor,
