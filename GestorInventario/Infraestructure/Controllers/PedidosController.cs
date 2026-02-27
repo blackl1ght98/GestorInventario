@@ -1,5 +1,8 @@
-﻿using GestorInventario.Domain.Models;
+﻿using GestorInventario.Application.Services;
+using GestorInventario.Application.Services.Generic_Services;
+using GestorInventario.Domain.Models;
 using GestorInventario.enums;
+using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.PaginacionLogica;
@@ -8,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using QuestPDF.Fluent;
 using System.Security.Claims;
 
 namespace GestorInventario.Infraestructure.Controllers
@@ -432,7 +436,28 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
+        [HttpGet]
+        public async Task<IActionResult> DownloadInvoice(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                TempData["ErrorMessage"] = "ID de pago no proporcionado.";
+                return RedirectToAction("Error", "Home");
+            }
 
+            var resultado = await _pdfservice.GenerarFacturaPagoEjecutadoAsync(id);
+
+            if (!resultado.Success)
+            {
+                TempData["ErrorMessage"] = resultado.Message ?? "No se pudo generar la factura.";
+                return RedirectToAction("DetallesPagoEjecutado", new { id }); // o a Error/Home
+            }
+
+            var pdfBytes = resultado.Data;
+            var fileName = $"Factura_Pago_{id}.pdf";
+
+            return File(pdfBytes, "application/pdf", fileName);
+        }
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> AgregarInfoEnvio(int pedidoId, Carrier carrier, BarcodeType barcode)

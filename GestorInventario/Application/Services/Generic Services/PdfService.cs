@@ -51,6 +51,19 @@ namespace GestorInventario.Application.Services
 
             return OperationResult<byte[]>.Ok("", pdfBytes);
         }
+        public async Task<OperationResult<byte[]>> GenerarFacturaPagoEjecutadoAsync(string pagoId)
+        {
+            var detalle = await _context.PayPalPaymentDetails
+                .Include(d => d.PayPalPaymentItems)
+                .FirstOrDefaultAsync(d => d.Id == pagoId);
 
+            if (detalle == null)
+                return OperationResult<byte[]>.Fail("No se encontró el detalle de pago");
+
+            var document = new FacturaPagoEjecutadoPdf(detalle);
+            var pdfBytes = document.GeneratePdf();
+
+            return OperationResult<byte[]>.Ok("Factura generada correctamente", pdfBytes);
+        }
     }
 }

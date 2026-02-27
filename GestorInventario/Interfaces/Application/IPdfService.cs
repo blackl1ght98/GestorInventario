@@ -6,5 +6,6 @@ namespace GestorInventario.Interfaces.Application
     {
         Task<OperationResult<byte[]>> GenerarPDF();
         Task<OperationResult<byte[]>> DescargarProductoPDF();
+        Task<OperationResult<byte[]>> GenerarFacturaPagoEjecutadoAsync(string pagoId);
     }
 }

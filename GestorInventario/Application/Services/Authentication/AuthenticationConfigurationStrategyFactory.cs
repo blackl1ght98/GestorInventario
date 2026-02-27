@@ -4,10 +4,15 @@ using GestorInventario.Middlewares.Strategis;
 
 namespace GestorInventario.MetodosExtension.Metodos_program.cs
 {
-    public static class StrategyAuthenticationFactory
+    /// <summary>
+    /// Fábrica que crea y configura la estrategia de autenticación (middleware) según el modo elegido (AuthMode).
+    /// Se usa principalmente en la configuración de AddAuthentication / AddJwtBearer / AddCookie.
+    /// </summary>
+    public static class AuthenticationConfigurationStrategyFactory
     {
         public static IAuthenticationStrategy CreateAuthenticationStrategy(string authMode)
         {
+
             return authMode switch
             {
                 "AsymmetricDynamic" => new AsymmetricDynamicAuthenticationStrategy(),
