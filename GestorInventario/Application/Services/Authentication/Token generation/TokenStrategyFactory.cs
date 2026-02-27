@@ -7,9 +7,10 @@ using StackExchange.Redis;
 
 namespace GestorInventario.Application.Services.Authentication.Token_generation
 {
-    /**
-     Clase encargada de crear la estrategia de autenticacion
-     */
+    /// <summary>
+    /// Fábrica que crea la estrategia de generación de tokens adecuada según el modo configurado en "AuthMode".
+    /// Soporta Symmetric, AsymmetricFixed y AsymmetricDynamic.
+    /// </summary>
     public class TokenStrategyFactory : ITokenStrategyFactory
     {
         private readonly IConfiguration _configuration;

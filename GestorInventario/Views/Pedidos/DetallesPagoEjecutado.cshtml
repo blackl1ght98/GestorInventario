@@ -154,12 +154,10 @@
             
 
             <!-- Acciones -->
-            <h2>ACCIÓN EN FASE DE DESARROLLO NO FUNCIONA AUN</h2>
+         
             <div class="text-center">
-                <a href="javascript:window.print()" class="btn btn-primary">
-                    <i class="bi bi-printer nav-icon"></i> Imprimir Factura
-                </a>
-                <a asp-controller="Payment" asp-action="DownloadInvoice" asp-route-id="@Model.Id" class="btn btn-secondary ms-2">
+               
+                <a asp-controller="Pedidos" asp-action="DownloadInvoice" asp-route-id="@Model.Id" class="btn btn-secondary ms-2">
                     <i class="bi bi-file-earmark-pdf nav-icon"></i> Descargar PDF
                 </a>
             </div>
