@@ -17,9 +17,9 @@
                 <span asp-validation-for="Descripcion" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Imagen1" class="control-label" for="imagenInput">Imagen</label>
-                <input asp-for="Imagen1" type="file" class="form-control" accept=".jpg,.jpeg,.png,.gif" id="imagenInput" />
-                <span asp-validation-for="Imagen1" class="text-danger"></span>
+                <label asp-for="ArchivoImagen" class="control-label" for="imagenInput">Imagen</label>
+                <input asp-for="ArchivoImagen" type="file" class="form-control" accept=".jpg,.jpeg,.png,.gif" id="imagenInput" />
+                <span asp-validation-for="ArchivoImagen" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Cantidad" class="control-label">Cantidad</label>
@@ -31,13 +31,16 @@
                 <input asp-for="Precio" class="form-control" type="number" step="0.01" min="0.01" />
                 <span asp-validation-for="Precio" class="text-danger"></span>
             </div>
+           
             <div class="form-group">
-                <label asp-for="IdProveedor" class="control-label">Proveedor</label>
-                <select asp-for="IdProveedor" class="form-select" asp-items="ViewBag.Productos"></select>
+                <label asp-for="IdProveedor">Usuario</label>
+                <select asp-for="IdProveedor" asp-items="Model.Proveedores" class="form-control">
+                    <option value="">Seleccione un proveedor</option>
+                </select>
                 <span asp-validation-for="IdProveedor" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="Crear" class="btn btn-primary" id="submitButton" />
+                <input type="submit" value="Crear" class="mt-2 btn btn-primary" id="submitButton" />
             </div>
         </form>
     </div>

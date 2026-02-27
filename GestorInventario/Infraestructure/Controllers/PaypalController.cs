@@ -206,54 +206,69 @@ namespace GestorInventario.Infraestructure.Controllers
         [HttpPost]
         public async Task<IActionResult> CrearProductoYPlan(ProductViewModelPaypal model, string monedaSeleccionada)
         {
-            // Cambia la cultura actual del hilo a InvariantCulture
+            // Cambia la cultura (si realmente lo necesitas, aunque normalmente no es necesario aquí)
             System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
             System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
 
-            if (ModelState.IsValid)
+            var resultadoMonedas = await _policyExecutor.ExecutePolicyAsync(() => _carritoRepository.ObtenerMoneda());
+            var monedas = resultadoMonedas?.Data ?? new List<Monedum>(); 
+
+            ViewData["Moneda"] = new SelectList(monedas, "Codigo", "Codigo", monedaSeleccionada);
+
+           
+            model.Categories = _paypalRepository.GetCategoriesFromEnum();
+
+           
+            if (!ModelState.IsValid)
             {
-                try
-                {
-                    // Crear un producto usando los datos del formulario
-                    var product = await _paypalService.CreateProductAsync(model.Name, model.Description, model.Type, model.Category);
-                    if(product == null)
-                    {
-                        _logger.LogInformation("Hubo un error al crear el producto en paypal");
-                    }
-                    string productId = product.Id;
-                    var resultadoMonedas = await _policyExecutor.ExecutePolicyAsync(
-                    () => _carritoRepository.ObtenerMoneda());
-                    var monedas = resultadoMonedas.Data;
-                    ViewData["Moneda"] = new SelectList(monedas, "Codigo", "Codigo");
-
-                    // Crear el plan de suscripción
-                    string planResponse = await _paypalService.CreateSubscriptionPlanAsync(
-                        productId,
-                        model.PlanName,
-                        model.PlanDescription,
-                        model.Amount,
-                        monedaSeleccionada,
-                        model.HasTrialPeriod ? model.TrialPeriodDays : 0, // Pasamos los días de prueba
-                        model.HasTrialPeriod ? model.TrialAmount : 0.00m   // Pasamos el costo del periodo de prueba
-                    );
-
-                    if (planResponse.Contains("\"error\""))
-                    {
-                        return StatusCode(500, $"Error al crear el plan de suscripción: {planResponse}");
-                    }
-
-                    return RedirectToAction(nameof(MostrarProductos));
-                }
-                catch (Exception ex)
-                {
-                    return StatusCode(500, $"Error inesperado: {ex.Message}");
-                }
+               
+                return View(model);   
             }
 
-            model.Categories = _paypalRepository.GetCategoriesFromEnum();
-            return View(model);
-        }
+          
+            try
+            {
+                var product = await _paypalService.CreateProductAsync(
+                    model.Name,
+                    model.Description,
+                    model.Type,
+                    model.Category
+                );
 
+                if (product == null)
+                {
+                    _logger.LogWarning("Hubo un error al crear el producto en PayPal");
+                    TempData["ErrorMessage"] = "No se pudo crear el producto en PayPal.";
+                    return View(model);
+                }
+
+                string productId = product.Id;
+
+                string planResponse = await _paypalService.CreateSubscriptionPlanAsync(
+                    productId,
+                    model.PlanName,
+                    model.PlanDescription,
+                    model.Amount,
+                    monedaSeleccionada,
+                    model.HasTrialPeriod ? model.TrialPeriodDays : 0,
+                    model.HasTrialPeriod ? model.TrialAmount : 0.00m
+                );
+
+                if (planResponse.Contains("\"error\""))
+                {
+                    TempData["ErrorMessage"] = $"Error al crear el plan: {planResponse}";
+                    return View(model);
+                }
+
+                return RedirectToAction(nameof(MostrarProductos));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error inesperado al crear producto/plan");
+                TempData["ErrorMessage"] = "Ocurrió un error inesperado. Inténtalo de nuevo.";
+                return View(model);
+            }
+        }
         //Metodo para desactivar el plan
         [HttpPost]
         public async Task<IActionResult> DesactivarPlan(string id)

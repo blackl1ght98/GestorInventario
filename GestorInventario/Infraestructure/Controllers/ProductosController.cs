@@ -1,8 +1,11 @@
 ﻿using GestorInventario.Application.DTOs.Email;
+using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.MetodosExtension;
 using GestorInventario.PaginacionLogica;
 using GestorInventario.ViewModels.product;
+using GestorInventario.ViewModels.provider;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Security.Claims;
@@ -146,8 +149,19 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
                 ViewData["Productos"] = new SelectList(await _productoRepository.ObtenerProveedores(), "Id", "NombreProveedor");
+                var proveedores = await _productoRepository.ObtenerProveedores();
+                var model = new ProductosViewModel
+                {
+                    NombreProducto="",
+                    Descripcion="",
+                   Proveedores = proveedores.ToSelectList(
+                   u => u.Id,
+                   u => u.NombreProveedor,
+                   placeholder: "Seleccione un proveedor..."
+               )
+                };
 
-                return View();
+                return View(model);
             }
             catch (Exception ex)
             {
@@ -168,12 +182,21 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
                                 
-                    if (ModelState.IsValid)
-                    {
-                        var producto = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.CrearProducto(model));
-                        ViewData["Productos"] = new SelectList(await _policyExecutor.ExecutePolicyAsync(()=> _productoRepository.ObtenerProveedores()) , "Id", "NombreProveedor");                                          
-                       return RedirectToAction(nameof(Index));
-                    }
+                if (!ModelState.IsValid)
+                {
+                    var proveedores = await _productoRepository.ObtenerProveedores();
+                    model.Proveedores = proveedores.ToSelectList(
+                       u => u.Id,
+                       u => u.NombreProveedor,
+                       placeholder: "Seleccione un usuario..."
+                   );
+                }
+                else
+                {
+                    var producto = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.CrearProducto(model));
+
+                    return RedirectToAction(nameof(Index));
+                }
                     return View(model);
                 
                 
