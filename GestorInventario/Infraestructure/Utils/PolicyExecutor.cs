@@ -1,5 +1,4 @@
-﻿using GestorInventario.Application.Politicas_Resilencia;
-using GestorInventario.Interfaces.Application;
+﻿using GestorInventario.Interfaces.Application;
 
 namespace GestorInventario.Infraestructure.Utils
 {

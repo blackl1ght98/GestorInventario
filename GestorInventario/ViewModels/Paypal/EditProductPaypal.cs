@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.ViewModels
+﻿namespace GestorInventario.ViewModels.Paypal
 {
     public class EditProductPaypal
     {

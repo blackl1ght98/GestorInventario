@@ -14,8 +14,10 @@ using GestorInventario.Interfaces.Application;
 using GestorInventario.MetodosExtension;
 using GestorInventario.Application.DTOs.Email;
 using GestorInventario.ViewModels;
-using System.ClientModel.Primitives;
 using GestorInventario.Infraestructure.Utils;
+using GestorInventario.ViewModels.email;
+using GestorInventario.ViewModels.order;
+using GestorInventario.ViewModels.Paypal;
 
 namespace GestorInventario.Application.Services
 {

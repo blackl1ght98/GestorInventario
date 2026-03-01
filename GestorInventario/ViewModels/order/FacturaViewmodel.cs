@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.ViewModels
+﻿namespace GestorInventario.ViewModels.order
 {
     public class FacturaViewmodel
     {

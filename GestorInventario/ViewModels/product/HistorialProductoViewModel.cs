@@ -1,6 +1,6 @@
 ﻿using GestorInventario.Domain.Models;
 using GestorInventario.PaginacionLogica;
-using Microsoft.AspNetCore.Mvc.Rendering;
+
 
 namespace GestorInventario.ViewModels.product
 {

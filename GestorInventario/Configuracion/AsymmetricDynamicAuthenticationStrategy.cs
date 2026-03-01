@@ -1,8 +1,5 @@
 ﻿using GestorInventario.Interfaces.Application;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace GestorInventario.Configuracion.Strategies
 {
