@@ -12,5 +12,8 @@ namespace GestorInventario.Interfaces.Application
         Task SendEmailCreateProduct(EmailDto correo, string productName);     
         Task EnviarEmailSolicitudRembolso(EmailRembolsoDto correo);
         Task EnviarNotificacionReembolsoAsync(EmailReembolsoAprobadoDto correo);
+        Task SendEmailAsyncFactura(EmailDto correo, string id);
+
+
     }
 }

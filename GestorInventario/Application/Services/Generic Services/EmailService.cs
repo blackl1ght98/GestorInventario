@@ -198,6 +198,34 @@ namespace GestorInventario.Application.Services
             await smtp.SendAsync(email);
             await smtp.DisconnectAsync(true);
         }
+        public async Task SendEmailAsyncFactura(EmailDto correo, string id)
+        {
+            // Crear el modelo para la vista del correo electrónico
+            var model = new FacturaViewmodel
+            {
+                IdPago = id,
+                EnlaceDescarga = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/Pedidos/DownloadInvoice?id={id}",
+
+            };
+            // Crear el correo electrónico
+            var email = new MimeMessage();
+            email.From.Add(MailboxAddress.Parse(_config.GetSection("Email:UserName").Value));
+            email.To.Add(MailboxAddress.Parse(correo.ToEmail));
+            email.Subject = "Descargar factura";
+            email.Body = new TextPart(TextFormat.Html)
+            {
+                Text = await RenderViewToStringAsync("ViewsEmailService/ViewDownloadFactura", model)
+            };
+            using var smtp = new SmtpClient();
+            await smtp.ConnectAsync(
+                _config.GetSection("Email:Host").Value,
+                Convert.ToInt32(_config.GetSection("Email:Port").Value),
+                SecureSocketOptions.StartTls
+            );
+            await smtp.AuthenticateAsync(_config.GetSection("Email:UserName").Value, _config.GetSection("Email:PassWord").Value);
+            await smtp.SendAsync(email);
+            await smtp.DisconnectAsync(true);
+        }
 
         public async Task SendEmailCreateProduct(EmailDto correo, string productName)
         {
@@ -272,6 +300,7 @@ namespace GestorInventario.Application.Services
             }
            
         }
+      
         public async Task EnviarNotificacionReembolsoAsync(EmailReembolsoAprobadoDto correo)
         {
             try
@@ -316,6 +345,7 @@ namespace GestorInventario.Application.Services
                 throw;
             }
         }
+
         private async Task<string> RenderViewToStringAsync(string viewName, object model)
         {
             var httpContext = new DefaultHttpContext { RequestServices = _serviceProvider };

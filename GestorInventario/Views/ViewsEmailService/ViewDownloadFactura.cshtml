@@ -1,0 +1,22 @@
+﻿@using GestorInventario.ViewModels
+@model FacturaViewmodel
+<div style="max-width: 600px; margin: 20px auto; background: #fff; padding: 20px; border: 1px solid #ddd;">
+    <h2 style="color: #007bff;">¡Gracias por tu compra!</h2>
+    <p>Estimado cliente,</p>
+    <p>Tu pago con ID <strong>@Model.IdPago</strong> ha sido procesado correctamente.</p>
+  
+
+    <p style="text-align: center; margin: 30px 0;">
+        <a href="@Model.EnlaceDescarga"
+           style="display: inline-block; padding: 12px 24px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">
+            Descargar tu factura en PDF
+        </a>
+    </p>
+
+    <p>Si el botón no funciona, copia y pega este enlace en tu navegador:</p>
+    <p><a href="@Model.EnlaceDescarga">@Model.EnlaceDescarga</a></p>
+
+    <p>¡Gracias por confiar en GestorInventario!</p>
+    <hr style="border: 0; border-top: 1px solid #eee;" />
+    <small style="color: #777;">Este email es automático, no responder.</small>
+</div>
