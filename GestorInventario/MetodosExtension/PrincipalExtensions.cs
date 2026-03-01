@@ -1,5 +1,5 @@
 ﻿using System.Security.Claims;
-using System.Security.Principal;
+
 
 namespace GestorInventario.MetodosExtension
 {

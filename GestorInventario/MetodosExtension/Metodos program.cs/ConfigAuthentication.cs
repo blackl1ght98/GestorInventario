@@ -1,5 +1,4 @@
 ﻿using GestorInventario.Configuracion;
-using GestorInventario.Configuracion.Strategies;
 using GestorInventario.Interfaces.Application;
 
 namespace GestorInventario.MetodosExtension.Metodos_program.cs

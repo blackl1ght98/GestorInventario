@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.ViewModels
+﻿namespace GestorInventario.ViewModels.email
 {
     public class CreateProductEmailViewmodel
     {

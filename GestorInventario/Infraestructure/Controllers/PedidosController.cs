@@ -1,5 +1,4 @@
 ﻿using GestorInventario.Application.DTOs.Email;
-using GestorInventario.Application.Services;
 using GestorInventario.enums;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
@@ -9,7 +8,7 @@ using GestorInventario.ViewModels.order;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Polly;
+
 
 
 namespace GestorInventario.Infraestructure.Controllers

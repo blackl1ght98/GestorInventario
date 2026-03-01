@@ -1,5 +1,4 @@
-﻿using GestorInventario.Application.Services;
-using GestorInventario.Domain.Models;
+﻿using GestorInventario.Domain.Models;
 using GestorInventario.enums;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces;

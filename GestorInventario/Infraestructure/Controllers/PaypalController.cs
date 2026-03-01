@@ -8,7 +8,6 @@ using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.PaginacionLogica;
-using GestorInventario.ViewModels;
 using GestorInventario.ViewModels.Paypal;
 using GestorInventario.ViewModels.product;
 using Microsoft.AspNetCore.Mvc;
