@@ -1,18 +1,16 @@
-﻿using GestorInventario.Application.Services;
-using GestorInventario.Application.Services.Generic_Services;
-using GestorInventario.Domain.Models;
+﻿using GestorInventario.Application.DTOs.Email;
+using GestorInventario.Application.Services;
 using GestorInventario.enums;
-using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.PaginacionLogica;
+using GestorInventario.ViewModels;
 using GestorInventario.ViewModels.order;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using QuestPDF.Fluent;
-using System.Security.Claims;
+using Polly;
+
 
 namespace GestorInventario.Infraestructure.Controllers
 {
@@ -25,25 +23,22 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IPedidoRepository _pedidoRepository;                 
         private readonly IPdfService _pdfservice;
         private readonly IPolicyExecutor _policyExecutor;
-        private readonly IPaypalService _paypalService;
-        private readonly GestorInventarioContext _context;
-        private readonly IPaginationHelper _paginationHelper;
-        private readonly IUserRepository _userRepository;
+        private readonly IPaypalService _paypalService;     
+        private readonly IPaginationHelper _paginationHelper;       
         private readonly ICurrentUserAccessor _currentUserAccessor;
-        private readonly IProductoRepository _productoRepository;
-        public PedidosController( ILogger<PedidosController> logger, IPaginationHelper pagination, IUserRepository user, ICurrentUserAccessor current,
-            IPedidoRepository pedido,   IPdfService pdf, IPolicyExecutor executor, IPaypalService paypal, GestorInventarioContext context, IProductoRepository producto)
+        private readonly IEmailService _emailService;
+        public PedidosController( ILogger<PedidosController> logger, IPaginationHelper pagination,  ICurrentUserAccessor current,
+            IPedidoRepository pedido,   IPdfService pdf, IPolicyExecutor executor, IPaypalService paypal, IEmailService email)
         {          
             _logger = logger;
             _pedidoRepository = pedido;           
             _pdfservice= pdf;   
             _policyExecutor = executor;
-            _paypalService = paypal;
-            _context = context;
-            _paginationHelper = pagination;
-            _userRepository = user;
+            _paypalService = paypal;           
+            _paginationHelper = pagination;          
             _currentUserAccessor = current;
-            _productoRepository = producto;
+            _emailService = email;
+          
         }
 
         [Authorize]
@@ -53,7 +48,7 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                
 
-                var usuarioId =  _currentUserAccessor.GetCurrentUserId();
+                    var usuarioId =  _currentUserAccessor.GetCurrentUserId();
                     var pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidos());
                     if (User.IsInRole("administrador"))
                     {
@@ -101,7 +96,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
       
-        //Metodo que obtiene la informacion necesaria para eliminar un pedido
+       
         [Authorize]
         public async Task<IActionResult> Delete(int id)
         {
@@ -397,7 +392,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-        //Metodo para eliminar el historial
+        
         [Authorize]
         [HttpPost, ActionName("DeleteAllHistorial")]
         public async Task<IActionResult> DeleteAllHistorial()
@@ -450,19 +445,54 @@ namespace GestorInventario.Infraestructure.Controllers
             if (!resultado.Success)
             {
                 TempData["ErrorMessage"] = resultado.Message ?? "No se pudo generar la factura.";
-                return RedirectToAction("DetallesPagoEjecutado", new { id }); // o a Error/Home
+                return RedirectToAction("DetallesPagoEjecutado", new { id }); 
             }
 
             var pdfBytes = resultado.Data;
             var fileName = $"Factura_Pago_{id}.pdf";
-
+           
+      
             return File(pdfBytes, "application/pdf", fileName);
+        }
+        [HttpGet]
+        [Authorize] // Opcional, según quién pueda enviar facturas
+        public async Task<IActionResult> SendInvoiceByEmail(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                TempData["ErrorMessage"] = "ID de pago no proporcionado.";
+                return RedirectToAction("Error", "Home");
+            }
+         
+            // Obtener email del cliente       
+            var emailDestinatario =  _currentUserAccessor.GetCurrentUserEmail();
+
+            if (string.IsNullOrEmpty(emailDestinatario))
+            {
+                TempData["ErrorMessage"] = "No se encontró email del cliente.";
+                return RedirectToAction("DetallesPagoEjecutado", new { id });
+            }
+
+            // Preparar modelo para la plantilla del email
+            var emailModel = new FacturaViewmodel
+            {
+                IdPago = id,
+                EnlaceDescarga = Url.Action(nameof(DownloadInvoice), "Pedidos", new { id }, Request.Scheme) 
+                                                                                                     
+            };
+            
+            var emailDto = new EmailDto { ToEmail = emailDestinatario };
+            await _emailService.SendEmailAsyncFactura(emailDto, id); 
+            TempData["SuccessMessage"] = "Factura enviada por email correctamente.";
+
+            return RedirectToAction(nameof(Index));
         }
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> AgregarInfoEnvio(int pedidoId, Carrier carrier, BarcodeType barcode)
         {
-            var pedido = await _context.Pedidos.FindAsync(pedidoId);
+           // var pedido = await _context.Pedidos.FindAsync(pedidoId);
+           var pedido = await _pedidoRepository.ObtenerPedidoPorId(pedidoId);
             await _paypalService.SeguimientoPedido(pedido.Id,carrier, barcode);
             return RedirectToAction(nameof(Index), new {message="Info Agregada con exito"});
         }

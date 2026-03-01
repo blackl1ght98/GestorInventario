@@ -156,7 +156,9 @@
             <!-- Acciones -->
          
             <div class="text-center">
-               
+                <a asp-controller="Pedidos" asp-action="SendInvoiceByEmail" asp-route-id="@Model.Id" class="btn btn-success ms-2">
+                    <i class="bi bi-envelope nav-icon"></i> Enviar Factura por Email
+                </a>
                 <a asp-controller="Pedidos" asp-action="DownloadInvoice" asp-route-id="@Model.Id" class="btn btn-secondary ms-2">
                     <i class="bi bi-file-earmark-pdf nav-icon"></i> Descargar PDF
                 </a>

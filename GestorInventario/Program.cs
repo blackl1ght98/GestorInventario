@@ -1,6 +1,7 @@
 ﻿
 using GestorInventario.MetodosExtension.Metodos_program.cs;
 using GestorInventario.Middlewares;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Net.Http.Headers;
 using QuestPDF.Infrastructure;
 using System.Text.Json.Serialization;
@@ -86,7 +87,20 @@ builder.Services.AddSession(options =>
 
 
 
+// Inyecta IWebHostEnvironment (o IHostEnvironment en .NET 8+)
+var environment = builder.Environment; // o builder.Services.BuildServiceProvider().GetRequiredService<IWebHostEnvironment>();
 
+// Ruta relativa dentro de wwwroot
+var keysFolder = Path.Combine(environment.WebRootPath, "keys", "gestor-inventario");
+
+// Asegúrate de que la carpeta exista (crearla si no está)
+Directory.CreateDirectory(keysFolder);
+
+// Configuración de Data Protection persistente
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(keysFolder))
+    .SetApplicationName("GestorInventario")
+    .ProtectKeysWithDpapi(); // opcional, pero recomendado en Windows
 var app = builder.Build();
 app.UseWebOptimizer();
 if (!app.Environment.IsDevelopment())
