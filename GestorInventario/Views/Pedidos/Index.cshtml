@@ -7,7 +7,13 @@
 
 
 
-
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
 <div class="container my-4">
     <div class="row g-3">
         <div class="col-md-6">
@@ -187,6 +193,7 @@
         </div>
     </div>
 </div>
+<!-- Modal Rembolso -->
 <div class="modal fade" id="confirmRefundTotalModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">

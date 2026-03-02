@@ -1,5 +1,4 @@
-﻿
-using GestorInventario.Interfaces.Application;
+﻿using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.PaginacionLogica;

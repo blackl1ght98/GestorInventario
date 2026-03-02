@@ -3,7 +3,6 @@ using GestorInventario.enums;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.PaginacionLogica;
-using GestorInventario.ViewModels;
 using GestorInventario.ViewModels.order;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -490,11 +489,39 @@ namespace GestorInventario.Infraestructure.Controllers
         [HttpPost]
         public async Task<IActionResult> AgregarInfoEnvio(int pedidoId, Carrier carrier, BarcodeType barcode)
         {
-           // var pedido = await _context.Pedidos.FindAsync(pedidoId);
-           var pedido = await _pedidoRepository.ObtenerPedidoPorId(pedidoId);
-            await _paypalService.SeguimientoPedido(pedido.Id,carrier, barcode);
-            return RedirectToAction(nameof(Index), new {message="Info Agregada con exito"});
+            var pedido = await _pedidoRepository.ObtenerPedidoPorId(pedidoId);
+            if (pedido == null)
+            {
+                TempData["ErrorMessage"] = "El pedido no existe.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                await _paypalService.SeguimientoPedido(pedido.Id, carrier, barcode);
+
+                TempData["SuccessMessage"] = "Información de envío agregada con éxito.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al agregar seguimiento para pedido {PedidoId}", pedidoId);
+
+                // Mensaje amigable para el usuario (no exponer detalles técnicos)
+                string userMessage = "No se pudo agregar la información de envío en este momento. " +
+                                    "Parece haber un problema temporal con los servidores de PayPal. " +
+                                    "Por favor, inténtelo de nuevo más tarde.";
+
+                // Opcional: si quieres diferenciar errores
+                if (ex.Message.Contains("INTERNAL_SERVICE_ERROR") || ex.Message.Contains("500"))
+                {
+                    userMessage = "Error temporal en PayPal. Intente nuevamente en unos minutos.";
+                }
+
+                TempData["ErrorMessage"] = userMessage;
+                return RedirectToAction(nameof(Index));
+            }
         }
-       
+
     }
 }

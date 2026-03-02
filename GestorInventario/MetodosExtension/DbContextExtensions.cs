@@ -289,11 +289,6 @@ namespace GestorInventario.MetodosExtension
             });
         }
 
-        public static void ConvertirJson<T>(this StringContent context, T entity) where T : class
-        {
-            var json = JsonConvert.SerializeObject(entity);
-            context=new StringContent(json, Encoding.UTF8, "application/json");
-
-        }
+       
     }
 }
