@@ -1,11 +1,9 @@
-﻿
-using GestorInventario.Application.DTOs.Response_paypal;
+﻿using GestorInventario.Application.DTOs.Response_paypal;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.ViewModels.Paypal;
 using Microsoft.AspNetCore.Mvc;
-
 using Microsoft.Extensions.Caching.Memory;
 
 

@@ -1,5 +1,4 @@
-﻿
-using GestorInventario.Domain.Models.ViewModels;
+﻿using GestorInventario.Domain.Models.ViewModels;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.PaginacionLogica;

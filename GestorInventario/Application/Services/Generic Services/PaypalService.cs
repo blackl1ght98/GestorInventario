@@ -1,6 +1,5 @@
 ﻿using GestorInventario.Application.Classes;
 using GestorInventario.Application.DTOs;
-using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Application.DTOs.Response.PayPal;
 using GestorInventario.Application.DTOs.Response_paypal;
 using GestorInventario.Application.DTOs.Response_paypal.GET;
@@ -90,47 +89,23 @@ namespace GestorInventario.Application.Services
         #region Crear orden 
         public async Task<string> CreateOrderWithPaypalAsync(CheckoutDto pagar)
         {
-            try
-            {
-                var client = _httpClientFactory.CreateClient("PayPal");
-                var order = BuildOrder(pagar);
-                var (clientId, clientSecret) = GetPaypalCredentials();
-
-                var authToken = await GetAccessTokenAsync(clientId, clientSecret);
-                if (string.IsNullOrEmpty(authToken))
-                    throw new Exception("No se pudo obtener el token de autenticación.");
-
-                var request = new HttpRequestMessage(HttpMethod.Post, "v2/checkout/orders");
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-                request.Content = new StringContent(JsonConvert.SerializeObject(order), Encoding.UTF8, "application/json");
-                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                var response = await client.SendAsync(request);
-                var responseBody = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
+            var order = BuildOrder(pagar);
+            var responseBody = await ExecutePayPalRequestAsync<string>(
+                HttpMethod.Post,
+                "v2/checkout/orders",
+                order,              
+                async resp =>
                 {
-                    throw new Exception($"Error al crear la orden: {response.StatusCode} - {responseBody}");
-                }
+                    var body = await resp.Content.ReadAsStringAsync();
+                    throw new InvalidOperationException($"Error al crear orden: {resp.StatusCode} - {body}");
+                });
+            var jsonResponse = JsonConvert.DeserializeObject<PayPalOrderResponseDto>(responseBody);
+            var orderId = jsonResponse?.Id;
+            if (!string.IsNullOrEmpty(orderId))
+                _cache.Set("PayPalOrderId", orderId, TimeSpan.FromMinutes(10));
 
-                var jsonResponse = JsonConvert.DeserializeObject<PayPalOrderResponseDto>(responseBody);
-               
-                var orderId = jsonResponse?.Id;
-
-                if (!string.IsNullOrEmpty(orderId))
-                {
-                    _cache.Set("PayPalOrderId", orderId, TimeSpan.FromMinutes(10));
-                }
-
-                return responseBody;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al crear la orden de PayPal");
-                throw new InvalidOperationException("No se pudo crear la orden de PayPal", ex);
-            }
+            return responseBody;
         }
-
         private PaypalCreateOrderRequestDto BuildOrder(CheckoutDto pagar)
         {
             return new PaypalCreateOrderRequestDto
@@ -221,25 +196,17 @@ namespace GestorInventario.Application.Services
         {
             try
             {
-                var client = _httpClientFactory.CreateClient("PayPal");
-                var (clientId, clientSecret) = GetPaypalCredentials();
 
-                var authToken = await GetAccessTokenAsync(clientId, clientSecret);
-                if (string.IsNullOrEmpty(authToken))
-                    throw new Exception("No se pudo obtener el token de autenticación.");
-
-                var request = new HttpRequestMessage(HttpMethod.Post, $"v2/checkout/orders/{orderId}/capture");
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                request.Content = new StringContent("{}", Encoding.UTF8, "application/json"); 
-
-                var response = await client.SendAsync(request);
-                var responseBody = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    throw new Exception($"Error al capturar el pago: {response.StatusCode} - {responseBody}");
-                }
+                var responseBody = await ExecutePayPalRequestAsync<string>(
+                   HttpMethod.Post,
+                   $"v2/checkout/orders/{orderId}/capture",
+                   rawJsonBody: "{}",           
+                   onError: async resp =>
+                   {
+                       var body = await resp.Content.ReadAsStringAsync();
+                       throw new InvalidOperationException($"Error al capturar: {resp.StatusCode} - {body}");
+                   });
+                
 
                 var paypalResponse = JsonConvert.DeserializeObject<PaypalCaptureOrderResponseDto>(responseBody);
 
@@ -268,27 +235,15 @@ namespace GestorInventario.Application.Services
         #region Obtener detalles del pago v2 paypal   
         public async Task<CheckoutDetailsDto> ObtenerDetallesPagoEjecutadoV2(string id)
         {
-            var client = _httpClientFactory.CreateClient("PayPal");
-            var (clientId, clientSecret) = GetPaypalCredentials();
-
-            var authToken = await GetAccessTokenAsync(clientId, clientSecret);
-            if (string.IsNullOrEmpty(authToken))
-                throw new Exception("No se pudo obtener el token de autenticación.");
-
-            // Creamos el mensaje de la solicitud GET
-            var request = new HttpRequestMessage(HttpMethod.Get, $"v2/checkout/orders/{id}");
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
-            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-            // Enviamos la solicitud
-            var response = await client.SendAsync(request);
-            var responseBody = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new Exception($"Error al obtener los detalles del pago: {response.StatusCode} - {responseBody}");
-            }
-
+            var responseBody = await ExecutePayPalRequestAsync<string>(
+             HttpMethod.Get,
+             $"v2/checkout/orders/{id}",
+             onError: async resp =>
+             {
+                 var errBody = await resp.Content.ReadAsStringAsync();
+                 throw new InvalidOperationException(
+                     $"Error al obtener detalles de orden {id}: {resp.StatusCode} - {errBody}");
+             });
             // Deserializamos la respuesta al DTO correspondiente
             var subscriptionDetails = JsonConvert.DeserializeObject<CheckoutDetailsDto>(responseBody);
             if(subscriptionDetails == null)
@@ -1558,6 +1513,82 @@ namespace GestorInventario.Application.Services
             return "Subscripcion activada con éxito";
         }
         #endregion
-     
+
+       
+        private async Task<T> ExecutePayPalRequestAsync<T>(
+            HttpMethod method,
+            string endpoint,
+            object? content = null,
+            string? rawJsonBody = null,
+            Func<HttpResponseMessage, Task>? onError = null)
+        {
+            var client = _httpClientFactory.CreateClient("PayPal");
+            var (clientId, clientSecret) = GetPaypalCredentials();
+            var token = await GetAccessTokenAsync(clientId, clientSecret);
+
+            if (string.IsNullOrEmpty(token))
+                throw new InvalidOperationException("No se pudo obtener token de PayPal");
+
+            var request = new HttpRequestMessage(method, endpoint)
+            {
+                Headers = { Authorization = new AuthenticationHeaderValue("Bearer", token) }
+            };
+
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            if (rawJsonBody != null)
+            {
+                request.Content = new StringContent(rawJsonBody, Encoding.UTF8, "application/json");
+            }
+            else if (content != null)
+            {
+                var json = JsonConvert.SerializeObject(content);
+                request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+            }
+            var response = await client.SendAsync(request);
+            var body = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                if (onError != null) await onError(response);
+                throw new HttpRequestException($"PayPal error {response.StatusCode} → {body}");
+            }
+
+            if (typeof(T) == typeof(string))
+                return (T)(object)body;
+
+            var result = JsonConvert.DeserializeObject<T>(body);
+            return result ?? throw new InvalidOperationException("Respuesta deserializada es null");
+        }
+        // 1. Para POST/PATCH con objeto (el más común para creación/actualización)
+        private async Task<T> ExecutePayPalRequestAsync<T>(
+            HttpMethod method,              // POST, PATCH, etc.
+            string endpoint,
+            object content,                 // DTO o anónimo → se serializa
+            Func<HttpResponseMessage, Task>? onError = null)
+        {
+            return await ExecutePayPalRequestAsync<T>(method, endpoint, content, null, onError);
+        }
+
+        // 2. Para POST/PATCH con body JSON crudo (casos raros como "{}" especial)
+        private async Task<T> ExecutePayPalRequestAsync<T>(
+            HttpMethod method,
+            string endpoint,
+            string rawJsonBody,
+            Func<HttpResponseMessage, Task>? onError = null)
+        {
+            return await ExecutePayPalRequestAsync<T>(method, endpoint, null, rawJsonBody, onError);
+        }
+
+        // 3. Para GET / DELETE / HEAD (sin body nunca)
+        private async Task<T> ExecutePayPalRequestAsync<T>(
+            HttpMethod method,              // GET, DELETE, etc.
+            string endpoint,
+            Func<HttpResponseMessage, Task>? onError = null)
+        {
+           
+            return await ExecutePayPalRequestAsync<T>(method, endpoint, null, null, onError);
+        }
+
     }
 }
