@@ -278,7 +278,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 var userSubscriptions = await _paypalRepository.SusbcripcionesUsuario(id);
                 if (activeSubscriptions.Any() || userSubscriptions.Any())
                 {
-                    return StatusCode(400, "No se puede cancelar el plan porque hay suscriptores activos.");
+                    TempData["ErrorMessage"] = "No se puede desactivar el plan hay subscriptores activos";
+                    return RedirectToAction(nameof(MostrarPlanes));
                 }
                 var deleteResponse = await _paypalService.DesactivarPlan( id);
 
