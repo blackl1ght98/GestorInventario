@@ -17,7 +17,7 @@ namespace GestorInventario.Infraestructure.Controllers
     {
       
        
-        private readonly IConfirmEmailService _confirmEmailService;
+       
         private readonly ILogger<AdminController> _logger;
         private readonly IAdminRepository _adminrepository;   
         private readonly IMapper _mapper;
@@ -25,13 +25,12 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IUserRepository _userRepository;
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IPaginationHelper _paginationHelper;
-        public AdminController(IConfirmEmailService confirmEmailService, ILogger<AdminController> logger, IAdminRepository adminRepository,   
+        public AdminController(ILogger<AdminController> logger, IAdminRepository adminRepository,   
         IMapper map, IPolicyExecutor executor, IUserRepository user, IPaginationHelper paginationHelper, ICurrentUserAccessor current)
         {           
-            _confirmEmailService = confirmEmailService;
+            
             _logger = logger;
-            _adminrepository = adminRepository;
-                      
+            _adminrepository = adminRepository;        
             _mapper= map;
             _policyExecutor = executor;   
             _userRepository = user;
@@ -153,7 +152,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     _logger.LogCritical("Intento de manipulacion del token por el usuario: " + usuarioDB.Data.Id);
 
                 }
-                await _confirmEmailService.ConfirmEmail(new ConfirmRegistrationDto
+                await _userRepository.ConfirmEmail(new ConfirmRegistrationDto
                 {
                     UserId = confirmar.UserId
                 });

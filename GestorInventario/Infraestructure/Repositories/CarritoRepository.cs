@@ -40,6 +40,7 @@ namespace GestorInventario.Infraestructure.Repositories
             return OperationResult<Pedido>.Ok("Carrito obtenido con exito", carrito);
             
         }
+     
 
         // Obtener ítems del carrito (DetallePedido para un Pedido con EsCarrito = 1)
         public async Task<OperationResult<List<DetallePedido>>> ObtenerItemsDelCarritoUsuario(int pedidoId)
@@ -88,7 +89,18 @@ namespace GestorInventario.Infraestructure.Repositories
             return new string(Enumerable.Repeat(chars, length)
                 .Select(s => s[random.Next(s.Length)]).ToArray());
         }
+        public async Task EliminarCarritoAsync(int carritoId)
+        {
+            // Opción 1: eliminación física (más simple si no necesitas auditoría)
+            var carrito = await _context.Pedidos.FindAsync(carritoId);
+            if (carrito != null)
+            {
+                _context.Pedidos.Remove(carrito);
+                await _context.SaveChangesAsync();
+            }
 
+           
+        }
         // Método para crear un carrito si no existe
         public async Task<OperationResult<Pedido>> CrearCarritoUsuario(int userId)
         {

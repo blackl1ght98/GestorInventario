@@ -1,54 +1,65 @@
-﻿using GestorInventario.Domain.Models;
+﻿
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
-using Microsoft.EntityFrameworkCore;
+
 
 namespace GestorInventario.Application.Services.Generic_Services
 {
     public class CarritoService : ICarritoService
     {
-        private readonly GestorInventarioContext _context;
+        
         private readonly ICarritoRepository _carritoRepository;
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly ILogger<CarritoService> _logger;
 
-        public CarritoService(GestorInventarioContext context,ICarritoRepository carritoRepository,
+        public CarritoService(ICarritoRepository carritoRepository,
         ICurrentUserAccessor currentUserAccessor,ILogger<CarritoService> logger)
         {
-            _context = context;
+          
             _carritoRepository = carritoRepository;
             _currentUserAccessor = currentUserAccessor;
             _logger = logger;
         }
 
-        public async Task EliminarCarritosActivosAsync()
+        public async Task EliminarCarritoActivoAsync()  
         {
+            var usuarioId = _currentUserAccessor.GetCurrentUserId();
+
+            if (usuarioId <= 0)  
+            {
+                _logger.LogWarning("Intento de eliminar carrito sin usuario autenticado");
+                return;
+            }
+
             try
             {
-                var usuarioId = _currentUserAccessor.GetCurrentUserId();
+                // 1. Obtener el carrito activo del usuario (debería ser solo uno)
+                var carritoActivo = await _carritoRepository.ObtenerCarritoUsuario(usuarioId);
 
-                var carritosActivos = await _context.Pedidos
-                    .Where(p => p.IdUsuario == usuarioId && p.EsCarrito)
-                    .ToListAsync();
-
-                foreach (var carrito in carritosActivos)
+                if (carritoActivo.Data == null)
                 {
-                    var items = await _carritoRepository.ObtenerItemsDelCarritoUsuario(carrito.Id);
-
-                    // Solo eliminamos carritos vacíos
-                    if (!items.Data.Any())
-                    {
-                        _context.Remove(carrito);
-                    }
+                    _logger.LogDebug("No se encontró carrito activo para el usuario {UsuarioId}", usuarioId);
+                    return;
                 }
 
-                await _context.SaveChangesAsync();
+                // 2. Verificar si tiene items
+                var items = await _carritoRepository.ObtenerItemsDelCarritoUsuario(carritoActivo.Data.Id);
+
+                if (items?.Data?.Any() == true)
+                {
+                    _logger.LogInformation("Carrito activo del usuario {UsuarioId} tiene items → no se elimina", usuarioId);
+                    return;
+                }
+
+                // 3. Eliminar (delegado al repositorio)
+                await _carritoRepository.EliminarCarritoAsync(carritoActivo.Data.Id);
+
+                _logger.LogInformation("Carrito activo vacío eliminado para el usuario {UsuarioId}", usuarioId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al eliminar carritos activos para el usuario {UsuarioId}",
-                    _currentUserAccessor.GetCurrentUserId());
-                throw; // o manejar según tu política
+                _logger.LogError(ex, "Error al intentar eliminar el carrito activo del usuario {UsuarioId}", usuarioId);
+                return;
             }
         }
     }

@@ -2,6 +2,6 @@
 {
     public interface ICarritoService
     {
-        Task EliminarCarritosActivosAsync();
+        Task EliminarCarritoActivoAsync();
     }
 }

@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using System.Security.Cryptography;
 
-namespace GestorInventario.Application.Services
+namespace GestorInventario.Application.Services.Authentication
 {
     public class HashService
     {

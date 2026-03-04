@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Application.DTOs.User;
 using GestorInventario.Application.Services;
+using GestorInventario.Application.Services.Authentication;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
@@ -20,18 +21,16 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IAuthRepository _authRepository;        
         private readonly ILogger<AuthController> _logger;       
         private readonly IPolicyExecutor _policyExecutor;
-        private readonly IPasswordResetService _passwordResetService;
         private readonly ICarritoService _carritoService;
         private readonly ICurrentUserAccessor _current;
         public AuthController(HashService hashService,  TokenService tokenService, IAuthRepository adminRepository, ICurrentUserAccessor current,
-              ILogger<AuthController> logger,   IPolicyExecutor executor, IPasswordResetService resetService, ICarritoService carrito)
+              ILogger<AuthController> logger,   IPolicyExecutor executor,  ICarritoService carrito)
         {
             _hashService = hashService;
             _tokenService = tokenService;
             _authRepository = adminRepository;         
             _logger = logger;     
             _policyExecutor = executor;
-            _passwordResetService = resetService;
             _carritoService = carrito;
             _current=current;
         }
@@ -149,7 +148,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     Response.Cookies.Delete(cookie.Key);
                 }
-               await _carritoService.EliminarCarritosActivosAsync();
+               await _carritoService.EliminarCarritoActivoAsync();
                 // Cierra la sesión.
                 await HttpContext.SignOutAsync();
 
@@ -170,7 +169,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var (success, error, userEmail) = await _passwordResetService.EnviarCorreoResetAsync(email);
+                var (success, error, userEmail) = await _authRepository.EnviarCorreoResetAsync(email);
 
                 if (!success)
                 {
@@ -271,15 +270,15 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var (success, error, userEmail) = await _passwordResetService.EnviarCorreoResetAsync(email);
+                var  userEmail = await _authRepository.EnviarCorreoResetAsync(email);
 
-                if (!success)
+                if (!userEmail.Success)
                 {
-                    TempData["ErrorMessage"] = error;
+                    TempData["ErrorMessage"] = userEmail.Message;
                     return RedirectToAction(nameof(ResetPasswordOlvidada));
                 }
 
-                return View("ResetPassword", userEmail);
+                return View("ResetPassword", userEmail.Data);
             }
             catch (Exception ex)
             {

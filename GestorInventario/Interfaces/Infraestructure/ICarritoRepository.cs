@@ -16,6 +16,7 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<OperationResult<string>> Incremento(int id);
         Task<OperationResult<string>> Decremento(int id);
         Task<OperationResult<string>> EliminarProductoCarrito(int id);
+        Task EliminarCarritoAsync(int carritoId);
 
     }
 }
