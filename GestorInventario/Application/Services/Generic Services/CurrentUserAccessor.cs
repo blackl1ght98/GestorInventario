@@ -1,5 +1,4 @@
-﻿using Azure;
-using GestorInventario.Interfaces.Application;
+﻿using GestorInventario.Interfaces.Application;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Net.Sockets;
 using System.Security.Claims;

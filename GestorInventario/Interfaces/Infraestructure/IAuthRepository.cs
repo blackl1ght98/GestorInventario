@@ -10,5 +10,6 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<OperationResult<string>> SetNewPasswordAsync(RestoresPasswordDto cambio);
         Task<OperationResult<string>> ChangePassword(string passwordAnterior, string passwordActual);  
         Task<OperationResult<RestoresPasswordDto>> PrepareRestorePassModel(int userId, string token);
+        Task<OperationResult<string>> EnviarCorreoResetAsync(string email);
     }
 }

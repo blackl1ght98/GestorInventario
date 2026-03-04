@@ -24,7 +24,6 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<IGestorArchivos, GestorArchivosService>();
             services.AddTransient<HashService>();
             services.AddTransient<ICarritoRepository, CarritoRepository>();
-            services.AddTransient<IConfirmEmailService, ConfirmEmailService>();
             services.AddTransient<IEmailService, EmailService>();
             services.AddTransient<TokenService>();
             services.AddTransient<IAdminRepository, AdminRepository>();
@@ -44,7 +43,6 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<IImageOptimizerService,ImageOptimizerService>();
             services.AddTransient<ITokenGenerator, TokenGenerator>();           
             services.AddTransient<IBarCodeService, BarCodeService>();
-            services.AddTransient< IPasswordResetService, PasswordResetService>();
             services.AddTransient<ICurrentUserAccessor,CurrentUserAccessor>();
             services.AddTransient<IPaginationHelper, PaginationHelper>();
             services.AddTransient<ICarritoService, CarritoService>();

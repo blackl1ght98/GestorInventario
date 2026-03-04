@@ -1,11 +1,13 @@
-﻿using GestorInventario.Application.DTOs.User;
-using GestorInventario.Application.Services;
+﻿using GestorInventario.Application.DTOs.Email;
+using GestorInventario.Application.DTOs.User;
+using GestorInventario.Application.Services.Authentication;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace GestorInventario.Infraestructure.Repositories
 {
@@ -17,8 +19,9 @@ namespace GestorInventario.Infraestructure.Repositories
         private readonly IUserRepository _userRepository;
         private readonly ICarritoRepository _carritoRepository;       
         private readonly ICurrentUserAccessor _currentUserAccessor;
+        private readonly IEmailService _emailService;
         public AuthRepository(GestorInventarioContext context, HashService hash, ICurrentUserAccessor current,
-            ILogger<AuthRepository> logger, IUserRepository user, ICarritoRepository carritoRepository)
+            ILogger<AuthRepository> logger, IUserRepository user, ICarritoRepository carritoRepository, IEmailService email)
         {
             _context = context;
             _hashService = hash;
@@ -26,6 +29,7 @@ namespace GestorInventario.Infraestructure.Repositories
             _userRepository = user;
             _carritoRepository = carritoRepository;          
             _currentUserAccessor = current;
+            _emailService = email;
         }
 
         public async Task<OperationResult<Usuario>> Login(string email)
@@ -175,6 +179,29 @@ namespace GestorInventario.Infraestructure.Repositories
                 _logger.LogError(ex, "Error al validar el token de restauración de contraseña");
                 return OperationResult<RestoresPasswordDto>.Fail("El servidor tardó mucho en responder, inténtelo de nuevo más tarde");
             }
+        }
+        public async Task<OperationResult<string>> EnviarCorreoResetAsync(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email) || !new EmailAddressAttribute().IsValid(email))
+            {
+                return OperationResult<string>.Fail("El correo proporcionado no es valido");
+            }
+
+            var (success, error, userEmail) = await _emailService.SendEmailAsyncResetPassword(new EmailDto
+            {
+                ToEmail = email
+            });
+
+            if (success)
+            {
+                _logger.LogInformation("Email de restablecimiento de contraseña enviado con éxito");
+            }
+            else
+            {
+                _logger.LogError("Error al enviar el email: {error}", error);
+            }
+
+            return OperationResult<string>.Ok("", userEmail);
         }
     }
 }

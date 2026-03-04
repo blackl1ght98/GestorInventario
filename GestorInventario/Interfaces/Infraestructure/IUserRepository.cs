@@ -1,4 +1,5 @@
-﻿using GestorInventario.Domain.Models;
+﻿using GestorInventario.Application.DTOs.User;
+using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 
 namespace GestorInventario.Interfaces.Infraestructure
@@ -11,5 +12,6 @@ namespace GestorInventario.Interfaces.Infraestructure
         IQueryable<Usuario> ObtenerUsuariosPorRol(int rolId);
         Task<(Usuario?, string)> ObtenerUsuarioConPedido(int id);
         IQueryable<Usuario> ObtenerUsuarios();
+        Task ConfirmEmail(ConfirmRegistrationDto confirm);
     }
 }

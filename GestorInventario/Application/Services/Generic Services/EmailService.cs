@@ -13,11 +13,11 @@ using MailKit.Net.Smtp;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.MetodosExtension;
 using GestorInventario.Application.DTOs.Email;
-using GestorInventario.ViewModels;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.ViewModels.email;
 using GestorInventario.ViewModels.order;
 using GestorInventario.ViewModels.Paypal;
+using GestorInventario.Application.Services.Authentication;
 
 namespace GestorInventario.Application.Services
 {

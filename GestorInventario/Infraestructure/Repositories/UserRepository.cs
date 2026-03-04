@@ -1,18 +1,19 @@
-﻿using GestorInventario.Domain.Models;
+﻿using GestorInventario.Application.DTOs.User;
+using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.MetodosExtension;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
 namespace GestorInventario.Infraestructure.Repositories
 {
     public class UserRepository: IUserRepository
     {
-        private readonly IHttpContextAccessor _contextAccessor;
+       
         private readonly GestorInventarioContext _context;
-        public UserRepository(IHttpContextAccessor contextAccessor, GestorInventarioContext context)
+        public UserRepository( GestorInventarioContext context)
         {
-            _contextAccessor = contextAccessor;
+         
             _context = context;
 
         }
@@ -47,6 +48,16 @@ namespace GestorInventario.Infraestructure.Repositories
         {
             var usuario = await _context.Usuarios.Include(p => p.Pedidos).FirstOrDefaultAsync(m => m.Id == id);
             return usuario is null ? (null, "Este usuario no tiene pedidos") : (usuario, "Usuario con pedidos encontrado");
+        }
+        public async Task ConfirmEmail(ConfirmRegistrationDto confirm)
+        {
+
+            var usuarioUpdate = _context.Usuarios.AsTracking().FirstOrDefault(x => x.Id == confirm.UserId);
+            if (usuarioUpdate != null)
+            {
+                usuarioUpdate.ConfirmacionEmail = true;
+                await _context.UpdateEntityAsync(usuarioUpdate);
+            }
         }
 
     }
