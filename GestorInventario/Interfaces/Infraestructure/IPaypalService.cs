@@ -7,7 +7,7 @@ namespace GestorInventario.Interfaces.Infraestructure
 {
     public interface IPaypalService
     {
-        Task<string> GetAccessTokenAsync(string clientId, string clientSecret);
+      
         Task<string> CreateOrderWithPaypalAsync(CheckoutDto pagar);
         Task<(string CaptureId, string Total, string Currency)> CapturarPagoAsync(string orderId);
         Task<CheckoutDetailsDto> ObtenerDetallesPagoEjecutadoV2(string id);
