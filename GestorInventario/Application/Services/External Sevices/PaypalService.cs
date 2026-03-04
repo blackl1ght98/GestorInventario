@@ -8,83 +8,39 @@ using GestorInventario.Application.DTOs.Response_paypal.POST;
 using GestorInventario.Application.Exceptions;
 using GestorInventario.Domain.Models;
 using GestorInventario.enums;
+using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using System.Globalization;
-using System.Net.Http.Headers;
-using System.Text;
+
 
 namespace GestorInventario.Application.Services
 {
     public class PaypalService : IPaypalService
-    {
-        private readonly IConfiguration _configuration;
+    {       
         private readonly ILogger<PaypalService> _logger;
         private readonly IMemoryCache _cache;
-        private readonly IUnitOfWork _unitOfWork;          
-        private readonly IHttpClientFactory _httpClientFactory;     
-           
-        public PaypalService(IConfiguration configuration, ILogger<PaypalService> logger, IHttpClientFactory http,  
-            IMemoryCache memory, IUnitOfWork unit)
-        {
-            _configuration = configuration;         
+        private readonly IUnitOfWork _unitOfWork;                 
+        private readonly IPayPalHttpClient _paypal;
+        public PaypalService( ILogger<PaypalService> logger,   
+            IMemoryCache memory, IUnitOfWork unit, IPayPalHttpClient paypal)
+        {                
             _logger = logger;
             _cache = memory;
-            _unitOfWork = unit;          
-            _httpClientFactory = http;         
-                   
+            _unitOfWork = unit;                      
+            _paypal = paypal;                   
         }
-        #region Generacion token paypal
-
-        public async Task<string> GetAccessTokenAsync(string clientId, string clientSecret)
-        {
-            var client = _httpClientFactory.CreateClient("PayPal");
-            var tokenUrl = "v1/oauth2/token";
-            var byteArray = Encoding.ASCII.GetBytes($"{clientId}:{clientSecret}");
-            var authHeader = Convert.ToBase64String(byteArray);
-
-            var request = new HttpRequestMessage(HttpMethod.Post, tokenUrl);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", authHeader);
-            request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
-            {
-                { "grant_type", "client_credentials" }
-            });
-
-            var response = await client.SendAsync(request);
-            response.EnsureSuccessStatusCode();
-
-            var responseString = await response.Content.ReadAsStringAsync();
-            var responseJson = JsonConvert.DeserializeObject<TokenResponsePayPalDto>(responseString);
-            if (responseJson?.AccessToken == null)
-            {
-                throw new InvalidOperationException("No se pudo obtener el token de acceso.");
-            }
-
-            return responseJson.AccessToken;
-        }
-        private (string clientId, string clientSecret) GetPaypalCredentials()
-        {
-            var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
-            var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
-            if (clientId == null || clientSecret == null)
-            {
-                throw new InvalidOperationException("No se puede obtener el cliente id o secreto de cliente");
-            }
-            return (clientId, clientSecret);
-        }
-
-        #endregion
-
+     
         #region Crear orden 
         public async Task<string> CreateOrderWithPaypalAsync(CheckoutDto pagar)
         {
             var order = BuildOrder(pagar);
-            var responseBody = await ExecutePayPalRequestAsync<string>(
+            var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                 HttpMethod.Post,
                 "v2/checkout/orders",
                 order,              
-                async resp =>
+               async resp =>
                 {
                     var body = await resp.Content.ReadAsStringAsync();
                     throw new InvalidOperationException($"Error al crear orden: {resp.StatusCode} - {body}");
@@ -187,11 +143,11 @@ namespace GestorInventario.Application.Services
             try
             {
 
-                var responseBody = await ExecutePayPalRequestAsync<string>(
+                var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                    HttpMethod.Post,
                    $"v2/checkout/orders/{orderId}/capture",
                    rawJsonBody: "{}",           
-                   onError: async resp =>
+                    async resp =>
                    {
                        var body = await resp.Content.ReadAsStringAsync();
                        throw new InvalidOperationException($"Error al capturar: {resp.StatusCode} - {body}");
@@ -225,10 +181,10 @@ namespace GestorInventario.Application.Services
         #region Obtener detalles del pago v2 paypal   
         public async Task<CheckoutDetailsDto> ObtenerDetallesPagoEjecutadoV2(string id)
         {
-            var responseBody = await ExecutePayPalRequestAsync<string>(
+            var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
              HttpMethod.Get,
              $"v2/checkout/orders/{id}",
-             onError: async resp =>
+             async resp =>
              {
                  var errBody = await resp.Content.ReadAsStringAsync();
                  throw new InvalidOperationException(
@@ -256,11 +212,11 @@ namespace GestorInventario.Application.Services
                     throw new Exception("No se pudo obtener la información completa del pedido.");
                 }
                 var trackingInfo = CrearTrackingInfo(pedido, detalles, carrier, barcode);
-                var responseBody = await ExecutePayPalRequestAsync<string>(
+                var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                 HttpMethod.Post,
                 $"v2/checkout/orders/{pedido.OrderId}/track",
                 trackingInfo,
-                async resp =>
+               async resp =>
                 {
                     var errBody = await resp.Content.ReadAsStringAsync();
                     throw new InvalidOperationException($"Error al establecer el seguimiento del pedido: {resp.StatusCode} - {errBody} ");
@@ -323,17 +279,17 @@ namespace GestorInventario.Application.Services
         {
             try
             {          
-                var client = _httpClientFactory.CreateClient("PayPal");
+              
                 // Obtener el pedido y el monto total desde el repositorio
                 var (pedido, totalAmount) = await _unitOfWork.PaypalRepository.GetPedidoWithDetailsAsync(pedidoId);
                
                 // Crear el objeto de solicitud de reembolso
                 var refundRequest = BuildRefundRequest(totalAmount, pedido);
-                var responseBody = await ExecutePayPalRequestAsync<string>(
+                var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                    HttpMethod.Post,
                    $"v2/payments/captures/{pedido.CaptureId}/refund",
                    refundRequest,
-                   async resp =>
+                    async resp =>
                    {
                        var errBody = await resp.Content.ReadAsStringAsync();
                        throw new InvalidOperationException($"Error al realizar el rembolso: {resp.StatusCode} - {errBody}");
@@ -421,7 +377,7 @@ namespace GestorInventario.Application.Services
                 _logger.LogInformation("Refund request JSON: {RequestJson}", requestJson);
 
                 
-                var responseBody = await ExecutePayPalRequestAsync<string>(
+                var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                     HttpMethod.Post,
                     $"v2/payments/captures/{pedido.Pedido.CaptureId}/refund",
                     refundRequest,  
@@ -534,7 +490,7 @@ namespace GestorInventario.Application.Services
         {
           
             var productRequest = BuildProductRequest(productName, productDescription, productType, productCategory);
-            var responseBody = await ExecutePayPalRequestAsync<string>(
+            var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                 HttpMethod.Post,
                 $"v1/catalogs/products/",
                 productRequest,
@@ -566,12 +522,11 @@ namespace GestorInventario.Application.Services
 
         public async Task<string> CreateSubscriptionPlanAsync(string productId, string planName, string description, decimal amount, string currency, int trialDays = 0, decimal trialAmount = 0.00m)
         {
-            System.Threading.Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
-            System.Threading.Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;     
+            SetInvariantCulture();     
             try
             {
                 var planRequest = BuildPaypalPlanRequest(productId, planName, description, amount, currency, trialDays, trialAmount);
-                var responseBody = await ExecutePayPalRequestAsync<string>(
+                var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                     HttpMethod.Post,
                     "v1/billing/plans",
                     planRequest,
@@ -680,7 +635,7 @@ namespace GestorInventario.Application.Services
             try
             {
 
-                var responseBody = await ExecutePayPalRequestAsync<string>(
+                var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                     HttpMethod.Get,
                     $"v1/billing/plans/{id}",
                     async error =>
@@ -715,7 +670,7 @@ namespace GestorInventario.Application.Services
         public async Task<(PaypalProductListResponseDto ProductsResponse, bool HasNextPage)> GetProductsAsync(int page = 1, int pageSize = 10)
         {
      
-            var responseBody = await ExecutePayPalRequestAsync<string>(
+            var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                 HttpMethod.Get,
                 $"v1/catalogs/products?page_size={pageSize}&page={page}",
                 async err =>
@@ -739,7 +694,7 @@ namespace GestorInventario.Application.Services
         {
            
 
-            var responseBody = await ExecutePayPalRequestAsync<string>(
+            var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                 HttpMethod.Get,
                 $"v1/billing/plans?page_size={pageSize}&page={page}",
                 async err =>
@@ -760,7 +715,7 @@ namespace GestorInventario.Application.Services
             {
                 try
                 {
-                    var requestPlanDetails = await ExecutePayPalRequestAsync<string>(
+                    var requestPlanDetails = await _paypal.ExecutePayPalRequestAsync<string>(
                         HttpMethod.Get,
                         $"v1/billing/plans/{plan.Id}",
                         async err =>
@@ -803,7 +758,7 @@ namespace GestorInventario.Application.Services
             }    
             try
             {
-                var productrequest = await ExecutePayPalRequestAsync<string>(
+                var productrequest = await _paypal.ExecutePayPalRequestAsync<string>(
                     HttpMethod.Get,
                     $"v1/catalogs/products/{id}",
                     async err =>
@@ -814,7 +769,7 @@ namespace GestorInventario.Application.Services
              
                 // Crear la solicitud PATCH usando DTOs
                 var patchRequest = BuildEditProductRequest(name, description);
-                var pathrequest = await ExecutePayPalRequestAsync<string>(
+                var pathrequest = await _paypal.ExecutePayPalRequestAsync<string>(
                     HttpMethod.Patch,
                     $"v1/catalogs/products/{id}",
                     patchRequest,
@@ -856,14 +811,11 @@ namespace GestorInventario.Application.Services
         public async Task<string> UpdatePricingPlanAsync(string planId, decimal? trialAmount, decimal regularAmount, string currency)
         {
             SetInvariantCulture();
-            var (clientId, clientSecret) = GetPaypalCredentials();
-            var authToken = await GetAccessTokenAsync(clientId, clientSecret);
-            if (string.IsNullOrEmpty(authToken))
-                throw new Exception("No se pudo obtener el token de autenticación.");
+           
 
             try
             {
-                var responseBody = await ExecutePayPalRequestAsync<string>(
+                var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                     HttpMethod.Get,
                     $"v1/billing/plans/{planId}",
                     async err =>
@@ -879,7 +831,7 @@ namespace GestorInventario.Application.Services
                     throw new PayPalException("No se proporcionaron esquemas de precios válidos para actualizar el plan. Los precios enviados son idénticos a los actuales o no se proporcionaron cambios.");
                 }
                 var planRequest = new UpdatePricingPlanDto { PricingSchemes = pricingUpdates };
-                var updatePlanPricing = await ExecutePayPalRequestAsync<string>(
+                var updatePlanPricing = await _paypal.ExecutePayPalRequestAsync<string>(
                     HttpMethod.Post,
                     $"v1/billing/plans/{planId}/update-pricing-schemes",
                     planRequest,
@@ -901,7 +853,7 @@ namespace GestorInventario.Application.Services
                          }
 
                      });
-                var verifyPlanDetails = await ExecutePayPalRequestAsync<string>(
+                var verifyPlanDetails = await _paypal.ExecutePayPalRequestAsync<string>(
                     HttpMethod.Get,
                     $"v1/billing/plans/{planId}",
                     async err =>
@@ -1013,7 +965,7 @@ namespace GestorInventario.Application.Services
 
             SetInvariantCulture();       
             var subscriptionRequest = BuildSubscriptionRequest(id, returnUrl, cancelUrl, planName);
-            var responseBody = await ExecutePayPalRequestAsync<string>(
+            var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                 HttpMethod.Post,
                 "v1/billing/subscriptions",
                 subscriptionRequest,
@@ -1066,7 +1018,7 @@ namespace GestorInventario.Application.Services
         public async Task<PaypalSubscriptionResponse> ObtenerDetallesSuscripcion(string subscription_id)
         {
            
-            var responseBody = await ExecutePayPalRequestAsync<string>(
+            var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                 HttpMethod.Get,
                 $"v1/billing/subscriptions/{subscription_id}",
                 async err =>
@@ -1086,11 +1038,8 @@ namespace GestorInventario.Application.Services
 
         #region desactivar plan de suscripcion
         public async Task<string> DesactivarPlan(string planId)
-        {
-            var client = _httpClientFactory.CreateClient("PayPal");
-            var (payPalClientId, payPalClientSecret) = GetPaypalCredentials();
-            var accessToken = await GetAccessTokenAsync(payPalClientId, payPalClientSecret);
-            var deactivatePlanRequest = await ExecutePayPalRequestAsync<string>(
+        {                     
+            var deactivatePlanRequest = await _paypal.ExecutePayPalRequestAsync<string>(
                 HttpMethod.Post,
                 $"v1/billing/plans/{planId}/deactivate",
                 async error =>
@@ -1098,7 +1047,7 @@ namespace GestorInventario.Application.Services
                     var errBody = await error.Content.ReadAsStringAsync();
                     throw new InvalidOperationException($"Error al desactivar el plan: {error.StatusCode}- {errBody}");
                 });
-            var planDetailsResponseBody = await ExecutePayPalRequestAsync<string>(
+            var planDetailsResponseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                 HttpMethod.Get,
                 $"v1/billing/plans/{planId}",
                 async error =>
@@ -1121,7 +1070,7 @@ namespace GestorInventario.Application.Services
         #region Activar plan
         public async Task<string> ActivarPlan(string planId)
         {         
-            var activatePlanRequest = await ExecutePayPalRequestAsync<string>(
+            var activatePlanRequest = await _paypal.ExecutePayPalRequestAsync<string>(
                 HttpMethod.Post,
                 $"v1/billing/plans/{planId}/activate",
                 async error =>
@@ -1129,7 +1078,7 @@ namespace GestorInventario.Application.Services
                     var errorBody = await error.Content.ReadAsStringAsync();
                     throw new InvalidOperationException($"Error al activar el plan: {error.StatusCode} - {errorBody}");
                 });
-            var planDetailsResponseBody = await ExecutePayPalRequestAsync<string>(
+            var planDetailsResponseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                 HttpMethod.Get,
                 $"v1/billing/plans/{planId}",
                  async error =>
@@ -1155,11 +1104,11 @@ namespace GestorInventario.Application.Services
             {
                 reason = reason,
             };
-            var response = await ExecutePayPalRequestAsync<string>(
+            var response = await _paypal.ExecutePayPalRequestAsync<string>(
                 HttpMethod.Post,
                 $"v1/billing/subscriptions/{subscription_id}/cancel",
                 subscriptionRequest,
-                async error =>
+               async error =>
                 {
                     var errorBody = await error.Content.ReadAsStringAsync();
                     throw new InvalidOperationException($"Error al cancelar la subscripcion");
@@ -1174,7 +1123,7 @@ namespace GestorInventario.Application.Services
         {
           
             var razon = new { reason = reason };
-            var suspendSubscriptionRequest = await ExecutePayPalRequestAsync<string>(
+            var suspendSubscriptionRequest = await _paypal.ExecutePayPalRequestAsync<string>(
                 HttpMethod.Post,
                 $"v1/billing/subscriptions/{subscription_id}/suspend",
                 razon,
@@ -1184,7 +1133,7 @@ namespace GestorInventario.Application.Services
                     throw new InvalidOperationException($"Error al suspender la subscripcion");
                 });
 
-            var planDetailsResponseBody = await ExecutePayPalRequestAsync<string>(
+            var planDetailsResponseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                 HttpMethod.Get,
                 $"v1/billing/subscriptions/{subscription_id}",
                 async error =>
@@ -1206,7 +1155,7 @@ namespace GestorInventario.Application.Services
         public async Task<string> ActivarSuscripcion(string subscription_id, string reason)
         {
             var razon = new { reason = reason };
-            var activateSubscriptionRequest = await ExecutePayPalRequestAsync<string>(
+            var activateSubscriptionRequest = await _paypal.ExecutePayPalRequestAsync<string>(
                 HttpMethod.Post,
                 $"v1/billing/subscriptions/{subscription_id}/activate",
                 razon,
@@ -1216,7 +1165,7 @@ namespace GestorInventario.Application.Services
                     throw new InvalidOperationException($"Error al activar la subscripcion");
                 });
 
-            var planDetailsResponseBody = await ExecutePayPalRequestAsync<string>(
+            var planDetailsResponseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                 HttpMethod.Get,
                 $"v1/billing/subscriptions/{subscription_id}",
                   async error =>
@@ -1233,80 +1182,7 @@ namespace GestorInventario.Application.Services
             return "Subscripcion activada con éxito";
         }
         #endregion  
-        private async Task<T> ExecutePayPalRequestAsync<T>(
-            HttpMethod method,
-            string endpoint,
-            object? content = null,
-            string? rawJsonBody = null,
-            Func<HttpResponseMessage, Task>? onError = null)
-        {
-            var client = _httpClientFactory.CreateClient("PayPal");
-            var (clientId, clientSecret) = GetPaypalCredentials();
-            var token = await GetAccessTokenAsync(clientId, clientSecret);
-
-            if (string.IsNullOrEmpty(token))
-                throw new InvalidOperationException("No se pudo obtener token de PayPal");
-
-            var request = new HttpRequestMessage(method, endpoint)
-            {
-                Headers = { Authorization = new AuthenticationHeaderValue("Bearer", token) }
-            };
-
-            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-            if (rawJsonBody != null)
-            {
-                request.Content = new StringContent(rawJsonBody, Encoding.UTF8, "application/json");
-            }
-            else if (content != null)
-            {
-                var json = JsonConvert.SerializeObject(content);
-                request.Content = new StringContent(json, Encoding.UTF8, "application/json");
-            }
-            var response = await client.SendAsync(request);
-            var body = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                if (onError != null) await onError(response);
-                throw new HttpRequestException($"PayPal error {response.StatusCode} → {body}");
-            }
-
-            if (typeof(T) == typeof(string))
-                return (T)(object)body;
-
-            var result = JsonConvert.DeserializeObject<T>(body);
-            return result ?? throw new InvalidOperationException("Respuesta deserializada es null");
-        }
-        // 1. Para POST/PATCH con objeto (el más común para creación/actualización)
-        private async Task<T> ExecutePayPalRequestAsync<T>(
-            HttpMethod method,              // POST, PATCH, etc.
-            string endpoint,
-            object content,                 // DTO o anónimo → se serializa
-            Func<HttpResponseMessage, Task>? onError = null)
-        {
-            return await ExecutePayPalRequestAsync<T>(method, endpoint, content, null, onError);
-        }
-
-        // 2. Para POST/PATCH con body JSON crudo (casos raros como "{}" especial)
-        private async Task<T> ExecutePayPalRequestAsync<T>(
-            HttpMethod method,
-            string endpoint,
-            string rawJsonBody,
-            Func<HttpResponseMessage, Task>? onError = null)
-        {
-            return await ExecutePayPalRequestAsync<T>(method, endpoint, null, rawJsonBody, onError);
-        }
-
-        // 3. Para GET / DELETE / HEAD (sin body nunca)
-        private async Task<T> ExecutePayPalRequestAsync<T>(
-            HttpMethod method,              // GET, DELETE, etc.
-            string endpoint,
-            Func<HttpResponseMessage, Task>? onError = null)
-        {
-           
-            return await ExecutePayPalRequestAsync<T>(method, endpoint, null, null, onError);
-        }
+      
         private void SetInvariantCulture()
         {
             System.Threading.Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
