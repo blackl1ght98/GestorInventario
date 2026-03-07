@@ -1,4 +1,7 @@
-﻿document.addEventListener("DOMContentLoaded", function () {
+﻿/**
+ * Script para cambiar el rol de un usuario
+ */
+document.addEventListener("DOMContentLoaded", function () {
     var userId;
 
     // Abrir el modal al hacer clic en "Cambiar Rol"
@@ -36,7 +39,8 @@
                 loadingMessage.classList.add("d-none");
                 if (data.success) {
                     
-                    location.reload(); // Recargar la página para reflejar los cambios
+                    location.reload(); 
+
                 } else {
                     alert(data.errorMessage || "El servidor ha tardado en responder, por favor intenta de nuevo");
                     confirmChangeRoleBtn.disabled = false;

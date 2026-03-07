@@ -1,11 +1,11 @@
-﻿// planes.js
-
-// Mostrar el modal de actualización de precio del plan
+﻿/**
+ * Script para cambiar el precio de un plan de paypal
+ */
 document.querySelectorAll(".update-plan-price-button").forEach(function (button) {
     button.addEventListener("click", function (event) {
         event.preventDefault();
         const planId = button.getAttribute("data-plan-id");
-        const currency = button.getAttribute("data-currency"); // Sin fallback a USD
+        const currency = button.getAttribute("data-currency"); 
         if (!planId) {
             console.error("Error: No se encontró el ID del plan");
             alert("Error: No se pudo obtener el ID del plan.");

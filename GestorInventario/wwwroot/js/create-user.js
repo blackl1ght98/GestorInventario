@@ -1,4 +1,6 @@
-﻿// wwwroot/js/create-user.js
+﻿/**
+ * Script de validacion al crear un usuario
+ */
 document.addEventListener('DOMContentLoaded', function () {
     // Toggle mostrar/ocultar contraseña
     const togglePassword = document.getElementById('togglePassword');

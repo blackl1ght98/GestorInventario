@@ -1,4 +1,8 @@
-﻿document.addEventListener("DOMContentLoaded", function () {
+﻿
+/**
+ * Script para eliminar rembolsos
+ */
+document.addEventListener("DOMContentLoaded", function () {
     let rembolsoId;
     let actionType;
 
