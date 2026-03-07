@@ -1,5 +1,7 @@
-﻿ using GestorInventario.Application.Classes;
-using GestorInventario.Application.DTOs;
+﻿using GestorInventario.Application.Classes;
+using GestorInventario.Application.DTOs.Carrito;
+using GestorInventario.Application.DTOs.Checkout;
+using GestorInventario.Application.DTOs.User;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;

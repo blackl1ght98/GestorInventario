@@ -70,15 +70,28 @@
                                     <a asp-action="DetallesSuscripcion" asp-controller="Paypal" asp-route-id="@user.SubscriptionId" class="btn btn-primary btn-sm" data-bs-toggle="tooltip" title="Ver detalles">
                                         <i class="bi bi-eye nav-icon"></i> Detalles
                                     </a>
-                                    <button class="btn btn-danger btn-sm user-action-button" data-subscription-id="@user.SubscriptionId" data-bs-toggle="tooltip" title="Cancelar suscripción">
-                                        <i class="bi bi-x-circle-fill nav-icon"></i> Cancelar
+                                    <button type="button"
+                                            class="btn btn-sm btn-danger btn-cancel-suscripcion"
+                                            data-id="@user.SubscriptionId"
+                                            data-bs-toggle="tooltip"
+                                            title="Suspender esta suscripción">
+                                        <i class="bi bi-play-fill"></i> Cancelar
                                     </button>
-                                    <button class="btn btn-success btn-sm suspend-action-button" data-subscription-id="@user.SubscriptionId" data-bs-toggle="tooltip" title="Suspender suscripción">
-                                        <i class="bi bi-pause-circle-fill nav-icon"></i> Suspender
+                                    <button type="button"
+                                            class="btn btn-sm btn-warning btn-suspend-suscripcion"
+                                            data-id="@user.SubscriptionId"
+                                            data-bs-toggle="tooltip"
+                                            title="Suspender esta suscripción">
+                                        <i class="bi bi-play-fill"></i> Suspender
                                     </button>
-                                    <button class="btn btn-success btn-sm activate-action-button" data-subscription-id="@user.SubscriptionId" data-bs-toggle="tooltip" title="Activar suscripción">
-                                        <i class="bi bi-check-circle-fill nav-icon"></i> Activar
-                                    </button>
+                                    <!-- Ejemplo dentro de una tabla o card de suscripción -->
+                                   <button type="button" 
+                                    class="btn btn-sm btn-success btn-activar-suscripcion"
+                                    data-id="@user.SubscriptionId"
+                                    data-bs-toggle="tooltip" 
+                                    title="Activar esta suscripción">
+                                <i class="bi bi-play-fill"></i> Activar
+                            </button>
                                 </div>
                             </div>
                         }
@@ -119,25 +132,48 @@
         </nav>
     }
 
-    <!-- Modal -->
-    <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <!-- Modal para Cancelar con Motivo -->
+    <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="confirmModalLabel"><i class="bi bi-exclamation-circle me-2"></i>Confirmar Cancelación</h5>
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="cancelModalLabel"><i class="bi bi-pause-circle me-2"></i>Cancelar Suscripción</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <p id="confirmMessage">¿Estás seguro de que deseas realizar esta acción?</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-toggle="tooltip" title="Cancelar acción"><i class="bi bi-x me-2"></i>Cancelar</button>
-                    <button type="button" class="btn btn-primary" id="confirmActionBtn" data-bs-toggle="tooltip" title="Confirmar acción"><i class="bi bi-check me-2"></i>Confirmar</button>
-                </div>
+                <!-- ¡Aquí empieza el formulario real! -->
+                <form id="suspendForm" asp-controller="Paypal" asp-action="CancelarSuscripcion" method="post">
+                    <div class="modal-body">
+                        <p>Ingresa el motivo para cancelar la suscripción <strong id="cancelSubscriptionIdDisplay"></strong>:</p>
+
+                        <!-- Campo oculto para el ID -->
+                        <input type="hidden" name="Id" id="cancelSubscriptionId" />
+
+                        <div class="mb-3">
+                            <label for="cancelReason" class="form-label">Motivo:</label>
+                            <textarea class="form-control"
+                                      id="cancelReason"
+                                      name="Reason"
+                                      rows="4"
+                                      placeholder="Escribe el motivo aquí (máximo 500 caracteres)"
+                                      maxlength="500"
+                                      required></textarea>
+                            <div class="invalid-feedback">El motivo es requerido.</div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x me-2"></i>Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-success" id="confirmABtn">
+                            <i class="bi bi-check me-2"></i>Cancelar Subscripcion
+                        </button>
+                    </div>
+                </form>
+
             </div>
         </div>
     </div>
-</div>
 <!-- Modal para Suspender con Motivo -->
 <div class="modal fade" id="suspendModal" tabindex="-1" aria-labelledby="suspendModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -146,18 +182,37 @@
                 <h5 class="modal-title" id="suspendModalLabel"><i class="bi bi-pause-circle me-2"></i>Suspender Suscripción</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <p id="suspendMessage">Ingresa el motivo para suspender la suscripción <strong id="suspendSubscriptionId"></strong>:</p>
-                <div class="mb-3">
-                    <label for="suspendReason" class="form-label">Motivo:</label>
-                    <textarea class="form-control" id="suspendReason" rows="4" placeholder="Escribe el motivo aquí (máximo 500 caracteres)" maxlength="500" required></textarea>
-                    <div class="invalid-feedback">El motivo es requerido.</div>
+            <!-- ¡Aquí empieza el formulario real! -->
+            <form id="suspendForm" asp-controller="Paypal" asp-action="SuspenderSuscripcion" method="post">
+                <div class="modal-body">
+                    <p>Ingresa el motivo para suspender la suscripción <strong id="suspendSubscriptionIdDisplay"></strong>:</p>
+
+                    <!-- Campo oculto para el ID -->
+                    <input type="hidden" name="Id" id="suspendSubscriptionId" />
+
+                    <div class="mb-3">
+                        <label for="suspendReason" class="form-label">Motivo:</label>
+                        <textarea class="form-control"
+                                  id="suspendReason"
+                                  name="Reason"
+                                  rows="4"
+                                  placeholder="Escribe el motivo aquí (máximo 500 caracteres)"
+                                  maxlength="500"
+                                  required></textarea>
+                        <div class="invalid-feedback">El motivo es requerido.</div>
+                    </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-bs-toggle="tooltip" title="Cancelar acción"><i class="bi bi-x me-2"></i>Cancelar</button>
-                <button type="button" class="btn btn-success" id="confirmSuspendBtn" data-bs-toggle="tooltip" title="Suspender suscripción"><i class="bi bi-check me-2"></i>Suspender</button>
-            </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success" id="confirmABtn">
+                        <i class="bi bi-check me-2"></i>Suspender
+                    </button>
+                </div>
+            </form>
+          
         </div>
     </div>
 </div>
@@ -166,26 +221,114 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
-                <h5 class="modal-title" id="activateModalLabel"><i class="bi bi-check-circle me-2"></i>Activar Suscripción</h5>
+                <h5 class="modal-title" id="activateModalLabel">
+                    <i class="bi bi-check-circle me-2"></i>Activar Suscripción
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <p id="activateMessage">Ingresa el motivo para activar la suscripción <strong id="activateSubscriptionId"></strong>:</p>
-                <div class="mb-3">
-                    <label for="activateReason" class="form-label">Motivo:</label>
-                    <textarea class="form-control" id="activateReason" rows="4" placeholder="Escribe el motivo aquí (máximo 500 caracteres)" maxlength="500" required></textarea>
-                    <div class="invalid-feedback">El motivo es requerido.</div>
+
+            <!-- ¡Aquí empieza el formulario real! -->
+            <form id="activateForm" asp-controller="Paypal" asp-action="ActivarSuscripcion" method="post">
+                <div class="modal-body">
+                    <p>Ingresa el motivo para activar la suscripción <strong id="activateSubscriptionIdDisplay"></strong>:</p>
+
+                    <!-- Campo oculto para el ID -->
+                    <input type="hidden" name="Id" id="activateSubscriptionId" />
+
+                    <div class="mb-3">
+                        <label for="activateReason" class="form-label">Motivo:</label>
+                        <textarea class="form-control"
+                                  id="activateReason"
+                                  name="Reason"
+                                  rows="4"
+                                  placeholder="Escribe el motivo aquí (máximo 500 caracteres)"
+                                  maxlength="500"
+                                  required></textarea>
+                        <div class="invalid-feedback">El motivo es requerido.</div>
+                    </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-bs-toggle="tooltip" title="Cancelar acción"><i class="bi bi-x me-2"></i>Cancelar</button>
-                <button type="button" class="btn btn-success" id="confirmActivateBtn" data-bs-toggle="tooltip" title="Activar suscripción"><i class="bi bi-check me-2"></i>Activar</button>
-            </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success" id="confirmActivateBtn">
+                        <i class="bi bi-check me-2"></i>Activar
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    <script src="~/js/suscripciones.js" asp-append-version="true"></script>
-  
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function () {
+             document.querySelectorAll('.btn-activar-suscripcion').forEach(btn => {
+                 btn.addEventListener('click', function () {
+                     const subscriptionId = this.getAttribute('data-id');
+
+                     // Rellenar campos
+                     document.getElementById('activateSubscriptionId').value = subscriptionId;
+                     document.getElementById('activateSubscriptionIdDisplay').textContent = subscriptionId;
+
+                     // Limpiar textarea y feedback anterior
+                     const reasonInput = document.getElementById('activateReason');
+                     reasonInput.value = '';
+                     reasonInput.classList.remove('is-invalid');
+
+                     // Abrir modal
+                     const modal = new bootstrap.Modal(document.getElementById('activateModal'));
+                     modal.show();
+                 });
+             });
+         });
+    </script>
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function () {
+             document.querySelectorAll('.btn-suspend-suscripcion').forEach(btn => {
+                 btn.addEventListener('click', function () {
+                     const subscriptionId = this.getAttribute('data-id');
+
+                     // Rellenar campos
+                     document.getElementById('suspendSubscriptionId').value = subscriptionId;
+                     document.getElementById('suspendSubscriptionIdDisplay').textContent = subscriptionId;
+
+                     // Limpiar textarea y feedback anterior
+                     const reasonInput = document.getElementById('suspendReason');
+                     reasonInput.value = '';
+                     reasonInput.classList.remove('is-invalid');
+
+                     // Abrir modal
+                     const modal = new bootstrap.Modal(document.getElementById('suspendModal'));
+                     modal.show();
+                 });
+             });
+         });
+    </script>
+        <script>
+
+            document.addEventListener('DOMContentLoaded', function () {
+                 document.querySelectorAll('.btn-cancel-suscripcion').forEach(btn => {
+                     btn.addEventListener('click', function () {
+                         const subscriptionId = this.getAttribute('data-id');
+
+                         // Rellenar campos
+                         document.getElementById('cancelSubscriptionId').value = subscriptionId;
+                         document.getElementById('cancelSubscriptionIdDisplay').textContent = subscriptionId;
+
+                         // Limpiar textarea y feedback anterior
+                         const reasonInput = document.getElementById('cancelReason');
+                         reasonInput.value = '';
+                         reasonInput.classList.remove('is-invalid');
+
+                         // Abrir modal
+                         const modal = new bootstrap.Modal(document.getElementById('cancelModal'));
+                         modal.show();
+                     });
+                 });
+             });
+        </script>
 }

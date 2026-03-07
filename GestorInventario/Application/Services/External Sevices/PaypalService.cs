@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Application.Classes;
 using GestorInventario.Application.DTOs;
+using GestorInventario.Application.DTOs.Checkout;
 using GestorInventario.Application.DTOs.Response.PayPal;
 using GestorInventario.Application.DTOs.Response_paypal;
 using GestorInventario.Application.DTOs.Response_paypal.GET;

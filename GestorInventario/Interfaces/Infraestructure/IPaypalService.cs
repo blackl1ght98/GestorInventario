@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Application.DTOs;
+using GestorInventario.Application.DTOs.Checkout;
 using GestorInventario.Application.DTOs.Response_paypal.GET;
 using GestorInventario.Application.DTOs.Response_paypal.POST;
 using GestorInventario.enums;

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace GestorInventario.Application.DTOs
+namespace GestorInventario.Application.DTOs.User
 {
     public class InfoUsuarioDto
     {

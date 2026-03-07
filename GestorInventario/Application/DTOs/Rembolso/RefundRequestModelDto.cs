@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.Application.DTOs.Response_paypal
+﻿namespace GestorInventario.Application.DTOs.Rembolso
 {
     public class RefundRequestModelDto
     {

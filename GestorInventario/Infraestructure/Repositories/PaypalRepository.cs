@@ -53,7 +53,7 @@ namespace GestorInventario.Infraestructure.Repositories
         }
         public  IQueryable<UserSubscription> ObtenerSubscripcionesUsuario(int usuarioId)
         {
-            var queryable = _context.UserSubscriptions
+            var queryable = _context.UserSubscriptions.Include(x=>x.Subscription)
                    .Include(x => x.User)
                    .Where(x => x.UserId == usuarioId);
             return queryable;

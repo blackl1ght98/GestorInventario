@@ -46,7 +46,7 @@ namespace GestorInventario.Application.Services.Generic_Services
             }
 
             // Borrar específicamente la cookie de autenticación
-            httpContext.Response.Cookies.Delete(".AspNetCore.Antiforgery.VVHw_PaTSjY");           // por defecto
+            httpContext.Response.Cookies.Delete(".AspNetCore.Antiforgery.VVHw_PaTSjY");          
             httpContext.Response.Cookies.Delete("auth");         // si usas nombre custom
             httpContext.Response.Cookies.Delete("refreshToken");
             httpContext.Response.Cookies.Delete(CookieAuthenticationDefaults.CookiePrefix + "Application");

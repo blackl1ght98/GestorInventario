@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.Application.DTOs
+﻿namespace GestorInventario.Application.DTOs.Checkout
 {
     public class ItemModelDto
     {
