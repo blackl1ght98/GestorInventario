@@ -22,7 +22,25 @@ document.addEventListener("DOMContentLoaded", function () {
         button.addEventListener("click", function (event) {
             //Se evita que se envie al servidor
             event.preventDefault();
-            //Se obtiene el id del usuario y la accion que realizo
+         
+            /**
+             * Se obtiene el id del usuario y la accion que realizo
+             * ¿De dónde sale dataset?
+
+                dataset no es algo que tú declares o definas en ningún sitio.
+                Es una propiedad automática que el navegador añade a todos los elementos HTML (botones, divs, spans, etc.).
+                Esta propiedad es un objeto que contiene todos los atributos data-* del elemento.
+                data-user-id → se convierte en dataset.userId
+                data-user-action → se convierte en dataset.userAction
+
+                Reglas de conversión automática (camelCase)
+                El navegador transforma los nombres de los atributos data-* así:
+
+                data-xxx → dataset.xxx
+                data-algun-nombre-largo → dataset.algunNombreLargo (camelCase: quita guiones y pone mayúscula en la siguiente palabra)
+                data-user-id → dataset.userId (quita el guion y pone I mayúscula)
+                data-user-action → dataset.userAction
+             */
             userId = button.dataset.userId;
             actionType = button.dataset.userAction;
             console.log('User ID:', userId);

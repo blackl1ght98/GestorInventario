@@ -1,8 +1,6 @@
 ﻿using AutoMapper;
-using GestorInventario.Application.DTOs;
 using GestorInventario.Application.DTOs.Response_paypal;
 using GestorInventario.Application.DTOs.Response_paypal.Controller_Paypal_y_payment;
-using GestorInventario.Application.DTOs.Response_paypal.POST;
 using GestorInventario.Application.Exceptions;
 using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application;
@@ -205,26 +203,20 @@ namespace GestorInventario.Infraestructure.Controllers
         [HttpPost]
         public async Task<IActionResult> CrearProductoYPlan(ProductViewModelPaypal model, string monedaSeleccionada)
         {
-            // Cambia la cultura (si realmente lo necesitas, aunque normalmente no es necesario aquí)
+            // Cambia la cultura 
             System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
             System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
 
             var resultadoMonedas = await _policyExecutor.ExecutePolicyAsync(() => _carritoRepository.ObtenerMoneda());
             var monedas = resultadoMonedas?.Data ?? new List<Monedum>(); 
 
-            ViewData["Moneda"] = new SelectList(monedas, "Codigo", "Codigo", monedaSeleccionada);
-
-           
-            model.Categories = _paypalRepository.GetCategoriesFromEnum();
-
-           
+            ViewData["Moneda"] = new SelectList(monedas, "Codigo", "Codigo", monedaSeleccionada);           
+            model.Categories = _paypalRepository.GetCategoriesFromEnum();         
             if (!ModelState.IsValid)
             {
                
                 return View(model);   
-            }
-
-          
+            }          
             try
             {
                 var product = await _paypalService.CreateProductAsync(
@@ -252,13 +244,11 @@ namespace GestorInventario.Infraestructure.Controllers
                     model.HasTrialPeriod ? model.TrialPeriodDays : 0,
                     model.HasTrialPeriod ? model.TrialAmount : 0.00m
                 );
-
                 if (planResponse.Contains("\"error\""))
                 {
                     TempData["ErrorMessage"] = $"Error al crear el plan: {planResponse}";
                     return View(model);
                 }
-
                 return RedirectToAction(nameof(MostrarProductos));
             }
             catch (Exception ex)
@@ -296,11 +286,8 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-               
-            
+
                 var activateResponse = await _paypalService.ActivarPlan(id);
-
-
                 return RedirectToAction(nameof(MostrarPlanes), new { mensaje = activateResponse });
             }
             catch (Exception ex)
@@ -407,7 +394,14 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (string.IsNullOrWhiteSpace(Id))
                 {
                     _logger.LogError("ID de la susbcripcion requerido para poder cancelarla");
-                    return RedirectToAction(nameof(TodasSuscripciones));
+                    if (User.IsInRole("Administrador"))
+                    {
+                        return RedirectToAction(nameof(TodasSuscripciones));
+                    }
+                    else
+                    {
+                        return RedirectToAction(nameof(ObtenerSuscripcionUsuario));
+                    }
                 }
 
                 string result = await _paypalService.CancelarSuscripcion(Id, Reason);
@@ -415,13 +409,27 @@ namespace GestorInventario.Infraestructure.Controllers
                 // Update subscription status using the repository
                 await _paypalRepository.UpdateSubscriptionStatusAsync(Id, "CANCELLED");
 
-                return RedirectToAction(nameof(TodasSuscripciones));
+                if (User.IsInRole("Administrador"))
+                {
+                    return RedirectToAction(nameof(TodasSuscripciones));
+                }
+                else
+                {
+                    return RedirectToAction(nameof(ObtenerSuscripcionUsuario));
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al cancelar suscripción {Id}", Id);
                 TempData["ErrorMessage"] = $"Error al cancelar la suscripción";
-                return RedirectToAction(nameof(TodasSuscripciones)); ;
+                if (User.IsInRole("Administrador"))
+                {
+                    return RedirectToAction(nameof(TodasSuscripciones));
+                }
+                else
+                {
+                    return RedirectToAction(nameof(ObtenerSuscripcionUsuario));
+                }
             }
         }
  
@@ -435,7 +443,14 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (string.IsNullOrWhiteSpace(Id))
                 {
                     _logger.LogError("ID de la susbcripcion requerido para poder suspenderla");
-                    return RedirectToAction(nameof(TodasSuscripciones));
+                    if (User.IsInRole("Administrador"))
+                    {
+                        return RedirectToAction(nameof(TodasSuscripciones));
+                    }
+                    else
+                    {
+                        return RedirectToAction(nameof(ObtenerSuscripcionUsuario));
+                    }
                 }
 
                 if (string.IsNullOrWhiteSpace(Reason))
@@ -446,13 +461,27 @@ namespace GestorInventario.Infraestructure.Controllers
                 // Update subscription status using the repository
                 await _paypalRepository.UpdateSubscriptionStatusAsync(Id, "SUSPENDED");
 
-                return RedirectToAction(nameof(TodasSuscripciones));
+                if (User.IsInRole("Administrador"))
+                {
+                    return RedirectToAction(nameof(TodasSuscripciones));
+                }
+                else
+                {
+                    return RedirectToAction(nameof(ObtenerSuscripcionUsuario));
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al suspender suscripción {Id}", Id);
                 TempData["ErrorMessage"] = $"Error al suspender la suscripción: {ex.Message}";
-                return RedirectToAction(nameof(TodasSuscripciones)); ;
+                if (User.IsInRole("Administrador"))
+                {
+                    return RedirectToAction(nameof(TodasSuscripciones));
+                }
+                else
+                {
+                    return RedirectToAction(nameof(ObtenerSuscripcionUsuario));
+                }
             }
         }
         [HttpPost]
@@ -462,26 +491,45 @@ namespace GestorInventario.Infraestructure.Controllers
             if (string.IsNullOrWhiteSpace(Id))
             {
                 _logger.LogError("ID de la susbcripcion requerido para poder activarla");
-                return RedirectToAction(nameof(TodasSuscripciones));
-            }
-               
-
+                if (User.IsInRole("Administrador"))
+                {
+                    return RedirectToAction(nameof(TodasSuscripciones));
+                }
+                else
+                {
+                    return RedirectToAction(nameof(ObtenerSuscripcionUsuario));
+                }
+            }             
             if (string.IsNullOrWhiteSpace(Reason))
                 Reason = "Activación manual por administrador"; 
-
             try
             {
                 string result = await _paypalService.ActivarSuscripcion(Id, Reason);
                 await _paypalRepository.UpdateSubscriptionStatusAsync(Id, "ACTIVE");
 
                 TempData["SuccessMessage"] = "Suscripción activada correctamente.";
-                return RedirectToAction(nameof(TodasSuscripciones)); 
+                if (User.IsInRole("Administrador"))
+                {
+                    return RedirectToAction(nameof(TodasSuscripciones));
+                }
+                else
+                {
+                    return RedirectToAction(nameof(ObtenerSuscripcionUsuario));
+                }
+               
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al activar suscripción {Id}", Id);
                 TempData["ErrorMessage"] = $"Error al activar la suscripción: {ex.Message}";
-                return RedirectToAction(nameof(TodasSuscripciones)); ;
+                if (User.IsInRole("Administrador"))
+                {
+                    return RedirectToAction(nameof(TodasSuscripciones));
+                }
+                else
+                {
+                    return RedirectToAction(nameof(ObtenerSuscripcionUsuario));
+                }
             }
         }
 
