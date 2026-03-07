@@ -53,14 +53,13 @@
                                     data-user-action="Eliminar">
                                 Eliminar
                             </button>
-                            <form asp-controller="Payment" asp-action="RefundSale" method="post" class="d-inline">
-                                <input type="hidden" name="PedidoId" value="@rembolso.Pedido.Id" />
-                                <input type="hidden" name="Currency" value="@rembolso.Pedido.Currency" />
-                                <button type="submit" class="btn btn-outline-warning btn-sm"
-                                        @(rembolso.Pedido.EstadoPedido == "Reembolsado" ? "disabled" : "")>
-                                    Reembolsar
-                                </button>
-                            </form>
+                            <button type="button"
+                                    class="btn btn-outline-warning btn-sm refund-total-btn"
+                                    data-pedido-id="@rembolso.Pedido.Id"
+                                    data-currency="@rembolso.Pedido.Currency"
+                                    @(rembolso.Pedido.EstadoPedido == "Reembolsado" ? "disabled" : "")>
+                                Reembolsar
+                            </button>
                          
                            
                         </div>
@@ -91,22 +90,32 @@
     }
 </div>
 
+<!-- Modal Rembolso -->
+<div class="modal fade" id="confirmRefundTotalModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title">Confirmar reembolso TOTAL</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
 
-<!-- Modal -->
-<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 1rem;">
-            <div class="modal-header" style="background-color: var(--primary); color: white;">
-                <h5 class="modal-title" id="confirmModalLabel">Confirmación</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
             <div class="modal-body">
-                <p id="confirmMessage">¿Estás seguro de que deseas realizar esta acción?</p>
-                <p id="loadingMessage" class="d-none text-muted">Procesando...</p>
+                <p id="refundText">⚠️ Esta acción reembolsará el pedido completo.</p>
+
+                <!-- Mensaje dinámico -->
+                <div id="refundResult"
+                     class="alert d-none mt-3"
+                     role="alert">
+                </div>
             </div>
+
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="confirmActionBtn">Confirmar</button>
+                <button class="btn btn-secondary" data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+                <button class="btn btn-danger" id="confirmRefundTotalBtn">
+                    Confirmar reembolso
+                </button>
             </div>
         </div>
     </div>
@@ -114,4 +123,5 @@
 
 @section Scripts {
     <script src="~/js/eliminar-rembolso.js" asp-append-version="true"></script>
+    <script src="~/js/rembolso.js" asp-append-version="true"></script>
 }

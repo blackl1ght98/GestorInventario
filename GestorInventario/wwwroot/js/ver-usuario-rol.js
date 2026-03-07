@@ -35,7 +35,7 @@
             .then(data => {
                 loadingMessage.classList.add("d-none");
                 if (data.success) {
-                    //alert(data.message); // Mostrar mensaje de éxito
+                    
                     location.reload(); // Recargar la página para reflejar los cambios
                 } else {
                     alert(data.errorMessage || "El servidor ha tardado en responder, por favor intenta de nuevo");
