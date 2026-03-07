@@ -53,23 +53,3 @@
     </div>
 }
 
-@section Scripts {
-    <script>
-        console.log('Vista Create cargada');
-
-        // Depurar selección de archivo
-        document.getElementById('imagenInput').addEventListener('change', function (e) {
-            console.log('Evento change disparado');
-            try {
-                if (e.target.files.length > 0) {
-                    const file = e.target.files[0];
-                    console.log('Archivo:', file.name, 'Tamaño:', file.size, 'Tipo:', file.type);
-                } else {
-                    console.log('No se seleccionó ningún archivo');
-                }
-            } catch (error) {
-                console.error('Error en evento change:', error);
-            }
-        });
-    </script>
-}

@@ -123,25 +123,7 @@
 }
 
 
-<!-- Modal -->
-<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content rounded-3">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="confirmModalLabel">Confirmación</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p id="confirmMessage">¿Estás seguro de que deseas realizar esta acción?</p>
-                <p id="loadingMessage" style="display: none;">Procesando...</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="confirmActionBtn">Confirmar</button>
-            </div>
-        </div>
-    </div>
-</div>
+
 <!-- Modal Confirmación Agregar Info Envío -->
 <div class="modal fade" id="agregarEnvioModal" tabindex="-1" aria-labelledby="agregarEnvioModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -189,6 +171,7 @@
         </div>
     </div>
 </div>
+
 <!-- Modal Rembolso -->
 <div class="modal fade" id="confirmRefundTotalModal" tabindex="-1">
     <div class="modal-dialog">
@@ -222,29 +205,6 @@
 
 
 @section Scripts{
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            document.querySelectorAll(".activate-action-button").forEach(boton => {
-                boton.addEventListener("click", function () {
-                    document.getElementById("pedidoIdInput").value = this.getAttribute("data-pedido-id");
-                    new bootstrap.Modal(document.getElementById("agregarEnvioModal")).show();
-                });
-            });
-
-            document.getElementById("confirmAgregarEnvioBtn").addEventListener("click", function () {
-                if (!document.getElementById("carrierSelect").value) {
-                    alert("Por favor selecciona un transportista.");
-                    return;
-                }
-                 if (!document.getElementById("barcodeSelect").value) {
-                    alert("Por favor selecciona un tipo de codigo de barras");
-                    return;
-                }
-                document.getElementById("loadingMessageEnvio").style.display = "block";
-                this.disabled = true;
-                document.getElementById("agregarEnvioForm").submit();
-            });
-        });
-    </script>
+    <script src="~/js/agregar-info-envio.js" asp-append-version="true"></script>
     <script src="~/js/rembolso.js" asp-append-version="true"></script>
 }
