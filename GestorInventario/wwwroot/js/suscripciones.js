@@ -212,26 +212,42 @@
             },
             body: JSON.stringify({ id: id, reason: reason })
         })
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
+            .then(async response => {
+                const contentType = response.headers.get('content-type') || '';
+
+                let data = null;
+
+                if (contentType.includes('application/json')) {
+                    try {
+                        data = await response.json();
+                    } catch (jsonErr) {
+                        console.error('Respuesta JSON inválida:', jsonErr);
+                        throw new Error('Respuesta del servidor inválida');
+                    }
+                } else {
+                    const text = await response.text();
+                    console.error('Respuesta no JSON:', text);
+                    throw new Error('Error del servidor: ' + (text || 'sin detalles'));
                 }
-                return response.text().then(text => {
-                    throw new Error(`Error al procesar la solicitud: ${text}`);
-                });
+
+                if (!response.ok) {
+                    const msg = data?.errorMessage || 'Error desconocido del servidor';
+                    throw new Error(msg);
+                }
+
+                return data;
             })
             .then(data => {
                 if (data.success) {
-                    alert(data.message || "Suscripción activada con éxito.");
+                    alert(data.message );
                     window.location.reload();
                 } else {
-                    console.error('Error:', data.errorMessage);
-                    alert(`Error al activar la suscripción: ${data.errorMessage}`);
+                    alert('Error: ' + (data.errorMessage || 'Respuesta inválida'));
                 }
             })
             .catch(error => {
-                console.error('Error al procesar la solicitud:', error);
-                alert(`Error al procesar la solicitud: ${error.message}`);
+                console.error('Error completo:', error);
+                alert(error.message || 'Error de conexión');
             });
     }
 

@@ -351,9 +351,9 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             catch (Exception ex)
             {
-           
-                TempData["ErrorMessage"] = $"Error al iniciar la suscripción: {ex.Message}";
-                return RedirectToAction("Error", "Home");
+                _logger.LogError($"Ocurrio un error con la api de paypa: {ex.Message}");
+                TempData["ErrorMessage"] = $"Error al iniciar la suscripción";
+                return RedirectToAction(nameof(MostrarPlanes));
             }
         }
         public async Task<IActionResult> ConfirmarSuscripcion(string subscription_id, string token, string ba_token)
@@ -400,85 +400,90 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CancelarSuscripcion([FromBody] PaypalRequestDto request)
+        public async Task<IActionResult> CancelarSuscripcion(string Id, string Reason)
         {
             try
             {
-                if (string.IsNullOrEmpty(request?.subscription_id))
+                if (string.IsNullOrWhiteSpace(Id))
                 {
-                    return BadRequest(new { success = false, errorMessage = "El ID de la suscripción es requerido." });
+                    _logger.LogError("ID de la susbcripcion requerido para poder cancelarla");
+                    return RedirectToAction(nameof(TodasSuscripciones));
                 }
 
-                string result = await _paypalService.CancelarSuscripcion(request.subscription_id, "No satisfecho");
+                string result = await _paypalService.CancelarSuscripcion(Id, Reason);
 
                 // Update subscription status using the repository
-                await _paypalRepository.UpdateSubscriptionStatusAsync(request.subscription_id, "CANCELLED");
+                await _paypalRepository.UpdateSubscriptionStatusAsync(Id, "CANCELLED");
 
-                return Ok(new { success = true, message = "Suscripción cancelada con éxito." });
+                return RedirectToAction(nameof(TodasSuscripciones));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al cancelar la suscripción con ID {SubscriptionId}", request?.subscription_id);
-                return StatusCode(500, new { success = false, errorMessage = $"Error al cancelar la suscripción: {ex.Message}" });
+                _logger.LogError(ex, "Error al cancelar suscripción {Id}", Id);
+                TempData["ErrorMessage"] = $"Error al cancelar la suscripción";
+                return RedirectToAction(nameof(TodasSuscripciones)); ;
+            }
+        }
+ 
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SuspenderSuscripcion(string Id, string Reason)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(Id))
+                {
+                    _logger.LogError("ID de la susbcripcion requerido para poder suspenderla");
+                    return RedirectToAction(nameof(TodasSuscripciones));
+                }
+
+                if (string.IsNullOrWhiteSpace(Reason))
+                    Reason = "Suspension manual por administrador";
+
+                string result = await _paypalService.SuspenderSuscripcion(Id, Reason);
+
+                // Update subscription status using the repository
+                await _paypalRepository.UpdateSubscriptionStatusAsync(Id, "SUSPENDED");
+
+                return RedirectToAction(nameof(TodasSuscripciones));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al suspender suscripción {Id}", Id);
+                TempData["ErrorMessage"] = $"Error al suspender la suscripción: {ex.Message}";
+                return RedirectToAction(nameof(TodasSuscripciones)); ;
             }
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SuspenderSuscripcion([FromBody] SuspendSubscriptionRequestDto request)
+        public async Task<IActionResult> ActivarSuscripcion(string Id, string Reason)
         {
+            if (string.IsNullOrWhiteSpace(Id))
+            {
+                _logger.LogError("ID de la susbcripcion requerido para poder activarla");
+                return RedirectToAction(nameof(TodasSuscripciones));
+            }
+               
+
+            if (string.IsNullOrWhiteSpace(Reason))
+                Reason = "Activación manual por administrador"; 
+
             try
             {
-                if (string.IsNullOrEmpty(request?.Id))
-                {
-                    return BadRequest(new { success = false, errorMessage = "El ID de la suscripción es requerido." });
-                }
-                if (string.IsNullOrEmpty(request?.Reason))
-                {
-                    return BadRequest(new { success = false, errorMessage = "El motivo de la suspensión es requerido." });
-                }
+                string result = await _paypalService.ActivarSuscripcion(Id, Reason);
+                await _paypalRepository.UpdateSubscriptionStatusAsync(Id, "ACTIVE");
 
-                string result = await _paypalService.SuspenderSuscripcion(request.Id, request.Reason);
-
-                // Update subscription status using the repository
-                await _paypalRepository.UpdateSubscriptionStatusAsync(request.Id, "SUSPENDED");
-
-                return Ok(new { success = true, message = "Suscripción suspendida con éxito." });
+                TempData["SuccessMessage"] = "Suscripción activada correctamente.";
+                return RedirectToAction(nameof(TodasSuscripciones)); 
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al suspender la suscripción con ID {SubscriptionId}", request?.Id);
-                return StatusCode(500, new { success = false, errorMessage = $"Error al suspender la suscripción: {ex.Message}" });
+                _logger.LogError(ex, "Error al activar suscripción {Id}", Id);
+                TempData["ErrorMessage"] = $"Error al activar la suscripción: {ex.Message}";
+                return RedirectToAction(nameof(TodasSuscripciones)); ;
             }
         }
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ActivarSuscripcion([FromBody] SuspendSubscriptionRequestDto request)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(request?.Id))
-                {
-                    return BadRequest(new { success = false, errorMessage = "El ID de la suscripción es requerido." });
-                }
-                if (string.IsNullOrEmpty(request?.Reason))
-                {
-                    return BadRequest(new { success = false, errorMessage = "El motivo de la activación es requerido." });
-                }
-
-                string result = await _paypalService.ActivarSuscripcion(request.Id, request.Reason);
-
-                // Update subscription status using the repository
-                await _paypalRepository.UpdateSubscriptionStatusAsync(request.Id, "ACTIVE");
-
-                return Ok(new { success = true, message = "Suscripción activada con éxito." });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al activar la suscripción con ID {SubscriptionId}", request?.Id);
-                return StatusCode(500, new { success = false, errorMessage = $"Error al activar la suscripción: {ex.Message}" });
-            }
-        }
-
 
         [HttpPost]
         public async Task<IActionResult> ActualizarPrecioPlan([FromBody] UpdatePlanPriceRequestDto request)

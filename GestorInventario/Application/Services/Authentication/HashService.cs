@@ -1,4 +1,4 @@
-﻿using GestorInventario.Application.Classes;
+﻿using GestorInventario.Application.DTOs.User;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using System.Security.Cryptography;
 

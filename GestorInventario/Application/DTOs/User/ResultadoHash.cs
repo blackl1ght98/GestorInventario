@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.Application.Classes
+﻿namespace GestorInventario.Application.DTOs.User
 {
     public class ResultadoHash
     {

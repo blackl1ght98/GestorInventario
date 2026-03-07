@@ -1,4 +1,4 @@
-﻿using GestorInventario.Application.DTOs.Response_paypal;
+﻿using GestorInventario.Application.DTOs.Rembolso;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
