@@ -133,27 +133,5 @@
 }
 @section Scripts {
 
-        <script>
-
-            document.addEventListener('DOMContentLoaded', function () {
-                 document.querySelectorAll('.btn-cancel-suscripcion').forEach(btn => {
-                     btn.addEventListener('click', function () {
-                         const subscriptionId = this.getAttribute('data-id');
-
-                         // Rellenar campos
-                         document.getElementById('cancelSubscriptionId').value = subscriptionId;
-                         document.getElementById('cancelSubscriptionIdDisplay').textContent = subscriptionId;
-
-                         // Limpiar textarea y feedback anterior
-                         const reasonInput = document.getElementById('cancelReason');
-                         reasonInput.value = '';
-                         reasonInput.classList.remove('is-invalid');
-
-                         // Abrir modal
-                         const modal = new bootstrap.Modal(document.getElementById('cancelModal'));
-                         modal.show();
-                     });
-                 });
-             });
-        </script>
+        <script src="~/js/suscripciones-actions.js" asp-append-version="true"></script>
 }

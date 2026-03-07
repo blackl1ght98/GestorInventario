@@ -22,19 +22,5 @@
 </div>
 
 @section Scripts {
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            var counter = 5;
-            var interval = setInterval(function () {
-                counter--;
-                if (counter >= 0) {
-                    document.getElementById("counter").textContent = counter;
-                }
-                if (counter === 0) {
-                    window.location.href = "/Productos";
-                    clearInterval(interval);
-                }
-            }, 1000);
-        });
-    </script>
+    <script src="~/js/auto-redirect-counter.js" asp-append-version="true"></script>
 }
