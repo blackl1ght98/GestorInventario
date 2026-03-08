@@ -1,126 +1,102 @@
-﻿//Evento que se ejecuta cuando la pagina esta completamente cargada
-document.addEventListener("DOMContentLoaded", function () {
-    // Variable va a ha recibir como dato el userId
-    var userId; 
-    //Variable que va ha recibir la accion ejecutada por el usuario
-    var actionType;
-    //Las acciones que el usuario puede hacer
-    var actionsMap = { 
+﻿
+ document.addEventListener('DOMContentLoaded', () => {
+    const actionsMap = {
         'Alta': 'AltaUsuarioPost',
-        'Baja': 'BajaUsuarioPost',
+        'Baja': 'BajaUsuarioPost'
     };
-    //Se asigna el evento click al boton de baja o alta
-    var actionButtons = document.querySelectorAll(".user-action-button");
-    /*¿Por que forEach en un boton?
-    Porque  actionButtons devuelve un NodeList "lista" y al ser una lista es iterable y como va ha existir tantos botones como usuarios existan pues
-    es nesario recorrerlos para que cada boton tenga su dato especifico, ademas al tratarse de un array de botones se le asigna una funcion anonima con un parametro
-    llamado button que dentro de esta funcion puedes configurar que va a pasar si haces click en esos botones y con asignarlo una vez basta y ya no importa
-    cuantos botones haya que el evento que se ponga se propaga a todos los botones
-    */
-    actionButtons.forEach(function (button) {
-        //Se agrega el evento click a cada boton del nodelist
-        button.addEventListener("click", function (event) {
-            //Se evita que se envie al servidor
-            event.preventDefault();
-         
+
+    // Abrir modal
+    document.querySelectorAll('.user-action-button').forEach(button => {
+        button.addEventListener('click', e => {
+            e.preventDefault();
             /**
-             * Se obtiene el id del usuario y la accion que realizo
-             * ¿De dónde sale dataset?
-
-                dataset no es algo que tú declares o definas en ningún sitio.
-                Es una propiedad automática que el navegador añade a todos los elementos HTML (botones, divs, spans, etc.).
-                Esta propiedad es un objeto que contiene todos los atributos data-* del elemento.
-                data-user-id → se convierte en dataset.userId
-                data-user-action → se convierte en dataset.userAction
-
-                Reglas de conversión automática (camelCase)
-                El navegador transforma los nombres de los atributos data-* así:
-
-                data-xxx → dataset.xxx
-                data-algun-nombre-largo → dataset.algunNombreLargo (camelCase: quita guiones y pone mayúscula en la siguiente palabra)
-                data-user-id → dataset.userId (quita el guion y pone I mayúscula)
-                data-user-action → dataset.userAction
+             * Aqui recuperamos del dataset el userId y la accion que realice el usuario
+             * el navegador realiza una transformacion quitado los - y sustitullendo por . usando
+             * la notacion camelCase
              */
-            userId = button.dataset.userId;
-            actionType = button.dataset.userAction;
-            console.log('User ID:', userId);
-            //La accion se almacena en esta variable y el texto se pasa a minuscula
-            var actionText = actionType.toLowerCase();
-            //Se obtiene el modal
-            var confirmModal = document.getElementById("confirmModal");
-            //Se muestra el modal
-            confirmModal.classList.add("show");
-            confirmModal.style.display = "block";
-            //Se obtiene el mensaje que mostrara el modal
-            var confirmMessage = document.getElementById("confirmMessage");
-            //Se modifica el mensaje que mostrara
-            confirmMessage.textContent = `¿Estás seguro de que deseas dar de ${actionText} al usuario con ID ${userId}?`;
+            const userId = button.dataset.userId;
+            const actionType = button.dataset.userAction;
+
+            if (!userId || !actionType) {
+                console.error('Botón sin data-user-id o data-user-action');
+                return;
+            }
+            //Esta informacion la pasamos al metodo que abrira el modal
+            openConfirmModal(userId, actionType);
         });
     });
-    //Se agrega el evento click al boton de confirmacion del modal
-    var confirmActionBtn = document.getElementById("confirmActionBtn");
-    confirmActionBtn.addEventListener("click", function () {
-        //Si se le hace clic se deshabilita el boton para que no se hagan mas clics
-        confirmActionBtn.disabled = true;
-        //Se modifica el mensaje de carga
-        var loadingMessage = document.getElementById("loadingMessage");
-        loadingMessage.textContent = "Procesando...";
-        //Del array se obtiene la accion escogida por el usuario
-        var action = actionsMap[actionType];
-        if (action) {
-            //Esa accion se pasa al metodo junto al id de usuario
-            cambiarEstadoUsuario(userId, action);
-        } else {
-            //Si se elige una accion no valida se muestra un mensaje de error
-            console.log("Acción no definida");
-            loadingMessage.textContent = "Error: Acción no definida";
-            confirmActionBtn.disabled = false;
-        }
-    });
-    //Funcion que envia al servidor la accion
-    function cambiarEstadoUsuario(id, action) {
-        var loadingMessage = document.getElementById("loadingMessage");
-        var confirmActionBtn = document.getElementById("confirmActionBtn");
+    const openConfirmModal = (userId, actionType) => {
+        const actionText = actionType.toLowerCase(); // Aqui llega "Alta": "Baja"
 
-        // Mostrar mensaje de carga
-        loadingMessage.textContent = "Procesando...";
-        confirmActionBtn.disabled = true; // Deshabilitar el botón mientras se procesa
+        const message = document.getElementById('confirmMessage'); 
+        message.textContent = `¿Estás seguro de que deseas dar de ${actionText} al usuario con ID ${userId}?`; 
 
-        // Enviar datos en formato JSON
-        fetch(`/Admin/${action}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json" // Especificar que los datos son JSON
-            },
-            body: JSON.stringify({ id: id }) // Convertir el objeto a JSON
-        })
-            .then(response => response.json()) // Parsear la respuesta como JSON
-            .then(data => {
-                if (data.success) {
-                    location.reload(); // Recargar la página si la acción fue exitosa
-                } else {
-                    console.log(data.errorMessage);
-                    loadingMessage.textContent = "El servidor ha tardado en responder, por favor intente de nuevo";
-                    confirmActionBtn.disabled = false; // Habilitar el botón si hay error
-                }
-            })
-            .catch(error => {
-                console.error('Error al procesar la solicitud:', error);
-                loadingMessage.textContent = "Error al procesar la solicitud";
-                confirmActionBtn.disabled = false; // Habilitar el botón si hay error
-            });
-    }
+        /** 
+         *  Llegados aqui recuperamos la informacion que le habimos pasado y creamos 2 dataset de forma dinamica para
+         * el boton confirmar y en el guardamos los datos 
+         */
+        const confirmBtn = document.getElementById('confirmActionBtn');
+        confirmBtn.dataset.userId = userId;
+        confirmBtn.dataset.actionType = actionType;
+        
+        const modal = document.getElementById('confirmModal');
+        modal.classList.add('show');
+        modal.style.display = 'block';
+    };
 
+    
 
-    //Se cierra el modal
-    var modalClose = document.querySelector('.modal');
-    //Se agrega el evento click
-    modalClose.addEventListener('click', function (event) {
-        //Si el evento que se produce es el de cierre lo ejecuta
-        if (event.target === modalClose) {
-            var confirmModal = document.getElementById("confirmModal");
-            confirmModal.classList.remove("show");
-            confirmModal.style.display = "none";
-        }
-    });
+    // Obtenemos el boton de confirmacion del modal, y un texto que hemos puesto nostros
+    const confirmBtn = document.getElementById('confirmActionBtn');
+    const loadingMessage = document.getElementById('loadingMessage');
+
+    const resetButton = () => {
+        confirmBtn.innerHTML = 'Confirmar';
+        confirmBtn.disabled = false;
+    };
+
+     // Dentro del DOMContentLoaded
+     confirmBtn.addEventListener('click', async () => {
+         const userId = confirmBtn.dataset.userId;
+         const actionType = confirmBtn.dataset.actionType;
+
+         if (!userId || !actionType) {
+             loadingMessage.textContent = 'Error: Datos no disponibles';
+             resetButton();
+             return;
+         }
+
+         // Preparar UI antes de la petición
+         confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Procesando...';
+         confirmBtn.disabled = true;
+         loadingMessage.textContent = 'Procesando...';
+
+         const action = actionsMap[actionType];
+         if (!action) {
+             loadingMessage.textContent = 'Error: Acción no definida';
+             resetButton();
+             return;
+         }
+
+         try {
+             const response = await fetch(`/Admin/${action}`, {
+                 method: 'POST',
+                 headers: { 'Content-Type': 'application/json' },
+                 body: JSON.stringify({ id: userId })
+             });
+
+             const data = await response.json();
+
+             if (data.success) {
+                 location.reload();
+             } else {
+                 loadingMessage.textContent = data.errorMessage || 'El servidor tardó en responder';
+                 resetButton();
+             }
+         } catch (error) {
+             console.error('Error:', error);
+             loadingMessage.textContent = 'Error al procesar la solicitud';
+             resetButton();
+         }
+     });
 });

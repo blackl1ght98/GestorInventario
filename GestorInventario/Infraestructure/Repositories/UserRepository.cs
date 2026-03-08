@@ -19,7 +19,7 @@ namespace GestorInventario.Infraestructure.Repositories
         }
         public async Task<OperationResult<Usuario>> ObtenerUsuarioPorId(int id)
         {
-            var usuario = await _context.Usuarios
+            var usuario = await _context.Usuarios.AsTracking()
                 .Include(x => x.IdRolNavigation)
                 .FirstOrDefaultAsync(x => x.Id == id);
             if (usuario == null)

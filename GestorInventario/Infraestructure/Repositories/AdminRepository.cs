@@ -253,36 +253,38 @@ namespace GestorInventario.Infraestructure.Repositories
             }
            
         }
-              
-        public async Task<OperationResult<string>> ActualizarRolUsuario(int usuarioId, int rolId)
+
+        public async Task<OperationResult<Usuario>> ActualizarRolUsuario(int usuarioId, int rolId)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var usuario = await _userRepository.ObtenerUsuarioPorId(usuarioId); ;
+                var usuario = await _userRepository.ObtenerUsuarioPorId(usuarioId);
+               // var usuario = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == usuarioId);
                 if (usuario is null || usuario.Data is null)
                 {
-                    return OperationResult<string>.Fail("Usuario no encontrado");
+                    return OperationResult<Usuario>.Fail("Usuario no encontrado");
                 }
                 var rol = await _context.Roles.FindAsync(rolId);
                 if (rol == null)
                 {
-                    return OperationResult<string>.Fail("Rol no encontrado");
+                    return OperationResult<Usuario>.Fail("Rol no encontrado");
                 }
 
                 usuario.Data.IdRol = rolId;
                 await _context.UpdateEntityAsync(usuario.Data);
                 await transaction.CommitAsync();
-                return OperationResult<string>.Ok();
+                return OperationResult<Usuario>.Ok("",usuario.Data);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 _logger.LogError(ex, "Ocurrio un error inesperado al intentar actualizar el rol");
-               
+
                 await transaction.RollbackAsync();
-                return OperationResult<string>.Fail("Ocurrio un error al actualizar el usuario, intentelo de nuevo mas tarde si el error persiste contacte con el administrador");
-            }                       
+                return OperationResult<Usuario>.Fail("Ocurrio un error al actualizar el usuario, intentelo de nuevo mas tarde si el error persiste contacte con el administrador");
+            }
         }
-      
+       
 
     }
        

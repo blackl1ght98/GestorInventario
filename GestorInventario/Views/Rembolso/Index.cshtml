@@ -48,11 +48,11 @@
                         <div class="d-flex flex-wrap gap-2 justify-content-center">
 
 
-                            <button class="user-action-button"
-                                    data-rembolso-id="@rembolso.Id"
-                                    data-user-action="Eliminar">
-                                Eliminar
-                            </button>
+                          <button class="user-action-button"
+        data-rembolso-id="@rembolso.Id"
+        data-user-action="Eliminar">
+    Eliminar
+</button>
                             <button type="button"
                                     class="btn btn-outline-warning btn-sm refund-total-btn"
                                     data-pedido-id="@rembolso.Pedido.Id"
@@ -120,7 +120,25 @@
         </div>
     </div>
 </div>
-
+<!-- Modal genérico de confirmación (igual que en usuarios) -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 1rem;">
+            <div class="modal-header" style="background-color: var(--primary); color: white;">
+                <h5 class="modal-title" id="confirmModalLabel">Confirmación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">¿Estás seguro de que deseas realizar esta acción?</p>
+                <p id="loadingMessage" class="d-none text-muted">Procesando...</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmActionBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
 @section Scripts {
     <script src="~/js/eliminar-rembolso.js" asp-append-version="true"></script>
     <script src="~/js/rembolso.js" asp-append-version="true"></script>

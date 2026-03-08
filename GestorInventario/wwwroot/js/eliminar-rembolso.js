@@ -1,95 +1,111 @@
 ﻿
-/**
- * Script para eliminar rembolsos
- */
-document.addEventListener("DOMContentLoaded", function () {
-    let rembolsoId;
-    let actionType;
-
+document.addEventListener('DOMContentLoaded', () => {
     const actionsMap = {
-        "Eliminar": "EliminarRembolso"
+        'Eliminar': 'EliminarRembolso'
     };
 
-    const actionButtons = document.querySelectorAll(".user-action-button");
+    const openConfirmModal = (rembolsoId, actionType) => {
+        const actionText = actionType.toLowerCase();
+        document.getElementById('confirmMessage').textContent =
+            `¿Estás seguro de que deseas ${actionText} el reembolso con ID ${rembolsoId}?`;
 
-    actionButtons.forEach(function (button) {
-        button.addEventListener("click", function (event) {
-            event.preventDefault();
+        const modal = document.getElementById('confirmModal');
+        modal.classList.add('show');
+        modal.style.display = 'block';
 
-            // obtener datos del botón
-            rembolsoId = button.dataset.rembolsoId;
-            actionType = button.dataset.userAction;
+        // Resetear loading
+        const loading = document.getElementById('loadingMessage');
+        loading.classList.add('d-none');
+        loading.textContent = '';
 
-            console.log("Rembolso ID:", rembolsoId, "Acción:", actionType);
+        // Guardar datos en el botón Confirmar ← ESTO FALTABA
+        const confirmBtn = document.getElementById('confirmActionBtn');
+        confirmBtn.dataset.rembolsoId = rembolsoId;
+        confirmBtn.dataset.userAction = actionType;
+    };
 
-            // abrir modal
-            const confirmModal = document.getElementById("confirmModal");
-            confirmModal.classList.add("show");
-            confirmModal.style.display = "block";
-
-            // actualizar mensaje
-            const confirmMessage = document.getElementById("confirmMessage");
-            confirmMessage.textContent = `¿Estás seguro de que deseas ${actionType.toLowerCase()} el reembolso con ID ${rembolsoId}?`;
-
-            // resetear loading message
-            const loadingMessage = document.getElementById("loadingMessage");
-            loadingMessage.classList.add("d-none");
-            loadingMessage.textContent = "";
+    document.querySelectorAll('.user-action-button').forEach(button => {
+        button.addEventListener('click', e => {
+            e.preventDefault();
+            const rembolsoId = button.dataset.rembolsoId;
+            const actionType = button.dataset.userAction;
+            if (!rembolsoId || !actionType) {
+                console.error('Botón sin data-rembolso-id o data-user-action');
+                return;
+            }
+            openConfirmModal(rembolsoId, actionType);
         });
     });
 
-    const confirmActionBtn = document.getElementById("confirmActionBtn");
-    confirmActionBtn.addEventListener("click", function () {
-        confirmActionBtn.disabled = true;
+    document.getElementById('confirmActionBtn').addEventListener('click', async () => {
+        const btn = document.getElementById('confirmActionBtn');
+        const loading = document.getElementById('loadingMessage');
 
-        const loadingMessage = document.getElementById("loadingMessage");
-        loadingMessage.classList.remove("d-none");
-        loadingMessage.textContent = "Procesando...";
+        btn.disabled = true;
+        loading.classList.remove('d-none');
+        loading.textContent = 'Procesando...';
+
+        const rembolsoId = btn.dataset.rembolsoId;
+        const actionType = btn.dataset.userAction;
+
+        if (!rembolsoId || !actionType) {
+            loading.textContent = 'Error: Datos no disponibles';
+            btn.disabled = false;
+            return;
+        }
 
         const action = actionsMap[actionType];
-        if (action) {
-            cambiarEstadoUsuario(rembolsoId, action);
-        } else {
-            console.error("Acción no definida");
-            loadingMessage.textContent = "Error: Acción no definida";
-            confirmActionBtn.disabled = false;
+        if (!action) {
+            loading.textContent = 'Error: Acción no definida';
+            btn.disabled = false;
+            return;
+        }
+
+        try {
+            const response = await fetch(`/Rembolso/${action}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: rembolsoId })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                location.reload();
+            } else {
+                loading.textContent = data.errorMessage || 'El servidor tardó en responder';
+                btn.disabled = false;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            loading.textContent = 'Error al procesar la solicitud';
+            btn.disabled = false;
         }
     });
 
-    function cambiarEstadoUsuario(id, action) {
-        const loadingMessage = document.getElementById("loadingMessage");
-        const confirmActionBtn = document.getElementById("confirmActionBtn");
-
-        fetch(`/Rembolso/${action}`, {
-            method: "DELETE",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ id: id })
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                } else {
-                    console.error(data.errorMessage);
-                    loadingMessage.textContent = "El servidor ha tardado en responder, por favor intente de nuevo";
-                    confirmActionBtn.disabled = false;
-                }
-            })
-            .catch(error => {
-                console.error("Error al procesar la solicitud:", error);
-                loadingMessage.textContent = "Error al procesar la solicitud";
-                confirmActionBtn.disabled = false;
-            });
-    }
-
-    // cerrar modal al hacer clic fuera
-    const modal = document.querySelector(".modal");
-    modal.addEventListener("click", function (event) {
-        if (event.target === modal) {
-            modal.classList.remove("show");
-            modal.style.display = "none";
+    document.querySelector('.modal').addEventListener('click', e => {
+        const modal = document.getElementById('confirmModal');
+        if (e.target === modal) {
+            modal.classList.remove('show');
+            modal.style.display = 'none';
+            const btn = document.getElementById('confirmActionBtn');
+            btn.disabled = false;
+            btn.innerHTML = 'Confirmar';
+            document.getElementById('loadingMessage').classList.add('d-none');
+            document.getElementById('loadingMessage').textContent = '';
         }
+    });
+    // Al final del DOMContentLoaded
+    document.querySelector('#confirmModal .btn-outline-secondary').addEventListener('click', () => {
+        const modal = document.getElementById('confirmModal');
+        modal.classList.remove('show');
+        modal.style.display = 'none';
+
+        // Reset completo
+        const btn = document.getElementById('confirmActionBtn');
+        btn.disabled = false;
+        btn.innerHTML = 'Confirmar';
+        document.getElementById('loadingMessage').classList.add('d-none');
+        document.getElementById('loadingMessage').textContent = '';
     });
 });
