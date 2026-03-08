@@ -55,7 +55,7 @@ namespace PruebasUnitarias
                 await PerformSuccessfulLoginAsync();
                 await _page.GotoAsync("https://localhost:7057/Proveedor/Create");
                 Console.WriteLine("Rellenando formulario");
-                await _page.FillAsync("#NombreProveedor", "Provedor Test");
+                await _page.FillAsync("#NombreProveedor", "Provedor Test 10");
                 await _page.FillAsync("#Contacto", "provedortest@gmail.com");
                 await _page.FillAsync("#Direccion", "direccion proveedor test");
                 await _page.Locator("#IdUsuario").SelectOptionAsync("Rosa perez lopez");
@@ -79,6 +79,86 @@ namespace PruebasUnitarias
             }
             
 
+        }
+        [Fact]
+        public async Task Crear_Mismo_Proveedor_Test()
+        {
+            try
+            {
+                await PerformSuccessfulLoginAsync();
+                await _page.GotoAsync("https://localhost:7057/Proveedor/Create");
+                Console.WriteLine("Rellenando formulario");
+                await _page.FillAsync("#NombreProveedor", "Provedor Test 10");
+                await _page.FillAsync("#Contacto", "provedortest@gmail.com");
+                await _page.FillAsync("#Direccion", "direccion proveedor test");
+                await _page.Locator("#IdUsuario").SelectOptionAsync("Rosa perez lopez");
+                await _page.ClickAsync("button[type='submit']");
+                await _page.WaitForURLAsync("**/Proveedor**", new PageWaitForURLOptions
+                {
+                    Timeout = 15000,
+
+                });
+                // 1. No debería haber mensaje de error visible
+                await Expect(_page.Locator(".alert,.alert-warning"))
+                    .ToBeVisibleAsync(new() { Timeout = 8000 });
+                
+
+               
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Excepción: {ex.Message}");
+                await _page.ScreenshotAsync(new PageScreenshotOptions { Path = "error-crear-provedor.png", FullPage = true });
+                Assert.Fail(ex.Message);
+            }
+
+
+        }
+        [Fact]
+        public async Task Crear_Proveedor_Campos_Vacios_Test()
+        {
+            try
+            {
+                await PerformSuccessfulLoginAsync();
+                await _page.GotoAsync("https://localhost:7057/Proveedor/Create");
+
+                Console.WriteLine("Rellenando formulario");
+                await _page.FillAsync("#NombreProveedor", "");
+                await _page.FillAsync("#Contacto", "");
+                await _page.FillAsync("#Direccion", "");
+                await _page.Locator("#IdUsuario").SelectOptionAsync(""); // Deja vacío para forzar error si es required
+
+                Console.WriteLine("Esperando botón de submit");
+                await _page.WaitForSelectorAsync("button:has-text('Crear proveedor')", new() { State = WaitForSelectorState.Visible });
+
+                Console.WriteLine("Haciendo clic en Crear proveedor");
+                await _page.ClickAsync("button:has-text('Crear proveedor')");
+
+                // Espera recarga o actualización
+                await _page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
+
+                // Verifica errores de validación
+                await Expect(_page.Locator("#NombreProveedor ~ span.text-danger"))
+                    .ToContainTextAsync("El nombre del proveedor es requerido", new() { Timeout = 10000 });
+
+                await Expect(_page.Locator("#Contacto ~ span.text-danger"))
+                    .ToContainTextAsync("El contacto del proveedor es requerido", new() { Timeout = 10000 });
+
+                await Expect(_page.Locator("#Direccion ~ span.text-danger"))
+                    .ToContainTextAsync("La direccion del proveedor es requerida", new() { Timeout = 10000 });
+
+                // Opcional: verifica que el formulario sigue visible
+                await Expect(_page.Locator("h1:has-text('Crear Proveedor')"))
+                    .ToBeVisibleAsync(new() { Timeout = 8000 });
+
+                Console.WriteLine("✅ Validaciones de campos vacíos detectadas correctamente");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Excepción: {ex.Message}");
+                await _page.ScreenshotAsync(new PageScreenshotOptions { Path = "error-crear-proveedor.png", FullPage = true });
+                Assert.Fail(ex.Message);
+            }
         }
         [Fact]
         public async Task Eliminar_Proveedor_Test()
@@ -142,6 +222,44 @@ namespace PruebasUnitarias
             }
 
 
+        }
+        [Fact]
+        public async Task Editar_Proveedor_Campos_Vacios_Test()
+        {
+            try
+            {
+                await PerformSuccessfulLoginAsync();
+                int id = 28;
+                await _page.GotoAsync($"https://localhost:7057/Proveedor/Edit/{id}");
+
+                Console.WriteLine("Rellenando formulario");
+                await _page.FillAsync("#NombreProveedor", "");
+                await _page.FillAsync("#Contacto", ""); 
+                await _page.FillAsync("#Direccion", "");
+                await _page.Locator("#IdUsuario").SelectOptionAsync("Rosa perez lopez");
+
+                Console.WriteLine("Enviando formulario");
+                await _page.ClickAsync("button[type='submit']");
+
+                // Espera a que la página se recargue (POST devuelve la misma vista con errores)
+                await _page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
+
+                // Verifica que aparece el mensaje de error específico del campo Contacto
+                await Expect(_page.Locator("#Contacto ~ span.text-danger"))
+                    .ToContainTextAsync("El contacto del proveedor es requerido", new() { Timeout = 10000 });
+                await Expect(_page.Locator("#NombreProveedor ~ span.text-danger"))
+                .ToContainTextAsync("El nombre del proveedor es requerido", new() { Timeout = 10000 });
+                await Expect(_page.Locator("#Direccion ~ span.text-danger"))
+               .ToContainTextAsync("La direccion del proveedor es requerida", new() { Timeout = 10000 });
+                // Opcional: verifica que el formulario sigue visible (no redirigió)
+                await Expect(_page.Locator("h2")).ToContainTextAsync("Editar Producto");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Excepción: {ex.Message}");
+                await _page.ScreenshotAsync(new PageScreenshotOptions { Path = "error-editar-proveedor.png", FullPage = true });
+                Assert.Fail(ex.Message);
+            }
         }
         private async Task PerformSuccessfulLoginAsync()
         {
