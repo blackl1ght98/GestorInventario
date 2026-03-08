@@ -233,28 +233,51 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
+
+                // Validación del modelo (opcional, pero recomendado)
+                if (!ModelState.IsValid)
+                {
+                    
+                    model.Usuarios = new SelectList(
+                        await _policyExecutor.ExecutePolicyAsync(() => _userRepository.ObtenerUsuariosAsync()),
+                        "Id",
+                        "NombreCompleto",
+                        model.IdUsuario
+                    );
+
+                    return View(model);  
+                }
+
                 var success = await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.EditarProveedor(model, Id));
+
                 if (success.Success)
                 {
-                    return RedirectToAction("Index");
+                    TempData["SuccessMessage"] = "Proveedor editado correctamente";
+                    return RedirectToAction(nameof(Index));
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = success.Message;
+                    TempData["ErrorMessage"] = success.Message ?? "Error al editar el proveedor";
+
+                    // Recargar SelectList para mostrarlo en caso de error
+                    model.Usuarios = new SelectList(
+                        await _policyExecutor.ExecutePolicyAsync(() => _userRepository.ObtenerUsuariosAsync()),
+                        "Id",
+                        "NombreCompleto",
+                        model.IdUsuario
+                    );
+
+                    return View(model); 
                 }
-
-                return RedirectToAction("Index");
-
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
+                TempData["ConectionError"] = "El servidor tardó mucho en responder, inténtelo de nuevo más tarde";
                 _logger.LogError(ex, "Error al editar el proveedor");
                 return RedirectToAction("Error", "Home");
             }
+        }
 
-        }       
-       
 
 
     }
