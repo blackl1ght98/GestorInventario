@@ -15,7 +15,10 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<OperationResult<string>> EliminarUsuario(int id);
         Task<OperationResult<string>> BajaUsuario(int id);
         Task<OperationResult<string>> AltaUsuario(int id);
-        Task<OperationResult<string>> ActualizarRolUsuario(int usuarioId, int rolId); 
-     
+        Task<OperationResult<Usuario>> ActualizarRolUsuario(int usuarioId, int rolId);
+
+
+
+
     }
 }
