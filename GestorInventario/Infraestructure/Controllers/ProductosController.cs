@@ -315,31 +315,25 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-               
-
-                        if (!(_current.IsAuthenticated()))
-                        {
-                            return RedirectToAction("Login", "Auth");
-                        }
-                        var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                        int usuarioId;
-                        if (int.TryParse(existeUsuario, out usuarioId))
-                        {
-
-                            var success= await _policyExecutor.ExecutePolicyAsync(()=> _productoRepository.EditarProducto(model, usuarioId))  ;
-                            if (success.Success)
-                            {
-                                return RedirectToAction(nameof(Index));
-                            }
-                            else
-                            {
-                                TempData["ErrorMessage"] = success.Message;
-                            }
-
-                           
-                        }                                       
-                   return RedirectToAction("Index");
-                
+                if (!(_current.IsAuthenticated()))
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
+                if (ModelState.IsValid)
+                {
+                    int usuarioId = _current.GetCurrentUserId();
+                    var success = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.EditarProducto(model, usuarioId));
+                    if (success.Success)
+                    {
+                        return RedirectToAction(nameof(Index));
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = success.Message;
+                    }
+                    return RedirectToAction("Index");
+                }
+                return View(nameof(Edit));
             
             }
             catch (Exception ex)
@@ -361,10 +355,9 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return RedirectToAction("Login", "Auth");
                 }
-                var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int usuarioId;
-                if (int.TryParse(existeUsuario, out usuarioId))
-                {
+              
+                int usuarioId=_current.GetCurrentUserId();
+               
                     var success= await _policyExecutor.ExecutePolicyAsync(()=> _productoRepository.AgregarProductoAlCarrito(idProducto, cantidad, usuarioId)) ;
                     if (success.Success) 
                     {
@@ -375,7 +368,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     {
                         TempData["ErrorMessage"] = success.Message;
                     }
-                }
+                
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
