@@ -24,7 +24,7 @@
     </dl>
 
     <form asp-action="DeleteConfirmedHistorial" method="post">
-
+        @Html.AntiForgeryToken()
         <input type="hidden" asp-for="@Model.Id" />
         @if (TempData["ErrorMessage"] != null)
         {

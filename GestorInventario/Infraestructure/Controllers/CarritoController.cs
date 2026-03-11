@@ -88,6 +88,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
         //Metodo que realiza el pago
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Checkout(string monedaSeleccionada)
         {
                //Necesario para que paypal entienda el precio
@@ -124,6 +125,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         //Metodo para incrementar  productos
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> Incrementar(int id)
         {
             if (!(_currentUserAccessor.IsAuthenticated()))
@@ -144,6 +146,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         //Metodo para decrementar producto
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> Decrementar(int id)
         {
             if (!(_currentUserAccessor.IsAuthenticated()))
@@ -165,6 +168,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
        //Metodo para eliminar un producto
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> EliminarProductoCarrito(int id)
         {
             try

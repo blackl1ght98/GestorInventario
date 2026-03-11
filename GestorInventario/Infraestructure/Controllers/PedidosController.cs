@@ -120,6 +120,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
         [Authorize]
         [HttpPost, ActionName("DeleteConfirmed")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int Id)
         {
             try
@@ -179,6 +180,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         [Authorize]
         [HttpPost, ActionName("DeleteConfirmedHistorial")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmedHistorial(int Id)
         {
             try
@@ -232,6 +234,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         [Authorize]
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(EditPedidoViewModel model)
         {
            
@@ -393,6 +396,7 @@ namespace GestorInventario.Infraestructure.Controllers
         
         [Authorize]
         [HttpPost, ActionName("DeleteAllHistorial")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteAllHistorial()
         {
             try
@@ -487,6 +491,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         [Authorize]
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AgregarInfoEnvio(int pedidoId, Carrier carrier, BarcodeType barcode)
         {
             var pedido = await _pedidoRepository.ObtenerPedidoPorId(pedidoId);

@@ -41,7 +41,7 @@
     </dl>
   
     <form asp-action="DeleteConfirmed" method="post">
-       
+       @Html.AntiForgeryToken()
         <input type="hidden" asp-for="@Model.Id" />
        
         <input type="submit" value="Eliminar" class="btn btn-danger" />

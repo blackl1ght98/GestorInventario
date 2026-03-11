@@ -32,6 +32,7 @@
         @if (User.IsInRole("Administrador"))
         {
             <form asp-action="DeleteAllHistorial" asp-controller="Productos" method="post">
+                @Html.AntiForgeryToken()
                 <button type="submit" class="btn btn-danger" data-bs-toggle="tooltip" title="Eliminar todo el historial" onclick="return confirm('¿Estás seguro de que quieres eliminar todo el historial? Esta acción no se puede deshacer.');">
                     <i class="bi bi-trash nav-icon"></i> Eliminar Todo
                 </button>

@@ -137,7 +137,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
            
         }
-        //Metodo que obtiene la informacion necesaria para crear un pedido
+    
         public async Task<IActionResult> Create()
         {
             try
@@ -170,7 +170,8 @@ namespace GestorInventario.Infraestructure.Controllers
 
         }
        //Metodo que crea el producto
-        [HttpPost]      
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ProductosViewModel model)
         {
             try
@@ -232,7 +233,8 @@ namespace GestorInventario.Infraestructure.Controllers
 
         }
         //Metodo que elimina el producto
-        [HttpPost, ActionName("DeleteConfirmed")]  
+        [HttpPost, ActionName("DeleteConfirmed")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int Id)
         {
             try
@@ -308,12 +310,12 @@ namespace GestorInventario.Infraestructure.Controllers
 
         //Metodo encargado de editar el producto
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(ProductosViewModel model)
         {
             try
             {
-                if (ModelState.IsValid)
-                {
+               
 
                         if (!(_current.IsAuthenticated()))
                         {
@@ -336,9 +338,9 @@ namespace GestorInventario.Infraestructure.Controllers
 
                            
                         }                                       
-                    return RedirectToAction("Index");
-                }
-                return View(model);
+                   return RedirectToAction("Index");
+                
+            
             }
             catch (Exception ex)
             {
@@ -350,6 +352,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         //Metodo que agrega el producto al carrito
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AgregarAlCarrito(int idProducto, int cantidad)
         {
             try
@@ -503,6 +506,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         //Metodo que elimina el historial
         [HttpPost, ActionName("DeleteConfirmedHistorial")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmedHistorial(int Id)
         {
             try
@@ -540,6 +544,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         //Metodo que elimina todo el historial
         [HttpPost, ActionName("DeleteAllHistorial")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteAllHistorial()
         {
             try

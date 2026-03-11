@@ -94,6 +94,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         //Metodo que crea el proveedor
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ProveedorViewModel model)
         {
             try
@@ -162,6 +163,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
         //Metodo que elimina el proveedor
         [HttpPost, ActionName("DeleteConfirmed")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int Id)
         {
             try
@@ -225,6 +227,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         //Metodo encargado de editar el proveedor
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(ProveedorViewModel model, int Id)
         {
             try

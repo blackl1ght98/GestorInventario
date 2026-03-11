@@ -30,6 +30,7 @@
 
                     <!-- Formulario de Checkout -->
                     <form asp-action="Checkout" method="post" class="mb-4 text-center">
+                        @Html.AntiForgeryToken();
                         <div class="input-group w-auto mx-auto" style="max-width: 400px;">
                             <span class="input-group-text input-group-text-custom">
                                 <i class="bi bi-currency-exchange nav-icon currency-icon-custom"></i>
@@ -94,11 +95,13 @@
                                             <!-- Contador de cantidad -->
                                             <div class="d-flex justify-content-center align-items-center gap-2 mb-3">
                                                 <form asp-action="Decrementar" method="post">
+                                                    @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@item.Id" />
                                                     <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-dash"></i></button>
                                                 </form>
                                                 <span class="fw-bold">@item.Cantidad</span>
                                                 <form asp-action="Incrementar" method="post">
+                                                    @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@item.Id" />
                                                     <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i></button>
                                                 </form>
@@ -107,6 +110,7 @@
                                             <!-- Botón de eliminar -->
                                             <div class="mt-auto">
                                                 <form asp-action="EliminarProductoCarrito" asp-asp-controller="Carrito" method="post">
+                                                    @Html.AntiForgeryToken()
                                                     <input type="hidden" asp-for="@item.Id" name="id" />
                                                     <button type="submit" class="btn btn-danger w-100"><i class="bi bi-trash me-2"></i>Eliminar</button>
                                                 </form>

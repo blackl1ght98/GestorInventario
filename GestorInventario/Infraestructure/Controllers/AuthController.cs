@@ -49,6 +49,7 @@ namespace GestorInventario.Infraestructure.Controllers
       
         [AllowAnonymous]
         [HttpPost]
+       
         public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid)
@@ -211,6 +212,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
         [AllowAnonymous]
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> RestorePasswordUser(RestorePasswordViewModel model)
         {
             if (!ModelState.IsValid)
@@ -266,6 +268,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         [AllowAnonymous]
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ResetPasswordOlvidada(string email)
         {
             try
@@ -294,6 +297,7 @@ namespace GestorInventario.Infraestructure.Controllers
             return View();
         }
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangePassword(string passwordAnterior, string passwordActual)
         {
 
