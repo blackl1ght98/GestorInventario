@@ -18,7 +18,7 @@ namespace GestorInventario.ViewModels.product
         public string? Imagen { get; set; }
         [PesoArchivoValidacion(5)]
         [TipoArchivoValidacion(GrupoTipoArchivo.Imagen)]
-        [Required(ErrorMessage ="La imagen del producto es requerida")]
+        
         public IFormFile? ArchivoImagen { get; set; }
         [Required(ErrorMessage ="El precio del producto es requerido")]
         public decimal Precio { get; set; }
