@@ -60,11 +60,20 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.disabled = false;
             return;
         }
-
+        const tokenElement = document.querySelector('meta[name="csrf-token"]');
+        if (!tokenElement) {
+            console.error("Error: No se encontró el token CSRF");
+            alert("Error: No se pudo encontrar el token de seguridad.");
+            return Promise.reject(new Error("Token CSRF no encontrado"));
+        }
+        const token = tokenElement.getAttribute("content");
         try {
             const response = await fetch(`/Rembolso/${action}`, {
                 method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
                 body: JSON.stringify({ id: rembolsoId })
             });
 

@@ -49,12 +49,19 @@
 
         // Combinar motivo (usar el texto de "Otro" si aplica)
         const finalReason = refundReason === 'Otro' ? otherReason : refundReason;
-
+        const tokenElement = document.querySelector('meta[name="csrf-token"]');
+        if (!tokenElement) {
+            console.error("Error: No se encontró el token CSRF");
+            alert("Error: No se pudo encontrar el token de seguridad.");
+            return Promise.reject(new Error("Token CSRF no encontrado"));
+        }
+        const token = tokenElement.getAttribute("content");
         try {
             const response = await fetch('/Payment/RefundPartial', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
                 },
                 body: JSON.stringify({
                     PedidoId: currentPedidoId,

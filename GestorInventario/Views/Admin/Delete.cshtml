@@ -1,8 +1,5 @@
 ﻿@model Usuario
 
-@{
-    ViewData["Title"] = "Confirmar Eliminación de Usuario - GestorInventario";
-}
 
 <div class="container my-5">
     <div class="row justify-content-center">
@@ -66,6 +63,7 @@
 
                     <!-- Formulario de eliminación -->
                     <form asp-action="DeleteConfirmed" method="post">
+                        @Html.AntiForgeryToken();
                         <!-- Campo oculto para el ID del usuario -->
                         <input type="hidden" asp-for="Id" />
                         @* Nota: El campo Id se envía al controlador para identificar el usuario a eliminar. *@

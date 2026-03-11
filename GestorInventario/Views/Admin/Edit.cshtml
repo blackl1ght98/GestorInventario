@@ -13,6 +13,7 @@
                 <div class="card-body p-5">
                     <h3 class="text-center mb-4 fw-bold" style="color: var(--primary);">Editar Usuario</h3>
                     <form asp-action="Edit" asp-controller="Admin" method="post">
+                        @Html.AntiForgeryToken();
                         <input type="hidden" asp-for="Id" />
                         <input type="hidden" asp-for="EsEdicionPropia" />
 
@@ -22,7 +23,7 @@
                                 <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
                                     <i class="bi bi-envelope" style="color: var(--secondary);"></i>
                                 </span>
-                                <input type="email" class="form-control form-control-lg" id="Email" asp-for="Email" placeholder="Correo Electrónico" required />
+                                <input type="email" class="form-control form-control-lg" id="Email" asp-for="Email" placeholder="Correo Electrónico"  />
                             </div>
                             <span asp-validation-for="Email" class="text-danger"></span>
                         </div>
@@ -33,7 +34,7 @@
                                 <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
                                     <i class="bi bi-person" style="color: var(--secondary);"></i>
                                 </span>
-                                <input type="text" class="form-control form-control-lg" id="NombreCompleto" asp-for="NombreCompleto" placeholder="Nombre Completo" required />
+                                <input type="text" class="form-control form-control-lg" id="NombreCompleto" asp-for="NombreCompleto" placeholder="Nombre Completo"  />
                             </div>
                             <span asp-validation-for="NombreCompleto" class="text-danger"></span>
                         </div>
@@ -44,7 +45,7 @@
                                 <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
                                     <i class="bi bi-calendar" style="color: var(--secondary);"></i>
                                 </span>
-                                <input type="date" class="form-control form-control-lg" id="FechaNacimiento" asp-for="FechaNacimiento" required />
+                                <input type="date" class="form-control form-control-lg" id="FechaNacimiento" asp-for="FechaNacimiento"  />
                             </div>
                             <span asp-validation-for="FechaNacimiento" class="text-danger"></span>
                         </div>
@@ -55,7 +56,7 @@
                                 <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
                                     <i class="bi bi-telephone" style="color: var(--secondary);"></i>
                                 </span>
-                                <input type="text" class="form-control form-control-lg" id="Telefono" asp-for="Telefono" placeholder="Teléfono" required />
+                                <input type="text" class="form-control form-control-lg" id="Telefono" asp-for="Telefono" placeholder="Teléfono"  />
                             </div>
                             <span asp-validation-for="Telefono" class="text-danger"></span>
                         </div>
@@ -66,7 +67,7 @@
                                 <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
                                     <i class="bi bi-geo-alt" style="color: var(--secondary);"></i>
                                 </span>
-                                <input type="text" class="form-control form-control-lg" id="Direccion" asp-for="Direccion" placeholder="Dirección" required />
+                                <input type="text" class="form-control form-control-lg" id="Direccion" asp-for="Direccion" placeholder="Dirección"  />
                             </div>
                             <span asp-validation-for="Direccion" class="text-danger"></span>
                         </div>
@@ -77,7 +78,7 @@
                                 <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
                                     <i class="bi bi-building" style="color: var(--secondary);"></i>
                                 </span>
-                                <input type="text" class="form-control form-control-lg" id="Ciudad" asp-for="Ciudad" placeholder="Ciudad" required />
+                                <input type="text" class="form-control form-control-lg" id="Ciudad" asp-for="Ciudad" placeholder="Ciudad"  />
                             </div>
                             <span asp-validation-for="Ciudad" class="text-danger"></span>
                         </div>
@@ -88,7 +89,7 @@
                                 <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
                                     <i class="bi bi-mailbox" style="color: var(--secondary);"></i>
                                 </span>
-                                <input type="text" class="form-control form-control-lg" id="CodigoPostal" asp-for="CodigoPostal" placeholder="Código Postal" required />
+                                <input type="text" class="form-control form-control-lg" id="CodigoPostal" asp-for="CodigoPostal" placeholder="Código Postal"  />
                             </div>
                             <span asp-validation-for="CodigoPostal" class="text-danger"></span>
                         </div>

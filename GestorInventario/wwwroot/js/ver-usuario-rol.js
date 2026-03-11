@@ -23,11 +23,18 @@
         loadingMessage.textContent = "Procesando...";
 
         var roleId = document.getElementById("roleSelect").value;
-
+        const tokenElement = document.querySelector('meta[name="csrf-token"]');
+        if (!tokenElement) {
+            console.error("Error: No se encontró el token CSRF");
+            alert("Error: No se pudo encontrar el token de seguridad.");
+            return Promise.reject(new Error("Token CSRF no encontrado"));
+        }
+        const token = tokenElement.getAttribute("content");
         fetch(`/Admin/CambiarRol`, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                'RequestVerificationToken': token
             },
             body: JSON.stringify({ id: parseInt(userId), rolId: parseInt(roleId) })
         })

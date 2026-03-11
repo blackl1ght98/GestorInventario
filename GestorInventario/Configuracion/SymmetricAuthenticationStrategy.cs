@@ -34,10 +34,10 @@ namespace GestorInventario.Configuracion.Strategies
             })
             .AddCookie(options =>
             {
-                options.Cookie.HttpOnly = true;
+              
                 options.Cookie.IsEssential = true;
                 options.Cookie.SameSite = SameSiteMode.Lax;
-                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.None;
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
                 options.SlidingExpiration = true;
                 options.LoginPath = "/Auth/Login";

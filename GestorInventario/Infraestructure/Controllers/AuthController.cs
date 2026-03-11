@@ -101,7 +101,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     {
                         HttpOnly = true,
                         SameSite = SameSiteMode.None,
-                        Domain = "localhost",
+                       
                         Secure = true,
                         Expires = DateTime.UtcNow.AddMinutes(10)
                     });
@@ -115,7 +115,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     {
                         HttpOnly = true,
                         SameSite = SameSiteMode.None,
-                        Domain = "localhost",
+                     
                         Secure = true,
                         Expires = DateTime.UtcNow.AddHours(24)
                     });
