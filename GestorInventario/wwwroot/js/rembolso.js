@@ -30,11 +30,21 @@ document.addEventListener('DOMContentLoaded', () => {
     confirmBtn.addEventListener('click', async () => {
         confirmBtn.disabled = true;
         confirmBtn.textContent = 'Procesando...';
-
+        const tokenElement = document.querySelector('meta[name="csrf-token"]');
+        if (!tokenElement) {
+            console.error("Error: No se encontró el token CSRF");
+            alert("Error: No se pudo encontrar el token de seguridad.");
+            return Promise.reject(new Error("Token CSRF no encontrado"));
+        }
+        const token = tokenElement.getAttribute("content");
         try {
             const response = await fetch('/Payment/RefundSale', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type':
+                        'application/json',
+                    'RequestVerificationToken': token
+                },
                 body: JSON.stringify({
                     PedidoId: pedidoId,
                     Currency: currency

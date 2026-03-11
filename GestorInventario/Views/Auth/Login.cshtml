@@ -54,6 +54,12 @@
                                 </a>
                             </div>
                         </form>
+                        @if (TempData["ErrorMessageConfirm"] != null)
+                        {
+                            <div class="alert alert-warning m-2">
+                                @TempData["ErrorMessageConfirm"]
+                            </div>
+                        }
                     </div>
                 </div>
             </div>

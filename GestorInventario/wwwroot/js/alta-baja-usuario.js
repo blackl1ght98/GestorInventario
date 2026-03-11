@@ -1,19 +1,18 @@
-﻿
- document.addEventListener('DOMContentLoaded', () => {
+﻿document.addEventListener('DOMContentLoaded', () => {
     const actionsMap = {
         'Alta': 'AltaUsuarioPost',
         'Baja': 'BajaUsuarioPost'
     };
 
+    // Inicializar el modal de Bootstrap una sola vez
+    const confirmModalElement = document.getElementById('confirmModal');
+    const confirmModal = new bootstrap.Modal(confirmModalElement); 
+
     // Abrir modal
     document.querySelectorAll('.user-action-button').forEach(button => {
         button.addEventListener('click', e => {
             e.preventDefault();
-            /**
-             * Aqui recuperamos del dataset el userId y la accion que realice el usuario
-             * el navegador realiza una transformacion quitado los - y sustitullendo por . usando
-             * la notacion camelCase
-             */
+
             const userId = button.dataset.userId;
             const actionType = button.dataset.userAction;
 
@@ -21,82 +20,90 @@
                 console.error('Botón sin data-user-id o data-user-action');
                 return;
             }
-            //Esta informacion la pasamos al metodo que abrira el modal
+
             openConfirmModal(userId, actionType);
         });
     });
+
     const openConfirmModal = (userId, actionType) => {
-        const actionText = actionType.toLowerCase(); // Aqui llega "Alta": "Baja"
+        const actionText = actionType.toLowerCase();
+        const message = document.getElementById('confirmMessage');
+        message.textContent = `¿Estás seguro de que deseas dar de ${actionText} al usuario con ID ${userId}?`;
 
-        const message = document.getElementById('confirmMessage'); 
-        message.textContent = `¿Estás seguro de que deseas dar de ${actionText} al usuario con ID ${userId}?`; 
-
-        /** 
-         *  Llegados aqui recuperamos la informacion que le habimos pasado y creamos 2 dataset de forma dinamica para
-         * el boton confirmar y en el guardamos los datos 
-         */
         const confirmBtn = document.getElementById('confirmActionBtn');
         confirmBtn.dataset.userId = userId;
         confirmBtn.dataset.actionType = actionType;
-        
-        const modal = document.getElementById('confirmModal');
-        modal.classList.add('show');
-        modal.style.display = 'block';
+
+        // Mostrar modal con Bootstrap API
+        confirmModal.show();
     };
 
-    
-
-    // Obtenemos el boton de confirmacion del modal, y un texto que hemos puesto nostros
-    const confirmBtn = document.getElementById('confirmActionBtn');
-    const loadingMessage = document.getElementById('loadingMessage');
-
+    // Resetear botón
     const resetButton = () => {
+        const confirmBtn = document.getElementById('confirmActionBtn');
         confirmBtn.innerHTML = 'Confirmar';
         confirmBtn.disabled = false;
     };
 
-     // Dentro del DOMContentLoaded
-     confirmBtn.addEventListener('click', async () => {
-         const userId = confirmBtn.dataset.userId;
-         const actionType = confirmBtn.dataset.actionType;
+    // Confirmar acción
+    const confirmBtn = document.getElementById('confirmActionBtn');
+    const loadingMessage = document.getElementById('loadingMessage');
 
-         if (!userId || !actionType) {
-             loadingMessage.textContent = 'Error: Datos no disponibles';
-             resetButton();
-             return;
-         }
+    confirmBtn.addEventListener('click', async () => {
+        const userId = confirmBtn.dataset.userId;
+        const actionType = confirmBtn.dataset.actionType;
 
-         // Preparar UI antes de la petición
-         confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Procesando...';
-         confirmBtn.disabled = true;
-         loadingMessage.textContent = 'Procesando...';
+        if (!userId || !actionType) {
+            loadingMessage.textContent = 'Error: Datos no disponibles';
+            resetButton();
+            return;
+        }
 
-         const action = actionsMap[actionType];
-         if (!action) {
-             loadingMessage.textContent = 'Error: Acción no definida';
-             resetButton();
-             return;
-         }
+        confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Procesando...';
+        confirmBtn.disabled = true;
+        loadingMessage.textContent = 'Procesando...';
 
-         try {
-             const response = await fetch(`/Admin/${action}`, {
-                 method: 'POST',
-                 headers: { 'Content-Type': 'application/json' },
-                 body: JSON.stringify({ id: userId })
-             });
+        const action = actionsMap[actionType];
+        if (!action) {
+            loadingMessage.textContent = 'Error: Acción no definida';
+            resetButton();
+            return;
+        }
+        const tokenElement = document.querySelector('meta[name="csrf-token"]');
+        if (!tokenElement) {
+            console.error("Error: No se encontró el token CSRF");
+            alert("Error: No se pudo encontrar el token de seguridad.");
+            return Promise.reject(new Error("Token CSRF no encontrado"));
+        }
+        const token = tokenElement.getAttribute("content");
+        try {
+            const response = await fetch(`/Admin/${action}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify({ id: userId })
+            });
 
-             const data = await response.json();
+            const data = await response.json();
 
-             if (data.success) {
-                 location.reload();
-             } else {
-                 loadingMessage.textContent = data.errorMessage || 'El servidor tardó en responder';
-                 resetButton();
-             }
-         } catch (error) {
-             console.error('Error:', error);
-             loadingMessage.textContent = 'Error al procesar la solicitud';
-             resetButton();
-         }
-     });
+            if (data.success) {
+                location.reload();
+            } else {
+                loadingMessage.textContent = data.errorMessage || 'El servidor tardó en responder';
+                resetButton();
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            loadingMessage.textContent = 'Error al procesar la solicitud';
+            resetButton();
+        }
+    });
+
+    // Opcional: resetear modal al cerrarse (por si acaso)
+    confirmModalElement.addEventListener('hidden.bs.modal', () => {
+        loadingMessage.textContent = '';
+        resetButton();
+    });
 });

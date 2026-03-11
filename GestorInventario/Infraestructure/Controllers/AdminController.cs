@@ -58,9 +58,9 @@ namespace GestorInventario.Infraestructure.Controllers
                 var viewModel = new UsuariosViewModel
                 {
                     Usuarios = paginationResult.Items,
-                    Paginas = paginationResult.Paginas.ToList(),              // viene del helper
-                    TotalPaginas = paginationResult.TotalPaginas,    // viene del helper
-                    PaginaActual = paginationResult.PaginaActual,    // viene del helper
+                    Paginas = paginationResult.Paginas.ToList(),              
+                    TotalPaginas = paginationResult.TotalPaginas,    
+                    PaginaActual = paginationResult.PaginaActual,    
                     Buscar = buscar
                 };
 
@@ -91,6 +91,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(UserViewModel model)
         {
             try
@@ -112,7 +113,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 TempData["SuccessMessage"] = result.Message;
 
-                if (User.IsInRole("administrador") && (User.Identity?.IsAuthenticated ?? false))
+                if (User.IsInRole("Administrador") && (User.Identity?.IsAuthenticated ?? false))
                 {
                     return RedirectToAction(nameof(Index));
                 }
@@ -137,15 +138,17 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 if(usuarioDB is null|| usuarioDB.Data is null)
                 {
-                    TempData["ErrorMessage"] = usuarioDB?.Message; 
+                   
                     _logger.LogWarning("Intento de confirmar un usuario inexistente con ID {UserId}", confirmar.UserId);
                     return RedirectToAction("Login", "Auth");
                 }
                
                 if (usuarioDB.Data.ConfirmacionEmail != false)
                 {
-                    TempData["ErrorMessage"] = "Usuario ya validado con anterioridad";
+                    TempData["ErrorMessageConfirm"] = "Usuario ya validado con anterioridad";
+                    TempData.Keep("ErrorMessageConfirm");
                     _logger.LogInformation($"El usuario con email {usuarioDB.Data.Email} ha intentado confirmar su correo estando confirmado");
+                      return RedirectToAction("Login", "Auth");
                 }
                 if (usuarioDB.Data.EmailVerificationToken != confirmar.Token)
                 {
@@ -203,6 +206,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         [Authorize]
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(UsuarioEditViewModel userVM)
         {
             try
@@ -249,7 +253,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 var (user,mensaje) = await _policyExecutor.ExecutePolicyAsync(() => _userRepository.ObtenerUsuarioConPedido(id));            
                 if (user == null)
                 {
-                    TempData["ErrorMessage"] = mensaje;
+                    _logger.LogCritical("Se intento manipular la url por el usuario: " + _currentUserAccessor.GetCurrentUserId());
+                    return RedirectToAction(nameof(Index));
                 }        
                 return View(user);
             }
@@ -264,6 +269,7 @@ namespace GestorInventario.Infraestructure.Controllers
         
         [HttpPost]
         [Authorize(Roles = "Administrador")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int Id)
         {
             try
@@ -291,6 +297,7 @@ namespace GestorInventario.Infraestructure.Controllers
         //Metodo que da de baja el usuario, este metodo se llaman desde el script alta-baja-usuario.js
         [HttpPost]
         [Authorize(Roles ="Administrador")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> BajaUsuarioPost([FromBody] UsuarioRequestDto request)
         {
             var result = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.BajaUsuario(request.Id));
@@ -308,6 +315,7 @@ namespace GestorInventario.Infraestructure.Controllers
         //Metodo que da de alta el usuario, este metodo se llaman desde el script alta-baja-usuario.js
         [HttpPost]
         [Authorize(Roles = "Administrador")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AltaUsuarioPost([FromBody] UsuarioRequestDto request)
         {
             var result = await _policyExecutor.ExecutePolicyAsync(() => _adminrepository.AltaUsuario(request.Id));
@@ -394,6 +402,7 @@ namespace GestorInventario.Infraestructure.Controllers
         //Metodo para editar el rol se llama desde el script ver-usuario-rol.js
         [HttpPost]
         [Authorize(Roles = "Administrador")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CambiarRol([FromBody] CambiarRolDto request)
         {
             try

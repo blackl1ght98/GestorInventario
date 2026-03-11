@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Net.Http.Headers;
 using QuestPDF.Infrastructure;
 using System.Text.Json.Serialization;
+using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -82,7 +83,9 @@ builder.Services.AddSession(options =>
     //Cuando el usuario rechaza las cookies esto no se vera afectado
     options.Cookie.IsEssential = true;
     //Cuando el usuario rechaza las cookies esto no se vera afectado
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    // Cambios para túnel
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // permite HTTP y HTTPS no confiable
+    options.Cookie.SameSite = SameSiteMode.None; // permite envío cross-site
 });
 
 
