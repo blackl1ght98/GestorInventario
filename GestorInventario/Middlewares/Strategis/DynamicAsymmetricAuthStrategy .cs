@@ -213,7 +213,7 @@ namespace GestorInventario.Middlewares.Strategis
             {
                 HttpOnly = true,
                 SameSite = SameSiteMode.None,
-                Domain = "localhost",
+                
                 Secure = true,
                 Expires = DateTime.UtcNow.AddMinutes(10)
             });

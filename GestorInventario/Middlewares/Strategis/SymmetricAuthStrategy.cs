@@ -140,7 +140,7 @@ namespace GestorInventario.Middlewares.Strategis
             {
                 HttpOnly = true,
                 SameSite = SameSiteMode.Lax,
-                Domain = "localhost",
+               
                 Secure = true,
                 Expires = DateTime.UtcNow.AddMinutes(10)
             });
@@ -149,7 +149,7 @@ namespace GestorInventario.Middlewares.Strategis
             {
                 HttpOnly = true,
                 SameSite = SameSiteMode.Lax,
-                Domain = "localhost",
+               
                 Secure = true,
                 Expires = DateTime.UtcNow.AddDays(7)
             });
