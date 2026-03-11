@@ -4,6 +4,7 @@
 <h2>Editar Producto</h2>
 
 <form asp-action="Edit" asp-controller="Proveedor" method="post">
+    @Html.AntiForgeryToken()
     <div class="form-group">
         <input type="hidden" asp-for="Id" />
         <label for="NombreProveedor">Nombre</label>

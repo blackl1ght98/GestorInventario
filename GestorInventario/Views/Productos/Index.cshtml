@@ -106,6 +106,7 @@
                     }
 
                     <form asp-action="AgregarAlCarrito" method="post" class="mb-2">
+                        @Html.AntiForgeryToken()
                         <input type="hidden" name="idProducto" value="@producto.Id" />
                         <div class="input-group">
                             <input type="number" name="cantidad" class="form-control"

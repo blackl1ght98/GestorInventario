@@ -99,7 +99,7 @@ namespace GestorInventario.Infraestructure.Repositories
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var pedido = await _context.Pedidos.Include(p => p.DetallePedidos).FirstOrDefaultAsync(m => m.Id == Id);
+                var pedido = await _context.Pedidos.Include(p => p.DetallePedidos).Include(x=>x.Rembolsos).FirstOrDefaultAsync(m => m.Id == Id);
                 if (pedido == null)
                 {
                     return OperationResult<string>.Fail("No hay pedido para eliminar");
@@ -111,6 +111,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 else
                 {
                     _context.DeleteRangeEntity(pedido.DetallePedidos);
+                    _context.DeleteRangeEntity(pedido.Rembolsos);
                     _context.DeleteEntity(pedido);
                     await transaction.CommitAsync();
                 }

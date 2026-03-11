@@ -54,6 +54,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> RefundSale([FromBody] RefundRequestModelDto request)
         {
             if (request == null || request.PedidoId <= 0)
@@ -71,6 +72,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> RefundPartial([FromBody] RefundRequestModelDto request)
         {
             if (request?.PedidoId <= 0)
@@ -95,6 +97,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> FormularioRembolso(RefundFormViewModel form)
         {
             try

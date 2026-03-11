@@ -134,7 +134,33 @@ app.UseStaticFiles(new StaticFileOptions
         
     }
 });
+app.Use(async (context, next) =>
+{
+    if (!context.Request.IsHttps)
+    {
+        context.Response.StatusCode = 400; 
+        context.Response.ContentType = "text/html";
 
+        var env = context.RequestServices.GetRequiredService<IWebHostEnvironment>();
+        var fileInfo = env.ContentRootFileProvider.GetFileInfo("Views/Shared/HttpNotAllowed.cshtml");
+
+        if (fileInfo.Exists)
+        {
+            using var stream = fileInfo.CreateReadStream();
+            using var reader = new StreamReader(stream);
+            var html = await reader.ReadToEndAsync();
+            await context.Response.WriteAsync(html);
+        }
+        else
+        {
+            await context.Response.WriteAsync("<h1>HTTPS requerido</h1><p>Esta página solo funciona con HTTPS.</p>");
+        }
+
+        return;
+    }
+
+    await next();
+});
 app.UseImageProcessing();
 app.UseCors();
 app.UseRouting();

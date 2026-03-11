@@ -1,0 +1,32 @@
+﻿<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <title>Uso de HTTPS requerido</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            background: #f8f9fa;
+        }
+
+        h1 {
+            color: #dc3545;
+        }
+
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+            a:hover {
+                text-decoration: underline;
+            }
+    </style>
+</head>
+<body>
+    <h1>HTTPS requerido</h1>
+    <p>Esta página no permite el uso de HTTP.</p>
+    <p>Por favor, <a href="https://@Context.Request.Host@Context.Request.Path">vuelve a cargar usando HTTPS</a>.</p>
+</body>
+</html>
