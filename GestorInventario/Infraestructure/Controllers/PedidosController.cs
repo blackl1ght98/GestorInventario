@@ -105,7 +105,8 @@ namespace GestorInventario.Infraestructure.Controllers
             
                 if (pedido == null)
                 {
-                    TempData["ErrorMessage"] = "Pedido no encontrado";
+                    _logger.LogCritical("Pedido no encontrado");
+                    return RedirectToAction(nameof(Index));
                 }               
                 return View(pedido);
             }
@@ -164,8 +165,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 var historialProducto = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.EliminarHistorialPorId(id));
                 if (historialProducto == null)
                 {
-
-                    TempData["ErrorMessage"] = "Historial no encontrado";
+                    _logger.LogCritical("Historial no encontrado");
+                    return RedirectToAction(nameof(HistorialPedidos));
                    
                 }
                 return View(historialProducto);
@@ -215,7 +216,12 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
                                      
-                var pedido = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerPedidoPorId(id)) ;
+                var pedido = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerPedidoPorId(id));
+                if (pedido == null)
+                {
+                    _logger.LogError("El pedido no existe");
+                    return RedirectToAction(nameof(Index));
+                }
                 EditPedidoViewModel pedidosViewModel = new EditPedidoViewModel
                 {
                     FechaPedido = pedido.FechaPedido,
@@ -290,7 +296,8 @@ namespace GestorInventario.Infraestructure.Controllers
                var pedido= await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerDetallesPedido(id)) ;
                 if (pedido == null)
                 {
-                    return NotFound();
+                    _logger.LogCritical("Pedido no encontrado: no se puede mostrar los detalles de un pedido inexistente");
+                    return RedirectToAction(nameof(Index));
                 }
 
                 return View(pedido);
@@ -311,7 +318,7 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                 
 
-                var usuarioId = _currentUserAccessor.GetCurrentUserId();
+                    var usuarioId = _currentUserAccessor.GetCurrentUserId();
                     var pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerHistorialDePedidos());
                     if (User.IsInRole("administrador") || pedidos.Count() <0)
                     {
@@ -356,7 +363,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 var pedido = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.DetallesHistorial(id)) ;
                 if (pedido == null)
                 {
-                    TempData["ErrorMessage"] = "detalle del historial del pedido no encontrado";
+                    _logger.LogCritical("Detalles de historial no encontrado");
+                    return RedirectToAction(nameof(HistorialPedidos));
                 }
 
                 return View(pedido);
@@ -396,7 +404,7 @@ namespace GestorInventario.Infraestructure.Controllers
         
         [Authorize]
         [HttpPost, ActionName("DeleteAllHistorial")]
-        [ValidateAntiForgeryToken]
+        
         public async Task<IActionResult> DeleteAllHistorial()
         {
             try
@@ -406,7 +414,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 var success = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.EliminarHitorial());
                 if (!success.Success)
                 {
-                    TempData["ErrorMessage"] = success.Message;
+                    _logger.LogError(success.Message);
                     return RedirectToAction(nameof(HistorialPedidos));
                 }
                 return RedirectToAction(nameof(HistorialPedidos));
@@ -429,8 +437,8 @@ namespace GestorInventario.Infraestructure.Controllers
             }
             else
             {
-                TempData["ErrorMessage"]=detallepago.Message;
-                return RedirectToAction("Error", "Home");
+                _logger.LogError(detallepago.Message);
+                return RedirectToAction(nameof(Index));
             }
         }
         [HttpGet]
@@ -491,7 +499,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         [Authorize]
         [HttpPost]
-        [ValidateAntiForgeryToken]
+     
         public async Task<IActionResult> AgregarInfoEnvio(int pedidoId, Carrier carrier, BarcodeType barcode)
         {
             var pedido = await _pedidoRepository.ObtenerPedidoPorId(pedidoId);

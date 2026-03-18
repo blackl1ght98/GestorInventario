@@ -16,7 +16,7 @@
                     </div>
                     <div class="card-body p-4 p-md-5">
                         <form asp-action="Create" method="post" id="createUserForm" >
-                            @Html.AntiForgeryToken();
+                            @Html.AntiForgeryToken()
                             <!-- Email -->
                             <div class="mb-4">
                                 <div class="input-group">
@@ -24,7 +24,7 @@
                                         <i class="bi bi-envelope" style="color: var(--secondary);"></i>
                                     </span>
                                     <input type="email" class="form-control form-control-lg" id="Email" asp-for="Email"
-                                           placeholder="Correo Electrónico" required />
+                                           placeholder="Correo Electrónico"  />
                                 </div>
                                 <span asp-validation-for="Email" class="text-danger small"></span>
                             </div>
@@ -36,7 +36,7 @@
                                         <i class="bi bi-lock" style="color: var(--secondary);"></i>
                                     </span>
                                     <input type="password" class="form-control form-control-lg" id="Password" asp-for="Password"
-                                           placeholder="Contraseña" required />
+                                           placeholder="Contraseña"  />
                                     <button type="button" class="btn btn-outline-secondary" id="togglePassword" aria-label="Mostrar u ocultar contraseña">
                                         <i class="bi bi-eye"></i>
                                     </button>
@@ -67,7 +67,7 @@
                                         <i class="bi bi-person" style="color: var(--secondary);"></i>
                                     </span>
                                     <input type="text" class="form-control form-control-lg" id="NombreCompleto" asp-for="NombreCompleto"
-                                           placeholder="Nombre Completo" required />
+                                           placeholder="Nombre Completo"  />
                                 </div>
                                 <span asp-validation-for="NombreCompleto" class="text-danger small"></span>
                             </div>
@@ -79,7 +79,7 @@
                                         <i class="bi bi-calendar" style="color: var(--secondary);"></i>
                                     </span>
                                     <input type="date" class="form-control form-control-lg" id="FechaNacimiento" asp-for="FechaNacimiento"
-                                           required />
+                                            />
                                 </div>
                                 <span asp-validation-for="FechaNacimiento" class="text-danger small"></span>
                             </div>

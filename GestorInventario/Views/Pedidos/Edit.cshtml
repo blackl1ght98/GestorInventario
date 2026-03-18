@@ -24,12 +24,12 @@
             <input type="hidden" asp-for="Id" />
             <div class="form-group mb-3">
                 <label asp-for="FechaPedido" class="form-label">Fecha del Pedido</label>
-                <input type="date" class="form-control" asp-for="FechaPedido" required />
+                <input type="date" class="form-control" asp-for="FechaPedido" id="FechaPedido" />
                 <span asp-validation-for="FechaPedido" class="text-danger"></span>
             </div>
             <div class="form-group mb-3">
                 <label asp-for="EstadoPedido" class="form-label">Estado del Pedido</label>
-                <input type="text" class="form-control" asp-for="EstadoPedido" required />
+                <input type="text" class="form-control" asp-for="EstadoPedido" id="EstadoPedido" />
                 <span asp-validation-for="EstadoPedido" class="text-danger"></span>
             </div>
             <div class="d-flex gap-2">
