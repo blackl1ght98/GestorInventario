@@ -100,10 +100,10 @@ var keysFolder = Path.Combine(environment.WebRootPath, "keys", "gestor-inventari
 Directory.CreateDirectory(keysFolder);
 
 // Configuración de Data Protection persistente
-builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo(keysFolder))
-    .SetApplicationName("GestorInventario")
-    .ProtectKeysWithDpapi(); // opcional, pero recomendado en Windows
+//builder.Services.AddDataProtection()
+//    .PersistKeysToFileSystem(new DirectoryInfo(keysFolder))
+//    .SetApplicationName("GestorInventario")
+//    .ProtectKeysWithDpapi(); // opcional, pero recomendado en Windows
 var app = builder.Build();
 app.UseWebOptimizer();
 if (!app.Environment.IsDevelopment())

@@ -1,4 +1,5 @@
-﻿using Microsoft.Playwright;
+﻿using GestorInventario.Domain.Models;
+using Microsoft.Playwright;
 using System;
 using System.Buffers.Text;
 using System.Collections.Generic;
@@ -123,9 +124,7 @@ namespace PruebasUnitarias
                 await Expect(_page.Locator("span.text-danger:has-text('El nombre completo es requerido')"))
                 .ToBeVisibleAsync(new() { Timeout = 10000 });
                 await Expect(_page.Locator("span.text-danger:has-text('La fecha de nacimiento es requerida')"))
-               .ToBeVisibleAsync(new() { Timeout = 10000 });
-               
-
+               .ToBeVisibleAsync(new() { Timeout = 10000 });               
                 await Expect(_page.Locator("span.text-danger:has-text('El telefono es requerido')"))
                .ToBeVisibleAsync(new() { Timeout = 10000 });
 
@@ -388,9 +387,70 @@ namespace PruebasUnitarias
                 Headers = new Dictionary<string, string> { { "Content-Type", "application/json" } },
                 DataObject = new { Id = usuarioId,RolId=rolId }
             });
-
+           
+           
             Assert.Equal(200, response.Status);
 
+        }
+        [Fact]
+        public async Task CambiarRol_ComoAdmin_Error_MismoRol()
+        {
+            await PerformSuccessfulLoginAsync();
+
+            var usuarioId = 47;
+            var rolId = 3;
+
+            var response = await _page.APIRequest.PostAsync("https://localhost:7056/Admin/CambiarRol", new()
+            {
+                IgnoreHTTPSErrors = true,
+                Headers = new Dictionary<string, string> { { "Content-Type", "application/json" } },
+                DataObject = new { Id = usuarioId, RolId = rolId }
+            });
+
+            var body = await response.TextAsync();
+
+            Assert.Equal(200, response.Status);
+            Assert.Contains("El usuario ya tiene el rol seleccionado", body);
+        }
+        [Fact]
+        public async Task CambiarRol_ComoAdmin_Error_RolInexistente()
+        {
+            await PerformSuccessfulLoginAsync();
+
+            var usuarioId = 47;
+            var rolId = 100;
+
+            var response = await _page.APIRequest.PostAsync("https://localhost:7056/Admin/CambiarRol", new()
+            {
+                IgnoreHTTPSErrors = true,
+                Headers = new Dictionary<string, string> { { "Content-Type", "application/json" } },
+                DataObject = new { Id = usuarioId, RolId = rolId }
+            });
+
+            var body = await response.TextAsync();
+
+            Assert.Equal(200, response.Status);
+            Assert.Contains("El rol seleccionado no existe", body);
+        }
+        [Fact]
+        public async Task CambiarRol_ComoAdmin_Error_UsuarioInexistente()
+        {
+            await PerformSuccessfulLoginAsync();
+
+            var usuarioId = 100;
+            var rolId = 3;
+
+            var response = await _page.APIRequest.PostAsync("https://localhost:7056/Admin/CambiarRol", new()
+            {
+                IgnoreHTTPSErrors = true,
+                Headers = new Dictionary<string, string> { { "Content-Type", "application/json" } },
+                DataObject = new { Id = usuarioId, RolId = rolId }
+            });
+
+            var body = await response.TextAsync();
+
+            Assert.Equal(200, response.Status);
+            Assert.Contains("Usuario no encontrado", body);
         }
        
         private async Task PerformSuccessfulLoginAsync()
@@ -402,7 +462,7 @@ namespace PruebasUnitarias
 
             await _page.WaitForSelectorAsync("#email", new PageWaitForSelectorOptions { Timeout = 15000 });
             await _page.FillAsync("#email", "keuppa@yopmail.com");
-            await _page.FillAsync("#password", "1A2a3A4a5");
+            await _page.FillAsync("#password", "1A2a3A4a5@");
 
             await _page.ClickAsync("button[type='submit']");
 
