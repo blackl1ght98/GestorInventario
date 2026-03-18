@@ -485,6 +485,7 @@ namespace PruebasUnitarias
 
             Console.WriteLine("✅ Login exitoso (reutilizable)");
         }
+
         public async Task DisposeAsync()
         {
             await _browser?.CloseAsync();
