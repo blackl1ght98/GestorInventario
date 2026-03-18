@@ -402,7 +402,7 @@ namespace GestorInventario.Infraestructure.Controllers
         //Metodo para editar el rol se llama desde el script ver-usuario-rol.js
         [HttpPost]
         [Authorize(Roles = "Administrador")]
-        [ValidateAntiForgeryToken]
+      
         public async Task<IActionResult> CambiarRol([FromBody] CambiarRolDto request)
         {
             try
