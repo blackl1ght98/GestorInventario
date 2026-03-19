@@ -126,8 +126,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-               
-                
+                            
                     
                     var success = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.EliminarPedido(Id)) ;
                     if (success.Success)
@@ -138,14 +137,12 @@ namespace GestorInventario.Infraestructure.Controllers
                     }
                     else
                     {
+                        
                         TempData["ErrorMessage"] = success.Message;
                       
                         return RedirectToAction(nameof(Delete), new { id = Id });
 
-                    }
-
-                
-              
+                    }                         
 
             }
             catch (Exception ex)
@@ -450,7 +447,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             if (string.IsNullOrEmpty(id))
             {
-                TempData["ErrorMessage"] = "ID de pago no proporcionado.";
+                _logger.LogError("Intento de manipulacion de id");
                 return RedirectToAction("Error", "Home");
             }
 
@@ -474,7 +471,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             if (string.IsNullOrEmpty(id))
             {
-                TempData["ErrorMessage"] = "ID de pago no proporcionado.";
+                _logger.LogError("Intento de manipulacion de id");
                 return RedirectToAction("Error", "Home");
             }
          
@@ -509,7 +506,7 @@ namespace GestorInventario.Infraestructure.Controllers
             var pedido = await _pedidoRepository.ObtenerPedidoPorId(pedidoId);
             if (pedido == null)
             {
-                TempData["ErrorMessage"] = "El pedido no existe.";
+                _logger.LogError("Intento de manipulacion de id");
                 return RedirectToAction(nameof(Index));
             }
 
