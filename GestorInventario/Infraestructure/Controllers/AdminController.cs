@@ -278,12 +278,12 @@ namespace GestorInventario.Infraestructure.Controllers
                
                 if (result.Success)
                 {
-                    TempData["SuccessMessage"] = result.Message;
+                   
                     return RedirectToAction(nameof(Index));
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = result.Message;
+                    _logger.LogError(result.Message);
                     return RedirectToAction(nameof(Delete), new { id = Id });
                 }
             }
@@ -370,8 +370,8 @@ namespace GestorInventario.Infraestructure.Controllers
                     .FirstOrDefault(r => r.Id == id);
                 if (rol == null)
                 {
-                    TempData["Error"] = "Rol no encontrado.";
-                    return RedirectToAction("ObtenerRoles");
+                    _logger.LogError("Rol no encontrado");
+                    return RedirectToAction(nameof(ObtenerRoles));
                 }
 
                 var usuariosQueryable =  _policyExecutor.ExecutePolicy(() => _userRepository.ObtenerUsuariosPorRol(id));

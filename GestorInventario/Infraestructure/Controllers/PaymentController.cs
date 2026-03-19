@@ -3,6 +3,7 @@ using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.ViewModels.Paypal;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -27,6 +28,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _paymentRepository = payment;          
             _currentUserAccessor = current;
         }
+        [Authorize]
         public async Task<IActionResult> Success()
         {
             try
@@ -91,12 +93,14 @@ namespace GestorInventario.Infraestructure.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+        [Authorize]
         public IActionResult FormularioRembolso()
         {
             return View();
         }
 
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> FormularioRembolso(RefundFormViewModel form)
         {

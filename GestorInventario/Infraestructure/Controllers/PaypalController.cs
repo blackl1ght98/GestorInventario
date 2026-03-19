@@ -8,6 +8,7 @@ using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.PaginacionLogica;
 using GestorInventario.ViewModels.Paypal;
 using GestorInventario.ViewModels.product;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Security.Claims;
@@ -47,6 +48,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
 
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> MostrarProductos([FromQuery] Paginacion paginacion)
         {
             try
@@ -99,6 +101,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> MostrarPlanes([FromQuery] Paginacion paginacion)
         {
             try
@@ -184,7 +187,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
 
 
-
+        [Authorize]
         //Metodo que obtiene los datos necesarios antes de crear el producto al que se suscribira
         public async Task<IActionResult> CrearProductoYPlan()
         {
@@ -201,6 +204,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
         //Metodo que crea el producto  y plan al que se suscribira el usuario
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> CrearProductoYPlan(ProductViewModelPaypal model, string monedaSeleccionada)
         {
             // Cambia la cultura 
@@ -260,6 +264,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         //Metodo para desactivar el plan
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> DesactivarPlan(string id)
         {
             try
@@ -282,6 +287,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> ActivarPlan(string id)
         {
             try
@@ -301,6 +307,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
        
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> EditarProductoPaypal(string id, EditProductPaypal model)
         {
 
@@ -323,6 +330,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         //Metodo que inicia el proceso de suscripcion
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> IniciarSuscripcion( string plan_id, string planName)
         {
             // Define las URLs de retorno y cancelación
@@ -343,6 +351,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction(nameof(MostrarPlanes));
             }
         }
+        [Authorize]
         public async Task<IActionResult> ConfirmarSuscripcion(string subscription_id, string token, string ba_token)
         {
             try
@@ -386,6 +395,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CancelarSuscripcion(string Id, string Reason)
         {
@@ -435,6 +445,7 @@ namespace GestorInventario.Infraestructure.Controllers
  
 
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SuspenderSuscripcion(string Id, string Reason)
         {
@@ -485,6 +496,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ActivarSuscripcion(string Id, string Reason)
         {
@@ -534,6 +546,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
 
         [HttpPost]
+
         public async Task<IActionResult> ActualizarPrecioPlan([FromBody] UpdatePlanPriceRequestDto request)
         {
             try
@@ -589,6 +602,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 return StatusCode(500, new { success = false, errorMessage = $"Error al actualizar el precio del plan: {ex.Message}" });
             }
         }
+        [Authorize]
         public async Task<IActionResult> DetallesSuscripcion(string id)
         {
             System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
@@ -598,7 +612,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 // Validar el ID de la suscripción
                 if (string.IsNullOrEmpty(id))
                 {
-                    TempData["ErrorMessage"] = "El ID de la suscripción es requerido.";
+                    _logger.LogError("El id de la subscripcion es requerido");
                     return RedirectToAction("Error", "Home");
                 }
 
@@ -614,7 +628,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 string planId = subscriptionDetails.PlanId;
                 if (string.IsNullOrEmpty(planId))
                 {
-                    TempData["ErrorMessage"] = "El ID del plan de la suscripción es inválido o no se proporcionó.";
+                    _logger.LogError("El id del plan es nulo");
                     return RedirectToAction("Error", "Home");
                 }
 
@@ -632,6 +646,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> TodasSuscripciones([FromQuery] Paginacion paginacion)
         {
             try
@@ -678,14 +693,12 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> ObtenerSuscripcionUsuario([FromQuery] Paginacion paginacion)
         {
             try
             {
-                if (!(_currentUserAccessor.IsAuthenticated()))
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+                
 
                 var usuarioActual = _currentUserAccessor.GetCurrentUserId();
 

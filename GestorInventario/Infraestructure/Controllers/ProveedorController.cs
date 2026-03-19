@@ -3,6 +3,7 @@ using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.PaginacionLogica;
 using GestorInventario.ViewModels.provider;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -30,7 +31,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _current = current;
         }
       
-        //Metodo que muestra todos los proveedores
+        [Authorize]
         public async Task<IActionResult> Index(string buscar, [FromQuery] Paginacion paginacion)
         {
             try
@@ -70,7 +71,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-        //Metodo que muestra la vista para crear el proveedor
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Create()
         {
             if (!(_current.IsAuthenticated()))
@@ -92,8 +93,9 @@ namespace GestorInventario.Infraestructure.Controllers
             };
             return View(model);
         }
-        //Metodo que crea el proveedor
+        
         [HttpPost]
+        [Authorize(Roles = "Administrador")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ProveedorViewModel model)
         {
@@ -135,7 +137,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
 
         }
-        //Metodo encargado de obtener los datos necesarios para eliminar el proveedor
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Delete(int id)
         {
             try
@@ -163,6 +165,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
         //Metodo que elimina el proveedor
         [HttpPost, ActionName("DeleteConfirmed")]
+        [Authorize(Roles = "Administrador")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int Id)
         {
@@ -194,7 +197,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
-        //Metodo que obtiene la informacion necesaria para editar el proveedor
+        [Authorize(Roles = "Administrador")]
         public async Task<ActionResult> Edit(int id)
         {
             try
@@ -227,6 +230,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         //Metodo encargado de editar el proveedor
         [HttpPost]
+        [Authorize(Roles = "Administrador")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(ProveedorViewModel model, int Id)
         {

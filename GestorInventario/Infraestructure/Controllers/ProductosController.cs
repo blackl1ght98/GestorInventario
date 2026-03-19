@@ -4,6 +4,7 @@ using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.PaginacionLogica;
 using GestorInventario.ViewModels.product;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Security.Claims;
@@ -38,14 +39,12 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         //Metodo para obtener los productos
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> Index(string buscar, string ordenarPorPrecio, int? idProveedor, [FromQuery] Paginacion paginacion)
         {
             try
             {
-                if (!(_current.IsAuthenticated()))
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+                
 
                 // Obtiene la consulta como IQueryable
                 var productos =  _policyExecutor.ExecutePolicy(() => _productoRepository.ObtenerTodosLosProductos());
@@ -137,7 +136,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
            
         }
-    
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Create()
         {
             try
@@ -171,6 +170,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
        //Metodo que crea el producto
         [HttpPost]
+        [Authorize(Roles = "Administrador")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ProductosViewModel model)
         {
@@ -206,8 +206,9 @@ namespace GestorInventario.Infraestructure.Controllers
                 _logger.LogError(ex, "Error al crear el producto");
                 return RedirectToAction("Error", "Home");
             }
-        }   
+        }
         //Metodo que obtiene la información necesaria para eliminar el producto
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Delete(int id)
         {
             try
@@ -234,6 +235,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         //Metodo que elimina el producto
         [HttpPost, ActionName("DeleteConfirmed")]
+        [Authorize(Roles = "Administrador")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int Id)
         {
@@ -270,7 +272,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }                    
         }
-        //Metodo que obtiene la información necesaria para editar el producto
+       
+        [Authorize(Roles = "Administrador")]
         public async Task<ActionResult> Edit(int id)
         {
             try
@@ -308,8 +311,9 @@ namespace GestorInventario.Infraestructure.Controllers
 
         }
 
-        //Metodo encargado de editar el producto
+       
         [HttpPost]
+        [Authorize(Roles = "Administrador")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(ProductosViewModel model)
         {
@@ -346,6 +350,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         //Metodo que agrega el producto al carrito
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AgregarAlCarrito(int idProducto, int cantidad)
         {
@@ -380,8 +385,8 @@ namespace GestorInventario.Infraestructure.Controllers
         }
 
 
-   
-        //Metodo para obtener el historial del producto
+
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> HistorialProducto(string buscar, [FromQuery] Paginacion paginacion)
         {
             try
@@ -422,6 +427,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         //Metodo para descargar el historial en pdf
         [HttpGet("descargarhistorialPDF")]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> DescargarHistorialPDF()
         {
             try
@@ -447,7 +453,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
-        //Metodo que muestra los detalles del historial del producto
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> DetallesHistorialProducto(int id)
         {
             try
@@ -472,7 +478,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-        //Metodo que obtiene los datos necesarios para eliminar el historial
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> DeleteHistorial(int id)
         {
             try
@@ -499,6 +505,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         //Metodo que elimina el historial
         [HttpPost, ActionName("DeleteConfirmedHistorial")]
+        [Authorize(Roles = "Administrador")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmedHistorial(int Id)
         {
@@ -537,6 +544,7 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         //Metodo que elimina todo el historial
         [HttpPost, ActionName("DeleteAllHistorial")]
+        [Authorize(Roles = "Administrador")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteAllHistorial()
         {

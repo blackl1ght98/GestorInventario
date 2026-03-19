@@ -2,6 +2,7 @@
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.PaginacionLogica;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -25,14 +26,12 @@ namespace GestorInventario.Infraestructure.Controllers
         }
        
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> Index([FromQuery] Paginacion paginacion)
         {
             try
             {
-                if (!(_currentUserAccessor.IsAuthenticated()))
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+               
 
                 int usuarioId = _currentUserAccessor.GetCurrentUserId();
                 var resultado = await _policyExecutor.ExecutePolicyAsync(
@@ -88,6 +87,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
         //Metodo que realiza el pago
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Checkout(string monedaSeleccionada)
         {
@@ -96,10 +96,7 @@ namespace GestorInventario.Infraestructure.Controllers
                System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
                 try
                 {
-                if (!(_currentUserAccessor.IsAuthenticated()))
-                {
-                        return RedirectToAction("Login", "Auth");
-                    }
+               
                
                     int usuarioId= _currentUserAccessor.GetCurrentUserId();   
                         
@@ -125,13 +122,10 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         //Metodo para incrementar  productos
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Incrementar(int id)
         {
-            if (!(_currentUserAccessor.IsAuthenticated()))
-            {
-                return RedirectToAction("Login", "Auth");
-            }
             var resultado= await _carritoRepository.Incremento(id);
             if (resultado.Success)
             {
@@ -146,13 +140,11 @@ namespace GestorInventario.Infraestructure.Controllers
         }
         //Metodo para decrementar producto
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Decrementar(int id)
         {
-            if (!(_currentUserAccessor.IsAuthenticated()))
-            {
-                return RedirectToAction("Login", "Auth");
-            }
+           
 
             var resultado= await _carritoRepository.Decremento(id);
             if (resultado.Success)
@@ -168,15 +160,13 @@ namespace GestorInventario.Infraestructure.Controllers
         }
        //Metodo para eliminar un producto
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EliminarProductoCarrito(int id)
         {
             try
             {
-                if (!(_currentUserAccessor.IsAuthenticated()))
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+               
                 var resultado = await _carritoRepository.EliminarProductoCarrito(id);
                 if (resultado.Success)
                 {

@@ -2,6 +2,7 @@
 using GestorInventario.enums;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.MetodosExtension;
 using GestorInventario.PaginacionLogica;
 using GestorInventario.ViewModels.order;
 using Microsoft.AspNetCore.Authorization;
@@ -48,7 +49,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
                     var usuarioId =  _currentUserAccessor.GetCurrentUserId();
                     var pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidos());
-                    if (User.IsInRole("administrador"))
+                    if (User.IsAdministrador())
                     {
 
                         pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidos());
@@ -321,7 +322,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
                     var usuarioId = _currentUserAccessor.GetCurrentUserId();
                     var pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerHistorialDePedidos());
-                    if (User.IsInRole("administrador") || pedidos.Count() <0)
+                    if (User.IsAdministrador() || pedidos.Count() <0)
                     {
 
                         pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerHistorialDePedidos());
