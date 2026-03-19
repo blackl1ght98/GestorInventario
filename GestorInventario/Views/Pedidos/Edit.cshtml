@@ -3,16 +3,10 @@
 <link rel="stylesheet" href="~/css/pedidoEdit.css" />
 <div class="card hover-card">
     <div class="card-header bg-primary text-white">
-        <h2 class="h4 mb-0">Editar Pedido #@Model.Id</h2>
+        <h2 class="h4 mb-0">Editar Pedido </h2>
     </div>
     <div class="card-body">
-        @if (TempData["ConectionError"] != null)
-        {
-            <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
-                <i class="bi bi-exclamation-triangle me-2"></i>@TempData["ConectionError"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        }
+       
         @if (TempData["ErrorMessage"] != null)
         {
             <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">

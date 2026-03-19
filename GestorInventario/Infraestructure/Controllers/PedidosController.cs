@@ -224,6 +224,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
                 EditPedidoViewModel pedidosViewModel = new EditPedidoViewModel
                 {
+                    
                     FechaPedido = pedido.FechaPedido,
                     EstadoPedido = pedido.EstadoPedido,
 
@@ -253,10 +254,12 @@ namespace GestorInventario.Infraestructure.Controllers
                     if (success.Success)
                     {
                         _logger.LogInformation("Datos actualizados con exito");
+                        return RedirectToAction(nameof(Index));
                     }
                     else
                     {
-                        TempData["ErrorMessage"] = success.Message;
+                        _logger.LogError(success.Message);
+                        return RedirectToAction(nameof(Edit));
                     }
 
                 }
@@ -271,7 +274,8 @@ namespace GestorInventario.Infraestructure.Controllers
                     }
                     else
                     {
-                        TempData["ErrorMessage"] = success.Message;
+                        _logger.LogError(success.Message);
+                        return RedirectToAction(nameof(Edit));
                     }
                 
                 
@@ -282,7 +286,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     _logger.LogError(ex, "Error al editar el pedido");
                     return RedirectToAction("Error", "Home");
                 }
-                return RedirectToAction("Index");
+               
             }
             return View(model);
         }
