@@ -225,7 +225,7 @@ namespace GestorInventario.Infraestructure.Controllers
             if (!result.Success)
             {
                 _logger.LogCritical("La URL fue manipulada por el usuario: ", model.UserId);
-                return RedirectToAction("Login", "Auth");
+                return RedirectToAction(nameof(Login));
             }
 
             // Preparar DTO para el cambio (con la nueva contraseña)
@@ -248,8 +248,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
                 else
                 {
-                    TempData["ErrorMessage"]=( setResult.Message ?? "Error al cambiar la contraseña.");
-                    return View("RestorePassword", model);
+                   _logger.LogCritical(setResult.Message);
+                    return RedirectToAction(nameof(Logout));
                 }
             }
             catch (Exception ex)

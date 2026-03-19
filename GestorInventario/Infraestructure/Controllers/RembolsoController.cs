@@ -3,6 +3,7 @@ using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.PaginacionLogica;
 using GestorInventario.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GestorInventario.Infraestructure.Controllers
@@ -24,7 +25,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _paginationHelper = paginationHelper;
 
         }
-
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Index(string buscar, [FromQuery] Paginacion paginacion)
         {
             try
@@ -65,6 +66,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
         [HttpDelete]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> EliminarRembolso([FromBody] RembolsoRequestDto request)
         {
             var success = await _policyExecutor.ExecutePolicyAsync(() => _rembolsoRepository.EliminarRembolso(request.Id));
