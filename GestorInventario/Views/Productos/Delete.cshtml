@@ -43,12 +43,13 @@
     <form asp-action="DeleteConfirmed" method="post">
        @Html.AntiForgeryToken()
         <input type="hidden" asp-for="@Model.Id" />
-       
-        <input type="submit" value="Eliminar" class="btn btn-danger" />
+
+        <button type="submit" class="btn btn-danger me-2"><i class="bi bi-trash-fill me-2"></i>Eliminar</button>
         
       
         <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
     </form>
+   
     @if (TempData["ErrorMessage"] != null)
     {
         <div class="alert alert-warning">
