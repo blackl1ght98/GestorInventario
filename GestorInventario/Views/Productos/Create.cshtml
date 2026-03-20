@@ -1,41 +1,47 @@
 ﻿@using GestorInventario.ViewModels.product
 @model ProductosViewModel
-<h1>Crear Productos</h1>
+<h1>Crear Producto</h1>
 <hr />
 <div class="row">
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-warning mt-2">
+            @TempData["ErrorMessage"]
+        </div>
+    }
     <div class="col-md-4">
         <form asp-action="Create" method="post" enctype="multipart/form-data" id="createProductForm">
             @Html.AntiForgeryToken()
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="NombreProducto" class="control-label">Nombre Producto</label>
-                <input asp-for="NombreProducto" class="form-control" />
+                <input asp-for="NombreProducto" class="form-control" id="NombreProducto"/>
                 <span asp-validation-for="NombreProducto" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Descripcion" class="control-label">Descripción</label>
-                <input asp-for="Descripcion" class="form-control" />
+                <input asp-for="Descripcion" class="form-control" id="Descripcion" />
                 <span asp-validation-for="Descripcion" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="ArchivoImagen" class="control-label" for="imagenInput">Imagen</label>
-                <input asp-for="ArchivoImagen" type="file" class="form-control" accept=".jpg,.jpeg,.png,.gif" id="imagenInput" />
+                <label asp-for="ArchivoImagen" class="control-label" for="ArchivoImagen">Imagen</label>
+                <input asp-for="ArchivoImagen" type="file" class="form-control" accept=".jpg,.jpeg,.png,.gif" id="ArchivoImagen" />
                 <span asp-validation-for="ArchivoImagen" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Cantidad" class="control-label">Cantidad</label>
-                <input asp-for="Cantidad" class="form-control" type="number" min="1" />
+                <input asp-for="Cantidad" class="form-control" type="number" min="1" id="Cantidad" />
                 <span asp-validation-for="Cantidad" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Precio" class="control-label">Precio</label>
-                <input asp-for="Precio" class="form-control" type="number" step="0.01" min="0.01" />
+                <input asp-for="Precio" class="form-control" type="number" step="0.01" min="0.01" id="Precio" />
                 <span asp-validation-for="Precio" class="text-danger"></span>
             </div>
            
             <div class="form-group">
-                <label asp-for="IdProveedor">Usuario</label>
-                <select asp-for="IdProveedor" asp-items="Model.Proveedores" class="form-control">
+                <label asp-for="IdProveedor">Proveedor</label>
+                <select asp-for="IdProveedor" asp-items="Model.Proveedores" class="form-control" id="IdProveedor">
                     <option value="">Seleccione un proveedor</option>
                 </select>
                 <span asp-validation-for="IdProveedor" class="text-danger"></span>
@@ -47,10 +53,5 @@
     </div>
 </div>
 
-@if (TempData["ErrorMessage"] != null)
-{
-    <div class="alert alert-warning">
-        @TempData["ErrorMessage"]
-    </div>
-}
+
 

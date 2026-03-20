@@ -67,7 +67,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 // Buscar usuario
                 var user = await _policyExecutor.ExecutePolicyAsync(() => _authRepository.Login(model.Email));
-                if (user == null)
+                if (user.Data == null)
                 {
                     ModelState.AddModelError("", "El email y/o la contraseña son incorrectos.");
                     return View(model);

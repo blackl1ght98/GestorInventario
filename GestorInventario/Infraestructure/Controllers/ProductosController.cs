@@ -24,11 +24,8 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IPaginationHelper _paginationHelper;
         private readonly ICurrentUserAccessor _current;
         public ProductosController(IPolicyExecutor executor,IPaginationHelper pagination,ICurrentUserAccessor current,
-        ILogger<ProductosController> logger, IEmailService emailService, IProductoRepository producto,   IPdfService pdf
-       )
+        ILogger<ProductosController> logger, IEmailService emailService, IProductoRepository producto,IPdfService pdf)
         {
-                   
-         
             _logger = logger;         
             _emailService = emailService;
             _productoRepository = producto;         
@@ -171,7 +168,7 @@ namespace GestorInventario.Infraestructure.Controllers
        //Metodo que crea el producto
         [HttpPost]
         [Authorize(Roles = "Administrador")]
-        [ValidateAntiForgeryToken]
+      
         public async Task<IActionResult> Create(ProductosViewModel model)
         {
             try
@@ -190,15 +187,18 @@ namespace GestorInventario.Infraestructure.Controllers
                        placeholder: "Seleccione un usuario..."
                    );
                 }
-                else
+                var producto = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.CrearProducto(model));
+                if (producto.Success)
                 {
-                    var producto = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.CrearProducto(model));
-
                     return RedirectToAction(nameof(Index));
                 }
+                else
+                {
+                    TempData["ErrorMessage"] = producto.Message;
                     return View(model);
-                
-                
+                }
+
+
             }
             catch (Exception ex)
             {
@@ -221,7 +221,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 var (producto,mensaje) = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProductoPorId(id));    
                 if (producto == null)
                 {
-                    TempData["ErrorMessage"] = mensaje;
+                    _logger.LogError(mensaje);
+                    return RedirectToAction(nameof(Index));
                 }             
                 return View(producto);
             }
@@ -356,10 +357,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!(_current.IsAuthenticated()))
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+               
               
                 int usuarioId=_current.GetCurrentUserId();
                
@@ -432,10 +430,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                 if (!(_current.IsAuthenticated()))
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+                
                 var  pdfData = await _policyExecutor.ExecutePolicyAsync(() => _pdfService.DescargarProductoPDF());
                 if (!pdfData.Success)
                 {

@@ -33,7 +33,7 @@ namespace GestorInventario.Infraestructure.Repositories
      
         public IQueryable<Producto> ObtenerTodosLosProductos()=>from p in _context.Productos.Include(x => x.IdProveedorNavigation)orderby p.Id  select p;
         public async Task<List<Producto>> ObtenerProductos() => await _context.Productos.ToListAsync();
-        public async Task<Producto> CrearProducto(ProductosViewModel model)
+        public async Task<OperationResult<Producto>> CrearProducto(ProductosViewModel model)
         {
             if (model == null)
             {
@@ -89,13 +89,17 @@ namespace GestorInventario.Infraestructure.Repositories
 
                 // Guardar producto
                 _logger.LogDebug("Agregando producto a la base de datos: {NombreProducto}", producto.NombreProducto);
+                var existeProducto = await _context.Productos.FirstOrDefaultAsync(x=>x.NombreProducto==producto.NombreProducto);
+                if (existeProducto != null) {
+                    return OperationResult<Producto>.Fail("Ya hay un producto con ese nombre, proporcione otro nombre");
+                }
                 await _context.AddEntityAsync(producto);
                 await CrearHistorial(producto);
               
             await transaction.CommitAsync();
 
                 _logger.LogInformation("Producto creado exitosamente: {NombreProducto}, UpcCode: {UpcCode}", producto.NombreProducto, producto.UpcCode);
-                return producto;
+                return OperationResult<Producto>.Ok("",producto);
             }
             catch (Exception ex)
             {

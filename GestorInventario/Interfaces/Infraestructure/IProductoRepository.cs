@@ -8,7 +8,7 @@ namespace GestorInventario.Interfaces.Infraestructure
     {
         IQueryable<Producto> ObtenerTodosLosProductos();
         Task<List<Producto>> ObtenerProductos();
-        Task<Producto> CrearProducto(ProductosViewModel model);      
+        Task<OperationResult<Producto>> CrearProducto(ProductosViewModel model);      
         Task<List<Proveedore>> ObtenerProveedores();
         Task<(Producto?, string)> ObtenerProductoPorId(int id);
         Task<OperationResult<string>> EliminarProducto(int Id);

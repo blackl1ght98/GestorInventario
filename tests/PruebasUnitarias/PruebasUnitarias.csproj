@@ -29,4 +29,12 @@
   <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
+	<ItemGroup>
+		<None Update="TestFiles\imagenes\test-producto.jpg">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+  <ItemGroup>
+    <Folder Include="TestFiles\imagenes\" />
+  </ItemGroup>
 </Project>
