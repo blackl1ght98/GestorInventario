@@ -11,7 +11,6 @@ using GestorInventario.Domain.Models;
 using GestorInventario.enums;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
-using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using System.Globalization;
 
@@ -21,16 +20,16 @@ namespace GestorInventario.Application.Services
     public class PaypalService : IPaypalService
     {       
         private readonly ILogger<PaypalService> _logger;
-        private readonly IMemoryCache _cache;
-        private readonly IUnitOfWork _unitOfWork;                 
+     
+        private readonly IPaypalRepository _repo;
         private readonly IPayPalHttpClient _paypal;
         public PaypalService( ILogger<PaypalService> logger,   
-            IMemoryCache memory, IUnitOfWork unit, IPayPalHttpClient paypal)
+           IPayPalHttpClient paypal, IPaypalRepository repo)
         {                
-            _logger = logger;
-            _cache = memory;
-            _unitOfWork = unit;                      
-            _paypal = paypal;                   
+            _logger = logger;           
+                               
+            _paypal = paypal;    
+            _repo = repo;
         }
      
         #region Crear orden 
@@ -47,10 +46,8 @@ namespace GestorInventario.Application.Services
                     throw new InvalidOperationException($"Error al crear orden: {resp.StatusCode} - {body}");
                 });
             var jsonResponse = JsonConvert.DeserializeObject<PayPalOrderResponseDto>(responseBody);
-            var orderId = jsonResponse?.Id;
-            if (!string.IsNullOrEmpty(orderId))
-                _cache.Set("PayPalOrderId", orderId, TimeSpan.FromMinutes(10));
-
+            
+             
             return responseBody;
         }
         private PaypalCreateOrderRequestDto BuildOrder(CheckoutDto pagar)
@@ -207,7 +204,7 @@ namespace GestorInventario.Application.Services
         {
             try
             {
-                var (pedido, detalles) = await _unitOfWork.PaypalRepository.GetPedidoConDetallesAsync(pedidoId);
+                var (pedido, detalles) = await _repo.GetPedidoConDetallesAsync(pedidoId);
                 if (pedido == null || detalles == null)
                 {
                     throw new Exception("No se pudo obtener la información completa del pedido.");
@@ -224,7 +221,7 @@ namespace GestorInventario.Application.Services
                 });
 
                 // Actualizar el estado del pedido usando UnitOfWork
-                await _unitOfWork.PaypalRepository.AddInfoTrackingOrder(pedidoId, trackingInfo.TrackingNumber, "", carrier.ToString());
+                await _repo.AddInfoTrackingOrder(pedidoId, trackingInfo.TrackingNumber, "", carrier.ToString());
                 _logger.LogInformation("Seguimiento agregado exitosamente para el pedido {PedidoId}", pedidoId);
                 return responseBody;
             }
@@ -282,7 +279,7 @@ namespace GestorInventario.Application.Services
             {          
               
                 // Obtener el pedido y el monto total desde el repositorio
-                var (pedido, totalAmount) = await _unitOfWork.PaypalRepository.GetPedidoWithDetailsAsync(pedidoId);
+                var (pedido, totalAmount) = await _repo.GetPedidoWithDetailsAsync(pedidoId);
                
                 // Crear el objeto de solicitud de reembolso
                 var refundRequest = BuildRefundRequest(totalAmount, pedido);
@@ -308,8 +305,8 @@ namespace GestorInventario.Application.Services
                     throw new ArgumentNullException("No se pudo obtener los detalles actualizados");
                 }
                 string estadoVenta = updatedCapture.PurchaseUnits[0].Payments.Captures[0].Status;
-                await _unitOfWork.PaypalRepository.UpdatePedidoStatusAsync(pedidoId, "Reembolsado", refundId,estadoVenta);
-                await _unitOfWork.PaypalRepository.EnviarEmailNotificacionRembolso(pedidoId, totalAmount, "Rembolso Aprobado");
+                await _repo.UpdatePedidoStatusAsync(pedidoId, "Reembolsado", refundId,estadoVenta);
+                await _repo.EnviarEmailNotificacionRembolso(pedidoId, totalAmount, "Rembolso Aprobado");
                 return responseBody;
             }
             catch (Exception ex)
@@ -334,7 +331,7 @@ namespace GestorInventario.Application.Services
         {
             try
             {
-                var (pedido, totalAmount) = await _unitOfWork.PaypalRepository.GetProductoDePedidoAsync(pedidoId);
+                var (pedido, totalAmount) = await _repo.GetProductoDePedidoAsync(pedidoId);
                 var detalle = pedido.Pedido.DetallePedidos.FirstOrDefault();
                 if (detalle == null)
                     throw new ArgumentException($"No se encontró el detalle del pedido con ID {pedidoId}.");
@@ -342,46 +339,20 @@ namespace GestorInventario.Application.Services
                 if (detalle.Rembolsado ?? false)
                     throw new InvalidOperationException("El detalle del pedido ya ha sido reembolsado.");
 
-                // Obtener detalles de la captura (ya usas tu método existente)
+              
                 var captureDetails = await ObtenerDetallesPagoEjecutadoV2(pedido.Pedido.OrderId);
-                if (captureDetails == null)
-                    throw new InvalidOperationException("No se pudieron obtener los detalles de la captura.");
+                var (availableAmount, estadoVenta) = await CalcularMontoDisponibleYEstadoAsync(
+                    captureDetails, totalAmount, currency);
 
-                var capture = captureDetails.PurchaseUnits[0].Payments.Captures[0];
-                var netAmount = decimal.Parse(capture.SellerReceivableBreakdown.NetAmount.Value, CultureInfo.InvariantCulture);
-
-                // Calcular monto reembolsado previo
-                var refundedAmount = captureDetails.PurchaseUnits[0].Payments.Refunds?
-                    .Sum(r => decimal.Parse(r.SellerPayableBreakdown.NetAmount.Value, CultureInfo.InvariantCulture)) ?? 0m;
-
-                var availableAmount = netAmount - refundedAmount;
-
-                _logger.LogInformation("Monto neto: {NetAmount} {Currency}, Reembolsado previo: {RefundedAmount} {Currency}, Disponible: {AvailableAmount} {Currency}, Solicitado: {TotalAmount} {Currency}",
-                    netAmount, currency, refundedAmount, currency, availableAmount, currency, totalAmount, currency);
-
-                if (totalAmount > availableAmount)
-                {
-                    _logger.LogWarning("Monto solicitado ({TotalAmount} {Currency}) excede disponible ({AvailableAmount} {Currency}) para pedido {PedidoId}. Ajustando.",
-                        totalAmount, currency, availableAmount, currency, pedidoId);
-                    totalAmount = availableAmount;
-                }
-
-                if (availableAmount <= 0)
-                    throw new InvalidOperationException("No hay monto disponible para reembolsar.");
-
-                if (currency != capture.Amount.CurrencyCode)
-                    throw new InvalidOperationException($"Moneda solicitada ({currency}) no coincide con captura ({capture.Amount.CurrencyCode}).");
-
-                // Construir el request (tu método existente)
-                var refundRequest = BuildRefundPartialRequest(totalAmount, pedido);
+                // 4. Construir request y ejecutar reembolso en PayPal
+                var refundRequest = BuildRefundPartialRequest(availableAmount, pedido);
                 var requestJson = JsonConvert.SerializeObject(refundRequest);
                 _logger.LogInformation("Refund request JSON: {RequestJson}", requestJson);
 
-                
                 var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                     HttpMethod.Post,
                     $"v2/payments/captures/{pedido.Pedido.CaptureId}/refund",
-                    refundRequest,  
+                    refundRequest,
                     async resp =>
                     {
                         var errBody = await resp.Content.ReadAsStringAsync();
@@ -392,7 +363,7 @@ namespace GestorInventario.Application.Services
                 var updatedCapture = await ObtenerDetallesPagoEjecutadoV2(pedido.Pedido.OrderId);
 
                 // Manejo de errores específicos 
-                if (!responseBody.StartsWith("{") || responseBody.Contains("error")) // chequeo básico si el helper no lanzó excepción
+                if (!responseBody.StartsWith("{") || responseBody.Contains("error")) 
                 {
                     var errorDetails = JsonConvert.DeserializeObject<PaypalErrorResponse>(responseBody);
                     string errorMessage = $"Error al procesar el reembolso: {errorDetails?.Message ?? "Error desconocido"}";
@@ -437,9 +408,9 @@ namespace GestorInventario.Application.Services
                     _logger.LogWarning("EstadoRembolso truncado a {MaxLength} chars: {Cadena}", maxLength, cadena);
                 }
 
-                string estadoVenta = updatedCapture?.PurchaseUnits[0].Payments.Captures[0].Status ?? "PARTIALLY_REFUNDED";
+              
 
-                await _unitOfWork.PaypalRepository.RegistrarReembolsoParcialAsync(
+                await _repo.RegistrarReembolsoParcialAsync(
                     pedido.Pedido.Id,
                     detalle.Id,
                     cadena,
@@ -449,7 +420,7 @@ namespace GestorInventario.Application.Services
                     estadoVenta
                 );
 
-                var emailSuccess = await _unitOfWork.PaypalRepository.EnviarEmailNotificacionRembolso(
+                var emailSuccess = await _repo.EnviarEmailNotificacionRembolso(
                     pedido.Pedido.Id,
                     totalAmount,
                     motivo
@@ -470,6 +441,34 @@ namespace GestorInventario.Application.Services
                 _logger.LogError(ex, "Error inesperado en reembolso parcial pedido {PedidoId}", pedidoId);
                 throw new InvalidOperationException("No se pudo realizar el reembolso parcial. Intenta de nuevo o contacta soporte.", ex);
             }
+        }
+        private async Task<(decimal availableAmount, string estadoVenta)> CalcularMontoDisponibleYEstadoAsync(
+        CheckoutDetailsDto captureDetails, decimal totalAmount, string currency)
+        {
+            var capture = captureDetails.PurchaseUnits[0].Payments.Captures[0];
+
+            if (currency != capture.Amount.CurrencyCode)
+                throw new InvalidOperationException($"Moneda solicitada ({currency}) no coincide con captura.");
+
+            var netAmount = decimal.Parse(capture.SellerReceivableBreakdown.NetAmount.Value, CultureInfo.InvariantCulture);
+
+            var refundedAmount = captureDetails.PurchaseUnits[0].Payments.Refunds?
+                .Sum(r => decimal.Parse(r.SellerPayableBreakdown.NetAmount.Value, CultureInfo.InvariantCulture)) ?? 0m;
+
+            var availableAmount = netAmount - refundedAmount;
+
+            if (totalAmount > availableAmount)
+            {
+                _logger.LogWarning("Monto solicitado excede disponible. Ajustando.");
+                totalAmount = availableAmount;
+            }
+
+            if (availableAmount <= 0)
+                throw new InvalidOperationException("No hay monto disponible para reembolsar.");
+
+            var estadoVenta = capture.Status ?? "PARTIALLY_REFUNDED";
+
+            return (availableAmount, estadoVenta);
         }
         private PaypalRefundResponseDto BuildRefundPartialRequest(decimal totalAmount, DetallePedido pedido)
         {
@@ -539,7 +538,7 @@ namespace GestorInventario.Application.Services
                     var responseObject = JsonConvert.DeserializeObject<PaypalPlanDetailsDto>(responseBody);
                     string createdPlanId = responseObject.Id;
                     // Guardar los detalles del plan en la base de datos con la ID de PayPal
-                    await _unitOfWork.PaypalRepository.SavePlanDetailsAsync(createdPlanId, planRequest);
+                    await _repo.SavePlanDetailsAsync(createdPlanId, planRequest);
                     return responseBody;            
             }
             catch (Exception ex)
@@ -864,7 +863,7 @@ namespace GestorInventario.Application.Services
                         throw new PayPalException($"No se pudo obtener los detalles actualizados del plan con ID {planId}: {err.StatusCode} - {errorResponse?.Message ?? "Error desconocido"} (Debug ID: {errorResponse?.DebugId})");
                     });
                 var updatedPlanDetails = JsonConvert.DeserializeObject<PaypalPlanDetailsDto>(verifyPlanDetails);
-                await _unitOfWork.PaypalRepository.SavePlanPriceUpdateAsync(planId, new UpdatePricingPlanDto { PricingSchemes = pricingUpdates });
+                await _repo.SavePlanPriceUpdateAsync(planId, new UpdatePricingPlanDto { PricingSchemes = pricingUpdates });
                 
                 return "Precio del plan actualizado con éxito";
             }
@@ -1063,7 +1062,7 @@ namespace GestorInventario.Application.Services
                         throw new ArgumentNullException("No se puede desactivar el plan: respuesta del servidor no valida");
                     }
                     string planStatusResult = planDetails.Status;
-                    await _unitOfWork.PaypalRepository.UpdatePlanStatusInDatabase(planId, planStatusResult);
+                    await _repo.UpdatePlanStatusInDatabase(planId, planStatusResult);
             return "Plan desactivado con éxito";
         }
         #endregion
@@ -1093,7 +1092,7 @@ namespace GestorInventario.Application.Services
                         throw new ArgumentNullException("No se puede activar el plan: respuesta del servidor no valida");
                     }
                     string planStatusResult = planDetails.Status;
-                    await _unitOfWork.PaypalRepository.UpdatePlanStatusInDatabase(planId, planStatusResult);         
+                    await _repo.UpdatePlanStatusInDatabase(planId, planStatusResult);         
             return "Plan activado con éxito";
         }
         #endregion

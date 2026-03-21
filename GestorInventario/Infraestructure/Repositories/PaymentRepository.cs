@@ -56,7 +56,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 _logger.LogWarning("No se encontró un pedido en proceso para el usuario {UsuarioId}", usuarioActual);
                 return OperationResult<Pedido>.Fail("Pedido no encontrado para el usuario especificado");
             }
-
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 pedido.CaptureId = captureId;
@@ -66,11 +66,13 @@ namespace GestorInventario.Infraestructure.Repositories
                 pedido.EstadoPedido = "Pagado";
 
                 await _context.UpdateEntityAsync(pedido);
+                await transaction.CommitAsync();
                 return OperationResult<Pedido>.Ok("",pedido);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al actualizar el pedido para usuario {UsuarioId}, captureId={CaptureId}", usuarioActual, captureId);
+                await transaction.RollbackAsync();
                 return OperationResult<Pedido>.Fail("Ocurrio un error al agregar el pedido");
             }
         }

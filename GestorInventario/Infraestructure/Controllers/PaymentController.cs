@@ -18,8 +18,9 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IPolicyExecutor _policyExecutor;
         private readonly IPaymentRepository _paymentRepository; 
         private readonly ICurrentUserAccessor _currentUserAccessor;
+        private readonly IPaypalRepository _repo;
         public PaymentController(ILogger<PaymentController> logger,  IMemoryCache memory, ICurrentUserAccessor current,
-            IPolicyExecutor executor, IPaypalService service, IPaymentRepository payment)
+            IPolicyExecutor executor, IPaypalService service, IPaymentRepository payment, IPaypalRepository repo)
         {
             _logger = logger;                               
             _memory = memory;          
@@ -27,17 +28,18 @@ namespace GestorInventario.Infraestructure.Controllers
             _paypalService = service;
             _paymentRepository = payment;          
             _currentUserAccessor = current;
+            _repo = repo;
         }
         [Authorize]
-        public async Task<IActionResult> Success()
+        public async Task<IActionResult> Success(string token=null)
         {
             try
             {
-                if (!_memory.TryGetValue("PayPalOrderId", out string? orderId) || string.IsNullOrEmpty(orderId))
-                {
-                    _logger.LogCritical("El Id no se ha encontrado");
-                }
-
+               //Capturar el id de la url de paypal
+                var orderId = token ?? string.Empty;
+                //CaptureId->representa el id del pago en paypal
+                //total-> lo que has pagado
+                //currency-> la moneda
                 var (captureId, total, currency) = await _paypalService.CapturarPagoAsync(orderId);
 
                 var usuarioActual = _currentUserAccessor.GetCurrentUserId();

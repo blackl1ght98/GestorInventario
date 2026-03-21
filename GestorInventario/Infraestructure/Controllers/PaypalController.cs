@@ -633,7 +633,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
                 // Crear y guardar SubscriptionDetail usando el repositorio
-                var detallesSuscripcion = await _paypalRepository.CreateSubscriptionDetailAsync(subscriptionDetails, planId, _paypalService);
+                var detallesSuscripcion = await _paypalRepository.CreateSubscriptionDetailAsync(subscriptionDetails, planId,_paypalService);
                 await _paypalRepository.SaveOrUpdateSubscriptionDetailsAsync(detallesSuscripcion);
 
                 return View(detallesSuscripcion);

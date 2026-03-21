@@ -138,10 +138,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!(_current.IsAuthenticated()))
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+               
                 ViewData["Productos"] = new SelectList(await _productoRepository.ObtenerProveedores(), "Id", "NombreProveedor");
                 var proveedores = await _productoRepository.ObtenerProveedores();
                 var model = new ProductosViewModel
@@ -173,10 +170,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!(_current.IsAuthenticated()))
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+               
                                 
                 if (!ModelState.IsValid)
                 {
@@ -213,10 +207,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!(_current.IsAuthenticated()))
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+               
                 
                 var (producto,mensaje) = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProductoPorId(id));    
                 if (producto == null)
@@ -242,10 +233,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!(_current.IsAuthenticated()))
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+               
                 var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))
@@ -279,10 +267,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!(_current.IsAuthenticated()))
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+               
 
                 var (producto,mensaje) = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProductoPorId(id));
                 if (producto == null)
@@ -320,10 +305,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!(_current.IsAuthenticated()))
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+                
                 if (ModelState.IsValid)
                 {
                     int usuarioId = _current.GetCurrentUserId();
@@ -389,10 +371,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!(_current.IsAuthenticated()))
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+                
                 var historialProductos =  _policyExecutor.ExecutePolicy(() => _productoRepository.ObtenerTodoHistorial());
                 ViewData["Buscar"] = buscar;
                 if (!String.IsNullOrEmpty(buscar))
@@ -529,17 +508,14 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
         //Metodo que elimina todo el historial
-        [HttpPost, ActionName("DeleteAllHistorial")]
+        [HttpPost]
         [Authorize(Roles = "Administrador")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteAllHistorial()
         {
             try
             {
-                if (!(_current.IsAuthenticated()))
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+               
 
                 var historialProductos = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.EliminarTodoHistorial());
                 //var historialProductos = await _productoRepository.EliminarTodoHistorial();
