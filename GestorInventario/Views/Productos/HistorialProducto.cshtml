@@ -62,7 +62,7 @@
                             </a>
                             @if (User.IsInRole("Administrador"))
                             {
-                                <a asp-action="DeleteHistorial" asp-route-id="@pedido.Id" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" title="Eliminar registro" onclick="return confirm('¿Estás seguro de que quieres eliminar este registro del historial?');">
+                                <a asp-action="DeleteHistorial" asp-route-id="@pedido.Id" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" title="Eliminar registro">
                                     <i class="bi bi-trash nav-icon"></i> Eliminar
                                 </a>
                             }

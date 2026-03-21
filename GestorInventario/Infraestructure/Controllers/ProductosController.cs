@@ -235,7 +235,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
         }
         //Metodo que elimina el producto
-        [HttpPost, ActionName("DeleteConfirmed")]
+        [HttpPost]
         [Authorize(Roles = "Administrador")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int Id)
@@ -453,10 +453,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!(_current.IsAuthenticated()))
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+              
 
                 var historialProducto = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerHistorialProductoPorId(id));
                 if (historialProducto == null)
@@ -478,10 +475,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!(_current.IsAuthenticated()))
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+                
                 var historialProducto = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerHistorialProductoPorId(id));
                 if (historialProducto == null)
                 {
@@ -499,17 +493,14 @@ namespace GestorInventario.Infraestructure.Controllers
 
         }
         //Metodo que elimina el historial
-        [HttpPost, ActionName("DeleteConfirmedHistorial")]
+        [HttpPost]
         [Authorize(Roles = "Administrador")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmedHistorial(int Id)
         {
             try
             {
-                if (!(_current.IsAuthenticated()))
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+               
                 var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))

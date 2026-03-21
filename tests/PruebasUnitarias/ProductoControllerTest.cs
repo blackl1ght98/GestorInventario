@@ -111,7 +111,7 @@ namespace PruebasUnitarias
             {
                 await PerformSuccessfulLoginAsync();
                 Console.WriteLine("Intentando eliminar producto");
-                await _page.GotoAsync("https://localhost:7056/Productos/Delete/1110");
+                await _page.GotoAsync("https://localhost:7056/Productos/Delete/1115");
                 Console.WriteLine("Confirmando que estamos en esa pagina");
                 await _page.ClickAsync("button[type='submit']");
                 await _page.WaitForURLAsync("**/Productos**", new PageWaitForURLOptions
@@ -265,7 +265,7 @@ namespace PruebasUnitarias
             try
             {
                 await PerformSuccessfulLoginAsync();
-                Console.WriteLine("Dirigiendo a la pagina de productos");
+                Console.WriteLine("Dirigiendo a la pagina de historial de productos");
                 await _page.GotoAsync("https://localhost:7057/Productos/HistorialProducto");
                 Console.WriteLine("Confirmando que estamos en esa pagina");
                 await Expect(_page.GetByRole(AriaRole.Heading, new() { Name = "Historial de Productos", Exact = true }))
@@ -328,6 +328,108 @@ namespace PruebasUnitarias
                 Console.WriteLine($"❌ Excepción: {ex.Message}");
                 await _page.ScreenshotAsync(new() { Path = "error-descargar-historial-pdf.png", FullPage = true });
                 Assert.Fail(ex.Message);
+            }
+        }
+        [Fact]
+        public async Task Mostrar_Detalles_Historial_Productos_Test()
+        {
+            try
+            {
+                await PerformSuccessfulLoginAsync();
+                Console.WriteLine("Dirigiendo a la pagina de detalle historial");
+                await _page.GotoAsync("https://localhost:7057/Productos/DetallesHistorialProducto/1505");
+                Console.WriteLine("Confirmando que estamos en esa pagina");
+                await Expect(_page.GetByRole(AriaRole.Heading, new() { Name = "Detalles del Producto" }))
+                .ToBeVisibleAsync(new() { Timeout = 10000 });
+                await _page.ScreenshotAsync(new() { Path = "paginaDetallesHistorialProductos.png", FullPage = true });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Excepción: {ex.Message}");
+                await _page.ScreenshotAsync(new PageScreenshotOptions { Path = "error-ver-detalles-historial-Productos.png", FullPage = true });
+                Assert.Fail(ex.Message);
+            }
+        }
+        [Fact]
+        public async Task Eliminar_Historial_Producto_Test()
+        {
+            try
+            {
+                await PerformSuccessfulLoginAsync();
+                Console.WriteLine("Intentando eliminar historialProductos");
+                await _page.GotoAsync("https://localhost:7056/Productos/DeleteHistorial/1505");
+                Console.WriteLine("Confirmando que estamos en esa pagina");
+                await _page.ClickAsync("button[type='submit']");
+                await _page.WaitForURLAsync("**/HistorialProducto**", new PageWaitForURLOptions
+                {
+                    Timeout = 15000,
+
+                });
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Excepción: {ex.Message}");
+                await _page.ScreenshotAsync(new PageScreenshotOptions { Path = "error-eliminar-pedido.png", FullPage = true });
+                Assert.Fail(ex.Message);
+            }
+
+        }
+        [Fact]
+        public async Task Delete_All_Historial_Productos_Test()
+        {
+            try
+            {
+                await PerformSuccessfulLoginAsync();
+                Console.WriteLine("Login exitoso como admin");
+
+                Console.WriteLine("Dirigiendo a la página de historial de productos");
+                await _page.GotoAsync("https://localhost:7057/Productos/HistorialProducto");
+
+                Console.WriteLine("Confirmando que estamos en esa página");
+
+                // Interceptar y aceptar automáticamente cualquier diálogo confirm()
+                _page.Dialog += async (sender, dialog) =>
+                {
+                    if (dialog.Type == DialogType.Confirm)
+                    {
+                        Console.WriteLine("Diálogo confirm() detectado - aceptando automáticamente");
+                        await dialog.AcceptAsync(); // responde "OK"
+                    }
+                };
+
+                // Esperar botón visible
+                var deleteButton = _page.GetByRole(AriaRole.Button, new() { Name = "Eliminar Todo" });
+                await Expect(deleteButton).ToBeVisibleAsync(new() { Timeout = 15000 });
+
+                // Capturar respuesta del POST
+                var responseTask = _page.WaitForResponseAsync(r => r.Url.Contains("/Productos/DeleteAllHistorial"));
+
+                // Clic → abre confirm() → handler lo acepta → submit POST
+                await deleteButton.ClickAsync();
+
+                // Esperar respuesta del POST
+                var response = await responseTask;
+
+                // Verificar redirección
+                await _page.WaitForURLAsync("**/HistorialProducto**", new() { Timeout = 20000 });
+
+                // Verificar no hay alert de error
+                await Expect(_page.Locator(".alert.alert-danger")).Not.ToBeVisibleAsync(new() { Timeout = 5000 });
+
+                Console.WriteLine("Eliminación de todo el historial ejecutada correctamente (confirm aceptado y redirigido)");
+                await _page.ScreenshotAsync(new() { Path = "success-delete-all-historial.png", FullPage = true });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Excepción: {ex.Message}");
+                await _page.ScreenshotAsync(new() { Path = "error-delete-all-historial.png", FullPage = true });
+                Assert.Fail(ex.Message);
+            }
+            finally
+            {
+                // Limpiar el handler (buena práctica)
+                _page.Dialog -= null;
             }
         }
         private async Task PerformSuccessfulLoginAsync()
