@@ -30,5 +30,6 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<SubscriptionDetail> CreateSubscriptionDetailAsync(dynamic subscriptionDetails, string planId, IPaypalService paypalService);
         Task UpdateSubscriptionStatusAsync(string subscriptionId, string status);
         Task<OperationResult<string>> EnviarEmailNotificacionRembolso(int pedidoId, decimal montoReembolsado, string motivo);
+    
     }
 }

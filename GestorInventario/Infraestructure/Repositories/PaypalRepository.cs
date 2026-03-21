@@ -1,6 +1,7 @@
 ﻿using GestorInventario.Application.DTOs;
 using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Application.DTOs.Response_paypal.POST;
+using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
 using GestorInventario.enums;
 using GestorInventario.Infraestructure.Utils;
@@ -8,6 +9,7 @@ using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using System.Globalization;
 
 
@@ -782,7 +784,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 throw;
             }
         }
-      
+       
         public async Task UpdateSubscriptionStatusAsync(string subscriptionId, string status)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -830,5 +832,8 @@ namespace GestorInventario.Infraestructure.Repositories
                 throw;
             }
         }
+       
+
     }
+
 }

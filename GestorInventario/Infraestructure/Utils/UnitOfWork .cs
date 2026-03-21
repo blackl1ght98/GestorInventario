@@ -7,12 +7,15 @@ namespace GestorInventario.Infraestructure.Utils
     {
         private readonly GestorInventarioContext _context;
         public IPaypalRepository PaypalRepository { get; private set; }
+       
         private bool _disposed = false;
 
         public UnitOfWork(GestorInventarioContext context, IPaypalRepository paypalRepository)
         {
             _context = context;
             PaypalRepository = paypalRepository;
+           
+
         }
 
         public async Task<int> SaveChangesAsync()

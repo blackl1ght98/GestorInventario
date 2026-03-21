@@ -273,37 +273,37 @@ namespace GestorInventario.Infraestructure.Repositories
                 }
 
                 // Si el detalle no existe, crear uno nuevo; si existe, actualizarlo
-                PayPalPaymentDetail detallesSuscripcion;
+                PayPalPaymentDetail detallesPago;
                 if (existingDetail == null)
                 {
-                    detallesSuscripcion = new PayPalPaymentDetail
+                    detallesPago = new PayPalPaymentDetail
                     {
-                        Id = detalles.Id // Asignar el Id antes de agregar al contexto
+                        Id = detalles.Id 
                     };
-                    _context.PayPalPaymentDetails.Add(detallesSuscripcion);
+                    _context.PayPalPaymentDetails.Add(detallesPago);
                 }
                 else
                 {
-                    detallesSuscripcion = existingDetail;
+                    detallesPago = existingDetail;
                     // Opcional: Limpiar los ítems existentes si se desea actualizarlos completamente
-                    _context.PayPalPaymentItems.RemoveRange(detallesSuscripcion.PayPalPaymentItems);
+                    _context.PayPalPaymentItems.RemoveRange(detallesPago.PayPalPaymentItems);
                 }
 
                 // Actualizar los campos del objeto PayPalPaymentDetail con los datos de la API
-                detallesSuscripcion.Intent = detalles.Intent;
-                detallesSuscripcion.Status = detalles.Status;
-                detallesSuscripcion.PaymentMethod = "paypal";
-                detallesSuscripcion.PayerEmail = detalles.Payer?.Email;
-                detallesSuscripcion.PayerFirstName = detalles.Payer?.Name?.GivenName;
-                detallesSuscripcion.PayerLastName = detalles.Payer?.Name?.Surname;
-                detallesSuscripcion.PayerId = detalles.Payer?.PayerId;
+                detallesPago.Intent = detalles.Intent;
+                detallesPago.Status = detalles.Status;
+                detallesPago.PaymentMethod = "paypal";
+                detallesPago.PayerEmail = detalles.Payer?.Email;
+                detallesPago.PayerFirstName = detalles.Payer?.Name?.GivenName;
+                detallesPago.PayerLastName = detalles.Payer?.Name?.Surname;
+                detallesPago.PayerId = detalles.Payer?.PayerId;
                
-                detallesSuscripcion.ShippingRecipientName = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Name?.FullName;
-                detallesSuscripcion.ShippingLine1 = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.AddressLine1;
-                detallesSuscripcion.ShippingCity = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.AdminArea2;
-                detallesSuscripcion.ShippingState = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.AdminArea1;
-                detallesSuscripcion.ShippingPostalCode = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.PostalCode;
-                detallesSuscripcion.ShippingCountryCode = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.CountryCode;
+                detallesPago.ShippingRecipientName = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Name?.FullName;
+                detallesPago.ShippingLine1 = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.AddressLine1;
+                detallesPago.ShippingCity = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.AdminArea2;
+                detallesPago.ShippingState = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.AdminArea1;
+                detallesPago.ShippingPostalCode = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.PostalCode;
+                detallesPago.ShippingCountryCode = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.CountryCode;
 
                 if (detalles.PurchaseUnits != null)
                 {
@@ -311,12 +311,12 @@ namespace GestorInventario.Infraestructure.Repositories
                     {
                         if (purchaseUnit != null)
                         {
-                            detallesSuscripcion.AmountTotal = ConvertToDecimal(purchaseUnit.Amount?.Value);
-                            detallesSuscripcion.AmountCurrency = purchaseUnit.Amount?.CurrencyCode;
-                            detallesSuscripcion.AmountItemTotal = ConvertToDecimal(purchaseUnit.Amount?.Breakdown?.ItemTotal?.Value);
+                            detallesPago.AmountTotal = ConvertToDecimal(purchaseUnit.Amount?.Value);
+                            detallesPago.AmountCurrency = purchaseUnit.Amount?.CurrencyCode;
+                            detallesPago.AmountItemTotal = ConvertToDecimal(purchaseUnit.Amount?.Breakdown?.ItemTotal?.Value);
 
                             // Calcular subtotal si es necesario
-                            if (detallesSuscripcion.AmountItemTotal == 0 && purchaseUnit.Items != null)
+                            if (detallesPago.AmountItemTotal == 0 && purchaseUnit.Items != null)
                             {
                                 decimal? subtotal = 0;
                                 foreach (var item in purchaseUnit.Items)
@@ -326,13 +326,13 @@ namespace GestorInventario.Infraestructure.Repositories
                                     var quantity = ConvertToInt(item.Quantity?.ToString());
                                     subtotal += unitAmount * quantity;
                                 }
-                                detallesSuscripcion.AmountItemTotal = subtotal;
+                                detallesPago.AmountItemTotal = subtotal;
                             }
 
-                            detallesSuscripcion.AmountShipping = ConvertToDecimal(purchaseUnit.Amount?.Breakdown?.Shipping?.Value);
-                            detallesSuscripcion.PayeeMerchantId = purchaseUnit.Payee?.MerchantId;
-                            detallesSuscripcion.PayeeEmail = purchaseUnit.Payee?.EmailAddress;
-                            detallesSuscripcion.Description = purchaseUnit.Description;
+                            detallesPago.AmountShipping = ConvertToDecimal(purchaseUnit.Amount?.Breakdown?.Shipping?.Value);
+                            detallesPago.PayeeMerchantId = purchaseUnit.Payee?.MerchantId;
+                            detallesPago.PayeeEmail = purchaseUnit.Payee?.EmailAddress;
+                            detallesPago.Description = purchaseUnit.Description;
 
                             if (purchaseUnit.Payments?.Captures != null)
                             {
@@ -341,23 +341,23 @@ namespace GestorInventario.Infraestructure.Repositories
                                     if (capture != null)
                                     {
                                        
-                                        detallesSuscripcion.SaleId = capture.Id;
-                                        detallesSuscripcion.CaptureStatus = capture.Status;
-                                        detallesSuscripcion.CaptureAmount = ConvertToDecimal(capture.Amount?.Value);
-                                        detallesSuscripcion.CaptureCurrency = capture.Amount?.CurrencyCode;
-                                        detallesSuscripcion.ProtectionEligibility = capture.SellerProtection?.Status;
-                                        detallesSuscripcion.TransactionFeeAmount = ConvertToDecimal(capture.SellerReceivableBreakdown?.PaypalFee?.Value);
-                                        detallesSuscripcion.TransactionFeeCurrency = capture.SellerReceivableBreakdown?.PaypalFee?.CurrencyCode;
-                                        detallesSuscripcion.ReceivableAmount = ConvertToDecimal(capture.SellerReceivableBreakdown?.NetAmount?.Value);
-                                        detallesSuscripcion.ReceivableCurrency = capture.SellerReceivableBreakdown?.NetAmount?.CurrencyCode;
+                                        detallesPago.SaleId = capture.Id;
+                                        detallesPago.CaptureStatus = capture.Status;
+                                        detallesPago.CaptureAmount = ConvertToDecimal(capture.Amount?.Value);
+                                        detallesPago.CaptureCurrency = capture.Amount?.CurrencyCode;
+                                        detallesPago.ProtectionEligibility = capture.SellerProtection?.Status;
+                                        detallesPago.TransactionFeeAmount = ConvertToDecimal(capture.SellerReceivableBreakdown?.PaypalFee?.Value);
+                                        detallesPago.TransactionFeeCurrency = capture.SellerReceivableBreakdown?.PaypalFee?.CurrencyCode;
+                                        detallesPago.ReceivableAmount = ConvertToDecimal(capture.SellerReceivableBreakdown?.NetAmount?.Value);
+                                        detallesPago.ReceivableCurrency = capture.SellerReceivableBreakdown?.NetAmount?.CurrencyCode;
 
                                         var exchangeRateValue = capture.SellerReceivableBreakdown?.ExchangeRate?.Value;
                                         if (decimal.TryParse((string)exchangeRateValue, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal exchangeRate))
                                         {
-                                            detallesSuscripcion.ExchangeRate = exchangeRate;
+                                            detallesPago.ExchangeRate = exchangeRate;
                                         }
-                                        detallesSuscripcion.CreateTime = ConvertToDateTime(capture.CreateTime);
-                                        detallesSuscripcion.UpdateTime = ConvertToDateTime(capture.UpdateTime);
+                                        detallesPago.CreateTime = ConvertToDateTime(capture.CreateTime);
+                                        detallesPago.UpdateTime = ConvertToDateTime(capture.UpdateTime);
 
                                     }
 
@@ -369,8 +369,8 @@ namespace GestorInventario.Infraestructure.Repositories
                                     var firstTracker = firstPurchaseUnit.Shipping?.Trackers?.FirstOrDefault();
                                     if (firstTracker != null)
                                     {
-                                        detallesSuscripcion.TrackingId = firstTracker.Id;
-                                        detallesSuscripcion.TrackingStatus = firstTracker.Status;
+                                        detallesPago.TrackingId = firstTracker.Id;
+                                        detallesPago.TrackingStatus = firstTracker.Status;
                                     
 
                                       
@@ -380,11 +380,11 @@ namespace GestorInventario.Infraestructure.Repositories
                                     var firstCapture = firstPurchaseUnit.Payments?.Captures?.FirstOrDefault();
                                     if (firstCapture != null)
                                     {
-                                        detallesSuscripcion.FinalCapture = firstCapture.FinalCapture;
+                                        detallesPago.FinalCapture = firstCapture.FinalCapture;
 
                                         if (firstCapture.SellerProtection != null)
                                         {
-                                            detallesSuscripcion.DisputeCategories =
+                                            detallesPago.DisputeCategories =
                                                 JsonConvert.SerializeObject(firstCapture.SellerProtection.DisputeCategories);
                                         }
                                     }
@@ -399,7 +399,7 @@ namespace GestorInventario.Infraestructure.Repositories
                                 {
                                     var paymentItem = new PayPalPaymentItem
                                     {
-                                        PayPalId = detallesSuscripcion.Id,
+                                        PayPalId = detallesPago.Id,
                                         ItemName = item.Name,
                                         ItemSku = item.Sku,
                                         ItemPrice = ConvertToDecimal(item.UnitAmount?.Value),
@@ -415,11 +415,11 @@ namespace GestorInventario.Infraestructure.Repositories
                 }               
                 await _context.SaveChangesAsync();
                 await transaccion.CommitAsync();
-                return OperationResult<PayPalPaymentDetail>.Ok("",detallesSuscripcion);
+                return OperationResult<PayPalPaymentDetail>.Ok("",detallesPago);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al obtener los Junta detalles del pago");
+                _logger.LogError(ex, "Error al obtener los  detalles del pago");
                 await transaccion.RollbackAsync();
                 return OperationResult<PayPalPaymentDetail>.Fail("Ha ocurrido un error");
             }
