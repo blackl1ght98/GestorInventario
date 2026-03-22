@@ -16,18 +16,17 @@ namespace GestorInventario.Infraestructure.Repositories
         private readonly GestorInventarioContext _context;
         private readonly HashService _hashService;        
         private readonly ILogger<AuthRepository> _logger;
-        private readonly IUserRepository _userRepository;
-        private readonly ICarritoRepository _carritoRepository;       
+        private readonly IUserRepository _userRepository;           
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IEmailService _emailService;
         public AuthRepository(GestorInventarioContext context, HashService hash, ICurrentUserAccessor current,
-            ILogger<AuthRepository> logger, IUserRepository user, ICarritoRepository carritoRepository, IEmailService email)
+            ILogger<AuthRepository> logger, IUserRepository user, IEmailService email)
         {
             _context = context;
             _hashService = hash;
             _logger = logger;
             _userRepository = user;
-            _carritoRepository = carritoRepository;          
+                  
             _currentUserAccessor = current;
             _emailService = email;
         }

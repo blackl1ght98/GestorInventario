@@ -9,6 +9,7 @@ using GestorInventario.Application.DTOs.Response_paypal.POST;
 using GestorInventario.Application.Exceptions;
 using GestorInventario.Domain.Models;
 using GestorInventario.enums;
+using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using Newtonsoft.Json;
@@ -23,11 +24,12 @@ namespace GestorInventario.Application.Services
      
         private readonly IPaypalRepository _repo;
         private readonly IPayPalHttpClient _paypal;
+        private readonly CultureHelper _culture;
         public PaypalService( ILogger<PaypalService> logger,   
-           IPayPalHttpClient paypal, IPaypalRepository repo)
+           IPayPalHttpClient paypal, IPaypalRepository repo, CultureHelper culture)
         {                
             _logger = logger;           
-                               
+             _culture=culture;                  
             _paypal = paypal;    
             _repo = repo;
         }
@@ -522,7 +524,7 @@ namespace GestorInventario.Application.Services
 
         public async Task<string> CreateSubscriptionPlanAsync(string productId, string planName, string description, decimal amount, string currency, int trialDays = 0, decimal trialAmount = 0.00m)
         {
-            SetInvariantCulture();     
+           _culture.SetInvariantCultureSafe();     
             try
             {
                 var planRequest = BuildPaypalPlanRequest(productId, planName, description, amount, currency, trialDays, trialAmount);
@@ -810,8 +812,8 @@ namespace GestorInventario.Application.Services
         #region Actualizar precios de un plan
         public async Task<string> UpdatePricingPlanAsync(string planId, decimal? trialAmount, decimal regularAmount, string currency)
         {
-            SetInvariantCulture();
-           
+            _culture.SetInvariantCultureSafe();
+
 
             try
             {
@@ -963,7 +965,7 @@ namespace GestorInventario.Application.Services
         public async Task<string> Subscribirse(string id, string returnUrl, string cancelUrl, string planName)
         {
 
-            SetInvariantCulture();       
+            _culture.SetInvariantCultureSafe();
             var subscriptionRequest = BuildSubscriptionRequest(id, returnUrl, cancelUrl, planName);
             var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                 HttpMethod.Post,
@@ -1183,11 +1185,7 @@ namespace GestorInventario.Application.Services
         }
         #endregion  
       
-        private void SetInvariantCulture()
-        {
-            System.Threading.Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
-            System.Threading.Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
-        }
+       
 
     }
 

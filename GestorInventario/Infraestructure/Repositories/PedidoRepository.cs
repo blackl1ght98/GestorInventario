@@ -3,10 +3,10 @@ using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.Interfaces.Utils;
 using GestorInventario.MetodosExtension;
 using GestorInventario.ViewModels.order;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
 using Newtonsoft.Json;
 using System.Globalization;
 namespace GestorInventario.Infraestructure.Repositories
@@ -17,13 +17,15 @@ namespace GestorInventario.Infraestructure.Repositories
         private readonly IPaypalService _paypalService;
         private readonly ILogger<PedidoRepository> _logger;        
         private readonly ICurrentUserAccessor _currentUserAccessor;
-        public PedidoRepository(GestorInventarioContext context, 
+        private readonly IConversionUtils _conversion;
+        public PedidoRepository(GestorInventarioContext context, IConversionUtils conversion,
         IPaypalService service, ILogger<PedidoRepository> logger,  ICurrentUserAccessor current)
         {
             _context = context;                      
             _paypalService = service;
             _logger = logger;            
             _currentUserAccessor = current;
+            _conversion = conversion;
         }
    
         public IQueryable<Pedido> ObtenerPedidos()=>
@@ -311,9 +313,9 @@ namespace GestorInventario.Infraestructure.Repositories
                     {
                         if (purchaseUnit != null)
                         {
-                            detallesPago.AmountTotal = ConvertToDecimal(purchaseUnit.Amount?.Value);
+                            detallesPago.AmountTotal = _conversion.ConvertToDecimal(purchaseUnit.Amount?.Value);
                             detallesPago.AmountCurrency = purchaseUnit.Amount?.CurrencyCode;
-                            detallesPago.AmountItemTotal = ConvertToDecimal(purchaseUnit.Amount?.Breakdown?.ItemTotal?.Value);
+                            detallesPago.AmountItemTotal = _conversion.ConvertToDecimal(purchaseUnit.Amount?.Breakdown?.ItemTotal?.Value);
 
                             // Calcular subtotal si es necesario
                             if (detallesPago.AmountItemTotal == 0 && purchaseUnit.Items != null)
@@ -322,14 +324,14 @@ namespace GestorInventario.Infraestructure.Repositories
                                 foreach (var item in purchaseUnit.Items)
                                 {
                                    
-                                    var unitAmount = ConvertToDecimal(item.UnitAmount?.Value.ToString());
-                                    var quantity = ConvertToInt(item.Quantity?.ToString());
+                                    var unitAmount = _conversion.ConvertToDecimal(item.UnitAmount?.Value.ToString());
+                                    var quantity = _conversion.ConvertToInt(item.Quantity?.ToString());
                                     subtotal += unitAmount * quantity;
                                 }
                                 detallesPago.AmountItemTotal = subtotal;
                             }
 
-                            detallesPago.AmountShipping = ConvertToDecimal(purchaseUnit.Amount?.Breakdown?.Shipping?.Value);
+                            detallesPago.AmountShipping = _conversion.ConvertToDecimal(purchaseUnit.Amount?.Breakdown?.Shipping?.Value);
                             detallesPago.PayeeMerchantId = purchaseUnit.Payee?.MerchantId;
                             detallesPago.PayeeEmail = purchaseUnit.Payee?.EmailAddress;
                             detallesPago.Description = purchaseUnit.Description;
@@ -343,12 +345,12 @@ namespace GestorInventario.Infraestructure.Repositories
                                        
                                         detallesPago.SaleId = capture.Id;
                                         detallesPago.CaptureStatus = capture.Status;
-                                        detallesPago.CaptureAmount = ConvertToDecimal(capture.Amount?.Value);
+                                        detallesPago.CaptureAmount = _conversion.ConvertToDecimal(capture.Amount?.Value);
                                         detallesPago.CaptureCurrency = capture.Amount?.CurrencyCode;
                                         detallesPago.ProtectionEligibility = capture.SellerProtection?.Status;
-                                        detallesPago.TransactionFeeAmount = ConvertToDecimal(capture.SellerReceivableBreakdown?.PaypalFee?.Value);
+                                        detallesPago.TransactionFeeAmount = _conversion.ConvertToDecimal(capture.SellerReceivableBreakdown?.PaypalFee?.Value);
                                         detallesPago.TransactionFeeCurrency = capture.SellerReceivableBreakdown?.PaypalFee?.CurrencyCode;
-                                        detallesPago.ReceivableAmount = ConvertToDecimal(capture.SellerReceivableBreakdown?.NetAmount?.Value);
+                                        detallesPago.ReceivableAmount = _conversion.ConvertToDecimal(capture.SellerReceivableBreakdown?.NetAmount?.Value);
                                         detallesPago.ReceivableCurrency = capture.SellerReceivableBreakdown?.NetAmount?.CurrencyCode;
 
                                         var exchangeRateValue = capture.SellerReceivableBreakdown?.ExchangeRate?.Value;
@@ -356,8 +358,8 @@ namespace GestorInventario.Infraestructure.Repositories
                                         {
                                             detallesPago.ExchangeRate = exchangeRate;
                                         }
-                                        detallesPago.CreateTime = ConvertToDateTime(capture.CreateTime);
-                                        detallesPago.UpdateTime = ConvertToDateTime(capture.UpdateTime);
+                                        detallesPago.CreateTime = _conversion.ConvertToDateTime(capture.CreateTime);
+                                        detallesPago.UpdateTime = _conversion.ConvertToDateTime(capture.UpdateTime);
 
                                     }
 
@@ -402,10 +404,10 @@ namespace GestorInventario.Infraestructure.Repositories
                                         PayPalId = detallesPago.Id,
                                         ItemName = item.Name,
                                         ItemSku = item.Sku,
-                                        ItemPrice = ConvertToDecimal(item.UnitAmount?.Value),
+                                        ItemPrice = _conversion.ConvertToDecimal(item.UnitAmount?.Value),
                                         ItemCurrency = item.UnitAmount?.CurrencyCode,
-                                        ItemTax = ConvertToDecimal(item.Tax?.Value),
-                                        ItemQuantity = ConvertToInt(item.Quantity)
+                                        ItemTax = _conversion.ConvertToDecimal(item.Tax?.Value),
+                                        ItemQuantity = _conversion.ConvertToInt(item.Quantity)
                                     };
                                     _context.PayPalPaymentItems.Add(paymentItem);
                                 }
@@ -424,119 +426,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 return OperationResult<PayPalPaymentDetail>.Fail("Ha ocurrido un error");
             }
         }
-        private decimal? ConvertToDecimal(object value)
-        {
-            if (value == null)
-            {
-                return null;
-            }
-            
-            if (value is decimal decimalValue)
-            {
-                return decimalValue;
-            }
-            // Si el valor es una cadena, intenta convertirlo a decimal
-            if (value is string stringValue)
-            {
-                if (decimal.TryParse(stringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var result))
-                {
-                    return result;
-                }
-            }
-            // Si el valor es de otro tipo, intenta convertirlo explícitamente a string y luego a decimal
-            try
-            {
-                var stringRepresentation = value.ToString();
-                if (decimal.TryParse(stringRepresentation, NumberStyles.Any, CultureInfo.InvariantCulture, out var result))
-                {
-                    return result;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al realizar la conversión");
-            }
-            return null; 
-        }
-        private int? ConvertToInt(object value)
-        {
-            if (value == null)
-            {
-                return null;
-            }
-           
-            if (value is int intValue)
-            {
-                return intValue;
-            }
-          
-            if (value is string stringValue)
-            {
-                if (int.TryParse(stringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var result))
-                {
-                    return result;
-                }
-            }
-            // Si el valor es de otro tipo, intenta convertirlo explícitamente a string y luego a int
-            try
-            {
-                var stringRepresentation = value.ToString();
-                if (int.TryParse(stringRepresentation, NumberStyles.Any, CultureInfo.InvariantCulture, out var result))
-                {
-                    return result;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al realizar la conversión a int");
-            }
-            return null; 
-        }
-        private DateTime? ConvertToDateTime(object value)
-        {
-            if (value == null)
-            {
-                return null;
-            }
-           
-            if (value is DateTime dateTimeValue)
-            {
-                return dateTimeValue;
-            }
-            // Convertir el valor a cadena si no es un string
-            string stringValue;
-            if (value is string strValue)
-            {
-                stringValue = strValue;
-            }
-            else
-            {
-                // Convertir el valor a cadena, asumiendo que puede que cambie la api de paypal
-                stringValue = value.ToString();
-            }
-            // Quitar corchetes si están presentes
-            stringValue = stringValue.Trim('{', '}').Trim();
-            // Intentar convertir usando formatos específicos
-            var formats = new[]
-            {
-                "dd/MM/yyyy HH:mm:ss",   // Formato de 24 horas
-                "dd/MM/yyyy H:mm:ss",    // Formato de 24 horas sin ceros a la izquierda
-                "dd/MM/yyyy h:mm:ss tt", // Formato de 12 horas con AM/PM
-                "yyyy-MM-ddTHH:mm:ssZ",
-                "yyyy-MM-ddTHH:mm:ss",
-                "yyyy-MM-dd",
-                "MM/dd/yyyy",
-                "MM-dd-yyyy"
-            };
-            // Intentar convertir con los formatos definidos
-            if (DateTime.TryParseExact(stringValue, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var result))
-            {
-                return result;
-            }          
-            Console.WriteLine($"No se pudo convertir. Formatos intentados: {string.Join(", ", formats)}");
-
-            return null;
-        }
+     
        
     }
     

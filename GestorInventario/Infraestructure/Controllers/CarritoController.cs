@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Domain.Models.ViewModels;
+using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.PaginacionLogica;
@@ -91,9 +92,7 @@ namespace GestorInventario.Infraestructure.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Checkout(string monedaSeleccionada)
         {
-               //Necesario para que paypal entienda el precio
-               System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;     
-               System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
+            CultureHelper.SetInvariantCulture();
                 try
                 {
                

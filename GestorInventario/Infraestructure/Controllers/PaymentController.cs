@@ -14,21 +14,21 @@ namespace GestorInventario.Infraestructure.Controllers
     {
         private readonly ILogger<PaymentController> _logger;
         private readonly IPaypalService _paypalService;             
-        private readonly IMemoryCache _memory;        
+           
         private readonly IPolicyExecutor _policyExecutor;
         private readonly IPaymentRepository _paymentRepository; 
         private readonly ICurrentUserAccessor _currentUserAccessor;
-        private readonly IPaypalRepository _repo;
-        public PaymentController(ILogger<PaymentController> logger,  IMemoryCache memory, ICurrentUserAccessor current,
-            IPolicyExecutor executor, IPaypalService service, IPaymentRepository payment, IPaypalRepository repo)
+     
+        public PaymentController(ILogger<PaymentController> logger,   ICurrentUserAccessor current,
+            IPolicyExecutor executor, IPaypalService service, IPaymentRepository payment)
         {
             _logger = logger;                               
-            _memory = memory;          
+                   
             _policyExecutor = executor;
             _paypalService = service;
             _paymentRepository = payment;          
             _currentUserAccessor = current;
-            _repo = repo;
+           
         }
         [Authorize]
         public async Task<IActionResult> Success(string token=null)

@@ -1,7 +1,6 @@
 ﻿using GestorInventario.Application.DTOs;
 using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Application.DTOs.Response_paypal.POST;
-using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
 using GestorInventario.enums;
 using GestorInventario.Infraestructure.Utils;
@@ -9,7 +8,6 @@ using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using System.Globalization;
 
 
@@ -25,8 +23,7 @@ namespace GestorInventario.Infraestructure.Repositories
         {
             _context = context;
             _emailService = email;
-            _logger = logger;
-            
+            _logger = logger;          
             _currentUserAccessor = currentUserAccessor;
         }
 
@@ -507,194 +504,14 @@ namespace GestorInventario.Infraestructure.Repositories
                 throw;
             }
         }
-        // Mapear listas de BillingCycle tipadas
-        public List<BillingCycle> MapBillingCycles(List<BillingCycle> billingCycles)
-        {
-            if (billingCycles == null)
-                return new List<BillingCycle>();
-
-            // Si los tipos coinciden exactamente, solo devolvemos o clonamos (si quieres evitar referencias directas)
-            return billingCycles.Select(cycle => new BillingCycle
-            {
-                TenureType = cycle.TenureType,
-                Sequence = cycle.Sequence,
-                TotalCycles = cycle.TotalCycles,
-                Frequency = MapFrequency(cycle.Frequency),
-                PricingScheme = MapPricingScheme(cycle.PricingScheme)
-            }).ToList();
-        }
-
-        private Frequency MapFrequency(Frequency frequency)
-        {
-            if (frequency == null)
-                return null;
-
-            return new Frequency
-            {
-                IntervalUnit = frequency.IntervalUnit,
-                IntervalCount = frequency.IntervalCount
-            };
-        }
-        private PricingScheme MapPricingScheme(PricingScheme pricingScheme)
-        {
-            if (pricingScheme == null)
-                return null;
-
-            return new PricingScheme
-            {
-                Version = pricingScheme.Version,
-                FixedPrice = MapMoney(pricingScheme.FixedPrice),
-                CreateTime = pricingScheme.CreateTime,
-                UpdateTime = pricingScheme.UpdateTime
-            };
-        }
-
-        private Money MapMoney(Money money)
-        {
-            if (money == null)
-                return null;
-
-            return new Money
-            {
-                CurrencyCode = money.CurrencyCode,
-                Value = money.Value
-            };
-        }
-
-        public Taxes MapTaxes(Taxes taxes)
-        {
-            if (taxes == null)
-                return null;
-
-            return new Taxes
-            {
-                Percentage = taxes.Percentage,
-                Inclusive = taxes.Inclusive
-            };
-        }
+      
+     
         // Método para crear la lista de categorías a partir de la enumeración
         public List<string> GetCategoriesFromEnum()
         {
             return Enum.GetNames(typeof(Category)).ToList();
         }
-        public async Task<SubscriptionDetail> CreateSubscriptionDetailAsync(dynamic subscriptionDetails, string planId, IPaypalService paypalService)
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-
-                // Check if plan exists
-                var plan = await ObtenerPlan(planId);
-                if (plan == null)
-                {
-                    var planResponse = await paypalService.ObtenerDetallesPlan(planId);
-                    var planDetails = new PaypalPlanDetailsDto
-                    {
-                        Id = planResponse.Id,
-                        ProductId = planResponse.ProductId,
-                        Name = planResponse.Name,
-                        Description = planResponse.Description,
-                        Status = planResponse.Status,
-                        PaymentPreferences = new PaymentPreferencesDto
-                        {
-                            AutoBillOutstanding = planResponse.PaymentPreferences.AutoBillOutstanding,
-                            SetupFee = planResponse.PaymentPreferences.SetupFee != null
-                                ? new FixedPriceDto
-                                {
-                                    Value = planResponse.PaymentPreferences.SetupFee.Value.ToString(CultureInfo.InvariantCulture),
-                                    CurrencyCode = planResponse.PaymentPreferences.SetupFee.CurrencyCode
-                                }
-                                : null,
-                            SetupFeeFailureAction = planResponse.PaymentPreferences.SetupFeeFailureAction,
-                            PaymentFailureThreshold = planResponse.PaymentPreferences.PaymentFailureThreshold
-                        },
-                        Taxes = planResponse.Taxes != null
-                            ? new TaxesDto
-                            {
-                                Percentage = planResponse.Taxes.Percentage.ToString(CultureInfo.InvariantCulture),
-                                Inclusive = planResponse.Taxes.Inclusive
-                            }
-                            : null,
-                        BillingCycles = planResponse.BillingCycles.Select(b => new BillingCycleDto
-                        {
-                            TenureType = b.TenureType,
-                            Sequence = b.Sequence,
-                            Frequency = new FrequencyDto
-                            {
-                                IntervalUnit = b.Frequency.IntervalUnit,
-                                IntervalCount = b.Frequency.IntervalCount
-                            },
-                            TotalCycles = b.TotalCycles,
-                            PricingScheme = new PricingSchemeDto
-                            {
-                                FixedPrice = b.PricingScheme.FixedPrice != null
-                                    ? new FixedPriceDto
-                                    {
-                                        Value = b.PricingScheme.FixedPrice.Value,
-                                        CurrencyCode = b.PricingScheme.FixedPrice.CurrencyCode
-                                    }
-                                    : null
-                            }
-                        }).ToArray()
-                    };
-
-                    await SavePlanDetailsAsync(planId, planDetails);
-                    plan = await ObtenerPlan(planId);
-                }
-
-                var minSqlDate = new DateTime(1753, 1, 1);
-
-                var detallesSuscripcion = new SubscriptionDetail
-                {
-                    SubscriptionId = subscriptionDetails.Id ?? string.Empty,
-                    PlanId = subscriptionDetails.PlanId ?? string.Empty,
-                    Status = subscriptionDetails.Status ?? string.Empty,
-                    StartTime = subscriptionDetails.StartTime ?? minSqlDate,
-                    StatusUpdateTime = subscriptionDetails.StatusUpdateTime ?? minSqlDate,
-                    SubscriberName = $"{subscriptionDetails.Subscriber?.Name?.GivenName ?? string.Empty} {subscriptionDetails.Subscriber?.Name?.Surname ?? string.Empty}".Trim(),
-                    SubscriberEmail = subscriptionDetails.Subscriber?.EmailAddress ?? string.Empty,
-                    PayerId = subscriptionDetails.Subscriber?.PayerId ?? string.Empty,
-                    OutstandingBalance = subscriptionDetails.BillingInfo?.OutstandingBalance?.Value != null
-                        ? Convert.ToDecimal(subscriptionDetails.BillingInfo.OutstandingBalance.Value)
-                        : 0,
-                    OutstandingCurrency = subscriptionDetails.BillingInfo?.OutstandingBalance?.CurrencyCode ?? string.Empty,
-                    NextBillingTime = subscriptionDetails.BillingInfo?.NextBillingTime ?? minSqlDate,
-                    LastPaymentTime = subscriptionDetails.BillingInfo?.LastPayment?.Time ?? minSqlDate,
-                    LastPaymentAmount = subscriptionDetails.BillingInfo?.LastPayment?.Amount?.Value != null
-                        ? Convert.ToDecimal(subscriptionDetails.BillingInfo.LastPayment.Amount.Value)
-                        : 0,
-                    LastPaymentCurrency = subscriptionDetails.BillingInfo?.LastPayment?.Amount?.CurrencyCode ?? string.Empty,
-                    FinalPaymentTime = subscriptionDetails.BillingInfo?.FinalPaymentTime ?? minSqlDate,
-                    CyclesCompleted = subscriptionDetails.BillingInfo?.CycleExecutions != null && subscriptionDetails.BillingInfo.CycleExecutions.Count > 0
-                        ? subscriptionDetails.BillingInfo.CycleExecutions[0].CyclesCompleted
-                        : 0,
-                    CyclesRemaining = subscriptionDetails.BillingInfo?.CycleExecutions != null && subscriptionDetails.BillingInfo.CycleExecutions.Count > 0
-                        ? subscriptionDetails.BillingInfo.CycleExecutions[0].CyclesRemaining
-                        : 0,
-                    TotalCycles = subscriptionDetails.BillingInfo?.CycleExecutions != null && subscriptionDetails.BillingInfo.CycleExecutions.Count > 0
-                        ? subscriptionDetails.BillingInfo.CycleExecutions[0].TotalCycles
-                        : 0,
-                    TrialIntervalUnit = plan?.TrialIntervalUnit,
-                    TrialIntervalCount = plan?.TrialIntervalCount ?? 0,
-                    TrialTotalCycles = plan?.TrialTotalCycles ?? 0,
-                    TrialFixedPrice = plan?.TrialFixedPrice ?? 0
-                };
-
-                // Calcular la fecha del próximo pago después del período de prueba
-                if (detallesSuscripcion.Status == "ACTIVE" && detallesSuscripcion.CyclesCompleted == 1 && detallesSuscripcion.CyclesRemaining == 0)
-                {
-                    detallesSuscripcion.NextBillingTime = detallesSuscripcion.StartTime.AddDays((double)detallesSuscripcion.TrialIntervalCount * (double)detallesSuscripcion.TrialTotalCycles + 1);
-                }
-                await transaction.CommitAsync();
-                return detallesSuscripcion;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error al crear detalles de suscripción para planId {planId}");
-                await transaction.RollbackAsync();
-                throw;
-            }
-        }
+     
         public async Task SaveOrUpdateSubscriptionDetailsAsync(SubscriptionDetail subscriptionDetails)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();

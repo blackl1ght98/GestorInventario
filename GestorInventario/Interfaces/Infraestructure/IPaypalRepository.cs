@@ -22,12 +22,10 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task UpdatePlanStatusInDatabase(string planId, string status);       
         Task AddInfoTrackingOrder(int pedidoId, string tracking, string url, string carrier);
         List<string> GetCategoriesFromEnum();
-        List<BillingCycle> MapBillingCycles(List<BillingCycle> billingCycles);
-        Taxes MapTaxes(Taxes taxes);
+     
         Task RegistrarReembolsoParcialAsync(int pedidoId, int detalleId, string status, string refundId, decimal montoReembolsado, string motivo, string estadoVenta);
         Task SaveOrUpdateSubscriptionDetailsAsync(SubscriptionDetail subscriptionDetails);
-        Task SaveUserSubscriptionAsync(int userId, string subscriptionId, string subscriberName, string planId);
-        Task<SubscriptionDetail> CreateSubscriptionDetailAsync(dynamic subscriptionDetails, string planId, IPaypalService paypalService);
+        Task SaveUserSubscriptionAsync(int userId, string subscriptionId, string subscriberName, string planId);       
         Task UpdateSubscriptionStatusAsync(string subscriptionId, string status);
         Task<OperationResult<string>> EnviarEmailNotificacionRembolso(int pedidoId, decimal montoReembolsado, string motivo);
     
