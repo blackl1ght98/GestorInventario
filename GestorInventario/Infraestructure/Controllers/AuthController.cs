@@ -101,8 +101,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     Response.Cookies.Append("auth", tokenResponse.Token, new CookieOptions
                     {
                         HttpOnly = true,
-                        SameSite = SameSiteMode.None,
-                       
+                        SameSite = SameSiteMode.None,                     
                         Secure = true,
                         Expires = DateTime.UtcNow.AddMinutes(10)
                     });
@@ -110,7 +109,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     {
                         _logger.LogError("No se generó refresh token para el usuario {UserId}", user.Data.Id);
 
-                      return RedirectToAction("Index", "Home");
+                        return RedirectToAction("Index", "Home");
                 }
                 Response.Cookies.Append("refreshToken", tokenResponse.RefreshToken, new CookieOptions
                     {
