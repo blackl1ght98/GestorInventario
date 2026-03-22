@@ -80,5 +80,52 @@ namespace GestorInventario.Infraestructure.Utils
             }
             return null;
         }
+       
+       
+        public DateTime? ConvertToDateTime(object value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            if (value is DateTime dateTimeValue)
+            {
+                return dateTimeValue;
+            }
+            // Convertir el valor a cadena si no es un string
+            string stringValue;
+            if (value is string strValue)
+            {
+                stringValue = strValue;
+            }
+            else
+            {
+                // Convertir el valor a cadena, asumiendo que puede que cambie la api de paypal
+                stringValue = value.ToString();
+            }
+            // Quitar corchetes si están presentes
+            stringValue = stringValue.Trim('{', '}').Trim();
+            // Intentar convertir usando formatos específicos
+            var formats = new[]
+            {
+                "dd/MM/yyyy HH:mm:ss",   // Formato de 24 horas
+                "dd/MM/yyyy H:mm:ss",    // Formato de 24 horas sin ceros a la izquierda
+                "dd/MM/yyyy h:mm:ss tt", // Formato de 12 horas con AM/PM
+                "yyyy-MM-ddTHH:mm:ssZ",
+                "yyyy-MM-ddTHH:mm:ss",
+                "yyyy-MM-dd",
+                "MM/dd/yyyy",
+                "MM-dd-yyyy"
+            };
+            // Intentar convertir con los formatos definidos
+            if (DateTime.TryParseExact(stringValue, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var result))
+            {
+                return result;
+            }
+            Console.WriteLine($"No se pudo convertir. Formatos intentados: {string.Join(", ", formats)}");
+
+            return null;
+        }
     }
 }

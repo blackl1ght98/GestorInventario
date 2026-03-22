@@ -6,15 +6,21 @@ namespace GestorInventario.Infraestructure.Utils
     public class UnitOfWork : IUnitOfWork
     {
         private readonly GestorInventarioContext _context;
+     
+        public IAdminRepository AdminRepository { get; private set; }
+        public IUserRepository UserRepository { get; private set; }
         public IPaypalRepository PaypalRepository { get; private set; }
-       
+        public ICarritoRepository CarritoRepository { get; private set; }
         private bool _disposed = false;
 
-        public UnitOfWork(GestorInventarioContext context, IPaypalRepository paypalRepository)
+        public UnitOfWork(GestorInventarioContext context, IAdminRepository admin, IUserRepository user, IPaypalRepository paypal,
+        ICarritoRepository carrito)
         {
             _context = context;
-            PaypalRepository = paypalRepository;
-           
+            AdminRepository = admin;
+            UserRepository = user;
+            PaypalRepository = paypal;
+            CarritoRepository = carrito;
 
         }
 

@@ -1,8 +1,9 @@
-﻿using AutoMapper;
+﻿
 using GestorInventario.Application.DTOs.Response_paypal;
 using GestorInventario.Application.DTOs.Response_paypal.Controller_Paypal_y_payment;
 using GestorInventario.Application.Exceptions;
 using GestorInventario.Domain.Models;
+using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.PaginacionLogica;
@@ -21,29 +22,24 @@ namespace GestorInventario.Infraestructure.Controllers
        
         
         private readonly ILogger<PaypalController> _logger;
-        private readonly IPaypalRepository _paypalRepository;
-        private readonly ICarritoRepository _carritoRepository;
-        private readonly IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IPolicyExecutor _policyExecutor;
-        private readonly IPaypalService _paypalService;
-        private readonly IConfiguration _configuration;
-        private readonly IUserRepository _userRepository;
+        private readonly IPaypalService _paypalService;         
         private readonly IPaginationHelper _paginationHelper;
         private readonly ICurrentUserAccessor _currentUserAccessor;
-        public PaypalController(ILogger<PaypalController> logger, IConfiguration config, IUserRepository user, IPaginationHelper pagination,
-        IPaypalRepository paypalController, ICarritoRepository carritoRepository, IMapper map, IPolicyExecutor executor, IPaypalService service, ICurrentUserAccessor current)
-        {
-            
+        private readonly ISubscriptionService _subscription;
+        private readonly IPayPalMappingUtils _map;
+        public PaypalController(ILogger<PaypalController> logger,  IPaginationHelper pagination, ISubscriptionService subs, IUnitOfWork unit,
+         IPolicyExecutor executor, IPaypalService service, ICurrentUserAccessor current, IPayPalMappingUtils map)
+        {            
             _paypalService= service;        
            _policyExecutor=executor;
             _logger = logger;
-            _paypalRepository = paypalController;
-            _carritoRepository = carritoRepository;
-            _mapper = map;
-            _configuration = config;
-            _userRepository = user;
+             _unitOfWork= unit;            
             _paginationHelper = pagination;
             _currentUserAccessor = current;
+            _subscription = subs;
+            _map = map;
         }
 
 
@@ -53,10 +49,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!(_currentUserAccessor.IsAuthenticated()))
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+                
 
              
 
@@ -106,10 +99,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!(_currentUserAccessor.IsAuthenticated()))
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+                
 
                 _logger.LogInformation("Página solicitada: {Pagina}, CantidadAMostrar: {Cantidad}", paginacion.Pagina, paginacion.CantidadAMostrar);
 
@@ -133,8 +123,8 @@ namespace GestorInventario.Infraestructure.Controllers
                             Status = plan.Status,
                             Usage_type = plan.UsageType,
                             CreateTime = plan.CreateTime,
-                            Billing_cycles = _paypalRepository.MapBillingCycles(plan.BillingCycles),
-                            Taxes = _paypalRepository.MapTaxes(plan.Taxes),
+                            Billing_cycles = _map.MapBillingCycles(plan.BillingCycles),
+                            Taxes = _map.MapTaxes(plan.Taxes),
                             CurrencyCode = plan.BillingCycles?.FirstOrDefault()?.PricingScheme?.FixedPrice?.CurrencyCode ?? string.Empty,
                         };
                         planesViewModel.Add(viewModel);
@@ -156,7 +146,7 @@ namespace GestorInventario.Infraestructure.Controllers
                         radio: paginacion.Radio
                     );
                 var resultadoMonedas = await _policyExecutor.ExecutePolicyAsync(
-          () => _carritoRepository.ObtenerMoneda());
+          () => _unitOfWork.CarritoRepository.ObtenerMoneda());
                 var monedas = resultadoMonedas.Data;
                 // Crear el ViewModel final usando el resultado del helper
                 var model = new PlanesPaginadosViewModel
@@ -192,12 +182,12 @@ namespace GestorInventario.Infraestructure.Controllers
         public async Task<IActionResult> CrearProductoYPlan()
         {
             var resultadoMonedas = await _policyExecutor.ExecutePolicyAsync(
-            () => _carritoRepository.ObtenerMoneda());
+            () => _unitOfWork.CarritoRepository.ObtenerMoneda());
             var monedas = resultadoMonedas.Data;
             var model = new ProductViewModelPaypal();
             ViewData["Moneda"] = new SelectList(monedas, "Codigo", "Codigo");
             // Obtener las categorías desde la enumeración y asignarlas al modelo
-            model.Categories = _paypalRepository.GetCategoriesFromEnum();
+            model.Categories = _unitOfWork.PaypalRepository.GetCategoriesFromEnum();
 
             return View(model);
         }
@@ -207,15 +197,13 @@ namespace GestorInventario.Infraestructure.Controllers
         [Authorize]
         public async Task<IActionResult> CrearProductoYPlan(ProductViewModelPaypal model, string monedaSeleccionada)
         {
-            // Cambia la cultura 
-            System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
-            System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
+            CultureHelper.SetInvariantCulture();
 
-            var resultadoMonedas = await _policyExecutor.ExecutePolicyAsync(() => _carritoRepository.ObtenerMoneda());
+            var resultadoMonedas = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.CarritoRepository.ObtenerMoneda());
             var monedas = resultadoMonedas?.Data ?? new List<Monedum>(); 
 
             ViewData["Moneda"] = new SelectList(monedas, "Codigo", "Codigo", monedaSeleccionada);           
-            model.Categories = _paypalRepository.GetCategoriesFromEnum();         
+            model.Categories = _unitOfWork.PaypalRepository.GetCategoriesFromEnum();         
             if (!ModelState.IsValid)
             {
                
@@ -269,8 +257,8 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var activeSubscriptions = await _paypalRepository.ObtenerSuscriptcionesActivas(id);
-                var userSubscriptions = await _paypalRepository.SusbcripcionesUsuario(id);
+                var activeSubscriptions = await _unitOfWork.PaypalRepository.ObtenerSuscriptcionesActivas(id);
+                var userSubscriptions = await _unitOfWork.PaypalRepository.SusbcripcionesUsuario(id);
                 if (activeSubscriptions.Any() || userSubscriptions.Any())
                 {
                     TempData["ErrorMessage"] = "No se puede desactivar el plan hay subscriptores activos";
@@ -379,10 +367,10 @@ namespace GestorInventario.Infraestructure.Controllers
                 string planId = subscriptionDetails.PlanId ?? string.Empty;
 
          
-                var detallesSuscripcion = await _paypalRepository.CreateSubscriptionDetailAsync(subscriptionDetails, planId, _paypalService);
+                var detallesSuscripcion = await _subscription.CreateSubscriptionDetailAsync(subscriptionDetails, planId);
 
-                await _paypalRepository.SaveOrUpdateSubscriptionDetailsAsync(detallesSuscripcion);
-                await _paypalRepository.SaveUserSubscriptionAsync(usuarioId, subscription_id, detallesSuscripcion.SubscriberName, detallesSuscripcion.PlanId);
+                await _unitOfWork.PaypalRepository.SaveOrUpdateSubscriptionDetailsAsync(detallesSuscripcion);
+                await _unitOfWork.PaypalRepository.SaveUserSubscriptionAsync(usuarioId, subscription_id, detallesSuscripcion.SubscriberName, detallesSuscripcion.PlanId);
 
                 TempData["SuccessMessage"] = "¡Suscripción confirmada con éxito!";
                 return RedirectToAction("DetallesSuscripcion", new { id = subscription_id });
@@ -417,7 +405,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 string result = await _paypalService.CancelarSuscripcion(Id, Reason);
 
                 // Update subscription status using the repository
-                await _paypalRepository.UpdateSubscriptionStatusAsync(Id, "CANCELLED");
+                await _unitOfWork.PaypalRepository.UpdateSubscriptionStatusAsync(Id, "CANCELLED");
 
                 if (User.IsInRole("Administrador"))
                 {
@@ -470,7 +458,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 string result = await _paypalService.SuspenderSuscripcion(Id, Reason);
 
                 // Update subscription status using the repository
-                await _paypalRepository.UpdateSubscriptionStatusAsync(Id, "SUSPENDED");
+                await _unitOfWork.PaypalRepository.UpdateSubscriptionStatusAsync(Id, "SUSPENDED");
 
                 if (User.IsInRole("Administrador"))
                 {
@@ -517,7 +505,7 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
                 string result = await _paypalService.ActivarSuscripcion(Id, Reason);
-                await _paypalRepository.UpdateSubscriptionStatusAsync(Id, "ACTIVE");
+                await _unitOfWork.PaypalRepository.UpdateSubscriptionStatusAsync(Id, "ACTIVE");
 
                 TempData["SuccessMessage"] = "Suscripción activada correctamente.";
                 if (User.IsInRole("Administrador"))
@@ -558,7 +546,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
                 // Validar que el plan exista
-                var plan = await _paypalRepository.ObtenerPlan(request.PlanId);
+                var plan = await _unitOfWork.PaypalRepository.ObtenerPlan(request.PlanId);
                 if (plan == null)
                 {
                     return NotFound(new { success = false, errorMessage = $"No se encontró el plan con ID {request.PlanId}" });
@@ -605,8 +593,7 @@ namespace GestorInventario.Infraestructure.Controllers
         [Authorize]
         public async Task<IActionResult> DetallesSuscripcion(string id)
         {
-            System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
-            System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
+            CultureHelper.SetInvariantCulture(); 
             try
             {
                 // Validar el ID de la suscripción
@@ -633,8 +620,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
                 // Crear y guardar SubscriptionDetail usando el repositorio
-                var detallesSuscripcion = await _paypalRepository.CreateSubscriptionDetailAsync(subscriptionDetails, planId,_paypalService);
-                await _paypalRepository.SaveOrUpdateSubscriptionDetailsAsync(detallesSuscripcion);
+                var detallesSuscripcion = await _subscription.CreateSubscriptionDetailAsync(subscriptionDetails, planId);
+                await _unitOfWork.PaypalRepository.SaveOrUpdateSubscriptionDetailsAsync(detallesSuscripcion);
 
                 return View(detallesSuscripcion);
             }
@@ -663,7 +650,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 );
 
                 // Consulta base (IQueryable)
-                var queryable = _paypalRepository.ObtenerSubscripciones();
+                var queryable = _unitOfWork.PaypalRepository.ObtenerSubscripciones();
 
                 // Usamos el helper para paginar (calcula todo: total, items, páginas)
                 var paginationResult = await _paginationHelper.PaginarAsync(
@@ -710,7 +697,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 );
 
                 // Consulta base (IQueryable) filtrada por usuario
-                var queryable = _paypalRepository.ObtenerSubscripcionesUsuario(usuarioActual);
+                var queryable = _unitOfWork.PaypalRepository.ObtenerSubscripcionesUsuario(usuarioActual);
 
                 // Delegamos toda la paginación al helper
                 var paginationResult = await _paginationHelper.PaginarAsync(
