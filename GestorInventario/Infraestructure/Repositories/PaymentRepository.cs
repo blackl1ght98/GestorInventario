@@ -233,7 +233,26 @@ namespace GestorInventario.Infraestructure.Repositories
             return OperationResult<PayPalPaymentItem>.Ok("",paypalItems.First());
 
         }
-       
-       
+        public async Task LimpiarPedidoCorruptoUsuarioAsync(int userId)
+        {
+            // Buscar SOLO UN pedido pendiente/corrupto del usuario
+            var pedidoCorrupto = await _context.Pedidos.Include(x=>x.DetallePedidos).Where(p=>p.IdUsuario == userId && p.EstadoPedido=="En Proceso"&& string.IsNullOrEmpty(p.CaptureId)).FirstOrDefaultAsync();
+
+            if (pedidoCorrupto != null)
+            {
+                // Opcional: verificar que efectivamente es un carrito/checkout abandonado
+                if (pedidoCorrupto.EsCarrito == false) 
+                {
+                    _context.DetallePedidos.RemoveRange(pedidoCorrupto.DetallePedidos);
+                    _context.Pedidos.Remove(pedidoCorrupto);
+                    await _context.SaveChangesAsync();
+
+                    _logger.LogInformation(
+                        "Limpieza automática: pedido corrupto eliminado para usuario {UserId}. ID: {PedidoId}, Fecha: {FechaPedido}",
+                        userId, pedidoCorrupto.Id, pedidoCorrupto.FechaPedido);
+                }
+            }
+        }
+
     }
 }

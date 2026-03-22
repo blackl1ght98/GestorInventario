@@ -49,6 +49,8 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<IConversionUtils, ConversionUtils>();
             services.AddTransient<IPayPalHttpClient, PayPalHttpClient>();
             services.AddTransient<ISubscriptionService, SubscriptionService>();
+            services.AddTransient<CultureHelper>();
+            services.AddTransient<IPayPalMappingUtils, PayPalMappingUtils>();
             return services;
 
         }

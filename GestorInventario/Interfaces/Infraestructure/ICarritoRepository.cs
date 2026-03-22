@@ -1,4 +1,5 @@
-﻿using GestorInventario.Domain.Models;
+﻿using GestorInventario.Application.DTOs.Carrito;
+using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 
 namespace GestorInventario.Interfaces.Infraestructure
@@ -17,6 +18,7 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<OperationResult<string>> Decremento(int id);
         Task<OperationResult<string>> EliminarProductoCarrito(int id);
         Task EliminarCarritoAsync(int carritoId);
+       
 
     }
 }

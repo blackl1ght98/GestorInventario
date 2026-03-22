@@ -1,4 +1,6 @@
 ﻿using GestorInventario.Application.DTOs.Rembolso;
+using GestorInventario.Infraestructure.Repositories;
+using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
@@ -13,17 +15,17 @@ namespace GestorInventario.Infraestructure.Controllers
     public class PaymentController : Controller
     {
         private readonly ILogger<PaymentController> _logger;
-        private readonly IPaypalService _paypalService;             
-           
+        private readonly IPaypalService _paypalService;
+        private readonly ICarritoRepository _carrito;
         private readonly IPolicyExecutor _policyExecutor;
         private readonly IPaymentRepository _paymentRepository; 
         private readonly ICurrentUserAccessor _currentUserAccessor;
      
         public PaymentController(ILogger<PaymentController> logger,   ICurrentUserAccessor current,
-            IPolicyExecutor executor, IPaypalService service, IPaymentRepository payment)
+            IPolicyExecutor executor, IPaypalService service, IPaymentRepository payment, ICarritoRepository carrito)
         {
-            _logger = logger;                               
-                   
+            _logger = logger;
+            _carrito = carrito;
             _policyExecutor = executor;
             _paypalService = service;
             _paymentRepository = payment;          
@@ -43,10 +45,10 @@ namespace GestorInventario.Infraestructure.Controllers
                 var (captureId, total, currency) = await _paypalService.CapturarPagoAsync(orderId);
 
                 var usuarioActual = _currentUserAccessor.GetCurrentUserId();
-
+ 
                 var pedido =  await _paymentRepository.AgregarInfoPedido(usuarioActual,captureId,total,currency,orderId);
-         
-                
+            
+
                 return View();
             }
             catch (Exception ex)
@@ -56,7 +58,13 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-
+        [Authorize]
+        public async Task<IActionResult> Cancel()
+        {
+            var usuarioActual = _currentUserAccessor.GetCurrentUserId();
+            await _paymentRepository.LimpiarPedidoCorruptoUsuarioAsync(usuarioActual);
+            return RedirectToAction("Index", "Productos");
+        }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RefundSale([FromBody] RefundRequestModelDto request)
