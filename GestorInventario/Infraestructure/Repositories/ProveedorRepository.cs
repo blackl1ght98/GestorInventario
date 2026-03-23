@@ -113,7 +113,7 @@ namespace GestorInventario.Infraestructure.Repositories
             {
                 await transaction.RollbackAsync();
                 _logger.LogError(ex, "Error de concurrencia");
-                var proveedor = await _context.Proveedores.FirstOrDefaultAsync(x => x.Id == Id); // Removed Include
+                var proveedor = await _context.Proveedores.FirstOrDefaultAsync(x => x.Id == Id); 
                 if (proveedor == null)
                 {
                     return OperationResult<string>.Fail("El proveedor no existe");
