@@ -26,7 +26,8 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IPaginationHelper _paginationHelper;       
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IEmailService _emailService;
-        public PedidosController( ILogger<PedidosController> logger, IPaginationHelper pagination,  ICurrentUserAccessor current,
+        private readonly IPaymentRepository _payment;
+        public PedidosController( ILogger<PedidosController> logger, IPaginationHelper pagination,  ICurrentUserAccessor current, IPaymentRepository pay,
             IPedidoRepository pedido,   IPdfService pdf, IPolicyExecutor executor, IPaypalService paypal, IEmailService email)
         {          
             _logger = logger;
@@ -37,7 +38,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _paginationHelper = pagination;          
             _currentUserAccessor = current;
             _emailService = email;
-          
+            _payment = pay;
         }
 
         [Authorize]
@@ -48,6 +49,7 @@ namespace GestorInventario.Infraestructure.Controllers
                
 
                     var usuarioId =  _currentUserAccessor.GetCurrentUserId();
+                await _payment.LimpiarPedidoCorruptoUsuarioAsync(usuarioId);
                     var pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidos());
                     if (User.IsAdministrador())
                     {

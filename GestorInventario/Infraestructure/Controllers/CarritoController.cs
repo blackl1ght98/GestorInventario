@@ -122,7 +122,7 @@ namespace GestorInventario.Infraestructure.Controllers
         //Metodo para incrementar  productos
         [HttpPost]
         [Authorize]
-        [ValidateAntiForgeryToken]
+       
         public async Task<ActionResult> Incrementar(int id)
         {
             var resultado= await _carritoRepository.Incremento(id);
@@ -160,7 +160,7 @@ namespace GestorInventario.Infraestructure.Controllers
        //Metodo para eliminar un producto
         [HttpPost]
         [Authorize]
-        [ValidateAntiForgeryToken]
+        
         public async Task<IActionResult> EliminarProductoCarrito(int id)
         {
             try
