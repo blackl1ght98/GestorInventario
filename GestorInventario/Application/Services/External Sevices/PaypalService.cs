@@ -1143,12 +1143,12 @@ namespace GestorInventario.Application.Services
                     var errorBody = await error.Content.ReadAsStringAsync();
                     throw new InvalidOperationException($"Error al obtener la subscripcion");
                 });
-            var planDetails = JsonConvert.DeserializeObject<PaypalPlanDetailsDto>(planDetailsResponseBody);
-            if (planDetails == null)
+            var subscriptionDetails = JsonConvert.DeserializeObject<SuspendSubscription>(planDetailsResponseBody);
+            if (subscriptionDetails == null)
             {
                 throw new ArgumentNullException("No se puede suspender la suscripcion: respuesta del servidor no valida");
             }
-            string planStatusResult = planDetails.Status;
+            string subscriptionResult = subscriptionDetails.Status;
             return "Subscripcion suspendida con éxito";
         }
         #endregion
@@ -1175,12 +1175,12 @@ namespace GestorInventario.Application.Services
                       var errorBody = await error.Content.ReadAsStringAsync();
                       throw new InvalidOperationException($"Error al obtener la subscripcion");
                   });
-            var planDetails = JsonConvert.DeserializeObject<PaypalPlanDetailsDto>(planDetailsResponseBody);
-            if (planDetails == null)
+            var activateSubscription = JsonConvert.DeserializeObject<ActivateSubscription>(planDetailsResponseBody);
+            if (activateSubscription == null)
             {
                 throw new ArgumentNullException("No se puede activar la suscripcion: respuesta del servidor no valida");
             }
-            string planStatusResult = planDetails.Status;
+            string activateResult = activateSubscription.Status;
             return "Subscripcion activada con éxito";
         }
         #endregion  
