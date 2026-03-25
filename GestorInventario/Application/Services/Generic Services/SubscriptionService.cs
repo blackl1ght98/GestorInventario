@@ -23,68 +23,10 @@ namespace GestorInventario.Application.Services.Generic_Services
 
         public async Task<SubscriptionDetail> CreateSubscriptionDetailAsync(dynamic subscriptionDetails, string planId)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
+           
             try
             {
-
-                // Check if plan exists
                 var plan = await _paypalRepository.ObtenerPlan(planId);
-                if (plan == null)
-                {
-                    var planResponse = await _paypalSevice.ObtenerDetallesPlan(planId);
-                    var planDetails = new PaypalPlanDetailsDto
-                    {
-                        Id = planResponse.Id,
-                        ProductId = planResponse.ProductId,
-                        Name = planResponse.Name,
-                        Description = planResponse.Description,
-                        Status = planResponse.Status,
-                        PaymentPreferences = new PaymentPreferencesDto
-                        {
-                            AutoBillOutstanding = planResponse.PaymentPreferences.AutoBillOutstanding,
-                            SetupFee = planResponse.PaymentPreferences.SetupFee != null
-                                ? new FixedPriceDto
-                                {
-                                    Value = planResponse.PaymentPreferences.SetupFee.Value.ToString(CultureInfo.InvariantCulture),
-                                    CurrencyCode = planResponse.PaymentPreferences.SetupFee.CurrencyCode
-                                }
-                                : null,
-                            SetupFeeFailureAction = planResponse.PaymentPreferences.SetupFeeFailureAction,
-                            PaymentFailureThreshold = planResponse.PaymentPreferences.PaymentFailureThreshold
-                        },
-                        Taxes = planResponse.Taxes != null
-                            ? new TaxesDto
-                            {
-                                Percentage = planResponse.Taxes.Percentage.ToString(CultureInfo.InvariantCulture),
-                                Inclusive = planResponse.Taxes.Inclusive
-                            }
-                            : null,
-                        BillingCycles = planResponse.BillingCycles.Select(b => new BillingCycleDto
-                        {
-                            TenureType = b.TenureType,
-                            Sequence = b.Sequence,
-                            Frequency = new FrequencyDto
-                            {
-                                IntervalUnit = b.Frequency.IntervalUnit,
-                                IntervalCount = b.Frequency.IntervalCount
-                            },
-                            TotalCycles = b.TotalCycles,
-                            PricingScheme = new PricingSchemeDto
-                            {
-                                FixedPrice = b.PricingScheme.FixedPrice != null
-                                    ? new FixedPriceDto
-                                    {
-                                        Value = b.PricingScheme.FixedPrice.Value,
-                                        CurrencyCode = b.PricingScheme.FixedPrice.CurrencyCode
-                                    }
-                                    : null
-                            }
-                        }).ToArray()
-                    };
-
-                    await _paypalRepository.SavePlanDetailsAsync(planId, planDetails);
-                    plan = await _paypalRepository.ObtenerPlan(planId);
-                }
 
                 var minSqlDate = new DateTime(1753, 1, 1);
 
@@ -95,47 +37,67 @@ namespace GestorInventario.Application.Services.Generic_Services
                     Status = subscriptionDetails.Status ?? string.Empty,
                     StartTime = subscriptionDetails.StartTime ?? minSqlDate,
                     StatusUpdateTime = subscriptionDetails.StatusUpdateTime ?? minSqlDate,
-                    SubscriberName = $"{subscriptionDetails.Subscriber?.Name?.GivenName ?? string.Empty} {subscriptionDetails.Subscriber?.Name?.Surname ?? string.Empty}".Trim(),
+                    SubscriberName = $"{subscriptionDetails.Subscriber?.Name?.GivenName ?? ""} {subscriptionDetails.Subscriber?.Name?.Surname ?? ""}".Trim(),
                     SubscriberEmail = subscriptionDetails.Subscriber?.EmailAddress ?? string.Empty,
                     PayerId = subscriptionDetails.Subscriber?.PayerId ?? string.Empty,
                     OutstandingBalance = subscriptionDetails.BillingInfo?.OutstandingBalance?.Value != null
-                        ? Convert.ToDecimal(subscriptionDetails.BillingInfo.OutstandingBalance.Value)
-                        : 0,
+                        ? Convert.ToDecimal(subscriptionDetails.BillingInfo.OutstandingBalance.Value) : 0,
                     OutstandingCurrency = subscriptionDetails.BillingInfo?.OutstandingBalance?.CurrencyCode ?? string.Empty,
+
+                    // ← Usamos PRIMERO el valor que viene de PayPal
                     NextBillingTime = subscriptionDetails.BillingInfo?.NextBillingTime ?? minSqlDate,
+
                     LastPaymentTime = subscriptionDetails.BillingInfo?.LastPayment?.Time ?? minSqlDate,
                     LastPaymentAmount = subscriptionDetails.BillingInfo?.LastPayment?.Amount?.Value != null
-                        ? Convert.ToDecimal(subscriptionDetails.BillingInfo.LastPayment.Amount.Value)
-                        : 0,
+                        ? Convert.ToDecimal(subscriptionDetails.BillingInfo.LastPayment.Amount.Value) : 0,
                     LastPaymentCurrency = subscriptionDetails.BillingInfo?.LastPayment?.Amount?.CurrencyCode ?? string.Empty,
                     FinalPaymentTime = subscriptionDetails.BillingInfo?.FinalPaymentTime ?? minSqlDate,
+
                     CyclesCompleted = subscriptionDetails.BillingInfo?.CycleExecutions != null && subscriptionDetails.BillingInfo.CycleExecutions.Count > 0
-                        ? subscriptionDetails.BillingInfo.CycleExecutions[0].CyclesCompleted
-                        : 0,
+                        ? subscriptionDetails.BillingInfo.CycleExecutions[0].CyclesCompleted : 0,
+
                     CyclesRemaining = subscriptionDetails.BillingInfo?.CycleExecutions != null && subscriptionDetails.BillingInfo.CycleExecutions.Count > 0
-                        ? subscriptionDetails.BillingInfo.CycleExecutions[0].CyclesRemaining
-                        : 0,
+                        ? subscriptionDetails.BillingInfo.CycleExecutions[0].CyclesRemaining : 0,
+
                     TotalCycles = subscriptionDetails.BillingInfo?.CycleExecutions != null && subscriptionDetails.BillingInfo.CycleExecutions.Count > 0
-                        ? subscriptionDetails.BillingInfo.CycleExecutions[0].TotalCycles
-                        : 0,
+                        ? subscriptionDetails.BillingInfo.CycleExecutions[0].TotalCycles : 0,
+
                     TrialIntervalUnit = plan?.TrialIntervalUnit,
                     TrialIntervalCount = plan?.TrialIntervalCount ?? 0,
                     TrialTotalCycles = plan?.TrialTotalCycles ?? 0,
                     TrialFixedPrice = plan?.TrialFixedPrice ?? 0
                 };
 
-                // Calcular la fecha del próximo pago después del período de prueba
-                if (detallesSuscripcion.Status == "ACTIVE" && detallesSuscripcion.CyclesCompleted == 1 && detallesSuscripcion.CyclesRemaining == 0)
+                // ================================================
+                // RECÁLCULO DE NEXT BILLING TIME 
+                // ================================================
+                bool shouldRecalculateNextBilling =
+                    detallesSuscripcion.Status == "ACTIVE" &&
+                    detallesSuscripcion.CyclesCompleted == 1 &&                    // Estamos en el primer ciclo (trial)
+                    detallesSuscripcion.CyclesRemaining == 0 &&                    // Ya se completó el trial
+                    plan?.TrialTotalCycles > 0 &&                                  // El plan realmente tenía trial
+                    (detallesSuscripcion.NextBillingTime == minSqlDate ||          // PayPal no devolvió fecha
+                     detallesSuscripcion.NextBillingTime < DateTime.UtcNow.AddDays(7)); // O la fecha es muy cercana/pasada
+
+                if (shouldRecalculateNextBilling)
                 {
-                    detallesSuscripcion.NextBillingTime = detallesSuscripcion.StartTime.AddDays((double)detallesSuscripcion.TrialIntervalCount * (double)detallesSuscripcion.TrialTotalCycles + 1);
+                    detallesSuscripcion.NextBillingTime = detallesSuscripcion.StartTime.AddDays(
+                        (double)detallesSuscripcion.TrialIntervalCount * (double)detallesSuscripcion.TrialTotalCycles + 1);
+
+                    _logger.LogInformation("Recalculando NextBillingTime después del trial para suscripción {SubscriptionId}",
+                        detallesSuscripcion.SubscriptionId);
                 }
-                await transaction.CommitAsync();
+                // Si no se cumple la condición → respetamos estrictamente lo que vino de PayPal
+
+                await _paypalRepository.SaveOrUpdateSubscriptionDetailsAsync(detallesSuscripcion);
+
+               
                 return detallesSuscripcion;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error al crear detalles de suscripción para planId {planId}");
-                await transaction.RollbackAsync();
+              
                 throw;
             }
         }

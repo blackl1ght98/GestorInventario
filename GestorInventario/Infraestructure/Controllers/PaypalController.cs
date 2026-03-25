@@ -593,42 +593,49 @@ namespace GestorInventario.Infraestructure.Controllers
         [Authorize]
         public async Task<IActionResult> DetallesSuscripcion(string id)
         {
-            CultureHelper.SetInvariantCulture(); 
+            CultureHelper.SetInvariantCulture();
+
             try
             {
-                // Validar el ID de la suscripción
                 if (string.IsNullOrEmpty(id))
                 {
-                    _logger.LogError("El id de la subscripcion es requerido");
+                    _logger.LogWarning("El id de la suscripción es requerido");
+                    TempData["ErrorMessage"] = "ID de suscripción requerido.";
                     return RedirectToAction("Error", "Home");
                 }
 
-                // Obtener detalles de la suscripción desde PayPal
-                var subscriptionDetails = await _policyExecutor.ExecutePolicyAsync(() => _paypalService.ObtenerDetallesSuscripcion(id));
+                // 1. Siempre obtener datos frescos de PayPal
+                var subscriptionDetails = await _policyExecutor.ExecutePolicyAsync(
+                    () => _paypalService.ObtenerDetallesSuscripcion(id));
+
                 if (subscriptionDetails == null)
                 {
-                    TempData["ErrorMessage"] = "No se pudieron obtener los detalles de la suscripción desde PayPal.";
+                    TempData["ErrorMessage"] = "No se pudieron obtener los detalles desde PayPal.";
                     return RedirectToAction("Error", "Home");
                 }
 
-                // Obtener el planId desde el DTO y validar que no sea nulo o vacío
+                // 2. Extraer planId
                 string planId = subscriptionDetails.PlanId;
                 if (string.IsNullOrEmpty(planId))
                 {
-                    _logger.LogError("El id del plan es nulo");
+                    _logger.LogWarning("El planId de la suscripción {SubscriptionId} es nulo o vacío", id);
+                    TempData["ErrorMessage"] = "No se encontró el plan asociado a la suscripción.";
                     return RedirectToAction("Error", "Home");
                 }
 
-                // Crear y guardar SubscriptionDetail usando el repositorio
+                // 3. Crear/actualizar el SubscriptionDetail (esto ya hace el mapeo y lógica)
                 var detallesSuscripcion = await _subscription.CreateSubscriptionDetailAsync(subscriptionDetails, planId);
+
+                // 4. Guardar o actualizar en BD
                 await _unitOfWork.PaypalRepository.SaveOrUpdateSubscriptionDetailsAsync(detallesSuscripcion);
 
+                // 5. Devolver la vista con los datos frescos
                 return View(detallesSuscripcion);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al obtener los detalles de la suscripción con ID {SubscriptionId}", id);
-                TempData["ErrorMessage"] = $"Error al obtener los detalles de la suscripción: {ex.Message}";
+                _logger.LogError(ex, "Error al obtener detalles de suscripción {SubscriptionId}", id);
+                TempData["ErrorMessage"] = "Error al obtener los detalles de la suscripción.";
                 return RedirectToAction("Error", "Home");
             }
         }
