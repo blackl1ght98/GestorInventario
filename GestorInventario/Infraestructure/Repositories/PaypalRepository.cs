@@ -137,7 +137,6 @@ namespace GestorInventario.Infraestructure.Repositories
         public async Task SavePlanDetailsAsync(string planId, PaypalPlanDetailsDto planDetails)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
-
             try
             {
                 // Verificar si el plan ya existe
@@ -148,56 +147,13 @@ namespace GestorInventario.Infraestructure.Repositories
                     return;
                 }
 
-                var planDetail = new PlanDetail
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    PaypalPlanId = planId,
-                    ProductId = planDetails.ProductId,
-                    Name = planDetails.Name,
-                    Description = planDetails.Description,
-                    Status = planDetails.Status,
-                    AutoBillOutstanding = planDetails.PaymentPreferences.AutoBillOutstanding,
-                    SetupFee = planDetails.PaymentPreferences.SetupFee?.Value != null
-                        ? decimal.Parse(planDetails.PaymentPreferences.SetupFee.Value, CultureInfo.InvariantCulture)
-                        : 0,
-                    SetupFeeFailureAction = planDetails.PaymentPreferences.SetupFeeFailureAction,
-                    PaymentFailureThreshold = planDetails.PaymentPreferences.PaymentFailureThreshold,
-                    TaxPercentage = planDetails.Taxes?.Percentage != null
-                        ? decimal.Parse(planDetails.Taxes.Percentage, CultureInfo.InvariantCulture)
-                        : 0,
-                    TaxInclusive = planDetails.Taxes?.Inclusive ?? false
-                };
-
-                // Manejar ciclos de facturación
-                if (planDetails.BillingCycles.Length > 1)
-                {
-                    planDetail.TrialIntervalUnit = planDetails.BillingCycles[0].Frequency.IntervalUnit;
-                    planDetail.TrialIntervalCount = planDetails.BillingCycles[0].Frequency.IntervalCount;
-                    planDetail.TrialTotalCycles = planDetails.BillingCycles[0].TotalCycles;
-                    planDetail.TrialFixedPrice = planDetails.BillingCycles[0].PricingScheme.FixedPrice?.Value != null
-                        ? decimal.Parse(planDetails.BillingCycles[0].PricingScheme.FixedPrice.Value, CultureInfo.InvariantCulture)
-                        : 0;
-
-                    planDetail.RegularIntervalUnit = planDetails.BillingCycles[1].Frequency.IntervalUnit;
-                    planDetail.RegularIntervalCount = planDetails.BillingCycles[1].Frequency.IntervalCount;
-                    planDetail.RegularTotalCycles = planDetails.BillingCycles[1].TotalCycles;
-                    planDetail.RegularFixedPrice = planDetails.BillingCycles[1].PricingScheme.FixedPrice?.Value != null
-                        ? decimal.Parse(planDetails.BillingCycles[1].PricingScheme.FixedPrice.Value, CultureInfo.InvariantCulture)
-                        : 0;
-                }
-                else if (planDetails.BillingCycles.Length == 1)
-                {
-                    planDetail.RegularIntervalUnit = planDetails.BillingCycles[0].Frequency.IntervalUnit;
-                    planDetail.RegularIntervalCount = planDetails.BillingCycles[0].Frequency.IntervalCount;
-                    planDetail.RegularTotalCycles = planDetails.BillingCycles[0].TotalCycles;
-                    planDetail.RegularFixedPrice = planDetails.BillingCycles[0].PricingScheme.FixedPrice?.Value != null
-                        ? decimal.Parse(planDetails.BillingCycles[0].PricingScheme.FixedPrice.Value, CultureInfo.InvariantCulture)
-                        : 0;
-                }
+                // Mapeo extraído
+                var planDetail = MapToPlanDetail(planId, planDetails);
 
                 _context.PlanDetails.Add(planDetail);
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
+
                 _logger.LogInformation($"Detalles del plan {planId} guardados exitosamente.");
             }
             catch (Exception ex)
@@ -207,7 +163,57 @@ namespace GestorInventario.Infraestructure.Repositories
                 throw;
             }
         }
+        private PlanDetail MapToPlanDetail(string planId, PaypalPlanDetailsDto planDetails)
+        {
+            var planDetail = new PlanDetail
+            {
+                Id = Guid.NewGuid().ToString(),
+                PaypalPlanId = planId,
+                ProductId = planDetails.ProductId,
+                Name = planDetails.Name,
+                Description = planDetails.Description,
+                Status = planDetails.Status,
+                AutoBillOutstanding = planDetails.PaymentPreferences.AutoBillOutstanding,
+                SetupFee = planDetails.PaymentPreferences.SetupFee?.Value != null
+                    ? decimal.Parse(planDetails.PaymentPreferences.SetupFee.Value, CultureInfo.InvariantCulture)
+                    : 0,
+                SetupFeeFailureAction = planDetails.PaymentPreferences.SetupFeeFailureAction,
+                PaymentFailureThreshold = planDetails.PaymentPreferences.PaymentFailureThreshold,
+                TaxPercentage = planDetails.Taxes?.Percentage != null
+                    ? decimal.Parse(planDetails.Taxes.Percentage, CultureInfo.InvariantCulture)
+                    : 0,
+                TaxInclusive = planDetails.Taxes?.Inclusive ?? false
+            };
 
+            // Manejo de ciclos de facturación
+            if (planDetails.BillingCycles.Length > 1)
+            {
+                planDetail.TrialIntervalUnit = planDetails.BillingCycles[0].Frequency.IntervalUnit;
+                planDetail.TrialIntervalCount = planDetails.BillingCycles[0].Frequency.IntervalCount;
+                planDetail.TrialTotalCycles = planDetails.BillingCycles[0].TotalCycles;
+                planDetail.TrialFixedPrice = planDetails.BillingCycles[0].PricingScheme.FixedPrice?.Value != null
+                    ? decimal.Parse(planDetails.BillingCycles[0].PricingScheme.FixedPrice.Value, CultureInfo.InvariantCulture)
+                    : 0;
+
+                planDetail.RegularIntervalUnit = planDetails.BillingCycles[1].Frequency.IntervalUnit;
+                planDetail.RegularIntervalCount = planDetails.BillingCycles[1].Frequency.IntervalCount;
+                planDetail.RegularTotalCycles = planDetails.BillingCycles[1].TotalCycles;
+                planDetail.RegularFixedPrice = planDetails.BillingCycles[1].PricingScheme.FixedPrice?.Value != null
+                    ? decimal.Parse(planDetails.BillingCycles[1].PricingScheme.FixedPrice.Value, CultureInfo.InvariantCulture)
+                    : 0;
+            }
+            else if (planDetails.BillingCycles.Length == 1)
+            {
+                planDetail.RegularIntervalUnit = planDetails.BillingCycles[0].Frequency.IntervalUnit;
+                planDetail.RegularIntervalCount = planDetails.BillingCycles[0].Frequency.IntervalCount;
+                planDetail.RegularTotalCycles = planDetails.BillingCycles[0].TotalCycles;
+                planDetail.RegularFixedPrice = planDetails.BillingCycles[0].PricingScheme.FixedPrice?.Value != null
+                    ? decimal.Parse(planDetails.BillingCycles[0].PricingScheme.FixedPrice.Value, CultureInfo.InvariantCulture)
+                    : 0;
+            }
+
+            return planDetail;
+        }
         public async Task UpdatePlanStatusAsync(string planId, string status)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
