@@ -22,13 +22,13 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IPedidoRepository _pedidoRepository;                 
         private readonly IPdfService _pdfservice;
         private readonly IPolicyExecutor _policyExecutor;
-        private readonly IPaypalService _paypalService;     
+        private readonly IPaypalOrderTrackingService _paypalService;     
         private readonly IPaginationHelper _paginationHelper;       
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IEmailService _emailService;
         private readonly IPaymentRepository _payment;
         public PedidosController( ILogger<PedidosController> logger, IPaginationHelper pagination,  ICurrentUserAccessor current, IPaymentRepository pay,
-            IPedidoRepository pedido,   IPdfService pdf, IPolicyExecutor executor, IPaypalService paypal, IEmailService email)
+            IPedidoRepository pedido,   IPdfService pdf, IPolicyExecutor executor, IPaypalOrderTrackingService paypal, IEmailService email)
         {          
             _logger = logger;
             _pedidoRepository = pedido;           

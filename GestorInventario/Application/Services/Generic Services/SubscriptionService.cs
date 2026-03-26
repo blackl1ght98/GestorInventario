@@ -2,26 +2,26 @@
 using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
-using System.Globalization;
+
 
 namespace GestorInventario.Application.Services.Generic_Services
 {
     public class SubscriptionService:ISubscriptionService
     {
-        private readonly GestorInventarioContext _context;
-        private readonly IPaypalService _paypalSevice;
+        
+       
         private readonly IPaypalRepository _paypalRepository;
         private readonly ILogger<SubscriptionService> _logger;
 
-        public SubscriptionService(GestorInventarioContext context, IPaypalService paypalSevice, IPaypalRepository paypalRepository, ILogger<SubscriptionService> logger)
+        public SubscriptionService(IPaypalRepository paypalRepository, ILogger<SubscriptionService> logger)
         {
-            _context = context;
-            _paypalSevice = paypalSevice;
+           
+          
             _paypalRepository = paypalRepository;
             _logger = logger;
         }
 
-        public async Task<SubscriptionDetail> CreateSubscriptionDetailAsync(dynamic subscriptionDetails, string planId)
+        public async Task<SubscriptionDetail> CreateSubscriptionDetailAsync(PaypalSubscriptionResponse subscriptionDetails, string planId)
         {
            
             try

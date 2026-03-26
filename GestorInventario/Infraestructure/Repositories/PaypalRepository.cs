@@ -150,8 +150,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 // Mapeo extraído
                 var planDetail = MapToPlanDetail(planId, planDetails);
 
-                _context.PlanDetails.Add(planDetail);
-                await _context.SaveChangesAsync();
+                await _context.AddEntityAsync(planDetail);
                 await transaction.CommitAsync();
 
                 _logger.LogInformation($"Detalles del plan {planId} guardados exitosamente.");
