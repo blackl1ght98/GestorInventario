@@ -14,15 +14,15 @@ namespace GestorInventario.Infraestructure.Repositories
     public class PedidoRepository : IPedidoRepository
     {
         private readonly GestorInventarioContext _context;              
-        private readonly IPaypalService _paypalService;
+        private readonly IPaypalOrderService _paypalOrder;
         private readonly ILogger<PedidoRepository> _logger;        
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IConversionUtils _conversion;
         public PedidoRepository(GestorInventarioContext context, IConversionUtils conversion,
-        IPaypalService service, ILogger<PedidoRepository> logger,  ICurrentUserAccessor current)
+        IPaypalOrderService service, ILogger<PedidoRepository> logger,  ICurrentUserAccessor current)
         {
-            _context = context;                      
-            _paypalService = service;
+            _context = context;
+            _paypalOrder = service;
             _logger = logger;            
             _currentUserAccessor = current;
             _conversion = conversion;
@@ -268,7 +268,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     .FirstOrDefaultAsync(x => x.Id == id);
 
                 // Obtener los detalles actualizados desde la API de PayPal
-                var detalles = await _paypalService.ObtenerDetallesPagoEjecutadoV2(id);
+                var detalles = await _paypalOrder.ObtenerDetallesPagoEjecutadoV2(id);
                 if (detalles == null)
                 {
                     return OperationResult<PayPalPaymentDetail>.Fail("Detalles del pedido no encontrados para generar la factura");

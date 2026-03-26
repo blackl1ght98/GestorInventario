@@ -15,21 +15,23 @@ namespace GestorInventario.Infraestructure.Controllers
     public class PaymentController : Controller
     {
         private readonly ILogger<PaymentController> _logger;
-        private readonly IPaypalService _paypalService;
+        private readonly IPaypalOrderService _paypalOrderService;
         private readonly ICarritoRepository _carrito;
         private readonly IPolicyExecutor _policyExecutor;
         private readonly IPaymentRepository _paymentRepository; 
         private readonly ICurrentUserAccessor _currentUserAccessor;
+        private readonly IPaypalRefundService _paypalRefundService;
      
         public PaymentController(ILogger<PaymentController> logger,   ICurrentUserAccessor current,
-            IPolicyExecutor executor, IPaypalService service, IPaymentRepository payment, ICarritoRepository carrito)
+            IPolicyExecutor executor, IPaypalOrderService service, IPaypalRefundService pay, IPaymentRepository payment, ICarritoRepository carrito)
         {
             _logger = logger;
             _carrito = carrito;
             _policyExecutor = executor;
-            _paypalService = service;
+            _paypalOrderService = service;
             _paymentRepository = payment;          
             _currentUserAccessor = current;
+            _paypalRefundService = pay;
            
         }
         [Authorize]
@@ -42,7 +44,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 //CaptureId->representa el id del pago en paypal
                 //total-> lo que has pagado
                 //currency-> la moneda
-                var (captureId, total, currency) = await _paypalService.CapturarPagoAsync(orderId);
+                var (captureId, total, currency) = await _paypalOrderService.CapturarPagoAsync(orderId);
 
                 var usuarioActual = _currentUserAccessor.GetCurrentUserId();
  
@@ -74,7 +76,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
             try
             {
-                await _paypalService.RefundSaleAsync(request.PedidoId, request.Currency);
+                await _paypalRefundService.RefundSaleAsync(request.PedidoId, request.Currency);
                 return Ok(new { success = true });
             }
             catch (Exception ex)
@@ -94,7 +96,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
             try
             {
-                await _paypalService.RefundPartialAsync(request.PedidoId, request.Currency,request.Motivo);
+                await _paypalRefundService.RefundPartialAsync(request.PedidoId, request.Currency,request.Motivo);
                
                 return Json(new { success = true });
             }
@@ -142,7 +144,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
                
                 var detallespago = await _policyExecutor.ExecutePolicyAsync(() =>
-                    _paypalService.ObtenerDetallesPagoEjecutadoV2(pedido.Data.OrderId));
+                    _paypalOrderService.ObtenerDetallesPagoEjecutadoV2(pedido.Data.OrderId));
 
                 if (detallespago == null)
                 {

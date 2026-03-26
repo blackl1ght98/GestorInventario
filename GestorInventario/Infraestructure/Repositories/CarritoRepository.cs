@@ -15,16 +15,16 @@ namespace GestorInventario.Infraestructure.Repositories
     public class CarritoRepository : ICarritoRepository
     {
         private readonly GestorInventarioContext _context;
-        private readonly IPaypalService _paypalService;
+        private readonly IPaypalOrderService _paypalOrder;
         private readonly IConfiguration _configuration;
         private readonly ILogger<CarritoRepository> _logger;       
         private readonly IUserRepository _userRepository;
         private readonly ICurrentUserAccessor _currentUserAccessor;
-        public CarritoRepository(GestorInventarioContext context, IPaypalService service,  ICurrentUserAccessor current,
+        public CarritoRepository(GestorInventarioContext context, IPaypalOrderService service,  ICurrentUserAccessor current,
             IConfiguration configuration, ILogger<CarritoRepository> logger,  IUserRepository user)
         {
             _context = context;
-            _paypalService = service;
+            _paypalOrder = service;
             _configuration = configuration;
             _logger = logger;           
             _userRepository = user;
@@ -298,7 +298,7 @@ namespace GestorInventario.Infraestructure.Repositories
         }
         private async Task<OperationResult<string>> ProcesarPagoPayPal(CheckoutDto checkout)
         {
-            var createdPaymentJson = await _paypalService.CreateOrderWithPaypalAsync(checkout);
+            var createdPaymentJson = await _paypalOrder.CreateOrderWithPaypalAsync(checkout);
             var createdPayment = JsonConvert.DeserializeObject<PayPalOrderResponseDto>(createdPaymentJson);
             var approvalUrl = createdPayment?.Links?.FirstOrDefault(x => x.Rel == "payer-action")?.Href;
             if (!string.IsNullOrEmpty(approvalUrl))

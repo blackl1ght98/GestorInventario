@@ -29,7 +29,7 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<IAdminRepository, AdminRepository>();
             services.AddTransient<IAuthRepository, AuthRepository>();
             services.AddTransient<IUnitOfWork, UnitOfWork>();
-            services.AddTransient<IPaypalService, PaypalService>();
+            services.AddTransient<IPaypalOrderTrackingService, PaypalOrderTrackingService>();
             services.AddTransient<IPedidoRepository, PedidoRepository>();
             services.AddTransient<IPolicyHandler,PolicyHandler>();
             services.AddTransient<IProductoRepository, ProductoRepository>();
@@ -38,7 +38,7 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<IPdfService, PdfService>();
             services.AddTransient<IPaypalRepository, PaypalRepository>();
             services.AddTransient<IEncryptionService, EncryptionService>();
-            services.AddTransient<IPaypalService, PaypalService>();
+            services.AddTransient<IPaypalOrderTrackingService, PaypalOrderTrackingService>();
             services.AddTransient<IPaymentRepository, PaymentRepository>();
             services.AddTransient<IImageOptimizerService,ImageOptimizerService>();
             services.AddTransient<ITokenGenerator, TokenGenerator>();           
@@ -51,6 +51,9 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<ISubscriptionService, SubscriptionService>();
             services.AddTransient<CultureHelper>();
             services.AddTransient<IPayPalMappingUtils, PayPalMappingUtils>();
+            services.AddTransient<IPaypalOrderService, PaypalOrderService>();
+            services.AddTransient<IPaypalRefundService, PaypalRefundService>();
+            services.AddTransient<IPaypalSubscriptionService, PaypalSubscriptionService>();
             return services;
 
         }
