@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace GestorInventario.Application.DTOs.Response_paypal.POST
 {
-    public class PaypalCreateOrderRequestDto
+    public class CreateOrderRequest
     {
         [JsonProperty("intent")]
         public required string Intent { get; set; }
@@ -19,7 +19,7 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
     public class PurchaseUnit
     {
         [JsonProperty("amount")]
-        public required AmountBase Amount { get; set; }
+        public required Amount Amount { get; set; }
 
         [JsonProperty("description")]
         public required string Description { get; set; }
@@ -34,7 +34,7 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
         public required Shipping Shipping { get; set; }
     }
 
-    public class AmountBase
+    public class Amount
     {
         [JsonProperty("currency_code")]
         public required string CurrencyCode { get; set; }
@@ -43,19 +43,19 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
         public required string Value { get; set; }
 
         [JsonProperty("breakdown")]
-        public required Breakdown Breakdown { get; set; }
+        public required AmountBreakdown Breakdown { get; set; }
     }
 
-    public class Breakdown
+    public class AmountBreakdown
     {
         [JsonProperty("item_total")]
-        public required MoneyOrder ItemTotal { get; set; }
+        public required Money ItemTotal { get; set; }
 
         [JsonProperty("tax_total")]
-        public required MoneyOrder TaxTotal { get; set; }
+        public required Money TaxTotal { get; set; }
 
         [JsonProperty("shipping")]
-        public required MoneyOrder ShippingAmount { get; set; }
+        public required Money ShippingAmount { get; set; }
     }
 
 
@@ -72,10 +72,10 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
         public required string Quantity { get; set; }
 
         [JsonProperty("unit_amount")]
-        public required MoneyOrder UnitAmount { get; set; }
+        public required Money UnitAmount { get; set; }
 
         [JsonProperty("tax")]
-        public required MoneyOrder Tax { get; set; }
+        public required Money Tax { get; set; }
 
         [JsonProperty("sku")]
         public required string Sku { get; set; }
@@ -84,19 +84,19 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
     public class Shipping
     {
         [JsonProperty("name")]
-        public required NameClientOrder Name { get; set; }
+        public required ShippingName Name { get; set; }
 
         [JsonProperty("address")]
-        public required Address Address { get; set; }
+        public required ShippingAddress Address { get; set; }
     }
 
-    public class NameClientOrder
+    public class ShippingName
     {
         [JsonProperty("full_name")]
         public required string FullName { get; set; }
     }
 
-    public class Address
+    public class ShippingAddress
     {
         [JsonProperty("address_line_1")]
         public required string AddressLine1 { get; set; }
@@ -140,7 +140,7 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
         [JsonProperty("cancel_url")]
         public required string CancelUrl { get; set; }
     }
-    public class MoneyOrder
+    public class Money
     {
         [JsonProperty("currency_code")]
         [Required(ErrorMessage = "El código de moneda es requerido.")]

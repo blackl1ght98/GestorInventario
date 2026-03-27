@@ -6,14 +6,14 @@ using GestorInventario.Interfaces.Infraestructure;
 
 namespace GestorInventario.Application.Services.Generic_Services
 {
-    public class SubscriptionService:ISubscriptionService
+    public class PaypalSubscriptionDetailService:IPaypalSubscriptionDetailService
     {
         
        
         private readonly IPaypalRepository _paypalRepository;
-        private readonly ILogger<SubscriptionService> _logger;
+        private readonly ILogger<PaypalSubscriptionDetailService> _logger;
 
-        public SubscriptionService(IPaypalRepository paypalRepository, ILogger<SubscriptionService> logger)
+        public PaypalSubscriptionDetailService(IPaypalRepository paypalRepository, ILogger<PaypalSubscriptionDetailService> logger)
         {
            
           

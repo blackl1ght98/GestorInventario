@@ -36,37 +36,37 @@ namespace GestorInventario.Application.Services.External_Sevices
                    var body = await resp.Content.ReadAsStringAsync();
                    throw new InvalidOperationException($"Error al crear orden: {resp.StatusCode} - {body}");
                });
-            var jsonResponse = JsonConvert.DeserializeObject<PayPalOrderResponseDto>(responseBody);
+            var jsonResponse = JsonConvert.DeserializeObject<PayPalOrderResponse>(responseBody);
 
 
             return responseBody;
         }
-        private PaypalCreateOrderRequestDto BuildOrder(CheckoutDto pagar)
+        private CreateOrderRequest BuildOrder(CheckoutDto pagar)
         {
-            return new PaypalCreateOrderRequestDto
+            return new CreateOrderRequest
             {
                 Intent = "CAPTURE",
                 PurchaseUnits = new List<PurchaseUnit>
             {
                 new PurchaseUnit
                 {
-                    Amount = new AmountBase
+                    Amount = new Amount
                     {
                         CurrencyCode = pagar.Currency,
                         Value = pagar.TotalAmount.ToString("F2", CultureInfo.InvariantCulture),
-                        Breakdown = new Breakdown
+                        Breakdown = new AmountBreakdown
                         {
-                            ItemTotal = new MoneyOrder
+                            ItemTotal = new Money
                             {
                                 CurrencyCode = pagar.Currency,
                                 Value = pagar.TotalAmount.ToString("F2", CultureInfo.InvariantCulture)
                             },
-                            TaxTotal = new MoneyOrder
+                            TaxTotal = new Money
                             {
                                 CurrencyCode = pagar.Currency,
                                 Value = "0.00"
                             },
-                            ShippingAmount = new MoneyOrder
+                            ShippingAmount = new Money
                             {
                                 CurrencyCode = pagar.Currency,
                                 Value = "0.00"
@@ -80,12 +80,12 @@ namespace GestorInventario.Application.Services.External_Sevices
                         Name = item.Name,
                         Description = item.Description,
                         Quantity = item.Quantity.ToString(),
-                        UnitAmount = new MoneyOrder
+                        UnitAmount = new Money
                         {
                             Value = item.Price.ToString("F2", CultureInfo.InvariantCulture),
                             CurrencyCode = pagar.Currency
                         },
-                        Tax = new MoneyOrder
+                        Tax = new Money
                         {
                             Value = "0.00",
                             CurrencyCode = pagar.Currency
@@ -94,11 +94,11 @@ namespace GestorInventario.Application.Services.External_Sevices
                     }),
                     Shipping = new Shipping
                     {
-                        Name = new NameClientOrder
+                        Name = new DTOs.Response_paypal.POST.ShippingName
                         {
                             FullName = pagar.NombreCompleto
                         },
-                        Address = new Address
+                        Address = new DTOs.Response_paypal.POST.ShippingAddress
                         {
                             AddressLine1 = pagar.Line1,
                             AddressLine2 = pagar.Line2 ?? "",
