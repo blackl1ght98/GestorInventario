@@ -27,9 +27,9 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IPaypalSubscriptionService _paypalSubscriptionService;         
         private readonly IPaginationHelper _paginationHelper;
         private readonly ICurrentUserAccessor _currentUserAccessor;
-        private readonly ISubscriptionService _subscription;
+        private readonly IPaypalSubscriptionDetailService _subscription;
         private readonly IPayPalMappingUtils _map;
-        public PaypalController(ILogger<PaypalController> logger,  IPaginationHelper pagination, ISubscriptionService subs, IUnitOfWork unit,
+        public PaypalController(ILogger<PaypalController> logger,  IPaginationHelper pagination, IPaypalSubscriptionDetailService subs, IUnitOfWork unit,
          IPolicyExecutor executor, IPaypalSubscriptionService service, ICurrentUserAccessor current, IPayPalMappingUtils map)
         {
             _paypalSubscriptionService = service;        
