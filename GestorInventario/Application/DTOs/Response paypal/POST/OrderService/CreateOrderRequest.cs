@@ -84,19 +84,19 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
     public class Shipping
     {
         [JsonProperty("name")]
-        public required ShippingName Name { get; set; }
+        public required OrderShippingName Name { get; set; }
 
         [JsonProperty("address")]
-        public required ShippingAddress Address { get; set; }
+        public required OrderShippingAddress Address { get; set; }
     }
 
-    public class ShippingName
+    public class OrderShippingName
     {
         [JsonProperty("full_name")]
         public required string FullName { get; set; }
     }
 
-    public class ShippingAddress
+    public class OrderShippingAddress
     {
         [JsonProperty("address_line_1")]
         public required string AddressLine1 { get; set; }

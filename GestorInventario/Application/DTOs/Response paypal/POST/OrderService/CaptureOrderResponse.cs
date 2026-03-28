@@ -3,57 +3,60 @@
 namespace GestorInventario.Application.DTOs.Response_paypal.POST
 {
 
-    public class PaypalCaptureOrderResponseDto
+    public class CaptureOrderResponse
     {
         [JsonProperty("id")]
         public required string Id { get; set; }
         [JsonProperty("status")]
         public required string Status { get; set; }
         [JsonProperty("payment_source")]
-        public required PaymentSourceCapture PaymentSource { get; set; }
+        public required CapturePaymentSource PaymentSource { get; set; }
         [JsonProperty("purchase_units")]
-        public required List<PurchaseUnitsCapture> PurchaseUnits { get; set; }
+        public required List<CapturePurchaseUnit> PurchaseUnits { get; set; }
         [JsonProperty("payer")]
         public required PayerCapture PayerCapture { get; set; }
         [JsonProperty("links")]
-        public required List<LinksCapture> Links { get; set; }
+        public required List<CaptureLinks> Links { get; set; }
     }
-    public class PaymentSourceCapture
+    public class CapturePaymentSource
     {
         [JsonProperty("paypal")]
-        public required PaypalCapture Paypal { get; set; }
+        public required CapturePaypal Paypal { get; set; }
     }
-    public class PaypalCapture
+    public class CapturePaypal
     {
         [JsonProperty("name")]
-        public required NameCapture Name { get; set; }
+        public required CaptureName Name { get; set; }
         [JsonProperty("email_address")]
         public required string EmailAddress { get; set; }
         [JsonProperty("account_id")]
         public required string AccountId { get; set; }
     }
-    public class NameCapture {
+    public class CaptureName
+    {
         [JsonProperty("given_name")]
         public required string GivenName { get; set; }
         [JsonProperty("surname")]
         public required string Surname { get; set; }
 
     }
-    public class PurchaseUnitsCapture
+    public class CapturePurchaseUnit
     {
         [JsonProperty("reference_id")]
         public required string ReferenceId { get; set; }
         [JsonProperty("shipping")]
-        public required ShippingCapture Shipping { get; set; }
+        public required CaptureShipping Shipping { get; set; }
         [JsonProperty("payments")]
-        public required PaymentsCapture Payments { get; set; }
+        public required CapturePayments Payments { get; set; }
     }
-    public class ShippingCapture {
+    public class CaptureShipping
+    {
         [JsonProperty("address")]
-        public required AddressCapture Address { get; set; }
+        public required CaptureAddress Address { get; set; }
     
     }
-    public class AddressCapture {
+    public class CaptureAddress
+    {
         [JsonProperty("address_line_1")]
         public required string AddressLine1 { get; set; }
         [JsonProperty("address_line_2")]
@@ -67,7 +70,7 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
         [JsonProperty("country_code")]
         public required string CountryCode { get; set; }
     }
-    public class PaymentsCapture
+    public class CapturePayments
     {
         [JsonProperty("captures")]
         public required List<Captures> Captures { get; set; }
@@ -79,7 +82,7 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
         [JsonProperty("status")]
         public required string Status { get; set; }
         [JsonProperty("amount")]
-        public required AmountCapture Amount { get; set; }
+        public required CaptureAmount Amount { get; set; }
         [JsonProperty("seller_protection")]
         public required SellerProtectionCapture SellerProtection { get; set; }
         [JsonProperty("final_capture")]
@@ -87,11 +90,12 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
         [JsonProperty("disbursement_mode")]
         public required string DisbursementMode { get; set; }
         [JsonProperty("seller_receivable_breakdown")]
-        public required SellerReceivableBreakdownCapture SellerReceivableBreakdown { get; set; }
+        public required CaptureSellerReceivableBreakdown SellerReceivableBreakdown { get; set; }
         [JsonProperty("links")]
-        public required List<LinksCapture> Links { get; set; }
+        public required List<CaptureLinks> Links { get; set; }
     }
-    public class AmountCapture {
+    public class CaptureAmount
+    {
         [JsonProperty("currency_code")]
         public required string CurrencyCode { get; set; }
         [JsonProperty("value")]
@@ -104,7 +108,7 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
         public required List<string> DisputeCategories { get; set; } = new();
 
     }
-    public class SellerReceivableBreakdownCapture
+    public class CaptureSellerReceivableBreakdown
     {
         [JsonProperty("gross_amount")]
         public required GrossAmount Amount { get; set; }
@@ -136,7 +140,7 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
         [JsonProperty("value")]
         public required string Value { get; set; }
     }
-    public class LinksCapture
+    public class CaptureLinks
     {
         [JsonProperty("href")]
         public required string Href { get; set; }
@@ -148,7 +152,7 @@ namespace GestorInventario.Application.DTOs.Response_paypal.POST
     public class PayerCapture
     {
         [JsonProperty("name")]
-        public required NameCapture Name { get; set; }
+        public required CaptureName Name { get; set; }
         [JsonProperty("email_address")]
         public required string EmailAddress { get; set; }
         [JsonProperty("payer_id")]

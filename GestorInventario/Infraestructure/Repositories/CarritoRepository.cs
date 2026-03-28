@@ -258,7 +258,7 @@ namespace GestorInventario.Infraestructure.Repositories
                             Name = producto.NombreProducto,
                             Currency = moneda,
                             Price = producto.Precio,
-                          
+                            
                             Quantity = item.Cantidad.Value.ToString(),
                             Sku = producto.Descripcion
                         };

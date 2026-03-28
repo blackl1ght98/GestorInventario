@@ -18,8 +18,7 @@ namespace GestorInventario.Application.Services.External_Sevices
         public PaypalOrderService(ILogger<PaypalOrderService> logger,
            IPayPalHttpClient paypal, IPaypalRepository repo)
         {
-            _logger = logger;
-           
+            _logger = logger;           
             _paypal = paypal;
             _repo = repo;
         }
@@ -43,73 +42,94 @@ namespace GestorInventario.Application.Services.External_Sevices
         }
         private CreateOrderRequest BuildOrder(CheckoutDto pagar)
         {
+            decimal totalNeto = 0m;
+            decimal totalImpuestos = 0m;
+
+            var itemsParaPayPal = pagar.Items.ConvertAll(item =>
+            {
+               
+                decimal precioUnitario = item.Price;
+
+               
+                int cantidad = int.Parse(item.Quantity);                   
+
+                decimal impuestoPorUnidad = precioUnitario * 0.21m;        
+
+                totalNeto += precioUnitario * cantidad;
+                totalImpuestos += impuestoPorUnidad * cantidad;
+
+                return new Item
+                {
+                    Name = item.Name,
+                    Description = item.Description,
+                    Quantity = cantidad.ToString(),                         
+                    UnitAmount = new Money
+                    {
+                        Value = precioUnitario.ToString("F2", CultureInfo.InvariantCulture),
+                        CurrencyCode = pagar.Currency
+                    },
+                    Tax = new Money
+                    {
+                        Value = impuestoPorUnidad.ToString("F2", CultureInfo.InvariantCulture),
+                        CurrencyCode = pagar.Currency
+                    },
+                    Sku = item.Sku
+                };
+            });
+
+            decimal totalFinal = totalNeto + totalImpuestos;
+
             return new CreateOrderRequest
             {
                 Intent = "CAPTURE",
                 PurchaseUnits = new List<PurchaseUnit>
+        {
+            new PurchaseUnit
             {
-                new PurchaseUnit
+                Amount = new Amount
                 {
-                    Amount = new Amount
+                    CurrencyCode = pagar.Currency,
+                    Value = totalFinal.ToString("F2", CultureInfo.InvariantCulture),
+                    Breakdown = new AmountBreakdown
                     {
-                        CurrencyCode = pagar.Currency,
-                        Value = pagar.TotalAmount.ToString("F2", CultureInfo.InvariantCulture),
-                        Breakdown = new AmountBreakdown
+                        ItemTotal = new Money
                         {
-                            ItemTotal = new Money
-                            {
-                                CurrencyCode = pagar.Currency,
-                                Value = pagar.TotalAmount.ToString("F2", CultureInfo.InvariantCulture)
-                            },
-                            TaxTotal = new Money
-                            {
-                                CurrencyCode = pagar.Currency,
-                                Value = "0.00"
-                            },
-                            ShippingAmount = new Money
-                            {
-                                CurrencyCode = pagar.Currency,
-                                Value = "0.00"
-                            }
-                        }
-                    },
-                    Description = "The payment transaction description.",
-                    InvoiceId = Guid.NewGuid().ToString(),
-                    Items = pagar.Items.ConvertAll(item => new Item
-                    {
-                        Name = item.Name,
-                        Description = item.Description,
-                        Quantity = item.Quantity.ToString(),
-                        UnitAmount = new Money
-                        {
-                            Value = item.Price.ToString("F2", CultureInfo.InvariantCulture),
-                            CurrencyCode = pagar.Currency
+                            CurrencyCode = pagar.Currency,
+                            Value = totalNeto.ToString("F2", CultureInfo.InvariantCulture)
                         },
-                        Tax = new Money
+                        TaxTotal = new Money
                         {
-                            Value = "0.00",
-                            CurrencyCode = pagar.Currency
+                            CurrencyCode = pagar.Currency,
+                            Value = totalImpuestos.ToString("F2", CultureInfo.InvariantCulture)   
                         },
-                        Sku = item.Sku
-                    }),
-                    Shipping = new Shipping
-                    {
-                        Name = new DTOs.Response_paypal.POST.ShippingName
+                        ShippingAmount = new Money
                         {
-                            FullName = pagar.NombreCompleto
-                        },
-                        Address = new DTOs.Response_paypal.POST.ShippingAddress
-                        {
-                            AddressLine1 = pagar.Line1,
-                            AddressLine2 = pagar.Line2 ?? "",
-                            City = pagar.Ciudad,
-                            State = "ES",
-                            PostalCode = pagar.CodigoPostal,
-                            CountryCode = "ES"
+                            CurrencyCode = pagar.Currency,
+                            Value = "0.00" //<- coste de envio
                         }
                     }
+                },
+                Description = "The payment transaction description.",
+                InvoiceId = Guid.NewGuid().ToString(),
+                Items = itemsParaPayPal,
+                Shipping = new Shipping
+                {
+                    Name = new OrderShippingName
+                    {
+                        FullName = pagar.NombreCompleto
+                    },
+                    Address = new OrderShippingAddress
+                    {
+                        AddressLine1 = pagar.Line1,
+                        AddressLine2 = pagar.Line2 ?? "",
+                        City = pagar.Ciudad,
+                        State = "ES",
+                        PostalCode = pagar.CodigoPostal,
+                        CountryCode = "ES"
+                    }
                 }
-            },
+            }
+        },
                 PaymentSource = new PaymentSource
                 {
                     Paypal = new Paypal
@@ -143,7 +163,7 @@ namespace GestorInventario.Application.Services.External_Sevices
                     });
 
 
-                var paypalResponse = JsonConvert.DeserializeObject<PaypalCaptureOrderResponseDto>(responseBody);
+                var paypalResponse = JsonConvert.DeserializeObject<CaptureOrderResponse>(responseBody);
 
                 var capture = paypalResponse?.PurchaseUnits?
                     .FirstOrDefault()?.Payments?
@@ -168,7 +188,7 @@ namespace GestorInventario.Application.Services.External_Sevices
         #endregion
 
         #region Obtener detalles del pago v2 paypal   
-        public async Task<CheckoutDetailsDto> ObtenerDetallesPagoEjecutadoV2(string id)
+        public async Task<OrderDetailsResponse> ObtenerDetallesPagoEjecutadoV2(string id)
         {
             var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
              HttpMethod.Get,
@@ -180,7 +200,7 @@ namespace GestorInventario.Application.Services.External_Sevices
                      $"Error al obtener detalles de orden {id}: {resp.StatusCode} - {errBody}");
              });
             // Deserializamos la respuesta al DTO correspondiente
-            var subscriptionDetails = JsonConvert.DeserializeObject<CheckoutDetailsDto>(responseBody);
+            var subscriptionDetails = JsonConvert.DeserializeObject<OrderDetailsResponse>(responseBody);
             if (subscriptionDetails == null)
             {
                 throw new ArgumentNullException("No se puede obtener los detalles de la subscripcion");

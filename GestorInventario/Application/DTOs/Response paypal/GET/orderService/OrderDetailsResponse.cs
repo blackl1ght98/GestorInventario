@@ -2,7 +2,7 @@
 
 namespace GestorInventario.Application.DTOs.Response_paypal.GET
 {
-    public class CheckoutDetailsDto
+    public class OrderDetailsResponse
     {
         [JsonProperty("id")]
         public required string Id { get; set; }
@@ -13,10 +13,10 @@ namespace GestorInventario.Application.DTOs.Response_paypal.GET
         public required string Status { get; set; }
 
         [JsonProperty("payment_source")]
-        public required PaymentSourceCheckout PaymentSource { get; set; }
+        public required PaymentSourceDetails PaymentSource { get; set; }
 
         [JsonProperty("purchase_units")]
-        public required List<PurchaseUnitsBse> PurchaseUnits { get; set; }
+        public required List<PurchaseUnitDetails> PurchaseUnits { get; set; }
 
         [JsonProperty("payer")]
         public required Payer Payer { get; set; }
@@ -30,13 +30,13 @@ namespace GestorInventario.Application.DTOs.Response_paypal.GET
         public required List<Link> Links { get; set; }
     }
 
-    public class PaymentSourceCheckout
+    public class PaymentSourceDetails
     {
         [JsonProperty("paypal")]
-        public required PayPal Paypal { get; set; }
+        public required PayPalDetails Paypal { get; set; }
     }
 
-    public class PayPal
+    public class PayPalDetails
     {
 
         [JsonProperty("email_address")]
@@ -50,7 +50,7 @@ namespace GestorInventario.Application.DTOs.Response_paypal.GET
         public required NameDetails Name { get; set; }
 
         [JsonProperty("address")]
-        public required AddressBse Address { get; set; }
+        public required AddressDetails Address { get; set; }
     }
     public class NameDetails
     {
@@ -60,35 +60,35 @@ namespace GestorInventario.Application.DTOs.Response_paypal.GET
         public required string Surname { get; set; }
     }
 
-    public class AddressBse
+    public class AddressDetails
     {
         [JsonProperty("country_code")]
         public required string CountryCode { get; set; }
     }
 
-    public class PurchaseUnitsBse
+    public class PurchaseUnitDetails
     {
         [JsonProperty("reference_id")]
         public required string ReferenceId { get; set; }
         [JsonProperty("amount")]
-        public required AmountBse Amount { get; set; }
+        public required AmountDetails Amount { get; set; }
         [JsonProperty("payee")]
-        public required Payee Payee { get; set; }
+        public required PayeeDetails Payee { get; set; }
         [JsonProperty("description")]
         public required string Description { get; set; }
         [JsonProperty("invoice_id")]
         public required string InvoiceId { get; set; }
         [JsonProperty("items")]
-        public required List<ItemBse> Items { get; set; }
+        public required List<ItemDetails> Items { get; set; }
 
         [JsonProperty("shipping")]
-        public required ShippingBse Shipping { get; set; }
+        public required ShippingDetails Shipping { get; set; }
 
         [JsonProperty("payments")]
-        public required Payments Payments { get; set; }     
+        public required PaymentsDetails Payments { get; set; }     
     }
 
-    public class AmountBse
+    public class AmountDetails
     {
         [JsonProperty("currency_code")]
         public required string CurrencyCode { get; set; }
@@ -97,28 +97,28 @@ namespace GestorInventario.Application.DTOs.Response_paypal.GET
         public required string Value { get; set; }
 
         [JsonProperty("breakdown")]
-        public required BreakdownBse Breakdown { get; set; }
+        public required BreakdownDetails Breakdown { get; set; }
     }
 
-    public class BreakdownBse
+    public class BreakdownDetails
     {
         [JsonProperty("item_total")]
-        public required MoneyBse ItemTotal { get; set; }
+        public required MoneyDetails ItemTotal { get; set; }
 
         [JsonProperty("shipping")]
-        public required MoneyBse Shipping { get; set; }
+        public required MoneyDetails Shipping { get; set; }
 
         [JsonProperty("handling")]
-        public required MoneyBse Handling { get; set; }
+        public required MoneyDetails Handling { get; set; }
         [JsonProperty("tax_total")]
-        public required MoneyBse TaxTotal { get; set; }
+        public required MoneyDetails TaxTotal { get; set; }
         [JsonProperty("insurance")]
-        public required MoneyBse Insurance { get; set; }
+        public required MoneyDetails Insurance { get; set; }
         [JsonProperty("shipping_discount")]
-        public required MoneyBse ShippingDiscount { get; set; }
+        public required MoneyDetails ShippingDiscount { get; set; }
     }
 
-    public class MoneyBse
+    public class MoneyDetails
     {
         [JsonProperty("currency_code")]
         public required string CurrencyCode { get; set; }
@@ -127,14 +127,14 @@ namespace GestorInventario.Application.DTOs.Response_paypal.GET
         public required string Value { get; set; }
     }
 
-    public class ItemBse
+    public class ItemDetails
     {
         [JsonProperty("name")]
         public required string Name { get; set; }
         [JsonProperty("unit_amount")]
-        public required MoneyBse UnitAmount { get; set; }
+        public required MoneyDetails UnitAmount { get; set; }
         [JsonProperty("tax")]
-        public required MoneyBse Tax { get; set; }
+        public required MoneyDetails Tax { get; set; }
         [JsonProperty("quantity")]
         public required string Quantity { get; set; }
         [JsonProperty("sku")]
@@ -142,7 +142,7 @@ namespace GestorInventario.Application.DTOs.Response_paypal.GET
       
     }
 
-    public class Payee
+    public class PayeeDetails
     {
         [JsonProperty("merchant_id")]
         public required string MerchantId { get; set; }
@@ -151,16 +151,16 @@ namespace GestorInventario.Application.DTOs.Response_paypal.GET
         public required string EmailAddress { get; set; }
     }
 
-    public class Payments
+    public class PaymentsDetails
     {
         [JsonProperty("captures")]
-        public required List<Capture> Captures { get; set; }
+        public required List<CaptureDetails> Captures { get; set; }
 
         [JsonProperty("refunds")]
-        public required List<Refund> Refunds { get; set; }
+        public required List<RefundDetails> Refunds { get; set; }
     }
 
-    public class Capture
+    public class CaptureDetails
     {
         [JsonProperty("id")]
         public required string Id { get; set; }
@@ -169,7 +169,7 @@ namespace GestorInventario.Application.DTOs.Response_paypal.GET
         public required string Status { get; set; }
 
         [JsonProperty("amount")]
-        public required MoneyBse Amount { get; set; }
+        public required MoneyDetails Amount { get; set; }
 
         [JsonProperty("final_capture")]
         public required bool FinalCapture { get; set; }
@@ -205,13 +205,13 @@ namespace GestorInventario.Application.DTOs.Response_paypal.GET
     public class SellerReceivableBreakdown
     {
         [JsonProperty("gross_amount")]
-        public required MoneyBse GrossAmount { get; set; }
+        public required MoneyDetails GrossAmount { get; set; }
 
         [JsonProperty("paypal_fee")]
-        public required MoneyBse PaypalFee { get; set; }
+        public required MoneyDetails PaypalFee { get; set; }
 
         [JsonProperty("net_amount")]
-        public required MoneyBse NetAmount { get; set; }
+        public required MoneyDetails NetAmount { get; set; }
 
         [JsonProperty("exchange_rate")]
         public ExchangeRate? ExchangeRate { get; set; }
@@ -224,13 +224,13 @@ namespace GestorInventario.Application.DTOs.Response_paypal.GET
         public string? Value { get; set; }
     }
 
-    public class Refund
+    public class RefundDetails
     {
         [JsonProperty("id")]
         public required string Id { get; set; }
 
         [JsonProperty("amount")]
-        public required MoneyBse Amount { get; set; }
+        public required MoneyDetails Amount { get; set; }
 
         [JsonProperty("note_to_payer")]
         public required string NoteToPayer { get; set; }
@@ -257,19 +257,19 @@ namespace GestorInventario.Application.DTOs.Response_paypal.GET
     public class SellerPayableBreakdown
     {
         [JsonProperty("gross_amount")]
-        public required MoneyBse GrossAmount { get; set; }
+        public required MoneyDetails GrossAmount { get; set; }
 
         [JsonProperty("paypal_fee")]
-        public required MoneyBse PaypalFee { get; set; }
+        public required MoneyDetails PaypalFee { get; set; }
 
         [JsonProperty("platform_fees")]
         public required List<PlatformFee> PlatformFees { get; set; }
 
         [JsonProperty("net_amount")]
-        public required MoneyBse NetAmount { get; set; }
+        public required MoneyDetails NetAmount { get; set; }
 
         [JsonProperty("total_refunded_amount")]
-        public required MoneyBse TotalRefundedAmount { get; set; }
+        public required MoneyDetails TotalRefundedAmount { get; set; }
 
         [JsonProperty("exchange_rate")]
         public ExchangeRate? ExchangeRate { get; set; }
@@ -277,10 +277,10 @@ namespace GestorInventario.Application.DTOs.Response_paypal.GET
     public class PlatformFee
     {
         [JsonProperty("amount")]
-        public required MoneyBse Amount { get; set; }
+        public required MoneyDetails Amount { get; set; }
     }
 
-    public class ShippingBse
+    public class ShippingDetails
     {
         [JsonProperty("name")]
         public required ShippingName Name { get; set; }
@@ -349,10 +349,10 @@ namespace GestorInventario.Application.DTOs.Response_paypal.GET
         public required string ImageUrl { get; set; }
 
         [JsonProperty("upc")]
-        public required UpcBse Upc { get; set; }
+        public required Upc Upc { get; set; }
     }
 
-    public class UpcBse
+    public class Upc
     {
         [JsonProperty("type")]
         public required string Type { get; set; }
@@ -364,7 +364,7 @@ namespace GestorInventario.Application.DTOs.Response_paypal.GET
     public class Payer
     {
         [JsonProperty("name")]
-        public required NameBse Name { get; set; }
+        public required NameDetails Name { get; set; }
 
         [JsonProperty("email_address")]
         public required string Email { get; set; }
@@ -373,17 +373,10 @@ namespace GestorInventario.Application.DTOs.Response_paypal.GET
         public required string PayerId { get; set; }
 
         [JsonProperty("address")]
-        public required AddressBse Address { get; set; }
+        public required AddressDetails Address { get; set; }
     }
 
-    public class NameBse
-    {
-        [JsonProperty("given_name")]
-        public required string GivenName { get; set; }
-
-        [JsonProperty("surname")]
-        public required string Surname { get; set; }
-    }   
+     
 
     public class Link
     {

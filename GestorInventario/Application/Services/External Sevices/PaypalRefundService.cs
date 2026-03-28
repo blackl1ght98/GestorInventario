@@ -198,7 +198,7 @@ namespace GestorInventario.Application.Services.External_Sevices
             }
         }
         private async Task<(decimal availableAmount, string estadoVenta)> CalcularMontoDisponibleYEstadoAsync(
-        CheckoutDetailsDto captureDetails, decimal totalAmount, string currency)
+        OrderDetailsResponse captureDetails, decimal totalAmount, string currency)
         {
             var capture = captureDetails.PurchaseUnits[0].Payments.Captures[0];
 
