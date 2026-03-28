@@ -7,7 +7,7 @@ namespace GestorInventario.Interfaces.Application
     {
         Task<string> CreateOrderWithPaypalAsync(CheckoutDto pagar);
         Task<(string CaptureId, string Total, string Currency)> CapturarPagoAsync(string orderId);
-        Task<CheckoutDetailsDto> ObtenerDetallesPagoEjecutadoV2(string id);
+        Task<OrderDetailsResponse> ObtenerDetallesPagoEjecutadoV2(string id);
 
     }
 }
