@@ -13,5 +13,8 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<(Usuario?, string)> ObtenerUsuarioConPedido(int id);
         IQueryable<Usuario> ObtenerUsuarios();
         Task ConfirmEmail(ConfirmRegistrationDto confirm);
+        Task<OperationResult<string>> ActualizarEmailVerificationTokenAsync(int userId, string token);
+        Task<OperationResult<(string temporaryPassword, string token)>> GenerarYGuardarPasswordTemporalAsync(string email);
+        Task<List<string>> ObtenerEmailsEmpleadosAsync();
     }
 }

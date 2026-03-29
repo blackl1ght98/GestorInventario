@@ -185,11 +185,12 @@ namespace GestorInventario.Infraestructure.Repositories
             {
                 return OperationResult<string>.Fail("El correo proporcionado no es valido");
             }
+            var user= await _context.Usuarios.FirstOrDefaultAsync(x=>x.Email == email);
 
             var (success, error, userEmail) = await _emailService.SendEmailAsyncResetPassword(new EmailDto
             {
                 ToEmail = email
-            });
+            },user.Id);
 
             if (success)
             {

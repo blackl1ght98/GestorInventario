@@ -1,4 +1,5 @@
-﻿using GestorInventario.Application.DTOs.Email;
+﻿using GestorInventario.Application.DTOs;
+using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
@@ -117,10 +118,16 @@ namespace GestorInventario.Infraestructure.Controllers
                     {
                         if (producto.Cantidad < 10) 
                         {
+                            var lowStockData = new LowStockEmailData
+                            {
+                                NombreProducto = producto.NombreProducto,
+                                Cantidad = producto.Cantidad,
+                                
+                            };
                             await _emailService.SendEmailAsyncLowStock(new EmailDto
                             {
                                 ToEmail = emailUsuario
-                            }, producto);
+                            }, lowStockData);
                         }
                     }
                 }

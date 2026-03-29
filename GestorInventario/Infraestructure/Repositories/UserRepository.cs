@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Application.DTOs.User;
+using GestorInventario.Application.Services.Authentication;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Infraestructure;
@@ -11,10 +12,14 @@ namespace GestorInventario.Infraestructure.Repositories
     {
        
         private readonly GestorInventarioContext _context;
-        public UserRepository( GestorInventarioContext context)
+        private readonly ILogger<UserRepository> _logger;
+        private readonly HashService _hashService;
+        public UserRepository( GestorInventarioContext context, ILogger<UserRepository> logger, HashService hash)
         {
          
             _context = context;
+            _logger = logger;
+            _hashService = hash;
 
         }
         public async Task<OperationResult<Usuario>> ObtenerUsuarioPorId(int id)
@@ -58,6 +63,77 @@ namespace GestorInventario.Infraestructure.Repositories
                 usuarioUpdate.ConfirmacionEmail = true;
                 await _context.UpdateEntityAsync(usuarioUpdate);
             }
+        }
+        public async Task<OperationResult<string>> ActualizarEmailVerificationTokenAsync(int userId, string token)
+        {
+            try
+            {
+                var usuario = await _context.Usuarios.FindAsync(userId);
+                if (usuario == null)
+                {
+                    return OperationResult<string>.Fail("Usuario no encontrado");
+                }
+
+                usuario.EmailVerificationToken = token;
+                await _context.UpdateEntityAsync(usuario);
+              
+
+                return OperationResult<string>.Ok("Token actualizado correctamente");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al actualizar EmailVerificationToken del usuario {UserId}", userId);
+                return OperationResult<string>.Fail("Error al actualizar el token de verificación");
+            }
+        }
+        public async Task<OperationResult<(string temporaryPassword, string token)>> GenerarYGuardarPasswordTemporalAsync(string email)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var usuario = await _context.Usuarios
+                    .AsTracking()
+                    .FirstOrDefaultAsync(x => x.Email == email);
+
+                if (usuario == null)
+                    return OperationResult<(string, string)>.Fail("Usuario no encontrado");
+
+                // Generar contraseña temporal
+                var contrasenaTemporal = GenerarContrasenaTemporal();   // Asumo que este método existe
+
+                // Hashear
+                var resultadoHash = _hashService.Hash(contrasenaTemporal);
+
+                // Actualizar campos
+                usuario.TemporaryPassword = resultadoHash.Hash;
+                usuario.Salt = resultadoHash.Salt;
+                var fechaExpiracion = DateTime.Now.AddMinutes(5);
+
+                usuario.FechaEnlaceCambioPass = fechaExpiracion;
+                usuario.FechaExpiracionContrasenaTemporal = fechaExpiracion;
+
+                await _context.UpdateEntityAsync(usuario);
+               await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                return OperationResult<(string, string)>.Ok("Password temporal generada",
+                    (contrasenaTemporal, usuario.EmailVerificationToken ?? ""));
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Error al generar password temporal para {Email}", email);
+                return OperationResult<(string, string)>.Fail("Error al generar contraseña temporal");
+            }
+        }
+        private string GenerarContrasenaTemporal()
+        {
+            var length = 12;
+            var random = new Random();
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
+            return new string(Enumerable.Repeat(chars, length)
+           .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
     }
