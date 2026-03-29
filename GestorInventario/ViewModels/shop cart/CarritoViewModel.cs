@@ -11,7 +11,7 @@ namespace GestorInventario.Domain.Models.ViewModels
         public int TotalPaginas { get; set; }
         public int PaginaActual { get; set; }
         public decimal Subtotal { get; set; }
-        public decimal Shipping { get; set; } = 2.99m; // Costo de envío fijo
+        public decimal Shipping { get; set; } = 0.00m; // Costo de envío fijo
         public decimal Total { get; set; }
     }
 }

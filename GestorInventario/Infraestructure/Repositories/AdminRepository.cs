@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Application.Services.Authentication;
+using GestorInventario.Domain.Entities;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
@@ -56,33 +57,40 @@ namespace GestorInventario.Infraestructure.Repositories
                 }
 
                 var resultadoHash = _hashService.Hash(model.Password);
-                var user = _mapper.Map<Usuario>(model);
-                user.Password = resultadoHash.Hash;
-                user.Salt = resultadoHash.Salt;
-                user.FechaRegistro = DateTime.Now;
-                await _context.AddEntityAsync(user);
-                var correo = await _emailService.SendEmailAsyncRegister(new EmailDto { ToEmail = model.Email }, user);
+
+                // Mapeo a Entidad de Dominio
+                var usuarioDominio = _mapper.Map<EntityUser>(model);
+
+                // Asignamos contraseña y salt usando el método seguro
+                usuarioDominio.EstablecerPassword(resultadoHash.Hash, resultadoHash.Salt);
+
+                // Mapeo de Entidad de Dominio → Entidad EF para guardar
+                var usuarioEf = _mapper.Map<Usuario>(usuarioDominio);
+
+                await _context.AddEntityAsync(usuarioEf);
+              
+
+                var correo = await _emailService.SendEmailAsyncRegister(
+                    new EmailDto { ToEmail = model.Email },
+                    usuarioEf.Id);   
+
                 if (correo.IsSuccess)
                 {
-                    _logger.LogInformation("Correo de confirmación enviado a {Email}", user.Email);
+                    _logger.LogInformation("Correo de confirmación enviado a {Email}", usuarioDominio.Email);
                     await transaction.CommitAsync();
                     return OperationResult<string>.Ok("Correo de confirmacion enviado con exito");
-                   
                 }
                 else
                 {
                     await transaction.RollbackAsync();
                     return OperationResult<string>.Fail("Error al enviar el correo de confirmación. Por favor, intenta de nuevo.");
-                    
                 }
             }
             catch (Exception ex)
             {
-
-                _logger.LogError(ex, "Error crear el usuario");
                 await transaction.RollbackAsync();
+                _logger.LogError(ex, "Error crear el usuario");
                 return OperationResult<string>.Fail("Hubo un error al crear el usuario, intentelo de nuevo mas tarde si el error persiste contacte con el equipo administrativo");
-               
             }
         }
         public async Task<OperationResult<string>> EditarUsuario(UsuarioEditViewModel userVM)
@@ -143,7 +151,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 {
                     user.ConfirmacionEmail = false;
                     user.Email = userVM.Email;
-                    var correo  = await _emailService.SendEmailAsyncRegister(new EmailDto { ToEmail = userVM.Email }, user);
+                    var correo = await _emailService.SendEmailAsyncRegister(new EmailDto { ToEmail = userVM.Email }, user.Id);
                     if (!correo.Success)
                     {
                         _logger.LogWarning("Error al enviar correo de confirmación: {Error}", correo.Message);

@@ -7,69 +7,70 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc;
 using MimeKit.Text;
 using MimeKit;
-using GestorInventario.Domain.Models;
-using Microsoft.EntityFrameworkCore;
 using MailKit.Net.Smtp;
 using GestorInventario.Interfaces.Application;
-using GestorInventario.MetodosExtension;
 using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.ViewModels.email;
 using GestorInventario.ViewModels.order;
 using GestorInventario.ViewModels.Paypal;
-using GestorInventario.Application.Services.Authentication;
+using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.Application.DTOs;
 
 namespace GestorInventario.Application.Services
 {
     public class EmailService:IEmailService
     {
         private readonly IConfiguration _config;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly GestorInventarioContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;     
         private readonly IServiceProvider _serviceProvider;
         private readonly ICompositeViewEngine _viewEngine;
         private readonly ITempDataProvider _tempDataProvider;
-        private readonly HashService _hashService;
+        private readonly IUserRepository _userRepository;
         private readonly ILogger<EmailService> _logger;
-        public EmailService(IConfiguration config, IHttpContextAccessor httpContextAccessor,
-            GestorInventarioContext context, ITempDataProvider tempDataProvider, ILogger<EmailService> logger,
-            ICompositeViewEngine viewEngine, IServiceProvider serviceProvider, HashService hashService)
+      
+        public EmailService(IConfiguration config, IHttpContextAccessor httpContextAccessor, IUserRepository user,
+            ITempDataProvider tempDataProvider, ILogger<EmailService> logger,
+            ICompositeViewEngine viewEngine, IServiceProvider serviceProvider)
         {
             _config = config;
             _httpContextAccessor = httpContextAccessor;
-            _context = context;
+           
             _tempDataProvider = tempDataProvider;
             _viewEngine = viewEngine;
             _serviceProvider = serviceProvider;
-            _hashService = hashService;
+            
             _logger = logger;
+            _userRepository = user;
+           
         }
-        
-        public async Task<OperationResult<string>> SendEmailAsyncRegister(EmailDto userDataRegister, Usuario usuarioDB)
+
+        public async Task<OperationResult<string>> SendEmailAsyncRegister(EmailDto userDataRegister, int usuarioId)
         {
             try
             {
-                if (usuarioDB == null)
-                {
-                    return OperationResult<string>.Fail("Usuario no encontrado");
-                }
+                
 
-                // Generar un enlace único para la confirmación
+                // Generar token
                 string textoEnlace = Convert.ToBase64String(Guid.NewGuid().ToByteArray())
                     .Replace("=", "").Replace("+", "").Replace("/", "")
                     .Replace("?", "").Replace("&", "").Replace("!", "").Replace("¡", "");
-                usuarioDB.EmailVerificationToken = textoEnlace;
+
+                // ← Llamada al repositorio (ya no usamos _context directamente)
+                var resultadoToken = await _userRepository.ActualizarEmailVerificationTokenAsync(usuarioId, textoEnlace);
+
+                if (!resultadoToken.Success)
+                {
+                    return OperationResult<string>.Fail("Error al actualizar el token de verificación");
+                }
 
                 // Construir el enlace de recuperación
                 var model = new RegisterEmailViewmodel
                 {
-                    RecoveryLink = $"{_httpContextAccessor?.HttpContext?.Request.Scheme}://{_httpContextAccessor?.HttpContext?.Request.Host}/admin/confirm-registration/{usuarioDB.Id}/{usuarioDB.EmailVerificationToken}?redirect=true",
+                    RecoveryLink = $"{_httpContextAccessor?.HttpContext?.Request.Scheme}://{_httpContextAccessor?.HttpContext?.Request.Host}/admin/confirm-registration/{usuarioId}/{textoEnlace}?redirect=true",
                 };
 
-                // Actualizar el usuario en la base de datos
-                await _context.UpdateEntityAsync(usuarioDB);
-
-                // Configurar el correo
+                // Configurar y enviar el correo (esto sí le corresponde al servicio de email)
                 var email = new MimeMessage();
                 email.From.Add(MailboxAddress.Parse(_config.GetSection("Email:UserName").Value));
                 email.To.Add(MailboxAddress.Parse(userDataRegister.ToEmail));
@@ -79,14 +80,16 @@ namespace GestorInventario.Application.Services
                     Text = await RenderViewToStringAsync("ViewsEmailService/ViewRegisterEmail", model)
                 };
 
-                // Enviar el correo
                 using var smtp = new SmtpClient();
                 var emailHost = Environment.GetEnvironmentVariable("Email__Host") ?? _config.GetSection("Email:Host").Value;
                 var emailPortString = Environment.GetEnvironmentVariable("Email__Port") ?? _config.GetSection("Email:Port").Value;
-                int emailPort = int.Parse(emailPortString !=null ? emailPortString:"Puerto desconocido");
+                int emailPort = int.Parse(emailPortString ?? "587");
+
                 await smtp.ConnectAsync(emailHost, emailPort, SecureSocketOptions.StartTls);
+
                 var emailUserName = Environment.GetEnvironmentVariable("Email__Username") ?? _config.GetSection("Email:UserName").Value;
                 var emailPassWord = Environment.GetEnvironmentVariable("Email__Password") ?? _config.GetSection("Email:PassWord").Value;
+
                 await smtp.AuthenticateAsync(emailUserName, emailPassWord);
                 await smtp.SendAsync(email);
                 await smtp.DisconnectAsync(true);
@@ -99,81 +102,64 @@ namespace GestorInventario.Application.Services
             }
         }
 
-        public async Task<OperationResult<string>> SendEmailAsyncResetPassword(EmailDto userDataResetPassword)
+        public async Task<OperationResult<string>> SendEmailAsyncResetPassword(EmailDto userDataResetPassword, int usuarioId)
         {
-            using (var transaction = _context.Database.BeginTransaction()) 
+            try
             {
-                try
-                {
-                    var usuarioDB = await _context.Usuarios.AsTracking().FirstOrDefaultAsync(x => x.Email == userDataResetPassword.ToEmail);
-                    if (usuarioDB != null)
-                    {
-                        // Generar una contraseña temporal
-                        var contrasenaTemporal = GenerarContrasenaTemporal();
-                        // Hashear la contraseña temporal y guardarla en la base de datos
-                        var resultadoHash = _hashService.Hash(contrasenaTemporal);
-                        usuarioDB.TemporaryPassword = resultadoHash.Hash;
-                        usuarioDB.Salt = resultadoHash.Salt;
-                        var fechaExpiracion = DateTime.Now.AddMinutes(5);
-                        // Guardar la fecha de vencimiento en la base de datos
-                        usuarioDB.FechaEnlaceCambioPass = fechaExpiracion;
-                        usuarioDB.FechaExpiracionContrasenaTemporal = fechaExpiracion;
-                        await _context.UpdateEntityAsync(usuarioDB);
-                        // Crear el modelo para la vista del correo electrónico
-                        var model = new ResetPasswordEmailViewmodel
-                        {
-                            //Cuando el usuario hace clic en el enlace que se le envia al correo electronico es dirigido la endpoint de restaurar la contraseña(RestorePassword)
-                            RecoveryLink = $"{_httpContextAccessor?.HttpContext?.Request.Scheme}://{_httpContextAccessor?.HttpContext?.Request.Host}/auth/restore-password/{usuarioDB.Id}/{usuarioDB.EmailVerificationToken}?redirect=true",
-                            TemporaryPassword = contrasenaTemporal
-                        };
-                        // Crear el correo electrónico
-                        var email = new MimeMessage();
-                        email.From.Add(MailboxAddress.Parse(_config.GetSection("Email:UserName").Value));
-                        email.To.Add(MailboxAddress.Parse(userDataResetPassword.ToEmail));
-                        email.Subject = "Recuperar Contraseña";
-                        email.Body = new TextPart(TextFormat.Html)
-                        {
-                            Text = await RenderViewToStringAsync("ViewsEmailService/ViewResetPasswordEmail", model)
-                        };
-                        using var smtp = new SmtpClient();
-                        await smtp.ConnectAsync(
-                            _config.GetSection("Email:Host").Value,
-                            Convert.ToInt32(_config.GetSection("Email:Port").Value),
-                            SecureSocketOptions.StartTls
-                        );
-                        await smtp.AuthenticateAsync(_config.GetSection("Email:UserName").Value, _config.GetSection("Email:PassWord").Value);
-                        await smtp.SendAsync(email);
-                        await smtp.DisconnectAsync(true);
-                        await transaction.CommitAsync();
-                        return OperationResult<string>.Ok("Envio de correo exitoso",userDataResetPassword.ToEmail);
-                    }
-                    else
-                    {
-                        return OperationResult<string>.Fail("Email no encontrado");
-                    }
-                    
-                    
-                }
-                catch (Exception ex) {
-                    await transaction.RollbackAsync();
-                    _logger.LogError(ex, "Error al enviar correo de restablecimiento de contraseña");
-                    return OperationResult<string>.Fail(ex.Message);
+                // 1. Llamada al repositorio para toda la lógica de BD
+                var resultado = await _userRepository.GenerarYGuardarPasswordTemporalAsync(userDataResetPassword.ToEmail);
 
+                if (!resultado.Success)
+                {
+                    return OperationResult<string>.Fail(resultado.Message);
                 }
-               
-            }           
-           
-        }     
-        private string GenerarContrasenaTemporal()
-        {
-            var length = 12;
-            var random = new Random();      
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
-            return new string(Enumerable.Repeat(chars, length)
-           .Select(s => s[random.Next(s.Length)]).ToArray());
+
+                var (contrasenaTemporal, token) = resultado.Data;   // desestructuramos
+
+                // 2. Solo preparar el modelo y enviar el correo
+                var model = new ResetPasswordEmailViewmodel
+                {
+                    RecoveryLink = $"{_httpContextAccessor?.HttpContext?.Request.Scheme}://{_httpContextAccessor?.HttpContext?.Request.Host}/auth/restore-password/{usuarioId}/{token}?redirect=true",
+                    TemporaryPassword = contrasenaTemporal
+                };
+
+                // Configurar y enviar el correo
+                var email = new MimeMessage();
+                email.From.Add(MailboxAddress.Parse(_config.GetSection("Email:UserName").Value));
+                email.To.Add(MailboxAddress.Parse(userDataResetPassword.ToEmail));
+                email.Subject = "Recuperar Contraseña";
+                email.Body = new TextPart(TextFormat.Html)
+                {
+                    Text = await RenderViewToStringAsync("ViewsEmailService/ViewResetPasswordEmail", model)
+                };
+
+                using var smtp = new SmtpClient();
+                await smtp.ConnectAsync(
+                    _config.GetSection("Email:Host").Value,
+                    Convert.ToInt32(_config.GetSection("Email:Port").Value),
+                    SecureSocketOptions.StartTls
+                );
+
+                await smtp.AuthenticateAsync(
+                    _config.GetSection("Email:UserName").Value, 
+                    _config.GetSection("Email:PassWord").Value
+                );
+
+                await smtp.SendAsync(email);
+                await smtp.DisconnectAsync(true);
+
+                return OperationResult<string>.Ok("Envio de correo exitoso", userDataResetPassword.ToEmail);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al enviar correo de restablecimiento de contraseña");
+                return OperationResult<string>.Fail($"Ocurrió un error al enviar el email: {ex.Message}");
+            }
         }
-        public async Task SendEmailAsyncLowStock(EmailDto correo, Producto producto)
+      
+        public async Task SendEmailAsyncLowStock(EmailDto correo, LowStockEmailData  producto)
         {
+
             // Crear el modelo para la vista del correo electrónico
             var model = new LowStockViewmodel
             {
@@ -260,11 +246,8 @@ namespace GestorInventario.Application.Services
         }
         public async Task EnviarEmailSolicitudRembolso(EmailRembolsoDto correo)
         {
-           
-            var empleados = await _context.Usuarios
-                .Where(u => u.IdRolNavigation.Nombre == "Empleado") 
-                .Select(u => u.Email)
-                .ToListAsync();
+
+            var empleados = await _userRepository.ObtenerEmailsEmpleadosAsync();
             if (empleados != null) {
                 var model = new EmailRembolsoViewmodel
                 {
@@ -302,7 +285,7 @@ namespace GestorInventario.Application.Services
             }
            
         }
-      
+
         public async Task EnviarNotificacionReembolsoAsync(EmailReembolsoAprobadoDto correo)
         {
             try
@@ -343,7 +326,7 @@ namespace GestorInventario.Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,"Se ha producido un error al enviar la notificacion");
+                _logger.LogError(ex, "Se ha producido un error al enviar la notificacion");
                 throw;
             }
         }

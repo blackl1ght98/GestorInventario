@@ -2,7 +2,6 @@
 using GestorInventario.Application.DTOs.Response_paypal.GET;
 using GestorInventario.Application.DTOs.Response_paypal.POST;
 using GestorInventario.Domain.Models;
-using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using Newtonsoft.Json;
@@ -13,16 +12,13 @@ namespace GestorInventario.Application.Services.External_Sevices
     public class PaypalRefundService: IPaypalRefundService
     {
         private readonly ILogger<PaypalRefundService> _logger;
-
         private readonly IPaypalRepository _repo;
-        private readonly IPayPalHttpClient _paypal;
-        private readonly CultureHelper _culture;
+        private readonly IPayPalHttpClient _paypal;       
         private readonly IPaypalOrderService _order;
         public PaypalRefundService(ILogger<PaypalRefundService> logger, IPaypalOrderService order,
-           IPayPalHttpClient paypal, IPaypalRepository repo, CultureHelper culture)
+        IPayPalHttpClient paypal, IPaypalRepository repo)
         {
             _logger = logger;
-            _culture = culture;
             _paypal = paypal;
             _repo = repo;
             _order = order;
