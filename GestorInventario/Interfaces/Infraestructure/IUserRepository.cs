@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Application.DTOs.User;
+using GestorInventario.Domain.Entities;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 
@@ -16,5 +17,6 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<OperationResult<string>> ActualizarEmailVerificationTokenAsync(int userId, string token);
         Task<OperationResult<(string temporaryPassword, string token)>> GenerarYGuardarPasswordTemporalAsync(string email);
         Task<List<string>> ObtenerEmailsEmpleadosAsync();
+        Task<OperationResult<EntityUser>> ObtenerUsuarioPorIdV2(int id);
     }
 }

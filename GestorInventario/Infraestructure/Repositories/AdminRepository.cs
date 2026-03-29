@@ -98,16 +98,15 @@ namespace GestorInventario.Infraestructure.Repositories
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                
+                // Obtenemos la entidad de dominio
+                var usuarioDominio = await _userRepository.ObtenerUsuarioPorIdV2(userVM.Id);
 
-                var user = await _userRepository.ObtenerUsuarioPorId(userVM.Id);
-                if (user is null || user.Data is null)
+                if (usuarioDominio is null || usuarioDominio.Data is null)
                 {
-                    return OperationResult<string>.Fail(user.Message);
-                }
-
-                // Validar IdRol solo si es un administrador y se proporciona un nuevo rol
-                if (!userVM.EsEdicionPropia && userVM.IdRol != user.Data.IdRol)
+                    return OperationResult<string>.Fail(usuarioDominio?.Message ?? "Usuario no encontrado");
+                }           
+                // Validar cambio de rol (solo si no es edición propia)
+                if (!userVM.EsEdicionPropia && userVM.IdRol != usuarioDominio.Data.IdRol)
                 {
                     if (userVM.IdRol == 0 || !await _context.Roles.AnyAsync(r => r.Id == userVM.IdRol))
                     {
@@ -115,66 +114,92 @@ namespace GestorInventario.Infraestructure.Repositories
                     }
                 }
 
-                await ActualizarUsuario(userVM, user.Data);
+                await ActualizarUsuario(userVM, usuarioDominio.Data);
+
                 await transaction.CommitAsync();
                 return OperationResult<string>.Ok("Edicion realizada con exito");
             }
             catch (DbUpdateConcurrencyException)
             {
                 await transaction.RollbackAsync();
-                var user = await _userRepository.ObtenerUsuarioPorId(userVM.Id);
-                if (user is null || user.Data is null)
+
+                // Reintento por concurrencia
+                var resultadoUsuario = await _userRepository.ObtenerUsuarioPorId(userVM.Id);
+                if (resultadoUsuario is null || resultadoUsuario.Data is null)
                 {
-                    return OperationResult<string>.Fail(user.Message);
+                    return OperationResult<string>.Fail(resultadoUsuario?.Message ?? "Usuario no encontrado");
                 }
-                _context.ReloadEntity(user.Data);
-                await ActualizarUsuario(userVM, user.Data);
+
+                var usuarioDominio = _mapper.Map<EntityUser>(resultadoUsuario.Data);   // ← Convertimos aquí también
+
+                await ActualizarUsuario(userVM, usuarioDominio);
                 await transaction.CommitAsync();
+
                 return OperationResult<string>.Ok("Edicion realizada con exito");
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                _logger.LogError(ex, "Error inesperado al editar el usuario: {Message}", ex.Message);
-                return OperationResult<string>.Fail("Hubo un error al editar el usuario, intentelo de nuevo mas tarde si el error persiste contacte con el equipo administrativo");
-               
+                _logger.LogError(ex, "Error inesperado al editar el usuario");
+                return OperationResult<string>.Fail("Hubo un error al editar el usuario...");
             }
         }
-        private async Task ActualizarUsuario(UsuarioEditViewModel userVM, Usuario user)
+
+        private async Task ActualizarUsuario(UsuarioEditViewModel userVM, EntityUser usuarioDominio)
         {
-            
             try
             {
-                _mapper.Map(userVM, user);
+                // 1. Guardamos el email actual ANTES de mapear (esto es clave)
+                string emailActual = usuarioDominio.Email;
 
-                if (user.Email != userVM.Email)
+                // 2. Mapeamos los campos básicos del ViewModel a la entidad de dominio
+                _mapper.Map(userVM, usuarioDominio);
+
+                // 3. Manejo especial del cambio de email
+                if (emailActual != userVM.Email)
                 {
-                    user.ConfirmacionEmail = false;
-                    user.Email = userVM.Email;
-                    var correo = await _emailService.SendEmailAsyncRegister(new EmailDto { ToEmail = userVM.Email }, user.Id);
+                    usuarioDominio.ActualizarEmail(userVM.Email);
+
+                    // Enviamos el correo de confirmación del nuevo email
+                    var correo = await _emailService.SendEmailAsyncRegister(
+                        new EmailDto { ToEmail = userVM.Email },
+                        usuarioDominio.Id);     
+
                     if (!correo.Success)
                     {
                         _logger.LogWarning("Error al enviar correo de confirmación: {Error}", correo.Message);
-
                     }
-                    _logger.LogInformation("Correo de confirmación enviado a {Email}", user.Email);
+                    else
+                    {
+                        _logger.LogInformation("Correo de confirmación enviado a {Email}", userVM.Email);
+                    }
                 }
 
-                // Actualizar IdRol solo si es un administrador, el rol cambió y es válido
-                if (!userVM.EsEdicionPropia && user.IdRol != userVM.IdRol && userVM.IdRol != 0)
+                // 4. Actualizar rol solo si es un administrador y el rol cambió
+                if (!userVM.EsEdicionPropia && usuarioDominio.IdRol != userVM.IdRol && userVM.IdRol != 0)
                 {
-                    user.IdRol = userVM.IdRol;
+                    usuarioDominio.CambiarRol(userVM.IdRol);
                 }
 
-                _context.EntityModified(user);
-                await _context.UpdateEntityAsync(user);
-               
-            }
-            catch (Exception ex) {
-                _logger.LogError(ex, "Error al procesar usuario {UserId}", user.Id);
+                // 5. Convertimos la entidad de dominio a entidad EF y actualizamos
+                var usuarioEf = await _context.Usuarios.FindAsync(usuarioDominio.Id);
 
-            }
+                if (usuarioEf == null)
+                {
+                    throw new InvalidOperationException($"Usuario con ID {usuarioDominio.Id} no encontrado");
+                }
 
+                // Actualizamos la instancia existente de EF
+                _mapper.Map(usuarioDominio, usuarioEf);
+
+                _context.EntityModified(usuarioEf);
+                await _context.UpdateEntityAsync(usuarioEf);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al procesar usuario {UserId}", usuarioDominio.Id);
+                throw;
+            }
         }
         public async Task<OperationResult<string>> EliminarUsuario(int id)
         {

@@ -1,5 +1,7 @@
-﻿using GestorInventario.Application.DTOs.User;
+﻿using AutoMapper;
+using GestorInventario.Application.DTOs.User;
 using GestorInventario.Application.Services.Authentication;
+using GestorInventario.Domain.Entities;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Infraestructure;
@@ -14,12 +16,14 @@ namespace GestorInventario.Infraestructure.Repositories
         private readonly GestorInventarioContext _context;
         private readonly ILogger<UserRepository> _logger;
         private readonly HashService _hashService;
-        public UserRepository( GestorInventarioContext context, ILogger<UserRepository> logger, HashService hash)
+        private readonly IMapper _mapper;
+        public UserRepository( GestorInventarioContext context, ILogger<UserRepository> logger, HashService hash, IMapper map)
         {
          
             _context = context;
             _logger = logger;
             _hashService = hash;
+            _mapper = map;
 
         }
         public async Task<OperationResult<Usuario>> ObtenerUsuarioPorId(int id)
@@ -33,6 +37,22 @@ namespace GestorInventario.Infraestructure.Repositories
             }
             else
                 return OperationResult<Usuario>.Ok("Usuario obtenido con exito", usuario);
+        }
+        public async Task<OperationResult<EntityUser>> ObtenerUsuarioPorIdV2(int id)
+        {
+            var usuarioEf = await _context.Usuarios.AsTracking()
+                .Include(x => x.IdRolNavigation)
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (usuarioEf == null)
+            {
+                return OperationResult<EntityUser>.Fail("Usuario no encontrado");
+            }
+
+            // Mapeamos de EF → Domain Entity
+            var usuarioDominio = _mapper.Map<EntityUser>(usuarioEf);
+
+            return OperationResult<EntityUser>.Ok("Usuario obtenido con éxito", usuarioDominio);
         }
         public IQueryable<Usuario> ObtenerUsuarios()
         {
