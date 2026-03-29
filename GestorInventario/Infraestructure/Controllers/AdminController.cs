@@ -173,21 +173,28 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
                 var userIdClaim = _currentUserAccessor.GetCurrentUserId();
-                // Si el id recibido es 0, significa que se quiere editar el usuario actual (obtenido desde los claims),
-                // si no, se edita el usuario cuyo id se pasó en el parámetro.
                 int usuarioAEditarId = id == 0 ? userIdClaim : id;
 
-                var user = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.UserRepository.ObtenerUsuarioPorId(usuarioAEditarId));
-                if (user is null)
+                // Obtenemos el usuario como EntityUser (dominio)
+                var resultado = await _policyExecutor.ExecutePolicyAsync(
+                    () => _unitOfWork.UserRepository.ObtenerUsuarioPorIdV2(usuarioAEditarId));
+
+                if (!resultado.Success || resultado.Data == null)
                 {
-                    TempData["ErrorMessage"] = user?.Message;
-                    _logger.LogWarning("Intento de editar un usuario inexistente con ID {UserId}", id);
+                    TempData["ErrorMessage"] = resultado.Message ?? "Usuario no encontrado";
+                    _logger.LogWarning("Intento de editar usuario inexistente con ID {UserId}", id);
                     return RedirectToAction(nameof(Index));
                 }
 
-                var viewModel = _mapper.Map<UsuarioEditViewModel>(user.Data);
-                viewModel.EsEdicionPropia = usuarioAEditarId == userIdClaim;
+                var usuarioDominio = resultado.Data;
 
+                // Mapeamos de EntityUser (dominio) a ViewModel
+                var viewModel = _mapper.Map<UsuarioEditViewModel>(usuarioDominio);
+
+                // Marcamos si es edición propia
+                viewModel.EsEdicionPropia = (usuarioAEditarId == userIdClaim);
+
+                // Solo cargamos los roles si NO es edición propia (el admin editando a otro)
                 if (!viewModel.EsEdicionPropia)
                 {
                     await CargarRolesEnViewData();
@@ -198,7 +205,7 @@ namespace GestorInventario.Infraestructure.Controllers
             catch (Exception ex)
             {
                 TempData["ConectionError"] = "El servidor ha tardado mucho en responder. Inténtelo de nuevo más tarde.";
-                _logger.LogError(ex, "Error al visualizar la vista de edición de usuario");
+                _logger.LogError(ex, "Error al visualizar la vista de edición de usuario {UserId}", id);
                 return RedirectToAction("Error", "Home");
             }
         }

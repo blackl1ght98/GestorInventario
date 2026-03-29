@@ -61,5 +61,13 @@
         public void DarDeBaja() => BajaUsuario = true;
         public void DarDeAlta() => BajaUsuario = false;
         public void CambiarRol(int nuevoRolId) => IdRol = nuevoRolId;
+        public void ActualizarEmail(string nuevoEmail)
+        {
+            if (Email != nuevoEmail)
+            {
+                Email = nuevoEmail;
+                ConfirmacionEmail = false;
+            }
+        }
     }
 }
