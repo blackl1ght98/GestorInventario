@@ -135,6 +135,13 @@ namespace GestorInventario.Infraestructure.Repositories
             return new string(Enumerable.Repeat(chars, length)
            .Select(s => s[random.Next(s.Length)]).ToArray());
         }
+        public async Task<List<string>> ObtenerEmailsEmpleadosAsync()
+        {
+            return await _context.Usuarios
+                .Where(u => u.IdRolNavigation.Nombre == "Empleado")
+                .Select(u => u.Email)
+                .ToListAsync();
+        }
 
     }
 }
