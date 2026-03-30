@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Application.DTOs;
+using GestorInventario.Domain.Entities;
 using GestorInventario.Domain.Models;
 using GestorInventario.Domain.Models.ViewModels;
 using GestorInventario.Infraestructure.Utils;
@@ -8,8 +9,7 @@ namespace GestorInventario.Interfaces.Infraestructure
 {
     public interface IAdminRepository
     {
-        Task<OperationResult<List<Role>>> ObtenerRoles();
-        OperationResult<IQueryable<Role>> ObtenerRolesConUsuarios();   
+        OperationResult<IQueryable<Role>> ObtenerRoles();
         Task<OperationResult<string>> EditarUsuario(UsuarioEditViewModel userVM);
         Task<OperationResult<string>> CrearUsuario(UserViewModel model);
         Task<OperationResult<string>> EliminarUsuario(int id);

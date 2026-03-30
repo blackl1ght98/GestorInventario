@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using GestorInventario.Application.DTOs;
 using GestorInventario.Application.DTOs.User;
+using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
@@ -177,7 +178,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 // Obtenemos el usuario como EntityUser (dominio)
                 var resultado = await _policyExecutor.ExecutePolicyAsync(
-                    () => _unitOfWork.UserRepository.ObtenerUsuarioPorIdV2(usuarioAEditarId));
+                    () => _unitOfWork.UserRepository.ObtenerUsuarioParaEdicionAsync(usuarioAEditarId));
 
                 if (!resultado.Success || resultado.Data == null)
                 {
@@ -342,9 +343,9 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var queryable =  _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRolesConUsuarios());
+                var queryable = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles());
 
-               var paginationResult = await _policyExecutor.ExecutePolicyAsync(()=>_paginationHelper.PaginarAsync(queryable.Data,paginacion));
+                var paginationResult = await _policyExecutor.ExecutePolicyAsync(()=>_paginationHelper.PaginarAsync(queryable.Data,paginacion));
 
                 var viewModel = new RolesViewModel
                 {
@@ -371,19 +372,13 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var rol = ( _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRolesConUsuarios()).Data)
-                    .FirstOrDefault(r => r.Id == id);
-                if (rol == null)
-                {
-                    _logger.LogError("Rol no encontrado");
-                    return RedirectToAction(nameof(ObtenerRoles));
-                }
+                
 
                 var usuariosQueryable =  _policyExecutor.ExecutePolicy(() => _unitOfWork.UserRepository.ObtenerUsuariosPorRol(id));
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() => _paginationHelper.PaginarAsync(usuariosQueryable, paginacion));
 
-                var todosLosRoles = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.AdminRepository.ObtenerRoles());
-
+                var todosLosRoles = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles());
+               
                 var viewModel = new UsuariosPorRolViewModel
                 {
                     Usuarios = paginationResult.Items,
@@ -391,7 +386,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     TotalPaginas = paginationResult.TotalPaginas,
                     PaginaActual = paginacion.Pagina,
                     RolId = id,
-                    TodosLosRoles = todosLosRoles.Data
+                    TodosLosRoles = todosLosRoles.Data.ToList(),
                 };
 
                 return View(viewModel);
@@ -403,50 +398,55 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-       
+
         //Metodo para editar el rol se llama desde el script ver-usuario-rol.js
         [HttpPost]
         [Authorize(Roles = "Administrador")]
-      
         public async Task<IActionResult> CambiarRol([FromBody] CambiarRolDto request)
         {
             try
             {
-              
-                var usuario = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.UserRepository.ObtenerUsuarioPorId(request.Id));
-                if (usuario is null || usuario.Data is null)
+                var usuario = await _policyExecutor.ExecutePolicyAsync(() =>
+                    _unitOfWork.UserRepository.ObtenerUsuarioPorId(request.Id));
+
+                if (usuario?.Data == null)
                 {
-                    return Json(new { success = false, errorMessage = usuario?.Message });
+                    return Json(new { success = false, errorMessage = usuario?.Message ?? "Usuario no encontrado" });
                 }
 
-               
                 if (usuario.Data.IdRolNavigation == null)
                 {
                     return Json(new { success = false, errorMessage = "El rol actual del usuario no está definido." });
                 }
 
                 // Obtener todos los roles disponibles
-                var roles = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.AdminRepository.ObtenerRoles());
-                if (roles == null || !roles.Data.Any())
+                var rolesDomainResult = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles()); ;
+
+                if (rolesDomainResult == null || !rolesDomainResult.Data.Any())
                 {
                     return Json(new { success = false, errorMessage = "No se encontraron roles disponibles." });
                 }
 
-                // Buscar el nuevo rol por Id
-                var nuevoRol = roles.Data.FirstOrDefault(r => r.Id == request.RolId);
+                // Mapear correctamente la lista
+                var roles = _mapper.Map<List<Role>>(rolesDomainResult.Data);
+
+                // Buscar el nuevo rol
+                var nuevoRol = roles.FirstOrDefault(r => r.Id == request.RolId);
                 if (nuevoRol == null)
                 {
                     return Json(new { success = false, errorMessage = "El rol seleccionado no existe." });
                 }
 
-                // Evitar un cambio innecesario si el rol seleccionado es el mismo que el actual
+                // Evitar cambio innecesario
                 if (usuario.Data.IdRol == nuevoRol.Id)
                 {
                     return Json(new { success = false, errorMessage = "El usuario ya tiene el rol seleccionado." });
                 }
 
-                // Actualizar el rol del usuario
-                await _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ActualizarRolUsuario(request.Id, nuevoRol.Id));
+                // Actualizar el rol
+                await _policyExecutor.ExecutePolicy(() =>
+                    _unitOfWork.AdminRepository.ActualizarRolUsuario(request.Id, nuevoRol.Id));
+
                 return Json(new
                 {
                     success = true,
@@ -459,10 +459,10 @@ namespace GestorInventario.Infraestructure.Controllers
                 return Json(new { success = false, errorMessage = "El servidor ha tardado mucho en responder, intenta de nuevo más tarde." });
             }
         }
-       
+
         private async Task CargarRolesEnViewData()
         {
-            var roles = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.AdminRepository.ObtenerRoles());
+            var roles = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles()); 
             ViewData["Roles"] = new SelectList(roles.Data, "Id", "Nombre");
         }
       

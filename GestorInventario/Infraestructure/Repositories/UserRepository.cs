@@ -26,6 +26,7 @@ namespace GestorInventario.Infraestructure.Repositories
             _mapper = map;
 
         }
+        //Operaciones simples
         public async Task<OperationResult<Usuario>> ObtenerUsuarioPorId(int id)
         {
             var usuario = await _context.Usuarios.AsTracking()
@@ -38,7 +39,8 @@ namespace GestorInventario.Infraestructure.Repositories
             else
                 return OperationResult<Usuario>.Ok("Usuario obtenido con exito", usuario);
         }
-        public async Task<OperationResult<EntityUser>> ObtenerUsuarioPorIdV2(int id)
+        //Operaciones complejas
+        public async Task<OperationResult<EntityUser>> ObtenerUsuarioParaEdicionAsync(int id)
         {
             var usuarioEf = await _context.Usuarios.AsTracking()
                 .Include(x => x.IdRolNavigation)
