@@ -17,6 +17,6 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<OperationResult<string>> ActualizarEmailVerificationTokenAsync(int userId, string token);
         Task<OperationResult<(string temporaryPassword, string token)>> GenerarYGuardarPasswordTemporalAsync(string email);
         Task<List<string>> ObtenerEmailsEmpleadosAsync();
-        Task<OperationResult<EntityUser>> ObtenerUsuarioPorIdV2(int id);
+        Task<OperationResult<EntityUser>> ObtenerUsuarioParaEdicionAsync(int id);
     }
 }

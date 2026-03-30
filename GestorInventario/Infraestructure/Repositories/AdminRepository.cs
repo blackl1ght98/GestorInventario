@@ -31,20 +31,11 @@ namespace GestorInventario.Infraestructure.Repositories
         }
 
 
-        public async Task<OperationResult<List<Role>>> ObtenerRoles() {
-
-            var roles = await _context.Roles.ToListAsync();
-            return OperationResult<List<Role>>.Ok("", roles);
-
-        } 
-         
-        public OperationResult<IQueryable<Role>> ObtenerRolesConUsuarios()
+        public  OperationResult<IQueryable<Role>> ObtenerRoles()
         {
             var roles = _context.Roles.Include(x => x.Usuarios).AsQueryable();
             return OperationResult<IQueryable<Role>>.Ok("", roles);
         }
-
-
         public async Task<OperationResult<string>> CrearUsuario(UserViewModel model)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -99,7 +90,7 @@ namespace GestorInventario.Infraestructure.Repositories
             try
             {
                 // Obtenemos la entidad de dominio
-                var usuarioDominio = await _userRepository.ObtenerUsuarioPorIdV2(userVM.Id);
+                var usuarioDominio = await _userRepository.ObtenerUsuarioParaEdicionAsync(userVM.Id);
 
                 if (usuarioDominio is null || usuarioDominio.Data is null)
                 {
@@ -124,15 +115,21 @@ namespace GestorInventario.Infraestructure.Repositories
                 await transaction.RollbackAsync();
 
                 // Reintento por concurrencia
-                var resultadoUsuario = await _userRepository.ObtenerUsuarioPorId(userVM.Id);
+                var resultadoUsuario = await _userRepository.ObtenerUsuarioParaEdicionAsync(userVM.Id);
                 if (resultadoUsuario is null || resultadoUsuario.Data is null)
                 {
                     return OperationResult<string>.Fail(resultadoUsuario?.Message ?? "Usuario no encontrado");
                 }
+                // Validar cambio de rol (solo si no es edición propia)
+                if (!userVM.EsEdicionPropia && userVM.IdRol != resultadoUsuario.Data.IdRol)
+                {
+                    if (userVM.IdRol == 0 || !await _context.Roles.AnyAsync(r => r.Id == userVM.IdRol))
+                    {
+                        return OperationResult<string>.Fail("El rol seleccionado no es válido");
+                    }
+                }
 
-                var usuarioDominio = _mapper.Map<EntityUser>(resultadoUsuario.Data);   // ← Convertimos aquí también
-
-                await ActualizarUsuario(userVM, usuarioDominio);
+                await ActualizarUsuario(userVM, resultadoUsuario.Data);
                 await transaction.CommitAsync();
 
                 return OperationResult<string>.Ok("Edicion realizada con exito");

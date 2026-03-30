@@ -13,12 +13,19 @@ namespace GestorInventario.PaginacionLogica
             _pageLinkGenerator = generarPaginas;
         }
 
-        public async Task<PaginationResult<T>> PaginarAsync<T>(IQueryable<T> query,Paginacion paginacion)
+        public async Task<PaginationResult<T>> PaginarAsync<T>(IQueryable<T> query, Paginacion paginacion)
         {
+            
+            if (!query.Expression.ToString().Contains("OrderBy"))
+            {
+                query = query.OrderBy(e => EF.Property<object>(e, "Id"));   
+            }
+
             var totalItems = await query.CountAsync();
+
             var totalPaginas = (int)Math.Ceiling((double)totalItems / paginacion.CantidadAMostrar);
 
-            // ✅ Validación interna
+            // Validación de página
             if (paginacion.Pagina < 1)
                 paginacion.Pagina = 1;
             else if (paginacion.Pagina > totalPaginas && totalPaginas > 0)
@@ -33,7 +40,7 @@ namespace GestorInventario.PaginacionLogica
 
             return new PaginationResult<T>(items, totalItems, totalPaginas, paginacion.Pagina, paginas);
         }
-       
+
         public PaginationResult<T> PaginarSinTotal<T>(List<T> items,int paginaActual,bool hasNextPage,int cantidadAMostrar,int radio = 3)
         {
             // Estimamos el total de páginas
