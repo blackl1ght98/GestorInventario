@@ -13,12 +13,12 @@ namespace GestorInventario.Infraestructure.Repositories
     {
         private readonly GestorInventarioContext _context;
         private readonly ILogger<ProveedorRepository> _logger;
-        private readonly IMapper _mapper;
-        public ProveedorRepository(GestorInventarioContext context, ILogger<ProveedorRepository> logger, IMapper map)
+     
+        public ProveedorRepository(GestorInventarioContext context, ILogger<ProveedorRepository> logger)
         {
             _context = context;
             _logger = logger;
-            _mapper = map;
+           
         }
 
         public IQueryable<Proveedore> ObtenerProveedores()
@@ -26,24 +26,27 @@ namespace GestorInventario.Infraestructure.Repositories
             return _context.Proveedores
                 .Include(p => p.IdUsuarioNavigation); 
         }
-       
+
 
         public async Task<OperationResult<string>> CrearProveedor(ProveedorViewModel model)
         {
-           
-            using var transaction= await _context.Database.BeginTransactionAsync();
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-               var existingProvider = await _context.Proveedores.FirstOrDefaultAsync(x=>x.NombreProveedor == model.NombreProveedor);
-                if (existingProvider != null) {
+                var existingProvider = await _context.Proveedores.FirstOrDefaultAsync(x => x.NombreProveedor == model.NombreProveedor);
+                if (existingProvider != null)
+                {
                     return OperationResult<string>.Fail("Ya existe un proveedor registrado con ese nombre");
-                
-                }
-                // Mapeo a Entidad de Dominio
-                var proveedorDominio = _mapper.Map<EntityProveedor>(model);
 
-                // Mapeo de Entidad de Dominio → Entidad EF para guardar
-                var proveedor = _mapper.Map<Proveedore>(proveedorDominio);
+                }
+                var proveedor = new Proveedore()
+                {
+                    NombreProveedor = model.NombreProveedor,
+                    Contacto = model.Contacto,
+                    Direccion = model.Direccion,
+                    IdUsuario = model.IdUsuario
+                };
                 await _context.AddEntityAsync(proveedor);
                 await transaction.CommitAsync();
                 return OperationResult<string>.Ok("Proveedor creado con exito");
@@ -51,11 +54,11 @@ namespace GestorInventario.Infraestructure.Repositories
             catch (Exception ex)
             {
 
-                _logger.LogError(ex,"Error al crear el proveedor");
+                _logger.LogError(ex, "Error al crear el proveedor");
                 await transaction.RollbackAsync();
                 return OperationResult<string>.Fail("Error al crear el proveedor");
             }
-           
+
         }
         public async Task<OperationResult<Proveedore>> ObtenerProveedorId(int id)
         {
@@ -101,24 +104,14 @@ namespace GestorInventario.Infraestructure.Repositories
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // 1. Obtenemos la entidad EF rastreada
-                var proveedorEf = await _context.Proveedores.FirstOrDefaultAsync(x => x.Id == Id);
-                if (proveedorEf == null)
+                var proveedor = await _context.Proveedores.FirstOrDefaultAsync(x => x.Id == Id);
+                if (proveedor == null)
+
                 {
                     return OperationResult<string>.Fail("El proveedor no existe");
                 }
 
-                // 2. Mapeamos a dominio para aplicar lógica (si la hubiera)
-                var proveedorDominio = _mapper.Map<EntityProveedor>(proveedorEf);
-
-                // 3. Actualizamos la entidad de dominio con los datos del ViewModel
-                _mapper.Map(model, proveedorDominio);
-
-                // 4. Copiamos los cambios de vuelta a la entidad EF rastreada
-                _mapper.Map(proveedorDominio, proveedorEf);
-
-                // 5. Guardamos
-                await _context.UpdateEntityAsync(proveedorEf);
+                await ActualizarProveedor(proveedor, model);
                 await transaction.CommitAsync();
 
                 return OperationResult<string>.Ok("Proveedor editado con éxito");
@@ -126,20 +119,22 @@ namespace GestorInventario.Infraestructure.Repositories
             catch (DbUpdateConcurrencyException ex)
             {
                 await transaction.RollbackAsync();
-                _logger.LogError(ex, "Error de concurrencia al editar proveedor");
+                _logger.LogError(ex, "Error de concurrencia");
+                var proveedor = await _context.Proveedores.FirstOrDefaultAsync(x => x.Id == Id);
+                if (proveedor == null)
 
-                var proveedorEf = await _context.Proveedores.FirstOrDefaultAsync(x => x.Id == Id);
-                if (proveedorEf == null)
                 {
                     return OperationResult<string>.Fail("El proveedor no existe");
                 }
+                _context.Entry(proveedor).Reload();
+                _context.Entry(proveedor).State = EntityState.Modified;
 
-                _context.Entry(proveedorEf).Reload();
-                _mapper.Map(model, proveedorEf);   
+                await ActualizarProveedor(proveedor, model);
 
-                await _context.UpdateEntityAsync(proveedorEf);
+
+
                 await transaction.CommitAsync();
-
+            
                 return OperationResult<string>.Ok("Proveedor editado con éxito");
             }
             catch (Exception ex)
@@ -149,7 +144,16 @@ namespace GestorInventario.Infraestructure.Repositories
                 return OperationResult<string>.Fail("Ocurrió un error inesperado al editar el proveedor");
             }
         }
+        private async Task ActualizarProveedor(Proveedore proveedor, ProveedorViewModel model)
+        {
+            proveedor.NombreProveedor = model.NombreProveedor;
+            proveedor.Contacto = model.Contacto;
+            proveedor.Direccion = model.Direccion;
+            proveedor.IdUsuario = model.IdUsuario;
+            await _context.UpdateEntityAsync(proveedor);
 
-       
+        }
     }
+
 }
+
