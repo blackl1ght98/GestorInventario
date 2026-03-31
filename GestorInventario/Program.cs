@@ -103,7 +103,13 @@ Directory.CreateDirectory(keysFolder);
 //builder.Services.AddDataProtection()
 //    .PersistKeysToFileSystem(new DirectoryInfo(keysFolder))
 //    .SetApplicationName("GestorInventario")
-//    .ProtectKeysWithDpapi(); // opcional, pero recomendado en Windows
+//    .ProtectKeysWithDpapi();
+
+//Configuracion para que en endpoints de actualizacion puedas poner que sean de tipo put en ves de post pero en MVC no es lo habitual
+//builder.Services.Configure<HttpMethodOverrideOptions>(options =>
+//{
+//    options.FormFieldName = "_method";
+//});
 var app = builder.Build();
 app.UseWebOptimizer();
 if (!app.Environment.IsDevelopment())
@@ -163,6 +169,7 @@ app.Use(async (context, next) =>
 });
 app.UseImageProcessing();
 app.UseCors();
+//app.UseHttpMethodOverride(); //middleware para alterar la forma en la que se envian los formularios su uso es asi <input type="hidden" name="_method" value="PUT" />
 app.UseRouting();
 app.UseAuthentication(); // Identifica al usuario
 app.UseSession();
