@@ -145,8 +145,7 @@ namespace GestorInventario.Infraestructure.Controllers
                         cantidadAMostrar: paginacion.CantidadAMostrar,
                         radio: paginacion.Radio
                     );
-                var resultadoMonedas = await _policyExecutor.ExecutePolicyAsync(
-          () => _unitOfWork.CarritoRepository.ObtenerMoneda());
+                var resultadoMonedas = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.CarritoRepository.ObtenerMoneda());
                 var monedas = resultadoMonedas.Data;
                 // Crear el ViewModel final usando el resultado del helper
                 var model = new PlanesPaginadosViewModel
