@@ -44,11 +44,12 @@ namespace GestorInventario.Infraestructure.Repositories
             return await _context.UserSubscriptions
                 .Where(us => us.PaypalPlanId == planId)
                 .ToListAsync();
-        }  
+        }
         public IQueryable<SubscriptionDetail> ObtenerSubscripciones()
         {
-            var queryable = from p in _context.SubscriptionDetails select p;
-            return queryable;
+            return _context.SubscriptionDetails
+                           .OrderBy(s => s.SubscriptionId)     // Añadimos OrderBy para evitar el warning anterior
+                           .AsQueryable();
         }
         public  IQueryable<UserSubscription> ObtenerSubscripcionesUsuario(int usuarioId)
         {
