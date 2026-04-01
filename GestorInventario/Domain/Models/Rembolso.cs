@@ -21,13 +21,13 @@ public partial class Rembolso
 
     public bool? RembosoRealizado { get; set; }
 
-    public int? UsuarioId { get; set; }
+    public int UsuarioId { get; set; }
 
     public string? EstadoVenta { get; set; }
 
-    public int? PedidoId { get; set; }
+    public int PedidoId { get; set; }
 
-    public virtual Pedido? Pedido { get; set; }
+    public virtual Pedido Pedido { get; set; } = null!;
 
-    public virtual Usuario? Usuario { get; set; }
+    public virtual Usuario Usuario { get; set; } = null!;
 }
