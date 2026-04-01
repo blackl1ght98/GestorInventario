@@ -10,22 +10,36 @@ namespace PruebasUnitarias
         private IPlaywright _playwright;
         private IBrowser _browser;
         private IPage _page;
-        // ================================================================
-        // NOTA IMPORTANTE SOBRE TESTS E2E DE PAYPAL
-        // ================================================================
-        // Muchos flujos de PayPal son inestables para automatización debido a:
-        // - Llamadas externas a la API de PayPal (tiempos variables)
-        // - Renderizado dinámico y animaciones en el frontend
-        // - Formularios dentro de bucles (múltiples botones iguales)
-        // - Redirecciones y estados asíncronos
-        //
-        // Decisión tomada: 
-        // → Solo se automatizan tests simples y estables.
-        // → Los flujos complejos (Desactivar plan, Crear producto+plan, etc.) 
-        //   se verifican manualmente.
-        //
-        // Última verificación manual: 01 de Abril de 2026
-        // ================================================================
+        /*
+      * ================================================================
+      * NOTA SOBRE TESTS E2E DE PAYPAL
+      * ================================================================
+      * 
+      * Muchos flujos relacionados con PayPal son difíciles de automatizar de forma estable debido a:
+      * 
+      * - Reglas estrictas de PayPal (no se puede desactivar cualquier plan, solo algunos estados)
+      * - Llamadas externas con latencia variable
+      * - Flujos que requieren datos específicos (IDs reales de planes/suscripciones)
+      * - Renderizado dinámico y múltiples botones idénticos en la UI
+      * 
+      * Decisión tomada (01/04/2026):
+      * - Tests simples y estables → Automatizados
+      * - Tests complejos o con reglas especiales de PayPal → Verificados manualmente
+      * 
+      * Tests automatizados actualmente:
+      *   - Mostrar_Productos_Test
+      *   - Mostrar_Planes_Test
+      *   - Mostrar_Suscripciones_Test
+      * 
+      * Tests verificados manualmente:
+      *   - Desactivar_Plan_Test
+      *   - CrearProductoYPlan_Test
+      *   - ActualizarPrecioPlan_Test
+      *   - Flujos completos de suscripción y reembolso
+      * 
+      * Si en el futuro PayPal se vuelve más predecible, se reconsiderará automatizarlos.
+      * ================================================================
+      */
         public async Task InitializeAsync()
         {
             _playwright = await Playwright.CreateAsync();
