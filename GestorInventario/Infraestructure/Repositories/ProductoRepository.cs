@@ -94,7 +94,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     return OperationResult<Producto>.Fail("Ya hay un producto con ese nombre, proporcione otro nombre");
                 }
                 await _context.AddEntityAsync(producto);
-                await CrearHistorial(producto);
+               
               
             await transaction.CommitAsync();
 
@@ -108,38 +108,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 throw;
             }
         }
-        private async Task CrearHistorial(Producto producto)
-        {
-           
-            try
-            {             
-                    int usuarioId= _currentUserAccessor.GetCurrentUserId();              
-                    var historialProducto = new HistorialProducto()
-                    {
-                        UsuarioId = usuarioId,
-                        Fecha = DateTime.Now,
-                        Accion = _currentUserAccessor.GetRequestMethod(),
-                        Ip = _currentUserAccessor.GetClientIpAddress(),
-                    };
-
-                    await _context.AddEntityAsync(historialProducto);
-                    var detalleHistorialProducto = new DetalleHistorialProducto
-                    {
-                        HistorialProductoId = historialProducto.Id,
-                        Cantidad = producto.Cantidad,
-                        NombreProducto = producto.NombreProducto,
-                        Descripcion = producto.Descripcion,
-                        Precio = producto.Precio
-                    };
-                    await _context.AddEntityAsync(detalleHistorialProducto);
-                                          
-            }
-            catch (Exception ex)
-            {
-             
-                _logger.LogError(ex,"Error al crear el historial");
-            }
-        }
+     
          
         public async Task<List<Proveedore>> ObtenerProveedores()=>await _context.Proveedores.ToListAsync();
         public async Task<(Producto?,string)> ObtenerProductoPorId(int id)
@@ -147,8 +116,7 @@ namespace GestorInventario.Infraestructure.Repositories
             var producto = await _context.Productos.Include(p => p.IdProveedorNavigation).FirstOrDefaultAsync(m => m.Id == id);
             return producto is null ? (null,"Producto no encontrado"): (producto,"Producto encontrado");
         }
-        public  IQueryable<HistorialProducto> ObtenerTodoHistorial() => from p in _context.HistorialProductos.Include(x => x.DetalleHistorialProductos) select p;
-        public async Task<HistorialProducto> ObtenerHistorialProductoPorId(int id) => await _context.HistorialProductos.Include(hp => hp.DetalleHistorialProductos).FirstOrDefaultAsync(hp => hp.Id == id);
+       
         public async Task<OperationResult<string>> EliminarProducto(int Id)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -187,61 +155,7 @@ namespace GestorInventario.Infraestructure.Repositories
             }
         }
              
-        public async Task<OperationResult<string>> EliminarHistorialPorId(int Id)
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                var historialProducto = await _context.HistorialProductos.Include(x => x.DetalleHistorialProductos).FirstOrDefaultAsync(x => x.Id == Id);
-                if (historialProducto != null)
-                {
-                    _context.DeleteRangeEntity(historialProducto.DetalleHistorialProductos);
-                    _context.DeleteEntity(historialProducto);
-                }
-                else
-                {
-                    return OperationResult<string>.Fail("No se puede eliminar, el historial no existe");
-                }
-              await transaction.CommitAsync();
-                return OperationResult<string>.Ok("Historial eliminado");
-            }
-            catch (Exception ex)
-            {
-
-                _logger.LogError(ex,"Error al eliminar el historial del producto" );
-                await transaction.RollbackAsync();
-                return OperationResult<string>.Fail("Ocurrio un error inesperado al eliminar el historial del producto");
-            }
-           
-        }
-        public async Task<List<HistorialProducto>> EliminarTodoHistorial()
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                var historialProductos = await _context.HistorialProductos.Include(x => x.DetalleHistorialProductos).ToListAsync();
-                if (historialProductos != null)
-                {
-                    // Eliminar todos los registros
-                    foreach (var historialProducto in historialProductos)
-                    {
-                        _context.DeleteRangeEntity(historialProducto.DetalleHistorialProductos);
-                        _context.DeleteEntity(historialProducto);
-                    }
-                    await transaction.CommitAsync();
-                    return historialProductos;
-                }
-                return null;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,"Error al eliminar el historial del producto");
-                await transaction.RollbackAsync();
-                return null;
-            }
-           
-
-        }
+      
         public async Task<OperationResult<string>> EditarProducto(ProductosViewModel model, int usuarioId)
         {
             if (model == null || model.Id <= 0 || string.IsNullOrEmpty(model.NombreProducto))
@@ -268,7 +182,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     Imagen = producto.Imagen,
                     IdProveedor = producto.IdProveedor
                 };
-                await CrearHistorialProductoAsync(productoOriginal, usuarioId, "Antes-PUT");
+           
 
                 // Actualizar el producto y crear historial después
                 await ActualizarProductoYCrearHistorialAsync(producto, model, usuarioId);
@@ -302,7 +216,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     Imagen = producto.Imagen,
                     IdProveedor = producto.IdProveedor
                 };
-                await CrearHistorialProductoAsync(productoOriginal, usuarioId, "Antes-PUT (Reintento)");
+               
 
                 // Actualizar nuevamente y crear historial después
                 await ActualizarProductoYCrearHistorialAsync(producto, model, usuarioId, true);
@@ -379,36 +293,9 @@ namespace GestorInventario.Infraestructure.Repositories
                 IdProveedor = producto.IdProveedor
             };
 
-            await CrearHistorialProductoAsync(productoActualizado, usuarioId, isRetry ? "Despues-PUT (Reintento)" : "Despues-PUT");
+           
         }
-        private async Task CrearHistorialProductoAsync(ProductosViewModel producto, int usuarioId, string accion)
-        {
-            try
-            {
-                var historialProducto = new HistorialProducto
-                {
-                    Fecha = DateTime.UtcNow,
-                    UsuarioId = usuarioId,
-                    Accion = accion,
-                    Ip = _currentUserAccessor.GetClientIpAddress(),
-                };
-                await _context.AddEntityAsync(historialProducto);            
-                var detalleHistorialProducto = new DetalleHistorialProducto
-                {
-                    HistorialProductoId = historialProducto.Id,
-                    Cantidad = producto.Cantidad,
-                    NombreProducto = producto.NombreProducto,
-                    Descripcion = producto.Descripcion,
-                    Precio = producto.Precio
-                };
-                await _context.AddEntityAsync(detalleHistorialProducto);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error al crear el historial para el producto ID {producto.Id}");
-                throw; 
-            }
-        }
+ 
 
         public async Task<OperationResult<string>> AgregarProductoAlCarrito(int idProducto, int cantidad, int usuarioId)
         {

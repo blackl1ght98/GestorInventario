@@ -212,11 +212,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 {
                     return OperationResult<string>.Fail("El usuario no se puede eliminar porque tiene pedidos asociado");
                 }
-                if (user.HistorialPedidos.Any())
-                {
-                    return OperationResult<string>.Fail("El usuario no se puede eliminar porque tiene historial de pedidos asociados.");
-                   
-                }
+              
                 await _context.DeleteEntityAsync(user);
                 await transaction.CommitAsync();
                 return OperationResult<string>.Ok("Usuario eliminado con exito");

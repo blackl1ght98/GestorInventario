@@ -50,7 +50,7 @@ namespace GestorInventario.Application.Services
                });
 
                 // Actualizar el estado del pedido usando UnitOfWork
-                await _repo.AddInfoTrackingOrder(pedidoId, trackingInfo.TrackingNumber, "", carrier.ToString());
+                await _repo.AddInfoTrackingOrder(pedidoId, trackingInfo.TrackingNumber, "URL NO ESPECIFICADA", carrier.ToString());
                 _logger.LogInformation("Seguimiento agregado exitosamente para el pedido {PedidoId}", pedidoId);
                 return responseBody;
             }

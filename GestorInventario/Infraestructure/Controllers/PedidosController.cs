@@ -156,60 +156,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
-        [Authorize]
-        public async Task<IActionResult> DeleteHistorial(int id)
-        {
-            try
-            {
-               
-                var historialProducto = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.EliminarHistorialPorId(id));
-                if (historialProducto == null)
-                {
-                    _logger.LogCritical("Historial no encontrado");
-                    return RedirectToAction(nameof(HistorialPedidos));
-                   
-                }
-                return View(historialProducto);
-            }
-            catch (Exception ex)
-            {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al eliminar el producto");
-                return RedirectToAction("Error", "Home");
-            }
-
-        }
-        [Authorize]
-        [HttpPost, ActionName("DeleteConfirmedHistorial")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmedHistorial(int Id)
-        {
-            try
-            {
-                
-                
-                    var success = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.EliminarHistorialPorIdDefinitivo(Id));
-                    if (success.Success)
-                    {
-
-                        return RedirectToAction(nameof(HistorialPedidos));
-                    }
-                    else
-                    {
-                        TempData["ErrorMessage"] = success.Message;
-                        return RedirectToAction(nameof(Delete), new { id = Id });
-                    }
-
-                
-
-            }
-            catch (Exception ex)
-            {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al eliminar el producto");
-                return RedirectToAction("Error", "Home");
-            }
-        }
+       
         [Authorize]
         public async Task<ActionResult> Edit(int id)
         {
@@ -316,120 +263,10 @@ namespace GestorInventario.Infraestructure.Controllers
         }
 
         
-        public async Task<IActionResult> HistorialPedidos(string buscar, [FromQuery] Paginacion paginacion)
-        {
-            try
-            {
-                
-
-                    var usuarioId = _currentUserAccessor.GetCurrentUserId();
-                    var pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerHistorialDePedidos());
-                    if (User.IsAdministrador() || pedidos.Count() <0)
-                    {
-
-                        pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerHistorialDePedidos());
-                    }
-                    else
-                    {
-
-                        pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerHistorialDePedidos(usuarioId));
-                    }
-                    ViewData["Buscar"] = buscar;
-                    var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
-                 _paginationHelper.PaginarAsync(pedidos, paginacion));
-                    var viewModel = new HistorialPedidoViewModel
-                    {
-                        HistorialPedidos = paginationResult.Items,
-                        Paginas = paginationResult.Paginas.ToList(),
-                        TotalPaginas = paginationResult.TotalPaginas,
-                        PaginaActual = paginacion.Pagina,
-                        Buscar = buscar
-                    };
-
-
-                    return View(viewModel);
-                
-            }
-            catch (Exception ex)
-            {
-
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al obtener el historial de pedidos");
-                return RedirectToAction("Error", "Home");
-            }
-        }
-        [Authorize]
-        public async Task<IActionResult> DetallesHistorialPedido(int id)
-        {
-            try
-            {
-                
-                var pedido = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.DetallesHistorial(id)) ;
-                if (pedido == null)
-                {
-                    _logger.LogCritical("Detalles de historial no encontrado");
-                    return RedirectToAction(nameof(HistorialPedidos));
-                }
-
-                return View(pedido);
-            }
-            catch (Exception ex)
-            {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al obtener los detalles del pedido");
-                return RedirectToAction("Error", "Home");
-            }
-
-        }
-        [Authorize]
-        [HttpGet("descargarhistorialpedidoPDF")]
-        public async Task<IActionResult> DescargarHistorialPDF()
-        {
-            try
-            {
-               
-
-                var  bytes = await _policyExecutor.ExecutePolicyAsync(() => _pdfservice.GenerarPDF());
-                if (!bytes.Success)
-                {
-                    TempData["ErrorMessage"] = bytes.Message;
-                    return RedirectToAction(nameof(HistorialPedidos));
-                }
-                return File(bytes.Data, "application/pdf", "historial.pdf");
-            }
-            catch (Exception ex)
-            {
-
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al descargar el pdf");
-                return RedirectToAction("Error", "Home");
-            }
-        }
-        
-        [Authorize]
-        [HttpPost, ActionName("DeleteAllHistorial")]
-        
-        public async Task<IActionResult> DeleteAllHistorial()
-        {
-            try
-            {
-               
-
-                var success = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.EliminarHitorial());
-                if (!success.Success)
-                {
-                    _logger.LogError(success.Message);
-                    return RedirectToAction(nameof(HistorialPedidos));
-                }
-                return RedirectToAction(nameof(HistorialPedidos));
-            }
-            catch (Exception ex)
-            {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al eliminar los datos del historial");
-                return RedirectToAction("Error", "Home");
-            }
-        }
+       
+       
+      
+       
         
         [Authorize]
         public async Task<IActionResult> DetallesPagoEjecutado(string id)

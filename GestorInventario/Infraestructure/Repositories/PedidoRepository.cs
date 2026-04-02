@@ -51,14 +51,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 await _context.AddEntityAsync(pedido);
 
                
-                var historialPedido = new HistorialPedido
-                {
-                    IdUsuario = pedido.IdUsuario,
-                    Fecha = DateTime.Now,
-                    Accion = _currentUserAccessor.GetRequestMethod(),
-                    Ip = _currentUserAccessor.GetClientIpAddress(),
-                };
-                await _context.AddEntityAsync(historialPedido);
+              
 
                 foreach (var item in model.Productos.Where(p => p.Seleccionado))
                 {
@@ -70,17 +63,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     };
                     await _context.AddEntityAsync(detallePedido);
 
-                    var detalleHistorial = new DetalleHistorialPedido
-                    {
-                        HistorialPedidoId = historialPedido.Id,
-                        ProductoId = item.ProductoId,
-                        Cantidad = item.Cantidad,
-                        EstadoPedido = model.EstadoPedido,
-                        FechaPedido = model.FechaPedido,
-                        NumeroPedido = model.NumeroPedido
-                    };
-
-                    await _context.AddEntityAsync(detalleHistorial);
+                    
                 }
 
 
@@ -106,7 +89,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 {
                     return OperationResult<string>.Fail("No hay pedido para eliminar");
                 }
-                if (pedido.EstadoPedido != "Entregado" && pedido.DetallePedidos.Any())
+                if (pedido.EstadoPedido != "Entregado")
                 {
                     return OperationResult<string>.Fail("El pedido tiene que tener el estado Entregado para ser eliminado y no tener historial asociado");
                 }
@@ -129,35 +112,7 @@ namespace GestorInventario.Infraestructure.Repositories
             }
           
         }
-        public async Task<HistorialPedido> EliminarHistorialPorId(int id)=> await _context.HistorialPedidos.Include(x => x.DetalleHistorialPedidos).FirstOrDefaultAsync(x => x.Id == id);    
-        public async Task<OperationResult<string>> EliminarHistorialPorIdDefinitivo(int Id)
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                var historialPedido = await EliminarHistorialPorId(Id);
-                if (historialPedido != null)
-                {
-                    _context.DeleteRangeEntity(historialPedido.DetalleHistorialPedidos);
-                    _context.DeleteEntity(historialPedido);
-                    await transaction.CommitAsync();
-                }
-                else
-                {
-                    return OperationResult<string>.Fail("El historial no existe");
-                   
-                }
-                return OperationResult<string>.Ok("Historial eliminado con exito");
-            }
-            catch (Exception ex)
-            {
-
-                _logger.LogError(ex, "Error al el historial");
-                await transaction.RollbackAsync();
-                return OperationResult<string>.Fail("Error al eliminar el historial");
-            }
-           
-        }      
+      
         public async Task<Pedido> ObtenerPedidoPorId(int id)=> await _context.Pedidos.FirstOrDefaultAsync(x => x.Id == id);               
         public async Task<OperationResult<string>> EditarPedido(EditPedidoViewModel model)
         {
@@ -176,27 +131,8 @@ namespace GestorInventario.Infraestructure.Repositories
                     pedidoOriginal.EstadoPedido = model.EstadoPedido;
                     await _context.UpdateEntityAsync(pedidoOriginal);
                   
-                    var historialPedido = new HistorialPedido
-                    {
-                        IdUsuario = usuarioId,
-                        Fecha = DateTime.Now,
-                        Accion = _currentUserAccessor.GetRequestMethod(),
-                        Ip = _currentUserAccessor.GetClientIpAddress(),
-                    };
-                    await _context.AddEntityAsync(historialPedido);
-                    foreach (var detalleOriginal in pedidoOriginal.DetallePedidos)
-                    {
-                        var nuevoDetalle = new DetalleHistorialPedido
-                        {
-                            HistorialPedidoId = historialPedido.Id,
-                            ProductoId = detalleOriginal.ProductoId,
-                            Cantidad = detalleOriginal.Cantidad,
-                            EstadoPedido = pedidoOriginal.EstadoPedido,
-                            FechaPedido = pedidoOriginal.FechaPedido,
-                            NumeroPedido = pedidoOriginal.NumeroPedido
-                        };
-                        await _context.AddEntityAsync(nuevoDetalle);
-                    }
+                   
+                   
                     await transaction.CommitAsync();
                     return OperationResult<string>.Ok("Pedido editado con exito");                             
             }
@@ -211,52 +147,9 @@ namespace GestorInventario.Infraestructure.Repositories
         }
         public async Task<Pedido> ObtenerDetallesPedido(int id)=>await _context.Pedidos.Include(p => p.DetallePedidos).ThenInclude(dp => dp.Producto).Include(p => p.IdUsuarioNavigation).FirstOrDefaultAsync(m => m.Id == id); 
     
-        public IQueryable<HistorialPedido> ObtenerHistorialDePedidos(int? usuarioId = null)
-        {
-            var query = _context.HistorialPedidos
-                .Include(h => h.DetalleHistorialPedidos)
-                    .ThenInclude(d => d.Producto)
-                .Include(h => h.IdUsuarioNavigation);
-            if(usuarioId != null)
-            {
-                query.Where(u=>u.Id==usuarioId);
-            }
-                          
-            return query;
-        }
-        public async Task<HistorialPedido> DetallesHistorial(int id)=>await _context.HistorialPedidos.Include(p => p.DetalleHistorialPedidos).ThenInclude(dp => dp.Producto).Include(p => p.IdUsuarioNavigation).FirstOrDefaultAsync(p => p.Id == id);          
        
-        public async Task<OperationResult<string>> EliminarHitorial()
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                var historialPedidos = await _context.HistorialPedidos.Include(x => x.DetalleHistorialPedidos).ToListAsync();
-                if (historialPedidos == null || historialPedidos.Count == 0)
-                {
-                    return OperationResult<string>.Fail("No hay datos en el historial para eliminar");
-                }
-                // Eliminar todos los registros
-                foreach (var historialProducto in historialPedidos)
-                {
-                    _context.DeleteRangeEntity(historialProducto.DetalleHistorialPedidos);
-                    _context.DeleteEntity(historialProducto);
-
-                }
-                await transaction.CommitAsync();
-                return OperationResult<string>.Ok("Historial eliminado");
-            }
-            catch (Exception ex)
-            {
-
-
-                _logger.LogError(ex, "Error al eliminar todo el historial");
-                await transaction.RollbackAsync();
-                return OperationResult<string>.Fail("Error al eliminar todo el historial");
-            }
-           
-        }
-
+       
+      
         public async Task<OperationResult<PayPalPaymentDetail>> ObtenerDetallePagoEjecutadoV2(string id)
         {
             using var transaccion = await _context.Database.BeginTransactionAsync();

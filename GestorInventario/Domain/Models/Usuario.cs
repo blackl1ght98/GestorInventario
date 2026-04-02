@@ -41,10 +41,6 @@ public partial class Usuario
 
     public string? EmailVerificationToken { get; set; }
 
-    public virtual ICollection<HistorialPedido> HistorialPedidos { get; set; } = new List<HistorialPedido>();
-
-    public virtual ICollection<HistorialProducto> HistorialProductos { get; set; } = new List<HistorialProducto>();
-
     public virtual Role IdRolNavigation { get; set; } = null!;
 
     public virtual ICollection<Pedido> Pedidos { get; set; } = new List<Pedido>();
