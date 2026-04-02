@@ -164,7 +164,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     await transaction.RollbackAsync();
                     return OperationResult<string>.Fail(approvalUrl.Message);
                 }
-                await RegistrarHistorialPedido(carrito, itemsDelCarrito);
+               
                 await EliminarCarritosVaciosUsuario(userId);
 
                 await transaction.CommitAsync();
@@ -310,46 +310,7 @@ namespace GestorInventario.Infraestructure.Repositories
         }
 
 
-        private async Task RegistrarHistorialPedido(Pedido pedido, List<DetallePedido> itemsDelCarrito)
-        {
-            string ipString= _currentUserAccessor.GetClientIpAddress();           
-            try
-            {
-                // Crear el registro del historial del pedido
-                var historialPedido = new HistorialPedido
-                {
-                    IdUsuario = pedido.IdUsuario,
-                    Fecha = DateTime.UtcNow, 
-                    Accion = "Nuevo pedido",
-                    Ip = ipString
-                };
-                await _context.AddEntityAsync(historialPedido);
-
-                // Agregar los detalles del historial
-                foreach (var item in itemsDelCarrito)
-                {
-                    var detalleHistorialPedido = new DetalleHistorialPedido
-                    {
-                        HistorialPedidoId = historialPedido.Id,
-                        ProductoId = item.ProductoId,
-                        Cantidad = item.Cantidad ?? 0,
-                        NumeroPedido = pedido.NumeroPedido,
-                        FechaPedido = DateTime.UtcNow, 
-                        EstadoPedido = pedido.EstadoPedido
-                    };
-                    await _context.AddEntityAsync(detalleHistorialPedido);
-                }
-
-               
-                _logger.LogInformation($"Historial registrado para pedido {pedido.NumeroPedido}, ID {historialPedido.Id}");
-            }
-            catch (Exception ex)
-            {
-               
-                _logger.LogError(ex, $"Error al registrar historial para pedido {pedido.NumeroPedido}");
-                throw;
-            }
-        }
+     
         private async Task EliminarCarritosVaciosUsuario(int userId)
         {
           

@@ -47,42 +47,42 @@ namespace PruebasUnitarias
                 Assert.Fail(ex.Message);
             }
         }
+        //TEST DE REFERENCIA: MANEJO DE MODAL JS
         [Fact]
         public async Task Eliminar_Rembolso_Exito()
         {
             await PerformSuccessfulLoginAsync();
 
-            // 1. Ir a la página de reembolsos
+            // 1. Ir a la lista de reembolsos
             await _page.GotoAsync("https://localhost:7056/Rembolso");
 
-          
+            await Expect(_page.GetByRole(AriaRole.Heading, new() { Name = "Gestión de Rembolsos" }))
+                  .ToBeVisibleAsync(new() { Timeout = 10000 });
 
-            // 3. Buscar un botón de eliminar (usando el data-attribute que tienes en la vista)
+            // 2. Seleccionar el primer botón de eliminar (o el que quieras probar)
             var botonEliminar = _page.Locator(".user-action-button[data-user-action='Eliminar']").First;
-
-            // Obtener el ID del reembolso que vamos a eliminar
             var rembolsoId = await botonEliminar.GetAttributeAsync("data-rembolso-id");
 
-            // 4. Hacer clic en el botón "Eliminar"
             await botonEliminar.ClickAsync();
 
-            // 5. Esperar a que aparezca el modal de confirmación
+            // 3. Esperar a que se abra el modal de confirmación
             await Expect(_page.Locator("#confirmModal")).ToBeVisibleAsync(new() { Timeout = 8000 });
 
-            // 6. Hacer clic en el botón "Confirmar" del modal
-            var botonConfirmar = _page.Locator("#confirmActionBtn");
-            await botonConfirmar.ClickAsync();
+            // 4. Confirmar la eliminación
+            await _page.Locator("#confirmActionBtn").ClickAsync();
 
-            // 7. Esperar a que el modal se cierre y se procese la eliminación
-            await _page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            // 5. Esperar a que el modal se cierre
+            await Expect(_page.Locator("#confirmModal")).ToBeHiddenAsync(new() { Timeout = 10000 });
 
-            // 8. Verificar que el reembolso ya no aparece en la lista
+            // 6. Esperar la redirección de vuelta a la lista
+            await _page.WaitForURLAsync("**/Rembolso**", new() { Timeout = 15000 });
+
+            // 7. Verificar que el rembolso ya no aparece
             await Expect(_page.Locator($"[data-rembolso-id='{rembolsoId}']")).ToHaveCountAsync(0);
 
-            // Opcional: Verificar mensaje de éxito si lo tienes
-            // await Expect(_page.GetByText("Reembolso eliminado correctamente")).ToBeVisibleAsync();
-
             await _page.ScreenshotAsync(new() { Path = "eliminar-rembolso-exito.png", FullPage = true });
+
+            Console.WriteLine($"✅ Test OK - Reembolso {rembolsoId} eliminado correctamente");
         }
         private async Task PerformSuccessfulLoginAsync()
         {
