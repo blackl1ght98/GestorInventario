@@ -15,6 +15,8 @@ public partial class GestorInventarioContext : DbContext
     {
     }
 
+    public virtual DbSet<AuditLog> AuditLogs { get; set; }
+
     public virtual DbSet<DetallePedido> DetallePedidos { get; set; }
 
     public virtual DbSet<Monedum> Moneda { get; set; }
@@ -47,6 +49,26 @@ public partial class GestorInventarioContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<AuditLog>(entity =>
+        {
+            entity.ToTable("AuditLog");
+
+            entity.Property(e => e.Campo)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Descripcion).HasMaxLength(500);
+            entity.Property(e => e.Fecha).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.IpAddress)
+                .HasMaxLength(45)
+                .IsUnicode(false);
+            entity.Property(e => e.Operacion)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.Tabla)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+        });
+
         modelBuilder.Entity<DetallePedido>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__DetalleP__3214EC07A64B3C50");

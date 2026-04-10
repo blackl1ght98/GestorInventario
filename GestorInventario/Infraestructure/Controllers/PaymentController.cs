@@ -49,9 +49,9 @@ namespace GestorInventario.Infraestructure.Controllers
                 var usuarioActual = _currentUserAccessor.GetCurrentUserId();
  
                 var pedido =  await _paymentRepository.AgregarInfoPedido(usuarioActual,captureId,total,currency,orderId);
-            
 
-                return View();
+
+                return RedirectToAction("DetallesPagoEjecutado", "Pedidos", new { id = orderId });
             }
             catch (Exception ex)
             {
