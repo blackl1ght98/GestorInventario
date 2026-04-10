@@ -15,7 +15,7 @@ services:
       - '1433:1433'
     volumes:
       - sql-data-new:/var/opt/mssql
-      - ./GestorInventario-ACTUAL-2026-03-13.bak:/var/opt/mssql/data/GestorInventario-ACTUAL-2026-03-13.bak
+      - ./GestorInventario-ACTUAL-2026-04-10.bak:/var/opt/mssql/data/GestorInventario-ACTUAL-2026-04-10.bak
     healthcheck:
       test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P SQL#1234 -Q "SELECT 1" || exit 1
       interval: 10s
@@ -43,15 +43,15 @@ services:
 
 
         # Restaurar la base de datos
-        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P SQL#1234 -Q "RESTORE DATABASE GestorInventario FROM DISK = '/var/opt/mssql/data/GestorInventario-ACTUAL-2026-03-13.bak' WITH MOVE 'GestorInventario' TO '/var/opt/mssql/data/GestorInventario.mdf', MOVE 'GestorInventario_log' TO '/var/opt/mssql/data/GestorInventario_log.ldf', REPLACE;"
+        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P SQL#1234 -Q "RESTORE DATABASE GestorInventario FROM DISK = '/var/opt/mssql/data/GestorInventario-ACTUAL-2026-04-10.bak' WITH MOVE 'GestorInventario' TO '/var/opt/mssql/data/GestorInventario.mdf', MOVE 'GestorInventario_log' TO '/var/opt/mssql/data/GestorInventario_log.ldf', REPLACE;"
         # Restaurar con logs visibles
         echo "===== INTENTANDO RESTAURAR LA BASE ====="
         /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P SQL#1234 -C -Q "
         RESTORE DATABASE GestorInventario 
-        FROM DISK = '/var/opt/mssql/data/GestorInventario-ACTUAL-2026-03-13.bak'
+        FROM DISK = '/var/opt/mssql/data/GestorInventario-ACTUAL-2026-04-10.bak'
         WITH MOVE 'GestorInventario' TO '/var/opt/mssql/data/GestorInventario.mdf',
         MOVE 'GestorInventario_log' TO '/var/opt/mssql/data/GestorInventario_log.ldf',   
-        FILE = 8, REPLACE, RECOVERY;" || echo "RESTORE FALLÓ - revisa logs arriba"
+        FILE = 10, REPLACE, RECOVERY;" || echo "RESTORE FALLÓ - revisa logs arriba"
         # Mantener el contenedor en ejecución
          wait
     networks:
