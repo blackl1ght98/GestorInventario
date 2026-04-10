@@ -17,8 +17,7 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
     {
         public static IServiceCollection AddTransientServices(this IServiceCollection services) {
 
-            services.AddTransient<IPageLinkGenerator,PageLinkGenerator>();
-           
+            services.AddTransient<IPageLinkGenerator,PageLinkGenerator>();           
             services.AddTransient<IPolicyExecutor, PolicyExecutor>();
             services.AddTransient<IUserRepository,UserRepository>();
             services.AddTransient<IGestorArchivos, GestorArchivosService>();
@@ -54,6 +53,7 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<IPaypalOrderService, PaypalOrderService>();
             services.AddTransient<IPaypalRefundService, PaypalRefundService>();
             services.AddTransient<IPaypalSubscriptionService, PaypalSubscriptionService>();
+            services.AddTransient<IAuditService, AuditService>();
             return services;
 
         }

@@ -1,22 +1,23 @@
 ﻿@using GestorInventario.ViewModels.Paypal
 @using System.Globalization
-
 @model PlanesPaginadosViewModel
-
 @{
     ViewData["Title"] = "Planes de Suscripción de PayPal";
 }
 
 <div class="container mt-5">
-    <div class="text-center mb-4 animate-fade-in">
-        <h2 class="text-secondary"><i class="bi bi-star-fill me-2"></i>Planes de Suscripción de PayPal</h2>
-        <p class="text-muted">Explora nuestros planes y suscríbete al que mejor se adapte a tus necesidades.</p>
+    <div class="text-center mb-5 animate-fade-in">
+        <h2 class="text-secondary fw-bold">
+            <i class="bi bi-star-fill me-2"></i>Planes de Suscripción de PayPal
+        </h2>
+        <p class="text-muted fs-5">Explora nuestros planes y suscríbete al que mejor se adapte a tus necesidades.</p>
     </div>
 
     @if (!Model.Planes.Any())
     {
-        <div class="alert alert-warning text-center rounded-3 animate-fade-in">
-            <i class="bi bi-exclamation-triangle me-2"></i>No hay planes de suscripción disponibles en este momento.
+        <div class="alert alert-warning text-center rounded-3 py-4">
+            <i class="bi bi-exclamation-triangle me-2 fs-4"></i>
+            No hay planes de suscripción disponibles en este momento.
         </div>
     }
     else
@@ -29,39 +30,40 @@
             </div>
         }
 
-        <div class="row">
+        <div class="row g-4">
             @foreach (var plan in Model.Planes)
             {
-                <div class="col-md-4 mb-4">
+                <div class="col-lg-4 col-md-6 mb-4">
                     <div class="card h-100 border-0 shadow-sm hover-card animate-fade-in">
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title text-center text-primary">@plan.Name</h5>
-                            <p class="card-text text-center text-muted mb-3">@plan.Description</p>
+                        <div class="card-body d-flex flex-column p-4">
+                            
+                            <!-- Título del Plan -->
+                            <h5 class="card-title text-center text-primary fw-bold mb-3">@plan.Name</h5>
+                            
+                            <!-- Descripción -->
+                            <p class="card-text text-center text-muted mb-4">@plan.Description</p>
 
-                            <!-- Información general -->
-                            <div class="mb-3">
-                                <p class="card-text">
-                                    <strong><i class="bi bi-info-circle me-2"></i>Estado:</strong>
-                                    <span class="badge @(plan.Status == "ACTIVE" ? "bg-success" : "bg-danger")">@plan.Status</span>
-                                </p>
+                            <!-- Estado -->
+                            <div class="text-center mb-4">
+                                <span class="badge fs-6 px-3 py-2 @(plan.Status == "ACTIVE" ? "bg-success" : "bg-danger")">
+                                    <i class="bi bi-circle-fill me-1"></i>@plan.Status
+                                </span>
                             </div>
 
-                            <!-- Detalles de facturación -->
+                            <!-- Detalles de Facturación -->
                             @if (plan.Billing_cycles != null && plan.Billing_cycles.Any())
                             {
-                                <div class="mb-3">
-                                    <p class="card-text"><strong><i class="bi bi-wallet me-2"></i>Detalles de Facturación:</strong></p>
+                                <div class="mb-4">
+                                    <h6 class="text-muted mb-3"><i class="bi bi-wallet2 me-2"></i>Detalles de Facturación</h6>
                                     <ul class="list-unstyled">
                                         @foreach (var cycle in plan.Billing_cycles)
                                         {
-                                            <li class="mb-2">
+                                            <li class="mb-3">
                                                 @if (cycle.TenureType == "TRIAL")
                                                 {
-                                                    <span>
-                                                        <i class="bi bi-gift me-2 text-success"></i>
-                                                        Período de Prueba (@cycle.TotalCycles ciclo@(cycle.TotalCycles != 1 ? "s" : "")):
-                                                        @(cycle.Frequency.IntervalCount)
-                                                        @(cycle.Frequency.IntervalUnit.ToLower() == "month" ? (cycle.Frequency.IntervalCount == 1 ? "mes" : "meses") : cycle.Frequency.IntervalUnit.ToLower())
+                                                    <span class="text-success">
+                                                        <i class="bi bi-gift me-2"></i>
+                                                        Prueba: @cycle.TotalCycles ciclo@(cycle.TotalCycles > 1 ? "s" : "") 
                                                         - @cycle.PricingScheme.FixedPrice.Value @cycle.PricingScheme.FixedPrice.CurrencyCode
                                                     </span>
                                                 }
@@ -69,99 +71,72 @@
                                                 {
                                                     <span>
                                                         <i class="bi bi-wallet2 me-2 text-primary"></i>
-                                                        Ciclo Regular (@cycle.TotalCycles ciclo@(cycle.TotalCycles != 1 ? "s" : "")):
-                                                        @cycle.Frequency.IntervalUnit - @cycle.PricingScheme.FixedPrice.Value @cycle.PricingScheme.FixedPrice.CurrencyCode
+                                                        Regular: @cycle.Frequency.IntervalCount 
+                                                        @cycle.Frequency.IntervalUnit 
+                                                        - @cycle.PricingScheme.FixedPrice.Value @cycle.PricingScheme.FixedPrice.CurrencyCode
                                                     </span>
                                                 }
                                             </li>
                                         }
                                     </ul>
-
-                                    @{
-                                        decimal? totalWithTax = null;
-                                        string? currencyCode = null;
-                                        string? intervalUnit = null;
-
-                                        var regularCycle = plan.Billing_cycles.FirstOrDefault(c => c.TenureType == "REGULAR");
-                                        if (regularCycle != null && plan.Taxes != null && decimal.TryParse(plan.Taxes.Percentage, NumberStyles.Any, CultureInfo.InvariantCulture, out var taxPercentage))
-                                        {
-                                            if (taxPercentage >= 0 && taxPercentage <= 100)
-                                            {
-                                                if (decimal.TryParse(regularCycle.PricingScheme.FixedPrice.Value, NumberStyles.Any, CultureInfo.InvariantCulture, out var price))
-                                                {
-                                                    var taxAmount = price * (taxPercentage / 100);
-                                                    totalWithTax = price + taxAmount;
-                                                    currencyCode = regularCycle.PricingScheme.FixedPrice.CurrencyCode;
-                                                    intervalUnit = regularCycle.Frequency.IntervalUnit.ToLower() == "month" ? "mes" : regularCycle.Frequency.IntervalUnit.ToLower();
-                                                }
-                                                else
-                                                {
-                                                    <text>Error: Precio no válido (@regularCycle.PricingScheme.FixedPrice.Value)</text>
-                                                }
-                                            }
-                                            else
-                                            {
-                                                <text>Impuestos inválidos: @plan.Taxes.Percentage%</text>
-                                            }
-                                        }
-                                    }
-
-                                    @if (totalWithTax.HasValue)
-                                    {
-                                        <p class="card-text fw-bold text-success">
-                                            <i class="bi bi-currency-dollar me-2"></i>Total con Impuestos: @totalWithTax.Value.ToString("F2", CultureInfo.InvariantCulture) @currencyCode por @intervalUnit
-                                        </p>
-                                    }
-                                    else
-                                    {
-                                        <p class="card-text text-muted">
-                                            <i class="bi bi-exclamation-circle me-2"></i>Impuestos o precio no disponibles.
-                                        </p>
-                                    }
                                 </div>
                             }
-                            else
-                            {
-                                <p class="card-text text-muted"><i class="bi bi-exclamation-circle me-2"></i>Detalles de facturación no disponibles.</p>
-                            }
 
-                            <!-- Información técnica para administradores -->
+                            <!-- Información técnica solo para Administradores -->
                             @if (User.IsInRole("Administrador"))
                             {
-                                <hr class="my-3" />
-                                <div class="mb-3">
-                                    <p class="card-text"><strong><i class="bi bi-key me-2"></i>ID del Plan:</strong> @plan.Id</p>
-                                    <p class="card-text"><strong><i class="bi bi-box me-2"></i>Producto:</strong> @plan.productId</p>
-                                    <p class="card-text"><strong><i class="bi bi-tag me-2"></i>Tipo:</strong> @plan.Usage_type</p>
-                                    <p class="card-text"><strong><i class="bi bi-calendar me-2"></i>Fecha de Creación:</strong> @plan.CreateTime</p>
+                                <div class="border-top pt-3 mb-4">
+                                    <small class="text-muted">
+                                        <strong>ID del Plan:</strong> @plan.Id <br />
+                                        <strong>Producto:</strong> @plan.productId
+                                    </small>
                                 </div>
                             }
 
-                            <!-- Botones de acción -->
+                            <!-- Botones de Acción -->
                             <div class="mt-auto">
-                                <div class="btn-group w-100" role="group" aria-label="Acciones">
-                                    <!-- Botón de suscripción -->
-                                    <form asp-action="IniciarSuscripcion" method="post" class="w-@(User.IsInRole("Administrador") ? "50 pe-1" : "100")">
+                                <div class="d-grid gap-2">
+                                    <!-- Suscribirse -->
+                                    <form asp-action="IniciarSuscripcion" method="post">
                                         <input type="hidden" name="plan_id" value="@plan.Id" />
                                         <input type="hidden" name="planName" value="@plan.Name" />
-                                        <button type="submit" class="btn btn-success w-100"><i class="bi bi-check-circle-fill me-2"></i>Suscribirse</button>
-                                    </form>
-
-                                    <!-- Botón de desactivar para administradores -->
-                                    <form asp-action="DesactivarPlan" method="post" class="w-50 ms-1">
-                                        <input type="hidden" name="id" value="@plan.Id" />
-                                        <button type="submit" class="btn btn-danger w-100">
-                                            <i class="bi bi-x-circle-fill me-2"></i>Desactivar
+                                        <button type="submit" class="btn btn-success btn-lg w-100">
+                                            <i class="bi bi-check-circle-fill me-2"></i>Suscribirse
                                         </button>
                                     </form>
-                                    <form asp-action="ActivarPlan" method="post" class="w-50 ms-1">
-                                        <input type="hidden" name="id" value="@plan.Id" />
-                                        <button type="submit" class="btn btn-success w-100"><i class="bi bi-check-circle-fill me-2"></i>Activar</button>
 
-                                    </form>
-                                    <button class="btn btn-warning btn-sm update-plan-price-button" data-plan-id="@plan.Id" data-currency="@plan.CurrencyCode" data-bs-toggle="tooltip" title="Actualizar precio del plan">
-                                        <i class="bi bi-currency-exchange nav-icon"></i> Actualizar Precio
-                                    </button>
+                                    @if (User.IsInRole("Administrador"))
+                                    {
+                                        <div class="row g-2 mt-2">
+                                            <!-- Desactivar -->
+                                            <div class="col-6">
+                                                <form asp-action="DesactivarPlan" method="post">
+                                                    <input type="hidden" name="id" value="@plan.Id" />
+                                                    <button type="submit" class="btn btn-danger w-100">
+                                                        <i class="bi bi-x-circle-fill me-2"></i>Desactivar
+                                                    </button>
+                                                </form>
+                                            </div>
+                                            <!-- Activar -->
+                                            <div class="col-6">
+                                                <form asp-action="ActivarPlan" method="post">
+                                                    <input type="hidden" name="id" value="@plan.Id" />
+                                                    <button type="submit" class="btn btn-success w-100">
+                                                        <i class="bi bi-check-circle-fill me-2"></i>Activar
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+
+                                        <!-- Botón Actualizar Precio (más grande y separado) -->
+                                        <button class="btn btn-warning w-100 mt-3 update-plan-price-button"
+                                                data-plan-id="@plan.Id"
+                                                data-currency="@(plan.CurrencyCode ?? "EUR")"
+                                                data-bs-toggle="tooltip"
+                                                title="Actualizar precio del plan">
+                                            <i class="bi bi-currency-exchange me-2"></i>Actualizar Precio
+                                        </button>
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -171,14 +146,13 @@
         </div>
 
         <!-- Paginación -->
-        <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center mt-4">
+        <nav aria-label="Page navigation" class="mt-5">
+            <ul class="pagination justify-content-center">
                 @foreach (var pagina in Model.Paginas)
                 {
                     <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
-                        <a class="page-link rounded-pill px-3 py-2 mx-1"
-                           href="@Url.Action("MostrarPlanes", new { pagina = pagina.Pagina, cantidadAMostrar = Model.CantidadAMostrar })"
-                           aria-label="@pagina.Texto">
+                        <a class="page-link px-4 py-2 mx-1 rounded-pill"
+                           href="@Url.Action("MostrarPlanes", new { pagina = pagina.Pagina, cantidadAMostrar = Model.CantidadAMostrar })">
                             @pagina.Texto
                         </a>
                     </li>
@@ -188,6 +162,8 @@
     }
 </div>
 
+<!-- Modal para actualizar precio -->
+<!-- (mantén el modal tal como lo tienes, solo ajustamos los estilos de las tarjetas) -->
 <!-- Modal para actualizar precio del plan -->
 <div class="modal fade" id="updatePlanPriceModal" tabindex="-1" aria-labelledby="updatePlanPriceModalLabel" aria-hidden="true" data-plan-id="" data-currency="">
     <div class="modal-dialog">
@@ -231,5 +207,4 @@
 
 @section Scripts {
     <script src="~/js/planes.js" asp-append-version="true"></script>
-
 }

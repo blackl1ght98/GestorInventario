@@ -97,7 +97,14 @@
                         </div>
                     </div>
                 </div>
-
+                <div class="mb-3">
+                    <label for="IntervalUnit" class="form-label fw-bold">Frecuencia de cobro</label>
+                    <select asp-for="IntervaUnit" class="form-select" required>
+                        <option value="MONTH">Mensual</option>
+                        <option value="YEAR">Anual</option>
+                    </select>
+                    <span asp-validation-for="IntervaUnit" class="text-danger"></span>
+                </div>
                 <!-- Sección: Período de Prueba -->
                 <h4 class="mt-4 mb-3 text-secondary">Período de Prueba</h4>
                 <div class="form-group mb-3">

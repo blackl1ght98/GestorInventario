@@ -20,7 +20,7 @@ namespace GestorInventario.ViewModels.product
         public string? PlanDescription { get; set; }
         [Required(ErrorMessage ="El precio es requerido")]
         public decimal Amount { get; set; }
-     
+        public string IntervaUnit { get; set; }
         public List<string> Categories { get; set; } = new List<string>();
         // Propiedades para el periodo de prueba
         public bool HasTrialPeriod { get; set; } = false;

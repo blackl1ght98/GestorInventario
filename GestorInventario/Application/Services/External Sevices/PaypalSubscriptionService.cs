@@ -64,12 +64,12 @@ namespace GestorInventario.Application.Services.External_Sevices
             };
         }
 
-        public async Task<string> CreateSubscriptionPlanAsync(string productId, string planName, string description, decimal amount, string currency, int trialDays = 0, decimal trialAmount = 0.00m)
+        public async Task<string> CreateSubscriptionPlanAsync(string productId, string planName, string description, decimal amount, string currency,string intervalUnit, int trialDays = 0, decimal trialAmount = 0.00m)
         {
             _culture.SetInvariantCultureSafe();
             try
             {
-                var planRequest = BuildPaypalPlanRequest(productId, planName, description, amount, currency, trialDays, trialAmount);
+                var planRequest = BuildPaypalPlanRequest(productId, planName, description, amount, currency, trialDays, trialAmount,intervalUnit);
                 var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                     HttpMethod.Post,
                     "v1/billing/plans",
@@ -91,11 +91,19 @@ namespace GestorInventario.Application.Services.External_Sevices
                 return $"{{\"error\":\"Se produjo un error al crear el plan de suscripción: {ex.Message}\"}}";
             }
         }
-        private PaypalPlanDetailsDto BuildPaypalPlanRequest(string productId, string planName, string description, decimal amount, string currency, int trialDays = 0, decimal trialAmount = 0.00m)
+        private PaypalPlanDetailsDto BuildPaypalPlanRequest(
+          string productId,
+          string planName,
+          string description,
+          decimal amount,
+          string currency,
+          int trialDays = 0,
+          decimal trialAmount = 0.00m,
+          string intervalUnit = "MONTH")   // ← Nuevo parámetro
         {
             var billingCycles = new List<BillingCycleDto>();
 
-            // Si hay días de prueba, agrega el ciclo de prueba
+            // Ciclo de prueba (si existe)
             if (trialDays > 0)
             {
                 billingCycles.Add(new BillingCycleDto
@@ -119,17 +127,20 @@ namespace GestorInventario.Application.Services.External_Sevices
                 });
             }
 
-            // Agrega el ciclo regular
+            // Ciclo regular (dinámico: MONTH o YEAR)
+            int sequence = trialDays > 0 ? 2 : 1;
+            int totalCycles = intervalUnit == "YEAR" ? 1 : 12;   // 1 año o 12 meses
+                                                                 // Ciclo regular (dinámico: MONTH o YEAR)
             billingCycles.Add(new BillingCycleDto
             {
                 TenureType = "REGULAR",
                 Sequence = trialDays > 0 ? 2 : 1,
                 Frequency = new FrequencyDto
                 {
-                    IntervalUnit = "MONTH",
+                    IntervalUnit = intervalUnit,        // "MONTH" o "YEAR"
                     IntervalCount = 1
                 },
-                TotalCycles = 12,
+                TotalCycles = intervalUnit == "YEAR" ? 0 : 12,   // ← Aquí está el cambio importante
                 PricingScheme = new PricingSchemeDto
                 {
                     FixedPrice = new FixedPriceDto
@@ -150,11 +161,7 @@ namespace GestorInventario.Application.Services.External_Sevices
                 PaymentPreferences = new PaymentPreferencesDto
                 {
                     AutoBillOutstanding = true,
-                    SetupFee = new FixedPriceDto
-                    {
-                        Value = "0.00",
-                        CurrencyCode = currency
-                    },
+                    SetupFee = new FixedPriceDto { Value = "0.00", CurrencyCode = currency },
                     SetupFeeFailureAction = "CONTINUE",
                     PaymentFailureThreshold = 3
                 },

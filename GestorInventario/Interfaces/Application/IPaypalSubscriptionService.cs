@@ -7,7 +7,7 @@ namespace GestorInventario.Interfaces.Application
     public interface IPaypalSubscriptionService
     {
         Task<CreateProductResponseDto> CreateProductAsync(string productName, string productDescription, string productType, string productCategory);
-        Task<string> CreateSubscriptionPlanAsync(string productId, string planName, string description, decimal amount, string currency, int trialDays = 0, decimal trialAmount = 0.00m);
+        Task<string> CreateSubscriptionPlanAsync(string productId, string planName, string description, decimal amount, string currency, string intervalUnit, int trialDays = 0, decimal trialAmount = 0.00m);
         Task<PaypalPlanResponseDto> ObtenerDetallesPlan(string id);
         Task<(PaypalProductListResponseDto ProductsResponse, bool HasNextPage)> GetProductsAsync(int page = 1, int pageSize = 10);
         Task<(List<PaypalPlanResponseDto> plans, bool HasNextPage)> GetSubscriptionPlansAsyncV2(int page = 1, int pageSize = 6);
