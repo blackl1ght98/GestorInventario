@@ -104,13 +104,18 @@
                     </p>
                     <p>
                         <strong><i class="bi bi-calendar-x me-2"></i>Fecha Final de Pago:</strong>
-                        @if (Model.FinalPaymentTime != DateTime.MinValue)
+
+                        @if (Model.FinalPaymentTime.Year >= 2030)  // Cualquier fecha muy lejana se considera indefinida
+                        {
+                            <span class="badge bg-info text-white">Suscripción recurrente (sin fecha de finalización)</span>
+                        }
+                        else if (Model.FinalPaymentTime != DateTime.MinValue && Model.FinalPaymentTime != new DateTime(1753, 1, 1))
                         {
                             @Model.FinalPaymentTime.ToString("dd/MM/yyyy HH:mm:ss")
                         }
                         else
                         {
-                            <span>No disponible</span>
+                            <span class="text-muted">No disponible</span>
                         }
                     </p>
                 </div>

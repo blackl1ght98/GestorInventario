@@ -232,6 +232,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     model.PlanDescription,
                     model.Amount,
                     monedaSeleccionada,
+                    model.IntervaUnit,
                     model.HasTrialPeriod ? model.TrialPeriodDays : 0,
                     model.HasTrialPeriod ? model.TrialAmount : 0.00m
                 );
