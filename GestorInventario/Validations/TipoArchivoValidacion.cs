@@ -5,47 +5,32 @@ namespace GestorInventario.Validations
 {
     public class TipoArchivoValidacion : ValidationAttribute
     {
-        private readonly string[] tiposValidos;
+        private readonly string[] _tiposValidos;
 
-        public TipoArchivoValidacion(string[] tiposValidos)
+        public TipoArchivoValidacion(GrupoTipoArchivo grupo)
         {
-            this.tiposValidos = tiposValidos;
-        }
-        //Para mirar los tipos buscar en internet mime types
-        // Desde el DTO le especificamos qué tipo de archivo es el que vamos a elegir (en este caso imagen)
-        public TipoArchivoValidacion(GrupoTipoArchivo grupoTipoArchivo)
-        {
-            if (grupoTipoArchivo == GrupoTipoArchivo.Imagen)
+            _tiposValidos = grupo switch
             {
-                tiposValidos = new string[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
-            }
-            if (grupoTipoArchivo == GrupoTipoArchivo.PDF)
-            {
-                tiposValidos = new string[] { "application/pdf" };
-            }
+                GrupoTipoArchivo.Imagen => new[] { "image/jpeg", "image/png", "image/gif", "image/webp" },
+                GrupoTipoArchivo.PDF => new[] { "application/pdf" },
+                _ => Array.Empty<string>()
+            };
         }
 
-        // value representa al archivo
-        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+        protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
         {
-            if (value == null)
-            {
+            if (value is not IFormFile file)
                 return ValidationResult.Success;
+
+            if (!_tiposValidos.Contains(file.ContentType.ToLowerInvariant()))
+            {
+                return new ValidationResult("Solo se permiten archivos de imagen (JPG, JPEG, PNG, GIF o WebP).");
             }
 
-            // IFormFile es el dato tal y como entra desde la post
-
-            IFormFile formFile = value as IFormFile;
-
-            if (formFile == null)
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (extension is not (".jpg" or ".jpeg" or ".png" or ".gif" or ".webp"))
             {
-                return ValidationResult.Success;
-            }
-
-            // ContentType deberá ser uno de los tiposValidos { "image/jpeg", "image/png", "image/gif" } para pasar la validación
-            if (!tiposValidos.Contains(formFile.ContentType))
-            {
-                return new ValidationResult($"El tipo del archivo debe ser uno de los siguientes: {string.Join(", ", tiposValidos)}");
+                return new ValidationResult("Solo se permiten archivos de imagen (JPG, JPEG, PNG, GIF o WebP).");
             }
 
             return ValidationResult.Success;

@@ -1,11 +1,10 @@
-﻿using GestorInventario.Application.Services.Authentication.Strategies;
-using GestorInventario.Domain.Models;
+﻿using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using StackExchange.Redis;
 
-namespace GestorInventario.Application.Services.Authentication.Token_generation
+namespace GestorInventario.Application.Services.Authentication.Strategies
 {
     /// <summary>
     /// Fábrica que crea la estrategia de generación de tokens adecuada según el modo configurado en "AuthMode".

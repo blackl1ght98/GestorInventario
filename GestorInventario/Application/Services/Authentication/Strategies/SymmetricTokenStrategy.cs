@@ -1,6 +1,5 @@
 ﻿using GestorInventario.Application.DTOs.User;
 using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -9,47 +8,55 @@ using System.Text;
 
 namespace GestorInventario.Application.Services.Authentication.Strategies
 {
-    public class SymmetricTokenStrategy : ITokenStrategy
+    public class SymmetricTokenStrategy : BaseTokenStrategy
     {
-        private readonly IConfiguration _configuration;
-        private readonly GestorInventarioContext _context;
         public SymmetricTokenStrategy(IConfiguration configuration, GestorInventarioContext context)
+            : base(configuration, context)
         {
-            _configuration = configuration;
-            _context = context;
         }
 
-        public async Task<LoginResponseDto> GenerateTokenAsync(Usuario credencialesUsuario)
+        public override async Task<LoginResponseDto> GenerateTokenAsync(Usuario credencialesUsuario)
         {
+            // Obtener usuario completo de la base de datos
             var usuarioDB = await _context.Usuarios
-                 .Include(u => u.IdRolNavigation)
-                
-                 .FirstOrDefaultAsync(u => u.Id == credencialesUsuario.Id);
-         
-            var claims = new List<Claim>()
+                .Include(u => u.IdRolNavigation)
+                .FirstOrDefaultAsync(u => u.Id == credencialesUsuario.Id);
+
+            if (usuarioDB == null)
             {
-                  new Claim(ClaimTypes.Email, credencialesUsuario.Email),
-                 new Claim(ClaimTypes.Role, credencialesUsuario.IdRolNavigation.Nombre),
-                 new Claim(ClaimTypes.NameIdentifier, credencialesUsuario.Id.ToString())
+                throw new ArgumentException("El usuario no existe en la base de datos.");
+            }
 
+            // Usamos el método de la clase base para crear los claims
+            var claims = CrearClaims(credencialesUsuario);
 
-            };
-           
-            var clave = Environment.GetEnvironmentVariable("ClaveJWT") ?? _configuration["ClaveJWT"];
+            // Obtener clave secreta
+            var clave = Environment.GetEnvironmentVariable("ClaveJWT")
+                     ?? _configuration["ClaveJWT"];
+
+            if (string.IsNullOrEmpty(clave))
+            {
+                throw new InvalidOperationException("La clave JWT no está configurada.");
+            }
+
             var claveKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(clave));
-            var signinCredentials = new SigningCredentials(claveKey, SecurityAlgorithms.HmacSha256);
+
+            var signingCredentials = new SigningCredentials(claveKey, SecurityAlgorithms.HmacSha256);
+
             var securityToken = new JwtSecurityToken(
-                issuer: Environment.GetEnvironmentVariable("JwtIssuer") ?? _configuration["JwtIssuer"],
-                audience: Environment.GetEnvironmentVariable("JwtAudience") ?? _configuration["JwtAudience"],
+                issuer: ObtenerIssuer(),
+                audience: ObtenerAudience(),
                 claims: claims,
                 expires: DateTime.Now.AddDays(30),
-                signingCredentials: signinCredentials);
+                signingCredentials: signingCredentials);
+
             var tokenString = new JwtSecurityTokenHandler().WriteToken(securityToken);
+
             return new LoginResponseDto()
             {
                 Id = credencialesUsuario.Id,
                 Token = tokenString,
-                Rol = credencialesUsuario.IdRolNavigation.Nombre,
+                Rol = usuarioDB.IdRolNavigation?.Nombre ?? "Usuario"
             };
         }
     }

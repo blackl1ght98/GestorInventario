@@ -89,27 +89,6 @@ builder.Services.AddSession(options =>
 });
 
 
-
-// Inyecta IWebHostEnvironment (o IHostEnvironment en .NET 8+)
-var environment = builder.Environment; // o builder.Services.BuildServiceProvider().GetRequiredService<IWebHostEnvironment>();
-
-// Ruta relativa dentro de wwwroot
-var keysFolder = Path.Combine(environment.WebRootPath, "keys", "gestor-inventario");
-
-// Asegúrate de que la carpeta exista (crearla si no está)
-Directory.CreateDirectory(keysFolder);
-
-// Configuración de Data Protection persistente
-//builder.Services.AddDataProtection()
-//    .PersistKeysToFileSystem(new DirectoryInfo(keysFolder))
-//    .SetApplicationName("GestorInventario")
-//    .ProtectKeysWithDpapi();
-
-//Configuracion para que en endpoints de actualizacion puedas poner que sean de tipo put en ves de post pero en MVC no es lo habitual
-//builder.Services.Configure<HttpMethodOverrideOptions>(options =>
-//{
-//    options.FormFieldName = "_method";
-//});
 var app = builder.Build();
 app.UseWebOptimizer();
 if (!app.Environment.IsDevelopment())

@@ -1,8 +1,4 @@
-﻿
-document.addEventListener('DOMContentLoaded', () => {
-    const actionsMap = {
-        'Eliminar': 'EliminarRembolso'
-    };
+﻿document.addEventListener('DOMContentLoaded', () => {
 
     const openConfirmModal = (rembolsoId, actionType) => {
         const actionText = actionType.toLowerCase();
@@ -18,25 +14,29 @@ document.addEventListener('DOMContentLoaded', () => {
         loading.classList.add('d-none');
         loading.textContent = '';
 
-        // Guardar datos en el botón Confirmar ← ESTO FALTABA
+        // Guardar datos en el botón Confirmar
         const confirmBtn = document.getElementById('confirmActionBtn');
         confirmBtn.dataset.rembolsoId = rembolsoId;
         confirmBtn.dataset.userAction = actionType;
     };
 
+    // Abrir modal al hacer clic en el botón Eliminar
     document.querySelectorAll('.user-action-button').forEach(button => {
         button.addEventListener('click', e => {
             e.preventDefault();
             const rembolsoId = button.dataset.rembolsoId;
             const actionType = button.dataset.userAction;
+
             if (!rembolsoId || !actionType) {
                 console.error('Botón sin data-rembolso-id o data-user-action');
                 return;
             }
+
             openConfirmModal(rembolsoId, actionType);
         });
     });
 
+    // Confirmar acción (Eliminar)
     document.getElementById('confirmActionBtn').addEventListener('click', async () => {
         const btn = document.getElementById('confirmActionBtn');
         const loading = document.getElementById('loadingMessage');
@@ -46,35 +46,22 @@ document.addEventListener('DOMContentLoaded', () => {
         loading.textContent = 'Procesando...';
 
         const rembolsoId = btn.dataset.rembolsoId;
-        const actionType = btn.dataset.userAction;
 
-        if (!rembolsoId || !actionType) {
-            loading.textContent = 'Error: Datos no disponibles';
+        if (!rembolsoId) {
+            loading.textContent = 'Error: ID no disponible';
             btn.disabled = false;
             return;
         }
 
-        const action = actionsMap[actionType];
-        if (!action) {
-            loading.textContent = 'Error: Acción no definida';
-            btn.disabled = false;
-            return;
-        }
         const tokenElement = document.querySelector('meta[name="csrf-token"]');
-        if (!tokenElement) {
-            console.error("Error: No se encontró el token CSRF");
-            alert("Error: No se pudo encontrar el token de seguridad.");
-            return Promise.reject(new Error("Token CSRF no encontrado"));
-        }
-        const token = tokenElement.getAttribute("content");
+        const token = tokenElement ? tokenElement.getAttribute("content") : null;
+
         try {
-            const response = await fetch(`/Rembolso/${action}`, {
+            const response = await fetch(`/Rembolso/${rembolsoId}`, {
                 method: 'DELETE',
                 headers: {
-                    'Content-Type': 'application/json',
                     'RequestVerificationToken': token
-                },
-                body: JSON.stringify({ id: rembolsoId })
+                }
             });
 
             const data = await response.json();
@@ -82,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.success) {
                 location.reload();
             } else {
-                loading.textContent = data.errorMessage || 'El servidor tardó en responder';
+                loading.textContent = data.errorMessage || 'Error al procesar la solicitud';
                 btn.disabled = false;
             }
         } catch (error) {
@@ -92,29 +79,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Cerrar modal al hacer clic fuera
     document.querySelector('.modal').addEventListener('click', e => {
         const modal = document.getElementById('confirmModal');
         if (e.target === modal) {
             modal.classList.remove('show');
             modal.style.display = 'none';
-            const btn = document.getElementById('confirmActionBtn');
-            btn.disabled = false;
-            btn.innerHTML = 'Confirmar';
-            document.getElementById('loadingMessage').classList.add('d-none');
-            document.getElementById('loadingMessage').textContent = '';
+            resetModal();
         }
     });
-    // Al final del DOMContentLoaded
+
+    // Botón Cancelar del modal
     document.querySelector('#confirmModal .btn-outline-secondary').addEventListener('click', () => {
         const modal = document.getElementById('confirmModal');
         modal.classList.remove('show');
         modal.style.display = 'none';
+        resetModal();
+    });
 
-        // Reset completo
+    // Función para resetear el modal
+    function resetModal() {
         const btn = document.getElementById('confirmActionBtn');
         btn.disabled = false;
         btn.innerHTML = 'Confirmar';
-        document.getElementById('loadingMessage').classList.add('d-none');
-        document.getElementById('loadingMessage').textContent = '';
-    });
+        const loading = document.getElementById('loadingMessage');
+        loading.classList.add('d-none');
+        loading.textContent = '';
+    }
 });

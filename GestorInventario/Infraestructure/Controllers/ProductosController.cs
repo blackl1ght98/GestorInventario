@@ -169,43 +169,47 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
-       //Metodo que crea el producto
+        //Metodo que crea el producto
         [HttpPost]
         [Authorize(Roles = "Administrador")]
-      
+        [ValidateAntiForgeryToken]  
         public async Task<IActionResult> Create(ProductosViewModel model)
         {
+            // Recargamos siempre la lista de proveedores para que no se pierda el dropdown
+            var proveedores = await _productoRepository.ObtenerProveedores();
+            model.Proveedores = proveedores.ToSelectList(
+                u => u.Id,
+                u => u.NombreProveedor,
+                placeholder: "Seleccione un proveedor..."
+            );
+
+            // VALIDACIÓN DEL MODELO
+            if (!ModelState.IsValid)
+            {
+                return View(model);  
+            }
+
             try
             {
-               
-                                
-                if (!ModelState.IsValid)
+                var resultado = await _policyExecutor.ExecutePolicyAsync(() =>
+                    _productoRepository.CrearProducto(model));
+
+                if (resultado.Success)
                 {
-                    var proveedores = await _productoRepository.ObtenerProveedores();
-                    model.Proveedores = proveedores.ToSelectList(
-                       u => u.Id,
-                       u => u.NombreProveedor,
-                       placeholder: "Seleccione un usuario..."
-                   );
-                }
-                var producto = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.CrearProducto(model));
-                if (producto.Success)
-                {
+                    TempData["SuccessMessage"] = "Producto creado correctamente.";
                     return RedirectToAction(nameof(Index));
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = producto.Message;
+                    TempData["ErrorMessage"] = resultado.Message ?? "Error al crear el producto.";
                     return View(model);
                 }
-
-
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al crear el producto");
-                return RedirectToAction("Error", "Home");
+                _logger.LogError(ex, "Error al crear el producto: {NombreProducto}", model.NombreProducto);
+                TempData["ConectionError"] = "El servidor ha tardado mucho en responder, inténtelo de nuevo más tarde.";
+                return View(model);  
             }
         }
         //Metodo que obtiene la información necesaria para eliminar el producto

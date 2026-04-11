@@ -7,13 +7,13 @@ namespace GestorInventario.Application.Services
     public class TokenService
     {
      
-        private readonly ITokenGenerator _tokenService;
+        private readonly ITokenGenerator _tokenGenerator;
         private readonly IRefreshTokenMethod _refreshTokenMethod;
       
         public TokenService(ITokenGenerator tokenService, IRefreshTokenMethod refresh)
         {
-            
-            _tokenService = tokenService;
+
+            _tokenGenerator = tokenService;
             _refreshTokenMethod = refresh;
           
         }
@@ -21,7 +21,7 @@ namespace GestorInventario.Application.Services
         public async Task<LoginResponseDto> GenerarToken(Usuario credencialesUsuario)
         {
             // Generar el token principal
-            var tokenPrincipal = await _tokenService.GenerateTokenAsync(credencialesUsuario);
+            var tokenPrincipal = await _tokenGenerator.GenerateTokenAsync(credencialesUsuario);
             // Generar el token de refresco
             var tokenRefresco = await _refreshTokenMethod.GenerarTokenRefresco(credencialesUsuario);
             // Devolver ambos tokens en la respuesta

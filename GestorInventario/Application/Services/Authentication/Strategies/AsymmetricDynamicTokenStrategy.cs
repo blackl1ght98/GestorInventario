@@ -10,35 +10,37 @@ using StackExchange.Redis;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace GestorInventario.Application.Services.Authentication.Strategies
 {
-    public class AsymmetricDynamicTokenStrategy : ITokenStrategy
+    public class AsymmetricDynamicTokenStrategy : BaseTokenStrategy
     {
-        private readonly IConfiguration _configuration;
         private readonly IDistributedCache _redis;
         private readonly IMemoryCache _memoryCache;
         private readonly IConnectionMultiplexer _connectionMultiplexer;
         private readonly ILogger<TokenGenerator> _logger;
-        private readonly GestorInventarioContext _context;
-        private readonly IEncryptionService _encryptation;
-        
-        public AsymmetricDynamicTokenStrategy(IConfiguration configuration, IDistributedCache redis,
-            IMemoryCache memoryCache, IConnectionMultiplexer connectionMultiplexer,
-            ILogger<TokenGenerator> logger, GestorInventarioContext context, IEncryptionService encryptation)
+        private readonly IEncryptionService _encryptionService;
+
+        public AsymmetricDynamicTokenStrategy(
+            IConfiguration configuration,
+            IDistributedCache redis,
+            IMemoryCache memoryCache,
+            IConnectionMultiplexer connectionMultiplexer,
+            ILogger<TokenGenerator> logger,
+            GestorInventarioContext context,
+            IEncryptionService encryptionService)
+            : base(configuration, context)
         {
-            _configuration = configuration;
             _redis = redis;
             _memoryCache = memoryCache;
             _connectionMultiplexer = connectionMultiplexer;
             _logger = logger;
-            _context = context;
-            _encryptation = encryptation;
+            _encryptionService = encryptionService;
         }
 
-        public async Task<LoginResponseDto> GenerateTokenAsync(Usuario credencialesUsuario)
+        public override async Task<LoginResponseDto> GenerateTokenAsync(Usuario credencialesUsuario)
         {
+            // Obtener usuario de la base de datos
             var usuarioDB = await _context.Usuarios
                 .Include(u => u.IdRolNavigation)
                 .FirstOrDefaultAsync(u => u.Id == credencialesUsuario.Id);
@@ -57,12 +59,8 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
 
             _logger.LogInformation($"Rol del usuario {credencialesUsuario.Id}: {usuarioDB.IdRolNavigation.Nombre}");
 
-            var claims = new List<Claim>()
-            {
-                new Claim(ClaimTypes.Email, credencialesUsuario.Email),
-                new Claim(ClaimTypes.Role, usuarioDB.IdRolNavigation.Nombre),
-                new Claim(ClaimTypes.NameIdentifier, credencialesUsuario.Id.ToString())
-            };
+            // Usamos el método de la clase base
+            var claims = CrearClaims(credencialesUsuario);
 
             // 1. Generar par de claves RSA
             using var rsa = RSA.Create(2048);
@@ -74,7 +72,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
             aes.GenerateKey();
             var aesKey = aes.Key;
 
-            // 3. Cifrar AES con pública RSA
+            // 3. Cifrar AES con la clave pública RSA
             rsa.ImportParameters(publicKey);
             var encryptedAesKey = rsa.Encrypt(aesKey, RSAEncryptionPadding.OaepSHA256);
             var encryptedAesKeyBase64 = Convert.ToBase64String(encryptedAesKey);
@@ -83,9 +81,9 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
             var privateKeyJson = JsonConvert.SerializeObject(privateKey);
 
             // 5. CIFRAR la clave privada con la clave maestra estática
-            string encryptedPrivateBase64 = _encryptation.EncryptPrivateKey(privateKeyJson);
+            string encryptedPrivateBase64 = _encryptionService.EncryptPrivateKey(privateKeyJson);
 
-            // 6. Guardar en caché: la privada CIFRADA + la AES cifrada
+            // 6. Guardar en caché
             string privateKeyCacheKey = $"{credencialesUsuario.Id}PrivateKey";
             string aesKeyCacheKey = $"{credencialesUsuario.Id}EncryptedAesKey";
 
@@ -111,8 +109,8 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
             var signingCredentials = new SigningCredentials(rsaSecurityKey, SecurityAlgorithms.RsaSha256);
 
             var securityToken = new JwtSecurityToken(
-                issuer: Environment.GetEnvironmentVariable("JwtIssuer") ?? _configuration["JwtIssuer"],
-                audience: _configuration["JwtAudience"] ?? Environment.GetEnvironmentVariable("JwtAudience"),
+                issuer: ObtenerIssuer(),
+                audience: ObtenerAudience(),
                 claims: claims,
                 expires: DateTime.UtcNow.AddMinutes(10),
                 signingCredentials: signingCredentials);
@@ -126,7 +124,5 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
                 Rol = usuarioDB.IdRolNavigation.Nombre,
             };
         }
-
-       
     }
 }
