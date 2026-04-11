@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GestorInventario.Infraestructure.Controllers
 {
+    [Route("Rembolso")]
     public class RembolsoController : Controller
     {
         private readonly IPolicyExecutor _policyExecutor;
@@ -65,11 +66,12 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-        [HttpDelete]
+        [HttpDelete("{id}")]   // ← Añadimos {id} en la ruta
         [Authorize(Roles = "Administrador")]
-        public async Task<IActionResult> EliminarRembolso([FromBody] RembolsoRequestDto request)
+        public async Task<IActionResult> EliminarRembolso(int id)
         {
-            var success = await _policyExecutor.ExecutePolicyAsync(() => _rembolsoRepository.EliminarRembolso(request.Id));
+            var success = await _policyExecutor.ExecutePolicyAsync(() => _rembolsoRepository.EliminarRembolso(id));
+
             if (success.Success)
             {
                 return Json(new { success = true });

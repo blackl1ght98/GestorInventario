@@ -2,7 +2,7 @@
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Middlewares.Strategis;
 
-namespace GestorInventario.MetodosExtension.Metodos_program.cs
+namespace GestorInventario.Configuracion
 {
     /// <summary>
     /// Fábrica que crea y configura la estrategia de autenticación (middleware) según el modo elegido (AuthMode).

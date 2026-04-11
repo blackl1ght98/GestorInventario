@@ -16,9 +16,6 @@ namespace GestorInventario.Infraestructure.Controllers
 {
     public class AdminController : Controller
     {
-      
-       
-       
         private readonly ILogger<AdminController> _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
