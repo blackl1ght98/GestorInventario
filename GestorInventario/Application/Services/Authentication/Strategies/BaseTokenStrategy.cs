@@ -19,7 +19,6 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
         public abstract Task<LoginResponseDto> GenerateTokenAsync(Usuario credencialesUsuario);
 
         // Método protegido reutilizable
-        // Cambiamos a protected internal para que RefreshTokenMethod pueda usarlos
         protected internal List<Claim> CrearClaims(Usuario usuario)
         {
             return new List<Claim>

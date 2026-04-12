@@ -13,27 +13,34 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
     {
         public static IServiceCollection AddTokenServices(this IServiceCollection services, bool useRedis) 
         {
-            services.AddTransient<ITokenStrategyFactory, TokenStrategyFactory>(provider => {
-
-                //Se resuelve las dependencias necesarias para crear una instancia de "TokenGenerator", esto asegura que se configure correctamente
+            services.AddTransient<ITokenStrategyFactory, TokenStrategyFactory>(provider =>
+            {
                 var redis = provider.GetRequiredService<IDistributedCache>();
                 var memoryCache = provider.GetRequiredService<IMemoryCache>();
                 var configuration = provider.GetRequiredService<IConfiguration>();
                 var context = provider.GetRequiredService<GestorInventarioContext>();
-                var logger = provider.GetRequiredService<ILogger<TokenGenerator>>();
+
+                
+                var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+
                 var encryptation = provider.GetRequiredService<IEncryptionService>();
-                // Inicialmente se establece en null ya que el valor se asignará si se está usando Redis
+
                 IConnectionMultiplexer connectionMultiplexer = null;
-                // Si se está usando Redis...
                 if (useRedis)
                 {
-                    // Se obtiene la conexión de Redis del proveedor de servicios
                     connectionMultiplexer = provider.GetService<IConnectionMultiplexer>();
                 }
-                // Devuelve una nueva instancia de TokenGenerator con sus dependencia
-                return new TokenStrategyFactory(configuration, context, redis, memoryCache, connectionMultiplexer, logger,encryptation);
-            });
 
+                
+                return new TokenStrategyFactory(
+                    configuration,
+                    context,
+                    redis,
+                    memoryCache,
+                    connectionMultiplexer,
+                    loggerFactory,         
+                    encryptation);
+            });
             services.AddTransient<IRefreshTokenMethod, RefreshTokenMethod>(provider =>
             {
                 var redis = provider.GetRequiredService<IDistributedCache>();
@@ -41,6 +48,7 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
                 var configuration = provider.GetRequiredService<IConfiguration>();
                 var context = provider.GetRequiredService<GestorInventarioContext>();
                 var logger = provider.GetRequiredService<ILogger<RefreshTokenMethod>>();
+                var tokenStrategy = provider.GetRequiredService<ITokenStrategyFactory>();
                 // Inicialmente se establece en null ya que el valor se asignará si se está usando Redis
                 IConnectionMultiplexer connectionMultiplexer = null;
                 // Si se está usando Redis...
@@ -49,7 +57,7 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
                     // Se obtiene la conexión de Redis del proveedor de servicios
                     connectionMultiplexer = provider.GetService<IConnectionMultiplexer>();
                 }
-                return new RefreshTokenMethod(context, configuration, memoryCache, redis, connectionMultiplexer, logger);
+                return new RefreshTokenMethod(context, configuration, memoryCache, redis, connectionMultiplexer, logger,tokenStrategy);
             });
           
             return services;

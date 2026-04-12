@@ -18,7 +18,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
         private readonly IDistributedCache _redis;
         private readonly IMemoryCache _memoryCache;
         private readonly IConnectionMultiplexer _connectionMultiplexer;
-        private readonly ILogger<TokenGenerator> _logger;
+        private readonly ILogger<AsymmetricDynamicTokenStrategy> _logger;
         private readonly IEncryptionService _encryptionService;
 
         public AsymmetricDynamicTokenStrategy(
@@ -26,7 +26,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
             IDistributedCache redis,
             IMemoryCache memoryCache,
             IConnectionMultiplexer connectionMultiplexer,
-            ILogger<TokenGenerator> logger,
+            ILogger<AsymmetricDynamicTokenStrategy> logger,
             GestorInventarioContext context,
             IEncryptionService encryptionService)
             : base(configuration, context)
