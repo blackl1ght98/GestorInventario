@@ -20,7 +20,7 @@ namespace GestorInventario.Application.Services
       
         public async Task<LoginResponseDto> GenerarToken(Usuario credencialesUsuario)
         {
-            // Generar el token principal
+            // Generar el token principal: dependiendo de la estrategia escogida
             var tokenPrincipal = await _tokenGenerator.GenerateTokenAsync(credencialesUsuario);
             // Generar el token de refresco
             var tokenRefresco = await _refreshTokenMethod.GenerarTokenRefresco(credencialesUsuario);
