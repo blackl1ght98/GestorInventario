@@ -6,168 +6,154 @@
     ViewData["Title"] = "Carrito de Compras - GestorInventario";
 }
 
-<link rel="stylesheet" href="~/css/carrito.css" />
-
 <div class="container my-5">
     <div class="row justify-content-center">
-        <div class="col-12 col-md-10 col-lg-8">
-            <div class="card border-0 shadow-lg card-custom">
-                <div class="card-header text-center py-4 card-header-custom">
-                    <h3 class="mb-0 fw-bold">Tu Carrito de Compras</h3>
-                </div>
-                <div class="card-body p-4 p-md-5">
-                    <!-- Alertas de PayPal -->
-                    <div class="alert alert-info alert-dismissible fade show text-center rounded-3 mb-4" role="alert">
-                        <i class="bi bi-info-circle nav-icon me-2"></i>
-                        Esta página solo admite pagos vía PayPal. Asegúrese de seleccionar la moneda correcta para evitar comisiones por cambio de divisa.
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-                    </div>
-                    <div class="alert alert-warning alert-dismissible fade show text-center rounded-3 mb-4" role="alert">
-                        <i class="bi bi-exclamation-circle nav-icon me-2"></i>
-                        El precio total de los productos se calcula en PayPal después de hacer clic en <strong>Checkout</strong>.
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-                    </div>
+        <div class="col-12 col-xl-10">
 
-                    <!-- Formulario de Checkout -->
-                    <form asp-action="Checkout" method="post" class="mb-4 text-center">
-                      
-                        <div class="input-group w-auto mx-auto" style="max-width: 400px;">
-                            <span class="input-group-text input-group-text-custom">
-                                <i class="bi bi-currency-exchange nav-icon currency-icon-custom"></i>
-                            </span>
-                            <select name="monedaSeleccionada" asp-items="Model.Monedas" class="form-select"></select>
-                            <button type="submit" class="btn btn-success">
-                                <i class="bi bi-cart-check me-2"></i>Checkout
+            <!-- Título -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+                <h1 class="display-5 text-primary mb-0">Tu Carrito de Compras</h1>
+            </div>
+
+            <!-- Alertas -->
+            <div class="alert alert-info border-0 shadow-sm mb-4">
+                <i class="bi bi-info-circle me-2"></i>
+                Esta página solo admite pagos vía PayPal. Asegúrate de seleccionar la moneda correcta.
+            </div>
+
+            <div class="alert alert-warning border-0 shadow-sm mb-4">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                El precio total se calcula en PayPal después de hacer clic en <strong>Checkout</strong>.
+            </div>
+
+            <!-- Selector de moneda + Checkout -->
+            @if (Model.Productos.Any())
+            {
+                <form asp-action="Checkout" method="post" class="mb-5">
+                    <div class="row align-items-end">
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-currency-exchange"></i>
+                                </span>
+                                <select name="monedaSeleccionada" asp-items="Model.Monedas" class="form-select form-select-lg"></select>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mt-3 mt-md-0">
+                            <button type="submit" class="btn btn-success btn-lg w-100">
+                                <i class="bi bi-cart-check me-2"></i>Ir a Checkout con PayPal
                             </button>
                         </div>
-                    </form>
+                    </div>
+                </form>
+            }
 
-                    <!-- Mensajes de TempData -->
-                    @if (TempData["InfoMessage"] != null)
+            <!-- Carrito vacío -->
+            @if (!Model.Productos.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-cart-x display-1 text-muted mb-3"></i>
+                    <h4 class="text-muted">Tu carrito está vacío</h4>
+                    <a asp-controller="Productos" asp-action="Index" class="btn btn-primary mt-3">
+                        <i class="bi bi-shop me-2"></i>Explorar productos
+                    </a>
+                </div>
+            }
+            else
+            {
+                <!-- Lista de productos -->
+                <div class="row g-4">
+                    @foreach (var item in Model.Productos)
                     {
-                        <div class="alert alert-info alert-dismissible fade show text-center rounded-3 mb-4" role="alert">
-                            <i class="bi bi-info-circle nav-icon me-2"></i>
-                            @TempData["InfoMessage"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-                        </div>
-                    }
-                    @if (TempData["ConnectionError"] != null)
-                    {
-                        <div class="alert alert-danger alert-dismissible fade show text-center rounded-3 mb-4" role="alert">
-                            <i class="bi bi-exclamation-circle nav-icon me-2"></i>
-                            @TempData["ConnectionError"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-                        </div>
-                    }
-                    @if (TempData["ErrorMessage"] != null)
-                    {
-                        <div class="alert alert-danger alert-dismissible fade show text-center rounded-3 mb-4" role="alert">
-                            <i class="bi bi-exclamation-circle nav-icon me-2"></i>
-                            @TempData["ErrorMessage"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-                        </div>
-                    }
-
-                    <!-- Carrito vacío -->
-                    @if (!Model.Productos.Any())
-                    {
-                        <div class="alert alert-info alert-dismissible fade show text-center rounded-3 mb-4" role="alert">
-                            <i class="bi bi-cart nav-icon me-2"></i>
-                            Tu carrito está vacío. <a asp-controller="Productos" asp-action="Index" class="alert-link">¡Añade algunos productos!</a>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-                        </div>
-                    }
-                    else
-                    {
-                        <!-- Lista de productos -->
-                        <div class="row">
-                            @foreach (var item in Model.Productos)
-                            {
-                                <div class="col-md-4 mb-4">
-                                    <div class="card h-100 border-0 shadow-lg card-product-custom">
-                                        <img src="@item.Producto.Imagen" class="card-img-top product-image product-image-custom" alt="Imagen del producto">
-                                        <div class="card-body d-flex flex-column p-4">
-                                            <h5 class="card-title text-center card-title-custom">@item.Producto.NombreProducto</h5>
-                                            <p class="card-text"><strong>Precio:</strong> @item.Producto.Precio.ToString() €</p>
-                                            <p class="card-text"><strong>Proveedor:</strong> @(item.Producto.IdProveedorNavigation?.NombreProveedor ?? "No definido")</p>
-                                            <p class="card-text"><strong>Total:</strong> @(item.Producto.Precio* item.Cantidad) €</p>
-
-                                            <!-- Contador de cantidad -->
-                                            <div class="d-flex justify-content-center align-items-center gap-2 mb-3">
-                                                <form asp-action="Decrementar" method="post">
-                                                    @Html.AntiForgeryToken()
-                                                    <input type="hidden" name="id" value="@item.Id" />
-                                                    <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-dash"></i></button>
-                                                </form>
-                                                <span class="fw-bold">@item.Cantidad</span>
-                                                <form asp-action="Incrementar" method="post">
-                                                    @Html.AntiForgeryToken()
-                                                    <input type="hidden" name="id" value="@item.Id" />
-                                                    <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i></button>
-                                                </form>
+                        <div class="col-12">
+                            <div class="card shadow-sm border-0 hover-card">
+                                <div class="row g-0">
+                                    <div class="col-md-3">
+                                        <img src="@item.Producto.Imagen"
+                                             class="img-fluid h-100 object-fit-cover rounded-start"
+                                             alt="@item.Producto.NombreProducto"
+                                             style="max-height: 180px;">
+                                    </div>
+                                    <div class="col-md-9">
+                                        <div class="card-body d-flex flex-column h-100">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <h5 class="card-title">@item.Producto.NombreProducto</h5>
+                                                <span class="fw-bold text-success fs-5">@item.Producto.Precio.ToString("C")</span>
                                             </div>
+                                            <p class="text-muted small">@item.Producto.Descripcion</p>
+                                            <p class="text-muted small">Proveedor: @item.Producto.IdProveedorNavigation?.NombreProveedor</p>
 
-                                            <!-- Botón de eliminar -->
-                                            <div class="mt-auto">
-                                                <form asp-action="EliminarProductoCarrito" asp-asp-controller="Carrito" method="post">
-                                                    @Html.AntiForgeryToken()
-                                                    <input type="hidden" asp-for="@item.Id" name="id" />
-                                                    <button type="submit" class="btn btn-danger w-100"><i class="bi bi-trash me-2"></i>Eliminar</button>
-                                                </form>
+                                            <div class="mt-auto d-flex justify-content-between align-items-end">
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <form asp-action="Decrementar" method="post" class="d-inline">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@item.Id" />
+                                                        <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-dash"></i></button>
+                                                    </form>
+                                                    <span class="fw-bold fs-5">@item.Cantidad</span>
+                                                    <form asp-action="Incrementar" method="post" class="d-inline">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@item.Id" />
+                                                        <button type="submit" class="btn btn-outline-primary btn-sm"><i class="bi bi-plus"></i></button>
+                                                    </form>
+                                                </div>
+
+                                                <div class="text-end">
+                                                    <small class="text-muted">Total</small>
+                                                    <h5 class="mb-0">@((item.Producto.Precio * item.Cantidad))</h5>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            }
-                        </div>
 
-                        <!-- Resumen de compra -->
-                        <div class="row justify-content-center mt-4">
-                            <div class="col-md-6">
-                                <div class="card border-0 shadow-lg card-custom">
-                                    <div class="card-header text-center py-3 card-header-summary-custom">
-                                        <h5 class="mb-0 fw-bold">Resumen de Compra</h5>
-                                    </div>
-                                    <div class="card-body p-4">
-                                        <p class="card-text"><strong>Subtotal:</strong> @Model.Subtotal.ToString("C")</p>
-                                        <p class="card-text"><strong>Envío:</strong> @Model.Shipping.ToString("C")</p>
-                                        <h4 class="card-text text-center total-text-custom"><strong>Total (con impuestos):</strong> @Model.Total.ToString("C")</h4>
-                                    </div>
+                                <div class="card-footer bg-light border-0 text-end">
+                                    <form asp-action="EliminarProductoCarrito" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="bi bi-trash"></i> Eliminar
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
                     }
-
-                    <!-- Paginación -->
-                    @if (Model.Paginas != null && Model.Paginas.Any())
-                    {
-                        <nav aria-label="Page navigation" class="mt-4">
-                            <ul class="pagination justify-content-center">
-                                @foreach (var pagina in Model.Paginas)
-                                {
-                                    <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
-                                        <a class="page-link page-link-custom @(pagina.Activa ? "active" : "")" href="@Url.Action("Index", new { pagina = pagina.Pagina })">
-                                            @if (pagina.Texto == "Anterior")
-                                            {
-                                                <span aria-hidden="true">«</span>
-                                            }
-                                            else if (pagina.Texto == "Siguiente")
-                                            {
-                                                <span aria-hidden="true">»</span>
-                                            }
-                                            else
-                                            {
-                                                @pagina.Texto
-                                            }
-                                        </a>
-                                    </li>
-                                }
-                            </ul>
-                        </nav>
-                    }
                 </div>
-            </div>
+
+                <!-- Resumen de Compra con IVA -->
+                <div class="row mt-5 justify-content-end">
+                    <div class="col-md-5">
+                        <div class="card shadow border-0">
+                            <div class="card-body">
+                                <h5 class="card-title text-center mb-4">Resumen de Compra</h5>
+
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Subtotal</span>
+                                    <span>@Model.Subtotal.ToString("C")</span>
+                                </div>
+
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>IVA (21%)</span>
+                                    <span>@Model.Impuestos.ToString("C")</span>
+                                </div>
+
+                                <div class="d-flex justify-content-between mb-3">
+                                    <span>Envío</span>
+                                    <span class="text-success">Gratis</span>
+                                </div>
+
+                                <hr>
+
+                                <div class="d-flex justify-content-between fs-4 fw-bold">
+                                    <span>Total</span>
+                                    <span>@(Model.Total.ToString("C"))</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
     </div>
 </div>
-

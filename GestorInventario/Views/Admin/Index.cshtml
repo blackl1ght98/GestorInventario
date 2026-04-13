@@ -1,90 +1,146 @@
 ﻿@model UsuariosViewModel
 @using GestorInventario.PaginacionLogica
 @using GestorInventario.ViewModels.user
-@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "Gestión de Usuarios";
+}
 
 <div class="container my-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 fw-bold" style="color: var(--primary);">Gestión de Usuarios</h1>
-        <a asp-action="Create" class="btn btn-primary">
-            <i class="bi bi-person-plus nav-icon"></i> Crear Usuario
+    <!-- Encabezado -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="display-5 fw-bold text-primary">
+                <i class="bi bi-people me-3"></i>Gestión de Usuarios
+            </h1>
+            <p class="text-muted lead">Administra los usuarios del sistema</p>
+        </div>
+        <a asp-action="Create" class="btn btn-primary btn-lg shadow-sm">
+            <i class="bi bi-person-plus me-2"></i>Crear Nuevo Usuario
         </a>
     </div>
 
-    <!-- Formulario de búsqueda -->
-    <form asp-action="Index" method="get" class="mb-4">
-        <div class="input-group">
-            <input type="text" name="buscar" value="@Model.Buscar" class="form-control" placeholder="Buscar por nombre completo" />
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-search"></i> Buscar
-            </button>
+    <!-- Buscador -->
+    <div class="row mb-5">
+        <div class="col-lg-8 mx-auto">
+            <form asp-action="Index" method="get">
+                <div class="input-group input-group-lg">
+                    <input type="text" name="buscar" value="@Model.Buscar"
+                           class="form-control" placeholder="Buscar por nombre completo o email..." />
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search me-2"></i>Buscar
+                    </button>
+                    @if (!string.IsNullOrEmpty(Model.Buscar))
+                    {
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            Limpiar
+                        </a>
+                    }
+                </div>
+            </form>
         </div>
-    </form>
+    </div>
 
-    <!-- Lista de Usuarios con Tarjetas -->
-    <div class="row g-4">
-        @foreach (var user in Model.Usuarios)
-        {
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="card border-0 shadow-sm hover-card h-100">
-                    <div class="card-body p-4">
-                        <h5 class="card-title mb-3" style="color: var(--primary);">@user.NombreCompleto</h5>
-                        <p class="card-text">
-                            <i class="bi bi-envelope nav-icon text-muted"></i> <strong>Email:</strong> @user.Email<br />
-                            <i class="bi bi-calendar nav-icon text-muted"></i> <strong>Fecha de Registro:</strong> @user.FechaRegistro.ToString()<br />
-                            <i class="bi bi-person-badge nav-icon text-muted"></i> <strong>Rol:</strong> @(user.IdRolNavigation?.Nombre ?? "Sin rol")<br />
-                            <i class="bi bi-circle-fill nav-icon @(user.BajaUsuario ? "text-danger" : "text-success")"></i> <strong>Estado:</strong>
-                            <span class="badge @(user.BajaUsuario ? "bg-danger" : "bg-success")">
-                                @(user.BajaUsuario ? "Baja" : "Alta")
-                            </span>
-                        </p>
-                    </div>
-                    <div class="card-footer bg-light p-3">
-                        <div class="d-flex flex-wrap gap-2 justify-content-center">
-                            <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-warning btn-sm">
-                                <i class="bi bi-pencil nav-icon"></i> Editar
-                            </a>
-                            <button class="btn btn-outline-danger btn-sm user-action-button"
-                                    data-user-id="@user.Id"
-                                    data-user-action="@(user.BajaUsuario ? "Alta" : "Baja")">
-                                <i class="bi @(user.BajaUsuario ? "bi-arrow-up-circle" : "bi-arrow-down-circle") nav-icon"></i>
-                                @(user.BajaUsuario ? "Dar Alta" : "Dar Baja")
-                            </button>
-                            <a asp-action="Delete" asp-route-id="@user.Id" class="btn btn-danger btn-sm">
-                                <i class="bi bi-trash nav-icon"></i> Eliminar
-                            </a>
-                            <a asp-action="ResetPassword" asp-controller="Auth" asp-route-email="@user.Email"
-                               class="btn btn-outline-secondary btn-sm">
-                                <i class="bi bi-key nav-icon"></i> Recuperar Contraseña
-                            </a>
+    <!-- Lista de Usuarios -->
+    @if (!Model.Usuarios.Any())
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-person-x display-1 text-muted mb-3"></i>
+            <h4 class="text-muted">No se encontraron usuarios</h4>
+            <a asp-action="Create" class="btn btn-primary mt-3">
+                <i class="bi bi-person-plus me-2"></i>Crear el primer usuario
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            @foreach (var user in Model.Usuarios)
+            {
+                <div class="col">
+                    <div class="card h-100 border-0 shadow-sm hover-card transition-all">
+                        <div class="card-body p-4 d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h5 class="card-title fw-semibold text-primary mb-0">@user.NombreCompleto</h5>
+                                <span class="badge @(user.BajaUsuario ? "bg-danger" : "bg-success") fs-6">
+                                    @(user.BajaUsuario ? "Inactivo" : "Activo")
+                                </span>
+                            </div>
+
+                            <div class="mb-4">
+                                <p class="mb-2">
+                                    <i class="bi bi-envelope text-muted me-2"></i>
+                                    <strong>Email:</strong> @user.Email
+                                </p>
+                                <p class="mb-2">
+                                    <i class="bi bi-calendar text-muted me-2"></i>
+                                    <strong>Registrado:</strong> @user.FechaRegistro
+                                </p>
+                                <p class="mb-0">
+                                    <i class="bi bi-person-badge text-muted me-2"></i>
+                                    <strong>Rol:</strong> @(user.IdRolNavigation?.Nombre ?? "Sin rol asignado")
+                                </p>
+                            </div>
+
+                            <!-- Acciones -->
+                            <div class="mt-auto pt-3 border-top">
+                                <div class="d-flex flex-wrap gap-2">
+                                    <a asp-action="Edit" asp-route-id="@user.Id"
+                                       class="btn btn-outline-primary flex-fill btn-sm">
+                                        <i class="bi bi-pencil me-1"></i>Editar
+                                    </a>
+
+                                    <button type="button"
+                                            class="btn btn-sm flex-fill user-action-button"
+                                            data-user-id="@user.Id"
+                                            data-user-action="@(user.BajaUsuario ? "Alta" : "Baja")"
+                                            style="background-color: @(user.BajaUsuario ? "#198754" : "#dc3545"); color: white;">
+                                        <i class="bi @(user.BajaUsuario ? "bi-arrow-up-circle" : "bi-arrow-down-circle") me-1"></i>
+                                        @(user.BajaUsuario ? "Dar de Alta" : "Dar de Baja")
+                                    </button>
+
+                                    <a asp-action="Delete" asp-route-id="@user.Id"
+                                       class="btn btn-outline-danger flex-fill btn-sm">
+                                        <i class="bi bi-trash me-1"></i>Eliminar
+                                    </a>
+
+                                    <a asp-action="ResetPassword" asp-controller="Auth" asp-route-email="@user.Email"
+                                       class="btn btn-outline-secondary flex-fill btn-sm">
+                                        <i class="bi bi-key me-1"></i>Resetear Contraseña
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        }
-        @if (!Model.Usuarios.Any())
-        {
-            <div class="col-12 text-center py-5">
-                <p class="text-muted fs-5">No hay usuarios para mostrar.</p>
-                <a asp-action="Create" class="btn btn-primary">
-                    <i class="bi bi-person-plus nav-icon"></i> Crear un Nuevo Usuario
-                </a>
-            </div>
-        }
-    </div>
+            }
+        </div>
+    }
 
     <!-- Paginación -->
     @if (Model.Paginas != null && Model.Paginas.Any())
     {
         <nav aria-label="Navegación de páginas" class="mt-5">
-            <ul class="pagination justify-content-center">
+            <ul class="pagination justify-content-center pagination-lg">
                 @foreach (var pagina in Model.Paginas)
                 {
                     <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
                         <a class="page-link"
-                           href="@Url.Action("Index", new { pagina = pagina.Pagina, buscar = Model.Buscar })"
-                           style="transition: background-color 0.2s;">
-                            @pagina.Texto
+                           href="@Url.Action("Index", new { pagina = pagina.Pagina, buscar = Model.Buscar })">
+                            @if (pagina.Texto == "Anterior")
+                            {
+                                <span>« Anterior</span>
+                            }
+                            else if (pagina.Texto == "Siguiente")
+                            {
+
+                                <span>Siguiente »</span>
+                            }
+                            else
+                            {
+
+                                @pagina.Texto
+                            }
                         </a>
                     </li>
                 }
@@ -93,20 +149,22 @@
     }
 </div>
 
-<!-- Modal -->
+<!-- Modal de Confirmación -->
 <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 1rem;">
-            <div class="modal-header" style="background-color: var(--primary); color: white;">
+        <div class="modal-content rounded-3 shadow">
+            <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="confirmModalLabel">Confirmación</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p id="confirmMessage">¿Estás seguro de que deseas realizar esta acción?</p>
-                <p id="loadingMessage" class="d-none text-muted">Procesando...</p>
+                <p id="confirmMessage" class="mb-0">¿Estás seguro de que deseas realizar esta acción?</p>
+                <p id="loadingMessage" class="d-none text-center text-muted mt-3">
+                    <span class="spinner-border spinner-border-sm me-2"></span>Procesando...
+                </p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-primary" id="confirmActionBtn">Confirmar</button>
             </div>
         </div>

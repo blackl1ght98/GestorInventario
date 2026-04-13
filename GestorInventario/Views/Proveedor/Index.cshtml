@@ -1,79 +1,136 @@
 ﻿@model ProviderViewModel
 @using GestorInventario.ViewModels.provider
 
-
+@{
+    ViewData["Title"] = "Gestión de Proveedores";
+}
 
 <div class="container my-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 fw-bold" style="color: var(--primary);">Gestión de Proveedores</h1>
-        <a asp-action="Create" class="btn btn-primary">
-            <i class="bi bi-plus-circle nav-icon"></i> Crear Proveedor
+    <!-- Encabezado -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="display-5 fw-bold text-primary">
+                <i class="bi bi-truck me-3"></i>Gestión de Proveedores
+            </h1>
+            <p class="text-muted lead">Administra los proveedores de tu inventario</p>
+        </div>
+        <a asp-action="Create" class="btn btn-primary btn-lg shadow-sm">
+            <i class="bi bi-plus-circle me-2"></i>Crear Nuevo Proveedor
         </a>
     </div>
 
-    <!-- Formulario de búsqueda -->
-    <form asp-action="Index" method="get" class="mb-4">
-        <div class="input-group">
-            <input type="text" name="buscar" value="@Model.Buscar" class="form-control" placeholder="Buscar por nombre de proveedor..." />
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-search"></i> Buscar
-            </button>
-        </div>
-    </form>
-
-    <!-- Lista de Proveedores con Tarjetas -->
-    <div class="row g-4">
-        @foreach (var proveedor in Model.Proveedores)
-        {
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="card border-0 shadow-sm hover-card h-100">
-                    <div class="card-body p-4">
-                        <h5 class="card-title mb-3" style="color: var(--primary);">@proveedor.NombreProveedor</h5>
-                        <p class="card-text">
-                            <i class="bi bi-telephone nav-icon text-muted"></i> <strong>Contacto:</strong> @proveedor.Contacto<br />
-                            <i class="bi bi-geo-alt nav-icon text-muted"></i> <strong>Dirección:</strong> @proveedor.Direccion<br />
-                            <i class="bi bi-person nav-icon text-muted"></i> <strong>Usuario:</strong> @(proveedor.IdUsuarioNavigation?.NombreCompleto ?? "Sin usuario")<br />
-                        </p>
-                    </div>
-                    @if (User.IsInRole("Administrador"))
+    <!-- Buscador -->
+    <div class="row mb-5">
+        <div class="col-lg-8 mx-auto">
+            <form asp-action="Index" method="get">
+                <div class="input-group input-group-lg">
+                    <input type="text" name="buscar" value="@Model.Buscar"
+                           class="form-control"
+                           placeholder="Buscar por nombre de proveedor..." />
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search me-2"></i>Buscar
+                    </button>
+                    @if (!string.IsNullOrEmpty(Model.Buscar))
                     {
-                        <div class="card-footer bg-light p-3">
-                            <div class="d-flex flex-wrap gap-2 justify-content-center">
-                                <a asp-action="Edit" asp-route-id="@proveedor.Id" class="btn btn-warning btn-sm">
-                                    <i class="bi bi-pencil nav-icon"></i> Actualizar
-                                </a>
-                                <a asp-action="Delete" asp-route-id="@proveedor.Id" class="btn btn-danger btn-sm">
-                                    <i class="bi bi-trash nav-icon"></i> Eliminar
-                                </a>
-                            </div>
-                        </div>
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            Limpiar
+                        </a>
                     }
                 </div>
-            </div>
-        }
-        @if (!Model.Proveedores.Any())
-        {
-            <div class="col-12 text-center py-5">
-                <p class="text-muted fs-5">No hay proveedores para mostrar.</p>
-                <a asp-action="Create" class="btn btn-primary">
-                    <i class="bi bi-plus-circle nav-icon"></i> Crear un Nuevo Proveedor
-                </a>
-            </div>
-        }
+            </form>
+        </div>
     </div>
+
+    <!-- Lista de Proveedores -->
+    @if (!Model.Proveedores.Any())
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-building display-1 text-muted mb-3"></i>
+            <h4 class="text-muted">No hay proveedores registrados</h4>
+            <p class="text-muted">Comienza agregando tu primer proveedor.</p>
+            <a asp-action="Create" class="btn btn-primary mt-3">
+                <i class="bi bi-plus-circle me-2"></i>Crear Nuevo Proveedor
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            @foreach (var proveedor in Model.Proveedores)
+            {
+                <div class="col">
+                    <div class="card h-100 border-0 shadow-sm hover-card transition-all">
+                        <div class="card-body p-4 d-flex flex-column">
+
+                            <!-- Nombre del Proveedor -->
+                            <h5 class="card-title fw-semibold text-primary mb-3">
+                                @proveedor.NombreProveedor
+                            </h5>
+
+                            <!-- Información -->
+                            <div class="mb-4">
+                                <p class="mb-2">
+                                    <i class="bi bi-telephone text-muted me-2"></i>
+                                    <strong>Contacto:</strong> @proveedor.Contacto
+                                </p>
+                                <p class="mb-2">
+                                    <i class="bi bi-geo-alt text-muted me-2"></i>
+                                    <strong>Dirección:</strong> @proveedor.Direccion
+                                </p>
+                                <p class="mb-0">
+                                    <i class="bi bi-person text-muted me-2"></i>
+                                    <strong>Usuario asignado:</strong>
+                                    @(proveedor.IdUsuarioNavigation?.NombreCompleto ?? "<span class='text-muted'>Sin usuario</span>")
+                                </p>
+                            </div>
+
+                            <!-- Acciones (solo Administrador) -->
+                            @if (User.IsInRole("Administrador"))
+                            {
+                                <div class="mt-auto pt-3 border-top">
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <a asp-action="Edit" asp-route-id="@proveedor.Id"
+                                           class="btn btn-outline-primary flex-fill btn-sm">
+                                            <i class="bi bi-pencil me-1"></i> Actualizar
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@proveedor.Id"
+                                           class="btn btn-outline-danger flex-fill btn-sm">
+                                            <i class="bi bi-trash me-1"></i> Eliminar
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
 
     <!-- Paginación -->
     @if (Model.Paginas != null && Model.Paginas.Any())
     {
         <nav aria-label="Navegación de páginas" class="mt-5">
-            <ul class="pagination justify-content-center">
+            <ul class="pagination justify-content-center pagination-lg">
                 @foreach (var pagina in Model.Paginas)
                 {
                     <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
                         <a class="page-link"
-                           href="@Url.Action("Index", new { pagina = pagina.Pagina, buscar = Model.Buscar })"
-                           style="transition: background-color 0.2s;">
-                            @pagina.Texto
+                           href="@Url.Action("Index", new { pagina = pagina.Pagina, buscar = Model.Buscar })">
+                            @if (pagina.Texto == "Anterior")
+                            {
+                                <span>« Anterior</span>
+                            }
+                            else if (pagina.Texto == "Siguiente")
+                            {
+
+                                <span>Siguiente »</span>
+                            }
+                            else
+                            {
+
+                                @pagina.Texto
+                            }
                         </a>
                     </li>
                 }

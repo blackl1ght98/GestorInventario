@@ -1,80 +1,119 @@
 ﻿@model UsuariosPorRolViewModel
 @using GestorInventario.PaginacionLogica
 @using GestorInventario.ViewModels.user
-@using Microsoft.AspNetCore.Mvc.Rendering
 
 @{
-    ViewData["Title"] = "Usuarios por Rol - GestorInventario";
+    ViewData["Title"] = "Usuarios por Rol";
+    var nombreRol = Model.TodosLosRoles.FirstOrDefault(r => r.Id == Model.RolId)?.Nombre ?? "Rol no encontrado";
 }
 
 <div class="container my-5">
     <!-- Encabezado -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 fw-bold" style="color: var(--primary);">Usuarios del Rol @Model.TodosLosRoles.FirstOrDefault(r => r.Id == Model.RolId)?.Nombre</h1>
-        <a asp-action="ObtenerRoles" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left nav-icon"></i> Volver a Roles
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="display-5 fw-bold text-primary">
+                <i class="bi bi-people me-3"></i>Usuarios del Rol
+            </h1>
+            <h2 class="h4 text-muted">@nombreRol</h2>
+        </div>
+
+        <a asp-action="ObtenerRoles" class="btn btn-outline-secondary btn-lg">
+            <i class="bi bi-arrow-left me-2"></i>Volver a Roles
         </a>
     </div>
 
-    <!-- Mensajes de error -->
+    <!-- Mensajes -->
     @if (TempData["ConnectionError"] != null)
     {
-        <div class="alert alert-danger">@TempData["ConnectionError"]</div>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ConnectionError"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
     }
     @if (TempData["Error"] != null)
     {
-        <div class="alert alert-danger">@TempData["Error"]</div>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-x-circle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
     }
 
-    <!-- Lista de Usuarios con Tarjetas -->
-    <div class="row g-4">
-        @foreach (var usuario in Model.Usuarios)
-        {
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="card border-0 shadow-sm hover-card h-100">
-                    <div class="card-body p-4">
-                        <h5 class="card-title mb-3" style="color: var(--primary);">
-                            <i class="bi bi-person nav-icon me-2"></i> @usuario.NombreCompleto
-                        </h5>
-                        <p class="card-text">
-                            <i class="bi bi-envelope nav-icon text-muted me-2"></i>
-                            <strong>Email:</strong> @usuario.Email<br />
-                            <i class="bi bi-person-badge nav-icon text-muted me-2"></i>
-                            <strong>Rol:</strong>
-                            <span class="badge bg-primary ms-2">@(usuario.IdRolNavigation?.Nombre ?? "No definido")</span>
-                        </p>
-                        <!-- Botón Cambiar Rol -->
-                        <button class="btn btn-primary btn-sm change-role-button"
-                                data-user-id="@usuario.Id">
-                            <i class="bi bi-gear nav-icon"></i> Cambiar Rol
-                        </button>
+    <!-- Lista de Usuarios -->
+    @if (!Model.Usuarios.Any())
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-person-x display-1 text-muted mb-3"></i>
+            <h4 class="text-muted">No hay usuarios asociados a este rol</h4>
+            <a asp-action="ObtenerRoles" class="btn btn-primary mt-3">
+                <i class="bi bi-arrow-left me-2"></i>Volver a Roles
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            @foreach (var usuario in Model.Usuarios)
+            {
+                <div class="col">
+                    <div class="card h-100 border-0 shadow-sm hover-card transition-all">
+                        <div class="card-body p-4 d-flex flex-column">
+
+                            <!-- Nombre del Usuario -->
+                            <h5 class="card-title fw-semibold text-primary mb-3">
+                                <i class="bi bi-person me-2"></i>@usuario.NombreCompleto
+                            </h5>
+
+                            <!-- Información -->
+                            <div class="mb-4">
+                                <p class="mb-2">
+                                    <i class="bi bi-envelope text-muted me-2"></i>
+                                    <strong>Email:</strong> @usuario.Email
+                                </p>
+                                <p class="mb-0">
+                                    <i class="bi bi-person-badge text-muted me-2"></i>
+                                    <strong>Rol actual:</strong>
+                                    <span class="badge bg-primary">@(usuario.IdRolNavigation?.Nombre ?? "No definido")</span>
+                                </p>
+                            </div>
+
+                            <!-- Acción -->
+                            <div class="mt-auto">
+                                <button class="btn btn-primary w-100 change-role-button"
+                                        data-user-id="@usuario.Id">
+                                    <i class="bi bi-gear me-2"></i>Cambiar Rol
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        }
-        @if (!Model.Usuarios.Any())
-        {
-            <div class="col-12 text-center py-5">
-                <p class="text-muted fs-5">No hay usuarios asociados a este rol.</p>
-                <a asp-action="ObtenerRoles" class="btn btn-primary">
-                    <i class="bi bi-arrow-left nav-icon"></i> Volver a Roles
-                </a>
-            </div>
-        }
-    </div>
+            }
+        </div>
+    }
 
     <!-- Paginación -->
     @if (Model.Paginas != null && Model.Paginas.Any())
     {
         <nav aria-label="Navegación de páginas" class="mt-5">
-            <ul class="pagination justify-content-center">
+            <ul class="pagination justify-content-center pagination-lg">
                 @foreach (var pagina in Model.Paginas)
                 {
                     <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
                         <a class="page-link"
-                           href="@Url.Action("VerUsuariosPorRol", new { id = Model.RolId, pagina = pagina.Pagina })"
-                           style="transition: background-color 0.2s;">
-                            @pagina.Texto
+                           href="@Url.Action("VerUsuariosPorRol", new { id = Model.RolId, pagina = pagina.Pagina })">
+                            @if (pagina.Texto == "Anterior")
+                            {
+                                <span>« Anterior</span>
+                            }
+                            else if (pagina.Texto == "Siguiente")
+                            {
+
+                                <span>Siguiente »</span>
+                            }
+                            else
+                            {
+
+                                @pagina.Texto
+                            }
                         </a>
                     </li>
                 }
@@ -83,19 +122,22 @@
     }
 </div>
 
-<!-- Modal -->
+<!-- Modal para Cambiar Rol -->
 <div class="modal fade" id="changeRoleModal" tabindex="-1" aria-labelledby="changeRoleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 1rem;">
-            <div class="modal-header" style="background-color: var(--primary); color: white;">
-                <h5 class="modal-title" id="changeRoleModalLabel">Cambiar Rol</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        <div class="modal-content rounded-3 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="changeRoleModalLabel">
+                    <i class="bi bi-gear me-2"></i>Cambiar Rol del Usuario
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>Selecciona el nuevo rol para el usuario:</p>
+                <p class="mb-3">Selecciona el nuevo rol para el usuario:</p>
+
                 <div class="input-group">
-                    <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
-                        <i class="bi bi-person-badge" style="color: var(--secondary);"></i>
+                    <span class="input-group-text">
+                        <i class="bi bi-person-badge"></i>
                     </span>
                     <select id="roleSelect" class="form-select">
                         @foreach (var rol in Model.TodosLosRoles)
@@ -104,11 +146,16 @@
                         }
                     </select>
                 </div>
-                <p id="loadingMessage" class="d-none mt-2 text-muted">Procesando...</p>
+
+                <p id="loadingMessage" class="d-none text-center text-muted mt-3">
+                    <span class="spinner-border spinner-border-sm me-2"></span>Procesando cambio...
+                </p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="confirmChangeRoleBtn">Confirmar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmChangeRoleBtn">
+                    <i class="bi bi-check-circle me-2"></i>Confirmar Cambio
+                </button>
             </div>
         </div>
     </div>
