@@ -1,87 +1,162 @@
 ﻿@model RembolsosViewModel
-
 @using GestorInventario.ViewModels
 
-@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Gestión de Rembolsos";
+}
 
 <div class="container my-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 fw-bold" style="color: var(--primary);">Gestión de Rembolsos</h1>
-        
+    <!-- Encabezado -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="display-5 fw-bold text-primary">
+                <i class="bi bi-arrow-counterclockwise me-3"></i>Gestión de Rembolsos
+            </h1>
+            <p class="text-muted lead">Administra los reembolsos de pedidos realizados a través de PayPal</p>
+        </div>
     </div>
 
-    <!-- Formulario de búsqueda -->
-    <form asp-action="Index" method="get" class="mb-4">
-        <div class="input-group">
-            <input type="text" name="buscar" value="@Model.Buscar" class="form-control" placeholder="Buscar por numero de pedido " />
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-search"></i> Buscar
-            </button>
+    <!-- Buscador -->
+    <div class="row mb-5">
+        <div class="col-lg-8 mx-auto">
+            <form asp-action="Index" method="get">
+                <div class="input-group input-group-lg">
+                    <input type="text" name="buscar" value="@Model.Buscar"
+                           class="form-control"
+                           placeholder="Buscar por número de pedido o nombre del cliente..." />
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search me-2"></i>Buscar
+                    </button>
+                    @if (!string.IsNullOrEmpty(Model.Buscar))
+                    {
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            Limpiar
+                        </a>
+                    }
+                </div>
+            </form>
         </div>
-    </form>
+    </div>
 
-   
-    <div class="row g-4">
-        @foreach (var rembolso in Model.Rembolsos)
-        {
-            @if (Model.Rembolsos == null)
+    <!-- Mensajes -->
+    @if (TempData["ConnectionError"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ConnectionError"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-x-circle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Lista de Rembolsos -->
+    @if (!Model.Rembolsos.Any())
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-arrow-counterclockwise display-1 text-muted mb-3"></i>
+            <h4 class="text-muted">No hay reembolsos registrados</h4>
+            <p class="text-muted">Los reembolsos aparecerán aquí cuando se procesen.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            @foreach (var rembolso in Model.Rembolsos)
             {
-                <div>Rembolsos es NULL</div>
-            }
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="card border-0 shadow-sm hover-card h-100">
-                    <div class="card-body p-4">
-                        <h5 class="card-title mb-3" style="color: var(--primary);">@rembolso.NombreCliente</h5>
-                        <p class="card-text">
-                            <i class="bi bi-envelope nav-icon text-muted"></i> <strong>Estado rembolso:</strong> @rembolso.EstadoRembolso<br />
-                            <i class="bi bi-calendar nav-icon text-muted"></i> <strong>Email cliente:</strong> @rembolso.EmailCliente<br />
-                            <i class="bi bi-person-badge nav-icon text-muted"></i> <strong>Fecha Rembolso:</strong> @rembolso.FechaRembolso<br />
-                            <i class="bi bi-person-badge nav-icon text-muted"></i> <strong>Estado Rembolso:</strong> @rembolso.EstadoRembolso<br />
-                            <i class="bi bi-person-badge nav-icon text-muted"></i> <strong>Estado Venta:</strong> @rembolso.EstadoVenta<br />
-                            <i class="bi bi-person-badge nav-icon text-muted"></i> <strong>Motivo Rembolso:</strong> @rembolso.MotivoRembolso<br />
-                            <i class="bi bi-person-badge nav-icon text-muted"></i> <strong>Numero de pedido:</strong> @rembolso.NumeroPedido<br />
-                            <i class="bi bi-person-badge nav-icon text-muted"></i> <strong> Rembolso realizado:</strong> @rembolso.RembosoRealizado<br />
-                           
-                        </p>
-                    </div>
-                    <div class="card-footer bg-light p-3">
-                        <div class="d-flex flex-wrap gap-2 justify-content-center">
+                <div class="col">
+                    <div class="card h-100 border-0 shadow-sm hover-card transition-all">
+                        <div class="card-body p-4 d-flex flex-column">
 
+                            <h5 class="card-title fw-semibold text-primary mb-3">
+                                @rembolso.NombreCliente
+                            </h5>
 
-                          <button class="user-action-button"
-        data-rembolso-id="@rembolso.Id"
-        data-user-action="Eliminar">
-    Eliminar
-</button>
-                            <button type="button"
-                                    class="btn btn-outline-warning btn-sm refund-total-btn"
-                                    data-pedido-id="@rembolso.Pedido.Id"
-                                    data-currency="@rembolso.Pedido.Currency"
-                                    @(rembolso.Pedido.EstadoPedido == "Reembolsado" ? "disabled" : "")>
-                                Reembolsar
-                            </button>
-                         
-                           
+                            <div class="mb-4">
+                                <p class="mb-2">
+                                    <i class="bi bi-envelope text-muted me-2"></i>
+                                    <strong>Email:</strong> @rembolso.EmailCliente
+                                </p>
+                                <p class="mb-2">
+                                    <i class="bi bi-calendar text-muted me-2"></i>
+                                    <strong>Fecha:</strong> @rembolso.FechaRembolso
+                                </p>
+                                <p class="mb-2">
+                                    <i class="bi bi-receipt text-muted me-2"></i>
+                                    <strong>Nº Pedido:</strong> @rembolso.NumeroPedido
+                                </p>
+                                <p class="mb-2">
+                                    <strong>Estado Rembolso:</strong>
+                                    <span class="badge @(rembolso.EstadoRembolso == "Completado" ? "bg-success" : "bg-warning")">
+                                        @rembolso.EstadoRembolso
+                                    </span>
+                                </p>
+                                <p class="mb-0">
+                                    <strong>Estado Venta:</strong>
+                                    <span class="badge bg-secondary">@rembolso.EstadoVenta</span>
+                                </p>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(rembolso.MotivoRembolso))
+                            {
+                                <p class="text-muted small">
+                                    <strong>Motivo:</strong> @rembolso.MotivoRembolso
+                                </p>
+                            }
+
+                            <!-- Acciones -->
+                            <div class="mt-auto pt-3 border-top">
+                                <div class="d-flex flex-wrap gap-2">
+                                    <button type="button"
+                                            class="btn btn-outline-warning flex-fill btn-sm refund-total-btn"
+                                            data-pedido-id="@rembolso.Pedido?.Id"
+                                            data-currency="@rembolso.Pedido?.Currency"
+                                            @(rembolso.Pedido?.EstadoPedido == "Reembolsado" ? "disabled" : "")>
+                                        <i class="bi bi-arrow-counterclockwise me-1"></i>Reembolsar
+                                    </button>
+
+                                    <button class="btn btn-outline-danger flex-fill btn-sm user-action-button"
+                                            data-rembolso-id="@rembolso.Id"
+                                            data-user-action="Eliminar">
+                                        <i class="bi bi-trash me-1"></i>Eliminar
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        }
-   
-    </div>
+            }
+        </div>
+    }
 
     <!-- Paginación -->
     @if (Model.Paginas != null && Model.Paginas.Any())
     {
         <nav aria-label="Navegación de páginas" class="mt-5">
-            <ul class="pagination justify-content-center">
+            <ul class="pagination justify-content-center pagination-lg">
                 @foreach (var pagina in Model.Paginas)
                 {
                     <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
                         <a class="page-link"
-                           href="@Url.Action("Index", new { pagina = pagina.Pagina, buscar = Model.Buscar })"
-                           style="transition: background-color 0.2s;">
-                            @pagina.Texto
+                           href="@Url.Action("Index", new { pagina = pagina.Pagina, buscar = Model.Buscar })">
+                            @if (pagina.Texto == "Anterior")
+                            {
+                                <span>« Anterior</span>
+                            }
+                            else if (pagina.Texto == "Siguiente")
+                            {
+
+                                <span>Siguiente »</span>
+                            }
+                            else
+                            {
+
+                                @pagina.Texto
+                            }
                         </a>
                     </li>
                 }
@@ -90,55 +165,50 @@
     }
 </div>
 
-<!-- Modal Rembolso -->
-<div class="modal fade" id="confirmRefundTotalModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
+<!-- Modal Reembolso Total -->
+<div class="modal fade" id="confirmRefundTotalModal" tabindex="-1" aria-labelledby="refundModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3 shadow">
             <div class="modal-header bg-warning">
-                <h5 class="modal-title">Confirmar reembolso TOTAL</h5>
+                <h5 class="modal-title text-dark">Confirmar Reembolso Total</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-
             <div class="modal-body">
-                <p id="refundText">⚠️ Esta acción reembolsará el pedido completo.</p>
-
-                <!-- Mensaje dinámico -->
-                <div id="refundResult"
-                     class="alert d-none mt-3"
-                     role="alert">
-                </div>
+                <p id="refundText" class="mb-3">⚠️ Esta acción reembolsará el pedido completo.</p>
+                <div id="refundResult" class="alert d-none" role="alert"></div>
             </div>
-
             <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">
-                    Cancelar
-                </button>
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button class="btn btn-danger" id="confirmRefundTotalBtn">
-                    Confirmar reembolso
+                    <i class="bi bi-check-circle me-2"></i>Confirmar Reembolso
                 </button>
             </div>
         </div>
     </div>
 </div>
-<!-- Modal genérico de confirmación (igual que en usuarios) -->
+
+<!-- Modal Genérico de Confirmación -->
 <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 1rem;">
-            <div class="modal-header" style="background-color: var(--primary); color: white;">
+        <div class="modal-content rounded-3 shadow">
+            <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="confirmModalLabel">Confirmación</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <p id="confirmMessage">¿Estás seguro de que deseas realizar esta acción?</p>
-                <p id="loadingMessage" class="d-none text-muted">Procesando...</p>
+                <p id="loadingMessage" class="d-none text-center text-muted mt-3">
+                    <span class="spinner-border spinner-border-sm me-2"></span>Procesando...
+                </p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-primary" id="confirmActionBtn">Confirmar</button>
             </div>
         </div>
     </div>
 </div>
+
 @section Scripts {
     <script src="~/js/eliminar-rembolso.js" asp-append-version="true"></script>
     <script src="~/js/rembolso.js" asp-append-version="true"></script>

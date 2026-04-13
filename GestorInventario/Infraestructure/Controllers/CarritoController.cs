@@ -25,28 +25,27 @@ namespace GestorInventario.Infraestructure.Controllers
             _paginationHelper = pagination;
             _currentUserAccessor = current;
         }
-       
+
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> Index([FromQuery] Paginacion paginacion)
         {
             try
             {
-               
-
                 int usuarioId = _currentUserAccessor.GetCurrentUserId();
+
                 var resultado = await _policyExecutor.ExecutePolicyAsync(
                     () => _carritoRepository.ObtenerCarritoUsuario(usuarioId)
                 );
-                
+
                 var carrito = resultado.Data;
-                // 🔹 Crear carrito automáticamente si no existe
-               
-                if (carrito == null )
+
+                // Crear carrito automáticamente si no existe
+                if (carrito == null)
                 {
                     var carritoUsuario = await _policyExecutor.ExecutePolicyAsync(
-                       () => _carritoRepository.CrearCarritoUsuario(usuarioId)
-                   );
+                        () => _carritoRepository.CrearCarritoUsuario(usuarioId)
+                    );
                     carrito = carritoUsuario.Data;
                 }
 
@@ -54,27 +53,30 @@ namespace GestorInventario.Infraestructure.Controllers
                     () => _carritoRepository.ObtenerItemsConDetalles(carrito.Id)
                 );
 
-                // ✅ Aquí usamos el mismo helper que en el controlador de usuarios
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
                     _paginationHelper.PaginarAsync(itemsDelCarrito.Data, paginacion)
                 );
 
-                var subtotal = paginationResult.Items.Sum(item => item.Producto.Precio * (item.Cantidad ?? 0));
-                var shipping = 2.99m;
-                var total = subtotal + shipping;
+               
+                var subtotal = paginationResult.Items.Sum(item => item.Producto.Precio * (item.Cantidad ?? 0m));
+                var impuestos = subtotal * 0.21m;        // IVA sobre el subtotal
+                var total = subtotal + impuestos;        // Total = subtotal + IVA
+
                 var resultadoMonedas = await _policyExecutor.ExecutePolicyAsync(
-            () => _carritoRepository.ObtenerMoneda());
-                var monedas = resultadoMonedas.Data;
+                    () => _carritoRepository.ObtenerMoneda()
+                );
+
                 var viewModel = new CarritoViewModel
                 {
                     Productos = paginationResult.Items.ToList(),
-                    Monedas = new SelectList(monedas, "Codigo", "Codigo"),
+                    Subtotal = subtotal,
+                    Impuestos = impuestos,          // ← IVA 
+                    Shipping = 0m,
+                    Total = total,                  // ← Total con IVA
+                    Monedas = new SelectList(resultadoMonedas.Data, "Codigo", "Codigo"),
                     Paginas = paginationResult.Paginas.ToList(),
                     TotalPaginas = paginationResult.TotalPaginas,
-                    PaginaActual = paginationResult.PaginaActual,
-                    Subtotal = subtotal,
-                    Shipping = shipping,
-                    Total = total
+                    PaginaActual = paginationResult.PaginaActual
                 };
 
                 return View(viewModel);

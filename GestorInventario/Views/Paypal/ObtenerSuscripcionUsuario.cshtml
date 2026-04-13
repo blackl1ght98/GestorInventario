@@ -1,56 +1,96 @@
 ﻿@model SuscripcionesUsuarioPaginadosViewModel
-
 @using GestorInventario.ViewModels.Paypal
 
 @{
     ViewData["Title"] = "Suscripciones Activas";
 }
 
-
-
 <div class="container my-5">
-    <div class="text-center mb-4 animate-fade-in">
-        <h2 class="text-secondary"><i class="bi bi-wallet me-2"></i>Suscripciones Activas</h2>
-        <p class="text-muted">Administra las suscripciones activas de los usuarios en PayPal.</p>
+    <!-- Encabezado -->
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold text-primary">
+            <i class="bi bi-wallet2 me-3"></i>Suscripciones Activas
+        </h1>
+        <p class="lead text-muted">
+            Lista de suscripciones activas de los usuarios en PayPal
+        </p>
     </div>
 
-    <!-- Mensaje sin datos -->
+    <!-- Mensaje de error -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show text-center" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
     @if (Model == null || !Model.Suscripciones.Any())
     {
-        <div class="alert alert-warning text-center rounded-3 animate-fade-in">
-            <i class="bi bi-exclamation-triangle me-2"></i>No hay suscripciones activas en este momento.
+        <div class="alert alert-info text-center py-5 rounded-3 shadow-sm">
+            <i class="bi bi-inbox display-1 text-muted mb-3"></i>
+            <h4 class="text-muted">No hay suscripciones activas</h4>
+            <p class="text-muted mb-0">Cuando los usuarios contraten una suscripción, aparecerá aquí.</p>
         </div>
     }
     else
     {
-        <!-- Lista de Suscripciones con Tarjetas -->
-        <div class="row g-4">
-            @foreach (var user in Model.Suscripciones)
+        <!-- Grid de Suscripciones -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            @foreach (var sus in Model.Suscripciones)
             {
-                <div class="col-12 col-md-6 col-lg-4">
-                    <div class="card border-0 shadow-sm hover-card h-100 animate-fade-in">
-                        <div class="card-body p-4">
-                            <h5 class="card-title mb-3" style="color: var(--primary);">@user.SubscriptionId</h5>
-                            <p class="card-text">
-                                <i class="bi bi-person nav-icon text-muted"></i> <strong>Usuario:</strong> @user.User.NombreCompleto<br />
-                                <i class="bi bi-person-circle nav-icon text-muted"></i> <strong>Nombre Suscriptor:</strong> @user.NombreSusbcriptor<br />
-                                <i class="bi bi-key nav-icon text-muted"></i> <strong>ID Suscripción:</strong> @user.SubscriptionId<br />
-                                <i class="bi bi-key nav-icon text-muted"></i> <strong>Estado:</strong> @user.Subscription.Status<br />
-                                
-                            </p>
-                        </div>
-                        <div class="card-footer bg-light p-3">
-                            <div class="d-flex flex-wrap gap-2 justify-content-center">
-                                <a asp-action="DetallesSuscripcion" asp-controller="Paypal" asp-route-id="@user.SubscriptionId" class="btn btn-primary btn-sm" data-bs-toggle="tooltip" title="Ver detalles">
-                                    <i class="bi bi-eye nav-icon"></i> Detalles
-                                </a>
-                                <button type="button"
-                                        class="btn btn-sm btn-danger btn-cancel-suscripcion"
-                                        data-id="@user.SubscriptionId"
-                                        data-bs-toggle="tooltip"
-                                        title="Suspender esta suscripción">
-                                    <i class="bi bi-play-fill"></i> Cancelar
-                                </button>
+                <div class="col">
+                    <div class="card h-100 border-0 shadow-sm hover-card transition-all">
+                        <div class="card-body p-4 d-flex flex-column">
+
+                            <!-- Cabecera de la tarjeta -->
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h5 class="card-title text-primary fw-semibold mb-0">
+                                    @sus.SubscriptionId
+                                </h5>
+                                <span class="badge bg-success fs-6">
+                                    @sus.Subscription.Status
+                                </span>
+                            </div>
+
+                            <!-- Información del usuario y suscripción -->
+                            <div class="mb-4">
+                                <p class="mb-2">
+                                    <strong>Usuario:</strong>
+                                    @sus.User.NombreCompleto
+                                </p>
+                                <p class="mb-2">
+                                    <strong>Nombre Suscriptor:</strong>
+                                    @sus.NombreSusbcriptor
+                                </p>
+                                <p class="mb-2">
+                                    <strong>Email:</strong>
+                                    @sus.Subscription.SubscriberEmail
+                                </p>
+                                <p class="mb-0">
+                                    <strong>Plan ID:</strong>
+                                    <span class="text-muted">@sus.Subscription.PlanId</span>
+                                </p>
+                            </div>
+
+                            <!-- Acciones -->
+                            <div class="mt-auto pt-3 border-top">
+                                <div class="d-flex flex-wrap gap-2">
+                                    <a asp-action="DetallesSuscripcion"
+                                       asp-controller="Paypal"
+                                       asp-route-id="@sus.SubscriptionId"
+                                       class="btn btn-outline-primary flex-fill btn-sm">
+                                        <i class="bi bi-eye me-1"></i> Ver Detalles
+                                    </a>
+
+                                    <button type="button"
+                                            class="btn btn-danger btn-sm flex-fill btn-cancel-suscripcion"
+                                            data-id="@sus.SubscriptionId"
+                                            data-bs-toggle="tooltip"
+                                            title="Cancelar esta suscripción">
+                                        <i class="bi bi-x-circle me-1"></i> Cancelar
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -59,79 +99,72 @@
         </div>
     }
 
+    <!-- Paginación -->
+    @if (Model?.Paginas != null && Model.Paginas.Any())
+    {
+        <nav aria-label="Navegación de páginas" class="mt-5">
+            <ul class="pagination justify-content-center pagination-lg">
+                @foreach (var pagina in Model.Paginas)
+                {
+                    <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
+                        <a class="page-link"
+                           href="@Url.Action("ObtenerSuscripcionUsuario", new { pagina = pagina.Pagina })">
+                            @if (pagina.Texto == "Anterior")
+                            {
+                                <span>« Anterior</span>
+                            }
+                            else if (pagina.Texto == "Siguiente")
+                            {
+                                <span>Siguiente »</span>
+                            }
+                            else
+                            {
+                                @pagina.Texto
+                            }
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+</div>
 
-    <!-- Modal para Cancelar con Motivo -->
-    <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title" id="cancelModalLabel"><i class="bi bi-pause-circle me-2"></i>Cancelar Suscripción</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <!-- ¡Aquí empieza el formulario real! -->
-                <form id="suspendForm" asp-controller="Paypal" asp-action="CancelarSuscripcion" method="post">
-                    <div class="modal-body">
-                        <p>Ingresa el motivo para cancelar la suscripción <strong id="cancelSubscriptionIdDisplay"></strong>:</p>
-
-                        <!-- Campo oculto para el ID -->
-                        <input type="hidden" name="Id" id="cancelSubscriptionId" />
-
-                        <div class="mb-3">
-                            <label for="cancelReason" class="form-label">Motivo:</label>
-                            <textarea class="form-control"
-                                      id="cancelReason"
-                                      name="Reason"
-                                      rows="4"
-                                      placeholder="Escribe el motivo aquí (máximo 500 caracteres)"
-                                      maxlength="500"
-                                      required></textarea>
-                            <div class="invalid-feedback">El motivo es requerido.</div>
-                        </div>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                            <i class="bi bi-x me-2"></i>Cancelar
-                        </button>
-                        <button type="submit" class="btn btn-success" id="confirmABtn">
-                            <i class="bi bi-check me-2"></i>Cancelar Subscripcion
-                        </button>
-                    </div>
-                </form>
-
+<!-- Modal Cancelar Suscripción -->
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-x-circle me-2"></i>Cancelar Suscripción
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
+            <form id="cancelForm" asp-controller="Paypal" asp-action="CancelarSuscripcion" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="Id" id="cancelSubscriptionId" />
+                    <p class="mb-3">Estás a punto de <strong>cancelar</strong> la suscripción:</p>
+                    <p class="fw-bold text-danger" id="cancelSubscriptionIdDisplay"></p>
+
+                    <div class="mb-3">
+                        <label for="cancelReason" class="form-label fw-bold">
+                            Motivo de la cancelación <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" id="cancelReason" name="Reason"
+                                  rows="4" placeholder="Indica el motivo..."
+                                  maxlength="500" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Volver</button>
+                    <button type="submit" class="btn btn-danger" id="confirmCancelBtn">
+                        <i class="bi bi-check2-circle me-2"></i>Confirmar Cancelación
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
-<!-- Paginación -->
-@if (Model.Paginas != null && Model.Paginas.Any())
-{
-    <nav aria-label="Navegación de páginas" class="mt-5">
-        <ul class="pagination justify-content-center">
-            @foreach (var pagina in Model.Paginas)
-            {
-                <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
-                    <a class="page-link"
-                       href="@Url.Action("ObtenerSuscripcionUsuario", new { pagina = pagina.Pagina })"
-                       style="transition: background-color 0.2s;">
-                        @if (pagina.Texto == "Anterior")
-                        {
-                            <span aria-hidden="true">«</span>
-                        }
-                        else if (pagina.Texto == "Siguiente")
-                        {
-                            <span aria-hidden="true">»</span>
-                        }
-                        else
-                        {
-                            @pagina.Texto
-                        }
-                    </a>
-                </li>
-            }
-        </ul>
-    </nav>
-}
-@section Scripts {
+</div>
 
-        <script src="~/js/suscripciones-actions.js" asp-append-version="true"></script>
+@section Scripts {
+    <script src="~/js/suscripciones-actions.js" asp-append-version="true"></script>
 }

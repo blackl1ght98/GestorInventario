@@ -1,4 +1,7 @@
 ﻿@using GestorInventario.ViewModels.order
+@using GestorInventario.enums
+@using System.Reflection
+@using System.ComponentModel.DataAnnotations
 @model EditPedidoViewModel
 <link rel="stylesheet" href="~/css/pedidoEdit.css" />
 <div class="card hover-card">
@@ -21,14 +24,19 @@
                 <input type="date" class="form-control" asp-for="FechaPedido" id="FechaPedido" />
                 <span asp-validation-for="FechaPedido" class="text-danger"></span>
             </div>
-            <div class="form-group mb-3">
-                <label asp-for="EstadoPedido" class="form-label">Estado del Pedido</label>
-                <input type="text" class="form-control" asp-for="EstadoPedido" id="EstadoPedido" />
-                <span asp-validation-for="EstadoPedido" class="text-danger"></span>
-            </div>
+            <select asp-for="EstadoPedido" class="form-select">
+                @foreach (var value in Enum.GetValues(typeof(EstadoPedido)))
+                {
+                    var displayName = value.GetType().GetMember(value.ToString())
+                    .FirstOrDefault()?.GetCustomAttribute<DisplayAttribute>()?.Name
+                    ?? value.ToString().Replace("_", " ");
+
+                    <option value="@value" selected="@(value.ToString() == Model.EstadoPedido)">@displayName</option>
+                }
+            </select>
             <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-                <a asp-action="Index" asp-controller="Pedidos" class="btn btn-secondary">Volver a la Lista</a>
+                <button type="submit" class="btn btn-primary mt-2">Guardar Cambios</button>
+                <a asp-action="Index" asp-controller="Pedidos" class="btn btn-secondary mt-2">Volver a la Lista</a>
             </div>
         </form>
     </div>

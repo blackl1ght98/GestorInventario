@@ -7,74 +7,103 @@
     ViewData["Title"] = "Productos de PayPal - GestorInventario";
 }
 
-<link rel="stylesheet" href="~/css/productos.css" />
-
-<div class="container mt-5">
+<div class="container my-5">
     <!-- Encabezado -->
-    <div class="text-center mb-4 animate-fade-in">
-        <h2 class="text-secondary"><i class="bi bi-box-seam me-2"></i>Productos de PayPal</h2>
-        <p class="text-muted">Gestiona tus productos de PayPal: crea, edita o desactiva según tus necesidades.</p>
+    <div class="text-center mb-5">
+        <h1 class="display-5 text-primary fw-bold">
+            <i class="bi bi-box-seam me-3"></i>Productos de PayPal
+        </h1>
+        <p class="lead text-muted">
+            Gestiona los productos y planes configurados en PayPal para tus suscripciones y pagos.
+        </p>
     </div>
 
-    <!-- Botón Crear Producto -->
-    <div class="mb-4 text-end animate-fade-in">
-        <a asp-action="CrearProductoYPlan" asp-controller="Paypal" class="btn btn-primary"><i class="bi bi-plus-circle me-2"></i>Crear Producto & Plan</a>
+    <!-- Botón de acción -->
+    <div class="d-flex justify-content-end mb-4">
+        <a asp-action="CrearProductoYPlan" asp-controller="Paypal"
+           class="btn btn-primary btn-lg shadow-sm">
+            <i class="bi bi-plus-circle me-2"></i>
+            Crear Nuevo Producto + Plan
+        </a>
     </div>
 
-
-    <!-- Lista de productos -->
+    <!-- Mensaje si no hay productos -->
     @if (!Model.Productos.Any())
     {
-        <div class="alert alert-warning text-center rounded-3 animate-fade-in">
-            <i class="bi bi-exclamation-triangle me-2"></i>No hay productos disponibles en este momento.
+        <div class="alert alert-info text-center py-5 rounded-3 shadow-sm">
+            <i class="bi bi-inbox display-1 text-muted mb-3"></i>
+            <h4 class="text-muted">No hay productos registrados</h4>
+            <p class="text-muted mb-0">Comienza creando tu primer producto y plan en PayPal.</p>
         </div>
     }
     else
     {
-        <div class="row">
+        <!-- Grid de productos -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
             @foreach (var producto in Model.Productos)
             {
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100 border-0 shadow-sm hover-card animate-fade-in">
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title text-center text-primary">@producto.Nombre</h5>
-                            <p class="card-text text-center text-muted mb-3">@(string.IsNullOrEmpty(producto.Descripcion) ? "Sin descripción" : producto.Descripcion)</p>
-                            <div class="mb-3">
-                                <p class="card-text">
-                                    <strong><i class="bi bi-key me-2"></i>ID:</strong> @producto.Id
-                                </p>
+                <div class="col">
+                    <div class="card h-100 border-0 shadow-sm hover-card transition-all">
+                        <div class="card-body d-flex flex-column p-4">
+
+                            <!-- Nombre del producto -->
+                            <h5 class="card-title text-primary fw-semibold text-center mb-3">
+                                @producto.Nombre
+                            </h5>
+
+                            <!-- Descripción -->
+                            <p class="card-text text-muted text-center flex-grow-1 mb-4">
+                                @(string.IsNullOrWhiteSpace(producto.Descripcion)
+                                                        ? "Sin descripción disponible"
+                                                        : producto.Descripcion.Length > 120
+                                                        ? producto.Descripcion.Substring(0, 117) + "..."
+                                                        : producto.Descripcion)
+                    </p>
+
+                            <!-- Información técnica -->
+                            <div class="bg-light rounded-3 p-3 mb-4">
+                                <div class="d-flex justify-content-between small">
+                                    <span class="text-muted">ID PayPal:</span>
+                                    <span class="fw-monospace text-primary">@producto.Id</span>
+                                </div>
                             </div>
+
+                            <!-- Acciones -->
                             <div class="mt-auto">
-                                <div class="btn-group w-100" role="group" aria-label="Acciones">
-                                    <a asp-action="EditarProductoPaypal" asp-route-id="@producto.Id" class="btn btn-primary w-50 me-1">
-                                        <i class="bi bi-pencil-square me-2"></i>Editar
+                                <div class="d-grid gap-2">
+                                    <a asp-action="EditarProductoPaypal" asp-route-id="@producto.Id"
+                                       class="btn btn-outline-primary">
+                                        <i class="bi bi-pencil-square me-2"></i>Editar Producto
                                     </a>
-                                  
+
+                                    <!-- Puedes añadir más botones aquí en el futuro -->
+                                    <!-- Ej: Ver Plan, Desactivar, etc. -->
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            }
+                }
         </div>
     }
 
-    <!-- Paginación -->
+    <!-- Paginación mejorada -->
     @if (Model.Paginas != null && Model.Paginas.Any())
     {
         <nav aria-label="Navegación de páginas" class="mt-5">
-            <ul class="pagination justify-content-center">
+            <ul class="pagination justify-content-center pagination-lg">
                 @foreach (var pagina in Model.Paginas)
                 {
                     <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
-                        <a class="page-link" href="@Url.Action("MostrarProductos", new { pagina = pagina.Pagina })" style="transition: background-color 0.2s;">
+                        <a class="page-link"
+                           href="@Url.Action("MostrarProductos", new { pagina = pagina.Pagina })">
                             @if (pagina.Texto == "Anterior")
                             {
-                                <span aria-hidden="true">«</span>
+                                <span aria-hidden="true">« Anterior</span>
                             }
                             else if (pagina.Texto == "Siguiente")
                             {
-                                <span aria-hidden="true">»</span>
+                                <span aria-hidden="true">Siguiente »</span>
                             }
                             else
                             {
@@ -86,5 +115,4 @@
             </ul>
         </nav>
     }
-
 </div>

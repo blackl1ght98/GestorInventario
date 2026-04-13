@@ -1,168 +1,152 @@
-﻿@using GestorInventario.Domain.Models
-@model PayPalPaymentDetail
-
+﻿@model PayPalPaymentDetail
 @{
     ViewData["Title"] = "Factura de Pago - GestorInventario";
 }
 
 <div class="container my-5">
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
-            <i class="bi bi-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-    <div class="card border-0 shadow-sm" style="border-radius: 1rem;">
+    <div class="card shadow border-0 overflow-hidden" style="border-radius: 1rem;">
         <div class="card-body p-5">
-            <!-- Encabezado de la factura -->
-            <div class="invoice-header text-center mb-5">
-                <img src="~/images/logo.png" alt="GestorInventario" class="mb-3" style="max-width: 150px;" />
-                <h2 class="fw-bold" style="color: var(--primary);">Factura</h2>
-                <p class="text-muted">Fecha: @Model.CreateTime?.ToString("dd/MM/yyyy HH:mm:ss")</p>
-                <p class="text-muted">ID del Pago: @Model.Id</p>
+
+            <!-- Encabezado de Factura -->
+            <div class="row mb-5 align-items-center">
+                <div class="col-md-6">
+                    <img src="~/images/logo.png" alt="GestorInventario" style="max-width: 180px;" class="mb-3" />
+                    <h2 class="fw-bold text-primary">Factura</h2>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-1"><strong>Fecha:</strong> @Model.CreateTime?.ToString("dd/MM/yyyy HH:mm")</p>
+                    <p class="mb-1"><strong>ID del Pago:</strong> <span class="text-muted">@Model.Id</span></p>
+                    <p>
+                        <strong>Estado:</strong>
+                        <span class="badge bg-@(Model.Status == "COMPLETED" ? "success" : "warning") fs-6">
+                            @Model.Status
+                        </span>
+                    </p>
+                </div>
             </div>
 
-            <!-- Detalles del Cliente -->
-            <div class="mb-5">
-                <h4 class="mb-3" style="color: var(--text);">Detalles del Cliente</h4>
-                <div class="table-responsive">
-                    <table class="table table-bordered">
-                        <tbody>
-                            <tr>
-                                <th scope="row" class="bg-light" style="width: 30%;">Nombre</th>
-                                <td>@Model.PayerFirstName @Model.PayerLastName</td>
-                            </tr>
-                            <tr>
-                                <th scope="row" class="bg-light">Email</th>
-                                <td>@Model.PayerEmail</td>
-                            </tr>
-                            <tr>
-                                <th scope="row" class="bg-light">Dirección</th>
-                                <td>@Model.ShippingLine1, @Model.ShippingCity, @Model.ShippingState, @Model.ShippingPostalCode, @Model.ShippingCountryCode</td>
-                            </tr>
-                        </tbody>
+            <hr class="my-4">
+
+            <!-- Información del Cliente -->
+            <div class="row mb-5">
+                <div class="col-lg-6">
+                    <h5 class="border-bottom pb-2 text-primary">Detalles del Cliente</h5>
+                    <table class="table table-borderless">
+                        <tr>
+                            <th class="ps-0" style="width: 35%;">Nombre:</th>
+                            <td>@Model.PayerFirstName @Model.PayerLastName</td>
+                        </tr>
+                        <tr>
+                            <th class="ps-0">Email:</th>
+                            <td>@Model.PayerEmail</td>
+                        </tr>
+                        <tr>
+                            <th class="ps-0">Dirección de envío:</th>
+                            <td>
+                                @Model.ShippingLine1<br />
+                                @Model.ShippingCity, @Model.ShippingState @Model.ShippingPostalCode<br />
+                                @Model.ShippingCountryCode
+                            </td>
+                        </tr>
                     </table>
                 </div>
             </div>
 
-            <!-- Detalles de la Transacción -->
-            <div class="mb-5">
-                <h4 class="mb-3" style="color: var(--text);">Detalles de la Transacción</h4>
-                <div class="table-responsive">
-                    <table class="table table-bordered">
-                        <tbody>
+            <!-- Productos -->
+            <h5 class="border-bottom pb-2 text-primary mb-3">Productos Adquiridos</h5>
+            <div class="table-responsive mb-5">
+                <table class="table table-striped table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Producto</th>
+                            <th class="text-center">Cantidad</th>
+                            <th class="text-end">Precio Unitario</th>
+                            <th class="text-end">Impuesto</th>
+                            <th class="text-end">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.PayPalPaymentItems)
+                        {
+                            var totalItem = (item.ItemPrice * item.ItemQuantity) + item.ItemTax;
+
                             <tr>
-                                <th scope="row" class="bg-light" style="width: 30%;">Estado del Pago</th>
-                                <td>@Model.Status</td>
+                                <td><strong>@item.ItemName</strong></td>
+                                <td class="text-center">@item.ItemQuantity</td>
+                                <td class="text-end">@item.ItemPrice</td>
+                                <td class="text-end text-success">@item.ItemTax</td>
+                                <td class="text-end fw-bold">@totalItem</td>
                             </tr>
-                            <tr>
-                                <th scope="row" class="bg-light">Descripción</th>
-                                <td>@Model.Description</td>
-                            </tr>
-                            <tr>
-                                <th scope="row" class="bg-light">ID de la Venta</th>
-                                <td>@Model.SaleId</td>
-                            </tr>
-                            <tr>
-                                <th scope="row" class="bg-light">Estado de la Venta</th>
-                                <td>@Model.CaptureStatus</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                        }
+                    </tbody>
+                </table>
             </div>
 
-            <!-- Detalles de los Productos -->
-            <div class="mb-5">
-                <h4 class="mb-3" style="color: var(--text);">Productos</h4>
-                <div class="table-responsive">
-                    <table class="table table-striped table-bordered">
-                        <thead style="background-color: var(--primary); color: white;">
-                            <tr>
-                                <th>Producto</th>
-                                <th>SKU</th>
-                                <th>Cantidad</th>
-                                <th>Precio Unitario</th>
-                                <th>Impuesto</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in Model.PayPalPaymentItems)
+            <!-- Resumen de Totales -->
+            <div class="row justify-content-end">
+                <div class="col-lg-5">
+                    <div class="card bg-light border-0">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary mb-4">Resumen de Pago</h5>
+
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal</span>
+                                <span>@Model.AmountItemTotal</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Envío</span>
+                                <span>@Model.AmountShipping</span>
+                            </div>
+                            @if (Model.TransactionFeeAmount > 0)
                             {
-                                <tr>
-                                    <td>@item.ItemName</td>
-                                    <td>@item.ItemSku</td>
-                                    <td>@item.ItemQuantity</td>
-                                    <td>@item.ItemPrice @item.ItemCurrency</td>
-                                    <td>@item.ItemTax @item.ItemCurrency</td>
-                                    <td>@(item.ItemPrice * item.ItemQuantity + item.ItemTax) @item.ItemCurrency</td>
-
-                                </tr>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Comisión PayPal</span>
+                                    <span class="text-danger">@Model.TransactionFeeAmount</span>
+                                </div>
                             }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Totales -->
-            <div class="mb-5">
-                <h4 class="mb-3" style="color: var(--text);">Totales</h4>
-                <div class="table-responsive">
-                    <table class="table table-bordered">
-                        <tbody>
-                            <tr>
-                                <th scope="row" class="bg-light" style="width: 30%;">Subtotal</th>
-                                <td>@Model.AmountItemTotal @Model.AmountCurrency</td>
-                            </tr>
-                            <tr>
-                                <th scope="row" class="bg-light">Envío</th>
-                                <td>@Model.AmountShipping @Model.AmountCurrency</td>
-                            </tr>
-                            <tr>
-                                <th scope="row" class="bg-light">Total</th>
-                                <td class="fw-bold">@Model.AmountTotal @Model.AmountCurrency</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-         
-                <div class="mb-5">
-                    <h4 class="mb-3" style="color: var(--text);">Detalles Adicionales</h4>
-                    <div class="table-responsive">
-                        <table class="table table-bordered">
-                            <tbody>
-                                <tr>
-                                    <th scope="row" class="bg-light" style="width: 30%;">Comisión de Transacción</th>
-                                    <td>@Model.TransactionFeeAmount @Model.TransactionFeeCurrency</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" class="bg-light">Cambio</th>
-                                    <td>@Model.ExchangeRate</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" class="bg-light">Monto Recibible</th>
-                                    <td>@Model.ReceivableAmount @Model.ReceivableCurrency</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                            <hr>
+                            <div class="d-flex justify-content-between fs-5 fw-bold">
+                                <span>Total Pagado</span>
+                                <span>@Model.AmountTotal</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            
+            </div>
+
+            <!-- Información Adicional -->
+            <div class="mt-5 pt-4 border-top">
+                <h5 class="text-primary mb-3">Detalles Adicionales</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>ID de Venta:</strong> @Model.SaleId</p>
+                        <p><strong>Estado de Captura:</strong> @Model.CaptureStatus</p>
+                    </div>
+                    <div class="col-md-6">
+                        @if (Model.ExchangeRate != null)
+                        {
+                            <p><strong>Tipo de Cambio:</strong> @Model.ExchangeRate</p>
+                        }
+                        @if (Model.ReceivableAmount != null)
+                        {
+                            <p><strong>Monto Recibible:</strong> @Model.ReceivableAmount @Model.ReceivableCurrency</p>
+                        }
+                    </div>
+                </div>
+            </div>
 
             <!-- Acciones -->
-         
-            <div class="text-center">
-                <a asp-controller="Pedidos" asp-action="SendInvoiceByEmail" asp-route-id="@Model.Id" class="btn btn-success ms-2">
-                    <i class="bi bi-envelope nav-icon"></i> Enviar Factura por Email
+            <div class="text-center mt-5 pt-4 border-top">
+                <a asp-controller="Pedidos" asp-action="SendInvoiceByEmail" asp-route-id="@Model.Id"
+                   class="btn btn-success btn-lg px-4 me-3">
+                    <i class="bi bi-envelope me-2"></i> Enviar por Email
                 </a>
-                <a asp-controller="Pedidos" asp-action="DownloadInvoice" asp-route-id="@Model.Id" class="btn btn-secondary ms-2">
-                    <i class="bi bi-file-earmark-pdf nav-icon"></i> Descargar PDF
+                <a asp-controller="Pedidos" asp-action="DownloadInvoice" asp-route-id="@Model.Id"
+                   class="btn btn-outline-primary btn-lg px-4">
+                    <i class="bi bi-download me-2"></i> Descargar PDF
                 </a>
             </div>
+
         </div>
     </div>
 </div>

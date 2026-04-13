@@ -1,5 +1,6 @@
 ﻿
 using GestorInventario.Domain.Models;
+using GestorInventario.enums;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
@@ -89,7 +90,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 {
                     return OperationResult<string>.Fail("No hay pedido para eliminar");
                 }
-                if (pedido.EstadoPedido != "Entregado")
+                if (pedido.EstadoPedido != EstadoPedido.Entregado.ToString())
                 {
                     return OperationResult<string>.Fail("El pedido tiene que tener el estado Entregado para ser eliminado y no tener historial asociado");
                 }
