@@ -55,9 +55,9 @@ namespace GestorInventario.Infraestructure.Repositories
 
         public async Task<OperationResult<string>> SetNewPasswordAsync(RestoresPasswordDto cambio)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            return await _context.ExecuteInTransactionAsync(async () =>
             {
+
                 var resultadoValidacion = await ValidarTokenCambioPass(cambio);
 
                 if (!resultadoValidacion.Success)
@@ -79,57 +79,39 @@ namespace GestorInventario.Infraestructure.Repositories
                 usuarioDB.Password = resultadoHash.Hash;
                 usuarioDB.Salt = resultadoHash.Salt;
 
-                await _context.UpdateEntityAsync(usuarioDB);
-                await transaction.CommitAsync();
-
-                return OperationResult<string>.Ok("Contraseña cambiada con exito");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al actualizar la contraseña");
-                await transaction.RollbackAsync();
-                return OperationResult<string>.Fail("Ocurrió un error inesperado. Por favor, contacte al administrador o intente nuevamente.");
-            }
+                await _context.UpdateEntityAsync(usuarioDB);               
+               return OperationResult<string>.Ok("Contraseña cambiada con exito");
+            });
+           
         }
 
 
         public async Task<OperationResult<string>> ChangePassword(string passwordAnterior, string passwordActual)
         {
-            using var transaction= await _context.Database.BeginTransactionAsync();
-            try
+            return await _context.ExecuteInTransactionAsync(async () =>
             {
-                    var usuarioId = _currentUserAccessor.GetCurrentUserId();
-                    var usuarioDB = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == usuarioId);
-                    if (usuarioDB == null)
-                    {
-                        return OperationResult<string>.Fail("Usuario no encontrado");
-                    }
-                    var anteriorpass = _hashService.Hash(passwordAnterior, usuarioDB.Salt);
-                    if (usuarioDB.Password != anteriorpass.Hash)
-                    {
-                        return OperationResult<string>.Fail("Contraseña anterior incorrecta");
-                    }
-                    var actualPassword = _hashService.Hash(passwordActual);
-                    usuarioDB.Password = actualPassword.Hash;
-                    usuarioDB.Salt = actualPassword.Salt;
-                    await _context.UpdateEntityAsync(usuarioDB);
-                    await transaction.CommitAsync();
-                    return OperationResult<string>.Ok("Contraseña cambiada con exito");                             
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al cambiar la contraseña");
-                await transaction.RollbackAsync();
-                return OperationResult<string>.Fail("Ocurrio un error inesperado por favor contacte con el administrador o intentelo de nuevo mas tarde");
-                
-            }
+                var usuarioId = _currentUserAccessor.GetCurrentUserId();
+                var usuarioDB = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == usuarioId);
+                if (usuarioDB == null)
+                {
+                    return OperationResult<string>.Fail("Usuario no encontrado");
+                }
+                var anteriorpass = _hashService.Hash(passwordAnterior, usuarioDB.Salt);
+                if (usuarioDB.Password != anteriorpass.Hash)
+                {
+                    return OperationResult<string>.Fail("Contraseña anterior incorrecta");
+                }
+                var actualPassword = _hashService.Hash(passwordActual);
+                usuarioDB.Password = actualPassword.Hash;
+                usuarioDB.Salt = actualPassword.Salt;
+                await _context.UpdateEntityAsync(usuarioDB);
+
+                return OperationResult<string>.Ok("Contraseña cambiada con exito");
+            });
            
         }
         private async Task<OperationResult<Usuario>> ValidarTokenCambioPass(RestoresPasswordDto cambio)
-        {
-            
-            try
-            {
+        {                 
                 var usuario = await _userRepository.ObtenerUsuarioPorId(cambio.UserId);
                 if (usuario == null)
                     return OperationResult<Usuario>.Fail("El usuario no existe");
@@ -146,14 +128,7 @@ namespace GestorInventario.Infraestructure.Repositories
                    
                     return OperationResult<Usuario>.Fail("El enlace y contraseña temporal han expirado. Solicite una nueva");
                 };
-                return OperationResult<Usuario>.Ok("Token valido", usuario.Data);
-            }
-            catch (Exception ex) {
-                _logger.LogCritical(ex, "Error al validar el token");
-                return OperationResult<Usuario>.Fail("Ocurrió un error inesperado al validar el token.");
-            
-            
-            }
+                return OperationResult<Usuario>.Ok("Token valido", usuario.Data);        
            
         }
        

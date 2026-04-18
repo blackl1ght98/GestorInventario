@@ -25,28 +25,20 @@ namespace GestorInventario.Infraestructure.Repositories
         }
         public async Task<OperationResult<string>> EliminarRembolso(int id)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            return await _context.ExecuteInTransactionAsync(async () =>
             {
                 var rembolso = await _context.Rembolsos.FindAsync(id);
                 if (rembolso == null)
                 {
                     return OperationResult<string>.Fail("El rembolso no existe");
                 }
-              
+
 
                 await _context.DeleteEntityAsync(rembolso);
-                await transaction.CommitAsync();
-                return OperationResult<string>.Ok("Rembolso eliminado con exito");
-            }
-            catch (Exception ex)
-            {
-
-                _logger.LogError(ex, "Error al dar de baja el usuario");
-                await transaction.RollbackAsync();
-                return OperationResult<string>.Fail("Ocurrio un error inesperado por favor contacte con el administrador o intentelo de nuevo mas tarde");
                
-            }
+                return OperationResult<string>.Ok("Rembolso eliminado con exito");
+            });
+          
 
         }
     }

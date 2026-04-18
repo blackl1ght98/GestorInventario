@@ -46,7 +46,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     queryable = queryable.Where(s => s.NombreCompleto.Contains(buscar));
                 }
 
-                // 🔹 Usamos el helper directamente
+             
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
                     _paginationHelper.PaginarAsync(queryable, paginacion)
                 );
@@ -60,7 +60,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     Buscar = buscar
                 };
 
-                await CargarRolesEnViewData();
+                 CargarRolesEnViewData();
                 return View(viewModel);
             }
             catch (Exception ex)
@@ -71,11 +71,11 @@ namespace GestorInventario.Infraestructure.Controllers
         }
 
 
-        public async Task<IActionResult> Create()
+        public IActionResult Create()
         {
             try
             {
-                await CargarRolesEnViewData();
+                 CargarRolesEnViewData();
                 return View();
             }
             catch (Exception ex)
@@ -94,7 +94,7 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    await CargarRolesEnViewData();
+                     CargarRolesEnViewData();
                     return View(model);
                 }
 
@@ -103,7 +103,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (!result.Success)
                 {
                     TempData["ErrorMessage"] = result.Message;
-                    await CargarRolesEnViewData();
+                     CargarRolesEnViewData();
                     return View(model);
                 }
 
@@ -195,7 +195,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 // Solo cargamos los roles si NO es edición propia (el admin editando a otro)
                 if (!viewModel.EsEdicionPropia)
                 {
-                    await CargarRolesEnViewData();
+                     CargarRolesEnViewData();
                 }
 
                 return View(viewModel);
@@ -219,7 +219,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 // Cargar roles para la vista en caso de error
                 if (!userVM.EsEdicionPropia)
                 {
-                    await CargarRolesEnViewData();
+                     CargarRolesEnViewData();
                 }           
                 if (!ModelState.IsValid)
                 {
@@ -457,7 +457,7 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
 
-        private async Task CargarRolesEnViewData()
+        private void CargarRolesEnViewData()
         {
             var roles = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles()); 
             ViewData["Roles"] = new SelectList(roles.Data, "Id", "Nombre");
