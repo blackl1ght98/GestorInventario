@@ -31,8 +31,7 @@ namespace GestorInventario.Infraestructure.Repositories
         public async Task<OperationResult<string>> CrearProveedor(ProveedorViewModel model)
         {
 
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            return await _context.ExecuteInTransactionAsync(async () =>
             {
                 var existingProvider = await _context.Proveedores.FirstOrDefaultAsync(x => x.NombreProveedor == model.NombreProveedor);
                 if (existingProvider != null)
@@ -48,16 +47,10 @@ namespace GestorInventario.Infraestructure.Repositories
                     IdUsuario = model.IdUsuario
                 };
                 await _context.AddEntityAsync(proveedor);
-                await transaction.CommitAsync();
+              
                 return OperationResult<string>.Ok("Proveedor creado con exito");
-            }
-            catch (Exception ex)
-            {
-
-                _logger.LogError(ex, "Error al crear el proveedor");
-                await transaction.RollbackAsync();
-                return OperationResult<string>.Fail("Error al crear el proveedor");
-            }
+            });
+           
 
         }
         public async Task<OperationResult<Proveedore>> ObtenerProveedorId(int id)
@@ -73,8 +66,7 @@ namespace GestorInventario.Infraestructure.Repositories
 
         public async Task<OperationResult<string>> EliminarProveedor(int Id)
         {
-            using var transaction= await _context.Database.BeginTransactionAsync();
-            try
+            return await _context.ExecuteInTransactionAsync(async () =>
             {
                 var proveedor = await _context.Proveedores.Include(p => p.Productos).FirstOrDefaultAsync(m => m.Id == Id);
                 if (proveedor == null)
@@ -86,23 +78,16 @@ namespace GestorInventario.Infraestructure.Repositories
                     return OperationResult<string>.Fail("El proveedor no se puede eliminar porque tiene productos asociados");
                 }
                 await _context.DeleteEntityAsync(proveedor);
-                await transaction.CommitAsync();
+              
                 return OperationResult<string>.Ok("Proveedor eliminado con exito");
 
-            }
-            catch (Exception ex)
-            {
-
-                _logger.LogError(ex,"Error al eliminar el proveedor");
-                await transaction.RollbackAsync();
-                return OperationResult<string>.Fail("Error al eliminar el proveedor");
-            }
+            });
+            
            
         }
         public async Task<OperationResult<string>> EditarProveedor(ProveedorViewModel model, int Id)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            return await _context.ExecuteInTransactionAsync(async () =>
             {
                 var proveedor = await _context.Proveedores.FirstOrDefaultAsync(x => x.Id == Id);
                 if (proveedor == null)
@@ -112,37 +97,11 @@ namespace GestorInventario.Infraestructure.Repositories
                 }
 
                 await ActualizarProveedor(proveedor, model);
-                await transaction.CommitAsync();
+        
 
                 return OperationResult<string>.Ok("Proveedor editado con éxito");
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                await transaction.RollbackAsync();
-                _logger.LogError(ex, "Error de concurrencia");
-                var proveedor = await _context.Proveedores.FirstOrDefaultAsync(x => x.Id == Id);
-                if (proveedor == null)
-
-                {
-                    return OperationResult<string>.Fail("El proveedor no existe");
-                }
-                _context.Entry(proveedor).Reload();
-                _context.Entry(proveedor).State = EntityState.Modified;
-
-                await ActualizarProveedor(proveedor, model);
-
-
-
-                await transaction.CommitAsync();
-            
-                return OperationResult<string>.Ok("Proveedor editado con éxito");
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                _logger.LogError(ex, "Ocurrió un error inesperado al editar el proveedor");
-                return OperationResult<string>.Fail("Ocurrió un error inesperado al editar el proveedor");
-            }
+            });
+          
         }
         private async Task ActualizarProveedor(Proveedore proveedor, ProveedorViewModel model)
         {

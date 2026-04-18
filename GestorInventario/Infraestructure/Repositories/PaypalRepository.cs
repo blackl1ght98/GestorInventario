@@ -48,7 +48,7 @@ namespace GestorInventario.Infraestructure.Repositories
         public IQueryable<SubscriptionDetail> ObtenerSubscripciones()
         {
             return _context.SubscriptionDetails
-                           .OrderBy(s => s.SubscriptionId)     // Añadimos OrderBy para evitar el warning anterior
+                           .OrderBy(s => s.SubscriptionId)     
                            .AsQueryable();
         }
         public  IQueryable<UserSubscription> ObtenerSubscripcionesUsuario(int usuarioId)
@@ -137,31 +137,24 @@ namespace GestorInventario.Infraestructure.Repositories
         }
         public async Task SavePlanDetailsAsync(string planId, PaypalPlanDetailsDto planDetails)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            await _context.ExecuteInTransactionAsync(async () =>
             {
                 // Verificar si el plan ya existe
-                var existingPlan = await _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId);
+                var existingPlan = await _context.PlanDetails
+                    .FirstOrDefaultAsync(p => p.PaypalPlanId == planId);
+
                 if (existingPlan != null)
                 {
                     _logger.LogInformation($"El plan con ID {planId} ya existe en la base de datos.");
-                    return;
+                    return;   // Sale de la transacción sin hacer nada más
                 }
 
-                // Mapeo extraído
+                // Mapeo y guardado
                 var planDetail = MapToPlanDetail(planId, planDetails);
-
                 await _context.AddEntityAsync(planDetail);
-                await transaction.CommitAsync();
 
                 _logger.LogInformation($"Detalles del plan {planId} guardados exitosamente.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error al guardar los detalles del plan {planId}");
-                await transaction.RollbackAsync();
-                throw;
-            }
+            });
         }
         private PlanDetail MapToPlanDetail(string planId, PaypalPlanDetailsDto planDetails)
         {
@@ -216,8 +209,8 @@ namespace GestorInventario.Infraestructure.Repositories
         }
         public async Task UpdatePlanStatusAsync(string planId, string status)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try {
+            await _context.ExecuteInTransactionAsync(async () =>
+            {
                 var planDetails = await _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId);
                 if (planDetails != null)
                 {
@@ -226,11 +219,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     await _context.SaveChangesAsync();
                     _logger.LogInformation($"Estado del plan {planId} actualizado a {status}");
                 }
-                await transaction.CommitAsync();
-            } catch(Exception ex) {
-                _logger.LogError(ex,"Ocurrio un error inesperado"); 
-                await transaction.RollbackAsync();
-            }
+            });
             
         }      
         public async Task<OperationResult<string>> EnviarEmailNotificacionRembolso(int pedidoId, decimal montoReembolsado, string motivo)
@@ -291,18 +280,16 @@ namespace GestorInventario.Infraestructure.Repositories
        
         public async Task UpdatePedidoStatusAsync(int pedidoId, string status, string refundId, string estadoVenta)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-
-            try
+            await _context.ExecuteInTransactionAsync(async () =>
             {
-                var pedido = await _context.Pedidos.Include(x=>x.IdUsuarioNavigation).FirstOrDefaultAsync(x=>x.Id==pedidoId);
+                var pedido = await _context.Pedidos.Include(x => x.IdUsuarioNavigation).FirstOrDefaultAsync(x => x.Id == pedidoId);
                 if (pedido == null)
                     throw new ArgumentException($"Pedido con ID {pedidoId} no encontrado.");
 
                 pedido.EstadoPedido = status;
                 pedido.RefundId = refundId;
 
-               await _context.UpdateEntityAsync(pedido);
+                await _context.UpdateEntityAsync(pedido);
 
                 var usuarioActual = _currentUserAccessor.GetCurrentUserId();
 
@@ -322,7 +309,7 @@ namespace GestorInventario.Infraestructure.Repositories
                         EstadoRembolso = "REMBOLSO APROVADO",
                         RembosoRealizado = true,
                         UsuarioId = usuarioActual,
-                        PedidoId=pedido.Id,
+                        PedidoId = pedido.Id,
                         EstadoVenta = estadoVenta
                     };
                     await _context.AddEntityAsync(rembolso);
@@ -337,22 +324,15 @@ namespace GestorInventario.Infraestructure.Repositories
 
                     await _context.UpdateEntityAsync(obtenerRembolso);
                 }
-               
-                await transaction.CommitAsync();
+
+
                 _logger.LogInformation($"Estado del pedido {pedidoId} actualizado a {status}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error al actualizar el estado del pedido {pedidoId}");
-                await transaction.RollbackAsync();
-                throw;
-            }
+            });
+          
         }
         public async Task RegistrarReembolsoParcialAsync(int pedidoId, int detalleId, string status, string refundId, decimal montoReembolsado, string motivo,string estadoVenta)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-
-            try
+            await _context.ExecuteInTransactionAsync(async () =>
             {
                 // Obtener el pedido con los datos relacionados
                 var pedido = await _context.Pedidos
@@ -369,7 +349,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     throw new ArgumentException($"Detalle con ID {detalleId} no encontrado.");
 
                 // Evitar reembolsos duplicados
-                if (detalleReembolsado.Rembolsado?? false)
+                if (detalleReembolsado.Rembolsado ?? false)
                     throw new InvalidOperationException($"El detalle con ID {detalleId} ya ha sido reembolsado.");
 
                 var usuarioActual = _currentUserAccessor.GetCurrentUserId();
@@ -385,8 +365,8 @@ namespace GestorInventario.Infraestructure.Repositories
                     EstadoRembolso = status,
                     RembosoRealizado = true,
                     UsuarioId = usuarioActual,
-                    EstadoVenta= estadoVenta
-                   
+                    EstadoVenta = estadoVenta
+
                 };
 
                 await _context.AddEntityAsync(rembolso);
@@ -394,21 +374,13 @@ namespace GestorInventario.Infraestructure.Repositories
                 // Marcar el detalle correcto como reembolsado
                 detalleReembolsado.Rembolsado = true;
                 await _context.UpdateEntityAsync(detalleReembolsado);
-                await transaction.CommitAsync();
+
                 _logger.LogInformation($"Reembolso registrado para pedido {pedidoId}, detalle {detalleId}. Estado: {status}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error al registrar reembolso para pedido {pedidoId}, detalle {detalleId}");
-                await transaction.RollbackAsync();
-                throw;
-            }
+            });
         }
         public async Task AddInfoTrackingOrder(int pedidoId, string tracking, string url, string carrier)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-
-            try
+            await _context.ExecuteInTransactionAsync(async () =>
             {
                 var pedido = await _context.Pedidos.FindAsync(pedidoId);
                 if (pedido == null)
@@ -417,43 +389,30 @@ namespace GestorInventario.Infraestructure.Repositories
                 pedido.TrackingNumber = tracking;
                 pedido.UrlTracking = url;
                 pedido.Transportista = carrier;
-                await _context.UpdateEntityAsync(pedido);              
-                await transaction.CommitAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error al actualizar el estado del pedido {pedidoId}");
-                await transaction.RollbackAsync();
-                throw;
-            }
+                await _context.UpdateEntityAsync(pedido);
+            });
+          
         }
        
         public async Task UpdatePlanStatusInDatabase(string planId, string status)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            await _context.ExecuteInTransactionAsync(async () =>
             {
                 var planDetails = await _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId);
                 if (planDetails != null)
                 {
                     planDetails.Status = status;
                     await _context.UpdateEntityAsync(planDetails);
-                   
+
                 }
-                await transaction.CommitAsync();
-            }
-            catch (Exception ex) {
-                _logger.LogError(ex,"Ocurrio un error inesperado");
-                await transaction.RollbackAsync();
-            }
+            });
+           
            
         }
 
         public async Task SavePlanPriceUpdateAsync(string planId, UpdatePricingPlanDto planPriceUpdate)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-
-            try
+            await _context.ExecuteInTransactionAsync(async () =>
             {
                 // Buscar el plan en la base de datos
                 var planDetail = await _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId);
@@ -498,17 +457,11 @@ namespace GestorInventario.Infraestructure.Repositories
                     }
                 }
 
-               
-                await _context.UpdateEntityAsync(planDetail);              
-                await transaction.CommitAsync();
+
+                await _context.UpdateEntityAsync(planDetail);
+
                 _logger.LogInformation($"Precios del plan {planId} actualizados exitosamente en la base de datos.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error al guardar los precios actualizados del plan {planId}");
-                await transaction.RollbackAsync();
-                throw;
-            }
+            });
         }
       
      
@@ -520,8 +473,7 @@ namespace GestorInventario.Infraestructure.Repositories
      
         public async Task SaveOrUpdateSubscriptionDetailsAsync(SubscriptionDetail subscriptionDetails)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            await _context.ExecuteInTransactionAsync(async () =>
             {
                 // Verificar si la suscripción ya existe
                 var existingSubscription = await _context.SubscriptionDetails
@@ -556,29 +508,21 @@ namespace GestorInventario.Infraestructure.Repositories
 
                     if (hasChanges)
                     {
-                        await _context.UpdateEntityAsync(subscriptionDetails);                     
+                        await _context.UpdateEntityAsync(subscriptionDetails);
                         _logger.LogInformation($"Suscripción actualizada: {subscriptionDetails.SubscriptionId}");
                     }
                 }
                 else
                 {
-                    await _context.AddEntityAsync(subscriptionDetails);                 
+                    await _context.AddEntityAsync(subscriptionDetails);
                     _logger.LogInformation($"Suscripción creada: {subscriptionDetails.SubscriptionId}");
                 }
-                await transaction.CommitAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error al guardar o actualizar detalles de suscripción {subscriptionDetails.SubscriptionId}");
-                await transaction.RollbackAsync();
-                throw;
-            }
+            });
         }
 
         public async Task SaveUserSubscriptionAsync(int userId, string subscriptionId, string subscriberName, string planId)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            await _context.ExecuteInTransactionAsync(async () =>
             {
                 // Verificar si la relación ya existe
                 var existingRelation = await _context.UserSubscriptions
@@ -595,23 +539,16 @@ namespace GestorInventario.Infraestructure.Repositories
                     };
 
                     await _context.AddEntityAsync(userSubscription);
-                    
+
                     _logger.LogInformation($"Relación UserSubscription creada para usuario {userId}, suscripción {subscriptionId}");
-                    await transaction.CommitAsync( );
+
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error al guardar UserSubscription para usuario {userId}, suscripción {subscriptionId}");
-                await transaction.RollbackAsync( );
-                throw;
-            }
+            });
         }
        
         public async Task UpdateSubscriptionStatusAsync(string subscriptionId, string status)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            await _context.ExecuteInTransactionAsync(async () =>
             {
                 var subscription = await _context.SubscriptionDetails
                     .FirstOrDefaultAsync(s => s.SubscriptionId == subscriptionId);
@@ -622,19 +559,19 @@ namespace GestorInventario.Infraestructure.Repositories
                     return;
                 }
 
-                
+
                 if (status == "ACTIVE" && subscription.Status != "CANCELLED" && subscription.Status != "SUSPENDED")
                 {
                     _logger.LogInformation($"No se puede activar la suscripción {subscriptionId} porque no está en estado CANCELLED o SUSPENDED (estado actual: {subscription.Status})");
                     return;
                 }
-               
+
                 else if (status == "SUSPENDED" && subscription.Status != "ACTIVE")
                 {
                     _logger.LogInformation($"No se puede suspender la suscripción {subscriptionId} porque no está en estado ACTIVE (estado actual: {subscription.Status})");
                     return;
                 }
-               
+
                 else if (status == "CANCELLED" && subscription.Status != "ACTIVE" && subscription.Status != "SUSPEND")
                 {
                     _logger.LogInformation($"No se puede cancelar la suscripción {subscriptionId} porque no está en estado ACTIVE o SUSPEND (estado actual: {subscription.Status})");
@@ -643,17 +580,10 @@ namespace GestorInventario.Infraestructure.Repositories
 
                 subscription.Status = status;
                 await _context.UpdateEntityAsync(subscription);
-          
-                _logger.LogInformation($"Estado de la suscripción {subscriptionId} actualizado a {status}");
 
-                await transaction.CommitAsync();
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                _logger.LogError(ex, $"Error al actualizar el estado de la suscripción {subscriptionId} a {status}");
-                throw;
-            }
+                _logger.LogInformation($"Estado de la suscripción {subscriptionId} actualizado a {status}");
+            });
+          
         }
        
 

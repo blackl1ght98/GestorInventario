@@ -39,8 +39,7 @@ namespace GestorInventario.Infraestructure.Repositories
                        
         public async Task<OperationResult<string>> CrearPedido(PedidosViewModel model)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+           return await _context.ExecuteInTransactionAsync(async () =>
             {
                 var pedido = new Pedido
                 {
@@ -50,9 +49,6 @@ namespace GestorInventario.Infraestructure.Repositories
                     IdUsuario = model.IdUsuario
                 };
                 await _context.AddEntityAsync(pedido);
-
-               
-              
 
                 foreach (var item in model.Productos.Where(p => p.Seleccionado))
                 {
@@ -64,28 +60,19 @@ namespace GestorInventario.Infraestructure.Repositories
                     };
                     await _context.AddEntityAsync(detallePedido);
 
-                    
+                   
                 }
 
-
-                await transaction.CommitAsync();
-                return OperationResult<string>.Ok("Pedido creado con exito");
-             
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al crear el pedido");
-                await transaction.RollbackAsync();
-                return OperationResult<string>.Fail("error al crear el pedido");
-            }
+                return OperationResult<string>.Ok("Pedido creado con éxito");
+            });
+        
         }
         public async Task<Pedido> ObtenerPedidoEliminacion(int id)=>await _context.Pedidos.Include(p => p.DetallePedidos).ThenInclude(dp => dp.Producto).Include(p => p.IdUsuarioNavigation).FirstOrDefaultAsync(m => m.Id == id);            
         public async Task<OperationResult<string>> EliminarPedido(int Id)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            return await _context.ExecuteInTransactionAsync(async () =>
             {
-                var pedido = await _context.Pedidos.Include(p => p.DetallePedidos).Include(x=>x.Rembolsos).FirstOrDefaultAsync(m => m.Id == Id);
+                var pedido = await _context.Pedidos.Include(p => p.DetallePedidos).Include(x => x.Rembolsos).FirstOrDefaultAsync(m => m.Id == Id);
                 if (pedido == null)
                 {
                     return OperationResult<string>.Fail("No hay pedido para eliminar");
@@ -99,62 +86,40 @@ namespace GestorInventario.Infraestructure.Repositories
                     _context.DeleteRangeEntity(pedido.DetallePedidos);
                     _context.DeleteRangeEntity(pedido.Rembolsos);
                     _context.DeleteEntity(pedido);
-                    await transaction.CommitAsync();
+                  
                 }
 
                 return OperationResult<string>.Ok("Pedido eliminado con exito");
-            }
-            catch (Exception ex)
-            {
-
-                _logger.LogError(ex, "Error al eliminar el pedido");
-                await transaction.RollbackAsync();
-                return OperationResult<string>.Fail("Error al eliminar el pedido");
-            }
+            });
+            
           
         }
       
         public async Task<Pedido> ObtenerPedidoPorId(int id)=> await _context.Pedidos.FirstOrDefaultAsync(x => x.Id == id);               
         public async Task<OperationResult<string>> EditarPedido(EditPedidoViewModel model)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-
-            try
-            {
-                
-                    int usuarioId= _currentUserAccessor.GetCurrentUserId();             
-                    var pedidoOriginal = await _context.Pedidos.Include(p => p.DetallePedidos).FirstOrDefaultAsync(x => x.Id == model.Id);
-                    if (pedidoOriginal == null)
-                    {
-                        return OperationResult<string>.Fail("Pedido no encontrado");
-                    }
-                    pedidoOriginal.FechaPedido = model.FechaPedido;
-                    pedidoOriginal.EstadoPedido = model.EstadoPedido;
-                    await _context.UpdateEntityAsync(pedidoOriginal);
-                  
-                   
-                   
-                    await transaction.CommitAsync();
-                    return OperationResult<string>.Ok("Pedido editado con exito");                             
-            }
-            catch (Exception ex)
+            return await _context.ExecuteInTransactionAsync(async () =>
             {
 
-                _logger.LogError(ex, "Error al editar el pedido");
-                await transaction.RollbackAsync();
-                return OperationResult<string>.Fail("Error al editar el pedido");
-            }
+                int usuarioId = _currentUserAccessor.GetCurrentUserId();
+                var pedidoOriginal = await _context.Pedidos.Include(p => p.DetallePedidos).FirstOrDefaultAsync(x => x.Id == model.Id);
+                if (pedidoOriginal == null)
+                {
+                    return OperationResult<string>.Fail("Pedido no encontrado");
+                }
+                pedidoOriginal.FechaPedido = model.FechaPedido;
+                pedidoOriginal.EstadoPedido = model.EstadoPedido;
+                await _context.UpdateEntityAsync(pedidoOriginal);        
+                return OperationResult<string>.Ok("Pedido editado con exito");
+            });
+           
          
         }
         public async Task<Pedido> ObtenerDetallesPedido(int id)=>await _context.Pedidos.Include(p => p.DetallePedidos).ThenInclude(dp => dp.Producto).Include(p => p.IdUsuarioNavigation).FirstOrDefaultAsync(m => m.Id == id); 
-    
        
-       
-      
         public async Task<OperationResult<PayPalPaymentDetail>> ObtenerDetallePagoEjecutadoV2(string id)
         {
-            using var transaccion = await _context.Database.BeginTransactionAsync();
-            try
+            return await _context.ExecuteInTransactionAsync(async () =>
             {
                 // Buscar el detalle de pago existente en la base de datos
                 var existingDetail = await _context.PayPalPaymentDetails
@@ -174,7 +139,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 {
                     detallesPago = new PayPalPaymentDetail
                     {
-                        Id = detalles.Id 
+                        Id = detalles.Id
                     };
                     _context.PayPalPaymentDetails.Add(detallesPago);
                 }
@@ -193,7 +158,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 detallesPago.PayerFirstName = detalles.Payer?.Name?.GivenName;
                 detallesPago.PayerLastName = detalles.Payer?.Name?.Surname;
                 detallesPago.PayerId = detalles.Payer?.PayerId;
-               
+
                 detallesPago.ShippingRecipientName = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Name?.FullName;
                 detallesPago.ShippingLine1 = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.AddressLine1;
                 detallesPago.ShippingCity = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.AdminArea2;
@@ -217,7 +182,7 @@ namespace GestorInventario.Infraestructure.Repositories
                                 decimal? subtotal = 0;
                                 foreach (var item in purchaseUnit.Items)
                                 {
-                                   
+
                                     var unitAmount = _conversion.ConvertToDecimal(item.UnitAmount?.Value.ToString());
                                     var quantity = _conversion.ConvertToInt(item.Quantity?.ToString());
                                     subtotal += unitAmount * quantity;
@@ -236,7 +201,7 @@ namespace GestorInventario.Infraestructure.Repositories
                                 {
                                     if (capture != null)
                                     {
-                                       
+
                                         detallesPago.SaleId = capture.Id;
                                         detallesPago.CaptureStatus = capture.Status;
                                         detallesPago.CaptureAmount = _conversion.ConvertToDecimal(capture.Amount?.Value);
@@ -267,9 +232,9 @@ namespace GestorInventario.Infraestructure.Repositories
                                     {
                                         detallesPago.TrackingId = firstTracker.Id;
                                         detallesPago.TrackingStatus = firstTracker.Status;
-                                    
 
-                                      
+
+
                                     }
 
                                     // Campos de captura
@@ -308,17 +273,12 @@ namespace GestorInventario.Infraestructure.Repositories
                             }
                         }
                     }
-                }               
+                }
                 await _context.SaveChangesAsync();
-                await transaccion.CommitAsync();
-                return OperationResult<PayPalPaymentDetail>.Ok("",detallesPago);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al obtener los  detalles del pago");
-                await transaccion.RollbackAsync();
-                return OperationResult<PayPalPaymentDetail>.Fail("Ha ocurrido un error");
-            }
+
+                return OperationResult<PayPalPaymentDetail>.Ok("", detallesPago);
+            });
+           
         }
      
        

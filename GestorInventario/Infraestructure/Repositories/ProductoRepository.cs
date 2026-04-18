@@ -35,18 +35,11 @@ namespace GestorInventario.Infraestructure.Repositories
         public async Task<List<Producto>> ObtenerProductos() => await _context.Productos.ToListAsync();
         public async Task<OperationResult<Producto>> CrearProducto(ProductosViewModel model)
         {
-            if (model == null)
-            {
-                _logger.LogError("El modelo ProductosViewModel es nulo.");
-                throw new ArgumentNullException(nameof(model));
-            }
 
-            _logger.LogInformation("Iniciando creación de producto: {NombreProducto}", model.NombreProducto);
 
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            return await _context.ExecuteInTransactionAsync(async () =>
             {
-                var barcodeResult = await _barCodeService.GenerateUniqueBarCodeAsync(BarcodeType.UPC_A, "", true); 
+                var barcodeResult = await _barCodeService.GenerateUniqueBarCodeAsync(BarcodeType.UPC_A, "", true);
 
                 // Crear entidad Producto
                 var producto = new Producto
@@ -76,7 +69,7 @@ namespace GestorInventario.Infraestructure.Repositories
                         {
                             _logger.LogWarning("No se pudo determinar la extensión del archivo: {FileName}", model.ArchivoImagen.FileName);
                             throw new InvalidOperationException("No se pudo determinar la extensión del archivo.");
-                            
+
                         }
                         producto.Imagen = await _gestorArchivos.GuardarArchivo(contenido, extension, "imagenes");
                     }
@@ -89,24 +82,16 @@ namespace GestorInventario.Infraestructure.Repositories
 
                 // Guardar producto
                 _logger.LogDebug("Agregando producto a la base de datos: {NombreProducto}", producto.NombreProducto);
-                var existeProducto = await _context.Productos.FirstOrDefaultAsync(x=>x.NombreProducto==producto.NombreProducto);
-                if (existeProducto != null) {
+                var existeProducto = await _context.Productos.FirstOrDefaultAsync(x => x.NombreProducto == producto.NombreProducto);
+                if (existeProducto != null)
+                {
                     return OperationResult<Producto>.Fail("Ya hay un producto con ese nombre, proporcione otro nombre");
                 }
                 await _context.AddEntityAsync(producto);
-               
-              
-            await transaction.CommitAsync();
-
                 _logger.LogInformation("Producto creado exitosamente: {NombreProducto}, UpcCode: {UpcCode}", producto.NombreProducto, producto.UpcCode);
-                return OperationResult<Producto>.Ok("",producto);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al crear el producto: {NombreProducto}", model.NombreProducto);
-                await transaction.RollbackAsync();
-                throw;
-            }
+                return OperationResult<Producto>.Ok("", producto);
+            });
+           
         }
      
          
@@ -119,8 +104,7 @@ namespace GestorInventario.Infraestructure.Repositories
        
         public async Task<OperationResult<string>> EliminarProducto(int Id)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            return await _context.ExecuteInTransactionAsync(async () =>
             {
                 var producto = await _context.Productos
                     .Include(p => p.DetallePedidos)
@@ -136,35 +120,23 @@ namespace GestorInventario.Infraestructure.Repositories
                 if (!string.IsNullOrEmpty(producto.Imagen))
                 {
                     // Extraer el nombre del archivo de la URL
-                    string fileName = Path.GetFileName(producto.Imagen); 
+                    string fileName = Path.GetFileName(producto.Imagen);
                     await _gestorArchivos.BorrarArchivo(fileName, "imagenes");
                 }
 
-                await _context.DeleteEntityAsync(producto);
-                await _context.SaveChangesAsync();
-               
-                await transaction.CommitAsync();
+                await _context.DeleteEntityAsync(producto);         
                 _logger.LogInformation($"Producto con ID {Id} eliminado correctamente.");
                 return OperationResult<string>.Ok("Producto eliminado con exito");
-            }
-            catch (Exception ex)
-            {
-               await transaction.RollbackAsync();
-                _logger.LogError(ex, $"Error al eliminar el producto con ID {Id}");
-                return OperationResult<string>.Fail("Ocurrió un error inesperado");
-            }
+            });
+            
         }
              
       
         public async Task<OperationResult<string>> EditarProducto(ProductosViewModel model, int usuarioId)
         {
-            if (model == null || model.Id <= 0 || string.IsNullOrEmpty(model.NombreProducto))
-            {
-                return OperationResult<string>.Fail("Modelo inválido");
-            }
 
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+
+            return await _context.ExecuteInTransactionAsync(async () =>
             {
                 var producto = await _context.Productos.FirstOrDefaultAsync(x => x.Id == model.Id);
                 if (producto == null)
@@ -182,66 +154,16 @@ namespace GestorInventario.Infraestructure.Repositories
                     Imagen = producto.Imagen,
                     IdProveedor = producto.IdProveedor
                 };
-           
+
 
                 // Actualizar el producto y crear historial después
                 await ActualizarProductoYCrearHistorialAsync(producto, model, usuarioId);
                 await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
+             
                 _logger.LogInformation($"Producto con ID {model.Id} actualizado correctamente por el usuario {usuarioId}.");
                 return OperationResult<string>.Ok("Producto editado con exito");
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                await transaction.RollbackAsync();
-                _logger.LogWarning(ex, $"Error de concurrencia al actualizar el producto con ID {model.Id}");
-
-                // Reintento único (como en el original)
-                var producto = await _context.Productos.FirstOrDefaultAsync(x => x.Id == model.Id);
-                if (producto == null)
-                {
-                    return OperationResult<string>.Fail("Producto no encontrado");
-                }
-
-                _context.Entry(producto).Reload();
-
-                // Crear historial antes del reintento
-                var productoOriginal = new ProductosViewModel
-                {
-                    Id = producto.Id,
-                    NombreProducto = producto.NombreProducto,
-                    Descripcion = producto.Descripcion,
-                    Cantidad = producto.Cantidad,
-                    Precio = producto.Precio,
-                    Imagen = producto.Imagen,
-                    IdProveedor = producto.IdProveedor
-                };
-               
-
-                // Actualizar nuevamente y crear historial después
-                await ActualizarProductoYCrearHistorialAsync(producto, model, usuarioId, true);
-
-                using var retryTransaction = await _context.Database.BeginTransactionAsync();
-                try
-                {
-                    await _context.SaveChangesAsync();
-                    await retryTransaction.CommitAsync();
-                    _logger.LogInformation($"Producto con ID {model.Id} actualizado tras reintento de concurrencia.");
-                    return OperationResult<string>.Ok("Producto editado con exito");
-                }
-                catch (Exception retryEx)
-                {
-                    await retryTransaction.RollbackAsync();
-                    _logger.LogError(retryEx, $"Error al reintentar actualizar el producto con ID {model.Id}");
-                    return OperationResult<string>.Fail("Error al actualizar tras reintento de concurrencia");
-                }
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                _logger.LogError(ex, $"Error al actualizar el producto con ID {model.Id}");
-                return OperationResult<string>.Fail("Error al actualizar");
-            }
+            });
+           
         }
 
         private async Task ActualizarProductoYCrearHistorialAsync(Producto producto, ProductosViewModel model, int usuarioId, bool isRetry = false)
@@ -299,8 +221,7 @@ namespace GestorInventario.Infraestructure.Repositories
 
         public async Task<OperationResult<string>> AgregarProductoAlCarrito(int idProducto, int cantidad, int usuarioId)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            return await _context.ExecuteInTransactionAsync(async () =>
             {
                 // Validar cantidad
                 if (cantidad <= 0)
@@ -320,7 +241,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 }
                 // Obtener o crear el carrito
                 var carrito = await _carritoRepository.CrearCarritoUsuario(usuarioId);
-                if(carrito != null)
+                if (carrito != null)
                 {
                     var detalleExistente = await _context.DetallePedidos
                   .FirstOrDefaultAsync(d => d.PedidoId == carrito.Data.Id && d.ProductoId == idProducto);
@@ -343,20 +264,13 @@ namespace GestorInventario.Infraestructure.Repositories
                     }
 
                 }
-                
+
                 // Actualizar el inventario del producto
                 producto.Cantidad -= cantidad;
                 await _context.UpdateEntityAsync(producto);
-
-                await transaction.CommitAsync();
                 return OperationResult<string>.Ok("Producto agregado con exito");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al agregar producto al carrito");
-                await transaction.RollbackAsync();
-                return OperationResult<string>.Fail("Ocurrió un error inesperado. Por favor, contacte con el administrador o intentelo de nuevo más tarde.");
-            }
+            });
+           
         }
     }
 }

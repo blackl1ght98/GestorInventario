@@ -1,6 +1,7 @@
 ﻿using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Application.DTOs.Response_paypal.GET;
 using GestorInventario.Domain.Models;
+using GestorInventario.enums;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
@@ -37,44 +38,34 @@ namespace GestorInventario.Infraestructure.Repositories
         }
         public async Task<OperationResult<Pedido>> AgregarInfoPedido(int usuarioActual, string? captureId, string? total, string? currency, string? orderId)
         {
-            // Validar parámetros de entrada
-            if (string.IsNullOrWhiteSpace(captureId) || string.IsNullOrWhiteSpace(total) ||
+            return await _context.ExecuteInTransactionAsync(async () =>
+            {
+                // Validar parámetros de entrada
+                if (string.IsNullOrWhiteSpace(captureId) || string.IsNullOrWhiteSpace(total) ||
                 string.IsNullOrWhiteSpace(currency) || string.IsNullOrWhiteSpace(orderId))
-            {
-                _logger.LogWarning("Parámetros inválidos en AgregarInfoPedido: usuarioActual={UsuarioId}, captureId={CaptureId}, total={Total}, currency={Currency}, orderId={OrderId}",
-                    usuarioActual, captureId, total, currency, orderId);
-                return OperationResult<Pedido>.Fail("Datos no validos");
-            }
+                {
+                    _logger.LogWarning("Parámetros inválidos en AgregarInfoPedido: usuarioActual={UsuarioId}, captureId={CaptureId}, total={Total}, currency={Currency}, orderId={OrderId}",
+                        usuarioActual, captureId, total, currency, orderId);
+                    return OperationResult<Pedido>.Fail("Datos no validos");
+                }
+                var pedido = await _context.Pedidos
+                    .Where(p => p.IdUsuario == usuarioActual && p.EstadoPedido == "En Proceso")
+                    .OrderByDescending(p => p.FechaPedido)
+                    .FirstOrDefaultAsync();
 
-            var pedido = await _context.Pedidos
-                .Where(p => p.IdUsuario == usuarioActual && p.EstadoPedido == "En Proceso")
-                .OrderByDescending(p => p.FechaPedido)
-                .FirstOrDefaultAsync();
-
-            if (pedido == null)
-            {
-                _logger.LogWarning("No se encontró un pedido en proceso para el usuario {UsuarioId}", usuarioActual);
-                return OperationResult<Pedido>.Fail("Pedido no encontrado para el usuario especificado");
-            }
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
+                if (pedido == null)
+                {
+                    _logger.LogWarning("No se encontró un pedido en proceso para el usuario {UsuarioId}", usuarioActual);
+                    return OperationResult<Pedido>.Fail("Pedido no encontrado para el usuario especificado");
+                }
                 pedido.CaptureId = captureId;
                 pedido.Total = total;
                 pedido.Currency = currency;
                 pedido.OrderId = orderId;
-                pedido.EstadoPedido = "Pagado";
-
+                pedido.EstadoPedido = EstadoPedido.Pagado.ToString();
                 await _context.UpdateEntityAsync(pedido);
-                await transaction.CommitAsync();
-                return OperationResult<Pedido>.Ok("",pedido);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al actualizar el pedido para usuario {UsuarioId}, captureId={CaptureId}", usuarioActual, captureId);
-                await transaction.RollbackAsync();
-                return OperationResult<Pedido>.Fail("Ocurrio un error al agregar el pedido");
-            }
+                return OperationResult<Pedido>.Ok("", pedido);
+            });
         }
         public OperationResult<PayPalPaymentDetail> ProcesarDetallesSuscripcion(OrderDetailsResponse detallespago)
         {

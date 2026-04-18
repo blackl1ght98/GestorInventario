@@ -110,8 +110,7 @@ namespace GestorInventario.Infraestructure.Repositories
         }
         public async Task<OperationResult<(string temporaryPassword, string token)>> GenerarYGuardarPasswordTemporalAsync(string email)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            return await _context.ExecuteInTransactionAsync(async () =>
             {
                 var usuario = await _context.Usuarios
                     .AsTracking()
@@ -121,7 +120,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     return OperationResult<(string, string)>.Fail("Usuario no encontrado");
 
                 // Generar contraseña temporal
-                var contrasenaTemporal = GenerarContrasenaTemporal();   // Asumo que este método existe
+                var contrasenaTemporal = GenerarContrasenaTemporal();   
 
                 // Hashear
                 var resultadoHash = _hashService.Hash(contrasenaTemporal);
@@ -135,19 +134,10 @@ namespace GestorInventario.Infraestructure.Repositories
                 usuario.FechaExpiracionContrasenaTemporal = fechaExpiracion;
 
                 await _context.UpdateEntityAsync(usuario);
-               await _context.SaveChangesAsync();
-
-                await transaction.CommitAsync();
-
                 return OperationResult<(string, string)>.Ok("Password temporal generada",
                     (contrasenaTemporal, usuario.EmailVerificationToken ?? ""));
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                _logger.LogError(ex, "Error al generar password temporal para {Email}", email);
-                return OperationResult<(string, string)>.Fail("Error al generar contraseña temporal");
-            }
+            });
+           
         }
         private string GenerarContrasenaTemporal()
         {

@@ -121,16 +121,35 @@ namespace GestorInventario.MetodosExtension
             if (saveImmediately) await context.SaveChangesAsync();
         }
 
-        public static async Task<TResult> ExecuteInTransactionAsync<T, TResult>(this DbContext context, Func<Task<TResult>> operation) where T : class
+        // En tu carpeta de extensiones (MetodosExtension)
+       
+            public static async Task<TResult> ExecuteInTransactionAsync<TResult>(this DbContext context, Func<Task<TResult>> operation)
+            {
+                await using var transaction = await context.Database.BeginTransactionAsync();
+                try
+                {
+                    var result = await operation();
+                    await transaction.CommitAsync();
+                    return result;
+                }
+                catch (Exception)
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            }
+        // Sobrecarga para métodos que NO devuelven valor (Task)
+        public static async Task ExecuteInTransactionAsync(
+            this DbContext context,
+            Func<Task> operation)
         {
-            using var transaction = await context.Database.BeginTransactionAsync();
+            await using var transaction = await context.Database.BeginTransactionAsync();
             try
             {
-                var result = await operation();
+                await operation();
                 await transaction.CommitAsync();
-                return result;
             }
-            catch
+            catch (Exception)
             {
                 await transaction.RollbackAsync();
                 throw;
