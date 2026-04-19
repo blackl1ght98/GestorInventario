@@ -3,12 +3,14 @@ using GestorInventario.Application.DTOs.Carrito;
 using GestorInventario.Application.DTOs.Checkout;
 using GestorInventario.Application.DTOs.User;
 using GestorInventario.Domain.Models;
+using GestorInventario.enums;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using Polly;
 
 namespace GestorInventario.Infraestructure.Repositories
 {
@@ -42,7 +44,7 @@ namespace GestorInventario.Infraestructure.Repositories
             return OperationResult<Pedido>.Ok("Carrito obtenido con exito", carrito);
             
         }
-     
+        
 
         // Obtener ítems del carrito (DetallePedido para un Pedido con EsCarrito = 1)
         public async Task<OperationResult<List<DetallePedido>>> ObtenerItemsDelCarritoUsuario(int pedidoId)

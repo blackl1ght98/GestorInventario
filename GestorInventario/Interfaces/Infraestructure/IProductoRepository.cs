@@ -8,12 +8,17 @@ namespace GestorInventario.Interfaces.Infraestructure
     {
         IQueryable<Producto> ObtenerTodosLosProductos();
         Task<List<Producto>> ObtenerProductos();
-        Task<OperationResult<Producto>> CrearProducto(ProductosViewModel model);      
+        Task<OperationResult<Producto>> AgregarProductoAsync(Producto producto);
         Task<List<Proveedore>> ObtenerProveedores();
         Task<(Producto?, string)> ObtenerProductoPorId(int id);
-        Task<OperationResult<string>> EliminarProducto(int Id);
-     
-        Task<OperationResult<string>> EditarProducto(ProductosViewModel model, int usuarioId);
-        Task<OperationResult<string>> AgregarProductoAlCarrito(int userId, int idProducto, int cantidad);
+   
+        Task<bool> ExisteProductoAsync(string nombre);
+        Task<OperationResult<Producto>> ActualizarProductoAsync(Producto producto);
+      
+        Task<OperationResult<DetallePedido>> ActualizarDetallePedidoAsync(DetallePedido pedido);
+        Task<OperationResult<DetallePedido>> AgregarDetallePedidoAsync(DetallePedido pedido);
+        Task<DetallePedido?> ObtenerDetallesCarrito(int idCarrito, int idProducto);
+        Task<Producto> ObtenerProductoCompletoAsync(int Id);
+        Task<OperationResult<Producto>> EliminarProductoAsync(Producto producto);
     }
 }

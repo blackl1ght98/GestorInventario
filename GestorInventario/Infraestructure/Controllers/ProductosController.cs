@@ -24,8 +24,9 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IPolicyExecutor _policyExecutor;
         private readonly IPaginationHelper _paginationHelper;
         private readonly ICurrentUserAccessor _current;
+        private readonly IProductManagementService _productoService;
         public ProductosController(IPolicyExecutor executor,IPaginationHelper pagination,ICurrentUserAccessor current,
-        ILogger<ProductosController> logger, IEmailService emailService, IProductoRepository producto,IPdfService pdf)
+        ILogger<ProductosController> logger, IEmailService emailService, IProductoRepository producto,IPdfService pdf, IProductManagementService productoService)
         {
             _logger = logger;         
             _emailService = emailService;
@@ -34,6 +35,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _pdfService = pdf;
             _paginationHelper = pagination;
             _current = current;
+            _productoService = productoService;
         }
         //Metodo para obtener los productos
         [HttpGet]
@@ -192,7 +194,7 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
                 var resultado = await _policyExecutor.ExecutePolicyAsync(() =>
-                    _productoRepository.CrearProducto(model));
+                    _productoService.CrearProducto(model));
 
                 if (resultado.Success)
                 {
@@ -249,7 +251,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))
                 {                  
-                    var success = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.EliminarProducto(Id));
+                    var success = await _policyExecutor.ExecutePolicyAsync(() => _productoService.EliminarProducto(Id));
                     if (success.Success)
                     {
                        
@@ -320,7 +322,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (ModelState.IsValid)
                 {
                     int usuarioId = _current.GetCurrentUserId();
-                    var success = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.EditarProducto(model, usuarioId));
+                    var success = await _policyExecutor.ExecutePolicyAsync(() => _productoService.EditarProducto(model, usuarioId));
                     if (success.Success)
                     {
                         return RedirectToAction(nameof(Index));
@@ -352,9 +354,9 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                
               
-                int usuarioId=_current.GetCurrentUserId();
+                    int usuarioId=_current.GetCurrentUserId();
                
-                    var success= await _policyExecutor.ExecutePolicyAsync(()=> _productoRepository.AgregarProductoAlCarrito(idProducto, cantidad, usuarioId)) ;
+                    var success= await _policyExecutor.ExecutePolicyAsync(()=> _productoService.AgregarProductoAlCarrito(idProducto, cantidad, usuarioId)) ;
                     if (success.Success) 
                     {
                         return RedirectToAction("Index");
