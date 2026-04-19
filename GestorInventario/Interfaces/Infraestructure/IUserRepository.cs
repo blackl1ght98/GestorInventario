@@ -1,5 +1,5 @@
 ﻿using GestorInventario.Application.DTOs.User;
-using GestorInventario.Domain.Entities;
+
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 
@@ -14,10 +14,10 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task ConfirmEmail(ConfirmRegistrationDto confirm);
         Task<OperationResult<string>> ActualizarEmailVerificationTokenAsync(int userId, string token);
         Task<List<string>> ObtenerEmailsEmpleadosAsync();
-        Task<OperationResult<EntityUser>> ObtenerUsuarioParaEdicionAsync(int id);
+        Task<OperationResult<Usuario>> ObtenerUsuarioParaEdicionAsync(int id);
         Task<OperationResult<Usuario>> AgregarUsuarioAsync(Usuario usuario);
         Task<bool> ExisteEmailAsync(string email);
-        Task<OperationResult<string>> ActualizarUsuarioAsync(EntityUser usuarioDominio);
+        Task<OperationResult<string>> ActualizarUsuarioAsync(Usuario usuario);
         Task<OperationResult<Usuario>> GuardarPasswordTemporalAsync(
         string email, string hash, byte[] salt, DateTime fechaExpiracion);
         Task<OperationResult<Usuario>> ObtenerUsuarioConProveedoresYPedidosAsync(int id);

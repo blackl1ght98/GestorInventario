@@ -18,16 +18,17 @@ namespace GestorInventario.Application.Services.Generic_Services
         private readonly IProductoRepository _productoRepository;
         private readonly IImageOptimizerService _imageOptimizerService;
         private readonly ICarritoRepository _carritoRepository;
+     
         public ProductManagementService( IGestorArchivos gestorArchivos, IBarCodeService barcode, ILogger<ProductManagementService> logger,
-            IProductoRepository producto, IImageOptimizerService image, ICarritoRepository carrito)
-        {
-          
+        IProductoRepository producto, IImageOptimizerService image, ICarritoRepository carrito)
+        {         
             _gestorArchivos = gestorArchivos;
             _barCodeService = barcode;
             _logger = logger;
             _productoRepository = producto;
             _imageOptimizerService = image;
             _carritoRepository = carrito;
+          
         }
 
         public async Task<OperationResult<Producto>> CrearProducto(ProductosViewModel model)

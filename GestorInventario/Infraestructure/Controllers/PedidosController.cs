@@ -27,8 +27,9 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IEmailService _emailService;
         private readonly IPaymentRepository _payment;
+        private readonly IPedidoManagementService _pedidoService;
         public PedidosController( ILogger<PedidosController> logger, IPaginationHelper pagination,  ICurrentUserAccessor current, IPaymentRepository pay,
-            IPedidoRepository pedido,   IPdfService pdf, IPolicyExecutor executor, IPaypalOrderTrackingService paypal, IEmailService email)
+            IPedidoRepository pedido,   IPdfService pdf, IPolicyExecutor executor, IPaypalOrderTrackingService paypal, IEmailService email, IPedidoManagementService pedidoService)
         {          
             _logger = logger;
             _pedidoRepository = pedido;           
@@ -39,6 +40,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _currentUserAccessor = current;
             _emailService = email;
             _payment = pay;
+            _pedidoService = pedidoService;
         }
 
         [Authorize]
@@ -104,7 +106,7 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
                                           
-                var pedido = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerPedidoEliminacion(id));
+                var pedido = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerPedidoConDetallesAsync(id));
             
                 if (pedido == null)
                 {
@@ -131,7 +133,7 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                             
                     
-                    var success = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.EliminarPedido(Id)) ;
+                    var success = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoService.EliminarPedido(Id)) ;
                     if (success.Success)
                     {
                        
@@ -197,7 +199,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 try
                 {
                     
-                    var success = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.EditarPedido(model));
+                    var success = await _policyExecutor.ExecutePolicyAsync(() => _pedidoService.EditarPedido(model));
                     if (success.Success)
                     {
                         _logger.LogInformation("Datos actualizados con exito");
@@ -214,7 +216,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     _logger.LogError(ex, "Error de concurrencia");
                   
-                    var success = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.EditarPedido(model));
+                    var success = await _policyExecutor.ExecutePolicyAsync(() => _pedidoService.EditarPedido(model));
                     if (success.Success)
                     {
                        
@@ -244,7 +246,7 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                 
             
-               var pedido= await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerDetallesPedido(id)) ;
+               var pedido= await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerPedidoConDetallesAsync(id)) ;
                 if (pedido == null)
                 {
                     _logger.LogCritical("Pedido no encontrado: no se puede mostrar los detalles de un pedido inexistente");
@@ -271,7 +273,7 @@ namespace GestorInventario.Infraestructure.Controllers
         [Authorize]
         public async Task<IActionResult> DetallesPagoEjecutado(string id)
         {
-            var detallepago= await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerDetallePagoEjecutadoV2(id));
+            var detallepago= await _policyExecutor.ExecutePolicyAsync(()=> _pedidoService.ObtenerDetallePagoEjecutadoV2(id));
             if (detallepago.Success)
             {
                 return View(detallepago.Data);

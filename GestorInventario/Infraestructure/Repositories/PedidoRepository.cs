@@ -9,24 +9,23 @@ using GestorInventario.MetodosExtension;
 using GestorInventario.ViewModels.order;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using Polly;
 using System.Globalization;
 namespace GestorInventario.Infraestructure.Repositories
 {
     public class PedidoRepository : IPedidoRepository
     {
         private readonly GestorInventarioContext _context;              
-        private readonly IPaypalOrderService _paypalOrder;
+      
         private readonly ILogger<PedidoRepository> _logger;        
-        private readonly ICurrentUserAccessor _currentUserAccessor;
-        private readonly IConversionUtils _conversion;
-        public PedidoRepository(GestorInventarioContext context, IConversionUtils conversion,
-        IPaypalOrderService service, ILogger<PedidoRepository> logger,  ICurrentUserAccessor current)
+     
+        public PedidoRepository(GestorInventarioContext context, 
+         ILogger<PedidoRepository> logger )
         {
             _context = context;
-            _paypalOrder = service;
+        
             _logger = logger;            
-            _currentUserAccessor = current;
-            _conversion = conversion;
+         
         }
    
         public IQueryable<Pedido> ObtenerPedidos()=>
@@ -34,252 +33,81 @@ namespace GestorInventario.Infraestructure.Repositories
             select p;
       
         public IQueryable<Pedido> ObtenerPedidoUsuario(int userId)=>_context.Pedidos.Where(p => p.IdUsuario == userId).Include(dp => dp.DetallePedidos).ThenInclude(p => p.Producto).Include(u => u.IdUsuarioNavigation);
-        
-          
-                       
-        public async Task<OperationResult<string>> CrearPedido(PedidosViewModel model)
-        {
-           return await _context.ExecuteInTransactionAsync(async () =>
-            {
-                var pedido = new Pedido
-                {
-                    NumeroPedido = model.NumeroPedido,
-                    FechaPedido = model.FechaPedido,
-                    EstadoPedido = model.EstadoPedido,
-                    IdUsuario = model.IdUsuario
-                };
-                await _context.AddEntityAsync(pedido);
 
-                foreach (var item in model.Productos.Where(p => p.Seleccionado))
-                {
-                    var detallePedido = new DetallePedido
-                    {
-                        PedidoId = pedido.Id,
-                        ProductoId = item.ProductoId,
-                        Cantidad = item.Cantidad
-                    };
-                    await _context.AddEntityAsync(detallePedido);
 
-                   
-                }
-
-                return OperationResult<string>.Ok("Pedido creado con éxito");
-            });
-        
-        }
-        public async Task<Pedido> ObtenerPedidoEliminacion(int id)=>await _context.Pedidos.Include(p => p.DetallePedidos).ThenInclude(dp => dp.Producto).Include(p => p.IdUsuarioNavigation).FirstOrDefaultAsync(m => m.Id == id);            
-        public async Task<OperationResult<string>> EliminarPedido(int Id)
+        public async Task<OperationResult<Pedido>> AgregarPedidoAsync(Pedido pedido)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
             {
-                var pedido = await _context.Pedidos.Include(p => p.DetallePedidos).Include(x => x.Rembolsos).FirstOrDefaultAsync(m => m.Id == Id);
-                if (pedido == null)
-                {
-                    return OperationResult<string>.Fail("No hay pedido para eliminar");
-                }
-                if (pedido.EstadoPedido != EstadoPedido.Entregado.ToString())
-                {
-                    return OperationResult<string>.Fail("El pedido tiene que tener el estado Entregado para ser eliminado y no tener historial asociado");
-                }
-                else
-                {
-                    _context.DeleteRangeEntity(pedido.DetallePedidos);
-                    _context.DeleteRangeEntity(pedido.Rembolsos);
-                    _context.DeleteEntity(pedido);
-                  
-                }
+                await _context.AddEntityAsync(pedido);
+                return OperationResult<Pedido>.Ok("Pedido Agregado", pedido);
+            });
+        }
+        public async Task<OperationResult<Pedido>> ActualizarPedidoAsync(Pedido pedido)
+        {
+            return await _context.ExecuteInTransactionAsync(async () =>
+            {
+                await _context.UpdateEntityAsync(pedido);
+                return OperationResult<Pedido>.Ok("Pedido Agregado", pedido);
+            });
+        }
+        public async Task<OperationResult<DetallePedido>> AgregarDetallePedidoAsync(DetallePedido detalle)
+        {
+            return await _context.ExecuteInTransactionAsync(async () =>
+            {
+                await _context.AddEntityAsync(detalle);
+                return OperationResult<DetallePedido>.Ok("Pedido Agregado", detalle);
+            });
+        }
+        public async Task<OperationResult<string>> EliminarPedidoAsync(Pedido pedido)
+        {
+            return await _context.ExecuteInTransactionAsync(async () =>
+            {
+                _context.DeleteRangeEntity(pedido.DetallePedidos);
+                _context.DeleteRangeEntity(pedido.Rembolsos);
+                _context.DeleteEntity(pedido);
+                return OperationResult<string>.Ok("Pedido eliminado con exito");
+            });
+        }
+        public async Task<Pedido> ObtenerPedidoConDetallesAsync(int id) =>
+            await _context.Pedidos
+                .Include(p => p.DetallePedidos)
+                    .ThenInclude(dp => dp.Producto)
+                .Include(p => p.IdUsuarioNavigation)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+        public async Task<Pedido> ObtenerPedidoPorId(int id)=> await _context.Pedidos.FirstOrDefaultAsync(x => x.Id == id);               
+       
+       
+        public async Task<Pedido> ObtenerPedidoConRembolso(int id) => await _context.Pedidos.Include(p => p.DetallePedidos).Include(x => x.Rembolsos).FirstOrDefaultAsync(m => m.Id == id);
+    
+        public async Task<PayPalPaymentDetail> ObtenerDetallesPago(string id) => await _context.PayPalPaymentDetails.Include(d => d.PayPalPaymentItems).FirstOrDefaultAsync(x => x.Id == id);
+        public async Task<OperationResult<PayPalPaymentDetail>> AgregarDetallePagoAsync(PayPalPaymentDetail detalle)
+        {
+            return await _context.ExecuteInTransactionAsync(async () =>
+            {
+                await _context.AddEntityAsync(detalle);
+                return OperationResult<PayPalPaymentDetail>.Ok("Pedido Agregado", detalle);
+            });
+        }
+        public async Task<OperationResult<PayPalPaymentItem>> AgregarPagoItemAsync(PayPalPaymentItem detalle)
+        {
+            return await _context.ExecuteInTransactionAsync(async () =>
+            {
+                await _context.AddEntityAsync(detalle);
+                return OperationResult<PayPalPaymentItem>.Ok("", detalle);
+            });
+        }
+        public async Task<OperationResult<string>> EliminarDetallesPagoAsync(PayPalPaymentDetail pago)
+        {
+            return await _context.ExecuteInTransactionAsync(async () =>
+            {
+                _context.DeleteRangeEntity(pago.PayPalPaymentItems);
 
                 return OperationResult<string>.Ok("Pedido eliminado con exito");
             });
-            
-          
         }
-      
-        public async Task<Pedido> ObtenerPedidoPorId(int id)=> await _context.Pedidos.FirstOrDefaultAsync(x => x.Id == id);               
-        public async Task<OperationResult<string>> EditarPedido(EditPedidoViewModel model)
-        {
-            return await _context.ExecuteInTransactionAsync(async () =>
-            {
-
-                int usuarioId = _currentUserAccessor.GetCurrentUserId();
-                var pedidoOriginal = await _context.Pedidos.Include(p => p.DetallePedidos).FirstOrDefaultAsync(x => x.Id == model.Id);
-                if (pedidoOriginal == null)
-                {
-                    return OperationResult<string>.Fail("Pedido no encontrado");
-                }
-                pedidoOriginal.FechaPedido = model.FechaPedido;
-                pedidoOriginal.EstadoPedido = model.EstadoPedido;
-                await _context.UpdateEntityAsync(pedidoOriginal);        
-                return OperationResult<string>.Ok("Pedido editado con exito");
-            });
-           
-         
-        }
-        public async Task<Pedido> ObtenerDetallesPedido(int id)=>await _context.Pedidos.Include(p => p.DetallePedidos).ThenInclude(dp => dp.Producto).Include(p => p.IdUsuarioNavigation).FirstOrDefaultAsync(m => m.Id == id); 
        
-        public async Task<OperationResult<PayPalPaymentDetail>> ObtenerDetallePagoEjecutadoV2(string id)
-        {
-            return await _context.ExecuteInTransactionAsync(async () =>
-            {
-                // Buscar el detalle de pago existente en la base de datos
-                var existingDetail = await _context.PayPalPaymentDetails
-                    .Include(d => d.PayPalPaymentItems)
-                    .FirstOrDefaultAsync(x => x.Id == id);
-
-                // Obtener los detalles actualizados desde la API de PayPal
-                var detalles = await _paypalOrder.ObtenerDetallesPagoEjecutadoV2(id);
-                if (detalles == null)
-                {
-                    return OperationResult<PayPalPaymentDetail>.Fail("Detalles del pedido no encontrados para generar la factura");
-                }
-
-                // Si el detalle no existe, crear uno nuevo; si existe, actualizarlo
-                PayPalPaymentDetail detallesPago;
-                if (existingDetail == null)
-                {
-                    detallesPago = new PayPalPaymentDetail
-                    {
-                        Id = detalles.Id
-                    };
-                    _context.PayPalPaymentDetails.Add(detallesPago);
-                }
-                else
-                {
-                    detallesPago = existingDetail;
-                    // Opcional: Limpiar los ítems existentes si se desea actualizarlos completamente
-                    _context.PayPalPaymentItems.RemoveRange(detallesPago.PayPalPaymentItems);
-                }
-
-                // Actualizar los campos del objeto PayPalPaymentDetail con los datos de la API
-                detallesPago.Intent = detalles.Intent;
-                detallesPago.Status = detalles.Status;
-                detallesPago.PaymentMethod = "paypal";
-                detallesPago.PayerEmail = detalles.Payer?.Email;
-                detallesPago.PayerFirstName = detalles.Payer?.Name?.GivenName;
-                detallesPago.PayerLastName = detalles.Payer?.Name?.Surname;
-                detallesPago.PayerId = detalles.Payer?.PayerId;
-
-                detallesPago.ShippingRecipientName = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Name?.FullName;
-                detallesPago.ShippingLine1 = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.AddressLine1;
-                detallesPago.ShippingCity = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.AdminArea2;
-                detallesPago.ShippingState = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.AdminArea1;
-                detallesPago.ShippingPostalCode = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.PostalCode;
-                detallesPago.ShippingCountryCode = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.CountryCode;
-
-                if (detalles.PurchaseUnits != null)
-                {
-                    foreach (var purchaseUnit in detalles.PurchaseUnits)
-                    {
-                        if (purchaseUnit != null)
-                        {
-                            detallesPago.AmountTotal = _conversion.ConvertToDecimal(purchaseUnit.Amount?.Value);
-                            detallesPago.AmountCurrency = purchaseUnit.Amount?.CurrencyCode;
-                            detallesPago.AmountItemTotal = _conversion.ConvertToDecimal(purchaseUnit.Amount?.Breakdown?.ItemTotal?.Value);
-
-                            // Calcular subtotal si es necesario
-                            if (detallesPago.AmountItemTotal == 0 && purchaseUnit.Items != null)
-                            {
-                                decimal? subtotal = 0;
-                                foreach (var item in purchaseUnit.Items)
-                                {
-
-                                    var unitAmount = _conversion.ConvertToDecimal(item.UnitAmount?.Value.ToString());
-                                    var quantity = _conversion.ConvertToInt(item.Quantity?.ToString());
-                                    subtotal += unitAmount * quantity;
-                                }
-                                detallesPago.AmountItemTotal = subtotal;
-                            }
-
-                            detallesPago.AmountShipping = _conversion.ConvertToDecimal(purchaseUnit.Amount?.Breakdown?.Shipping?.Value);
-                            detallesPago.PayeeMerchantId = purchaseUnit.Payee?.MerchantId;
-                            detallesPago.PayeeEmail = purchaseUnit.Payee?.EmailAddress;
-                            detallesPago.Description = purchaseUnit.Description;
-
-                            if (purchaseUnit.Payments?.Captures != null)
-                            {
-                                foreach (var capture in purchaseUnit.Payments.Captures)
-                                {
-                                    if (capture != null)
-                                    {
-
-                                        detallesPago.SaleId = capture.Id;
-                                        detallesPago.CaptureStatus = capture.Status;
-                                        detallesPago.CaptureAmount = _conversion.ConvertToDecimal(capture.Amount?.Value);
-                                        detallesPago.CaptureCurrency = capture.Amount?.CurrencyCode;
-                                        detallesPago.ProtectionEligibility = capture.SellerProtection?.Status;
-                                        detallesPago.TransactionFeeAmount = _conversion.ConvertToDecimal(capture.SellerReceivableBreakdown?.PaypalFee?.Value);
-                                        detallesPago.TransactionFeeCurrency = capture.SellerReceivableBreakdown?.PaypalFee?.CurrencyCode;
-                                        detallesPago.ReceivableAmount = _conversion.ConvertToDecimal(capture.SellerReceivableBreakdown?.NetAmount?.Value);
-                                        detallesPago.ReceivableCurrency = capture.SellerReceivableBreakdown?.NetAmount?.CurrencyCode;
-
-                                        var exchangeRateValue = capture.SellerReceivableBreakdown?.ExchangeRate?.Value;
-                                        if (decimal.TryParse((string)exchangeRateValue, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal exchangeRate))
-                                        {
-                                            detallesPago.ExchangeRate = exchangeRate;
-                                        }
-                                        detallesPago.CreateTime = _conversion.ConvertToDateTime(capture.CreateTime);
-                                        detallesPago.UpdateTime = _conversion.ConvertToDateTime(capture.UpdateTime);
-
-                                    }
-
-                                }
-                                var firstPurchaseUnit = detalles.PurchaseUnits?.FirstOrDefault();
-                                if (firstPurchaseUnit != null)
-                                {
-                                    // Campos de tracking
-                                    var firstTracker = firstPurchaseUnit.Shipping?.Trackers?.FirstOrDefault();
-                                    if (firstTracker != null)
-                                    {
-                                        detallesPago.TrackingId = firstTracker.Id;
-                                        detallesPago.TrackingStatus = firstTracker.Status;
-
-
-
-                                    }
-
-                                    // Campos de captura
-                                    var firstCapture = firstPurchaseUnit.Payments?.Captures?.FirstOrDefault();
-                                    if (firstCapture != null)
-                                    {
-                                        detallesPago.FinalCapture = firstCapture.FinalCapture;
-
-                                        if (firstCapture.SellerProtection != null)
-                                        {
-                                            detallesPago.DisputeCategories =
-                                                JsonConvert.SerializeObject(firstCapture.SellerProtection.DisputeCategories);
-                                        }
-                                    }
-                                }
-
-                            }
-
-                            var items = purchaseUnit.Items;
-                            if (items != null)
-                            {
-                                foreach (var item in items)
-                                {
-                                    var paymentItem = new PayPalPaymentItem
-                                    {
-                                        PayPalId = detallesPago.Id,
-                                        ItemName = item.Name,
-                                        ItemSku = item.Sku,
-                                        ItemPrice = _conversion.ConvertToDecimal(item.UnitAmount?.Value),
-                                        ItemCurrency = item.UnitAmount?.CurrencyCode,
-                                        ItemTax = _conversion.ConvertToDecimal(item.Tax?.Value),
-                                        ItemQuantity = _conversion.ConvertToInt(item.Quantity)
-                                    };
-                                    _context.PayPalPaymentItems.Add(paymentItem);
-                                }
-                            }
-                        }
-                    }
-                }
-                await _context.SaveChangesAsync();
-
-                return OperationResult<PayPalPaymentDetail>.Ok("", detallesPago);
-            });
-           
-        }
      
        
     }
