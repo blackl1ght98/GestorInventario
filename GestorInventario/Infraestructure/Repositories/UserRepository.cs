@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using GestorInventario.Application.DTOs.User;
-using GestorInventario.Domain.Entities;
+
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Infraestructure;
@@ -37,21 +37,16 @@ namespace GestorInventario.Infraestructure.Repositories
                 return OperationResult<Usuario>.Ok("Usuario obtenido con exito", usuario);
         }
         // Devuelve entidad de dominio mapeada - usar para lógica de negocio y edición
-        public async Task<OperationResult<EntityUser>> ObtenerUsuarioParaEdicionAsync(int id)
+        public async Task<OperationResult<Usuario>> ObtenerUsuarioParaEdicionAsync(int id)
         {
             var usuarioEf = await _context.Usuarios.AsTracking()
                 .Include(x => x.IdRolNavigation)
                 .FirstOrDefaultAsync(x => x.Id == id);
 
             if (usuarioEf == null)
-            {
-                return OperationResult<EntityUser>.Fail("Usuario no encontrado");
-            }
+                return OperationResult<Usuario>.Fail("Usuario no encontrado");
 
-            // Mapeamos de EF → Domain Entity
-            var usuarioDominio = _mapper.Map<EntityUser>(usuarioEf);
-
-            return OperationResult<EntityUser>.Ok("Usuario obtenido con éxito", usuarioDominio);
+            return OperationResult<Usuario>.Ok("Usuario obtenido con éxito", usuarioEf);
         }
         public async Task<List<Usuario>> ObtenerUsuariosAsync() =>await _context.Usuarios.Include(u => u.IdRolNavigation).ToListAsync();
         public async Task<(Usuario?, string)> ObtenerUsuarioConPedido(int id)
@@ -122,18 +117,12 @@ namespace GestorInventario.Infraestructure.Repositories
         {
             return await _context.Usuarios.AnyAsync(x => x.Email == email);
         }
-        public async Task<OperationResult<string>> ActualizarUsuarioAsync(EntityUser usuarioDominio)
+        public async Task<OperationResult<string>> ActualizarUsuarioAsync(Usuario usuario)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
             {
-                var usuarioEf = await _context.Usuarios.FindAsync(usuarioDominio.Id);
-                if (usuarioEf == null)
-                    throw new InvalidOperationException($"Usuario con ID {usuarioDominio.Id} no encontrado");
-
-                _mapper.Map(usuarioDominio, usuarioEf);
-                _context.EntityModified(usuarioEf);
-                await _context.UpdateEntityAsync(usuarioEf);
-
+                _context.EntityModified(usuario);
+                await _context.UpdateEntityAsync(usuario);
                 return OperationResult<string>.Ok("Edicion realizada con exito");
             });
         }

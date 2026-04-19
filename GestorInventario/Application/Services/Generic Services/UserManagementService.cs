@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Application.Services.Authentication;
-using GestorInventario.Domain.Entities;
+
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Repositories;
 using GestorInventario.Infraestructure.Utils;
@@ -37,21 +37,16 @@ namespace GestorInventario.Application.Services.Generic_Services
 
         public async Task<OperationResult<string>> CrearUsuarioAsync(UserViewModel model)
         {
-            // Toda la lógica de negocio está aquí
             var existing = await _usuarioRepository.ExisteEmailAsync(model.Email);
             if (existing)
                 return OperationResult<string>.Fail("Ya existe un usuario con este correo electrónico.");
 
             var resultadoHash = _hashService.Hash(model.Password);
+            var usuarioEf = _mapper.Map<Usuario>(model);
+            usuarioEf.Password = resultadoHash.Hash;
+            usuarioEf.Salt = resultadoHash.Salt;
 
-            var usuarioDominio = _mapper.Map<EntityUser>(model);
-            usuarioDominio.EstablecerPassword(resultadoHash.Hash, resultadoHash.Salt);
-
-            var usuarioEf = _mapper.Map<Usuario>(usuarioDominio);
-
-            // Solo aquí se llama al repository (persistencia pura)
             var resultadoGuardado = await _usuarioRepository.AgregarUsuarioAsync(usuarioEf);
-
             if (!resultadoGuardado.Success)
                 return OperationResult<string>.Fail(resultadoGuardado.Message);
 
@@ -62,30 +57,33 @@ namespace GestorInventario.Application.Services.Generic_Services
                 _logger.LogWarning("No se pudo enviar el email de confirmación");
 
             _logger.LogInformation("Usuario {Email} creado correctamente", model.Email);
-
             return OperationResult<string>.Ok("Usuario creado y correo de confirmación enviado");
         }
-    
-    public async Task<OperationResult<string>> EditarUsuarioAsync(UsuarioEditViewModel userVM)
+        public async Task<OperationResult<string>> EditarUsuarioAsync(UsuarioEditViewModel userVM)
         {
-            var resultado = await _usuarioRepository.ObtenerUsuarioParaEdicionAsync(userVM.Id);
+            var resultado = await _usuarioRepository.ObtenerUsuarioPorId(userVM.Id);
             if (resultado?.Data is null)
                 return OperationResult<string>.Fail(resultado?.Message ?? "Usuario no encontrado");
 
-            string emailActual = resultado.Data.Email;
-            _mapper.Map(userVM, resultado.Data);
+            var usuarioEf = resultado.Data;
+            string emailActual = usuarioEf.Email;
+
+            _mapper.Map(userVM, usuarioEf);
 
             if (emailActual != userVM.Email)
-                resultado.Data.ActualizarEmail(userVM.Email);
+            {
+                usuarioEf.Email = userVM.Email;
+                usuarioEf.ConfirmacionEmail = false;
+            }
 
-            var resultadoEdicion = await _usuarioRepository.ActualizarUsuarioAsync(resultado.Data);
+            var resultadoEdicion = await _usuarioRepository.ActualizarUsuarioAsync(usuarioEf);
             if (!resultadoEdicion.Success)
                 return OperationResult<string>.Fail(resultadoEdicion.Message);
 
             if (emailActual != userVM.Email)
             {
                 var correo = await _emailService.SendEmailAsyncRegister(
-                    new EmailDto { ToEmail = userVM.Email }, resultado.Data.Id);
+                    new EmailDto { ToEmail = userVM.Email }, usuarioEf.Id);
 
                 if (!correo.Success)
                     _logger.LogWarning("Error al enviar correo de confirmación: {Error}", correo.Message);

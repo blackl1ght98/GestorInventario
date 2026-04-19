@@ -16,7 +16,6 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
     public static  class TransientServices
     {
         public static IServiceCollection AddTransientServices(this IServiceCollection services) {
-
             services.AddTransient<IPageLinkGenerator,PageLinkGenerator>();           
             services.AddTransient<IPolicyExecutor, PolicyExecutor>();
             services.AddTransient<IUserRepository,UserRepository>();
@@ -57,7 +56,7 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<IUserManagementService,UserManagementService>();
             services.AddTransient<IPasswordResetService, PasswordResetService>();
             services.AddTransient<IProductManagementService, ProductManagementService>();
-            services.AddTransient<ImageOptimizerService>();
+            services.AddTransient<IPedidoManagementService, PedidoManagementService>();
             return services;
 
         }
