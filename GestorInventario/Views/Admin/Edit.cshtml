@@ -94,25 +94,7 @@
                             <span asp-validation-for="CodigoPostal" class="text-danger"></span>
                         </div>
 
-                        <!-- Rol (solo para administradores y cuando no es edición propia) -->
-                        @if (User.IsInRole("Administrador") && !Model.EsEdicionPropia)
-                        {
-                            <div class="mb-4">
-                                <div class="input-group">
-                                    <span class="input-group-text" style="background-color: var(--background); border-color: var(--secondary);">
-                                        <i class="bi bi-person-badge" style="color: var(--secondary);"></i>
-                                    </span>
-                                    <select class="form-control form-control-lg" id="IdRol" asp-for="IdRol" asp-items="ViewBag.Roles">
-                                        <option value="" disabled selected>Selecciona un rol</option>
-                                    </select>
-                                </div>
-                                <span asp-validation-for="IdRol" class="text-danger"></span>
-                            </div>
-                        }
-                        else
-                        {
-                            <input type="hidden" asp-for="IdRol" value="@Model.IdRol" />
-                        }
+                   
 
                         <!-- Mensaje de error -->
                         @if (TempData["ErrorMessage"] != null)

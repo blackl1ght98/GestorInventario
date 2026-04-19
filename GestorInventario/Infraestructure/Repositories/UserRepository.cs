@@ -14,19 +14,17 @@ namespace GestorInventario.Infraestructure.Repositories
     {
        
         private readonly GestorInventarioContext _context;
-        private readonly ILogger<UserRepository> _logger;
-        private readonly HashService _hashService;
+        private readonly ILogger<UserRepository> _logger;  
         private readonly IMapper _mapper;
-        public UserRepository( GestorInventarioContext context, ILogger<UserRepository> logger, HashService hash, IMapper map)
+        public UserRepository( GestorInventarioContext context, ILogger<UserRepository> logger, IMapper map)
         {
          
             _context = context;
             _logger = logger;
-            _hashService = hash;
             _mapper = map;
 
         }
-        //Operaciones simples
+        // Devuelve entidad EF - usar para operaciones de persistencia
         public async Task<OperationResult<Usuario>> ObtenerUsuarioPorId(int id)
         {
             var usuario = await _context.Usuarios.AsTracking()
@@ -39,7 +37,7 @@ namespace GestorInventario.Infraestructure.Repositories
             else
                 return OperationResult<Usuario>.Ok("Usuario obtenido con exito", usuario);
         }
-        //Operaciones complejas
+        // Devuelve entidad de dominio mapeada - usar para lógica de negocio y edición
         public async Task<OperationResult<EntityUser>> ObtenerUsuarioParaEdicionAsync(int id)
         {
             var usuarioEf = await _context.Usuarios.AsTracking()
@@ -56,21 +54,7 @@ namespace GestorInventario.Infraestructure.Repositories
 
             return OperationResult<EntityUser>.Ok("Usuario obtenido con éxito", usuarioDominio);
         }
-        public IQueryable<Usuario> ObtenerUsuarios()
-        {
-            return _context.Usuarios
-                .Include(u => u.IdRolNavigation)
-                .AsQueryable();
-        }
-        public IQueryable<Usuario> ObtenerUsuariosPorRol(int rolId)
-        {
-            return _context.Usuarios
-                .Where(u => u.IdRol == rolId)
-                .Include(u => u.IdRolNavigation)
-                .AsQueryable();
-        }
-       
-        public async Task<List<Usuario>> ObtenerUsuariosAsync() => await ObtenerUsuarios().ToListAsync();
+        public async Task<List<Usuario>> ObtenerUsuariosAsync() =>await _context.Usuarios.Include(u => u.IdRolNavigation).ToListAsync();
         public async Task<(Usuario?, string)> ObtenerUsuarioConPedido(int id)
         {
             var usuario = await _context.Usuarios.Include(p => p.Pedidos).FirstOrDefaultAsync(m => m.Id == id);
@@ -88,27 +72,16 @@ namespace GestorInventario.Infraestructure.Repositories
         }
         public async Task<OperationResult<string>> ActualizarEmailVerificationTokenAsync(int userId, string token)
         {
-            try
-            {
-                var usuario = await _context.Usuarios.FindAsync(userId);
-                if (usuario == null)
-                {
-                    return OperationResult<string>.Fail("Usuario no encontrado");
-                }
+            var usuario = await _context.Usuarios.FindAsync(userId);
+            if (usuario == null)
+                return OperationResult<string>.Fail("Usuario no encontrado");
 
-                usuario.EmailVerificationToken = token;
-                await _context.UpdateEntityAsync(usuario);
-              
-
-                return OperationResult<string>.Ok("Token actualizado correctamente");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al actualizar EmailVerificationToken del usuario {UserId}", userId);
-                return OperationResult<string>.Fail("Error al actualizar el token de verificación");
-            }
+            usuario.EmailVerificationToken = token;
+            await _context.UpdateEntityAsync(usuario);
+            return OperationResult<string>.Ok("Token actualizado correctamente");
         }
-        public async Task<OperationResult<(string temporaryPassword, string token)>> GenerarYGuardarPasswordTemporalAsync(string email)
+        public async Task<OperationResult<Usuario>> GuardarPasswordTemporalAsync(
+        string email, string hash, byte[] salt, DateTime fechaExpiracion)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
             {
@@ -117,35 +90,16 @@ namespace GestorInventario.Infraestructure.Repositories
                     .FirstOrDefaultAsync(x => x.Email == email);
 
                 if (usuario == null)
-                    return OperationResult<(string, string)>.Fail("Usuario no encontrado");
+                    return OperationResult<Usuario>.Fail("Usuario no encontrado");
 
-                // Generar contraseña temporal
-                var contrasenaTemporal = GenerarContrasenaTemporal();   
-
-                // Hashear
-                var resultadoHash = _hashService.Hash(contrasenaTemporal);
-
-                // Actualizar campos
-                usuario.TemporaryPassword = resultadoHash.Hash;
-                usuario.Salt = resultadoHash.Salt;
-                var fechaExpiracion = DateTime.Now.AddMinutes(5);
-
+                usuario.TemporaryPassword = hash;
+                usuario.Salt = salt;
                 usuario.FechaEnlaceCambioPass = fechaExpiracion;
                 usuario.FechaExpiracionContrasenaTemporal = fechaExpiracion;
 
                 await _context.UpdateEntityAsync(usuario);
-                return OperationResult<(string, string)>.Ok("Password temporal generada",
-                    (contrasenaTemporal, usuario.EmailVerificationToken ?? ""));
+                return OperationResult<Usuario>.Ok("Password temporal guardada", usuario);
             });
-           
-        }
-        private string GenerarContrasenaTemporal()
-        {
-            var length = 12;
-            var random = new Random();
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
-            return new string(Enumerable.Repeat(chars, length)
-           .Select(s => s[random.Next(s.Length)]).ToArray());
         }
         public async Task<List<string>> ObtenerEmailsEmpleadosAsync()
         {
@@ -154,6 +108,46 @@ namespace GestorInventario.Infraestructure.Repositories
                 .Select(u => u.Email)
                 .ToListAsync();
         }
+        /**
+        Metodo llamado en el servicio UserManagementService.
+        */
+        public async Task<OperationResult<Usuario>> AgregarUsuarioAsync(Usuario usuario)
+        {
+            return await _context.ExecuteInTransactionAsync(async () =>
+            {
+                await _context.AddEntityAsync(usuario);
+                return OperationResult<Usuario>.Ok("Usuario guardado", usuario);
+            });
+        }
+        public async Task<bool> ExisteEmailAsync(string email)
+        {
+            return await _context.Usuarios.AnyAsync(x => x.Email == email);
+        }
+        public async Task<OperationResult<string>> ActualizarUsuarioAsync(EntityUser usuarioDominio)
+        {
+            return await _context.ExecuteInTransactionAsync(async () =>
+            {
+                var usuarioEf = await _context.Usuarios.FindAsync(usuarioDominio.Id);
+                if (usuarioEf == null)
+                    throw new InvalidOperationException($"Usuario con ID {usuarioDominio.Id} no encontrado");
 
+                _mapper.Map(usuarioDominio, usuarioEf);
+                _context.EntityModified(usuarioEf);
+                await _context.UpdateEntityAsync(usuarioEf);
+
+                return OperationResult<string>.Ok("Edicion realizada con exito");
+            });
+        }
+        public async Task<OperationResult<Usuario>> ObtenerUsuarioConProveedoresYPedidosAsync(int id)
+        {
+            var usuario = await _context.Usuarios
+                .Include(u => u.Pedidos)
+                .Include(u => u.Proveedores)
+                .FirstOrDefaultAsync(u => u.Id == id);
+
+            return usuario is null
+                ? OperationResult<Usuario>.Fail("Usuario no encontrado")
+                : OperationResult<Usuario>.Ok("", usuario);
+        }
     }
 }

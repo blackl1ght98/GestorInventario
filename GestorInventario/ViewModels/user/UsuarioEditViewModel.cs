@@ -21,8 +21,7 @@ namespace GestorInventario.ViewModels.user
 
         [Required(ErrorMessage = "La dirección es requerida")]
         public required string Direccion { get; set; }
-        [Required]
-        public int IdRol { get; set; }
+
         [Required(ErrorMessage = "La ciudad es requerida")]
         public required string Ciudad { get; set; }
         [Required(ErrorMessage = "El codigo postal es requerido")]
