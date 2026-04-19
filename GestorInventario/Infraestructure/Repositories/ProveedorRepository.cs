@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using GestorInventario.Domain.Entities;
+﻿
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Infraestructure;
@@ -95,10 +94,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 {
                     return OperationResult<string>.Fail("El proveedor no existe");
                 }
-
-                await ActualizarProveedor(proveedor, model);
-        
-
+                await ActualizarProveedor(proveedor, model);      
                 return OperationResult<string>.Ok("Proveedor editado con éxito");
             });
           

@@ -56,6 +56,8 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<IAuditService, AuditService>();
             services.AddTransient<IUserManagementService,UserManagementService>();
             services.AddTransient<IPasswordResetService, PasswordResetService>();
+            services.AddTransient<IProductManagementService, ProductManagementService>();
+            services.AddTransient<ImageOptimizerService>();
             return services;
 
         }
