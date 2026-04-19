@@ -21,7 +21,7 @@ namespace GestorInventario.Infraestructure.Repositories
         }    
      
         public IQueryable<Producto> ObtenerTodosLosProductos()=>from p in _context.Productos.Include(x => x.IdProveedorNavigation)orderby p.Id  select p;
-        public async Task<List<Producto>> ObtenerProductos() => await _context.Productos.ToListAsync();
+    
         
         public async Task<OperationResult<Producto>> AgregarProductoAsync(Producto producto)
         {
