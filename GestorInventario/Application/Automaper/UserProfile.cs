@@ -48,8 +48,7 @@ namespace GestorInventario.Application.Classes
                 .ForMember(dest => dest.FechaNacimiento, opt => opt.MapFrom(src => src.FechaNacimiento))
                 .ForMember(dest => dest.CodigoPostal, opt => opt.MapFrom(src => src.CodigoPostal))
                 .ForMember(dest => dest.Ciudad, opt => opt.MapFrom(src => src.Ciudad))
-                .ForMember(dest => dest.Direccion, opt => opt.MapFrom(src => src.Direccion))
-                .ForMember(dest => dest.IdRol, opt => opt.MapFrom(src => src.IdRol))
+                .ForMember(dest => dest.Direccion, opt => opt.MapFrom(src => src.Direccion))             
                 .ForMember(dest => dest.EsEdicionPropia, opt => opt.Ignore());   
 
         }

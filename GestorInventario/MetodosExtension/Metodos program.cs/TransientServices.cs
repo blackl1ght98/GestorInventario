@@ -54,6 +54,8 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<IPaypalRefundService, PaypalRefundService>();
             services.AddTransient<IPaypalSubscriptionService, PaypalSubscriptionService>();
             services.AddTransient<IAuditService, AuditService>();
+            services.AddTransient<IUserManagementService,UserManagementService>();
+            services.AddTransient<IPasswordResetService, PasswordResetService>();
             return services;
 
         }

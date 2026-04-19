@@ -28,10 +28,11 @@ namespace GestorInventario.Application.Services
         private readonly ITempDataProvider _tempDataProvider;
         private readonly IUserRepository _userRepository;
         private readonly ILogger<EmailService> _logger;
-      
+        private readonly IPasswordResetService _password;
+
         public EmailService(IConfiguration config, IHttpContextAccessor httpContextAccessor, IUserRepository user,
             ITempDataProvider tempDataProvider, ILogger<EmailService> logger,
-            ICompositeViewEngine viewEngine, IServiceProvider serviceProvider)
+            ICompositeViewEngine viewEngine, IServiceProvider serviceProvider, IPasswordResetService pass)
         {
             _config = config;
             _httpContextAccessor = httpContextAccessor;
@@ -42,6 +43,7 @@ namespace GestorInventario.Application.Services
             
             _logger = logger;
             _userRepository = user;
+            _password = pass;
            
         }
 
@@ -107,7 +109,7 @@ namespace GestorInventario.Application.Services
             try
             {
                 // 1. Llamada al repositorio para toda la lógica de BD
-                var resultado = await _userRepository.GenerarYGuardarPasswordTemporalAsync(userDataResetPassword.ToEmail);
+                var resultado = await _password.GenerarPasswordTemporalAsync(userDataResetPassword.ToEmail);
 
                 if (!resultado.Success)
                 {

@@ -5,7 +5,7 @@ using System.Text;
 using static Microsoft.Playwright.Assertions;
 namespace PruebasUnitarias
 {
-    public class PedidosControllerTest : IAsyncLifetime
+    public class PedidosControllerTest 
     {
         private IPlaywright _playwright;
         private IBrowser _browser;
@@ -699,10 +699,6 @@ namespace PruebasUnitarias
 
             Console.WriteLine("✅ Login exitoso (reutilizable)");
         }
-        public async Task DisposeAsync()
-        {
-            await _browser?.CloseAsync();
-            _playwright?.Dispose();
-        }
+      
     }
 }

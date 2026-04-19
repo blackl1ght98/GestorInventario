@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace GestorInventario.Infraestructure.Controllers
 {
+    [Authorize(Roles = "Administrador,Empleado")]
     public class ProveedorController : Controller
     {
         
@@ -31,15 +32,12 @@ namespace GestorInventario.Infraestructure.Controllers
             _current = current;
         }
       
-        [Authorize]
+     
         public async Task<IActionResult> Index(string buscar, [FromQuery] Paginacion paginacion)
         {
             try
             {
-                if (!(_current.IsAuthenticated()))
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+                
 
                 var proveedores = _proveedorRepository.ObtenerProveedores();
 
@@ -74,10 +72,7 @@ namespace GestorInventario.Infraestructure.Controllers
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Create()
         {
-            if (!(_current.IsAuthenticated()))
-            {
-                return RedirectToAction("Login", "Auth");
-            }
+            
 
             // Cargar los usuarios desde la base de datos
             var usuarios = await _policyExecutor.ExecutePolicyAsync(() => _userRepository.ObtenerUsuariosAsync());
@@ -101,10 +96,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!(_current.IsAuthenticated()))
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+              
                
                 if (!ModelState.IsValid)
                 {
@@ -142,10 +134,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!(_current.IsAuthenticated()))
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+                
 
                 var proveedor = await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.ObtenerProveedorId(id));
                 if (proveedor == null)
@@ -171,10 +160,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!(_current.IsAuthenticated()))
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+             
                
                 var success = await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.EliminarProveedor(Id));
                 if (success.Success)
@@ -197,15 +183,12 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
-        [Authorize(Roles = "Administrador")]
+      
         public async Task<ActionResult> Edit(int id)
         {
             try
             {
-                if (!(_current.IsAuthenticated()))
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+               
 
                 var usuarios = new SelectList(await _policyExecutor.ExecutePolicyAsync(() => _userRepository.ObtenerUsuariosAsync()), "Id", "NombreCompleto");
 
@@ -229,17 +212,13 @@ namespace GestorInventario.Infraestructure.Controllers
 
         }
         //Metodo encargado de editar el proveedor
-        [HttpPost]
-        [Authorize(Roles = "Administrador")]
+        [HttpPost] 
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(ProveedorViewModel model, int Id)
         {
             try
             {
-                if (!(_current.IsAuthenticated()))
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
+               
 
                 // Validación del modelo (opcional, pero recomendado)
                 if (!ModelState.IsValid)

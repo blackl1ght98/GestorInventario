@@ -22,7 +22,8 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IPolicyExecutor _policyExecutor;  
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IPaginationHelper _paginationHelper;
-        public AdminController(ILogger<AdminController> logger, IAdminRepository adminRepository, IUnitOfWork unit,
+        private readonly IUserManagementService _userManagementService;
+        public AdminController(ILogger<AdminController> logger, IAdminRepository adminRepository, IUnitOfWork unit, IUserManagementService userManagement,
         IMapper map, IPolicyExecutor executor, IUserRepository user, IPaginationHelper paginationHelper, ICurrentUserAccessor current)
         {           
             
@@ -32,35 +33,37 @@ namespace GestorInventario.Infraestructure.Controllers
             _unitOfWork = unit;
             _paginationHelper = paginationHelper;
             _currentUserAccessor = current;
+            _userManagementService = userManagement;
         }
-
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Index(string buscar, [FromQuery] Paginacion paginacion)
         {
             try
             {
-                var queryable = _policyExecutor.ExecutePolicy(() => _unitOfWork.UserRepository.ObtenerUsuarios());
+                var currentUserId = _currentUserAccessor.GetCurrentUserId();
+
+                var queryable = _policyExecutor.ExecutePolicy(() =>
+                    _unitOfWork.AdminRepository.ObtenerUsuarios())
+                    .Where(u => u.Id != currentUserId); 
 
                 if (!string.IsNullOrEmpty(buscar))
                 {
                     queryable = queryable.Where(s => s.NombreCompleto.Contains(buscar));
                 }
 
-             
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
-                    _paginationHelper.PaginarAsync(queryable, paginacion)
-                );
+                    _paginationHelper.PaginarAsync(queryable, paginacion));
 
                 var viewModel = new UsuariosViewModel
                 {
                     Usuarios = paginationResult.Items,
-                    Paginas = paginationResult.Paginas.ToList(),              
-                    TotalPaginas = paginationResult.TotalPaginas,    
-                    PaginaActual = paginationResult.PaginaActual,    
+                    Paginas = paginationResult.Paginas.ToList(),
+                    TotalPaginas = paginationResult.TotalPaginas,
+                    PaginaActual = paginationResult.PaginaActual,
                     Buscar = buscar
                 };
 
-                 CargarRolesEnViewData();
+                CargarRolesEnViewData();
                 return View(viewModel);
             }
             catch (Exception ex)
@@ -69,7 +72,6 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-
 
         public IActionResult Create()
         {
@@ -98,7 +100,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     return View(model);
                 }
 
-                var result = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.AdminRepository.CrearUsuario(model));
+                var result = await _policyExecutor.ExecutePolicyAsync(() => _userManagementService.CrearUsuarioAsync(model));
 
                 if (!result.Success)
                 {
@@ -213,9 +215,7 @@ namespace GestorInventario.Infraestructure.Controllers
         public async Task<ActionResult> Edit(UsuarioEditViewModel userVM)
         {
             try
-            {
-                
-
+            {             
                 // Cargar roles para la vista en caso de error
                 if (!userVM.EsEdicionPropia)
                 {
@@ -225,7 +225,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     return View(userVM);
                 }
-                var result= await _unitOfWork.AdminRepository.EditarUsuario(userVM);
+                var result= await _userManagementService.EditarUsuarioAsync(userVM);
                
                 if (result.Success)
                 {
@@ -252,13 +252,13 @@ namespace GestorInventario.Infraestructure.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             try
-            {             
-                var (user,mensaje) = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.UserRepository.ObtenerUsuarioConPedido(id));            
+            {
+                var (user, mensaje) = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.UserRepository.ObtenerUsuarioConPedido(id));
                 if (user == null)
                 {
                     _logger.LogCritical("Se intento manipular la url por el usuario: " + _currentUserAccessor.GetCurrentUserId());
                     return RedirectToAction(nameof(Index));
-                }        
+                }
                 return View(user);
             }
             catch (Exception ex)
@@ -267,9 +267,10 @@ namespace GestorInventario.Infraestructure.Controllers
                 _logger.LogError(ex, "Error al visualizar la vista de eliminacion del usuario");
                 return RedirectToAction("Error", "Home");
             }
-           
-        }    
-        
+
+        }
+
+
         [HttpPost]
         [Authorize(Roles = "Administrador")]
         [ValidateAntiForgeryToken]
@@ -277,22 +278,17 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-               var result = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.AdminRepository.EliminarUsuario(Id));
-               
+                var result = await _policyExecutor.ExecutePolicyAsync(() =>_userManagementService.EliminarUsuarioAsync(Id));
                 if (result.Success)
-                {
-                   
                     return RedirectToAction(nameof(Index));
-                }
-                else
-                {
-                    _logger.LogError(result.Message);
-                    return RedirectToAction(nameof(Delete), new { id = Id });
-                }
+
+                TempData["ErrorMessage"] = result.Message;
+                _logger.LogError(result.Message);
+                return RedirectToAction(nameof(Delete), new { id = Id });
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
+                TempData["ConectionError"] = "El servidor ha tardado mucho en responder. Inténtelo de nuevo más tarde.";
                 _logger.LogError(ex, "Error al eliminar un usuario");
                 return RedirectToAction("Error", "Home");
             }
@@ -303,6 +299,12 @@ namespace GestorInventario.Infraestructure.Controllers
       
         public async Task<IActionResult> BajaUsuarioPost([FromBody] UsuarioRequestDto request)
         {
+            var currentUserId = _currentUserAccessor.GetCurrentUserId();
+            if (request.Id == currentUserId)
+            {
+                TempData["ErrorMessage"] = "No puedes darte de baja a ti mismo";
+                return RedirectToAction(nameof(Index));
+            }
             var result = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.AdminRepository.BajaUsuario(request.Id));
          
             if (result.Success)
@@ -321,6 +323,12 @@ namespace GestorInventario.Infraestructure.Controllers
      
         public async Task<IActionResult> AltaUsuarioPost([FromBody] UsuarioRequestDto request)
         {
+            var currentUserId = _currentUserAccessor.GetCurrentUserId();
+            if (request.Id == currentUserId)
+            {
+                TempData["ErrorMessage"] = "No puedes darte de baja a ti mismo";
+                return RedirectToAction(nameof(Index));
+            }
             var result = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.AdminRepository.AltaUsuario(request.Id));
           
             if (result.Success)
@@ -371,7 +379,7 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                 
 
-                var usuariosQueryable =  _policyExecutor.ExecutePolicy(() => _unitOfWork.UserRepository.ObtenerUsuariosPorRol(id));
+                var usuariosQueryable =  _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerUsuariosPorRol(id));
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() => _paginationHelper.PaginarAsync(usuariosQueryable, paginacion));
 
                 var todosLosRoles = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles());
@@ -462,6 +470,35 @@ namespace GestorInventario.Infraestructure.Controllers
             var roles = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles()); 
             ViewData["Roles"] = new SelectList(roles.Data, "Id", "Nombre");
         }
-      
+        [HttpGet]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> ObtenerInfoReasignacion(int id)
+        {
+            var usuario = await _policyExecutor.ExecutePolicyAsync(() =>
+                _unitOfWork.AdminRepository.ObtenerUsuarioConProveedoresYPedidosAsync(id));
+
+            if (usuario.Data is null)
+                return Json(new { success = false, message = "Usuario no encontrado" });
+
+            if (!usuario.Data.Proveedores.Any())
+                return Json(new { success = false, message = "Este usuario no tiene proveedores asignados" });
+
+            var usuarios = _unitOfWork.AdminRepository.ObtenerUsuarios()
+                .Where(u => u.Id != id)
+                .Select(u => new { u.Id, u.NombreCompleto })
+                .ToList();
+
+            return Json(new { success = true, usuarios });
+        }
+        [HttpPost]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> ReasignarProveedores([FromBody] ReasignarProveedoresDto request)
+        {
+            var result = await _policyExecutor.ExecutePolicyAsync(() =>
+                _unitOfWork.AdminRepository.ReasignarProveedoresAsync(
+                    request.UsuarioOrigenId, request.UsuarioDestinoId));
+
+            return Json(new { success = result.Success, message = result.Message });
+        }
     }
 }

@@ -108,6 +108,12 @@
                                        class="btn btn-outline-secondary flex-fill btn-sm">
                                         <i class="bi bi-key me-1"></i>Resetear Contraseña
                                     </a>
+                                    <button type="button"
+                                            class="btn btn-outline-warning flex-fill btn-sm reasignar-btn"
+                                            data-user-id="@user.Id"
+                                            data-user-name="@user.NombreCompleto">
+                                        <i class="bi bi-arrow-left-right me-1"></i>Reasignar Proveedores
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -170,7 +176,27 @@
         </div>
     </div>
 </div>
-
+<div class="modal fade" id="reasignarModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3 shadow">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">Reasignar Proveedores</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Reasignar proveedores de <strong id="nombreUsuario"></strong></p>
+                <div id="contenidoModal">
+                    <!-- Se carga dinámicamente via JS -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-warning" id="confirmarReasignacion">Reasignar</button>
+            </div>
+        </div>
+    </div>
+</div>
 @section Scripts {
     <script src="~/js/alta-baja-usuario.js" asp-append-version="true" defer></script>
+    <script src="~/js/reasignarProveedor.js" asp-append-version="true" defer></script>
 }

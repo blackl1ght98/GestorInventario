@@ -6,7 +6,7 @@ using static Microsoft.Playwright.Assertions;
 // dotnet run --launch-profile https --no-build
 namespace PruebasUnitarias.Controllers
 {
-    public class AuthControllerE2ETests : IAsyncLifetime
+    public class AuthControllerE2ETests 
     {
         private IPlaywright _playwright;
         private IBrowser _browser;
@@ -598,10 +598,6 @@ namespace PruebasUnitarias.Controllers
             Console.WriteLine("✅ Login exitoso (reutilizable)");
         }
 
-        public async Task DisposeAsync()
-        {
-            await _browser?.CloseAsync();
-            _playwright?.Dispose();
-        }
+       
     }
 }

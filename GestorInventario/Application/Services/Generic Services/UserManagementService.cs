@@ -1,0 +1,114 @@
+﻿using AutoMapper;
+using GestorInventario.Application.DTOs.Email;
+using GestorInventario.Application.Services.Authentication;
+using GestorInventario.Domain.Entities;
+using GestorInventario.Domain.Models;
+using GestorInventario.Infraestructure.Repositories;
+using GestorInventario.Infraestructure.Utils;
+using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.ViewModels.user;
+
+namespace GestorInventario.Application.Services.Generic_Services
+{
+    public class UserManagementService : IUserManagementService
+    {
+        private readonly IUserRepository _usuarioRepository;
+        private readonly HashService _hashService;
+        private readonly IEmailService _emailService;
+        private readonly IMapper _mapper;
+        private readonly ILogger<UserManagementService> _logger;
+        private readonly IAdminRepository _adminRepository;
+        public UserManagementService(
+            IUserRepository usuarioRepository,
+            HashService hashService,
+            IEmailService emailService,
+            IMapper mapper,
+            IAdminRepository admin,
+            ILogger<UserManagementService> logger)
+        {
+            _usuarioRepository = usuarioRepository;
+            _hashService = hashService;
+            _emailService = emailService;
+            _mapper = mapper;
+            _logger = logger;
+            _adminRepository = admin;
+        }
+
+        public async Task<OperationResult<string>> CrearUsuarioAsync(UserViewModel model)
+        {
+            // Toda la lógica de negocio está aquí
+            var existing = await _usuarioRepository.ExisteEmailAsync(model.Email);
+            if (existing)
+                return OperationResult<string>.Fail("Ya existe un usuario con este correo electrónico.");
+
+            var resultadoHash = _hashService.Hash(model.Password);
+
+            var usuarioDominio = _mapper.Map<EntityUser>(model);
+            usuarioDominio.EstablecerPassword(resultadoHash.Hash, resultadoHash.Salt);
+
+            var usuarioEf = _mapper.Map<Usuario>(usuarioDominio);
+
+            // Solo aquí se llama al repository (persistencia pura)
+            var resultadoGuardado = await _usuarioRepository.AgregarUsuarioAsync(usuarioEf);
+
+            if (!resultadoGuardado.Success)
+                return OperationResult<string>.Fail(resultadoGuardado.Message);
+
+            var correo = await _emailService.SendEmailAsyncRegister(
+                new EmailDto { ToEmail = model.Email }, usuarioEf.Id);
+
+            if (!correo.IsSuccess)
+                _logger.LogWarning("No se pudo enviar el email de confirmación");
+
+            _logger.LogInformation("Usuario {Email} creado correctamente", model.Email);
+
+            return OperationResult<string>.Ok("Usuario creado y correo de confirmación enviado");
+        }
+    
+    public async Task<OperationResult<string>> EditarUsuarioAsync(UsuarioEditViewModel userVM)
+        {
+            var resultado = await _usuarioRepository.ObtenerUsuarioParaEdicionAsync(userVM.Id);
+            if (resultado?.Data is null)
+                return OperationResult<string>.Fail(resultado?.Message ?? "Usuario no encontrado");
+
+            string emailActual = resultado.Data.Email;
+            _mapper.Map(userVM, resultado.Data);
+
+            if (emailActual != userVM.Email)
+                resultado.Data.ActualizarEmail(userVM.Email);
+
+            var resultadoEdicion = await _usuarioRepository.ActualizarUsuarioAsync(resultado.Data);
+            if (!resultadoEdicion.Success)
+                return OperationResult<string>.Fail(resultadoEdicion.Message);
+
+            if (emailActual != userVM.Email)
+            {
+                var correo = await _emailService.SendEmailAsyncRegister(
+                    new EmailDto { ToEmail = userVM.Email }, resultado.Data.Id);
+
+                if (!correo.Success)
+                    _logger.LogWarning("Error al enviar correo de confirmación: {Error}", correo.Message);
+                else
+                    _logger.LogInformation("Correo de confirmación enviado a {Email}", userVM.Email);
+            }
+
+            return OperationResult<string>.Ok("Edicion realizada con exito");
+        }
+        public async Task<OperationResult<string>> EliminarUsuarioAsync(int id)
+        {
+            var usuario = await _usuarioRepository.ObtenerUsuarioConProveedoresYPedidosAsync(id);
+
+            if (usuario.Data is null)
+                return OperationResult<string>.Fail("El usuario no existe");
+
+            if (usuario.Data.Pedidos.Any())
+                return OperationResult<string>.Fail("El usuario no se puede eliminar porque tiene pedidos asociados");
+
+            if (usuario.Data.Proveedores.Any())
+                return OperationResult<string>.Fail("El usuario no se puede eliminar porque tiene proveedores asociados");
+
+            return await _adminRepository.EliminarUsuario(id);
+        }
+    }
+}
