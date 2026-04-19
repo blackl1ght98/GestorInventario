@@ -7,7 +7,7 @@ namespace GestorInventario.Interfaces.Infraestructure
     public interface IProductoRepository
     {
         IQueryable<Producto> ObtenerTodosLosProductos();
-        Task<List<Producto>> ObtenerProductos();
+     
         Task<OperationResult<Producto>> AgregarProductoAsync(Producto producto);
         Task<List<Proveedore>> ObtenerProveedores();
         Task<(Producto?, string)> ObtenerProductoPorId(int id);

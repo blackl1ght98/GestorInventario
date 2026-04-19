@@ -32,60 +32,44 @@ namespace GestorInventario.Application.Services.Generic_Services
 
         public async Task<OperationResult<Producto>> CrearProducto(ProductosViewModel model)
         {
+            var barcodeResult = await _barCodeService.GenerateUniqueBarCodeAsync(BarcodeType.UPC_A, "", true);
 
-                var barcodeResult = await _barCodeService.GenerateUniqueBarCodeAsync(BarcodeType.UPC_A, "", true);
+            var producto = new Producto
+            {
+                NombreProducto = model.NombreProducto,
+                Descripcion = model.Descripcion,
+                Imagen = "",
+                Cantidad = model.Cantidad,
+                Precio = model.Precio,
+                FechaCreacion = DateTime.Now,
+                FechaModificacion = DateTime.Now,
+                IdProveedor = model.IdProveedor,
+                UpcCode = barcodeResult.Code
+            };
 
-                // Crear entidad Producto
-                var producto = new Producto
+            if (model.ArchivoImagen != null && model.ArchivoImagen.Length > 0)
+            {
+                try
                 {
-                    NombreProducto = model.NombreProducto,
-                    Descripcion = model.Descripcion,
-                    Imagen = "",
-                    Cantidad = model.Cantidad,
-                    Precio = model.Precio,
-                    FechaCreacion = DateTime.Now,
-                    FechaModificacion = DateTime.Now,
-                    IdProveedor = model.IdProveedor,
-                    UpcCode = barcodeResult.Code
-                };
-
-                // Procesar imagen si existe
-                if (model.ArchivoImagen != null && model.ArchivoImagen.Length > 0)
-                {
-                    _logger.LogDebug("Procesando imagen: {FileName}, Tamaño: {Length} bytes", model.ArchivoImagen.FileName, model.ArchivoImagen.Length);
-                    try
-                    {
-                        using var memoryStream = new MemoryStream();
-                        await model.ArchivoImagen.CopyToAsync(memoryStream);
-                        var contenido = memoryStream.ToArray();
-                        var extension = Path.GetExtension(model.ArchivoImagen.FileName)?.ToLowerInvariant();
-                        if (string.IsNullOrEmpty(extension))
-                        {
-                            _logger.LogWarning("No se pudo determinar la extensión del archivo: {FileName}", model.ArchivoImagen.FileName);
-                            throw new InvalidOperationException("No se pudo determinar la extensión del archivo.");
-
-                        }
-                        producto.Imagen = await _gestorArchivos.GuardarArchivo(contenido, extension, "imagenes");
-                    }
-                    catch (IOException ex)
-                    {
-                        _logger.LogError(ex, "Error al procesar la imagen: {FileName}", model.ArchivoImagen.FileName);
-                        throw new InvalidOperationException("Error al procesar la imagen.", ex);
-                    }
+                    producto.Imagen = await _imageOptimizerService.OptimizeAndSaveImage(
+                        model.ArchivoImagen, "imagenes");
                 }
-
-                // Guardar producto
-                _logger.LogDebug("Agregando producto a la base de datos: {NombreProducto}", producto.NombreProducto);
-                var existeProducto = await _productoRepository.ExisteProductoAsync(producto.NombreProducto);
-                if (existeProducto)
+                catch (Exception ex)
                 {
-                    return OperationResult<Producto>.Fail("Ya hay un producto con ese nombre, proporcione otro nombre");
+                    _logger.LogError(ex, "Error al procesar la imagen: {FileName}", model.ArchivoImagen.FileName);
+                    throw new InvalidOperationException("Error al procesar la imagen.", ex);
                 }
-                await _productoRepository.AgregarProductoAsync(producto);
-                _logger.LogInformation("Producto creado exitosamente: {NombreProducto}, UpcCode: {UpcCode}", producto.NombreProducto, producto.UpcCode);
-                return OperationResult<Producto>.Ok("", producto);
-       
+            }
 
+            var existeProducto = await _productoRepository.ExisteProductoAsync(producto.NombreProducto);
+            if (existeProducto)
+                return OperationResult<Producto>.Fail("Ya hay un producto con ese nombre, proporcione otro nombre");
+
+            await _productoRepository.AgregarProductoAsync(producto);
+            _logger.LogInformation("Producto creado exitosamente: {NombreProducto}, UpcCode: {UpcCode}",
+                producto.NombreProducto, producto.UpcCode);
+
+            return OperationResult<Producto>.Ok("", producto);
         }
         public async Task<OperationResult<string>> EditarProducto(ProductosViewModel model, int usuarioId)
         {
