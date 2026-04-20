@@ -11,7 +11,7 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<OperationResult<Producto>> AgregarProductoAsync(Producto producto);
         Task<List<Proveedore>> ObtenerProveedores();
         Task<(Producto?, string)> ObtenerProductoPorId(int id);
-   
+        Task<Producto> ObtenerProductoPorIdAsync(int productoId);
         Task<bool> ExisteProductoAsync(string nombre);
         Task<OperationResult<Producto>> ActualizarProductoAsync(Producto producto);
       

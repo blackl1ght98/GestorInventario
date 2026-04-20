@@ -9,5 +9,6 @@ namespace GestorInventario.Interfaces.Application
         Task<OperationResult<string>> EliminarPedido(int Id);
         Task<OperationResult<string>> EditarPedido(EditPedidoViewModel model);
          Task<OperationResult<PayPalPaymentDetail>> ObtenerDetallePagoEjecutadoV2(string id);
+        string GenerarNumeroPedido();
     }
 }
