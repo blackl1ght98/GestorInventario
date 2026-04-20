@@ -16,14 +16,16 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IPolicyExecutor _policyExecutor;       
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IPaginationHelper _paginationHelper;
+        private readonly IPaymentService _paymentService;
         public CarritoController( ICarritoRepository carritorepository,   ICurrentUserAccessor current,
-        ILogger<CarritoController> logger,  IPolicyExecutor executor,  IPaginationHelper pagination)
+        ILogger<CarritoController> logger,  IPolicyExecutor executor,  IPaginationHelper pagination, IPaymentService pay)
         {          
             _carritoRepository = carritorepository;       
             _logger = logger;              
             _policyExecutor=executor;           
             _paginationHelper = pagination;
             _currentUserAccessor = current;
+            _paymentService = pay;
         }
 
         [HttpGet]
@@ -101,7 +103,7 @@ namespace GestorInventario.Infraestructure.Controllers
                
                     int usuarioId= _currentUserAccessor.GetCurrentUserId();   
                         
-                    var resultado = await _policyExecutor.ExecutePolicyAsync(()=> _carritoRepository.Pagar(monedaSeleccionada, usuarioId))  ;
+                    var resultado = await _policyExecutor.ExecutePolicyAsync(()=> _paymentService.Pagar(monedaSeleccionada, usuarioId))  ;
                     if (resultado.Success)
                     {
                         return Redirect(resultado.Data);

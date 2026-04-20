@@ -48,7 +48,7 @@ namespace GestorInventario.Infraestructure.Repositories
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.UpdateEntityAsync(pedido);
-                return OperationResult<Pedido>.Ok("Pedido Agregado", pedido);
+                return OperationResult<Pedido>.Ok("Pedido actualizado", pedido);
             });
         }
         public async Task<OperationResult<DetallePedido>> AgregarDetallePedidoAsync(DetallePedido detalle)

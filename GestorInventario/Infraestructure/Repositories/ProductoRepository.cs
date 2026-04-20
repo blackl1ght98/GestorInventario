@@ -37,6 +37,10 @@ namespace GestorInventario.Infraestructure.Repositories
             return await _context.Productos.AnyAsync(x => x.NombreProducto == nombre);
         }
         public async Task<List<Proveedore>> ObtenerProveedores()=>await _context.Proveedores.ToListAsync();
+        public async Task<Producto> ObtenerProductoPorIdAsync(int productoId)
+        {
+            return await _context.Productos.FindAsync(productoId);
+        }
         public async Task<(Producto?,string)> ObtenerProductoPorId(int id)
         {
             var producto = await _context.Productos.Include(p => p.IdProveedorNavigation).FirstOrDefaultAsync(m => m.Id == id);

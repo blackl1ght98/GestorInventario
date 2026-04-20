@@ -57,6 +57,7 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<IPasswordResetService, PasswordResetService>();
             services.AddTransient<IProductManagementService, ProductManagementService>();
             services.AddTransient<IPedidoManagementService, PedidoManagementService>();
+            services.AddTransient<IPaymentService, PaymentService>();
             return services;
 
         }
