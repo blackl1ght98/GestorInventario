@@ -15,30 +15,23 @@ namespace GestorInventario.Application.Services.Generic_Services
     {
        
         private readonly ICurrentUserAccessor _currentUserAccessor;
-        private readonly IUserRepository _userRepository;
-        private readonly ICarritoRepository _carrito;
+        private readonly IUnitOfWork _unitOfWork;    
         private readonly ILogger<PaymentService> _logger;
         private readonly IPedidoManagementService _pedidoService;
         private readonly IConfiguration _configuration;
         private readonly IPaypalOrderService _paypalOrder;
-        private readonly IPedidoRepository _pedidoRepository;
-        private readonly IProductoRepository _producto;
 
-        public PaymentService( ICurrentUserAccessor currentUserAccessor, 
-        IUserRepository userRepository, ICarritoRepository carrito, ILogger<PaymentService> logger, 
-        IPedidoManagementService pedidoService, IConfiguration configuration, IPaypalOrderService paypalOrder, 
-        IPedidoRepository pedido, IProductoRepository producto)
+        public PaymentService( ICurrentUserAccessor currentUserAccessor, ILogger<PaymentService> logger, IUnitOfWork unit,
+        IPedidoManagementService pedidoService, IConfiguration configuration, IPaypalOrderService paypalOrder)
         {
             
             _currentUserAccessor = currentUserAccessor;
-            _userRepository = userRepository;
-            _carrito = carrito;
+            _unitOfWork= unit;
             _logger = logger;
             _pedidoService = pedidoService;
             _configuration = configuration;
             _paypalOrder = paypalOrder;
-            _pedidoRepository = pedido;
-            _producto = producto;
+         
         }
 
         public async Task<OperationResult<string>> Pagar(string moneda, int userId)
@@ -83,7 +76,7 @@ namespace GestorInventario.Application.Services.Generic_Services
         private async Task<OperationResult<InfoUsuarioDto>> ValidarUsuarioYObtenerInfo()
         {
             var usuarioId = _currentUserAccessor.GetCurrentUserId();
-            var usuarioActual = await _userRepository.ObtenerUsuarioPorId(usuarioId);
+            var usuarioActual = await _unitOfWork.UserRepository.ObtenerUsuarioPorId(usuarioId);
             if (usuarioActual == null)
             {
                 return OperationResult<InfoUsuarioDto>.Fail("El usuario no existe");
@@ -102,14 +95,14 @@ namespace GestorInventario.Application.Services.Generic_Services
         }
         private async Task<OperationResult<CarritoConItemsDto>> ValidarCarritoYObtenerItems(int userId)
         {
-            var result = await _carrito.ObtenerCarritoUsuario(userId);
+            var result = await _unitOfWork.CarritoRepository.ObtenerCarritoUsuario(userId);
             var carrito = result.Data;
             if (carrito == null)
             {
                 return OperationResult<CarritoConItemsDto>.Fail("No se encontró un carrito para el usuario.");
             }
 
-            var itemsDelCarrito = await _carrito.ObtenerItemsDelCarritoUsuario(carrito.Id);
+            var itemsDelCarrito = await _unitOfWork.CarritoRepository.ObtenerItemsDelCarritoUsuario(carrito.Id);
             if (!itemsDelCarrito.Data.Any())
             {
                 return OperationResult<CarritoConItemsDto>.Fail("El carrito está vacío.");
@@ -130,10 +123,10 @@ namespace GestorInventario.Application.Services.Generic_Services
             try
             {
                 carrito.EsCarrito = false;
-                carrito.NumeroPedido = _pedidoService.GenerarNumeroPedido();
+                carrito.NumeroPedido = GenerarNumPedido.GenerarNumeroPedido();
                 carrito.FechaPedido = DateTime.Now;
                 carrito.EstadoPedido = "En Proceso";
-                await _pedidoRepository.ActualizarPedidoAsync(carrito);
+                await _unitOfWork.PedidoRepository.ActualizarPedidoAsync(carrito);
 
             }
             catch (Exception ex)
@@ -153,7 +146,7 @@ namespace GestorInventario.Application.Services.Generic_Services
             foreach (var item in itemsDelCarrito)
             {
 
-                var producto = await _producto.ObtenerProductoPorIdAsync(item.ProductoId.Value);
+                var producto = await _unitOfWork.ProductoRepository.ObtenerProductoPorIdAsync(item.ProductoId.Value);
                 if (producto != null)
                 {
 
@@ -218,12 +211,12 @@ namespace GestorInventario.Application.Services.Generic_Services
         private async Task EliminarCarritosVaciosUsuario(int userId)
         {
 
-            var carritosActivos = await _carrito.ObtenerCarritosActivosAsync(userId);
+            var carritosActivos = await _unitOfWork.CarritoRepository.ObtenerCarritosActivosAsync(userId);
             foreach (var carritoActivo in carritosActivos)
             {
                 if (!carritoActivo.DetallePedidos.Any())
                 {
-                    await _pedidoRepository.EliminarPedidoAsync(carritoActivo);
+                    await _unitOfWork.PedidoRepository.EliminarPedidoAsync(carritoActivo);
                     _logger.LogInformation($"Carrito vacío eliminado para el usuario {userId}, ID: {carritoActivo.Id}");
                 }
             }

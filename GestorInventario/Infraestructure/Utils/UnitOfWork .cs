@@ -11,17 +11,20 @@ namespace GestorInventario.Infraestructure.Utils
         public IUserRepository UserRepository { get; private set; }
         public IPaypalRepository PaypalRepository { get; private set; }
         public ICarritoRepository CarritoRepository { get; private set; }
+        public IPedidoRepository PedidoRepository { get; private set; }
+        public IProductoRepository ProductoRepository { get; private set; }
         private bool _disposed = false;
 
         public UnitOfWork(GestorInventarioContext context, IAdminRepository admin, IUserRepository user, IPaypalRepository paypal,
-        ICarritoRepository carrito)
+        ICarritoRepository carrito, IPedidoRepository pedidoRepository, IProductoRepository productoRepository)
         {
             _context = context;
             AdminRepository = admin;
             UserRepository = user;
             PaypalRepository = paypal;
             CarritoRepository = carrito;
-
+            PedidoRepository = pedidoRepository;
+            ProductoRepository = productoRepository;
         }
 
         public async Task<int> SaveChangesAsync()

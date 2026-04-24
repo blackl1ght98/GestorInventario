@@ -41,10 +41,10 @@ namespace GestorInventario.Infraestructure.Repositories
         {
             return await _context.Productos.FindAsync(productoId);
         }
-        public async Task<(Producto?,string)> ObtenerProductoPorId(int id)
+        public async Task<Producto> ObtenerProductoPorId(int id)
         {
             var producto = await _context.Productos.Include(p => p.IdProveedorNavigation).FirstOrDefaultAsync(m => m.Id == id);
-            return producto is null ? (null,"Producto no encontrado"): (producto,"Producto encontrado");
+            return producto;
         }
         public async Task<Producto> ObtenerProductoCompletoAsync(int Id)
         {
@@ -71,22 +71,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 return OperationResult<Producto>.Ok("Producto actualizado", producto);
             });
         }
-        public async Task<OperationResult<DetallePedido>> ActualizarDetallePedidoAsync(DetallePedido pedido)
-        {
-            return await _context.ExecuteInTransactionAsync(async () =>
-            {
-                await _context.UpdateEntityAsync(pedido);
-                return OperationResult<DetallePedido>.Ok("Detalle del pedido actualizado", pedido);
-            });
-        }
-        public async Task<OperationResult<DetallePedido>> AgregarDetallePedidoAsync(DetallePedido pedido)
-        {
-            return await _context.ExecuteInTransactionAsync(async () =>
-            {
-                await _context.AddEntityAsync(pedido);
-                return OperationResult<DetallePedido>.Ok("Detalle del producto actualizado", pedido);
-            });
-        }
+      
         public async Task<DetallePedido?> ObtenerDetallesCarrito(int idCarrito, int idProducto)
         {
             return await _context.DetallePedidos

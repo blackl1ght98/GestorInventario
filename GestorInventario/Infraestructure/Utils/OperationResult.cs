@@ -1,5 +1,15 @@
 ﻿namespace GestorInventario.Infraestructure.Utils
 {
+    /// <summary>
+    /// Clase central de resultados de operación. Más de 99 referencias en el proyecto.
+    /// 
+    /// ⚠️ ADVERTENCIA: No modificar la estructura de esta clase sin revisar TODAS las referencias.
+    /// Cambios en los constructores, propiedades o métodos estáticos pueden romper
+    /// múltiples capas de la aplicación simultáneamente.
+    /// 
+    /// Si necesitas añadir funcionalidad, hazlo de forma aditiva (nuevos métodos)
+    /// sin modificar los existentes.
+    /// </summary>
     public record OperationResult<T>(bool Success, string Message, T? Data = default)
     {
         public bool IsSuccess => Success;

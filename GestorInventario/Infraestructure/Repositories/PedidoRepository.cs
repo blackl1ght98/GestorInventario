@@ -34,7 +34,11 @@ namespace GestorInventario.Infraestructure.Repositories
       
         public IQueryable<Pedido> ObtenerPedidoUsuario(int userId)=>_context.Pedidos.Where(p => p.IdUsuario == userId).Include(dp => dp.DetallePedidos).ThenInclude(p => p.Producto).Include(u => u.IdUsuarioNavigation);
 
-
+        public async Task<DetallePedido> ObtenerDetallePorIdAsync(int id)
+        {
+            var detalle = await _context.DetallePedidos.FirstOrDefaultAsync(x => x.Id == id);
+            return detalle;
+        }
         public async Task<OperationResult<Pedido>> AgregarPedidoAsync(Pedido pedido)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
@@ -51,12 +55,28 @@ namespace GestorInventario.Infraestructure.Repositories
                 return OperationResult<Pedido>.Ok("Pedido actualizado", pedido);
             });
         }
-        public async Task<OperationResult<DetallePedido>> AgregarDetallePedidoAsync(DetallePedido detalle)
+        public async Task<OperationResult<DetallePedido>> ActualizarDetallePedidoAsync(DetallePedido pedido)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
             {
-                await _context.AddEntityAsync(detalle);
-                return OperationResult<DetallePedido>.Ok("Pedido Agregado", detalle);
+                await _context.UpdateEntityAsync(pedido);
+                return OperationResult<DetallePedido>.Ok("Detalle del pedido actualizado", pedido);
+            });
+        }
+        public async Task<OperationResult<DetallePedido>> AgregarDetallePedidoAsync(DetallePedido pedido)
+        {
+            return await _context.ExecuteInTransactionAsync(async () =>
+            {
+                await _context.AddEntityAsync(pedido);
+                return OperationResult<DetallePedido>.Ok("Detalle del producto actualizado", pedido);
+            });
+        }
+        public async Task<OperationResult<DetallePedido>> EliminarDetallePedidoAsync(DetallePedido pedido)
+        {
+            return await _context.ExecuteInTransactionAsync(async () =>
+            {
+                await _context.DeleteEntityAsync(pedido);
+                return OperationResult<DetallePedido>.Ok("Detalle del producto eliminado", pedido);
             });
         }
         public async Task<OperationResult<string>> EliminarPedidoAsync(Pedido pedido)

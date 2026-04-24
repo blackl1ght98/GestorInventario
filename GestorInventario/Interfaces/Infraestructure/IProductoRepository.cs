@@ -10,13 +10,11 @@ namespace GestorInventario.Interfaces.Infraestructure
      
         Task<OperationResult<Producto>> AgregarProductoAsync(Producto producto);
         Task<List<Proveedore>> ObtenerProveedores();
-        Task<(Producto?, string)> ObtenerProductoPorId(int id);
+        Task<Producto> ObtenerProductoPorId(int id);
         Task<Producto> ObtenerProductoPorIdAsync(int productoId);
         Task<bool> ExisteProductoAsync(string nombre);
         Task<OperationResult<Producto>> ActualizarProductoAsync(Producto producto);
       
-        Task<OperationResult<DetallePedido>> ActualizarDetallePedidoAsync(DetallePedido pedido);
-        Task<OperationResult<DetallePedido>> AgregarDetallePedidoAsync(DetallePedido pedido);
         Task<DetallePedido?> ObtenerDetallesCarrito(int idCarrito, int idProducto);
         Task<Producto> ObtenerProductoCompletoAsync(int Id);
         Task<OperationResult<Producto>> EliminarProductoAsync(Producto producto);

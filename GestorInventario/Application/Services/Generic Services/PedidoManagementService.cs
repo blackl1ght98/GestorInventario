@@ -36,12 +36,17 @@ namespace GestorInventario.Application.Services.Generic_Services
                 {
                     return OperationResult<string>.Fail("No hay pedido para eliminar");
                 }
-                if (pedido.EstadoPedido != EstadoPedido.Entregado.ToString())
-                {
-                    return OperationResult<string>.Fail("El pedido tiene que tener el estado Entregado para ser eliminado y no tener historial asociado");
-                }
-              
-                 await  _pedidoRepository.EliminarPedidoAsync(pedido);
+            if (pedido.EstadoPedido != EstadoPedido.Carrito.ToString())
+            {
+                await _pedidoRepository.EliminarPedidoAsync(pedido);
+                return OperationResult<string>.Ok("Pedido eliminado con exito");
+            }
+            if (pedido.EstadoPedido != EstadoPedido.Entregado.ToString())
+            {
+                return OperationResult<string>.Fail("El pedido tiene que tener el estado Entregado para ser eliminado y no tener historial asociado");
+            }
+          
+            await _pedidoRepository.EliminarPedidoAsync(pedido);
                 return OperationResult<string>.Ok("Pedido eliminado con exito");
         }
         public async Task<OperationResult<string>> EditarPedido(EditPedidoViewModel model)
@@ -222,13 +227,6 @@ namespace GestorInventario.Application.Services.Generic_Services
          
 
         }
-        public string GenerarNumeroPedido()
-        {
-            var length = 10;
-            var random = new Random();
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            return new string(Enumerable.Repeat(chars, length)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
-        }
+       
     }
 }
