@@ -16,19 +16,16 @@ namespace GestorInventario.Application.Services.Generic_Services
         private readonly IBarCodeService _barCodeService;
         private readonly ILogger<ProductManagementService> _logger;
         private readonly IProductoRepository _productoRepository;
-        private readonly IImageOptimizerService _imageOptimizerService;
-        private readonly ICarritoRepository _carritoRepository;
-     
+        private readonly IImageOptimizerService _imageOptimizerService;  
+      
         public ProductManagementService( IGestorArchivos gestorArchivos, IBarCodeService barcode, ILogger<ProductManagementService> logger,
-        IProductoRepository producto, IImageOptimizerService image, ICarritoRepository carrito)
+        IProductoRepository producto, IImageOptimizerService image)
         {         
             _gestorArchivos = gestorArchivos;
             _barCodeService = barcode;
             _logger = logger;
             _productoRepository = producto;
             _imageOptimizerService = image;
-            _carritoRepository = carrito;
-          
         }
 
         public async Task<OperationResult<Producto>> CrearProducto(ProductosViewModel model)
@@ -74,7 +71,7 @@ namespace GestorInventario.Application.Services.Generic_Services
         }
         public async Task<OperationResult<string>> EditarProducto(ProductosViewModel model, int usuarioId)
         {
-            var (producto, mensaje) = await _productoRepository.ObtenerProductoPorId(model.Id);
+            var producto = await _productoRepository.ObtenerProductoPorId(model.Id);
             if (producto == null)
                 return OperationResult<string>.Fail("Producto no encontrado");
 
@@ -119,57 +116,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                 model.Id, usuarioId);
             return OperationResult<string>.Ok("Producto editado con exito");
         }
-        public async Task<OperationResult<string>> AgregarProductoAlCarrito(int idProducto, int cantidad, int usuarioId)
-        {
-           
-                // Validar cantidad
-                if (cantidad <= 0)
-                {
-                    return OperationResult<string>.Fail("La cantidad debe ser mayor a cero.");
-                }
-
-                // Validar existencia del producto y stock
-                var (producto,mensaje) = await _productoRepository.ObtenerProductoPorId(idProducto);
-                if (producto == null)
-                {
-                    return OperationResult<string>.Fail("El producto no existe.");
-                }
-                if (producto.Cantidad < cantidad)
-                {
-                    return OperationResult<string>.Fail("No hay suficientes productos en stock.");
-                }
-                // Obtener o crear el carrito
-                var carrito = await _carritoRepository.CrearCarritoUsuario(usuarioId);
-                if (carrito != null)
-                {
-                var detalleExistente = await _productoRepository.ObtenerDetallesCarrito(carrito.Data.Id, idProducto);
-                    if (detalleExistente != null)
-                    {
-                        // Sumar la cantidad al ítem existente
-                        detalleExistente.Cantidad += cantidad;
-                        await _productoRepository.ActualizarDetallePedidoAsync(detalleExistente);
-                    }
-                    else
-                    {
-                        // Crear un nuevo ítem en el carrito
-                        var detalle = new DetallePedido
-                        {
-                            PedidoId = carrito.Data.Id,
-                            ProductoId = idProducto,
-                            Cantidad = cantidad
-                        };
-                        await _productoRepository.AgregarDetallePedidoAsync(detalle);
-                    }
-
-                }
-
-                // Actualizar el inventario del producto
-                producto.Cantidad -= cantidad;
-                await _productoRepository.ActualizarProductoAsync(producto);
-                return OperationResult<string>.Ok("Producto agregado con exito");
-          
-
-        }
+      
         public async Task<OperationResult<string>> EliminarProducto(int Id)
         {
             var producto = await _productoRepository.ObtenerProductoCompletoAsync(Id);

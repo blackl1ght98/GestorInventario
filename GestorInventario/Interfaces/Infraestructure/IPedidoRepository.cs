@@ -16,13 +16,13 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<OperationResult<Pedido>> ActualizarPedidoAsync(Pedido pedido);
         Task<Pedido> ObtenerPedidoConDetallesAsync(int id);
         Task<Pedido> ObtenerPedidoPorId(int id);
-      
+        Task<OperationResult<DetallePedido>> ActualizarDetallePedidoAsync(DetallePedido pedido);
         Task<OperationResult<Pedido>> AgregarPedidoAsync(Pedido pedido);
-
+        Task<OperationResult<DetallePedido>> EliminarDetallePedidoAsync(DetallePedido pedido);
         Task<OperationResult<DetallePedido>> AgregarDetallePedidoAsync(DetallePedido detalle);
-
+        Task<DetallePedido> ObtenerDetallePorIdAsync(int id);
         Task<OperationResult<string>> EliminarPedidoAsync(Pedido pedido);
-      //  Task<OperationResult<PayPalPaymentDetail>> ObtenerDetallePagoEjecutadoV2(string id);
+    
        
       
     

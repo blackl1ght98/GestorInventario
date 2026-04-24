@@ -8,7 +8,7 @@ namespace GestorInventario.Interfaces.Application
     {
         Task<OperationResult<Producto>> CrearProducto(ProductosViewModel model);
         Task<OperationResult<string>> EditarProducto(ProductosViewModel model, int usuarioId);
-        Task<OperationResult<string>> AgregarProductoAlCarrito(int idProducto, int cantidad, int usuarioId);
+
         Task<OperationResult<string>> EliminarProducto(int Id);
     }
 }

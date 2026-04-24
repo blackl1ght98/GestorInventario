@@ -14,6 +14,8 @@ namespace GestorInventario.enums
         En_Proceso,
 
         [Display(Name = "Reembolsado")]
-        Rembolsado
+        Rembolsado,
+        [Display(Name = "Carrito")]
+        Carrito
     }
 }

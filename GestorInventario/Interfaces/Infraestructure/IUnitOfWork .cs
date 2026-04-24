@@ -8,6 +8,8 @@ namespace GestorInventario.Interfaces.Infraestructure
         IUserRepository UserRepository { get; }
         IPaypalRepository PaypalRepository { get; }
         ICarritoRepository CarritoRepository { get; }
+        public IPedidoRepository PedidoRepository { get;}
+        public IProductoRepository ProductoRepository { get; }
         Task<int> SaveChangesAsync();
         Task BeginTransactionAsync();
         Task CommitTransactionAsync();

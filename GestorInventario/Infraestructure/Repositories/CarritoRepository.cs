@@ -1,13 +1,7 @@
-﻿
-using GestorInventario.Domain.Models;
-using GestorInventario.enums;
+﻿using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
-using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
-using GestorInventario.MetodosExtension;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using Polly;
 
 namespace GestorInventario.Infraestructure.Repositories
 {
@@ -15,13 +9,13 @@ namespace GestorInventario.Infraestructure.Repositories
     {
         private readonly GestorInventarioContext _context;     
         private readonly ILogger<CarritoRepository> _logger;         
-        private readonly IPedidoManagementService _pedidoService;
+      
         public CarritoRepository(GestorInventarioContext context,  
-            ILogger<CarritoRepository> logger,  IPedidoManagementService pedido)
+            ILogger<CarritoRepository> logger )
         {
             _context = context;        
             _logger = logger;                
-            _pedidoService = pedido;
+           
         }
 
         // Obtener el carrito del usuario (Pedidos con EsCarrito = 1)
@@ -77,142 +71,7 @@ namespace GestorInventario.Infraestructure.Repositories
         {
             var monedas = await _context.Moneda.ToListAsync();
             return OperationResult<List<Monedum>>.Ok("",monedas);
-        }
-
-       
-        public async Task EliminarCarritoAsync(int carritoId)
-        {
-            // Opción 1: eliminación física (más simple si no necesitas auditoría)
-            var carrito = await _context.Pedidos.FindAsync(carritoId);
-            if (carrito != null)
-            {
-                _context.Pedidos.Remove(carrito);
-                await _context.SaveChangesAsync();
-            }
-
-           
-        }
-        // Método para crear un carrito si no existe
-        public async Task<OperationResult<Pedido>> CrearCarritoUsuario(int userId)
-        {
-           
-            try
-            {
-                var resultado = await ObtenerCarritoUsuario(userId);
-                var carrito = resultado.Data;
-                if (carrito == null)
-                {
-                    carrito = new Pedido
-                    {
-                        IdUsuario = userId,
-                        NumeroPedido = _pedidoService.GenerarNumeroPedido(),
-                        FechaPedido = DateTime.Now,
-                        EstadoPedido = "Carrito",
-                        EsCarrito = true
-                    };
-                    await _context.AddEntityAsync(carrito);
-                   
-                }
-
-                return OperationResult<Pedido>.Ok("",carrito);
-            }
-            catch (Exception ex) {
-                _logger.LogError(ex,"Ocurrio un error inesperado");
-                return null;
-            }
-           
-        }
-
-
-    
-
-
-        public async Task<OperationResult<string>> Incremento(int id)
-        {
-            return await _context.ExecuteInTransactionAsync(async () =>
-            {
-                var resultado = await ItemsDelCarrito(id);
-                var detalle = resultado.Data;
-                if (detalle == null)
-                {
-                    return OperationResult<string>.Fail(resultado.Message);
-                }
-
-                detalle.Cantidad++;
-                await _context.UpdateEntityAsync(detalle);
-
-                var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == detalle.ProductoId);
-                if (producto == null || producto.Cantidad <= 0)
-                {
-
-                    return OperationResult<string>.Fail("Inventario insuficiente para el producto elegido");
-                }
-
-                producto.Cantidad--;
-                await _context.UpdateEntityAsync(producto);
-
-                return OperationResult<string>.Ok("Incremento realizado con exito");
-            });
-           
-        }
-
-        public async Task<OperationResult<string>> Decremento(int id)
-        {
-            return await _context.ExecuteInTransactionAsync(async () =>
-            {
-                var resultado = await ItemsDelCarrito(id);
-                var detalle = resultado.Data;
-                if (detalle == null)
-                {
-                    return OperationResult<string>.Fail(resultado.Message);
-                }
-
-                detalle.Cantidad--;
-                if (detalle.Cantidad <= 0)
-                {
-                    await _context.DeleteEntityAsync(detalle);
-                }
-                else
-                {
-                    await _context.UpdateEntityAsync(detalle);
-                }
-
-                var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == detalle.ProductoId);
-                if (producto == null)
-                {
-
-                    return OperationResult<string>.Fail("El producto no existe");
-                }
-
-                producto.Cantidad++;
-                await _context.UpdateEntityAsync(producto);
-
-
-                return OperationResult<string>.Ok("Incremento realizado con exito");
-            });
-        }
-
-        public async Task<OperationResult<string>> EliminarProductoCarrito(int id)
-        {
-            return await _context.ExecuteInTransactionAsync(async () =>
-            {
-                var detalle = await _context.DetallePedidos.FirstOrDefaultAsync(x => x.Id == id);
-                if (detalle == null)
-                {
-                    return OperationResult<string>.Fail("No se puede eliminar porque no hay productos");
-                }
-
-                var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == detalle.ProductoId);
-                if (producto != null)
-                {
-                    producto.Cantidad += detalle.Cantidad ?? 0;
-                    await _context.UpdateEntityAsync(producto);
-                }
-
-                await _context.DeleteEntityAsync(detalle);
-
-                return OperationResult<string>.Ok("Eliminacion exitosa del producto");
-            });
-        }
+        }    
+      
     }
 }

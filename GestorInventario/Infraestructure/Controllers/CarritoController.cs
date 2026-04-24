@@ -17,7 +17,8 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IPaginationHelper _paginationHelper;
         private readonly IPaymentService _paymentService;
-        public CarritoController( ICarritoRepository carritorepository,   ICurrentUserAccessor current,
+        private readonly ICarritoService _carritoService;
+        public CarritoController( ICarritoRepository carritorepository,   ICurrentUserAccessor current, ICarritoService carrito,
         ILogger<CarritoController> logger,  IPolicyExecutor executor,  IPaginationHelper pagination, IPaymentService pay)
         {          
             _carritoRepository = carritorepository;       
@@ -26,6 +27,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _paginationHelper = pagination;
             _currentUserAccessor = current;
             _paymentService = pay;
+            _carritoService=carrito;
         }
 
         [HttpGet]
@@ -46,7 +48,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (carrito == null)
                 {
                     var carritoUsuario = await _policyExecutor.ExecutePolicyAsync(
-                        () => _carritoRepository.CrearCarritoUsuario(usuarioId)
+                        () => _carritoService.CrearCarritoUsuario(usuarioId)
                     );
                     carrito = carritoUsuario.Data;
                 }
@@ -129,7 +131,7 @@ namespace GestorInventario.Infraestructure.Controllers
        
         public async Task<ActionResult> Incrementar(int id)
         {
-            var resultado= await _carritoRepository.Incremento(id);
+            var resultado= await _carritoService.Incremento(id);
             if (resultado.Success)
             {
                 return RedirectToAction(nameof(Index));
@@ -149,7 +151,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
            
 
-            var resultado= await _carritoRepository.Decremento(id);
+            var resultado= await _carritoService.Decremento(id);
             if (resultado.Success)
             {
                 return RedirectToAction("Index");
@@ -170,7 +172,7 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
                
-                var resultado = await _carritoRepository.EliminarProductoCarrito(id);
+                var resultado = await _carritoService.EliminarProductoCarrito(id);
                 if (resultado.Success)
                 {
                     return RedirectToAction("Index");

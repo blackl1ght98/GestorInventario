@@ -25,7 +25,8 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IPaginationHelper _paginationHelper;
         private readonly ICurrentUserAccessor _current;
         private readonly IProductManagementService _productoService;
-        public ProductosController(IPolicyExecutor executor,IPaginationHelper pagination,ICurrentUserAccessor current,
+        private readonly ICarritoService _carritoService;
+        public ProductosController(IPolicyExecutor executor,IPaginationHelper pagination,ICurrentUserAccessor current, ICarritoService carrito,
         ILogger<ProductosController> logger, IEmailService emailService, IProductoRepository producto,IPdfService pdf, IProductManagementService productoService)
         {
             _logger = logger;         
@@ -36,6 +37,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _paginationHelper = pagination;
             _current = current;
             _productoService = productoService;
+            _carritoService=carrito;
         }
         //Metodo para obtener los productos
         [HttpGet]
@@ -222,10 +224,10 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                
                 
-                var (producto,mensaje) = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProductoPorId(id));    
+                var producto = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProductoPorId(id));    
                 if (producto == null)
                 {
-                    _logger.LogError(mensaje);
+                    _logger.LogError("No se ha encontrado el producto");
                     return RedirectToAction(nameof(Index));
                 }             
                 return View(producto);
@@ -282,10 +284,10 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                
 
-                var (producto,mensaje) = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProductoPorId(id));
+                var producto = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProductoPorId(id));
                 if (producto == null)
                 {
-                    TempData["ErrorMessage"] = mensaje;
+                    TempData["ErrorMessage"] = "No se ha encontrado el producto";
                 }
                 
                 ViewData["Productos"] = new SelectList(await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProveedores()), "Id", "NombreProveedor");
@@ -356,7 +358,7 @@ namespace GestorInventario.Infraestructure.Controllers
               
                     int usuarioId=_current.GetCurrentUserId();
                
-                    var success= await _policyExecutor.ExecutePolicyAsync(()=> _productoService.AgregarProductoAlCarrito(idProducto, cantidad, usuarioId)) ;
+                    var success= await _policyExecutor.ExecutePolicyAsync(()=> _carritoService.AgregarProductoAlCarrito(idProducto, cantidad, usuarioId)) ;
                     if (success.Success) 
                     {
                         return RedirectToAction("Index");

@@ -15,18 +15,17 @@ namespace GestorInventario.Infraestructure.Controllers
     public class PaymentController : Controller
     {
         private readonly ILogger<PaymentController> _logger;
-        private readonly IPaypalOrderService _paypalOrderService;
-        private readonly ICarritoRepository _carrito;
+        private readonly IPaypalOrderService _paypalOrderService;  
         private readonly IPolicyExecutor _policyExecutor;
         private readonly IPaymentRepository _paymentRepository; 
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IPaypalRefundService _paypalRefundService;
      
         public PaymentController(ILogger<PaymentController> logger,   ICurrentUserAccessor current,
-            IPolicyExecutor executor, IPaypalOrderService service, IPaypalRefundService pay, IPaymentRepository payment, ICarritoRepository carrito)
+            IPolicyExecutor executor, IPaypalOrderService service, IPaypalRefundService pay, IPaymentRepository payment)
         {
             _logger = logger;
-            _carrito = carrito;
+           
             _policyExecutor = executor;
             _paypalOrderService = service;
             _paymentRepository = payment;          
