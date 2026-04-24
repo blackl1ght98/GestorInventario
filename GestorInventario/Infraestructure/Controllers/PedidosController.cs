@@ -273,7 +273,7 @@ namespace GestorInventario.Infraestructure.Controllers
         [Authorize]
         public async Task<IActionResult> DetallesPagoEjecutado(string id)
         {
-            var detallepago= await _policyExecutor.ExecutePolicyAsync(()=> _pedidoService.ObtenerDetallePagoEjecutadoV2(id));
+            var detallepago= await _policyExecutor.ExecutePolicyAsync(()=> _pedidoService.SincronizarDetallePagoAsync(id));
             if (detallepago.Success)
             {
                 return View(detallepago.Data);

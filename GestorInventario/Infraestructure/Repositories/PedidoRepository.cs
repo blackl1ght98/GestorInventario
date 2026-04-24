@@ -2,15 +2,11 @@
 using GestorInventario.Domain.Models;
 using GestorInventario.enums;
 using GestorInventario.Infraestructure.Utils;
-using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
-using GestorInventario.Interfaces.Utils;
 using GestorInventario.MetodosExtension;
-using GestorInventario.ViewModels.order;
+using GestorInventario.ViewModels.Paypal;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using Polly;
-using System.Globalization;
+
 namespace GestorInventario.Infraestructure.Repositories
 {
     public class PedidoRepository : IPedidoRepository
@@ -27,7 +23,24 @@ namespace GestorInventario.Infraestructure.Repositories
             _logger = logger;            
          
         }
-   
+        public async Task<OperationResult<Pedido>> ObtenerNumeroPedido(RefundFormViewModel form)
+        {
+            var numeroPedido = await _context.Pedidos.FirstOrDefaultAsync(p => p.NumeroPedido == form.NumeroPedido);
+            if (numeroPedido is null)
+            {
+                return OperationResult<Pedido>.Fail("El numero de pedido no se encuentra");
+            }
+            return OperationResult<Pedido>.Ok("", numeroPedido);
+        }
+        public async Task<Pedido?> ObtenerPedidoEnProcesoUsuarioAsync(int usuarioId)
+        {
+            return await _context.Pedidos
+                .Where(p => p.IdUsuario == usuarioId &&
+                            p.EstadoPedido == EstadoPedido.En_Proceso.ToString())
+                .OrderByDescending(p => p.FechaPedido)
+                .FirstOrDefaultAsync();
+        }
+       
         public IQueryable<Pedido> ObtenerPedidos()=>
             from p in _context.Pedidos.Include(dp => dp.DetallePedidos).ThenInclude(p => p.Producto).Include(u => u.IdUsuarioNavigation)
             select p;
@@ -100,35 +113,7 @@ namespace GestorInventario.Infraestructure.Repositories
        
        
         public async Task<Pedido> ObtenerPedidoConRembolso(int id) => await _context.Pedidos.Include(p => p.DetallePedidos).Include(x => x.Rembolsos).FirstOrDefaultAsync(m => m.Id == id);
-    
-        public async Task<PayPalPaymentDetail> ObtenerDetallesPago(string id) => await _context.PayPalPaymentDetails.Include(d => d.PayPalPaymentItems).FirstOrDefaultAsync(x => x.Id == id);
-        public async Task<OperationResult<PayPalPaymentDetail>> AgregarDetallePagoAsync(PayPalPaymentDetail detalle)
-        {
-            return await _context.ExecuteInTransactionAsync(async () =>
-            {
-                await _context.AddEntityAsync(detalle);
-                return OperationResult<PayPalPaymentDetail>.Ok("Pedido Agregado", detalle);
-            });
-        }
-        public async Task<OperationResult<PayPalPaymentItem>> AgregarPagoItemAsync(PayPalPaymentItem detalle)
-        {
-            return await _context.ExecuteInTransactionAsync(async () =>
-            {
-                await _context.AddEntityAsync(detalle);
-                return OperationResult<PayPalPaymentItem>.Ok("", detalle);
-            });
-        }
-        public async Task<OperationResult<string>> EliminarDetallesPagoAsync(PayPalPaymentDetail pago)
-        {
-            return await _context.ExecuteInTransactionAsync(async () =>
-            {
-                _context.DeleteRangeEntity(pago.PayPalPaymentItems);
-
-                return OperationResult<string>.Ok("Pedido eliminado con exito");
-            });
-        }
        
-     
        
     }
     

@@ -3,6 +3,7 @@ using GestorInventario.Application.DTOs.Carrito;
 using GestorInventario.Application.DTOs.Checkout;
 using GestorInventario.Application.DTOs.User;
 using GestorInventario.Domain.Models;
+using GestorInventario.enums;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
@@ -125,7 +126,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                 carrito.EsCarrito = false;
                 carrito.NumeroPedido = GenerarNumPedido.GenerarNumeroPedido();
                 carrito.FechaPedido = DateTime.Now;
-                carrito.EstadoPedido = "En Proceso";
+                carrito.EstadoPedido = EstadoPedido.En_Proceso.ToString();
                 await _unitOfWork.PedidoRepository.ActualizarPedidoAsync(carrito);
 
             }
