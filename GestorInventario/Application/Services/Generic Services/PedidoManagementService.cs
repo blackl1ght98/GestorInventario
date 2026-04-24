@@ -18,8 +18,9 @@ namespace GestorInventario.Application.Services.Generic_Services
         private readonly ICurrentUserAccessor _currentUserAccesor;
         private readonly IConversionUtils _conversion;
         private readonly IPaypalOrderService _paypalOrder;
+        private readonly IPaymentRepository _payment;
         public PedidoManagementService( ILogger<PedidoManagementService> logger, IPedidoRepository pedido, ICurrentUserAccessor current,
-            IConversionUtils conversion, IPaypalOrderService paypal)
+            IConversionUtils conversion, IPaypalOrderService paypal, IPaymentRepository payment)
         {
             
             _logger = logger;
@@ -27,6 +28,7 @@ namespace GestorInventario.Application.Services.Generic_Services
             _currentUserAccesor = current;
             _conversion = conversion;
             _paypalOrder = paypal;
+            _payment = payment;
         }
         public async Task<OperationResult<string>> EliminarPedido(int Id)
         {
@@ -67,11 +69,11 @@ namespace GestorInventario.Application.Services.Generic_Services
 
 
         }
-        public async Task<OperationResult<PayPalPaymentDetail>> ObtenerDetallePagoEjecutadoV2(string id)
+        public async Task<OperationResult<PayPalPaymentDetail>> SincronizarDetallePagoAsync(string id)
         {
 
             // Buscar el detalle de pago existente en la base de datos
-            var existingDetail = await _pedidoRepository.ObtenerDetallesPago(id);
+            var existingDetail = await _payment.ObtenerDetallesPago(id);
 
                 // Obtener los detalles actualizados desde la API de PayPal
                 var detalles = await _paypalOrder.ObtenerDetallesPagoEjecutadoV2(id);
@@ -88,13 +90,13 @@ namespace GestorInventario.Application.Services.Generic_Services
                     {
                         Id = detalles.Id
                     };
-                  await  _pedidoRepository.AgregarDetallePagoAsync(detallesPago);
+                  await  _payment.AgregarDetallePagoAsync(detallesPago);
                 }
                 else
                 {
                     detallesPago = existingDetail;
                 // Opcional: Limpiar los ítems existentes si se desea actualizarlos completamente
-                await _pedidoRepository.EliminarDetallesPagoAsync(detallesPago);
+                await _payment.EliminarDetallesPagoAsync(detallesPago);
             }
 
                 // Actualizar los campos del objeto PayPalPaymentDetail con los datos de la API
@@ -215,7 +217,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                                         ItemTax = _conversion.ConvertToDecimal(item.Tax?.Value),
                                         ItemQuantity = _conversion.ConvertToInt(item.Quantity)
                                     };
-                                  await _pedidoRepository.AgregarPagoItemAsync(paymentItem);
+                                  await _payment.AgregarPagoItemAsync(paymentItem);
                                 }
                             }
                         }
@@ -227,6 +229,33 @@ namespace GestorInventario.Application.Services.Generic_Services
          
 
         }
-       
+        public async Task<OperationResult<Pedido>> ConfirmarPagoDelPedidoAsync(int usuarioActual, string? captureId, string? total, string? currency, string? orderId)
+        {
+           
+                // Validar parámetros de entrada
+                if (string.IsNullOrWhiteSpace(captureId) || string.IsNullOrWhiteSpace(total) ||
+                string.IsNullOrWhiteSpace(currency) || string.IsNullOrWhiteSpace(orderId))
+                {
+                    _logger.LogWarning("Parámetros inválidos en ConfirmarPagoDelPedidoAsync: usuarioActual={UsuarioId}, captureId={CaptureId}, total={Total}, currency={Currency}, orderId={OrderId}",
+                        usuarioActual, captureId, total, currency, orderId);
+                    return OperationResult<Pedido>.Fail("Datos no validos");
+                }
+                var pedido = await _pedidoRepository.ObtenerPedidoEnProcesoUsuarioAsync(usuarioActual);
+
+                if (pedido == null)
+                {
+                    _logger.LogWarning("No se encontró un pedido en proceso para el usuario {UsuarioId}", usuarioActual);
+                    return OperationResult<Pedido>.Fail("Pedido no encontrado para el usuario especificado");
+                }
+                pedido.CaptureId = captureId;
+                pedido.Total = total;
+                pedido.Currency = currency;
+                pedido.OrderId = orderId;
+                pedido.EstadoPedido = EstadoPedido.Pagado.ToString();
+                await _pedidoRepository.ActualizarPedidoAsync(pedido);
+                return OperationResult<Pedido>.Ok("", pedido);
+            
+        }
+
     }
 }

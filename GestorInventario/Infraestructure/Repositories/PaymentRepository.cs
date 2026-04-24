@@ -27,46 +27,35 @@ namespace GestorInventario.Infraestructure.Repositories
             _conversion = conversion;
         }
       
-        public async Task<OperationResult<Pedido>> ObtenerNumeroPedido(RefundFormViewModel form)
-        {
-            var numeroPedido= await _context.Pedidos.FirstOrDefaultAsync(p => p.NumeroPedido == form.NumeroPedido);
-            if(numeroPedido is null)
-            {
-                return OperationResult<Pedido>.Fail("El numero de pedido no se encuentra");
-            }
-            return OperationResult<Pedido>.Ok("", numeroPedido);
-        }
-        public async Task<OperationResult<Pedido>> AgregarInfoPedido(int usuarioActual, string? captureId, string? total, string? currency, string? orderId)
+       
+        public async Task<OperationResult<PayPalPaymentDetail>> AgregarDetallePagoAsync(PayPalPaymentDetail detalle)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
             {
-                // Validar parámetros de entrada
-                if (string.IsNullOrWhiteSpace(captureId) || string.IsNullOrWhiteSpace(total) ||
-                string.IsNullOrWhiteSpace(currency) || string.IsNullOrWhiteSpace(orderId))
-                {
-                    _logger.LogWarning("Parámetros inválidos en AgregarInfoPedido: usuarioActual={UsuarioId}, captureId={CaptureId}, total={Total}, currency={Currency}, orderId={OrderId}",
-                        usuarioActual, captureId, total, currency, orderId);
-                    return OperationResult<Pedido>.Fail("Datos no validos");
-                }
-                var pedido = await _context.Pedidos
-                    .Where(p => p.IdUsuario == usuarioActual && p.EstadoPedido == "En Proceso")
-                    .OrderByDescending(p => p.FechaPedido)
-                    .FirstOrDefaultAsync();
-
-                if (pedido == null)
-                {
-                    _logger.LogWarning("No se encontró un pedido en proceso para el usuario {UsuarioId}", usuarioActual);
-                    return OperationResult<Pedido>.Fail("Pedido no encontrado para el usuario especificado");
-                }
-                pedido.CaptureId = captureId;
-                pedido.Total = total;
-                pedido.Currency = currency;
-                pedido.OrderId = orderId;
-                pedido.EstadoPedido = EstadoPedido.Pagado.ToString();
-                await _context.UpdateEntityAsync(pedido);
-                return OperationResult<Pedido>.Ok("", pedido);
+                await _context.AddEntityAsync(detalle);
+                return OperationResult<PayPalPaymentDetail>.Ok("Pedido Agregado", detalle);
             });
         }
+        public async Task<OperationResult<PayPalPaymentItem>> AgregarPagoItemAsync(PayPalPaymentItem detalle)
+        {
+            return await _context.ExecuteInTransactionAsync(async () =>
+            {
+                await _context.AddEntityAsync(detalle);
+                return OperationResult<PayPalPaymentItem>.Ok("", detalle);
+            });
+        }
+        public async Task<PayPalPaymentDetail> ObtenerDetallesPago(string id) => await _context.PayPalPaymentDetails.Include(d => d.PayPalPaymentItems).FirstOrDefaultAsync(x => x.Id == id);
+
+        public async Task<OperationResult<string>> EliminarDetallesPagoAsync(PayPalPaymentDetail pago)
+        {
+            return await _context.ExecuteInTransactionAsync(async () =>
+            {
+                _context.DeleteRangeEntity(pago.PayPalPaymentItems);
+
+                return OperationResult<string>.Ok("Pedido eliminado con exito");
+            });
+        }
+       
         public OperationResult<PayPalPaymentDetail> ProcesarDetallesSuscripcion(OrderDetailsResponse detallespago)
         {
             if (detallespago.PurchaseUnits == null || !detallespago.PurchaseUnits.Any())

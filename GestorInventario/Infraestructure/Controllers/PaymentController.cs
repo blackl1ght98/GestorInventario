@@ -20,9 +20,11 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IPaymentRepository _paymentRepository; 
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IPaypalRefundService _paypalRefundService;
-     
-        public PaymentController(ILogger<PaymentController> logger,   ICurrentUserAccessor current,
-            IPolicyExecutor executor, IPaypalOrderService service, IPaypalRefundService pay, IPaymentRepository payment)
+        private readonly IPedidoRepository _pedidoRepository;
+        private readonly IPedidoManagementService _pedidoService;
+        public PaymentController(ILogger<PaymentController> logger,   ICurrentUserAccessor current, IPedidoRepository pedido,
+            IPolicyExecutor executor, IPaypalOrderService service, IPaypalRefundService pay, IPaymentRepository payment,
+            IPedidoManagementService pedidoService)
         {
             _logger = logger;
            
@@ -31,6 +33,8 @@ namespace GestorInventario.Infraestructure.Controllers
             _paymentRepository = payment;          
             _currentUserAccessor = current;
             _paypalRefundService = pay;
+            _pedidoRepository = pedido;
+            _pedidoService = pedidoService;
            
         }
         [Authorize]
@@ -47,7 +51,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 var usuarioActual = _currentUserAccessor.GetCurrentUserId();
  
-                var pedido =  await _paymentRepository.AgregarInfoPedido(usuarioActual,captureId,total,currency,orderId);
+                var pedido =  await _pedidoService.ConfirmarPagoDelPedidoAsync(usuarioActual,captureId,total,currency,orderId);
 
 
                 return RedirectToAction("DetallesPagoEjecutado", "Pedidos", new { id = orderId });
@@ -117,7 +121,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var obtenerNumeroPedido= await _policyExecutor.ExecutePolicyAsync(() => _paymentRepository.ObtenerNumeroPedido(form));
+                var obtenerNumeroPedido= await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.ObtenerNumeroPedido(form));
 
                 if (obtenerNumeroPedido == null)
                 {
@@ -133,7 +137,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
               
 
-                var pedido = await _policyExecutor.ExecutePolicyAsync(() =>_paymentRepository.ObtenerNumeroPedido(form));
+                var pedido = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.ObtenerNumeroPedido(form));
 
                 if (pedido == null || pedido.Data== null)
                 {

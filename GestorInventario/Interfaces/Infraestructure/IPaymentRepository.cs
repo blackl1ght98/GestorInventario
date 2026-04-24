@@ -8,10 +8,13 @@ namespace GestorInventario.Interfaces.Infraestructure
     public interface IPaymentRepository
     {
        
-        Task<OperationResult<Pedido>> ObtenerNumeroPedido(RefundFormViewModel form);
-        Task<OperationResult<Pedido>> AgregarInfoPedido(int usuarioActual, string? captureId, string? total, string? currency, string? orderId);
+       
         OperationResult<PayPalPaymentDetail> ProcesarDetallesSuscripcion(OrderDetailsResponse detallespago);
         Task<OperationResult<PayPalPaymentItem>> ProcesarRembolso(PurchaseUnitDetails firstPurchaseUnit, PayPalPaymentDetail detallesSuscripcion, int usuarioActual, RefundFormViewModel form, Pedido obtenerNumeroPedido, string emailCliente);
         Task LimpiarPedidoCorruptoUsuarioAsync(int userId);
+        Task<OperationResult<PayPalPaymentDetail>> AgregarDetallePagoAsync(PayPalPaymentDetail detalle);
+        Task<OperationResult<PayPalPaymentItem>> AgregarPagoItemAsync(PayPalPaymentItem detalle);
+        Task<PayPalPaymentDetail> ObtenerDetallesPago(string id);
+        Task<OperationResult<string>> EliminarDetallesPagoAsync(PayPalPaymentDetail pago);
     }
 }
