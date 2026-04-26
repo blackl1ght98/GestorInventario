@@ -1,13 +1,12 @@
 ﻿using GestorInventario.Application.DTOs.Rembolso;
-using GestorInventario.Infraestructure.Repositories;
-using GestorInventario.Infraestructure.Utils;
+
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.ViewModels.Paypal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
+
 
 
 namespace GestorInventario.Infraestructure.Controllers
@@ -16,25 +15,24 @@ namespace GestorInventario.Infraestructure.Controllers
     {
         private readonly ILogger<PaymentController> _logger;
         private readonly IPaypalOrderService _paypalOrderService;  
-        private readonly IPolicyExecutor _policyExecutor;
-        private readonly IPaymentRepository _paymentRepository; 
+        private readonly IPolicyExecutor _policyExecutor;     
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IPaypalRefundService _paypalRefundService;
         private readonly IPedidoRepository _pedidoRepository;
         private readonly IPedidoManagementService _pedidoService;
+        private readonly IPaymentService _paymentService;
         public PaymentController(ILogger<PaymentController> logger,   ICurrentUserAccessor current, IPedidoRepository pedido,
-            IPolicyExecutor executor, IPaypalOrderService service, IPaypalRefundService pay, IPaymentRepository payment,
-            IPedidoManagementService pedidoService)
+            IPolicyExecutor executor, IPaypalOrderService service, IPaypalRefundService pay, 
+            IPedidoManagementService pedidoService, IPaymentService paymentService)
         {
-            _logger = logger;
-           
+            _logger = logger;           
             _policyExecutor = executor;
-            _paypalOrderService = service;
-            _paymentRepository = payment;          
+            _paypalOrderService = service;             
             _currentUserAccessor = current;
             _paypalRefundService = pay;
             _pedidoRepository = pedido;
             _pedidoService = pedidoService;
+            _paymentService = paymentService;
            
         }
         [Authorize]
@@ -67,7 +65,7 @@ namespace GestorInventario.Infraestructure.Controllers
         public async Task<IActionResult> Cancel()
         {
             var usuarioActual = _currentUserAccessor.GetCurrentUserId();
-            await _paymentRepository.LimpiarPedidoCorruptoUsuarioAsync(usuarioActual);
+            await _paymentService.LimpiarPedidoCorruptoUsuarioAsync(usuarioActual);
             return RedirectToAction("Index", "Productos");
         }
         [HttpPost]
@@ -163,10 +161,10 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 var firstPurchaseUnit = detallespago.PurchaseUnits.First();
 
-                var detallesSuscripcion = _paymentRepository.ProcesarDetallesSuscripcion(detallespago);
+                var detallesSuscripcion = _paymentService.ProcesarDetallesPagoAsync(detallespago);
 
                 // Lista para almacenar los ítems de PayPal
-                var paypalItems = await _paymentRepository.ProcesarRembolso(firstPurchaseUnit, detallesSuscripcion.Data,usuarioActual,form,obtenerNumeroPedido.Data,emailCliente);
+                var paypalItems = await _paymentService.ProcesarRembolso(firstPurchaseUnit, detallesSuscripcion.Data,usuarioActual,form,obtenerNumeroPedido.Data,emailCliente);
                 if (User.IsAdministrador())
                 {
                     return RedirectToAction("Index", "Admin");

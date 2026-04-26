@@ -26,9 +26,10 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IPaginationHelper _paginationHelper;       
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IEmailService _emailService;
-        private readonly IPaymentRepository _payment;
+       
         private readonly IPedidoManagementService _pedidoService;
-        public PedidosController( ILogger<PedidosController> logger, IPaginationHelper pagination,  ICurrentUserAccessor current, IPaymentRepository pay,
+        private readonly IPaymentService _paymentService;
+        public PedidosController( ILogger<PedidosController> logger, IPaginationHelper pagination,  ICurrentUserAccessor current,  IPaymentService paymentService,
             IPedidoRepository pedido,   IPdfService pdf, IPolicyExecutor executor, IPaypalOrderTrackingService paypal, IEmailService email, IPedidoManagementService pedidoService)
         {          
             _logger = logger;
@@ -39,8 +40,9 @@ namespace GestorInventario.Infraestructure.Controllers
             _paginationHelper = pagination;          
             _currentUserAccessor = current;
             _emailService = email;
-            _payment = pay;
+         
             _pedidoService = pedidoService;
+            _paymentService = paymentService;
         }
 
         [Authorize]
@@ -51,7 +53,7 @@ namespace GestorInventario.Infraestructure.Controllers
                
 
                     var usuarioId =  _currentUserAccessor.GetCurrentUserId();
-                await _payment.LimpiarPedidoCorruptoUsuarioAsync(usuarioId);
+                    await _paymentService.LimpiarPedidoCorruptoUsuarioAsync(usuarioId);
                     var pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidos());
                     if (User.IsAdministrador())
                     {
@@ -106,7 +108,7 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
                                           
-                var pedido = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerPedidoConDetallesAsync(id));
+                var pedido = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerPedidoPorIdAsync(id));
             
                 if (pedido == null)
                 {
@@ -246,7 +248,7 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                 
             
-               var pedido= await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerPedidoConDetallesAsync(id)) ;
+               var pedido= await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerPedidoPorIdAsync(id)) ;
                 if (pedido == null)
                 {
                     _logger.LogCritical("Pedido no encontrado: no se puede mostrar los detalles de un pedido inexistente");

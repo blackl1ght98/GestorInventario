@@ -12,20 +12,21 @@ namespace GestorInventario.Application.Services.Generic_Services
        
         private readonly IPaypalRepository _paypalRepository;
         private readonly ILogger<PaypalSubscriptionDetailService> _logger;
-
-        public PaypalSubscriptionDetailService(IPaypalRepository paypalRepository, ILogger<PaypalSubscriptionDetailService> logger)
+        private readonly IPaypalService _paypalService;
+        public PaypalSubscriptionDetailService(IPaypalRepository paypalRepository, ILogger<PaypalSubscriptionDetailService> logger, IPaypalService paypalService)
         {
            
           
             _paypalRepository = paypalRepository;
             _logger = logger;
+            _paypalService = paypalService;
         }
 
         public async Task<SubscriptionDetail> CreateSubscriptionDetailAsync(PaypalSubscriptionResponse subscriptionDetails, string planId)
         {
             try
             {
-                var plan = await _paypalRepository.ObtenerPlan(planId);
+                var plan = await _paypalRepository.ObtenerPlanPorIdAsync(planId);
                 var minSqlDate = new DateTime(1753, 1, 1);
 
                 // 1. Creamos primero el objeto con los datos básicos
@@ -101,7 +102,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                 }
 
                 // 4. Guardar en base de datos
-                await _paypalRepository.SaveOrUpdateSubscriptionDetailsAsync(detallesSuscripcion);
+                await _paypalService.SaveOrUpdateSubscriptionDetailsAsync(detallesSuscripcion);
 
                 return detallesSuscripcion;
             }

@@ -96,13 +96,13 @@ namespace GestorInventario.Infraestructure.Repositories
         {
             return await _context.ExecuteInTransactionAsync(async () =>
             {
-                _context.DeleteRangeEntity(pedido.DetallePedidos);
-                _context.DeleteRangeEntity(pedido.Rembolsos);
-                _context.DeleteEntity(pedido);
+                await  _context.DeleteRangeEntityAsync(pedido.DetallePedidos);
+                await _context.DeleteRangeEntityAsync(pedido.Rembolsos);
+                await _context.DeleteEntityAsync(pedido);
                 return OperationResult<string>.Ok("Pedido eliminado con exito");
             });
         }
-        public async Task<Pedido> ObtenerPedidoConDetallesAsync(int id) =>
+        public async Task<Pedido> ObtenerPedidoPorIdAsync(int id) =>
             await _context.Pedidos
                 .Include(p => p.DetallePedidos)
                     .ThenInclude(dp => dp.Producto)
@@ -113,8 +113,84 @@ namespace GestorInventario.Infraestructure.Repositories
        
        
         public async Task<Pedido> ObtenerPedidoConRembolso(int id) => await _context.Pedidos.Include(p => p.DetallePedidos).Include(x => x.Rembolsos).FirstOrDefaultAsync(m => m.Id == id);
-       
-       
+        public async Task<(Pedido Pedido, decimal TotalAmount)> GetPedidoWithDetailsAsync(int pedidoId)
+        {
+            try
+            {
+                var pedido = await _context.Pedidos
+                    .Include(p => p.DetallePedidos)
+                    .ThenInclude(d => d.Producto)
+                    .FirstOrDefaultAsync(p => p.Id == pedidoId);
+
+                if (pedido == null || string.IsNullOrEmpty(pedido.CaptureId))
+                    throw new ArgumentException("Pedido no encontrado o SaleId no disponible.");
+
+                if (string.IsNullOrEmpty(pedido.Currency))
+                    throw new ArgumentException("El código de moneda no está definido.");
+
+                decimal totalAmount = pedido.DetallePedidos.Sum(d => d.Producto.Precio * (d.Cantidad ?? 0));
+
+                return (pedido, totalAmount);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al obtener el pedido {pedidoId}");
+                throw;
+            }
+        }
+        public async Task<(DetallePedido Detalle, decimal PrecioProducto)> GetProductoDePedidoAsync(int detallePedidoId)
+        {
+            try
+            {
+                var detalle = await _context.DetallePedidos
+                    .Include(dp => dp.Producto)
+                    .Include(dp => dp.Pedido)
+                    .FirstOrDefaultAsync(dp => dp.Id == detallePedidoId);
+
+                if (detalle == null)
+                    throw new ArgumentException("Detalle de pedido no encontrado");
+
+                if (detalle.Producto == null)
+                    throw new ArgumentException("Producto no encontrado en el detalle");
+
+                return (detalle, detalle.Producto.Precio);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al obtener el detalle de pedido {detallePedidoId}");
+                throw;
+            }
+        }
+        public async Task<(Pedido? Pedido, List<DetallePedido>? Detalles)> GetPedidoConDetallesAsync(int pedidoId)
+        {
+            try
+            {
+                var pedido = await _context.Pedidos
+                    .Include(p => p.DetallePedidos)
+                    .ThenInclude(d => d.Producto)
+                    .FirstOrDefaultAsync(p => p.Id == pedidoId);
+
+                if (pedido == null || string.IsNullOrEmpty(pedido.CaptureId))
+                {
+                    _logger.LogWarning($"Pedido {pedidoId} no encontrado o sin SaleId");
+                    return (null, null);
+                }
+
+                if (string.IsNullOrEmpty(pedido.Currency))
+                {
+                    _logger.LogWarning($"Pedido {pedidoId} sin moneda definida");
+                    return (null, null);
+                }
+
+                return (pedido, pedido.DetallePedidos?.ToList());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al obtener el pedido {pedidoId}");
+                throw;
+            }
+        }
+
     }
     
 }

@@ -7,27 +7,27 @@ namespace GestorInventario.Interfaces.Infraestructure
 {
     public interface IPaypalRepository
     {
+        Task<OperationResult<PlanDetail>> AgregarPlanAsync(PlanDetail plan);
+        Task<OperationResult<Rembolso>> AgregarRembolsoAsync(Rembolso rembolso);
+        Task<OperationResult<Rembolso>> ActualizarRembolsoAsync(Rembolso rembolso);
         Task<List<SubscriptionDetail>> ObtenerSuscriptcionesActivas(string planId);
         Task<List<UserSubscription>> SusbcripcionesUsuario(string planId);
         IQueryable<SubscriptionDetail> ObtenerSubscripciones();
         IQueryable<UserSubscription> ObtenerSubscripcionesUsuario(int usuarioId);
-        Task<(Pedido? Pedido, List<DetallePedido>? Detalles)> GetPedidoConDetallesAsync(int pedidoId);
-        Task<(Pedido Pedido, decimal TotalAmount)> GetPedidoWithDetailsAsync(int pedidoId);
-        Task<(DetallePedido Detalle, decimal PrecioProducto)> GetProductoDePedidoAsync(int detallePedidoId);
-        Task<PlanDetail> ObtenerPlan(string planId);
-        Task SavePlanPriceUpdateAsync(string planId, UpdatePricingPlanDto planPriceUpdate);
-        Task SavePlanDetailsAsync(string planId, PaypalPlanDetailsDto planDetails);
-        Task UpdatePlanStatusAsync(string planId, string status);      
-        Task UpdatePedidoStatusAsync(int pedidoId, string status, string refundId, string estadoVenta);
-        Task UpdatePlanStatusInDatabase(string planId, string status);       
-        Task AddInfoTrackingOrder(int pedidoId, string tracking, string url, string carrier);
+        Task<PlanDetail> ObtenerPlanPorIdAsync(string planId);
+        Task<OperationResult<SubscriptionDetail>> AgregarDetallesSubscripcionAsync(SubscriptionDetail subscripcion);
+        Task<OperationResult<SubscriptionDetail>> ActualizarDetallesSubscripcionAsync(SubscriptionDetail subscripcion);
+        Task<OperationResult<PlanDetail>> ActualizarPlanAsync(PlanDetail plan);
+        Task<SubscriptionDetail> ObtenerSubscriptionIdAsync(string subscriptionId);
+        Task<Rembolso> ObtenRembolsoAsync(string numeroPedido);
+        Task<UserSubscription> ObtenerSubscricionUsuarioAsync(int userId, string subscriptionId);
+        Task<OperationResult<UserSubscription>> AgregarSubscripcionUsuarioAsync(UserSubscription subscripcion);
         List<string> GetCategoriesFromEnum();
      
-        Task RegistrarReembolsoParcialAsync(int pedidoId, int detalleId, string status, string refundId, decimal montoReembolsado, string motivo, string estadoVenta);
-        Task SaveOrUpdateSubscriptionDetailsAsync(SubscriptionDetail subscriptionDetails);
-        Task SaveUserSubscriptionAsync(int userId, string subscriptionId, string subscriberName, string planId);       
-        Task UpdateSubscriptionStatusAsync(string subscriptionId, string status);
-        Task<OperationResult<string>> EnviarEmailNotificacionRembolso(int pedidoId, decimal montoReembolsado, string motivo);
+ 
+           
+      
+      
     
     }
 }

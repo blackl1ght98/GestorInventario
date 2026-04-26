@@ -56,7 +56,7 @@ namespace GestorInventario.Application.Services.Generic_Services
             
 
                 int usuarioId = _currentUserAccesor.GetCurrentUserId();
-                var pedidoOriginal = await _pedidoRepository.ObtenerPedidoConDetallesAsync(model.Id);
+                var pedidoOriginal = await _pedidoRepository.ObtenerPedidoPorIdAsync(model.Id);
                 if (pedidoOriginal == null)
                 {
                     return OperationResult<string>.Fail("Pedido no encontrado");
