@@ -3,6 +3,7 @@ using GestorInventario.Application.DTOs.Response_paypal.POST;
 
 using GestorInventario.Domain.Models;
 using GestorInventario.enums;
+using GestorInventario.Infraestructure.Repositories;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
@@ -14,18 +15,16 @@ namespace GestorInventario.Application.Services
     public class PaypalOrderTrackingService : IPaypalOrderTrackingService
     {       
         private readonly ILogger<PaypalOrderTrackingService> _logger;
-     
-        private readonly IPaypalRepository _repo;
         private readonly IPayPalHttpClient _paypal;
-        private readonly CultureHelper _culture;
-        
+        private readonly IPaypalService _paypalService;
+        private readonly IPedidoRepository _pedidoRepository;
         public PaypalOrderTrackingService( ILogger<PaypalOrderTrackingService> logger,   
-           IPayPalHttpClient paypal, IPaypalRepository repo, CultureHelper culture)
+           IPayPalHttpClient paypal,  IPedidoRepository pedido, IPaypalService paypalService)
         {                
             _logger = logger;           
-             _culture=culture;                  
+            _paypalService = paypalService;                
             _paypal = paypal;    
-            _repo = repo;
+            _pedidoRepository=pedido;
         }
 
         #region Seguimiento pedido
@@ -33,7 +32,7 @@ namespace GestorInventario.Application.Services
         {
             try
             {
-                var (pedido, detalles) = await _repo.GetPedidoConDetallesAsync(pedidoId);
+                var (pedido, detalles) = await _pedidoRepository.GetPedidoConDetallesAsync(pedidoId);
                 if (pedido == null || detalles == null)
                 {
                     throw new Exception("No se pudo obtener la información completa del pedido.");
@@ -50,7 +49,7 @@ namespace GestorInventario.Application.Services
                });
 
                 // Actualizar el estado del pedido usando UnitOfWork
-                await _repo.AddInfoTrackingOrder(pedidoId, trackingInfo.TrackingNumber, "URL NO ESPECIFICADA", carrier.ToString());
+                await _paypalService.AddInfoTrackingOrder(pedidoId, trackingInfo.TrackingNumber, "URL NO ESPECIFICADA", carrier.ToString());
                 _logger.LogInformation("Seguimiento agregado exitosamente para el pedido {PedidoId}", pedidoId);
                 return responseBody;
             }

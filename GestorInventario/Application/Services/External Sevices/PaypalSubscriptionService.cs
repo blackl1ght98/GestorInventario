@@ -17,17 +17,17 @@ namespace GestorInventario.Application.Services.External_Sevices
     {
         private readonly ILogger<PaypalSubscriptionService> _logger;
 
-        private readonly IPaypalRepository _repo;
         private readonly IPayPalHttpClient _paypal;
         private readonly CultureHelper _culture;
+        private readonly IPaypalService _paypalService;
 
         public PaypalSubscriptionService(ILogger<PaypalSubscriptionService> logger,
-           IPayPalHttpClient paypal, IPaypalRepository repo, CultureHelper culture)
+           IPayPalHttpClient paypal,  CultureHelper culture, IPaypalService paypalService)
         {
             _logger = logger;
             _culture = culture;
             _paypal = paypal;
-            _repo = repo;
+            _paypalService = paypalService;
         }
         #region creacion de un producto y plan de suscripcion
         public async Task<CreateProductResponseDto> CreateProductAsync(string productName, string productDescription, string productType, string productCategory)
@@ -82,7 +82,7 @@ namespace GestorInventario.Application.Services.External_Sevices
                 var responseObject = JsonConvert.DeserializeObject<PaypalPlanDetailsDto>(responseBody);
                 string createdPlanId = responseObject.Id;
                 // Guardar los detalles del plan en la base de datos con la ID de PayPal
-                await _repo.SavePlanDetailsAsync(createdPlanId, planRequest);
+                await _paypalService.SavePlanDetailsAsync(createdPlanId, planRequest);
                 return responseBody;
             }
             catch (Exception ex)
@@ -414,7 +414,7 @@ namespace GestorInventario.Application.Services.External_Sevices
                         throw new PayPalException($"No se pudo obtener los detalles actualizados del plan con ID {planId}: {err.StatusCode} - {errorResponse?.Message ?? "Error desconocido"} (Debug ID: {errorResponse?.DebugId})");
                     });
                 var updatedPlanDetails = JsonConvert.DeserializeObject<PaypalPlanDetailsDto>(verifyPlanDetails);
-                await _repo.SavePlanPriceUpdateAsync(planId, new UpdatePricingPlanDto { PricingSchemes = pricingUpdates });
+                await _paypalService.SavePlanPriceUpdateAsync(planId, new UpdatePricingPlanDto { PricingSchemes = pricingUpdates });
 
                 return "Precio del plan actualizado con éxito";
             }
@@ -613,7 +613,7 @@ namespace GestorInventario.Application.Services.External_Sevices
                 throw new ArgumentNullException("No se puede desactivar el plan: respuesta del servidor no valida");
             }
             string planStatusResult = planDetails.Status;
-            await _repo.UpdatePlanStatusInDatabase(planId, planStatusResult);
+            await _paypalService.UpdatePlanStatusAsync(planId, planStatusResult);
             return "Plan desactivado con éxito";
         }
         #endregion
@@ -643,7 +643,7 @@ namespace GestorInventario.Application.Services.External_Sevices
                 throw new ArgumentNullException("No se puede activar el plan: respuesta del servidor no valida");
             }
             string planStatusResult = planDetails.Status;
-            await _repo.UpdatePlanStatusInDatabase(planId, planStatusResult);
+            await _paypalService.UpdatePlanStatusAsync(planId, planStatusResult);
             return "Plan activado con éxito";
         }
         #endregion

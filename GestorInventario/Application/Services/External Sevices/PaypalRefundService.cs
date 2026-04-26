@@ -2,6 +2,7 @@
 using GestorInventario.Application.DTOs.Response_paypal.GET;
 using GestorInventario.Application.DTOs.Response_paypal.POST;
 using GestorInventario.Domain.Models;
+using GestorInventario.enums;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using Newtonsoft.Json;
@@ -12,16 +13,19 @@ namespace GestorInventario.Application.Services.External_Sevices
     public class PaypalRefundService: IPaypalRefundService
     {
         private readonly ILogger<PaypalRefundService> _logger;
-        private readonly IPaypalRepository _repo;
+       
         private readonly IPayPalHttpClient _paypal;       
         private readonly IPaypalOrderService _order;
+        private readonly IPedidoRepository _pedidoRepository;
+        private readonly IPaypalService _paypalService;
         public PaypalRefundService(ILogger<PaypalRefundService> logger, IPaypalOrderService order,
-        IPayPalHttpClient paypal, IPaypalRepository repo)
+        IPayPalHttpClient paypal,  IPedidoRepository pedidoRepository, IPaypalService paypalService)
         {
             _logger = logger;
             _paypal = paypal;
-            _repo = repo;
             _order = order;
+            _pedidoRepository = pedidoRepository;
+            _paypalService = paypalService;
         }
         #region Realizar reembolso 
         public async Task<string> RefundSaleAsync(int pedidoId, string currency)
@@ -30,7 +34,7 @@ namespace GestorInventario.Application.Services.External_Sevices
             {
 
                 // Obtener el pedido y el monto total desde el repositorio
-                var (pedido, totalAmount) = await _repo.GetPedidoWithDetailsAsync(pedidoId);
+                var (pedido, totalAmount) = await _pedidoRepository.GetPedidoWithDetailsAsync(pedidoId);
 
                 // Crear el objeto de solicitud de reembolso
                 var refundRequest = BuildRefundRequest(totalAmount, pedido);
@@ -56,8 +60,8 @@ namespace GestorInventario.Application.Services.External_Sevices
                     throw new ArgumentNullException("No se pudo obtener los detalles actualizados");
                 }
                 string estadoVenta = updatedCapture.PurchaseUnits[0].Payments.Captures[0].Status;
-                await _repo.UpdatePedidoStatusAsync(pedidoId, "Reembolsado", refundId, estadoVenta);
-                await _repo.EnviarEmailNotificacionRembolso(pedidoId, totalAmount, "Rembolso Aprobado");
+                await _paypalService.UpdatePedidoStatusAsync(pedidoId, EstadoPedido.Rembolsado.ToString(), refundId, estadoVenta);
+                await _paypalService.EnviarEmailNotificacionRembolso(pedidoId, totalAmount, "Rembolso Aprobado");
                 return responseBody;
             }
             catch (Exception ex)
@@ -82,7 +86,7 @@ namespace GestorInventario.Application.Services.External_Sevices
         {
             try
             {
-                var (pedido, totalAmount) = await _repo.GetProductoDePedidoAsync(pedidoId);
+                var (pedido, totalAmount) = await _pedidoRepository.GetProductoDePedidoAsync(pedidoId);
                 var detalle = pedido.Pedido.DetallePedidos.FirstOrDefault();
                 if (detalle == null)
                     throw new ArgumentException($"No se encontró el detalle del pedido con ID {pedidoId}.");
@@ -151,27 +155,17 @@ namespace GestorInventario.Application.Services.External_Sevices
                 string refundId = refundResponse.Id;
 
                 var producto = pedido.Producto.NombreProducto;
-                string cadena = $"El producto reembolsado es {producto}";
-                const int maxLength = 30;
-                if (cadena.Length > maxLength)
-                {
-                    cadena = cadena.Substring(0, maxLength - 3) + "...";
-                    _logger.LogWarning("EstadoRembolso truncado a {MaxLength} chars: {Cadena}", maxLength, cadena);
-                }
-
-
-
-                await _repo.RegistrarReembolsoParcialAsync(
+               
+                await _paypalService.RegistrarReembolsoParcialAsync(
                     pedido.Pedido.Id,
                     detalle.Id,
-                    cadena,
                     refundId,
                     totalAmount,
                     motivo,
                     estadoVenta
                 );
 
-                var emailSuccess = await _repo.EnviarEmailNotificacionRembolso(
+                var emailSuccess = await _paypalService.EnviarEmailNotificacionRembolso(
                     pedido.Pedido.Id,
                     totalAmount,
                     motivo

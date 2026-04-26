@@ -29,8 +29,9 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IPaypalSubscriptionDetailService _subscription;
         private readonly IPayPalMappingUtils _map;
+        private readonly IPaypalService _paypalService;
         public PaypalController(ILogger<PaypalController> logger,  IPaginationHelper pagination, IPaypalSubscriptionDetailService subs, IUnitOfWork unit,
-         IPolicyExecutor executor, IPaypalSubscriptionService service, ICurrentUserAccessor current, IPayPalMappingUtils map)
+         IPolicyExecutor executor, IPaypalSubscriptionService service, ICurrentUserAccessor current, IPayPalMappingUtils map, IPaypalService paypalService)
         {
             _paypalSubscriptionService = service;        
            _policyExecutor=executor;
@@ -40,6 +41,7 @@ namespace GestorInventario.Infraestructure.Controllers
             _currentUserAccessor = current;
             _subscription = subs;
             _map = map;
+            _paypalService = paypalService;
         }
 
 
@@ -369,8 +371,8 @@ namespace GestorInventario.Infraestructure.Controllers
          
                 var detallesSuscripcion = await _subscription.CreateSubscriptionDetailAsync(subscriptionDetails, planId);
 
-                await _unitOfWork.PaypalRepository.SaveOrUpdateSubscriptionDetailsAsync(detallesSuscripcion);
-                await _unitOfWork.PaypalRepository.SaveUserSubscriptionAsync(usuarioId, subscription_id, detallesSuscripcion.SubscriberName, detallesSuscripcion.PlanId);
+                await _paypalService.SaveOrUpdateSubscriptionDetailsAsync(detallesSuscripcion);
+                await _paypalService.SaveUserSubscriptionAsync(usuarioId, subscription_id, detallesSuscripcion.SubscriberName, detallesSuscripcion.PlanId);
 
                 TempData["SuccessMessage"] = "¡Suscripción confirmada con éxito!";
                 return RedirectToAction("DetallesSuscripcion", new { id = subscription_id });
@@ -405,7 +407,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 string result = await _paypalSubscriptionService.CancelarSuscripcion(Id, Reason);
 
                 // Update subscription status using the repository
-                await _unitOfWork.PaypalRepository.UpdateSubscriptionStatusAsync(Id, "CANCELLED");
+                await _paypalService.UpdateSubscriptionStatusAsync(Id, "CANCELLED");
 
                 if (User.IsInRole("Administrador"))
                 {
@@ -458,7 +460,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 string result = await _paypalSubscriptionService.SuspenderSuscripcion(Id, Reason);
 
                 // Update subscription status using the repository
-                await _unitOfWork.PaypalRepository.UpdateSubscriptionStatusAsync(Id, "SUSPENDED");
+                await _paypalService.UpdateSubscriptionStatusAsync(Id, "SUSPENDED");
 
                 if (User.IsInRole("Administrador"))
                 {
@@ -505,7 +507,7 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
                 string result = await _paypalSubscriptionService.ActivarSuscripcion(Id, Reason);
-                await _unitOfWork.PaypalRepository.UpdateSubscriptionStatusAsync(Id, "ACTIVE");
+                await _paypalService.UpdateSubscriptionStatusAsync(Id, "ACTIVE");
 
                 TempData["SuccessMessage"] = "Suscripción activada correctamente.";
                 if (User.IsInRole("Administrador"))
@@ -546,7 +548,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
                 // Validar que el plan exista
-                var plan = await _unitOfWork.PaypalRepository.ObtenerPlan(request.PlanId);
+                var plan = await _unitOfWork.PaypalRepository.ObtenerPlanPorIdAsync(request.PlanId);
                 if (plan == null)
                 {
                     return NotFound(new { success = false, errorMessage = $"No se encontró el plan con ID {request.PlanId}" });
@@ -627,7 +629,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 var detallesSuscripcion = await _subscription.CreateSubscriptionDetailAsync(subscriptionDetails, planId);
 
                 // 4. Guardar o actualizar en BD
-                await _unitOfWork.PaypalRepository.SaveOrUpdateSubscriptionDetailsAsync(detallesSuscripcion);
+                await _paypalService.SaveOrUpdateSubscriptionDetailsAsync(detallesSuscripcion);
 
                 // 5. Devolver la vista con los datos frescos
                 return View(detallesSuscripcion);

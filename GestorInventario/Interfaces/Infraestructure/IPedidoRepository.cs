@@ -11,7 +11,7 @@ namespace GestorInventario.Interfaces.Infraestructure
         IQueryable<Pedido> ObtenerPedidoUsuario(int userId); 
         Task<Pedido> ObtenerPedidoConRembolso(int id);
         Task<OperationResult<Pedido>> ActualizarPedidoAsync(Pedido pedido);
-        Task<Pedido> ObtenerPedidoConDetallesAsync(int id);
+        Task<Pedido> ObtenerPedidoPorIdAsync(int id);
         Task<Pedido> ObtenerPedidoPorId(int id);
         Task<OperationResult<DetallePedido>> ActualizarDetallePedidoAsync(DetallePedido pedido);
         Task<OperationResult<Pedido>> AgregarPedidoAsync(Pedido pedido);
@@ -21,9 +21,10 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<OperationResult<string>> EliminarPedidoAsync(Pedido pedido);
         Task<Pedido?> ObtenerPedidoEnProcesoUsuarioAsync(int usuarioId);
         Task<OperationResult<Pedido>> ObtenerNumeroPedido(RefundFormViewModel form);
+        Task<(Pedido Pedido, decimal TotalAmount)> GetPedidoWithDetailsAsync(int pedidoId);
+        Task<(DetallePedido Detalle, decimal PrecioProducto)> GetProductoDePedidoAsync(int detallePedidoId);
 
-
-
+        Task<(Pedido? Pedido, List<DetallePedido>? Detalles)> GetPedidoConDetallesAsync(int pedidoId);
 
 
     }

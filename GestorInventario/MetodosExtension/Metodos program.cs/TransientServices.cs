@@ -58,6 +58,7 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<IProductManagementService, ProductManagementService>();
             services.AddTransient<IPedidoManagementService, PedidoManagementService>();
             services.AddTransient<IPaymentService, PaymentService>();
+            services.AddTransient<IPaypalService,PaypalService>();
             return services;
 
         }
