@@ -8,10 +8,10 @@ namespace GestorInventario.Application.Services.Generic_Services
 {
     public class PasswordResetService: IPasswordResetService
     {
-        private readonly HashService _hashService;
+        private readonly IHashService _hashService;
         private readonly IUserRepository _userRepository;
 
-        public PasswordResetService(HashService hashService, IUserRepository userRepository)
+        public PasswordResetService(IHashService hashService, IUserRepository userRepository)
         {
             _hashService = hashService;
             _userRepository = userRepository;

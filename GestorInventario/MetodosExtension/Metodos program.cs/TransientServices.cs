@@ -20,10 +20,10 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<IPolicyExecutor, PolicyExecutor>();
             services.AddTransient<IUserRepository,UserRepository>();
             services.AddTransient<IGestorArchivos, GestorArchivosService>();
-            services.AddTransient<HashService>();
+            services.AddTransient<IHashService,HashService>();
             services.AddTransient<ICarritoRepository, CarritoRepository>();
             services.AddTransient<IEmailService, EmailService>();
-            services.AddTransient<TokenService>();
+            services.AddTransient<ITokenService,TokenService>();
             services.AddTransient<IAdminRepository, AdminRepository>();
             services.AddTransient<IAuthRepository, AuthRepository>();
             services.AddTransient<IUnitOfWork, UnitOfWork>();

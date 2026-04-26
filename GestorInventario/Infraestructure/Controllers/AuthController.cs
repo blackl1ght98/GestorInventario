@@ -1,6 +1,4 @@
 ﻿using GestorInventario.Application.DTOs.User;
-using GestorInventario.Application.Services;
-using GestorInventario.Application.Services.Authentication;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
@@ -16,17 +14,17 @@ namespace GestorInventario.Infraestructure.Controllers
     public class AuthController : Controller
     {
 
-        private readonly HashService _hashService;    
-        private readonly TokenService _tokenService;
+           
+        private readonly ITokenService _tokenService;
         private readonly IAuthRepository _authRepository;        
         private readonly ILogger<AuthController> _logger;       
         private readonly IPolicyExecutor _policyExecutor;
         private readonly ICarritoService _carritoService;
         private readonly ICurrentUserAccessor _current;
-        public AuthController(HashService hashService,  TokenService tokenService, IAuthRepository adminRepository, ICurrentUserAccessor current,
-              ILogger<AuthController> logger,   IPolicyExecutor executor,  ICarritoService carrito)
+        public AuthController( ITokenService tokenService, IAuthRepository adminRepository, ICurrentUserAccessor current,
+        ILogger<AuthController> logger,   IPolicyExecutor executor,  ICarritoService carrito)
         {
-            _hashService = hashService;
+           
             _tokenService = tokenService;
             _authRepository = adminRepository;         
             _logger = logger;     
@@ -57,8 +55,6 @@ namespace GestorInventario.Infraestructure.Controllers
 
             try
             {
-                
-
                 // Eliminar cookies existentes para mayor seguridad
                 foreach (var cookie in Request.Cookies)
                 {
@@ -66,62 +62,29 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
                 // Buscar usuario
-                var user = await _policyExecutor.ExecutePolicyAsync(() => _authRepository.Login(model.Email));
-                if (user.Data == null)
+                var user = await _policyExecutor.ExecutePolicyAsync(() => _authRepository.Login(model.Email,model));
+                if (!user.Success || user.Data == null)
                 {
-                    ModelState.AddModelError("", "El email y/o la contraseña son incorrectos.");
+                    ModelState.AddModelError("", user.Message);
                     return View(model);
                 }
-
-                // Verificar confirmación de correo
-                if (!user.Data.ConfirmacionEmail)
-                {
-                    ModelState.AddModelError("", "Por favor, confirma tu correo electrónico antes de iniciar sesión.");
-                    return View(model);
-                }
-
-                // Verificar si el usuario está dado de baja
-                if (user.Data.BajaUsuario)
-                {
-                    ModelState.AddModelError("", "Su usuario ha sido dado de baja, contacte con el administrador.");
-                    return View(model);
-                }
-
-                // Validar contraseña
-                var resultadoHash = _hashService.Hash(model.Password, user.Data.Salt);
-                if (user.Data.Password != resultadoHash.Hash)
-                {
-                    ModelState.AddModelError("", "El email y/o la contraseña son incorrectos.");
-                    return View(model);
-                }
-
                 // Autenticación exitosa - generar tokens
                 var tokenResponse = await _tokenService.GenerarToken(user.Data);
-               
-                    Response.Cookies.Append("auth", tokenResponse.Token, new CookieOptions
-                    {
-                        HttpOnly = true,
-                        SameSite = SameSiteMode.None,                     
-                        Secure = true,
-                        Expires = DateTime.UtcNow.AddMinutes(10)
-                    });
-                    if (string.IsNullOrEmpty(tokenResponse.RefreshToken))
-                    {
-                        _logger.LogError("No se generó refresh token para el usuario {UserId}", user.Data.Id);
-
-                        return RedirectToAction("Index", "Home");
-                }
+                Response.Cookies.Append("auth", tokenResponse.Token, new CookieOptions
+                {
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.None,
+                    Secure = true,
+                    Expires = DateTime.UtcNow.AddMinutes(10)
+                });
                 Response.Cookies.Append("refreshToken", tokenResponse.RefreshToken, new CookieOptions
-                    {
-                        HttpOnly = true,
-                        SameSite = SameSiteMode.None,
-                     
-                        Secure = true,
-                        Expires = DateTime.UtcNow.AddHours(24)
-                    });
+                {
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.None,
+                    Secure = true,
+                    Expires = DateTime.UtcNow.AddHours(24)
+                });
 
-
-                
                 return RedirectToAction("Index", "Home");
             }
             catch (Exception ex)
@@ -131,9 +94,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-
-
-      
+     
         [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> Logout()
@@ -169,15 +130,15 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var (success, error, userEmail) = await _authRepository.EnviarCorreoResetAsync(email);
+                var userEmail = await _authRepository.EnviarCorreoResetAsync(email);
 
-                if (!success)
+                if (!userEmail.Success)
                 {
-                    _logger.LogError("Ocurrio un error al eviar el correo electronico", error);
+                    _logger.LogError("Ocurrio un error al eviar el correo electronico", userEmail);
                     return RedirectToAction("Index", "Admin");
                 }
 
-                return View("ResetPassword", userEmail);
+                return View("ResetPassword", userEmail.Data);
             }
             catch (Exception ex)
             {
@@ -288,9 +249,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 _logger.LogError(ex, "Error al enviar el email de restablecimiento");
                 return RedirectToAction("Error", "Home");
             }
-        }
-       
-      
+        }       
         public IActionResult ChangePassword()
         {
             return View();
