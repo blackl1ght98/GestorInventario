@@ -1,10 +1,11 @@
 ﻿using GestorInventario.Application.DTOs.User;
+using GestorInventario.Interfaces.Application;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using System.Security.Cryptography;
 
 namespace GestorInventario.Application.Services.Authentication
 {
-    public class HashService
+    public class HashService: IHashService
     {
         public ResultadoHash Hash(string password)
         {

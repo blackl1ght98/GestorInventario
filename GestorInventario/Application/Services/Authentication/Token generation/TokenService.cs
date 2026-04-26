@@ -4,7 +4,7 @@ using GestorInventario.Application.DTOs.User;
 
 namespace GestorInventario.Application.Services
 {
-    public class TokenService
+    public class TokenService: ITokenService
     {
      
         private readonly ITokenGenerator _tokenGenerator;

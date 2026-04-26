@@ -14,14 +14,14 @@ namespace GestorInventario.Application.Services.Generic_Services
     public class UserManagementService : IUserManagementService
     {
         private readonly IUserRepository _usuarioRepository;
-        private readonly HashService _hashService;
+        private readonly IHashService _hashService;
         private readonly IEmailService _emailService;
         private readonly IMapper _mapper;
         private readonly ILogger<UserManagementService> _logger;
         private readonly IAdminRepository _adminRepository;
         public UserManagementService(
             IUserRepository usuarioRepository,
-            HashService hashService,
+            IHashService hashService,
             IEmailService emailService,
             IMapper mapper,
             IAdminRepository admin,

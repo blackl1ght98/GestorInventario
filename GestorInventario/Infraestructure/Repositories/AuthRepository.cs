@@ -1,11 +1,12 @@
 ﻿using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Application.DTOs.User;
-using GestorInventario.Application.Services.Authentication;
+
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
+using GestorInventario.ViewModels.user;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
@@ -14,12 +15,12 @@ namespace GestorInventario.Infraestructure.Repositories
     public class AuthRepository : IAuthRepository
     {
         private readonly GestorInventarioContext _context;
-        private readonly HashService _hashService;        
+        private readonly IHashService _hashService;        
         private readonly ILogger<AuthRepository> _logger;
         private readonly IUserRepository _userRepository;           
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IEmailService _emailService;
-        public AuthRepository(GestorInventarioContext context, HashService hash, ICurrentUserAccessor current,
+        public AuthRepository(GestorInventarioContext context, IHashService hash, ICurrentUserAccessor current,
             ILogger<AuthRepository> logger, IUserRepository user, IEmailService email)
         {
             _context = context;
@@ -31,9 +32,34 @@ namespace GestorInventario.Infraestructure.Repositories
             _emailService = email;
         }
 
-        public async Task<OperationResult<Usuario>> Login(string email)
+        public async Task<OperationResult<Usuario>> Login(string email, LoginViewModel model)
         {
             var login = await _context.Usuarios.Include(x => x.IdRolNavigation).FirstOrDefaultAsync(u => u.Email == email);
+            if (login == null) {
+
+                return OperationResult<Usuario>.Fail("El email y/o la contraseña son incorrectos. ");
+
+
+            }
+            if (!login.ConfirmacionEmail)
+            {
+                return OperationResult<Usuario>.Fail("Por favor, confirma tu correo electrónico antes de iniciar sesión.");
+               
+               
+            }
+            // Verificar si el usuario está dado de baja
+            if (login.BajaUsuario)
+            {
+                return OperationResult<Usuario>.Fail("Su usuario ha sido dado de baja, contacte con el administrador.");
+              
+              
+            }
+            var resultadoHash = _hashService.Hash(model.Password, login.Salt);
+            if (login.Password != resultadoHash.Hash)
+            {
+                return OperationResult<Usuario>.Fail("El email y/o la contraseña son incorrectos.");
+             
+            }
             return OperationResult<Usuario>.Ok("",login);
         }
       
@@ -51,8 +77,6 @@ namespace GestorInventario.Infraestructure.Repositories
                 
             }
         }
-
-
         public async Task<OperationResult<string>> SetNewPasswordAsync(RestoresPasswordDto cambio)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
@@ -130,8 +154,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 };
                 return OperationResult<Usuario>.Ok("Token valido", usuario.Data);        
            
-        }
-       
+        }      
         public async Task<OperationResult<RestoresPasswordDto>> PrepareRestorePassModel(int userId, string token)
         {
             try
@@ -141,7 +164,6 @@ namespace GestorInventario.Infraestructure.Repositories
                     UserId = userId,
                     Token = token
                 };
-
                 var resultado = await ValidateResetTokenAsync(cambio);
                 if (!resultado.Success)
                     return OperationResult<RestoresPasswordDto>.Fail(resultado.Message);
@@ -162,21 +184,20 @@ namespace GestorInventario.Infraestructure.Repositories
             }
             var user= await _context.Usuarios.FirstOrDefaultAsync(x=>x.Email == email);
 
-            var (success, error, userEmail) = await _emailService.SendEmailAsyncResetPassword(new EmailDto
+            var  userEmail = await _emailService.SendEmailAsyncResetPassword(new EmailDto
             {
                 ToEmail = email
             },user.Id);
 
-            if (success)
+            if (userEmail.Success)
             {
                 _logger.LogInformation("Email de restablecimiento de contraseña enviado con éxito");
             }
             else
             {
-                _logger.LogError("Error al enviar el email: {error}", error);
+                _logger.LogError("Error al enviar el email: {error}", userEmail);
             }
-
-            return OperationResult<string>.Ok("", userEmail);
+            return OperationResult<string>.Ok("", userEmail.Data);
         }
     }
 }
