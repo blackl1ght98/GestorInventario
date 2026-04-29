@@ -188,10 +188,6 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("payer_last_name");
-            entity.Property(e => e.PaymentMethod)
-                .HasMaxLength(20)
-                .IsUnicode(false)
-                .HasColumnName("payment_method");
             entity.Property(e => e.ProtectionEligibility)
                 .HasMaxLength(50)
                 .IsUnicode(false)
@@ -264,10 +260,6 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("item_currency");
-            entity.Property(e => e.ItemImageUrl)
-                .HasMaxLength(255)
-                .IsUnicode(false)
-                .HasColumnName("item_image_url");
             entity.Property(e => e.ItemName)
                 .HasMaxLength(100)
                 .IsUnicode(false)
@@ -291,7 +283,7 @@ public partial class GestorInventarioContext : DbContext
             entity.HasOne(d => d.PayPal).WithMany(p => p.PayPalPaymentItems)
                 .HasForeignKey(d => d.PayPalId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__PayPalPay__payPa__16644E42");
+                .HasConstraintName("FK__PayPalPay__payPa__09946309");
         });
 
         modelBuilder.Entity<Pedido>(entity =>

@@ -112,10 +112,9 @@ namespace GestorInventario.Infraestructure.Controllers
                     }
                     else
                     {
-                    _logger.LogError("Ocurrio un error al realizar el pago");
-                    }
-                    
+                    _logger.LogError("Ocurrio un error al redireccionar a paypal");
                     return RedirectToAction("Index", "Home");
+                    }                                     
             }
             catch (Exception ex)
             {
@@ -139,9 +138,8 @@ namespace GestorInventario.Infraestructure.Controllers
             else
             {
                 TempData["ErrorMessage"]=resultado.Message;
-            }
-           
-            return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index));
+            }                
         }
         //Metodo para decrementar producto
         [HttpPost]
@@ -160,8 +158,8 @@ namespace GestorInventario.Infraestructure.Controllers
             else
             {
                 TempData["ErrorMessage"] = resultado.Message;
-            }          
-            return RedirectToAction("Index");
+                return RedirectToAction("Index");
+            }                     
         }
        //Metodo para eliminar un producto
         [HttpPost]
@@ -180,9 +178,8 @@ namespace GestorInventario.Infraestructure.Controllers
                 else
                 {
                     TempData["ErrorMessage"] = resultado.Message;
-                }
-                return RedirectToAction("Index");
-
+                    return RedirectToAction("Index");
+                }             
             }
             catch (Exception ex)
             {

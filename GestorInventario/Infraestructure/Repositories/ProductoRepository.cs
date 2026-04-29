@@ -21,8 +21,8 @@ namespace GestorInventario.Infraestructure.Repositories
         }    
      
         public IQueryable<Producto> ObtenerTodosLosProductos()=>from p in _context.Productos.Include(x => x.IdProveedorNavigation)orderby p.Id  select p;
-    
-        
+
+        public async Task<bool> ObtenerCodigoUPC(string code) => await _context.Productos.AnyAsync(p => p.UpcCode == code);
         public async Task<OperationResult<Producto>> AgregarProductoAsync(Producto producto)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
