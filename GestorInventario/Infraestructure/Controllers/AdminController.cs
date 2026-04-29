@@ -63,7 +63,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     Buscar = buscar
                 };
 
-                CargarRolesEnViewData();
+               
                 return View(viewModel);
             }
             catch (Exception ex)
@@ -108,10 +108,7 @@ namespace GestorInventario.Infraestructure.Controllers
                      CargarRolesEnViewData();
                     return View(model);
                 }
-
-                TempData["SuccessMessage"] = result.Message;
-
-                if (User.IsInRole("Administrador") && (User.Identity?.IsAuthenticated ?? false))
+                if (User.IsAdministrador())
                 {
                     return RedirectToAction(nameof(Index));
                 }
@@ -132,31 +129,10 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {               
-                var usuarioDB = await  _unitOfWork.UserRepository.ObtenerUsuarioPorId(confirmar.UserId);
-
-                if(usuarioDB is null|| usuarioDB.Data is null)
-                {
-                   
-                    _logger.LogWarning("Intento de confirmar un usuario inexistente con ID {UserId}", confirmar.UserId);
-                    return RedirectToAction("Login", "Auth");
+                var validar = await _userManagementService.ValidarRegistro(confirmar);
+                if (!validar.Success) {
+                    TempData["ErrorMessageConfirm"] =validar.Message;
                 }
-               
-                if (usuarioDB.Data.ConfirmacionEmail != false)
-                {
-                    TempData["ErrorMessageConfirm"] = "Usuario ya validado con anterioridad";
-                    TempData.Keep("ErrorMessageConfirm");
-                    _logger.LogInformation($"El usuario con email {usuarioDB.Data.Email} ha intentado confirmar su correo estando confirmado");
-                      return RedirectToAction("Login", "Auth");
-                }
-                if (usuarioDB.Data.EmailVerificationToken != confirmar.Token)
-                {
-                    _logger.LogCritical("Intento de manipulacion del token por el usuario: " + usuarioDB.Data.Id);
-
-                }
-                await _unitOfWork.UserRepository.ConfirmEmail(new ConfirmRegistrationDto
-                {
-                    UserId = confirmar.UserId
-                });
                 return RedirectToAction("Login", "Auth");
             }
             catch (Exception ex)
@@ -175,7 +151,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 var userIdClaim = _currentUserAccessor.GetCurrentUserId();
                 int usuarioAEditarId = id == 0 ? userIdClaim : id;
 
-                // Obtenemos el usuario como EntityUser (dominio)
+               
                 var resultado = await _policyExecutor.ExecutePolicyAsync(
                     () => _unitOfWork.UserRepository.ObtenerUsuarioParaEdicionAsync(usuarioAEditarId));
 
@@ -187,19 +163,10 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
                 var usuarioDominio = resultado.Data;
-
-                // Mapeamos de EntityUser (dominio) a ViewModel
+            
                 var viewModel = _mapper.Map<UsuarioEditViewModel>(usuarioDominio);
-
                 // Marcamos si es edición propia
-                viewModel.EsEdicionPropia = (usuarioAEditarId == userIdClaim);
-
-                // Solo cargamos los roles si NO es edición propia (el admin editando a otro)
-                if (!viewModel.EsEdicionPropia)
-                {
-                     CargarRolesEnViewData();
-                }
-
+                viewModel.EsEdicionPropia = (usuarioAEditarId == userIdClaim);            
                 return View(viewModel);
             }
             catch (Exception ex)
@@ -216,29 +183,20 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {             
-                // Cargar roles para la vista en caso de error
-                if (!userVM.EsEdicionPropia)
-                {
-                     CargarRolesEnViewData();
-                }           
+                         
                 if (!ModelState.IsValid)
                 {
                     return View(userVM);
                 }
                 var result= await _userManagementService.EditarUsuarioAsync(userVM);
                
-                if (result.Success)
+                if (!result.Success)
                 {
-                    TempData["SuccessMessage"] = result.Message;
-                    if (User.IsAdministrador())
-                    {
-                        return RedirectToAction(nameof(Index));
-                    }
-                    return RedirectToAction("Index", "Home");
+                    TempData["ErrorMessage"] = result.Message;
+                    return View(userVM);
                 }
 
-                TempData["ErrorMessage"] = result.Message;
-                return View(userVM);
+                return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
@@ -293,7 +251,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-        //Metodo que da de baja el usuario, este metodo se llaman desde el script alta-baja-usuario.js
+        // Este metodo se llaman desde el script alta-baja-usuario.js
         [HttpPost]
         [Authorize(Roles ="Administrador")]
       
@@ -317,7 +275,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 return Json(new { success = false, errorMessage = result.Message });
             }
         }
-        //Metodo que da de alta el usuario, este metodo se llaman desde el script alta-baja-usuario.js
+        // Este metodo se llaman desde el script alta-baja-usuario.js
         [HttpPost]
         [Authorize(Roles = "Administrador")]
      

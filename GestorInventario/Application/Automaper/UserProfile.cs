@@ -26,7 +26,7 @@ namespace GestorInventario.Application.Classes
                 .ForMember(dest => dest.Direccion, opt => opt.MapFrom(x => x.Direccion ?? "No especificada"))
                 .ForMember(dest => dest.IdRol, opt => opt.Ignore());
             CreateMap<Usuario, UsuarioEditViewModel>()
-            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(x => x.Id))
 
             .ForMember(dest => dest.NombreCompleto, opt => opt.MapFrom(x => x.NombreCompleto))
             .ForMember(dest => dest.Telefono, opt => opt.MapFrom(x => x.Telefono))
