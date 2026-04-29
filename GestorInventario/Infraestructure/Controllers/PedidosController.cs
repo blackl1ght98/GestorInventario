@@ -1,9 +1,11 @@
 ﻿using GestorInventario.Application.DTOs.Email;
+using GestorInventario.Domain.Models;
 using GestorInventario.enums;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.PaginacionLogica;
+using GestorInventario.ViewModels;
 using GestorInventario.ViewModels.order;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -266,23 +268,90 @@ namespace GestorInventario.Infraestructure.Controllers
 
         }
 
-        
-       
-       
-      
-       
-        
+
+
+
+
+
+
         [Authorize]
         public async Task<IActionResult> DetallesPagoEjecutado(string id)
         {
-            var detallepago= await _policyExecutor.ExecutePolicyAsync(()=> _pedidoService.SincronizarDetallePagoAsync(id));
-            if (detallepago.Success)
+           
+            var result = await _policyExecutor.ExecutePolicyAsync(() => _pedidoService.SincronizarDetallePagoAsync(id));
+
+            if (result.Success && result.Data != null)
             {
-                return View(detallepago.Data);
+                var paypalDetail = result.Data; 
+
+                // Mapeo manual al ViewModel
+                var viewModel = new PayPalPaymentDetailViewModel
+                {
+                    Id = paypalDetail.Id,
+                    Intent = paypalDetail.Intent,
+                    Status = paypalDetail.Status,
+                    CreateTime = paypalDetail.CreateTime,
+                    UpdateTime = paypalDetail.UpdateTime,
+
+                    // Datos del Pagador
+                    PayerEmail = paypalDetail.PayerEmail,
+                    PayerFirstName = paypalDetail.PayerFirstName,
+                    PayerLastName = paypalDetail.PayerLastName,
+                    PayerId = paypalDetail.PayerId,
+
+                    // Datos de Envío
+                    ShippingRecipientName = paypalDetail.ShippingRecipientName,
+                    ShippingLine1 = paypalDetail.ShippingLine1,
+                    ShippingCity = paypalDetail.ShippingCity,
+                    ShippingState = paypalDetail.ShippingState,
+                    ShippingPostalCode = paypalDetail.ShippingPostalCode,
+                    ShippingCountryCode = paypalDetail.ShippingCountryCode,
+
+                    // Propiedades de Montos
+                    AmountTotal = paypalDetail.AmountTotal,
+                    AmountCurrency = paypalDetail.AmountCurrency,
+                    AmountItemTotal = paypalDetail.AmountItemTotal,
+                    AmountShipping = paypalDetail.AmountShipping,
+
+                    // Propiedades del Beneficiario (Payee)
+                    PayeeMerchantId = paypalDetail.PayeeMerchantId,
+                    PayeeEmail = paypalDetail.PayeeEmail,
+                    Description = paypalDetail.Description,
+
+                    // Propiedades de Captura
+                    SaleId = paypalDetail.SaleId,
+                    CaptureStatus = paypalDetail.CaptureStatus,
+                    CaptureAmount = paypalDetail.CaptureAmount,
+                    CaptureCurrency = paypalDetail.CaptureCurrency,
+                    ProtectionEligibility = paypalDetail.ProtectionEligibility,
+                    TransactionFeeAmount = paypalDetail.TransactionFeeAmount,
+                    TransactionFeeCurrency = paypalDetail.TransactionFeeCurrency,
+                    ReceivableAmount = paypalDetail.ReceivableAmount,
+                    ReceivableCurrency = paypalDetail.ReceivableCurrency,
+                    ExchangeRate = paypalDetail.ExchangeRate,
+                    FinalCapture = paypalDetail.FinalCapture,
+                    DisputeCategories = paypalDetail.DisputeCategories,
+
+                    // Propiedades de Tracking
+                    TrackingId = paypalDetail.TrackingId,
+                    TrackingStatus = paypalDetail.TrackingStatus,
+
+                    PayPalPaymentItems = paypalDetail.PayPalPaymentItems?.Select(item => new PayPalPaymentItemViewModel
+                    {
+                        ItemName = item.ItemName,
+                        ItemSku = item.ItemSku,
+                        ItemPrice = item.ItemPrice,
+                        ItemCurrency = item.ItemCurrency,
+                        ItemTax = item.ItemTax,
+                        ItemQuantity = item.ItemQuantity
+                    }).ToList() ?? new List<PayPalPaymentItemViewModel>()
+                };
+
+                return View(viewModel);
             }
             else
             {
-                _logger.LogError(detallepago.Message);
+                _logger.LogError(result.Message);
                 return RedirectToAction(nameof(Index));
             }
         }

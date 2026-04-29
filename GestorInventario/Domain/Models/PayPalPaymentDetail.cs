@@ -11,8 +11,6 @@ public partial class PayPalPaymentDetail
 
     public string? Status { get; set; }
 
-    public string? PaymentMethod { get; set; }
-
     public string? PayerEmail { get; set; }
 
     public string? PayerFirstName { get; set; }

@@ -248,8 +248,7 @@ namespace GestorInventario.Application.Services.Generic_Services
             {
                 Id = detallespago.Id,
                 Intent = detallespago.Intent,
-                Status = detallespago.Status,
-                PaymentMethod = "paypal",
+                Status = detallespago.Status,         
                 PayerEmail = detallespago.Payer?.Email,
                 PayerFirstName = detallespago.Payer?.Name?.GivenName,
                 PayerLastName = detallespago.Payer?.Name?.Surname,

@@ -12,10 +12,11 @@
     /// </summary>
     public record OperationResult<T>(bool Success, string Message, T? Data = default)
     {
+        public OperationResult() : this(false, string.Empty, default) { }
         public bool IsSuccess => Success;
         public bool IsFailure => !Success;
         public bool HasData => Data is not null;
-
+     
         public static OperationResult<T> Ok(string message = "Operación exitosa", T? data = default)
             => new(true, message, data);
 

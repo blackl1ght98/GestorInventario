@@ -8,9 +8,10 @@ namespace GestorInventario.Interfaces.Application
     {
         Task<OperationResult<string>> EliminarPedido(int Id);
         Task<OperationResult<string>> EditarPedido(EditPedidoViewModel model);
-        Task<OperationResult<PayPalPaymentDetail>> SincronizarDetallePagoAsync(string id);
+          Task<OperationResult<PayPalPaymentDetail>> SincronizarDetallePagoAsync(string id);
+    
         Task<OperationResult<Pedido>> ConfirmarPagoDelPedidoAsync(int usuarioActual, string? captureId, string? total, string? currency, string? orderId);
 
-
+ 
     }
 }

@@ -3,6 +3,7 @@ using GestorInventario.Domain.Models;
 using GestorInventario.enums;
 using GestorInventario.Interfaces;
 using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Infraestructure;
 using Microsoft.EntityFrameworkCore;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -13,13 +14,13 @@ namespace GestorInventario.Application.Services.Generic_Services
 {
     public class BarCodeService : IBarCodeService
     {
-        private readonly GestorInventarioContext _context;
+        private readonly IProductoRepository _productoRepository;
         private readonly IGestorArchivos _gestorArchivos;
         private readonly ILogger<BarCodeService> _logger;
 
-        public BarCodeService(GestorInventarioContext context, IGestorArchivos gestorArchivos, ILogger<BarCodeService> logger)
+        public BarCodeService(IProductoRepository producto, IGestorArchivos gestorArchivos, ILogger<BarCodeService> logger)
         {
-            _context = context;
+            _productoRepository = producto;
             _gestorArchivos = gestorArchivos;
             _logger = logger;
         }
@@ -83,7 +84,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                 _logger.LogDebug("Intento {Attempt} - Código generado: {Code}", attempts + 1, code);
 
                 // Verificar unicidad
-                var exists = await _context.Productos.AnyAsync(p => p.UpcCode == code);
+                var exists = await _productoRepository.ObtenerCodigoUPC(code);
                 if (!exists)
                 {
                     _logger.LogInformation("Código UPC-A único generado: {Code}", code);

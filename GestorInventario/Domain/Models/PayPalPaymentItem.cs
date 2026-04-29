@@ -21,7 +21,5 @@ public partial class PayPalPaymentItem
 
     public int? ItemQuantity { get; set; }
 
-    public string? ItemImageUrl { get; set; }
-
     public virtual PayPalPaymentDetail PayPal { get; set; } = null!;
 }

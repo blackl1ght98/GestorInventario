@@ -14,7 +14,7 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<Producto> ObtenerProductoPorIdAsync(int productoId);
         Task<bool> ExisteProductoAsync(string nombre);
         Task<OperationResult<Producto>> ActualizarProductoAsync(Producto producto);
-      
+        Task<bool> ObtenerCodigoUPC(string code);
         Task<DetallePedido?> ObtenerDetallesCarrito(int idCarrito, int idProducto);
         Task<Producto> ObtenerProductoCompletoAsync(int Id);
         Task<OperationResult<Producto>> EliminarProductoAsync(Producto producto);
