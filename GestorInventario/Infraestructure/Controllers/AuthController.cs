@@ -15,22 +15,22 @@ namespace GestorInventario.Infraestructure.Controllers
     {
 
            
-        private readonly ITokenService _tokenService;
-        private readonly IAuthRepository _authRepository;        
+        private readonly ITokenService _tokenService;          
         private readonly ILogger<AuthController> _logger;       
         private readonly IPolicyExecutor _policyExecutor;
         private readonly ICarritoService _carritoService;
         private readonly ICurrentUserAccessor _current;
-        public AuthController( ITokenService tokenService, IAuthRepository adminRepository, ICurrentUserAccessor current,
-        ILogger<AuthController> logger,   IPolicyExecutor executor,  ICarritoService carrito)
+        private readonly IAuthService _authService;
+        public AuthController( ITokenService tokenService,  ICurrentUserAccessor current,
+        ILogger<AuthController> logger,   IPolicyExecutor executor,  ICarritoService carrito, IAuthService authService)
         {
            
-            _tokenService = tokenService;
-            _authRepository = adminRepository;         
+            _tokenService = tokenService;                
             _logger = logger;     
             _policyExecutor = executor;
             _carritoService = carrito;
             _current=current;
+            _authService = authService;
         }
         
         [AllowAnonymous]
@@ -62,7 +62,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
                 // Buscar usuario
-                var user = await _policyExecutor.ExecutePolicyAsync(() => _authRepository.Login(model.Email,model));
+                var user = await _policyExecutor.ExecutePolicyAsync(() => _authService.Login(model.Email,model));
                 if (!user.Success || user.Data == null)
                 {
                     ModelState.AddModelError("", user.Message);
@@ -110,7 +110,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     Response.Cookies.Delete(cookie.Key);
                 }
                await _carritoService.EliminarCarritoActivoAsync();
-                // Cierra la sesión.
+                
                 await HttpContext.SignOutAsync();
 
                 return RedirectToAction("Index", "Home");
@@ -130,7 +130,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var userEmail = await _authRepository.EnviarCorreoResetAsync(email);
+                var userEmail = await _authService.EnviarCorreoResetAsync(email);
 
                 if (!userEmail.Success)
                 {
@@ -152,7 +152,7 @@ namespace GestorInventario.Infraestructure.Controllers
        [HttpGet("auth/restore-password/{UserId}/{Token}")]
         public async Task<IActionResult> RestorePassword(int UserId, string Token)
         {
-            var  modelo = await _authRepository.PrepareRestorePassModel(UserId, Token);
+            var  modelo = await _authService.PrepareRestorePassModel(UserId, Token);
             if (!modelo.Success || modelo.Data is null)
             {
                 _logger.LogCritical("La URL a intentado ser manipulada por el usuario ", UserId);
@@ -180,7 +180,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 return View("RestorePassword", model); 
             }
 
-            var result = await _authRepository.PrepareRestorePassModel(model.UserId, model.Token);
+            var result = await _authService.PrepareRestorePassModel(model.UserId, model.Token);
 
             if (!result.Success)
             {
@@ -199,7 +199,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
             try
             {
-                var setResult = await _authRepository.SetNewPasswordAsync(cambio);
+                var setResult = await _authService.SetNewPasswordAsync(cambio);
 
                 if (setResult.Success)
                 {
@@ -233,7 +233,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var  userEmail = await _authRepository.EnviarCorreoResetAsync(email);
+                var  userEmail = await _authService.EnviarCorreoResetAsync(email);
 
                 if (!userEmail.Success)
                 {
@@ -259,7 +259,7 @@ namespace GestorInventario.Infraestructure.Controllers
         public async Task<IActionResult> ChangePassword(string passwordAnterior, string passwordActual)
         {
 
-            var resultado = await _policyExecutor.ExecutePolicyAsync(() => _authRepository.ChangePassword(passwordAnterior, passwordActual));
+            var resultado = await _policyExecutor.ExecutePolicyAsync(() => _authService.ChangePassword(passwordAnterior, passwordActual));
             if (resultado.Success)
             {
                 if (_current.IsAuthenticated() && User.IsAdministrador())

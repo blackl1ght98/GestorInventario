@@ -24,8 +24,7 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<ICarritoRepository, CarritoRepository>();
             services.AddTransient<IEmailService, EmailService>();
             services.AddTransient<ITokenService,TokenService>();
-            services.AddTransient<IAdminRepository, AdminRepository>();
-            services.AddTransient<IAuthRepository, AuthRepository>();
+            services.AddTransient<IAdminRepository, AdminRepository>();         
             services.AddTransient<IUnitOfWork, UnitOfWork>();
             services.AddTransient<IPaypalOrderTrackingService, PaypalOrderTrackingService>();
             services.AddTransient<IPedidoRepository, PedidoRepository>();
@@ -59,6 +58,7 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<IPedidoManagementService, PedidoManagementService>();
             services.AddTransient<IPaymentService, PaymentService>();
             services.AddTransient<IPaypalService,PaypalService>();
+            services.AddTransient<IAuthService, AuthService>();
             return services;
 
         }

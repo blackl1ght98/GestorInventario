@@ -48,6 +48,7 @@ namespace GestorInventario.Infraestructure.Repositories
 
             return OperationResult<Usuario>.Ok("Usuario obtenido con éxito", usuarioEf);
         }
+        public async Task<Usuario> ObtenerEmail(string email) => await _context.Usuarios.Include(x => x.IdRolNavigation).FirstOrDefaultAsync(u => u.Email == email);
         public async Task<List<Usuario>> ObtenerUsuariosAsync() =>await _context.Usuarios.Include(u => u.IdRolNavigation).ToListAsync();
         public async Task<(Usuario?, string)> ObtenerUsuarioConPedido(int id)
         {

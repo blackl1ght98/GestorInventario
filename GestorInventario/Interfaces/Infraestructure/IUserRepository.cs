@@ -21,6 +21,7 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<OperationResult<Usuario>> GuardarPasswordTemporalAsync(
         string email, string hash, byte[] salt, DateTime fechaExpiracion);
         Task<OperationResult<Usuario>> ObtenerUsuarioConProveedoresYPedidosAsync(int id);
+        Task<Usuario> ObtenerEmail(string email);
 
     }
 }

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using GestorInventario.Application.DTOs.Email;
+using GestorInventario.Application.DTOs.User;
 using GestorInventario.Application.Services.Authentication;
 
 using GestorInventario.Domain.Models;
@@ -19,6 +20,7 @@ namespace GestorInventario.Application.Services.Generic_Services
         private readonly IMapper _mapper;
         private readonly ILogger<UserManagementService> _logger;
         private readonly IAdminRepository _adminRepository;
+      
         public UserManagementService(
             IUserRepository usuarioRepository,
             IHashService hashService,
@@ -107,6 +109,34 @@ namespace GestorInventario.Application.Services.Generic_Services
                 return OperationResult<string>.Fail("El usuario no se puede eliminar porque tiene proveedores asociados");
 
             return await _adminRepository.EliminarUsuario(id);
+        }
+        public async Task<OperationResult<string>> ValidarRegistro(ConfirmRegistrationDto confirmar)
+        {
+            var usuarioDB = await _usuarioRepository.ObtenerUsuarioPorId(confirmar.UserId);
+
+            if (usuarioDB is null || usuarioDB.Data is null)
+            {
+
+                _logger.LogWarning("Intento de confirmar un usuario inexistente con ID {UserId}", confirmar.UserId);
+                return OperationResult<string>.Fail("Error al confirmar el usuario. Intentelo de nuevo mas tarde"); 
+            }
+
+            if (usuarioDB.Data.ConfirmacionEmail != false)
+            {
+             
+                _logger.LogInformation($"El usuario con email {usuarioDB.Data.Email} ha intentado confirmar su correo estando confirmado");
+                return OperationResult<string>.Fail("Usuario ya validado");
+            }
+            if (usuarioDB.Data.EmailVerificationToken != confirmar.Token)
+            {
+                _logger.LogCritical("Intento de manipulacion del token por el usuario: " + usuarioDB.Data.Id);
+                return OperationResult<string>.Fail("Ocurrio un error al confirmar el usuario");
+            }
+            await _usuarioRepository.ConfirmEmail(new ConfirmRegistrationDto
+            {
+                UserId = confirmar.UserId
+            });
+            return OperationResult<string>.Ok("Validacion exitosa");
         }
     }
 }

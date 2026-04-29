@@ -1,88 +1,65 @@
 ﻿using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Application.DTOs.User;
-
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
-using GestorInventario.MetodosExtension;
 using GestorInventario.ViewModels.user;
-using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
-namespace GestorInventario.Infraestructure.Repositories
+namespace GestorInventario.Application.Services.Generic_Services
 {
-    public class AuthRepository : IAuthRepository
+    public class AuthService : IAuthService
     {
-        private readonly GestorInventarioContext _context;
-        private readonly IHashService _hashService;        
-        private readonly ILogger<AuthRepository> _logger;
-        private readonly IUserRepository _userRepository;           
-        private readonly ICurrentUserAccessor _currentUserAccessor;
+       
+        private readonly IHashService _hashService;
+        private readonly IUserRepository _userRepository;
+        private readonly ICurrentUserAccessor _currentUserAccesor;
+        private readonly ILogger<AuthService> _logger;
         private readonly IEmailService _emailService;
-        public AuthRepository(GestorInventarioContext context, IHashService hash, ICurrentUserAccessor current,
-            ILogger<AuthRepository> logger, IUserRepository user, IEmailService email)
+        public AuthService( IHashService hashService, IUserRepository userRepository, ICurrentUserAccessor currentUser, ILogger<AuthService> logger, IEmailService emailService  )
         {
-            _context = context;
-            _hashService = hash;
+          
+            _hashService = hashService;
+            _userRepository = userRepository;
+            _currentUserAccesor = currentUser;
             _logger = logger;
-            _userRepository = user;
-                  
-            _currentUserAccessor = current;
-            _emailService = email;
+            _emailService = emailService;
         }
 
         public async Task<OperationResult<Usuario>> Login(string email, LoginViewModel model)
         {
-            var login = await _context.Usuarios.Include(x => x.IdRolNavigation).FirstOrDefaultAsync(u => u.Email == email);
-            if (login == null) {
-
+            var login = await _userRepository.ObtenerEmail(email);
+            if (login == null)
+            {
                 return OperationResult<Usuario>.Fail("El email y/o la contraseña son incorrectos. ");
-
-
             }
             if (!login.ConfirmacionEmail)
             {
                 return OperationResult<Usuario>.Fail("Por favor, confirma tu correo electrónico antes de iniciar sesión.");
-               
-               
+
+
             }
             // Verificar si el usuario está dado de baja
             if (login.BajaUsuario)
             {
                 return OperationResult<Usuario>.Fail("Su usuario ha sido dado de baja, contacte con el administrador.");
-              
-              
+
+
             }
             var resultadoHash = _hashService.Hash(model.Password, login.Salt);
             if (login.Password != resultadoHash.Hash)
             {
                 return OperationResult<Usuario>.Fail("El email y/o la contraseña son incorrectos.");
-             
+
             }
-            return OperationResult<Usuario>.Ok("",login);
-        }
-      
-        private async Task<OperationResult<string>> ValidateResetTokenAsync(RestoresPasswordDto cambio)
-        {
-            try
-            {
-                var resultado = await ValidarTokenCambioPass(cambio);
-                return OperationResult<string>.Ok("Validacion exitosa");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al restaurar la contraseña");
-                return OperationResult<string>.Fail("Ocurrió un error inesperado. Por favor, contacte al administrador o intente nuevamente.");
-                
-            }
+            return OperationResult<Usuario>.Ok("", login);
         }
         public async Task<OperationResult<string>> SetNewPasswordAsync(RestoresPasswordDto cambio)
         {
-            return await _context.ExecuteInTransactionAsync(async () =>
-            {
+            
 
-                var resultadoValidacion = await ValidarTokenCambioPass(cambio);
+                var resultadoValidacion = await ValidarTokenAsync(cambio);
 
                 if (!resultadoValidacion.Success)
                     return OperationResult<string>.Fail(resultadoValidacion.Message);
@@ -103,58 +80,55 @@ namespace GestorInventario.Infraestructure.Repositories
                 usuarioDB.Password = resultadoHash.Hash;
                 usuarioDB.Salt = resultadoHash.Salt;
 
-                await _context.UpdateEntityAsync(usuarioDB);               
-               return OperationResult<string>.Ok("Contraseña cambiada con exito");
-            });
+                await _userRepository.ActualizarUsuarioAsync(usuarioDB);
+                return OperationResult<string>.Ok("Contraseña cambiada con exito");
            
+
         }
+        private async Task<OperationResult<Usuario>> ValidarTokenAsync(RestoresPasswordDto cambio)
+        {
+            var usuario = await _userRepository.ObtenerUsuarioPorId(cambio.UserId);
+            if (usuario == null)
+                return OperationResult<Usuario>.Fail("El usuario no existe");
 
+            if (usuario.Data.EmailVerificationToken != cambio.Token)
+                return OperationResult<Usuario>.Fail("El token no es valido");
 
+            if (usuario.Data.FechaEnlaceCambioPass < DateTime.Now || usuario.Data.FechaExpiracionContrasenaTemporal < DateTime.Now)
+            {
+                usuario.Data.FechaEnlaceCambioPass = null;
+                usuario.Data.FechaExpiracionContrasenaTemporal = null;
+                usuario.Data.TemporaryPassword = null;
+                await _userRepository.ActualizarUsuarioAsync(usuario.Data);
+
+                return OperationResult<Usuario>.Fail("El enlace y contraseña temporal han expirado. Solicite una nueva");
+            }    
+            return OperationResult<Usuario>.Ok("Token valido", usuario.Data);
+
+        }
         public async Task<OperationResult<string>> ChangePassword(string passwordAnterior, string passwordActual)
         {
-            return await _context.ExecuteInTransactionAsync(async () =>
-            {
-                var usuarioId = _currentUserAccessor.GetCurrentUserId();
-                var usuarioDB = await _context.Usuarios.FirstOrDefaultAsync(x => x.Id == usuarioId);
+            
+                var usuarioId = _currentUserAccesor.GetCurrentUserId();
+                var usuarioDB = await _userRepository.ObtenerUsuarioPorId(usuarioId);
                 if (usuarioDB == null)
                 {
                     return OperationResult<string>.Fail("Usuario no encontrado");
                 }
-                var anteriorpass = _hashService.Hash(passwordAnterior, usuarioDB.Salt);
-                if (usuarioDB.Password != anteriorpass.Hash)
+                var anteriorpass = _hashService.Hash(passwordAnterior, usuarioDB.Data.Salt);
+                if (usuarioDB.Data.Password != anteriorpass.Hash)
                 {
                     return OperationResult<string>.Fail("Contraseña anterior incorrecta");
                 }
                 var actualPassword = _hashService.Hash(passwordActual);
-                usuarioDB.Password = actualPassword.Hash;
-                usuarioDB.Salt = actualPassword.Salt;
-                await _context.UpdateEntityAsync(usuarioDB);
+                usuarioDB.Data.Password = actualPassword.Hash;
+                usuarioDB.Data.Salt = actualPassword.Salt;
+                await _userRepository.ActualizarUsuarioAsync(usuarioDB.Data);
 
                 return OperationResult<string>.Ok("Contraseña cambiada con exito");
-            });
-           
+          
+
         }
-        private async Task<OperationResult<Usuario>> ValidarTokenCambioPass(RestoresPasswordDto cambio)
-        {                 
-                var usuario = await _userRepository.ObtenerUsuarioPorId(cambio.UserId);
-                if (usuario == null)
-                    return OperationResult<Usuario>.Fail("El usuario no existe");
-
-                if (usuario.Data.EmailVerificationToken != cambio.Token)
-                    return OperationResult<Usuario>.Fail("El token no es valido");
-
-                if (usuario.Data.FechaEnlaceCambioPass < DateTime.Now || usuario.Data.FechaExpiracionContrasenaTemporal < DateTime.Now)
-                {
-                    usuario.Data.FechaEnlaceCambioPass = null;
-                    usuario.Data.FechaExpiracionContrasenaTemporal = null;
-                    usuario.Data.TemporaryPassword = null;
-                    await _context.SaveChangesAsync();
-                   
-                    return OperationResult<Usuario>.Fail("El enlace y contraseña temporal han expirado. Solicite una nueva");
-                };
-                return OperationResult<Usuario>.Ok("Token valido", usuario.Data);        
-           
-        }      
         public async Task<OperationResult<RestoresPasswordDto>> PrepareRestorePassModel(int userId, string token)
         {
             try
@@ -164,7 +138,7 @@ namespace GestorInventario.Infraestructure.Repositories
                     UserId = userId,
                     Token = token
                 };
-                var resultado = await ValidateResetTokenAsync(cambio);
+                var resultado = await ValidarTokenAsync(cambio);
                 if (!resultado.Success)
                     return OperationResult<RestoresPasswordDto>.Fail(resultado.Message);
 
@@ -176,18 +150,19 @@ namespace GestorInventario.Infraestructure.Repositories
                 return OperationResult<RestoresPasswordDto>.Fail("El servidor tardó mucho en responder, inténtelo de nuevo más tarde");
             }
         }
+
         public async Task<OperationResult<string>> EnviarCorreoResetAsync(string email)
         {
             if (string.IsNullOrWhiteSpace(email) || !new EmailAddressAttribute().IsValid(email))
             {
                 return OperationResult<string>.Fail("El correo proporcionado no es valido");
             }
-            var user= await _context.Usuarios.FirstOrDefaultAsync(x=>x.Email == email);
+            var user = await _userRepository.ObtenerEmail(email);
 
-            var  userEmail = await _emailService.SendEmailAsyncResetPassword(new EmailDto
+            var userEmail = await _emailService.SendEmailAsyncResetPassword(new EmailDto
             {
                 ToEmail = email
-            },user.Id);
+            }, user.Id);
 
             if (userEmail.Success)
             {
