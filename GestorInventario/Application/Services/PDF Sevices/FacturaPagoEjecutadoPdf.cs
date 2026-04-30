@@ -87,7 +87,10 @@ namespace GestorInventario.Application.Services.Generic_Services
                     AddDetailRow(table, "Nombre", $"{_data.PayerFirstName} {_data.PayerLastName}");
                     AddDetailRow(table, "Email", _data.PayerEmail ?? "No disponible");
                     AddDetailRow(table, "Dirección de envío",
-                        $"{_data.ShippingLine1}, {_data.ShippingCity}, {_data.ShippingState} {_data.ShippingPostalCode}, {_data.ShippingCountryCode}");
+                        $" {_data.PayPalPaymentShippings
+    .FirstOrDefault()?.AddressLine1},{_data.PayPalPaymentShippings
+    .FirstOrDefault()?.City},{_data.PayPalPaymentShippings
+    .FirstOrDefault()?.State}");
                 });
             });
         }
@@ -109,8 +112,8 @@ namespace GestorInventario.Application.Services.Generic_Services
 
                     AddDetailRow(table, "Estado", _data.Status ?? "N/A");
                     AddDetailRow(table, "Descripción", _data.Description ?? "N/A");
-                    AddDetailRow(table, "ID de Venta/Captura", _data.SaleId ?? "N/A");
-                    AddDetailRow(table, "Estado de Captura", _data.CaptureStatus ?? "N/A");
+                    AddDetailRow(table, "ID de Venta/Captura", _data.PayPalPaymentCaptures.FirstOrDefault()?.CaptureId ?? "N/A");
+                    AddDetailRow(table, "Estado de Captura", _data.PayPalPaymentCaptures.FirstOrDefault()?.Status ?? "N/A");
                 });
             });
         }
@@ -198,9 +201,9 @@ namespace GestorInventario.Application.Services.Generic_Services
                         columns.RelativeColumn(2);
                     });
 
-                    AddDetailRow(table, "Comisión PayPal", $"{_data.TransactionFeeAmount?.ToString("C") ?? "0.00"} {_data.TransactionFeeCurrency}");
-                    AddDetailRow(table, "Tasa de cambio", _data.ExchangeRate?.ToString("F4") ?? "N/A");
-                    AddDetailRow(table, "Monto recibible", $"{_data.ReceivableAmount?.ToString("C") ?? "0.00"} {_data.ReceivableCurrency}");
+                    AddDetailRow(table, "Comisión PayPal", $"{_data.PayPalPaymentCaptures.FirstOrDefault()?.TransactionFeeAmount?.ToString("C") ?? "0.00"} {_data.PayPalPaymentCaptures.FirstOrDefault()?.TransactionFeeCurrency}");
+                    AddDetailRow(table, "Tasa de cambio", _data.PayPalPaymentCaptures.FirstOrDefault()?.ExchangeRate?.ToString("F4") ?? "N/A");
+                    AddDetailRow(table, "Monto recibible", $"{_data.PayPalPaymentCaptures.FirstOrDefault()?.ReceivableAmount?.ToString("C") ?? "0.00"} {_data.PayPalPaymentCaptures.FirstOrDefault()?.ReceivableCurrency}");
                     AddDetailRow(table, "ID de Seguimiento", _data.TrackingId ?? "N/A");
                     AddDetailRow(table, "Estado de Seguimiento", _data.TrackingStatus ?? "N/A");
                 });

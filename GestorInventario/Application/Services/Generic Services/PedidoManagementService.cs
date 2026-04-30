@@ -109,13 +109,17 @@ namespace GestorInventario.Application.Services.Generic_Services
             detallesPago.PayerFirstName = detalles.Payer?.Name?.GivenName;
             detallesPago.PayerLastName = detalles.Payer?.Name?.Surname;
             detallesPago.PayerId = detalles.Payer?.PayerId;
-
-            detallesPago.ShippingRecipientName = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Name?.FullName;
-            detallesPago.ShippingLine1 = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.AddressLine1;
-            detallesPago.ShippingCity = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.AdminArea2;
-            detallesPago.ShippingState = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.AdminArea1;
-            detallesPago.ShippingPostalCode = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.PostalCode;
-            detallesPago.ShippingCountryCode = detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.CountryCode;
+            var informacionEnvio = new PayPalPaymentShipping
+            {
+                PaymentId=detalles.Id,
+                RecipientName= detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Name?.FullName,
+                AddressLine1= detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.AddressLine1,
+                City= detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.AdminArea2,
+                State= detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.AdminArea1,
+                PostalCode= detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.PostalCode,
+                CountryCode= detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.CountryCode
+            };
+            await _payment.AgregarInfoEnvioAsync(informacionEnvio);
 
             if (detalles.PurchaseUnits != null)
             {
@@ -152,27 +156,60 @@ namespace GestorInventario.Application.Services.Generic_Services
                             {
                                 if (capture != null)
                                 {
-
-                                    detallesPago.SaleId = capture.Id;
-                                    detallesPago.CaptureStatus = capture.Status;
-                                    detallesPago.CaptureAmount = _conversion.ConvertToDecimal(capture.Amount?.Value);
-                                    detallesPago.CaptureCurrency = capture.Amount?.CurrencyCode;
-                                    detallesPago.ProtectionEligibility = capture.SellerProtection?.Status;
-                                    detallesPago.TransactionFeeAmount = _conversion.ConvertToDecimal(capture.SellerReceivableBreakdown?.PaypalFee?.Value);
-                                    detallesPago.TransactionFeeCurrency = capture.SellerReceivableBreakdown?.PaypalFee?.CurrencyCode;
-                                    detallesPago.ReceivableAmount = _conversion.ConvertToDecimal(capture.SellerReceivableBreakdown?.NetAmount?.Value);
-                                    detallesPago.ReceivableCurrency = capture.SellerReceivableBreakdown?.NetAmount?.CurrencyCode;
-
-                                    var exchangeRateValue = capture.SellerReceivableBreakdown?.ExchangeRate?.Value;
-                                    if (decimal.TryParse((string)exchangeRateValue, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal exchangeRate))
+                                    var paypalCapture = new PayPalPaymentCapture
                                     {
-                                        detallesPago.ExchangeRate = exchangeRate;
+                                        PaymentId = detallesPago.Id,
+                                        CaptureId = capture.Id,
+                                        Status = capture.Status,
+
+                                        Amount = _conversion.ConvertToDecimal(capture.Amount?.Value),
+                                        Currency = capture.Amount?.CurrencyCode,
+
+                                        ProtectionEligibility = capture.SellerProtection?.Status,
+
+                                        TransactionFeeAmount =
+                                            _conversion.ConvertToDecimal(
+                                                capture.SellerReceivableBreakdown?.PaypalFee?.Value),
+
+                                        TransactionFeeCurrency =
+                                            capture.SellerReceivableBreakdown?.PaypalFee?.CurrencyCode,
+
+                                        ReceivableAmount =
+                                            _conversion.ConvertToDecimal(
+                                                capture.SellerReceivableBreakdown?.NetAmount?.Value),
+
+                                        ReceivableCurrency =
+                                            capture.SellerReceivableBreakdown?.NetAmount?.CurrencyCode,
+
+                                        FinalCapture = capture.FinalCapture,
+
+                                        CreateTime =
+                                            _conversion.ConvertToDateTime(capture.CreateTime),
+
+                                        UpdateTime =
+                                            _conversion.ConvertToDateTime(capture.UpdateTime)
+                                    };
+
+                                    var exchangeRateValue =
+                                        capture.SellerReceivableBreakdown?.ExchangeRate?.Value;
+
+                                    if (decimal.TryParse(exchangeRateValue,
+                                        NumberStyles.Any,
+                                        CultureInfo.InvariantCulture,
+                                        out decimal exchangeRate))
+                                    {
+                                        paypalCapture.ExchangeRate = exchangeRate;
                                     }
-                                    detallesPago.CreateTime = _conversion.ConvertToDateTime(capture.CreateTime);
-                                    detallesPago.UpdateTime = _conversion.ConvertToDateTime(capture.UpdateTime);
 
+                                    if (capture.SellerProtection?.DisputeCategories != null)
+                                    {
+                                        paypalCapture.DisputeCategories =
+                                            JsonConvert.SerializeObject(
+                                                capture.SellerProtection.DisputeCategories);
+                                    }
+
+                                    await _payment.AgregarCaptureAsync(paypalCapture);
                                 }
-
                             }
                             var firstPurchaseUnit = detalles.PurchaseUnits?.FirstOrDefault();
                             if (firstPurchaseUnit != null)
@@ -190,14 +227,17 @@ namespace GestorInventario.Application.Services.Generic_Services
 
                                 // Campos de captura
                                 var firstCapture = firstPurchaseUnit.Payments?.Captures?.FirstOrDefault();
-                                if (firstCapture != null)
+                                var primeraCaptura = detallesPago.PayPalPaymentCaptures.FirstOrDefault();
+
+                                if (primeraCaptura != null)
                                 {
-                                    detallesPago.FinalCapture = firstCapture.FinalCapture;
+                                    primeraCaptura.FinalCapture = firstCapture.FinalCapture;
 
                                     if (firstCapture.SellerProtection != null)
                                     {
-                                        detallesPago.DisputeCategories =
-                                            JsonConvert.SerializeObject(firstCapture.SellerProtection.DisputeCategories);
+                                        primeraCaptura.DisputeCategories =
+                                            JsonConvert.SerializeObject(
+                                                firstCapture.SellerProtection.DisputeCategories);
                                     }
                                 }
                             }

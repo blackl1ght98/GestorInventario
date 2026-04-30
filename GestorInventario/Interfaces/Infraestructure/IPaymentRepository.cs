@@ -15,5 +15,7 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<OperationResult<PayPalPaymentItem>> AgregarPagoItemAsync(PayPalPaymentItem detalle);
         Task<PayPalPaymentDetail> ObtenerDetallesPago(string id);
         Task<OperationResult<string>> EliminarDetallesPagoAsync(PayPalPaymentDetail pago);
+        Task<OperationResult<PayPalPaymentShipping>> AgregarInfoEnvioAsync(PayPalPaymentShipping detalle);
+        Task<OperationResult<PayPalPaymentCapture>> AgregarCaptureAsync(PayPalPaymentCapture detalle);
     }
 }

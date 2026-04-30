@@ -21,9 +21,13 @@ public partial class GestorInventarioContext : DbContext
 
     public virtual DbSet<Monedum> Moneda { get; set; }
 
+    public virtual DbSet<PayPalPaymentCapture> PayPalPaymentCaptures { get; set; }
+
     public virtual DbSet<PayPalPaymentDetail> PayPalPaymentDetails { get; set; }
 
     public virtual DbSet<PayPalPaymentItem> PayPalPaymentItems { get; set; }
+
+    public virtual DbSet<PayPalPaymentShipping> PayPalPaymentShippings { get; set; }
 
     public virtual DbSet<Pedido> Pedidos { get; set; }
 
@@ -113,6 +117,45 @@ public partial class GestorInventarioContext : DbContext
                 .IsUnicode(false);
         });
 
+        modelBuilder.Entity<PayPalPaymentCapture>(entity =>
+        {
+            entity.Property(e => e.Amount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.CaptureId)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.CreateTime).HasColumnType("datetime");
+            entity.Property(e => e.Currency)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.DisputeCategories)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+            entity.Property(e => e.ExchangeRate).HasColumnType("decimal(20, 10)");
+            entity.Property(e => e.PaymentId)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.ProtectionEligibility)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.ReceivableAmount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.ReceivableCurrency)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.TransactionFeeAmount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.TransactionFeeCurrency)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.UpdateTime).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Payment).WithMany(p => p.PayPalPaymentCaptures)
+                .HasForeignKey(d => d.PaymentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PayPalPaymentCaptures_Payment");
+        });
+
         modelBuilder.Entity<PayPalPaymentDetail>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3213E83F37FE3292");
@@ -134,17 +177,6 @@ public partial class GestorInventarioContext : DbContext
             entity.Property(e => e.AmountTotal)
                 .HasColumnType("decimal(10, 2)")
                 .HasColumnName("amount_total");
-            entity.Property(e => e.CaptureAmount)
-                .HasColumnType("decimal(10, 2)")
-                .HasColumnName("capture_amount");
-            entity.Property(e => e.CaptureCurrency)
-                .HasMaxLength(10)
-                .IsUnicode(false)
-                .HasColumnName("capture_currency");
-            entity.Property(e => e.CaptureStatus)
-                .HasMaxLength(20)
-                .IsUnicode(false)
-                .HasColumnName("capture_status");
             entity.Property(e => e.CreateTime)
                 .HasColumnType("datetime")
                 .HasColumnName("create_time");
@@ -152,14 +184,6 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(255)
                 .IsUnicode(false)
                 .HasColumnName("description");
-            entity.Property(e => e.DisputeCategories)
-                .HasMaxLength(255)
-                .IsUnicode(false)
-                .HasColumnName("dispute_categories");
-            entity.Property(e => e.ExchangeRate)
-                .HasColumnType("decimal(20, 10)")
-                .HasColumnName("exchange_rate");
-            entity.Property(e => e.FinalCapture).HasColumnName("final_capture");
             entity.Property(e => e.Intent)
                 .HasMaxLength(20)
                 .IsUnicode(false)
@@ -188,45 +212,6 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("payer_last_name");
-            entity.Property(e => e.ProtectionEligibility)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("protection_eligibility");
-            entity.Property(e => e.ReceivableAmount)
-                .HasColumnType("decimal(10, 2)")
-                .HasColumnName("receivable_amount");
-            entity.Property(e => e.ReceivableCurrency)
-                .HasMaxLength(10)
-                .IsUnicode(false)
-                .HasColumnName("receivable_currency");
-            entity.Property(e => e.SaleId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("sale_id");
-            entity.Property(e => e.ShippingCity)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("shipping_city");
-            entity.Property(e => e.ShippingCountryCode)
-                .HasMaxLength(10)
-                .IsUnicode(false)
-                .HasColumnName("shipping_country_code");
-            entity.Property(e => e.ShippingLine1)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("shipping_line1");
-            entity.Property(e => e.ShippingPostalCode)
-                .HasMaxLength(20)
-                .IsUnicode(false)
-                .HasColumnName("shipping_postal_code");
-            entity.Property(e => e.ShippingRecipientName)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("shipping_recipient_name");
-            entity.Property(e => e.ShippingState)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("shipping_state");
             entity.Property(e => e.Status)
                 .HasMaxLength(20)
                 .IsUnicode(false)
@@ -239,13 +224,6 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(20)
                 .IsUnicode(false)
                 .HasColumnName("tracking_status");
-            entity.Property(e => e.TransactionFeeAmount)
-                .HasColumnType("decimal(10, 2)")
-                .HasColumnName("transaction_fee_amount");
-            entity.Property(e => e.TransactionFeeCurrency)
-                .HasMaxLength(10)
-                .IsUnicode(false)
-                .HasColumnName("transaction_fee_currency");
             entity.Property(e => e.UpdateTime)
                 .HasColumnType("datetime")
                 .HasColumnName("update_time");
@@ -284,6 +262,39 @@ public partial class GestorInventarioContext : DbContext
                 .HasForeignKey(d => d.PayPalId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__PayPalPay__payPa__09946309");
+        });
+
+        modelBuilder.Entity<PayPalPaymentShipping>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__PayPalPa__3214EC0749B7B91D");
+
+            entity.ToTable("PayPalPaymentShipping");
+
+            entity.Property(e => e.AddressLine1)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.City)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.CountryCode)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.PaymentId)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.PostalCode)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.RecipientName)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.State)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.Payment).WithMany(p => p.PayPalPaymentShippings)
+                .HasForeignKey(d => d.PaymentId)
+                .HasConstraintName("FK_PayPalPaymentShipping_Payment");
         });
 
         modelBuilder.Entity<Pedido>(entity =>

@@ -10,7 +10,7 @@ namespace GestorInventario.Interfaces.Application
     {
         Task<OperationResult<string>> Pagar(string moneda, int userId);
         Task LimpiarPedidoCorruptoUsuarioAsync(int userId);
-        OperationResult<PayPalPaymentDetail> ProcesarDetallesPagoAsync(OrderDetailsResponse detallespago);
+        OperationResult<PayPalPaymentDetail> ProcesarDetallesRembolsoAsync(OrderDetailsResponse detallespago);
         Task<OperationResult<PayPalPaymentItem>> ProcesarRembolso(PurchaseUnitDetails firstPurchaseUnit, PayPalPaymentDetail detallesSuscripcion, int usuarioActual, RefundFormViewModel form, Pedido obtenerNumeroPedido, string emailCliente);
 
     }

@@ -19,18 +19,6 @@ public partial class PayPalPaymentDetail
 
     public string? PayerId { get; set; }
 
-    public string? ShippingRecipientName { get; set; }
-
-    public string? ShippingLine1 { get; set; }
-
-    public string? ShippingCity { get; set; }
-
-    public string? ShippingState { get; set; }
-
-    public string? ShippingPostalCode { get; set; }
-
-    public string? ShippingCountryCode { get; set; }
-
     public decimal? AmountTotal { get; set; }
 
     public string? AmountCurrency { get; set; }
@@ -45,26 +33,6 @@ public partial class PayPalPaymentDetail
 
     public string? Description { get; set; }
 
-    public string? SaleId { get; set; }
-
-    public string? CaptureStatus { get; set; }
-
-    public decimal? CaptureAmount { get; set; }
-
-    public string? CaptureCurrency { get; set; }
-
-    public string? ProtectionEligibility { get; set; }
-
-    public decimal? TransactionFeeAmount { get; set; }
-
-    public string? TransactionFeeCurrency { get; set; }
-
-    public decimal? ReceivableAmount { get; set; }
-
-    public string? ReceivableCurrency { get; set; }
-
-    public decimal? ExchangeRate { get; set; }
-
     public DateTime? CreateTime { get; set; }
 
     public DateTime? UpdateTime { get; set; }
@@ -73,9 +41,9 @@ public partial class PayPalPaymentDetail
 
     public string? TrackingStatus { get; set; }
 
-    public bool? FinalCapture { get; set; }
-
-    public string? DisputeCategories { get; set; }
+    public virtual ICollection<PayPalPaymentCapture> PayPalPaymentCaptures { get; set; } = new List<PayPalPaymentCapture>();
 
     public virtual ICollection<PayPalPaymentItem> PayPalPaymentItems { get; set; } = new List<PayPalPaymentItem>();
+
+    public virtual ICollection<PayPalPaymentShipping> PayPalPaymentShippings { get; set; } = new List<PayPalPaymentShipping>();
 }
