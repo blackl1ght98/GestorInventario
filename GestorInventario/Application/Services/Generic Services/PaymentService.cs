@@ -234,101 +234,166 @@ namespace GestorInventario.Application.Services.Generic_Services
             }
             
         }
-        public OperationResult<PayPalPaymentDetail> ProcesarDetallesPagoAsync(OrderDetailsResponse detallespago)
+        public OperationResult<PayPalPaymentDetail> ProcesarDetallesRembolsoAsync(OrderDetailsResponse detallespago)
         {
             if (detallespago.PurchaseUnits == null || !detallespago.PurchaseUnits.Any())
             {
-                _logger.LogInformation("No se encuentran las unidades de pago en la peticion");
-                throw new InvalidOperationException("No se encuentran las unidades de pago en la peticion");
+                _logger.LogInformation("No se encuentran las unidades de pago en la petición");
+                throw new InvalidOperationException("No se encuentran las unidades de pago en la petición");
             }
 
             var firstPurchaseUnit = detallespago.PurchaseUnits.First();
 
-            var detallesSuscripcion = new PayPalPaymentDetail
+            var detallesPagoRembolso = new PayPalPaymentDetail
             {
                 Id = detallespago.Id,
                 Intent = detallespago.Intent,
-                Status = detallespago.Status,         
+                Status = detallespago.Status,
+
                 PayerEmail = detallespago.Payer?.Email,
                 PayerFirstName = detallespago.Payer?.Name?.GivenName,
                 PayerLastName = detallespago.Payer?.Name?.Surname,
                 PayerId = detallespago.Payer?.PayerId,
-                ShippingRecipientName = firstPurchaseUnit?.Shipping?.Name?.FullName,
-                ShippingLine1 = firstPurchaseUnit?.Shipping?.Address?.AddressLine1,
-                ShippingCity = firstPurchaseUnit?.Shipping?.Address?.AdminArea2,
-                ShippingState = firstPurchaseUnit?.Shipping?.Address?.AdminArea1,
-                ShippingPostalCode = firstPurchaseUnit?.Shipping?.Address?.PostalCode,
-                ShippingCountryCode = firstPurchaseUnit?.Shipping?.Address?.CountryCode,
+
+                PayPalPaymentShippings = new List<PayPalPaymentShipping>(),
+                PayPalPaymentCaptures = new List<PayPalPaymentCapture>()
             };
 
-            // Procesar el amount
+            // ----------------------------
+            // ENVÍO
+            // ----------------------------
+            var informacionEnvio = new PayPalPaymentShipping
+            {
+                PaymentId = detallespago.Id,
+                RecipientName = firstPurchaseUnit?.Shipping?.Name?.FullName,
+                AddressLine1 = firstPurchaseUnit?.Shipping?.Address?.AddressLine1,
+                City = firstPurchaseUnit?.Shipping?.Address?.AdminArea2,
+                State = firstPurchaseUnit?.Shipping?.Address?.AdminArea1,
+                PostalCode = firstPurchaseUnit?.Shipping?.Address?.PostalCode,
+                CountryCode = firstPurchaseUnit?.Shipping?.Address?.CountryCode
+            };
+
+            detallesPagoRembolso.PayPalPaymentShippings.Add(informacionEnvio);
+
+            // ----------------------------
+            // IMPORTES
+            // ----------------------------
             if (firstPurchaseUnit?.Amount != null)
             {
-                detallesSuscripcion.AmountTotal = _conversion.ConvertToDecimal(firstPurchaseUnit.Amount.Value);
-                detallesSuscripcion.AmountCurrency = firstPurchaseUnit.Amount.CurrencyCode;
+                detallesPagoRembolso.AmountTotal =
+                    _conversion.ConvertToDecimal(firstPurchaseUnit.Amount.Value);
+
+                detallesPagoRembolso.AmountCurrency =
+                    firstPurchaseUnit.Amount.CurrencyCode;
 
                 if (firstPurchaseUnit.Amount.Breakdown != null)
                 {
-                    detallesSuscripcion.AmountItemTotal = _conversion.ConvertToDecimal(
-                        firstPurchaseUnit.Amount.Breakdown.ItemTotal?.Value ?? "0");
-                    detallesSuscripcion.AmountShipping = _conversion.ConvertToDecimal(
-                        firstPurchaseUnit.Amount.Breakdown.Shipping?.Value ?? "0");
+                    detallesPagoRembolso.AmountItemTotal =
+                        _conversion.ConvertToDecimal(
+                            firstPurchaseUnit.Amount.Breakdown.ItemTotal?.Value ?? "0");
+
+                    detallesPagoRembolso.AmountShipping =
+                        _conversion.ConvertToDecimal(
+                            firstPurchaseUnit.Amount.Breakdown.Shipping?.Value ?? "0");
                 }
             }
 
-            // Procesar payee
+            // ----------------------------
+            // PAYEE
+            // ----------------------------
             if (firstPurchaseUnit?.Payee != null)
             {
-                detallesSuscripcion.PayeeMerchantId = firstPurchaseUnit.Payee.MerchantId;
-                detallesSuscripcion.PayeeEmail = firstPurchaseUnit.Payee.EmailAddress;
+                detallesPagoRembolso.PayeeMerchantId =
+                    firstPurchaseUnit.Payee.MerchantId;
+
+                detallesPagoRembolso.PayeeEmail =
+                    firstPurchaseUnit.Payee.EmailAddress;
             }
 
-            detallesSuscripcion.Description = firstPurchaseUnit?.Description;
+            detallesPagoRembolso.Description =
+                firstPurchaseUnit?.Description;
 
-            // Procesar pagos y capturas
-            if (firstPurchaseUnit?.Payments?.Captures != null && firstPurchaseUnit.Payments.Captures.Any())
+            // ----------------------------
+            // CAPTURAS
+            // ----------------------------
+            if (firstPurchaseUnit?.Payments?.Captures != null &&
+                firstPurchaseUnit.Payments.Captures.Any())
             {
-                var firstCapture = firstPurchaseUnit.Payments.Captures.First();
-                detallesSuscripcion.SaleId = firstCapture.Id;
-                detallesSuscripcion.CaptureStatus = firstCapture.Status;
-
-                if (firstCapture.Amount != null)
+                foreach (var capture in firstPurchaseUnit.Payments.Captures)
                 {
-                    detallesSuscripcion.CaptureAmount = _conversion.ConvertToDecimal(firstCapture.Amount.Value);
-                    detallesSuscripcion.CaptureCurrency = firstCapture.Amount.CurrencyCode;
-                }
+                    if (capture == null)
+                        continue;
 
-                if (firstCapture.SellerProtection != null)
-                {
-                    detallesSuscripcion.ProtectionEligibility = firstCapture.SellerProtection.Status;
-                }
-
-                // Procesar seller receivable breakdown con verificaciones de nulidad
-                if (firstCapture.SellerReceivableBreakdown != null)
-                {
-                    detallesSuscripcion.TransactionFeeAmount = firstCapture.SellerReceivableBreakdown.PaypalFee != null ?
-                        _conversion.ConvertToDecimal(firstCapture.SellerReceivableBreakdown.PaypalFee.Value) : 0;
-
-                    detallesSuscripcion.TransactionFeeCurrency = firstCapture.SellerReceivableBreakdown.PaypalFee?.CurrencyCode;
-
-                    detallesSuscripcion.ReceivableAmount = firstCapture.SellerReceivableBreakdown.NetAmount != null ?
-                        _conversion.ConvertToDecimal(firstCapture.SellerReceivableBreakdown.NetAmount.Value) : 0;
-
-                    detallesSuscripcion.ReceivableCurrency = firstCapture.SellerReceivableBreakdown.NetAmount?.CurrencyCode;
-
-                    if (firstCapture.SellerReceivableBreakdown.ExchangeRate != null &&
-                        !string.IsNullOrEmpty(firstCapture.SellerReceivableBreakdown.ExchangeRate.Value))
+                    var nuevaCaptura = new PayPalPaymentCapture
                     {
-                        if (decimal.TryParse(firstCapture.SellerReceivableBreakdown.ExchangeRate.Value,
-                            NumberStyles.Any, CultureInfo.InvariantCulture, out decimal exchangeRate))
-                        {
-                            detallesSuscripcion.ExchangeRate = exchangeRate;
-                        }
+                        PaymentId = detallespago.Id,
+
+                        CaptureId = capture.Id,
+                        Status = capture.Status,
+
+                        Amount = capture.Amount != null
+                            ? _conversion.ConvertToDecimal(capture.Amount.Value)
+                            : 0,
+
+                        Currency = capture.Amount?.CurrencyCode,
+
+                        ProtectionEligibility =
+                            capture.SellerProtection?.Status,
+
+                        TransactionFeeAmount =
+                            capture.SellerReceivableBreakdown?.PaypalFee != null
+                                ? _conversion.ConvertToDecimal(
+                                    capture.SellerReceivableBreakdown.PaypalFee.Value)
+                                : 0,
+
+                        TransactionFeeCurrency =
+                            capture.SellerReceivableBreakdown?.PaypalFee?.CurrencyCode,
+
+                        ReceivableAmount =
+                            capture.SellerReceivableBreakdown?.NetAmount != null
+                                ? _conversion.ConvertToDecimal(
+                                    capture.SellerReceivableBreakdown.NetAmount.Value)
+                                : 0,
+
+                        ReceivableCurrency =
+                            capture.SellerReceivableBreakdown?.NetAmount?.CurrencyCode,
+
+                        FinalCapture = capture.FinalCapture,
+
+                        CreateTime =
+                            _conversion.ConvertToDateTime(capture.CreateTime),
+
+                        UpdateTime =
+                            _conversion.ConvertToDateTime(capture.UpdateTime)
+                    };
+
+                    // ExchangeRate
+                    var exchangeRateValue =
+                        capture.SellerReceivableBreakdown?.ExchangeRate?.Value;
+
+                    if (!string.IsNullOrEmpty(exchangeRateValue) &&
+                        decimal.TryParse(
+                            exchangeRateValue,
+                            NumberStyles.Any,
+                            CultureInfo.InvariantCulture,
+                            out decimal exchangeRate))
+                    {
+                        nuevaCaptura.ExchangeRate = exchangeRate;
                     }
+
+                    // Dispute Categories
+                    if (capture.SellerProtection?.DisputeCategories != null)
+                    {
+                        nuevaCaptura.DisputeCategories =
+                            JsonConvert.SerializeObject(
+                                capture.SellerProtection.DisputeCategories);
+                    }
+
+                    detallesPagoRembolso.PayPalPaymentCaptures.Add(nuevaCaptura);
                 }
             }
 
-            return OperationResult<PayPalPaymentDetail>.Ok("", detallesSuscripcion);
+            return OperationResult<PayPalPaymentDetail>.Ok("", detallesPagoRembolso);
         }
         public async Task<OperationResult<PayPalPaymentItem>> ProcesarRembolso(PurchaseUnitDetails firstPurchaseUnit, PayPalPaymentDetail detallesSuscripcion, int usuarioActual, RefundFormViewModel form, Pedido obtenerNumeroPedido, string emailCliente)
         {

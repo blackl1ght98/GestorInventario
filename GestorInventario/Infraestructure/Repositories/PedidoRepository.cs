@@ -109,9 +109,9 @@ namespace GestorInventario.Infraestructure.Repositories
                 .Include(p => p.IdUsuarioNavigation)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
-        public async Task<Pedido> ObtenerPedidoPorId(int id)=> await _context.Pedidos.FirstOrDefaultAsync(x => x.Id == id);               
-       
-       
+        public async Task<Pedido> ObtenerPedidoPorId(int id)=> await _context.Pedidos.FirstOrDefaultAsync(x => x.Id == id);
+
+
         public async Task<Pedido> ObtenerPedidoConRembolso(int id) => await _context.Pedidos.Include(p => p.DetallePedidos).Include(x => x.Rembolsos).FirstOrDefaultAsync(m => m.Id == id);
         public async Task<(Pedido Pedido, decimal TotalAmount)> GetPedidoWithDetailsAsync(int pedidoId)
         {

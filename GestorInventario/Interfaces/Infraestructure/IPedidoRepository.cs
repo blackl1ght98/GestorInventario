@@ -23,7 +23,7 @@ namespace GestorInventario.Interfaces.Infraestructure
         Task<OperationResult<Pedido>> ObtenerNumeroPedido(RefundFormViewModel form);
         Task<(Pedido Pedido, decimal TotalAmount)> GetPedidoWithDetailsAsync(int pedidoId);
         Task<(DetallePedido Detalle, decimal PrecioProducto)> GetProductoDePedidoAsync(int detallePedidoId);
-
+    
         Task<(Pedido? Pedido, List<DetallePedido>? Detalles)> GetPedidoConDetallesAsync(int pedidoId);
 
 

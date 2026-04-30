@@ -279,7 +279,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
            
             var result = await _policyExecutor.ExecutePolicyAsync(() => _pedidoService.SincronizarDetallePagoAsync(id));
-
+         
             if (result.Success && result.Data != null)
             {
                 var paypalDetail = result.Data; 
@@ -300,12 +300,17 @@ namespace GestorInventario.Infraestructure.Controllers
                     PayerId = paypalDetail.PayerId,
 
                     // Datos de Envío
-                    ShippingRecipientName = paypalDetail.ShippingRecipientName,
-                    ShippingLine1 = paypalDetail.ShippingLine1,
-                    ShippingCity = paypalDetail.ShippingCity,
-                    ShippingState = paypalDetail.ShippingState,
-                    ShippingPostalCode = paypalDetail.ShippingPostalCode,
-                    ShippingCountryCode = paypalDetail.ShippingCountryCode,
+                    ShippingRecipientName = paypalDetail.PayPalPaymentShippings.FirstOrDefault()?.RecipientName,
+
+                    ShippingLine1 = paypalDetail.PayPalPaymentShippings.FirstOrDefault()?.AddressLine1,
+
+                    ShippingCity = paypalDetail.PayPalPaymentShippings.FirstOrDefault()?.City,
+
+                    ShippingState = paypalDetail.PayPalPaymentShippings.FirstOrDefault()?.State,
+
+                    ShippingPostalCode = paypalDetail.PayPalPaymentShippings.FirstOrDefault()?.PostalCode,
+
+                    ShippingCountryCode = paypalDetail.PayPalPaymentShippings.FirstOrDefault()?.CountryCode,
 
                     // Propiedades de Montos
                     AmountTotal = paypalDetail.AmountTotal,
@@ -319,18 +324,18 @@ namespace GestorInventario.Infraestructure.Controllers
                     Description = paypalDetail.Description,
 
                     // Propiedades de Captura
-                    SaleId = paypalDetail.SaleId,
-                    CaptureStatus = paypalDetail.CaptureStatus,
-                    CaptureAmount = paypalDetail.CaptureAmount,
-                    CaptureCurrency = paypalDetail.CaptureCurrency,
-                    ProtectionEligibility = paypalDetail.ProtectionEligibility,
-                    TransactionFeeAmount = paypalDetail.TransactionFeeAmount,
-                    TransactionFeeCurrency = paypalDetail.TransactionFeeCurrency,
-                    ReceivableAmount = paypalDetail.ReceivableAmount,
-                    ReceivableCurrency = paypalDetail.ReceivableCurrency,
-                    ExchangeRate = paypalDetail.ExchangeRate,
-                    FinalCapture = paypalDetail.FinalCapture,
-                    DisputeCategories = paypalDetail.DisputeCategories,
+                    SaleId = paypalDetail.PayPalPaymentCaptures.FirstOrDefault()?.CaptureId,
+                    CaptureStatus = paypalDetail.PayPalPaymentCaptures.FirstOrDefault()?.Status,
+                    CaptureAmount = paypalDetail.PayPalPaymentCaptures.FirstOrDefault()?.Amount,
+                    CaptureCurrency = paypalDetail.PayPalPaymentCaptures.FirstOrDefault()?.Currency,
+                    ProtectionEligibility = paypalDetail.PayPalPaymentCaptures.FirstOrDefault()?.ProtectionEligibility,
+                    TransactionFeeAmount = paypalDetail.PayPalPaymentCaptures.FirstOrDefault()?.TransactionFeeAmount,
+                    TransactionFeeCurrency = paypalDetail.PayPalPaymentCaptures.FirstOrDefault()?.TransactionFeeCurrency,
+                    ReceivableAmount = paypalDetail.PayPalPaymentCaptures.FirstOrDefault()?.ReceivableAmount,
+                    ReceivableCurrency = paypalDetail.PayPalPaymentCaptures.FirstOrDefault()?.ReceivableCurrency,
+                    ExchangeRate = paypalDetail.PayPalPaymentCaptures.FirstOrDefault()?.ExchangeRate,
+                    FinalCapture = paypalDetail.PayPalPaymentCaptures.FirstOrDefault()?.FinalCapture,
+                    DisputeCategories = paypalDetail.PayPalPaymentCaptures.FirstOrDefault()?.DisputeCategories,
 
                     // Propiedades de Tracking
                     TrackingId = paypalDetail.TrackingId,

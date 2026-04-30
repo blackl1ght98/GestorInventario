@@ -22,6 +22,7 @@ namespace GestorInventario.Application.Services
         {
             var detalle = await _context.PayPalPaymentDetails
                 .Include(d => d.PayPalPaymentItems)
+                .Include(d=>d.PayPalPaymentShippings)
                 .FirstOrDefaultAsync(d => d.Id == pagoId);
 
             if (detalle == null)

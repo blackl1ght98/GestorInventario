@@ -161,7 +161,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 var firstPurchaseUnit = detallespago.PurchaseUnits.First();
 
-                var detallesSuscripcion = _paymentService.ProcesarDetallesPagoAsync(detallespago);
+                var detallesSuscripcion = _paymentService.ProcesarDetallesRembolsoAsync(detallespago);
 
                 // Lista para almacenar los ítems de PayPal
                 var paypalItems = await _paymentService.ProcesarRembolso(firstPurchaseUnit, detallesSuscripcion.Data,usuarioActual,form,obtenerNumeroPedido.Data,emailCliente);

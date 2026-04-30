@@ -42,7 +42,24 @@ namespace GestorInventario.Infraestructure.Repositories
                 return OperationResult<PayPalPaymentItem>.Ok("", detalle);
             });
         }
-        public async Task<PayPalPaymentDetail> ObtenerDetallesPago(string id) => await _context.PayPalPaymentDetails.Include(d => d.PayPalPaymentItems).FirstOrDefaultAsync(x => x.Id == id);
+        public async Task<OperationResult<PayPalPaymentShipping>> AgregarInfoEnvioAsync(PayPalPaymentShipping detalle)
+        {
+            return await _context.ExecuteInTransactionAsync(async () =>
+            {
+                await _context.AddEntityAsync(detalle);
+                return OperationResult<PayPalPaymentShipping>.Ok("", detalle);
+            });
+        }
+        public async Task<OperationResult<PayPalPaymentCapture>> AgregarCaptureAsync(PayPalPaymentCapture detalle)
+        {
+            return await _context.ExecuteInTransactionAsync(async () =>
+            {
+                await _context.AddEntityAsync(detalle);
+                return OperationResult<PayPalPaymentCapture>.Ok("", detalle);
+            });
+        }
+        
+        public async Task<PayPalPaymentDetail> ObtenerDetallesPago(string id) => await _context.PayPalPaymentDetails.Include(d => d.PayPalPaymentItems).Include(x=>x.PayPalPaymentShippings).Include(x=>x.PayPalPaymentCaptures).FirstOrDefaultAsync(x => x.Id == id);
 
         public async Task<OperationResult<string>> EliminarDetallesPagoAsync(PayPalPaymentDetail pago)
         {
