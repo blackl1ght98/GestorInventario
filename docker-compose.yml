@@ -92,7 +92,7 @@ services:
       - Email__Username=${Email__Username}
       - Email__Password=${Email__Password}
     volumes:
-      - C:/Users/guill/AppData/Roaming/ASP.NET/Https/certificado.pfx:/https/certificado.pfx:ro
+      - ./certs/certificado.pfx:/https/certificado.pfx:ro
     depends_on:
       sql-server:
         condition: service_healthy
