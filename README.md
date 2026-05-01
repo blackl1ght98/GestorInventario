@@ -37,6 +37,7 @@ Antes de comenzar asegúrate de tener instalado lo siguiente:
 ## Requisitos para puesta en marcha en Docker
 - Descargar el SDK de .NET en el siguiente enlace [SDK .NET](https://dotnet.microsoft.com/es-es/download/visual-studio-sdks)
 - Descargar Docker en el siguiente enlace [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- Descargar git en el siguiente enlace [Git](https://git-scm.com/)
 
 ### Generar certificado https
 Para generar el certificado https ponemos el comando:
