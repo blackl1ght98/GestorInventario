@@ -91,9 +91,9 @@ Para usar la base de datos del proyecto, primero debes restaurar la copia de seg
 ### Generar certificado https
 Para generar el certificado https ponemos el comando:
 ```sh
-dotnet dev-certs https -ep C:\Users\<TU USUARIO>\.aspnet\https\aspnetapp.pfx -p password
+dotnet dev-certs https -ep RUTA-DESEADA\NOMBRECERTIFICADO.pfx -p password
 ````
-En la ruta tendremos que poner el nombre de usuario de nuestro pc por ejemplo
+Ejemplo de uso:
 ```sh
 dotnet dev-certs https -ep C:\Users\guillermo\.aspnet\https\aspnetapp.pfx -p password
 
