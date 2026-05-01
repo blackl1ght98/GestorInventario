@@ -53,26 +53,28 @@ Para confiar en el certificado generado ponemos el comando:
 dotnet dev-certs https --trust
 ````
 ## Iniciar Proyecto directamente en Docker
-El primer paso a realizar es poner con valores validos el archivo **.env.example** y renombrarlo a **.env**, seguidamente creariamos la carpeta **certs** en la raiz del proyecto y en ella pndremos el certificado autofirmado para el uso de https, generado en el paso anterior el certificado puede llamarse **certificado.pfx** en caso de querer otro nombre puede ponerse pero habra que ajustar el archivo **docker-compose.yml** y lo que ajustaremos es estas lineas:
+El primer paso a realizar es poner con valores validos el archivo **.env.example** y renombrarlo a **.env**, seguidamente creariamos la carpeta **certs** en la raiz del proyecto y en ella pondremos el certificado autofirmado para el uso de https, generado en el paso anterior el certificado puede llamarse **certificado.pfx** en caso de querer otro nombre puede ponerse pero habra que ajustar el archivo **docker-compose.yml** y lo que ajustaremos es esta linea:
 ```sh
   volumes:
       - ./certs/certificado.pfx:/https/certificado.pfx:ro
 
 ```
+Esta linea lo unico que hace es decir donde esta el certificado.
+
 Para obtener el valor de las variables de entorno de PayPal hay que registrarse en PayPal: [PayPal Developer](https://developer.paypal.com/home/)
 
 Para obtener la clave de licencia de AutoMapper, regístrate en [AutoMapper](https://automapper.io/). Una vez logueado, pulsa en **Get AutoMapper**, escoge el plan gratuito y después **Get my license** para obtener la clave.
 
 Para obtener el valor de la clave privada y pública RSA, próximamente pondré un repositorio dedicado para ese fin.
 
-**IMPORTANTE:** Solo modifica este valor si cambias el nombre o la contraseña del certificado.
-Si en el momento de generarar ek certificado con el comando anterior pusiste otra contraseña habra que ajustarlo tambien en el archivo de variables de entorno **.env** y el valor a ajustar seria **CertificatePassword**
-pero solo ajustar el valor de dicha variable.
+Una vez que tengas el certificado creado tenemos que revisar que el valor de la variable de entorno **CertificatePassword** sea el mismo que pusimos a la hora de ejecutar el comando:
 
-Esta linea es una de las variables de entorno que indica donde se encuentra esta solo se modificara si cambia el nombre del certificado
 ```sh
-ASPNETCORE_Kestrel__Certificates__Default__Path=/https/certificado.pfx
-```
+dotnet dev-certs https -ep C:\Users\guillermo\.aspnet\https\aspnetapp.pfx -p password
+
+````
+el parametro -p es para establecer la contraseña y lo que se ponga despues de dicho parametro eso sera la contraseña.
+
 
 ## Posibles problemas durante la puesta en marcha de docker
 
