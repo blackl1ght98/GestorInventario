@@ -151,28 +151,29 @@ Para usar la base de datos del proyecto, primero debes restaurar la copia de seg
 
 ## ⚙️ Scaffold-DbContext
 
-Una vez restaurada la base de datos, necesitamos generar las clases de modelo en el proyecto con **Entity Framework Core** mediante el comando `Scaffold-DbContext`.
+Una vez restaurada la base de datos, necesitamos regenerar los modelos con el comando `Scaffold-DbContext`, el motivo por el cual se necesita regenera los modelos es para que la conexión con base de datos apunte a tu maquina.
+Para ejecutar decho comando hacemos lo siguiente:
 
----
 
-### 📌 Abrir la Consola del Administrador de Paquetes
-En **Visual Studio**:  
-1. Activa la consola desde: `Ver > Otras ventanas > Consola del Administrador de paquetes`.  
-2. Ejecuta el siguiente comando (ajustando los parámetros a tu entorno):
+1. Abrimos **Visual Studio**
+2. Activa la consola desde: `Ver > Otras ventanas > Consola del Administrador de paquetes`.  
+3. Ejecutar el comando:
 
 ```sh
-Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=NOMBREBASEDATOS;Integrated Security=True;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -Force -Project NOMBREPROYECTO
+Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=GestorInventario;Integrated Security=True;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -Force -Project GestorInventario
 ````
-**NOMBRESERVIDORBASEDATOS**: Nombre del servidor de SQL Server. Suele ser el nombre del equipo `DESKTOP-XXXX\SQLEXPRESS`
-**NOMBREBASEDATOS**: Nombre de la base de datos. En este caso: `GestorInventario`.
-**NOMBREPROYECTO**: Nombre del proyecto de Visual Studio. En este caso: `GestorInventario` 
+## Explicación de los parametros importantes del comando
+**NOMBRESERVIDORBASEDATOS**: Este parametro suele variar dependiendo de como se llame nuestro PC pero tiene un aspecto similar a este: `DESKTOP-XXXX\SQLEXPRESS`
+
 ## 🔑 Scaffold-DbContext con usuario y contraseña (recomendado)
 ```sh
-Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=NOMBREBASEDATOS;User ID=NOMBREUSUARIO;Password=CONTRASEÑAUSUARIO;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -Force -Project NOMBREPROYECTO
+Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=GestorInventario;User ID=sa;Password=SQL#1234;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -Force -Project GestorInventario
 ````
-**NOMBREUSUARIO**: Usuario de la base de datos por ejemplo `sa`  
-**CONTRASEÑAUSUARIO**: Contraseña de ese usuario  
-En este proyecto se ha empleado la segunda opcion del comando scaffold
+**ID**: este parametro hace referencia al nombre de usuario de la base de datos
+**Password**: hace referencia a la contraseña de base de datos
+
+En este proyecto se ha empleado este segundo comando ya que es el aconsejado por la seguridad que aporta.
+
 ## 🔐 Secretos de usuario
 
 Para acceder al archivo de **Secretos del usuario** en Visual Studio 2022:  
@@ -187,18 +188,18 @@ Luego, agrega los siguientes valores en formato JSON:
     "ConnectionStringLocal": "127.0.0.1:6379"
   },
   "AuthMode": "Symmetric",
-  "JwtIssuer": "",
-  "JwtAudience": "",
+  "JwtIssuer": "GestorInvetarioEmisor",
+  "JwtAudience": "GestorInventarioCliente",
   "JWT": {
     "PublicKey": "",
     "PrivateKey": ""
   },
-  "ClaveJWT": "",
+  "ClaveJWT": "IntroduceClaveLarga",
   "DataBaseConection": {
     "DBHost": "",
-    "DockerDbHost": "",
-    "DBName": "",
-    "DBUserName": "",
+    "DockerDbHost": "SQL-Server-Local",
+    "DBName": "GestorInventario",
+    "DBUserName": "sa",
     "DBPassword": "SQL#1234"
   },
   "Paypal": {
@@ -219,21 +220,9 @@ Luego, agrega los siguientes valores en formato JSON:
 ````
 ### Significado de cada valor
 - **AuthMode**: este valor se encarga de almacenar el modo de autenticacion tenemos 3 modos: `Symmetric`,`AsymmetricFixed` y `AsymmetricDynamic`
-- **JwtIssuer**: este valor sirve para verificar el token, por ejemplo:
-```sh
-"JwtIssuer": "GestorInvetarioEmisor"
-````
-- **JwtAudience**: este sirve para verificar el token,  por ejemplo:
-```sh
-"JwtAudience": "GestorInventarioCliente"
-````
 - **JWT**: 
   - **PublicKey y PrivateKey**: para obtener estos valores vamos al siguiente al siguiente enlace: .
-**GeneracionClaves**
-- **ClaveJWT**: Cadena larga para cifrar/descifrar tokens (mínimo 38 caracteres). Por ejemplo:
-```sh
-"ClaveJWT": "Curso@.net#2023_Arelance_MiClaveSecretaMuyLarga"
-````
+
 - **DataBaseConection**: Información sensible de la base de datos  
     - **DBHost**: Nombre del servidor SQL. Por ejemplo. ` "DBHost": "DESKTOP-2TL9C3O\\SQLEXPRESS"`.  
     - **DockerDbHost**: Nombre del contenedor Docker de la base de datos. Por ejemplo. `SQL-Server-Local`  
@@ -248,12 +237,14 @@ Luego, agrega los siguientes valores en formato JSON:
 - **Email**: Configuración para envío de correos.  
     - **Host**: Servidor SMTP. Por ejemplo `smtp.gmail.com`  
     - **Port**: Puerto del servidor. Por ejemplo `587`  
-    - **UserName y Password**: Credenciales de la cuenta de correo.
+    - **UserName**: Tu correo electronico
+    - **Password**: NO PONGAS TU CONTRASEÑA DE CORREO ELECTRONICO. Usa esta función de google [contraseña de aplicacion](https://myaccount.google.com/apppasswords) esto lo que hace es darte una contraseña de aplicación ojo esta contraseña es diferente a la que usas para iniciar sesion.
    
 
 **LicenseKeyAutoMapper**: Clave de licencia de AutoMapper. Se obtiene registrándose en [obtener licencia](https://luckypennysoftware.com/#automapper) y usando la licencia Community.
+
 ## Modificación del archivo GestorInventarioContext.cs 
-Una vez que hemos ejecutado el comando que realiza el scaffold pues tenemos que modificar este archivo agregando lo siguiente al metodo **OnConfiguring**
+Una vez que hemos ejecutado el comando que realiza el scaffold tenemos  que poner esto y sobrescribir el valor que haya en el metodo **OnConfiguring**
 ```csharp
   protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
  {
@@ -276,7 +267,7 @@ Una vez que hemos ejecutado el comando que realiza el scaffold pues tenemos que 
      }
  }
 ````
-## Generar certificado HTTPS en caso de no tenerlo
+
 
 
 
