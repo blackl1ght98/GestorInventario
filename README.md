@@ -30,7 +30,7 @@ Tener instalado lo siguiente:
   - [Git](https://git-scm.com/)  
   - [SQL Server](https://www.microsoft.com/es-es/sql-server/sql-server-downloads) (última versión)  
   - [SQL Server Management Studio (SSMS)](https://aka.ms/ssmsfullsetup)  para gestionar la BD  
-# Datos comunes para el despliegue con doker y sin docker
+# 🔑 Configuración común (Docker y entorno local)
   Archivo de variables de entorno:
   - **Paypal_ClientId y Paypal_ClientSecret**: el valor para estas variables lo obtenemos creando una cuenta en [Paypal Developer](https://developer.paypal.com/home/) y una vez logueados le damos a **Apps & Credentials** en este apartado veremos esos datos.
   - **PublicKey y PrivateKey**: pronto pondre aqui un repositorio para generar dichas claves
