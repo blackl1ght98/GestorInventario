@@ -28,7 +28,7 @@ Antes de comenzar asegúrate de tener instalado lo siguiente:
 - 🛠️ **Herramientas de desarrollo**:  
   - [Visual Studio 2022](https://visualstudio.microsoft.com/) (última versión, con carga de trabajo **ASP.NET y desarrollo web**)  
   - [.NET 10.0 SDK](https://dotnet.microsoft.com/es-es/download/visual-studio-sdks)
-  - Descargar Git [Git](https://git-scm.com/)
+  - [Git](https://git-scm.com/)
 
 - 🗄️ **Base de datos**:  
   - [SQL Server](https://www.microsoft.com/es-es/sql-server/sql-server-downloads) (última versión)  
