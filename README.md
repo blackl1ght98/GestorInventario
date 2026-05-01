@@ -87,8 +87,28 @@ Para usar la base de datos del proyecto, primero debes restaurar la copia de seg
    - Haz clic en el botón `...` (a la derecha).  
    - Pulsa **Agregar** y busca el archivo `GestorInventarioDB.bak` en la carpeta `Backup`.  
    - Confirma con **Aceptar**.  
-7. Haz clic en **Aceptar** nuevamente para iniciar la restauración ✅. 
+7. Haz clic en **Aceptar** nuevamente para iniciar la restauración ✅.
+### Generar certificado https
+Para generar el certificado https ponemos el comando:
+```sh
+dotnet dev-certs https -ep C:\Users\<TU USUARIO>\.aspnet\https\aspnetapp.pfx -p password
+````
+En la ruta tendremos que poner el nombre de usuario de nuestro pc por ejemplo
+```sh
+dotnet dev-certs https -ep C:\Users\guillermo\.aspnet\https\aspnetapp.pfx -p password
 
+````
+Para confiar en el certificado generado ponemos el comando:
+```sh
+dotnet dev-certs https --trust
+````
+## Iniciar Proyecto directamente en Docker
+El primer paso a realizar es poner con valores validos el archivo **.env.example** y renombrarlo a **.env**, seguidamente creariamos la carpeta **certs** en la raiz del proyecto y en ella pndremos el certificado autofirmado para el uso de https, generado en el paso anterior el certificado debe llamarse **certificado.pfx** en caso de querer otro nombre puede ponerse pero habra que ajustar el archivo **docker-compose.yml** y lo que ajustaremos es esta linea:
+```sh
+  volumes:
+      - ./certs/certificado.pfx:/https/certificado.pfx:ro
+```
+Esta linea idica donde esta el certificado
 ## ⚙️ Scaffold-DbContext
 
 Una vez restaurada la base de datos, necesitamos generar las clases de modelo en el proyecto con **Entity Framework Core** mediante el comando `Scaffold-DbContext`.
@@ -217,20 +237,7 @@ Una vez que hemos ejecutado el comando que realiza el scaffold pues tenemos que 
  }
 ````
 ## Generar certificado HTTPS en caso de no tenerlo
-### Generar certificado https
-Para generar el certificado https ponemos el comando:
-```sh
-dotnet dev-certs https -ep C:\Users\<TU USUARIO>\.aspnet\https\aspnetapp.pfx -p password
-````
-En la ruta tendremos que poner el nombre de usuario de nuestro pc por ejemplo
-```sh
-dotnet dev-certs https -ep C:\Users\guillermo\.aspnet\https\aspnetapp.pfx -p password
 
-````
-Para confiar en el certificado generado ponemos el comando:
-```sh
-dotnet dev-certs https --trust
-````
 # Docker
 **¿Como arrancar el proyecto en docker?**
 Para arrancar este proyecto en docker nos saldremos de visual studio y abriremos la terminal en la carpeta raiz del proyecto y pondremos el comando 
