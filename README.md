@@ -36,7 +36,8 @@ Tener instalado lo siguiente:
   - **PublicKey y PrivateKey**: pronto pondre aqui un repositorio para generar dichas claves
   - **Email__Password**: Aqui usaremos contraseña de aplicación esto nos permite usar nuestra cuenta de gmail sin hacer login para ello vamos a [Contraseña de aplicacion](https://myaccount.google.com/apppasswords)
   - **LicenseKeyAutoMapper**: Para obtenerla nos registramos en: [AutoMapper](https://automapper.io/) aqui elegimos la licencia community.
-  Archivo de secretos de usuario:
+
+Archivo de secretos de usuario:
   - **ClientId y ClientSecret**
   - **PublicKey y PrivateKey**
   - **LicenseKeyAutoMapper**
