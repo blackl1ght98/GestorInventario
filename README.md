@@ -27,18 +27,16 @@ Antes de comenzar asegúrate de tener instalado lo siguiente:
 
 - 🛠️ **Herramientas de desarrollo**:  
   - [Visual Studio 2022](https://visualstudio.microsoft.com/) (última versión, con carga de trabajo **ASP.NET y desarrollo web**)  
-  - [.NET 9.0 SDK](https://dotnet.microsoft.com/)  
+  - [.NET 10.0 SDK](https://dotnet.microsoft.com/es-es/download/visual-studio-sdks)
+  - Descargar Git [Git](https://git-scm.com/)
 
 - 🗄️ **Base de datos**:  
   - [SQL Server](https://www.microsoft.com/es-es/sql-server/sql-server-downloads) (última versión)  
   - [SQL Server Management Studio (SSMS)](https://aka.ms/ssmsfullsetup)  para gestionar la BD  
 
-
- 
 ## Requisitos para puesta en marcha en Docker
 - Descargar el SDK de .NET en el siguiente enlace [SDK .NET](https://dotnet.microsoft.com/es-es/download/visual-studio-sdks)
 - Descargar Docker en el siguiente enlace [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- Descargar Git [Git](https://git-scm.com/)
 
 ### Generar certificado https
 Para generar el certificado https ponemos el comando:
@@ -68,15 +66,14 @@ Para obtener la clave de licencia de AutoMapper, regístrate en [AutoMapper](htt
 Para obtener el valor de la clave privada y pública RSA, próximamente pondré un repositorio dedicado para ese fin.
 
 **IMPORTANTE:** Solo modifica este valor si cambias el nombre o la contraseña del certificado.
-Si en el momento de generar el comando has puesto una contraseña diferente a la que esta en el archivo la linea a modificar seria:
-```sh
-ASPNETCORE_Kestrel__Certificates__Default__Password=0000
-````
-Esta linea es una de las variables de entorno que indica donde se encuentra 
+Si en el momento de generarar ek certificado con el comando anterior pusiste otra contraseña habra que ajustarlo tambien en el archivo de variables de entorno **.env** y el valor a ajustar seria **CertificatePassword**
+pero solo ajustar el valor de dicha variable.
+
+Esta linea es una de las variables de entorno que indica donde se encuentra esta solo se modificara si cambia el nombre del certificado
 ```sh
 ASPNETCORE_Kestrel__Certificates__Default__Path=/https/certificado.pfx
 ```
-Esta linea indica donde esta el certificado
+
 ## Posibles problemas durante la puesta en marcha de docker
 
 Docker da problemas durante la instalacion dicendo que no tienes permisos para solucionarlo (Windows) vamos a la unidad C:
