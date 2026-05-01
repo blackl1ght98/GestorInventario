@@ -1,98 +1,73 @@
 # Guía de instalación para usar el proyecto Gestor Inventario
 
-## 📑 Índice
-1. [Requisitos](#-requisitos)
-2. [Notas](#-notas)
-3. [Instalación](#instalación)
-   - [Problema común: Docker y Visual Studio](#-problema-común-docker-y-visual-studio)
-   - [Restaurar la copia de seguridad](#-restaurar-la-copia-de-seguridad)
-   - [Scaffold-DbContext](#scaffold-dbcontext)
-   - [Secretos de usuario](#%EF%B8%8F-secretos-de-usuario)
-   - [Modificación del archivo GestorInventarioContext.cs](#modificación-del-archivo-gestorinventariocontextcs)
-   - [Generar certificado HTTPS](#generar-certificado-https)
-   - [Docker](#docker)
-4. [Credenciales de prueba](#credenciales-para-probar)
-5. [Características](#características)
-6. [Novedades](#novedades)
+# 📑 Índice
+- ⚠️ Requisitos para ejecutarlo con docker
+- ⚠️ Requisitos para ejecutarlo sin docker
+- 🐳 Puesta en marcha para ejecutacion con docker
+- 🛠️ Instalación completa en entorno de desarrollo
+- 📂 Restaurar base de datos
+- ⚙️ Scaffold-DbContext
+- 🔐 Secretos de usuario
+- 🔑 Generación de certificado HTTPS
+- ⚙️ Modificación GestorInventarioContext.cs
+- 🐳 Problemas comunes (Docker / Visual Studio / WSL)
+- 📝 Credenciales de prueba
+- 🧠 Notas importantes
+- ✨ Características
+- 🆕 Novedades
 
-
-## ✅ Requisitos
-
+# ⚠️ Requisitos para ejecutarlo con docker
 Antes de comenzar asegúrate de tener instalado lo siguiente:
+-  [SDK .NET](https://dotnet.microsoft.com/es-es/download/visual-studio-sdks)
+-  [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+-  [Git](https://git-scm.com/)
 
-- 💻 **Sistema operativo**:  
-  - Windows 10 (verificado)  
-  - Windows 11 (verificado)  
-  > ⚠️ No testeado en Linux ni MacOS  
-
-- 🛠️ **Herramientas de desarrollo**:  
-  - [Visual Studio 2022](https://visualstudio.microsoft.com/) (última versión, con carga de trabajo **ASP.NET y desarrollo web**)  
+# ⚠️ Requisitos para ejecutarlo sin docker
+Antes de comenzar asegúrate de tener instalado lo siguiente:
+Tener instalado lo siguiente:
+  - [Visual Studio 2022](https://visualstudio.microsoft.com/) 
   - [.NET 10.0 SDK](https://dotnet.microsoft.com/es-es/download/visual-studio-sdks)
-  - [Git](https://git-scm.com/)
-
-- 🗄️ **Base de datos**:  
+  - [Git](https://git-scm.com/)  
   - [SQL Server](https://www.microsoft.com/es-es/sql-server/sql-server-downloads) (última versión)  
   - [SQL Server Management Studio (SSMS)](https://aka.ms/ssmsfullsetup)  para gestionar la BD  
 
-## Requisitos para puesta en marcha en Docker
-- Descargar el SDK de .NET en el siguiente enlace [SDK .NET](https://dotnet.microsoft.com/es-es/download/visual-studio-sdks)
-- Descargar Docker en el siguiente enlace [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- Descargar git en el siguiente enlace [Git](https://git-scm.com/)
-
-### Generar certificado https
-Para generar el certificado https ponemos el comando:
+# 🐳 Puesta en marcha para ejecutacion con docker
+1. Clonar el repositorio con el comando:
 ```sh
-dotnet dev-certs https -ep RUTA-DESEADA\NOMBRECERTIFICADO.pfx -p password
+git clone https://github.com/blackl1ght98/GestorInventario
 ````
-Ejemplo de uso:
-```sh
-dotnet dev-certs https -ep C:\Users\guillermo\.aspnet\https\aspnetapp.pfx -p password
-
-````
-Para confiar en el certificado generado ponemos el comando:
+2. Crear la carpeta **certs** en la raiz del proyecto
+3. Generar el certificado para https y ponerlo en la carpeta anteriormente creada:
+   - Para ello la sintaxis del comando a usar es:
+   ```sh
+   dotnet dev-certs https -ep RUTA-DESEADA\NOMBRECERTIFICADO.pfx -p password
+   ````
+   - Ejemplo de uso:
+   ```sh
+   dotnet dev-certs https -ep C:\Users\guillermo\.aspnet\https\aspnetapp.pfx -p password
+   ````
+4. Hacer que nuestro sistema confie en ese cercificado para ello el comando a ejecutar es:
 ```sh
 dotnet dev-certs https --trust
 ````
-## Iniciar Proyecto directamente en Docker
-El primer paso a realizar es poner con valores validos el archivo **.env.example** y renombrarlo a **.env**, seguidamente creariamos la carpeta **certs** en la raiz del proyecto y en ella pondremos el certificado autofirmado para el uso de https, generado en el paso anterior el certificado puede llamarse **certificado.pfx** en caso de querer otro nombre puede ponerse pero habra que ajustar el archivo **docker-compose.yml** y lo que ajustaremos es esta linea:
+5. Crear el archivo **.env** basandose en **.env.example** este archivo contendra las variables de entorno, para obtener ciertas variables como las siguientes:
+  - **Paypal_ClientId y Paypal_ClientSecret**: el valor para estas variables lo obtenemos creando una cuenta en [Paypal Developer](https://developer.paypal.com/home/)
+  - **PublicKey y PrivateKey**: pronto pondre aqui un repositorio para generar dichas claves
+  - **Email__Password**: Aqui usaremos contraseña de aplicación esto nos permite usar nuestra cuenta de gmail sin hacer login para ello vamos a [Contraseña de aplicacion](https://myaccount.google.com/apppasswords)
+  - **CertificatePassword**: Importante tener aqui la misma contraseña que pusimos al momento de generar el certificado https si no tenemos aqui la misma contraseña fallara.
+  - **LicenseKeyAutoMapper**: Para obtenerla nos registramos en: [AutoMapper](https://automapper.io/) aqui elegimos la licencia community
+6. Eliminar .env.example
+7. Revisar el archivo **docker-compose** para asegurarnos que el nombre del certificado es el mismo que pusimos a la hora de generar el certificado autofirmado, en el ejemplo de uso del comando de generar el certificado ese certicado se llamara: **aspnetapp** pues en el docker compose tendremos que asegurarnos que este en dos sitios exactamente el mismo nombre y esos dos sitios son:
 ```sh
   volumes:
-      - ./certs/certificado.pfx:/https/certificado.pfx:ro
-
+      - ./certs/aspnetapp.pfx:/https/aspnetapp.pfx:ro
 ```
-Esta linea lo unico que hace es decir donde esta el certificado.
-
-Para obtener el valor de las variables de entorno de PayPal hay que registrarse en PayPal: [PayPal Developer](https://developer.paypal.com/home/)
-
-Para obtener la clave de licencia de AutoMapper, regístrate en [AutoMapper](https://automapper.io/). Una vez logueado, pulsa en **Get AutoMapper**, escoge el plan gratuito y después **Get my license** para obtener la clave.
-
-Para obtener el valor de la clave privada y pública RSA, próximamente pondré un repositorio dedicado para ese fin.
-
-Una vez que tengas el certificado creado tenemos que revisar que el valor de la variable de entorno **CertificatePassword** sea el mismo que pusimos a la hora de ejecutar el comando:
-
-```sh
-dotnet dev-certs https -ep C:\Users\guillermo\.aspnet\https\aspnetapp.pfx -p password
-
-````
-el parametro -p es para establecer la contraseña y lo que se ponga despues de dicho parametro eso sera la contraseña.
-
-
-## Posibles problemas durante la puesta en marcha de docker
-
-Docker da problemas durante la instalacion dicendo que no tienes permisos para solucionarlo (Windows) vamos a la unidad C:
-   - Habilitamos para ver archivos ocultos
-   - Vamos a la carpeta **ProgramData**
-   - Eliminamos la carpeta **DockerDesktop**
-Siguiendo estos pasos docker no debe dar mas problemas
-Es posible que al iniciar docker este mismo nos diga que WSL esta desctualizado el mismo docker da el comando para arreglarlo que es:
-```sh
-wsl --update
-```
- En caso de que falle el comando es posible que el wsl que tiene tu equipo  este corrupto para arreglarlo descargarlo del siguiente enlace [WSL](https://github.com/microsoft/WSL/releases) aqui instalas la version mas reciente y el problema quedaria solucionado.
- # Docker
-**¿Como arrancar el proyecto en docker?**
-Para arrancar el proyecto en docker ejecutar el siguiente comando:
+Aqui solo ajustamos el valor de la variable de entorno
 ````sh
+ - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+````
+7. Una vez tenemos todo esto echo ejecutar:
+```sh
 docker-compose up -d --build
 ````
 # Credenciales para probar
@@ -100,60 +75,42 @@ docker-compose up -d --build
 - **Contraseña**: 1A2a3A4a5@
 - Estas credenciales para probar son del usuario administrador.
  Una vez instalado reiniciamos docker y ya dejaria iniciarlo.
-## 📝 Notas
 
-- ✅ Proyecto probado en **Windows 10** y **Windows 11**.  
-- ⚠️ **No testeado en Linux ni MacOS** (puede requerir ajustes adicionales).  
-- 🔧 Se recomienda instalar y usar **SQL Server Express** con **SQL Server Management Studio** (SSMS) .  
-- 🔑 Mantener credenciales y claves JWT en **User Secrets** o variables de entorno (no en el código fuente) en caso de integrar nuevas.  
-- 💳 La integración con PayPal funciona en **modo sandbox** por defecto.  
-- 🌐 Si quieres pasar a producción, recuerda cambiar `Mode: sandbox` → `Mode: live` y registrar tus credenciales reales en PayPal Developer.
-# Instalación
-## 🐳 Problema común: Docker y Visual Studio
+# ⚠️ Posibles problemas durante la puesta en marcha de docker
+## Docker nos dice que no tienes permisos para realizar la instalación
+Para solucionar este problema hacemos lo siguiente
+1. Vamos a la unidad C en Windows y una vez que estemos habilitamos la opción para ver archivos ocultos.
+2. Vamos a la carpeta llamada **ProgramData**
+3. Dentro de esa carpeta veremos una carpeta llamada **DockerDescktop**
+4. Eliminamos dicha carpeta
+### Docker se instala correctamente pero nos dice que no puede iniciar porque wsl esta desactualizado
+El mismo docker nos dice que ejecutemos en la terminal el comando:
+```sh
+wsl --update
+```
+pero si esto no lo soluciona lo que haremos es descargar la ultima versión de wsl del repositorio de microsoft: [WSL](https://github.com/microsoft/WSL/releases) instalamos la ultma version del programa y el problema se soluciona
 
-Si **no tienes instalado Docker Desktop**, Visual Studio puede mostrar un error de compilación al intentar interpretar el archivo `docker-compose`.
+## Otros errores
+En caso de que se den otros errores no cotemplados en este readme dejar una issue en el repositorio para su posterior solución.
 
-### 🔧 Solución rápida
-
-1. Abre **Visual Studio** y ve al **Explorador de Soluciones**.  
-2. Haz **clic derecho** sobre el proyecto `docker-compose`.  
-3. Selecciona **“Descargar proyecto”** (*Unload Project*).  
-4. Vuelve a compilar el proyecto → ya no tendrás el error. ✅  
-
-### ➕ Nota adicional
-- Si más adelante instalas **Docker Desktop**, puedes volver a habilitar `docker-compose` haciendo clic derecho en el proyecto y seleccionando **“Volver a cargar”** (*Reload Project*).  
-
-
-
+# Puesta en marcha sin docker:
 ## 📂 Restaurar la copia de seguridad
-
-Para usar la base de datos del proyecto, primero debes restaurar la copia de seguridad **`GestorInventarioDB.bak`** en **SQL Server**.  
-
-### 🔧 Pasos en SQL Server Management Studio (SSMS)
-
-1. Descarga e instala **SQL Server Express** desde [aquí](https://www.microsoft.com/es-es/sql-server/sql-server-downloads).  
-2. Descarga e instala **SQL Server Management Studio (SSMS)** desde [aquí](https://aka.ms/ssmsfullsetup).  
-3. Abre **SSMS** e inicia sesión con la configuración predeterminada:  
-   - **Servidor**: Nombre del equipo (ejemplo: `DESKTOP-XXXX\SQLEXPRESS`)  
-   - **Autenticación**: Windows Authentication (no requiere contraseña).  
-4. En el **Explorador de objetos**, haz clic derecho en **Bases de datos** → **Restaurar base de datos**.  
-5. Antes de continuar, copia el archivo de respaldo **`GestorInventarioDB.bak`** a la carpeta de backups de SQL Server, ya que el explorador de SSMS no muestra todas las rutas del sistema.  
-   - Ruta típica:  
-     ```
-     C:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\Backup
-     ```  
-   - Si tu instalación está en otra ubicación, copia el archivo en la carpeta **Backup** equivalente.  
-6. En la ventana de restauración:  
-   - Selecciona **Dispositivo**.  
-   - Haz clic en el botón `...` (a la derecha).  
-   - Pulsa **Agregar** y busca el archivo `GestorInventarioDB.bak` en la carpeta `Backup`.  
-   - Confirma con **Aceptar**.  
-7. Haz clic en **Aceptar** nuevamente para iniciar la restauración ✅.
+El primer paso que tendremos que realizar es la restauración de la base de datos para ello hacemos lo siguiente:
+1. Abrir **SSMS**
+2. Marcar la casilla de **Certificado de servidor de confianza**
+3. Darle a conectar
+4. En el **Explorador de objetos**, haz clic derecho en **Bases de datos** → **Restaurar base de datos** en caso de tener el programa en ingles la opción para restaurar la base de datos se llama **Database**->**Restore database**.
+5. Para no tener problema con la restauración de la base de datos mover el archivo `.back` a la  ruta `C:\Program Files\Microsoft SQL Server\MSSQL17.SQLEXPRESS\MSSQL\Backup\` la carpeta   `MSSQL17.SQLEXPRESS` puede variar dependiendo de la version que tengamos pero esta es la ruta tipica.
+6. Una vez que estemos en la ventana de restauración hacemos lo siguiente:
+      - Selecciona **Dispositivo**.
+      - Haz clic en el botón `...`
+      -  Pulsa **Agregar** y busca el archivo `.bak` en la carpeta `Backup`.
+      -  Confirma con **Aceptar**.
+      -  Hacer nuevamente en **Aceptar** para completar la restauración
 
 ## ⚙️ Scaffold-DbContext
-
 Una vez restaurada la base de datos, necesitamos regenerar los modelos con el comando `Scaffold-DbContext`, el motivo por el cual se necesita regenera los modelos es para que la conexión con base de datos apunte a tu maquina.
-Para ejecutar decho comando hacemos lo siguiente:
+Para ejecutar este comando hacemos lo siguiente:
 
 
 1. Abrimos **Visual Studio**
@@ -173,9 +130,8 @@ Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=GestorIn
 **ID**: este parametro hace referencia al nombre de usuario de la base de datos
 **Password**: hace referencia a la contraseña de base de datos
 
-En este proyecto se ha empleado este segundo comando ya que es el aconsejado por la seguridad que aporta.
 
-## 🔐 Secretos de usuario
+## 🔐 Configurar Secretos de usuario
 
 Para acceder al archivo de **Secretos del usuario** en Visual Studio 2022:  
 `Clic derecho sobre el proyecto > Administrar secretos de usuario`.
@@ -219,29 +175,9 @@ Luego, agrega los siguientes valores en formato JSON:
   }
 }
 ````
-### Significado de cada valor
-- **AuthMode**: este valor se encarga de almacenar el modo de autenticacion tenemos 3 modos: `Symmetric`,`AsymmetricFixed` y `AsymmetricDynamic`
-- **JWT**: 
-  - **PublicKey y PrivateKey**: para obtener estos valores vamos al siguiente al siguiente enlace: .
-
-- **DataBaseConection**: Información sensible de la base de datos  
-    - **DBHost**: Nombre del servidor SQL. Por ejemplo. ` "DBHost": "DESKTOP-2TL9C3O\\SQLEXPRESS"`.  
-    - **DockerDbHost**: Nombre del contenedor Docker de la base de datos. Por ejemplo. `SQL-Server-Local`  
-    - **DBName**: Nombre de la base de datos.  
-    - **DBUserName**: Usuario de la base de datos.  
-    - **DBPassword**: Contraseña del usuario.  
--**Paypal**:Configuración para la pasarela de pagos.  
-    - **ClientId y ClientSecret**: Se obtienen creando una cuenta en [aqui](https://developer.paypal.com/home)   
-    - **Mode**: `sandbox` para pruebas, `live`  para producción.    
-    - **returnUrlSinDocker**: URL de retorno cuando no se usa Docker.  
-    - **returnUrlConDocker**: URL de retorno cuando se usa Docker.  
-- **Email**: Configuración para envío de correos.  
-    - **Host**: Servidor SMTP. Por ejemplo `smtp.gmail.com`  
-    - **Port**: Puerto del servidor. Por ejemplo `587`  
-    - **UserName**: Tu correo electronico
-    - **Password**: NO PONGAS TU CONTRASEÑA DE CORREO ELECTRONICO. Usa esta función de google [contraseña de aplicacion](https://myaccount.google.com/apppasswords) esto lo que hace es darte una contraseña de aplicación ojo esta contraseña es diferente a la que usas para iniciar sesion.
-   
-
+**ClientId y ClientSecret**: Estos datos los obtenemos al registrarnos en [Paypal Developer](https://developer.paypal.com/home/) y una vez logueados le damos a **Apps & Credentials** en este apartado veremos esos datos.
+**PublicKey y PrivateKey**: Pronto pondre un repositorio para generar estas claves.   
+**DBHost**: esto ya lo mencionamos en el comando scaffold pero esto nos lo dice el motor de base de datos a la hora de loguearnos tiene este aspecto: `DESKTOP-XXXX\SQLEXPRESS`
 **LicenseKeyAutoMapper**: Clave de licencia de AutoMapper. Se obtiene registrándose en [obtener licencia](https://luckypennysoftware.com/#automapper) y usando la licencia Community.
 
 ## Modificación del archivo GestorInventarioContext.cs 
@@ -268,9 +204,18 @@ Una vez que hemos ejecutado el comando que realiza el scaffold tenemos  que pone
      }
  }
 ````
+## 🐳 Problema común: Docker y Visual Studio
 
+Si **no tienes instalado Docker Desktop**, Visual Studio puede mostrar un error de compilación al intentar interpretar el archivo `docker-compose`.
+### 🔧 Solución rápida
 
+1. Abre **Visual Studio** y ve al **Explorador de Soluciones**.  
+2. Haz **clic derecho** sobre el proyecto `docker-compose`.  
+3. Selecciona **“Descargar proyecto”** (*Unload Project*).  
+4. Vuelve a compilar el proyecto → ya no tendrás el error. ✅  
 
+### ➕ Nota adicional
+- Si más adelante instalas **Docker Desktop**, puedes volver a habilitar `docker-compose` haciendo clic derecho en el proyecto y seleccionando **“Volver a cargar”** (*Reload Project*).  
 
 # Características 
 
@@ -305,3 +250,14 @@ El proyecto **Gestor Inventario** ofrece una amplia gama de características par
 -  **Suspender subscripcion**: El usuario puede suspender su propia subscripcion, y el administrador puede suspender las de todos
 -  **Cancelar subscripcion**: El usuario puede cancelar su propia subscripcion, y el administrador puede cancelar cualquier susbscripcion
 -  **Agregar informacion de seguimiento a pedidos**: El administrador puede agregar informacion de seguimiento a los pedidos
+ 
+  ## 📝 Notas
+
+- ✅ Proyecto probado en **Windows 10** y **Windows 11**.  
+- ⚠️ **No testeado en Linux ni MacOS** (puede requerir ajustes adicionales).  
+- 🔧 Se recomienda instalar y usar **SQL Server Express** con **SQL Server Management Studio** (SSMS) .  
+- 🔑 Mantener credenciales y claves JWT en **User Secrets** o variables de entorno (no en el código fuente) en caso de integrar nuevas.  
+- 💳 La integración con PayPal funciona en **modo sandbox** por defecto.  
+- 🌐 Si quieres pasar a producción, recuerda cambiar `Mode: sandbox` → `Mode: live` y registrar tus credenciales reales en PayPal Developer.
+ 
+
