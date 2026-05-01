@@ -2,19 +2,20 @@
 
 # 📑 Índice
 - ⚠️ Requisitos para ejecutarlo con docker
-- ⚠️ Requisitos para ejecutarlo sin docker
-- 🐳 Puesta en marcha para ejecutacion con docker
-- 🛠️ Instalación completa en entorno de desarrollo
-- 📂 Restaurar base de datos
-- ⚙️ Scaffold-DbContext
-- 🔐 Secretos de usuario
+- ⚠️ Requisitos para ejecutarlo en local
 - 🔑 Generación de certificado HTTPS
-- ⚙️ Modificación GestorInventarioContext.cs
+- 🐳 Puesta en marcha para ejecutacion con docker
+- 📝 Credenciales de prueba 
+- Puesta en marcha en local
+   - 📂 Restaurar base de datos
+   - ⚙️ Scaffold-DbContext
+       - 🔑 Scaffold-DbContext con usuario y contraseña (recomendado)
+   - 🔐 Configurar Secretos de usuario
+   - ⚙️ Modificación GestorInventarioContext.cs    
 - 🐳 Problemas comunes (Docker / Visual Studio / WSL)
-- 📝 Credenciales de prueba
-- 🧠 Notas importantes
 - ✨ Características
 - 🆕 Novedades
+- 🧠 Notas importantes
 
 # ⚠️ Requisitos para ejecutarlo con docker
 Antes de comenzar asegúrate de tener instalado lo siguiente:
@@ -22,14 +23,15 @@ Antes de comenzar asegúrate de tener instalado lo siguiente:
 -  [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 -  [Git](https://git-scm.com/)
 
-# ⚠️ Requisitos para ejecutarlo sin docker
+# ⚠️ Requisitos para ejecutarlo en local
 Antes de comenzar asegúrate de tener instalado lo siguiente:
 Tener instalado lo siguiente:
   - [Visual Studio 2022](https://visualstudio.microsoft.com/) 
   - [.NET 10.0 SDK](https://dotnet.microsoft.com/es-es/download/visual-studio-sdks)
   - [Git](https://git-scm.com/)  
   - [SQL Server](https://www.microsoft.com/es-es/sql-server/sql-server-downloads) (última versión)  
-  - [SQL Server Management Studio (SSMS)](https://aka.ms/ssmsfullsetup)  para gestionar la BD  
+  - [SQL Server Management Studio (SSMS)](https://aka.ms/ssmsfullsetup)  para gestionar la BD
+    
 # 🔑 Configuración común (Docker y entorno local)
   Archivo de variables de entorno:
   - **Paypal_ClientId y Paypal_ClientSecret**: el valor para estas variables lo obtenemos creando una cuenta en [Paypal Developer](https://developer.paypal.com/home/) y una vez logueados le damos a **Apps & Credentials** en este apartado veremos esos datos.
@@ -83,25 +85,7 @@ docker-compose up -d --build
 - **Contraseña**: 1A2a3A4a5@
 - Estas credenciales para probar son del usuario administrador.
  Una vez instalado reiniciamos docker y ya dejaria iniciarlo.
-
-# ⚠️ Posibles problemas durante la puesta en marcha de docker
-## Docker nos dice que no tienes permisos para realizar la instalación
-Para solucionar este problema hacemos lo siguiente
-1. Vamos a la unidad C en Windows y una vez que estemos habilitamos la opción para ver archivos ocultos.
-2. Vamos a la carpeta llamada **ProgramData**
-3. Dentro de esa carpeta veremos una carpeta llamada **DockerDescktop**
-4. Eliminamos dicha carpeta
-### Docker se instala correctamente pero nos dice que no puede iniciar porque wsl esta desactualizado
-El mismo docker nos dice que ejecutemos en la terminal el comando:
-```sh
-wsl --update
-```
-pero si esto no lo soluciona lo que haremos es descargar la ultima versión de wsl del repositorio de microsoft: [WSL](https://github.com/microsoft/WSL/releases) instalamos la ultma version del programa y el problema se soluciona
-
-## Otros errores
-En caso de que se den otros errores no cotemplados en este readme dejar una issue en el repositorio para su posterior solución.
-
-# Puesta en marcha sin docker:
+# Puesta en marcha en local:
 ## 📂 Restaurar la copia de seguridad
 El primer paso que tendremos que realizar es la restauración de la base de datos para ello hacemos lo siguiente:
 1. Abrir **SSMS**
@@ -209,20 +193,35 @@ Una vez que hemos ejecutado el comando que realiza el scaffold tenemos  que pone
      }
  }
 ````
-## 🐳 Problema común: Docker y Visual Studio
 
+# 🐳 Problemas comunes (Docker / Visual Studio / WSL)
+## Visual Studio y Docker
 Si **no tienes instalado Docker Desktop**, Visual Studio puede mostrar un error de compilación al intentar interpretar el archivo `docker-compose`.
-### 🔧 Solución rápida
+
+Para solucionarlo haremos lo siguiente:
 
 1. Abre **Visual Studio** y ve al **Explorador de Soluciones**.  
 2. Haz **clic derecho** sobre el proyecto `docker-compose`.  
 3. Selecciona **“Descargar proyecto”** (*Unload Project*).  
-4. Vuelve a compilar el proyecto → ya no tendrás el error. ✅  
+4. Vuelve a compilar el proyecto → ya no tendrás el error.
+ 
+Si más adelante instalas **Docker Desktop**, puedes volver a habilitar `docker-compose` haciendo clic derecho en el proyecto y seleccionando **“Volver a cargar”** (*Reload Project*).  
+# Problema al instalar Docker
+Para solucionar este problema hacemos lo siguiente:
+1. Vamos a la unidad C en Windows y una vez que estemos habilitamos la opción para ver archivos ocultos.
+2. Vamos a la carpeta llamada **ProgramData**
+3. Dentro de esa carpeta veremos una carpeta llamada **DockerDescktop**
+4. Eliminamos dicha carpeta
+Con estos pasos realizados la instalación se completara.
+# Problema al iniciar docker (WSL)
+El mismo docker nos dice que ejecutemos en la terminal el comando:
+```sh
+wsl --update
+```
+pero si esto no lo soluciona lo que haremos es descargar la ultima versión de wsl del repositorio de microsoft: [WSL](https://github.com/microsoft/WSL/releases) instalamos la ultma version del programa y el problema se soluciona
 
-### ➕ Nota adicional
-- Si más adelante instalas **Docker Desktop**, puedes volver a habilitar `docker-compose` haciendo clic derecho en el proyecto y seleccionando **“Volver a cargar”** (*Reload Project*).  
 
-# Características 
+# ✨ Características
 
 El proyecto **Gestor Inventario** ofrece una amplia gama de características para gestionar eficientemente el inventario:
 
@@ -247,7 +246,7 @@ El proyecto **Gestor Inventario** ofrece una amplia gama de características par
 - **Ver Productos**: El administrador puede ver los productos que estan asociados a los planes
 - **Cambio de precio en los planes**: El administrador puede cambiar el precio de los planes
 
-## Novedades
+# 🆕 Novedades
 - **Rembolsos parciales**: esta nueva funcion permite devolver parte de los productos de un pedido, esta funcion la veremos siempre y cuando el pedido que se realice tenga mas de un producto
 - **Generacion de codigos de barras**: nueva funcion que permite simular como si fuese una tienda.
 - **Agregar informacion de envio**: con esta nueva funcionalidad  podemos agregar informacion sobre que empresa se encarga de repartir el pedido
@@ -256,7 +255,7 @@ El proyecto **Gestor Inventario** ofrece una amplia gama de características par
 -  **Cancelar subscripcion**: El usuario puede cancelar su propia subscripcion, y el administrador puede cancelar cualquier susbscripcion
 -  **Agregar informacion de seguimiento a pedidos**: El administrador puede agregar informacion de seguimiento a los pedidos
  
-  ## 📝 Notas
+  # 🧠 Notas importantes
 
 - ✅ Proyecto probado en **Windows 10** y **Windows 11**.  
 - ⚠️ **No testeado en Linux ni MacOS** (puede requerir ajustes adicionales).  
