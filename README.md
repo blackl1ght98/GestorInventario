@@ -61,10 +61,13 @@ El primer paso a realizar es poner con valores validos el archivo **.env.example
       - ./certs/certificado.pfx:/https/certificado.pfx:ro
 
 ```
-Para obtener el valor de las variables de entorno de paypal hay que registrarse en paypal: [Paypal Developer](https://developer.paypal.com/home/)
-Para obtener la clave de licencia de automapper registrarse en [Automapper](https://automapper.io/) en esta pagina nos logueamos y una vez logueados le damos a **Get Automapper** y escogemos el plan gratuito una vez seleccionado le damos a **Get my license** y nos dara la licencia 
-Para obtener el valor de clave privada y publica rsa proximamente pondre un repositorio dedicado para ese fin
-**IMPORTANTE: Solo modificar el valor si cambias el nombre o contraseña del certificado**
+Para obtener el valor de las variables de entorno de PayPal hay que registrarse en PayPal: [PayPal Developer](https://developer.paypal.com/home/)
+
+Para obtener la clave de licencia de AutoMapper, regístrate en [AutoMapper](https://automapper.io/). Una vez logueado, pulsa en **Get AutoMapper**, escoge el plan gratuito y después **Get my license** para obtener la clave.
+
+Para obtener el valor de la clave privada y pública RSA, próximamente pondré un repositorio dedicado para ese fin.
+
+**IMPORTANTE:** Solo modifica este valor si cambias el nombre o la contraseña del certificado.
 Si en el momento de generar el comando has puesto una contraseña diferente a la que esta en el archivo la linea a modificar seria:
 ```sh
 ASPNETCORE_Kestrel__Certificates__Default__Password=0000
