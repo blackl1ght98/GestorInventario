@@ -108,7 +108,7 @@ El primer paso a realizar es poner con valores validos el archivo **.env.example
   volumes:
       - ./certs/certificado.pfx:/https/certificado.pfx:ro
 ```
-Esta linea idica donde esta el certificado
+Esta linea indica donde esta el certificado
 ## ⚙️ Scaffold-DbContext
 
 Una vez restaurada la base de datos, necesitamos generar las clases de modelo en el proyecto con **Entity Framework Core** mediante el comando `Scaffold-DbContext`.
