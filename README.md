@@ -33,11 +33,70 @@ Antes de comenzar asegúrate de tener instalado lo siguiente:
   - [SQL Server](https://www.microsoft.com/es-es/sql-server/sql-server-downloads) (última versión)  
   - [SQL Server Management Studio (SSMS)](https://aka.ms/ssmsfullsetup)  para gestionar la BD  
 
-- ⚡ **Servicios adicionales**:  
-  - [Redis](https://redis.io/) → solo si vas a usar Docker  
-  - [Docker Desktop](https://www.docker.com/products/docker-desktop/) *(opcional, para despliegues en contenedor)*  
 
+ 
+## Requisitos para puesta en marcha en Docker
+- Descargar el SDK de .NET en el siguiente enlace [SDK .NET](https://dotnet.microsoft.com/es-es/download/visual-studio-sdks)
+- Descargar Docker en el siguiente enlace [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- Descargar Git [Git](https://git-scm.com/)
 
+### Generar certificado https
+Para generar el certificado https ponemos el comando:
+```sh
+dotnet dev-certs https -ep RUTA-DESEADA\NOMBRECERTIFICADO.pfx -p password
+````
+Ejemplo de uso:
+```sh
+dotnet dev-certs https -ep C:\Users\guillermo\.aspnet\https\aspnetapp.pfx -p password
+
+````
+Para confiar en el certificado generado ponemos el comando:
+```sh
+dotnet dev-certs https --trust
+````
+## Iniciar Proyecto directamente en Docker
+El primer paso a realizar es poner con valores validos el archivo **.env.example** y renombrarlo a **.env**, seguidamente creariamos la carpeta **certs** en la raiz del proyecto y en ella pndremos el certificado autofirmado para el uso de https, generado en el paso anterior el certificado puede llamarse **certificado.pfx** en caso de querer otro nombre puede ponerse pero habra que ajustar el archivo **docker-compose.yml** y lo que ajustaremos es estas lineas:
+```sh
+  volumes:
+      - ./certs/certificado.pfx:/https/certificado.pfx:ro
+
+```
+Para obtener el valor de las variables de entorno de paypal hay que registrarse en paypal: [Paypal Developer](https://developer.paypal.com/home/)
+Para obtener la clave de licencia de automapper registrarse en [Automapper](https://automapper.io/) en esta pagina nos logueamos y una vez logueados le damos a **Get Automapper** y escogemos el plan gratuito una vez seleccionado le damos a **Get my license** y nos dara la licencia 
+Para obtener el valor de clave privada y publica rsa proximamente pondre un repositorio dedicado para ese fin
+**IMPORTANTE: Solo modificar el valor si cambias el nombre o contraseña del certificado**
+Si en el momento de generar el comando has puesto una contraseña diferente a la que esta en el archivo la linea a modificar seria:
+```sh
+ASPNETCORE_Kestrel__Certificates__Default__Password=0000
+````
+Esta linea es una de las variables de entorno que indica donde se encuentra 
+```sh
+ASPNETCORE_Kestrel__Certificates__Default__Path=/https/certificado.pfx
+```
+Esta linea indica donde esta el certificado
+## Posibles problemas durante la puesta en marcha de docker
+
+Docker da problemas durante la instalacion dicendo que no tienes permisos para solucionarlo (Windows) vamos a la unidad C:
+   - Habilitamos para ver archivos ocultos
+   - Vamos a la carpeta **ProgramData**
+   - Eliminamos la carpeta **DockerDesktop**
+Siguiendo estos pasos docker no debe dar mas problemas
+Es posible que al iniciar docker este mismo nos diga que WSL esta desctualizado el mismo docker da el comando para arreglarlo que es:
+```sh
+wsl --update
+```
+ En caso de que falle el comando es posible que el wsl que tiene tu equipo  este corrupto para arreglarlo descargarlo del siguiente enlace [WSL](https://github.com/microsoft/WSL/releases) aqui instalas la version mas reciente y el problema quedaria solucionado.
+ # Docker
+**¿Como arrancar el proyecto en docker?**
+Para arrancar el proyecto en docker ejecutar el siguiente comando:
+````sh
+docker-compose up -d --build
+````
+# Credenciales para probar
+- **Email**: keuppa@yopmail.com
+- **Contraseña**: 1A2a3A4a5@
+- Estas credenciales para probar son del usuario administrador.
+ Una vez instalado reiniciamos docker y ya dejaria iniciarlo.
 ## 📝 Notas
 
 - ✅ Proyecto probado en **Windows 10** y **Windows 11**.  
@@ -46,7 +105,6 @@ Antes de comenzar asegúrate de tener instalado lo siguiente:
 - 🔑 Mantener credenciales y claves JWT en **User Secrets** o variables de entorno (no en el código fuente) en caso de integrar nuevas.  
 - 💳 La integración con PayPal funciona en **modo sandbox** por defecto.  
 - 🌐 Si quieres pasar a producción, recuerda cambiar `Mode: sandbox` → `Mode: live` y registrar tus credenciales reales en PayPal Developer.
-
 # Instalación
 ## 🐳 Problema común: Docker y Visual Studio
 
@@ -87,7 +145,7 @@ Para usar la base de datos del proyecto, primero debes restaurar la copia de seg
    - Haz clic en el botón `...` (a la derecha).  
    - Pulsa **Agregar** y busca el archivo `GestorInventarioDB.bak` en la carpeta `Backup`.  
    - Confirma con **Aceptar**.  
-7. Haz clic en **Aceptar** nuevamente para iniciar la restauración ✅. 
+7. Haz clic en **Aceptar** nuevamente para iniciar la restauración ✅.
 
 ## ⚙️ Scaffold-DbContext
 
@@ -217,30 +275,8 @@ Una vez que hemos ejecutado el comando que realiza el scaffold pues tenemos que 
  }
 ````
 ## Generar certificado HTTPS en caso de no tenerlo
-### Generar certificado https
-Para generar el certificado https ponemos el comando:
-```sh
-dotnet dev-certs https -ep C:\Users\<TU USUARIO>\.aspnet\https\aspnetapp.pfx -p password
-````
-En la ruta tendremos que poner el nombre de usuario de nuestro pc por ejemplo
-```sh
-dotnet dev-certs https -ep C:\Users\guillermo\.aspnet\https\aspnetapp.pfx -p password
 
-````
-Para confiar en el certificado generado ponemos el comando:
-```sh
-dotnet dev-certs https --trust
-````
-# Docker
-**¿Como arrancar el proyecto en docker?**
-Para arrancar este proyecto en docker nos saldremos de visual studio y abriremos la terminal en la carpeta raiz del proyecto y pondremos el comando 
-````sh
-docker-compose up -d --build
-````
-# Credenciales para probar
-- **Email**: keuppa@yopmail.com
-- **Contraseña**: 1A2a3A4a5@
-- Estas credenciales para probar son del usuario administrador.
+
 
 # Características 
 
