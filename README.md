@@ -30,7 +30,17 @@ Tener instalado lo siguiente:
   - [Git](https://git-scm.com/)  
   - [SQL Server](https://www.microsoft.com/es-es/sql-server/sql-server-downloads) (última versión)  
   - [SQL Server Management Studio (SSMS)](https://aka.ms/ssmsfullsetup)  para gestionar la BD  
-
+# Datos comunes para el despliegue con doker y sin docker
+  Archivo de variables de entorno:
+  - **Paypal_ClientId y Paypal_ClientSecret**: el valor para estas variables lo obtenemos creando una cuenta en [Paypal Developer](https://developer.paypal.com/home/) y una vez logueados le damos a **Apps & Credentials** en este apartado veremos esos datos.
+  - **PublicKey y PrivateKey**: pronto pondre aqui un repositorio para generar dichas claves
+  - **Email__Password**: Aqui usaremos contraseña de aplicación esto nos permite usar nuestra cuenta de gmail sin hacer login para ello vamos a [Contraseña de aplicacion](https://myaccount.google.com/apppasswords)
+  - **LicenseKeyAutoMapper**: Para obtenerla nos registramos en: [AutoMapper](https://automapper.io/) aqui elegimos la licencia community.
+  Archivo de secretos de usuario:
+  - **ClientId y ClientSecret**
+  - **PublicKey y PrivateKey**
+  - **LicenseKeyAutoMapper**
+Para el archivo de secretos se usara los mismos valores empleados que para las variables de entorno el unico cambio es el nombre
 # 🐳 Puesta en marcha para ejecutacion con docker
 1. Clonar el repositorio con el comando:
 ```sh
@@ -50,12 +60,8 @@ git clone https://github.com/blackl1ght98/GestorInventario
 ```sh
 dotnet dev-certs https --trust
 ````
-5. Crear el archivo **.env** basandose en **.env.example** este archivo contendra las variables de entorno, para obtener ciertas variables como las siguientes:
-  - **Paypal_ClientId y Paypal_ClientSecret**: el valor para estas variables lo obtenemos creando una cuenta en [Paypal Developer](https://developer.paypal.com/home/)
-  - **PublicKey y PrivateKey**: pronto pondre aqui un repositorio para generar dichas claves
-  - **Email__Password**: Aqui usaremos contraseña de aplicación esto nos permite usar nuestra cuenta de gmail sin hacer login para ello vamos a [Contraseña de aplicacion](https://myaccount.google.com/apppasswords)
+5. Crear el archivo **.env** basandose en **.env.example** este archivo contendra las variables de entorno, para obtener ciertas variables como las siguientes:  
   - **CertificatePassword**: Importante tener aqui la misma contraseña que pusimos al momento de generar el certificado https si no tenemos aqui la misma contraseña fallara.
-  - **LicenseKeyAutoMapper**: Para obtenerla nos registramos en: [AutoMapper](https://automapper.io/) aqui elegimos la licencia community
 6. Eliminar .env.example
 7. Revisar el archivo **docker-compose** para asegurarnos que el nombre del certificado es el mismo que pusimos a la hora de generar el certificado autofirmado, en el ejemplo de uso del comando de generar el certificado ese certicado se llamara: **aspnetapp** pues en el docker compose tendremos que asegurarnos que este en dos sitios exactamente el mismo nombre y esos dos sitios son:
 ```sh
@@ -175,10 +181,7 @@ Luego, agrega los siguientes valores en formato JSON:
   }
 }
 ````
-**ClientId y ClientSecret**: Estos datos los obtenemos al registrarnos en [Paypal Developer](https://developer.paypal.com/home/) y una vez logueados le damos a **Apps & Credentials** en este apartado veremos esos datos.
-**PublicKey y PrivateKey**: Pronto pondre un repositorio para generar estas claves.   
 **DBHost**: esto ya lo mencionamos en el comando scaffold pero esto nos lo dice el motor de base de datos a la hora de loguearnos tiene este aspecto: `DESKTOP-XXXX\SQLEXPRESS`
-**LicenseKeyAutoMapper**: Clave de licencia de AutoMapper. Se obtiene registrándose en [obtener licencia](https://luckypennysoftware.com/#automapper) y usando la licencia Community.
 
 ## Modificación del archivo GestorInventarioContext.cs 
 Una vez que hemos ejecutado el comando que realiza el scaffold tenemos  que poner esto y sobrescribir el valor que haya en el metodo **OnConfiguring**
