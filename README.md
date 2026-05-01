@@ -139,7 +139,7 @@ Para usar la base de datos del proyecto, primero debes restaurar la copia de seg
 5. Antes de continuar, copia el archivo de respaldo **`GestorInventarioDB.bak`** a la carpeta de backups de SQL Server, ya que el explorador de SSMS no muestra todas las rutas del sistema.  
    - Ruta típica:  
      ```
-     E:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\Backup
+     C:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\Backup
      ```  
    - Si tu instalación está en otra ubicación, copia el archivo en la carpeta **Backup** equivalente.  
 6. En la ventana de restauración:  
