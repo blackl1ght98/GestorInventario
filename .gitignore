@@ -54,7 +54,7 @@ nunit-*.xml
 [Dd]ebugPS/
 [Rr]eleasePS/
 dlldata.c
-
+variables.ps1
 # Benchmark Results
 BenchmarkDotNet.Artifacts/
 
@@ -331,7 +331,7 @@ __pycache__/
 *.btm.cs
 *.odx.cs
 *.xsd.cs
-
+.env
 # OpenCover UI analysis results
 OpenCover/
 
