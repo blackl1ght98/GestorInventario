@@ -218,7 +218,7 @@ El mismo docker nos dice que ejecutemos en la terminal el comando:
 ```sh
 wsl --update
 ```
-pero si esto no lo soluciona lo que haremos es descargar la ultima versión de wsl del repositorio de microsoft: [WSL](https://github.com/microsoft/WSL/releases) instalamos la ultma version del programa y el problema se soluciona
+pero si esto no lo soluciona lo que haremos es descargar la ultima versión de wsl del repositorio de microsoft: [WSL](https://github.com/microsoft/WSL/releases) instalamos la ultima version del programa y el problema se soluciona
 
 
 # ✨ Características
