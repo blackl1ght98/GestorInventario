@@ -7,7 +7,7 @@
    - [Problema común: Docker y Visual Studio](#-problema-común-docker-y-visual-studio)
    - [Restaurar la copia de seguridad](#-restaurar-la-copia-de-seguridad)
    - [Scaffold-DbContext](#%EF%B8%8F-scaffold-dbcontext)
-   - [Secretos de usuario](#secretos-de-usuario)
+   - [Secretos de usuario](#%EF%B8%8F-secretos-de-usuario)
    - [Modificación del archivo GestorInventarioContext.cs](#modificación-del-archivo-gestorinventariocontextcs)
    - [Generar certificado HTTPS](#generar-certificado-https)
    - [Docker](#docker)
