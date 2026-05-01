@@ -40,6 +40,7 @@ Tener instalado lo siguiente:
   - **ClientId y ClientSecret**
   - **PublicKey y PrivateKey**
   - **LicenseKeyAutoMapper**
+
 Para el archivo de secretos se usara los mismos valores empleados que para las variables de entorno el unico cambio es el nombre
 # 🐳 Puesta en marcha para ejecutacion con docker
 1. Clonar el repositorio con el comando:
