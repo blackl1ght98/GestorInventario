@@ -9,7 +9,7 @@ services:
     user: root # Forzamos ejecución como root para evitar problemas de permisos
     environment:
       - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=SQL#1234
+      - MSSQL_SA_PASSWORD=${DB_SA_PASSWORD}
       - MSSQL_PID=Developer
     ports:
       - '1433:1433'
@@ -17,7 +17,7 @@ services:
       - sql-data-new:/var/opt/mssql
       - ./GestorInventario-2026-04-30.bak:/var/opt/mssql/data/GestorInventario-2026-04-30.bak
     healthcheck:
-      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P SQL#1234 -Q "SELECT 1" || exit 1
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U ${DB_USERNAME} -P ${DB_SA_PASSWORD} -Q "SELECT 1" || exit 1
       interval: 10s
       timeout: 5s
       retries: 10
@@ -43,10 +43,10 @@ services:
 
 
         # Restaurar la base de datos
-        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P SQL#1234 -Q "RESTORE DATABASE GestorInventario FROM DISK = '/var/opt/mssql/data/GestorInventario-2026-04-30.bak' WITH MOVE 'GestorInventario' TO '/var/opt/mssql/data/GestorInventario.mdf', MOVE 'GestorInventario_log' TO '/var/opt/mssql/data/GestorInventario_log.ldf', REPLACE;"
+        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P ${DB_SA_PASSWORD} -Q "RESTORE DATABASE GestorInventario FROM DISK = '/var/opt/mssql/data/GestorInventario-2026-04-30.bak' WITH MOVE 'GestorInventario' TO '/var/opt/mssql/data/GestorInventario.mdf', MOVE 'GestorInventario_log' TO '/var/opt/mssql/data/GestorInventario_log.ldf', REPLACE;"
         # Restaurar con logs visibles
         echo "===== INTENTANDO RESTAURAR LA BASE ====="
-        /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P SQL#1234 -C -Q "
+        /opt/mssql-tools18/bin/sqlcmd -S localhost -U ${DB_USERNAME} -P ${DB_SA_PASSWORD} -C -Q "
         RESTORE DATABASE GestorInventario 
         FROM DISK = '/var/opt/mssql/data/GestorInventario-2026-04-30.bak'
         WITH MOVE 'GestorInventario' TO '/var/opt/mssql/data/GestorInventario.mdf',
@@ -67,15 +67,16 @@ services:
       - '8080:8080'
       - '8081:8081'
     environment:
-      - DB_HOST=sql-server
-      - DB_NAME=GestorInventario
-      - DB_SA_PASSWORD=SQL#1234
+      - DB_HOST=${DB_HOST}
+      - DB_NAME=${DB_NAME}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_SA_PASSWORD=${DB_SA_PASSWORD}
       - IS_DOCKER=true
       - USE_REDIS=true
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=0000
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=${CertificatePassword}
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/certificado.pfx
       - ClaveJWT=${ClaveJWT}
-      - REDIS_CONNECTION_STRING=redis:6379
+      - REDIS_CONNECTION_STRING=${REDIS_CONNECTION_STRING}
       - JwtIssuer=${JwtIssuer}
       - JwtAudience=${JwtAudience}
       - LicenseKeyAutoMapper=${LicenseKeyAutoMapper}
