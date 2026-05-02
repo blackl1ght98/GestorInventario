@@ -158,7 +158,7 @@ public partial class GestorInventarioContext : DbContext
 
         modelBuilder.Entity<PayPalPaymentDetail>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3213E83F37FE3292");
+            entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3213E83FD1BDDEA2");
 
             entity.Property(e => e.Id)
                 .HasMaxLength(50)
@@ -213,7 +213,7 @@ public partial class GestorInventarioContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("payer_last_name");
             entity.Property(e => e.Status)
-                .HasMaxLength(20)
+                .HasMaxLength(25)
                 .IsUnicode(false)
                 .HasColumnName("status");
             entity.Property(e => e.TrackingId)
@@ -261,7 +261,7 @@ public partial class GestorInventarioContext : DbContext
             entity.HasOne(d => d.PayPal).WithMany(p => p.PayPalPaymentItems)
                 .HasForeignKey(d => d.PayPalId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__PayPalPay__payPa__09946309");
+                .HasConstraintName("FK__PayPalPay__payPa__5D80D6A1");
         });
 
         modelBuilder.Entity<PayPalPaymentShipping>(entity =>
@@ -294,6 +294,7 @@ public partial class GestorInventarioContext : DbContext
 
             entity.HasOne(d => d.Payment).WithMany(p => p.PayPalPaymentShippings)
                 .HasForeignKey(d => d.PaymentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_PayPalPaymentShipping_Payment");
         });
 

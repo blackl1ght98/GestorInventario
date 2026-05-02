@@ -277,88 +277,76 @@ namespace GestorInventario.Infraestructure.Controllers
         [Authorize]
         public async Task<IActionResult> DetallesPagoEjecutado(string id)
         {
-           
             var result = await _policyExecutor.ExecutePolicyAsync(() => _pedidoService.SincronizarDetallePagoAsync(id));
-         
-            if (result.Success && result.Data != null)
-            {
-                var paypalDetail = result.Data; 
 
-                // Mapeo manual al ViewModel
-                var viewModel = new PayPalPaymentDetailViewModel
-                {
-                    Id = paypalDetail.Id,
-                    Intent = paypalDetail.Intent,
-                    Status = paypalDetail.Status,
-                    CreateTime = paypalDetail.CreateTime,
-                    UpdateTime = paypalDetail.UpdateTime,
-
-                    // Datos del Pagador
-                    PayerEmail = paypalDetail.PayerEmail,
-                    PayerFirstName = paypalDetail.PayerFirstName,
-                    PayerLastName = paypalDetail.PayerLastName,
-                    PayerId = paypalDetail.PayerId,
-
-                    // Datos de Envío
-                    ShippingRecipientName = paypalDetail.PayPalPaymentShippings.FirstOrDefault()?.RecipientName,
-
-                    ShippingLine1 = paypalDetail.PayPalPaymentShippings.FirstOrDefault()?.AddressLine1,
-
-                    ShippingCity = paypalDetail.PayPalPaymentShippings.FirstOrDefault()?.City,
-
-                    ShippingState = paypalDetail.PayPalPaymentShippings.FirstOrDefault()?.State,
-
-                    ShippingPostalCode = paypalDetail.PayPalPaymentShippings.FirstOrDefault()?.PostalCode,
-
-                    ShippingCountryCode = paypalDetail.PayPalPaymentShippings.FirstOrDefault()?.CountryCode,
-
-                    // Propiedades de Montos
-                    AmountTotal = paypalDetail.AmountTotal,
-                    AmountCurrency = paypalDetail.AmountCurrency,
-                    AmountItemTotal = paypalDetail.AmountItemTotal,
-                    AmountShipping = paypalDetail.AmountShipping,
-
-                    // Propiedades del Beneficiario (Payee)
-                    PayeeMerchantId = paypalDetail.PayeeMerchantId,
-                    PayeeEmail = paypalDetail.PayeeEmail,
-                    Description = paypalDetail.Description,
-
-                    // Propiedades de Captura
-                    SaleId = paypalDetail.PayPalPaymentCaptures.FirstOrDefault()?.CaptureId,
-                    CaptureStatus = paypalDetail.PayPalPaymentCaptures.FirstOrDefault()?.Status,
-                    CaptureAmount = paypalDetail.PayPalPaymentCaptures.FirstOrDefault()?.Amount,
-                    CaptureCurrency = paypalDetail.PayPalPaymentCaptures.FirstOrDefault()?.Currency,
-                    ProtectionEligibility = paypalDetail.PayPalPaymentCaptures.FirstOrDefault()?.ProtectionEligibility,
-                    TransactionFeeAmount = paypalDetail.PayPalPaymentCaptures.FirstOrDefault()?.TransactionFeeAmount,
-                    TransactionFeeCurrency = paypalDetail.PayPalPaymentCaptures.FirstOrDefault()?.TransactionFeeCurrency,
-                    ReceivableAmount = paypalDetail.PayPalPaymentCaptures.FirstOrDefault()?.ReceivableAmount,
-                    ReceivableCurrency = paypalDetail.PayPalPaymentCaptures.FirstOrDefault()?.ReceivableCurrency,
-                    ExchangeRate = paypalDetail.PayPalPaymentCaptures.FirstOrDefault()?.ExchangeRate,
-                    FinalCapture = paypalDetail.PayPalPaymentCaptures.FirstOrDefault()?.FinalCapture,
-                    DisputeCategories = paypalDetail.PayPalPaymentCaptures.FirstOrDefault()?.DisputeCategories,
-
-                    // Propiedades de Tracking
-                    TrackingId = paypalDetail.TrackingId,
-                    TrackingStatus = paypalDetail.TrackingStatus,
-
-                    PayPalPaymentItems = paypalDetail.PayPalPaymentItems?.Select(item => new PayPalPaymentItemViewModel
-                    {
-                        ItemName = item.ItemName,
-                        ItemSku = item.ItemSku,
-                        ItemPrice = item.ItemPrice,
-                        ItemCurrency = item.ItemCurrency,
-                        ItemTax = item.ItemTax,
-                        ItemQuantity = item.ItemQuantity
-                    }).ToList() ?? new List<PayPalPaymentItemViewModel>()
-                };
-
-                return View(viewModel);
-            }
-            else
+            if (!result.Success || result.Data == null)
             {
                 _logger.LogError(result.Message);
                 return RedirectToAction(nameof(Index));
             }
+
+            var paypalDetail = result.Data;
+            var ultimoCapture = paypalDetail.PayPalPaymentCaptures
+                .OrderByDescending(c => c.Id)
+                .FirstOrDefault();
+
+            var viewModel = new PayPalPaymentDetailViewModel
+            {
+                Id = paypalDetail.Id,
+                Intent = paypalDetail.Intent,
+                Status = paypalDetail.Status,
+                CreateTime = paypalDetail.CreateTime,
+                UpdateTime = paypalDetail.UpdateTime,
+
+                PayerEmail = paypalDetail.PayerEmail,
+                PayerFirstName = paypalDetail.PayerFirstName,
+                PayerLastName = paypalDetail.PayerLastName,
+                PayerId = paypalDetail.PayerId,
+
+                ShippingRecipientName = paypalDetail.PayPalPaymentShippings.FirstOrDefault()?.RecipientName,
+                ShippingLine1 = paypalDetail.PayPalPaymentShippings.FirstOrDefault()?.AddressLine1,
+                ShippingCity = paypalDetail.PayPalPaymentShippings.FirstOrDefault()?.City,
+                ShippingState = paypalDetail.PayPalPaymentShippings.FirstOrDefault()?.State,
+                ShippingPostalCode = paypalDetail.PayPalPaymentShippings.FirstOrDefault()?.PostalCode,
+                ShippingCountryCode = paypalDetail.PayPalPaymentShippings.FirstOrDefault()?.CountryCode,
+
+                AmountTotal = paypalDetail.AmountTotal,
+                AmountCurrency = paypalDetail.AmountCurrency,
+                AmountItemTotal = paypalDetail.AmountItemTotal,
+                AmountShipping = paypalDetail.AmountShipping,
+
+                PayeeMerchantId = paypalDetail.PayeeMerchantId,
+                PayeeEmail = paypalDetail.PayeeEmail,
+                Description = paypalDetail.Description,
+
+                SaleId = ultimoCapture?.CaptureId,
+                CaptureStatus = ultimoCapture?.Status,
+                CaptureAmount = ultimoCapture?.Amount,
+                CaptureCurrency = ultimoCapture?.Currency,
+                ProtectionEligibility = ultimoCapture?.ProtectionEligibility,
+                TransactionFeeAmount = ultimoCapture?.TransactionFeeAmount,
+                TransactionFeeCurrency = ultimoCapture?.TransactionFeeCurrency,
+                ReceivableAmount = ultimoCapture?.ReceivableAmount,
+                ReceivableCurrency = ultimoCapture?.ReceivableCurrency,
+                ExchangeRate = ultimoCapture?.ExchangeRate,
+                FinalCapture = ultimoCapture?.FinalCapture,
+                DisputeCategories = ultimoCapture?.DisputeCategories,
+
+                TrackingId = paypalDetail.TrackingId,
+                TrackingStatus = paypalDetail.TrackingStatus,
+
+                PayPalPaymentItems = paypalDetail.PayPalPaymentItems?.Select(item => new PayPalPaymentItemViewModel
+                {
+                    ItemName = item.ItemName,
+                    ItemSku = item.ItemSku,
+                    ItemPrice = item.ItemPrice,
+                    ItemCurrency = item.ItemCurrency,
+                    ItemTax = item.ItemTax,
+                    ItemQuantity = item.ItemQuantity
+                }).ToList() ?? new List<PayPalPaymentItemViewModel>()
+            };
+
+            return View(viewModel);
         }
         [HttpGet]
         public async Task<IActionResult> DownloadInvoice(string id)

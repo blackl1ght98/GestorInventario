@@ -72,12 +72,14 @@ namespace GestorInventario.Application.Services.External_Sevices
         }
         private PaypalRefundResponseDto BuildRefundRequest(decimal totalAmount, Pedido pedido)
         {
+            const decimal IVA = 0.21m;
+            decimal totalConIva = Math.Round(totalAmount * (1 + IVA), 2);
             return new PaypalRefundResponseDto
             {
                 NotaParaElCliente = "Pedido rembolsado",
                 Amount = new AmountRefund
                 {
-                    Value = totalAmount.ToString("F2", CultureInfo.InvariantCulture),
+                    Value = totalConIva.ToString("F2", CultureInfo.InvariantCulture),
                     CurrencyCode = pedido.Currency
                 }
             };
