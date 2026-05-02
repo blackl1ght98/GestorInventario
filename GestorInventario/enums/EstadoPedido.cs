@@ -13,7 +13,7 @@ namespace GestorInventario.enums
         [Display(Name = "En Proceso")]
         En_Proceso,
 
-        [Display(Name = "Reembolsado")]
+        [Display(Name = "Rembolsado")]
         Rembolsado,
         [Display(Name = "Carrito")]
         Carrito

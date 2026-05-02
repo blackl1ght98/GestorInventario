@@ -110,7 +110,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                         columns.RelativeColumn(3);
                     });
 
-                    AddDetailRow(table, "Estado", _data.Status ?? "N/A");
+                    AddDetailRow(table, "Estado", _data.OrderStatus ?? "N/A");
                     AddDetailRow(table, "Descripción", _data.Description ?? "N/A");
                     AddDetailRow(table, "ID de Venta/Captura", _data.PayPalPaymentCaptures.FirstOrDefault()?.CaptureId ?? "N/A");
                     AddDetailRow(table, "Estado de Captura", _data.PayPalPaymentCaptures.FirstOrDefault()?.Status ?? "N/A");

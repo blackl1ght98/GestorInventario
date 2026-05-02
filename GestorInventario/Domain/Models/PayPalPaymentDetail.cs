@@ -9,7 +9,7 @@ public partial class PayPalPaymentDetail
 
     public string? Intent { get; set; }
 
-    public string? Status { get; set; }
+    public string? OrderStatus { get; set; }
 
     public string? PayerEmail { get; set; }
 

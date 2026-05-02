@@ -248,7 +248,7 @@ namespace GestorInventario.Application.Services.Generic_Services
             {
                 Id = detallespago.Id,
                 Intent = detallespago.Intent,
-                Status = detallespago.Status,
+                OrderStatus = detallespago.Status,
 
                 PayerEmail = detallespago.Payer?.Email,
                 PayerFirstName = detallespago.Payer?.Name?.GivenName,

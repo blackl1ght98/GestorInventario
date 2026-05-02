@@ -104,7 +104,7 @@ namespace GestorInventario.Application.Services.Generic_Services
 
             // Actualizar los campos del objeto PayPalPaymentDetail con los datos de la API
             detallesPago.Intent = detalles.Intent;
-            detallesPago.Status = detalles.Status;
+            detallesPago.OrderStatus = detalles.Status;
             detallesPago.PayerEmail = detalles.Payer?.Email;
             detallesPago.PayerFirstName = detalles.Payer?.Name?.GivenName;
             detallesPago.PayerLastName = detalles.Payer?.Name?.Surname;

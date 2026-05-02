@@ -270,10 +270,6 @@ namespace GestorInventario.Infraestructure.Controllers
 
 
 
-
-
-
-
         [Authorize]
         public async Task<IActionResult> DetallesPagoEjecutado(string id)
         {
@@ -289,12 +285,13 @@ namespace GestorInventario.Infraestructure.Controllers
             var ultimoCapture = paypalDetail.PayPalPaymentCaptures
                 .OrderByDescending(c => c.Id)
                 .FirstOrDefault();
-
+            var ultimaInfoEnvio = paypalDetail.PayPalPaymentShippings.OrderByDescending(c => c.Id).FirstOrDefault();
             var viewModel = new PayPalPaymentDetailViewModel
             {
+                //Datos del pagador
                 Id = paypalDetail.Id,
                 Intent = paypalDetail.Intent,
-                Status = paypalDetail.Status,
+                Status = paypalDetail.OrderStatus,
                 CreateTime = paypalDetail.CreateTime,
                 UpdateTime = paypalDetail.UpdateTime,
 
@@ -302,23 +299,23 @@ namespace GestorInventario.Infraestructure.Controllers
                 PayerFirstName = paypalDetail.PayerFirstName,
                 PayerLastName = paypalDetail.PayerLastName,
                 PayerId = paypalDetail.PayerId,
-
-                ShippingRecipientName = paypalDetail.PayPalPaymentShippings.FirstOrDefault()?.RecipientName,
-                ShippingLine1 = paypalDetail.PayPalPaymentShippings.FirstOrDefault()?.AddressLine1,
-                ShippingCity = paypalDetail.PayPalPaymentShippings.FirstOrDefault()?.City,
-                ShippingState = paypalDetail.PayPalPaymentShippings.FirstOrDefault()?.State,
-                ShippingPostalCode = paypalDetail.PayPalPaymentShippings.FirstOrDefault()?.PostalCode,
-                ShippingCountryCode = paypalDetail.PayPalPaymentShippings.FirstOrDefault()?.CountryCode,
-
+                //Datos de envio
+                ShippingRecipientName = ultimaInfoEnvio.RecipientName,
+                ShippingLine1 = ultimaInfoEnvio.AddressLine1,
+                ShippingCity = ultimaInfoEnvio.City,
+                ShippingState = ultimaInfoEnvio.State,
+                ShippingPostalCode = ultimaInfoEnvio.PostalCode,
+                ShippingCountryCode = ultimaInfoEnvio.CountryCode,
+                //Importe 
                 AmountTotal = paypalDetail.AmountTotal,
                 AmountCurrency = paypalDetail.AmountCurrency,
                 AmountItemTotal = paypalDetail.AmountItemTotal,
                 AmountShipping = paypalDetail.AmountShipping,
-
+                //Datos vendedor
                 PayeeMerchantId = paypalDetail.PayeeMerchantId,
                 PayeeEmail = paypalDetail.PayeeEmail,
                 Description = paypalDetail.Description,
-
+                //Datos del pago
                 SaleId = ultimoCapture?.CaptureId,
                 CaptureStatus = ultimoCapture?.Status,
                 CaptureAmount = ultimoCapture?.Amount,
