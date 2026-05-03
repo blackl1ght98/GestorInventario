@@ -1,7 +1,12 @@
 ﻿
+using Azure.Core;
+using Azure.Identity;
 using GestorInventario.MetodosExtension.Metodos_program.cs;
 using GestorInventario.Middlewares;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
+using Microsoft.Identity.Client.Platforms.Features.DesktopOs.Kerberos;
 using Microsoft.Net.Http.Headers;
 using QuestPDF.Infrastructure;
 using System.Text.Json.Serialization;
@@ -87,6 +92,13 @@ builder.Services.AddSession(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // permite HTTP y HTTPS no confiable
     options.Cookie.SameSite = SameSiteMode.None; // permite envío cross-site
 });
+builder.Services.AddDataProtection()
+    .UseCryptographicAlgorithms(new AuthenticatedEncryptorConfiguration
+    {
+        EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
+        ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
+    });
+
 
 
 var app = builder.Build();
