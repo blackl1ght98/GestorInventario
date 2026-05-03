@@ -42,8 +42,7 @@ services:
         source ~/.bashrc
 
 
-        # Restaurar la base de datos
-        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P ${DB_SA_PASSWORD} -Q "RESTORE DATABASE GestorInventario FROM DISK = '/var/opt/mssql/data/GestorInventario-2026-05-02.bak' WITH MOVE 'GestorInventario' TO '/var/opt/mssql/data/GestorInventario.mdf', MOVE 'GestorInventario_log' TO '/var/opt/mssql/data/GestorInventario_log.ldf', REPLACE;"
+       
         # Restaurar con logs visibles
         echo "===== INTENTANDO RESTAURAR LA BASE ====="
         /opt/mssql-tools18/bin/sqlcmd -S localhost -U ${DB_USERNAME} -P ${DB_SA_PASSWORD} -C -Q "
