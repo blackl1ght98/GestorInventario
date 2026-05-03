@@ -1,68 +1,103 @@
+# Red virtual interna para que los contenedores se comuniquen entre sí por nombre
 networks:
   gestor:
-    driver: bridge
+    driver: bridge # modo bridge: red local aislada, el más común para desarrollo
 
 services:
   sql-server:
+    # Imagen oficial de SQL Server 2025 de Microsoft para Linux
     image: mcr.microsoft.com/mssql/server:2025-latest
     container_name: SQL-Server-Local
-    user: root # Forzamos ejecución como root para evitar problemas de permisos
+    user: root # Forzamos ejecución como root para evitar problemas de permisos con archivos
     environment:
-      - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=${DB_SA_PASSWORD}
-      - MSSQL_PID=Developer
+      - ACCEPT_EULA=Y # Aceptar licencia de SQL Server (obligatorio)
+      - MSSQL_SA_PASSWORD=${DB_SA_PASSWORD} # Contraseña del usuario administrador 'sa'
+      - MSSQL_PID=Developer # Edición Developer, gratuita para desarrollo
     ports:
+      # Puerto 1433 es el estándar de SQL Server
+      # Formato: puertoMáquinaLocal:puertoContenedor
       - '1433:1433'
     volumes:
+      # Volumen nombrado que persiste los datos de SQL Server entre reinicios
+      # /var/opt/mssql es la ruta estándar de SQL Server en Linux (definida por Microsoft)
       - sql-data-new:/var/opt/mssql
+
+      # Monta el archivo .bak de tu máquina dentro del contenedor
+      # ./GestorInventario-2026-05-02.bak → ruta relativa en tu máquina (donde está el docker-compose.yml)
+      # /var/opt/mssql/data/...bak → ruta dentro del contenedor donde SQL Server puede acceder al archivo
+      # Es importante que donde pongamos el .bak dentro del contenedor sea una ruta que SQL Server pueda leer, por eso lo ponemos dentro de /var/opt/mssql/data, aunque ponemos aqui el .bak solo para poder
+      # restaurar la base de datos, luego el .bak no es necesario y se puede eliminar o mover a otra carpeta dentro del contenedor para mantener el contenedor más limpio, aqui solo van archivos .mdf y .ldf
+      #que son los archivos de datos y log de SQL Server, el .bak es solo para la restauración inicial
       - ./GestorInventario-2026-05-02.bak:/var/opt/mssql/data/GestorInventario-2026-05-02.bak
+
     healthcheck:
+      # Comprueba si SQL Server está listo ejecutando SELECT 1
+      # Otros servicios que dependan de sql-server esperarán hasta que esto tenga éxito
       test: /opt/mssql-tools/bin/sqlcmd -S localhost -U ${DB_USERNAME} -P ${DB_SA_PASSWORD} -Q "SELECT 1" || exit 1
-      interval: 10s
-      timeout: 5s
-      retries: 10
+      interval: 10s # Comprueba cada 10 segundos
+      timeout: 5s # Espera máximo 5 segundos por comprobación
+      retries: 10 # Reintenta hasta 10 veces antes de marcar como no saludable
+
     command:
       - /bin/bash
       - -c
       - |
-        # Iniciar SQL Server en segundo plano
+        # Iniciar SQL Server en segundo plano con & para que el script pueda continuar
         /opt/mssql/bin/sqlservr &
 
-        # Esperar a que SQL Server esté listo
+        # Esperamos 30 segundos a que SQL Server arranque completamente
+        # antes de intentar ejecutar comandos SQL
         sleep 30
 
-        # Instalar herramientas necesarias
+        # ============ RESTAURACIÓN DE LA BASE DE DATOS DESDE EL BACKUP .BAK (asegurar compatibilidad con versiones que no instalen lo necesario) ===========
+        # Instalamos sqlcmd para poder ejecutar comandos SQL desde la terminal
+        # Esto garantiza retrocompatibilidad con imágenes que no lo traigan preinstalado
         apt-get update && apt-get install -y curl gnupg
+        # Añadimos el repositorio oficial de Microsoft
         curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
         curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list > /etc/apt/sources.list.d/mssql-release.list
         apt-get update
         ACCEPT_EULA=Y apt-get install -y mssql-tools
-        # Configurar PATH para mssql-tools
+        # Añadimos mssql-tools al PATH para poder usarlo desde cualquier directorio
         echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
         source ~/.bashrc
+        # ===================================================================================================================================
 
+        # =========================== RESTAURACION DE LA BD ===================================================================================
+        # Explicacion de los parametros usados:
+        # -S localhost        → servidor SQL Server local
+        # -U ${DB_USERNAME}   → usuario administrador
+        # -P ${DB_SA_PASSWORD}→ contraseña desde variable de entorno
+        # -C                  → ignorar validación de certificado SSL
+        # En la ruta /opt/mssql-tools18/bin/sqlcmd se encuentra el ejecutable de sqlcmd, que es la herramienta de línea de comandos para ejecutar consultas SQL, y 
+        # lo usamos para ejecutar el comando RESTORE DATABASE con las opciones necesarias para restaurar desde el .bak montado en el volumen. Si la restauración falla, 
+        # se muestra un mensaje de error en los logs del contenedor.
 
-       
-        # Restaurar con logs visibles
-        echo "===== INTENTANDO RESTAURAR LA BASE ====="
         /opt/mssql-tools18/bin/sqlcmd -S localhost -U ${DB_USERNAME} -P ${DB_SA_PASSWORD} -C -Q "
         RESTORE DATABASE GestorInventario 
+        -- Ruta donde pusimos el .back (mirar volumes ya que en esa seccion es donde decimos que va a estar ahi)
         FROM DISK = '/var/opt/mssql/data/GestorInventario-2026-05-02.bak'
-        WITH MOVE 'GestorInventario' TO '/var/opt/mssql/data/GestorInventario.mdf',
-        MOVE 'GestorInventario_log' TO '/var/opt/mssql/data/GestorInventario_log.ldf',   
+        WITH  
+        -- Extraemos del .back los archivos .mdf y .ldf y lo dejamos en el directorio /var/opt/mssql/data
+        MOVE 'GestorInventario' TO '/var/opt/mssql/data/GestorInventario.mdf',  
+        MOVE 'GestorInventario_log' TO '/var/opt/mssql/data/GestorInventario_log.ldf',
         FILE = 12, REPLACE, RECOVERY;" || echo "RESTORE FALLÓ - revisa logs arriba"
-        # Mantener el contenedor en ejecución
-         wait
+
+        # Mantiene el contenedor en ejecución esperando al proceso de SQL Server en segundo plano
+        wait
     networks:
       - gestor
 
   gestorinventario:
     container_name: gestor-inventario
+    # Imagen construida desde el Dockerfile en el directorio actual
     image: ${DOCKER_REGISTRY-}gestorinventario
     build:
-      context: .
+      context: . # Directorio raíz del proyecto como contexto de build
       dockerfile: Dockerfile
     ports:
+      # 8080: HTTP, 8081: HTTPS
+      # Formato: puertoMáquinaLocal:puertoContenedor
       - '8080:8080'
       - '8081:8081'
     environment:
@@ -70,51 +105,63 @@ services:
       - DB_NAME=${DB_NAME}
       - DB_USERNAME=${DB_USERNAME}
       - DB_SA_PASSWORD=${DB_SA_PASSWORD}
-      - IS_DOCKER=true
-      - USE_REDIS=true
+      - IS_DOCKER=true # Flag para que la app sepa que está en Docker
+      - USE_REDIS=true # Activa el uso de Redis para caché
+      # Configuración del certificado SSL para HTTPS
+      # La ruta /https/certificado.pfx es donde se monta el certificado dentro del contenedor
       - ASPNETCORE_Kestrel__Certificates__Default__Password=${CertificatePassword}
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/certificado.pfx
       - ClaveJWT=${ClaveJWT}
       - REDIS_CONNECTION_STRING=${REDIS_CONNECTION_STRING}
+      - AuthMode=${AuthMode}
       - JwtIssuer=${JwtIssuer}
       - JwtAudience=${JwtAudience}
       - LicenseKeyAutoMapper=${LicenseKeyAutoMapper}
       - PublicKey=${PublicKey}
       - PrivateKey=${PrivateKey}
       - DB_USERNAME=${DB_USERNAME}
+      # Credenciales de PayPal
       - Paypal_ClientId=${Paypal_ClientId}
       - Paypal_ClientSecret=${Paypal_ClientSecret}
-      - Paypal_Mode=${Paypal_Mode}
-      - Paypal_returnUrlConDocker=${Paypal_returnUrlConDocker}
-      - Paypal_returnUrlSinDocker=${Paypal_returnUrlSinDocker}
+      - Paypal_Mode=${Paypal_Mode} # sandbox o live
+      - Paypal_returnUrlConDocker=${Paypal_returnUrlConDocker} # URL de retorno en Docker
       - Email__Host=${Email__Host}
       - Email__Port=${Email__Port}
       - Email__Username=${Email__Username}
       - Email__Password=${Email__Password}
     volumes:
+      # Monta el certificado SSL desde tu máquina al contenedor
+      # ./certs/certificado.pfx → ruta en tu máquina
+      # /https/certificado.pfx  → ruta dentro del contenedor donde Kestrel lo busca
+      # :ro → solo lectura, el contenedor no puede modificar el certificado
       - ./certs/certificado.pfx:/https/certificado.pfx:ro
     depends_on:
+      # No arranca hasta que SQL Server pase el healthcheck
       sql-server:
         condition: service_healthy
+      # No arranca hasta que Redis haya iniciado
       redis:
         condition: service_started
     networks:
       - gestor
 
   redis:
-    image: redis:latest
+    image: redis:latest # Imagen oficial de Redis
     container_name: redis
     ports:
-      - '6379:6379'
+      - '6379:6379' # Puerto estándar de Redis
     volumes:
+      # Persiste los datos de Redis entre reinicios del contenedor
+      # redisdata → volumen de Docker en tu máquina
+      # /data     → ruta estándar de datos en la imagen oficial de Redis
       - redisdata:/data
     networks:
       - gestor
 
 volumes:
-  sql-data-new:
+  sql-data-new: # Volumen para los datos de SQL Server
+    driver: local # Almacenado localmente en tu máquina gestionado por Docker
+  redisdata: # Volumen para los datos de Redis
     driver: local
-  redisdata:
-    driver: local
-  appdata:
+  appdata: # Volumen declarado pero no usado actualmente en ningún servicio
     driver: local
