@@ -32,15 +32,16 @@ namespace GestorInventario.Application.Services.External_Sevices
         {
             try
             {
-
+                
                 // Obtener el pedido y el monto total desde el repositorio
-                var (pedido, totalAmount) = await _pedidoRepository.GetPedidoWithDetailsAsync(pedidoId);
+                var pedido = await _pedidoRepository.GetPedidoWithDetailsAsync(pedidoId);
 
-                // Crear el objeto de solicitud de reembolso
-                var refundRequest = BuildRefundRequest(totalAmount, pedido);
+                // Item2-> representa el totalAmount
+                //Item1->representa el pedido
+                var refundRequest = BuildRefundRequest(pedido.Data.Item2, pedido.Data.Item1);
                 var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                    HttpMethod.Post,
-                   $"v2/payments/captures/{pedido.CaptureId}/refund",
+                   $"v2/payments/captures/{pedido.Data.Item1.CaptureId}/refund",
                    refundRequest,
                     async resp =>
                     {
@@ -54,14 +55,14 @@ namespace GestorInventario.Application.Services.External_Sevices
                     throw new ArgumentNullException("No se pudo obtener los destalles de la devolucion");
                 }
                 string refundId = refundResponse.Id;
-                var updatedCapture = await _order.ObtenerDetallesPagoEjecutadoV2(pedido.OrderId);
+                var updatedCapture = await _order.ObtenerDetallesPagoEjecutadoAsync(pedido.Data.Item1.OrderId);
                 if (updatedCapture == null)
                 {
                     throw new ArgumentNullException("No se pudo obtener los detalles actualizados");
                 }
                 string estadoVenta = updatedCapture.PurchaseUnits[0].Payments.Captures[0].Status;
                 await _paypalService.UpdatePedidoStatusAsync(pedidoId, EstadoPedido.Rembolsado.ToString(), refundId, estadoVenta);
-                await _paypalService.EnviarEmailNotificacionRembolso(pedidoId, totalAmount, "Rembolso Aprobado");
+                await _paypalService.EnviarEmailNotificacionRembolso(pedidoId, pedido.Data.Item2, "Rembolso Aprobado");
                 return responseBody;
             }
             catch (Exception ex)
@@ -88,8 +89,8 @@ namespace GestorInventario.Application.Services.External_Sevices
         {
             try
             {
-                var (pedido, totalAmount) = await _pedidoRepository.GetProductoDePedidoAsync(pedidoId);
-                var detalle = pedido.Pedido.DetallePedidos.FirstOrDefault();
+                var pedido = await _pedidoRepository.GetProductoDePedidoAsync(pedidoId);
+                var detalle = pedido.Data.Item1.Pedido.DetallePedidos.FirstOrDefault();
                 if (detalle == null)
                     throw new ArgumentException($"No se encontró el detalle del pedido con ID {pedidoId}.");
 
@@ -97,18 +98,18 @@ namespace GestorInventario.Application.Services.External_Sevices
                     throw new InvalidOperationException("El detalle del pedido ya ha sido reembolsado.");
 
 
-                var captureDetails = await _order.ObtenerDetallesPagoEjecutadoV2(pedido.Pedido.OrderId);
+                var captureDetails = await _order.ObtenerDetallesPagoEjecutadoAsync(pedido.Data.Item1.Pedido.OrderId);
                 var (availableAmount, estadoVenta) = await CalcularMontoDisponibleYEstadoAsync(
-                    captureDetails, totalAmount, currency);
+                    captureDetails, pedido.Data.Item2, currency);
 
                 // 4. Construir request y ejecutar reembolso en PayPal
-                var refundRequest = BuildRefundPartialRequest(availableAmount, pedido);
+                var refundRequest = BuildRefundPartialRequest(availableAmount, pedido.Data.Item1);
                 var requestJson = JsonConvert.SerializeObject(refundRequest);
                 _logger.LogInformation("Refund request JSON: {RequestJson}", requestJson);
 
                 var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                     HttpMethod.Post,
-                    $"v2/payments/captures/{pedido.Pedido.CaptureId}/refund",
+                    $"v2/payments/captures/{pedido.Data.Item1.Pedido.CaptureId}/refund",
                     refundRequest,
                     async resp =>
                     {
@@ -117,7 +118,7 @@ namespace GestorInventario.Application.Services.External_Sevices
                     });
 
                 // Consultar estado actualizado (para falsos positivos y estado final)
-                var updatedCapture = await _order.ObtenerDetallesPagoEjecutadoV2(pedido.Pedido.OrderId);
+                var updatedCapture = await _order.ObtenerDetallesPagoEjecutadoAsync(pedido.Data.Item1.Pedido.OrderId);
 
                 // Manejo de errores específicos 
                 if (!responseBody.StartsWith("{") || responseBody.Contains("error"))
@@ -127,10 +128,10 @@ namespace GestorInventario.Application.Services.External_Sevices
 
                     if (errorDetails?.Details?.Any(d => d.Issue == "REFUND_AMOUNT_EXCEEDED") == true)
                     {
-                        errorMessage = $"El monto ({totalAmount} {currency}) excede disponible ({availableAmount} {currency}).";
+                        errorMessage = $"El monto ({pedido.Data.Item2} {currency}) excede disponible ({availableAmount} {currency}).";
 
                         var recentRefund = updatedCapture?.PurchaseUnits[0].Payments.Refunds?
-                            .FirstOrDefault(r => r.Amount.Value == totalAmount.ToString("F2", CultureInfo.InvariantCulture));
+                            .FirstOrDefault(r => r.Amount.Value == pedido.Data.Item2.ToString("F2", CultureInfo.InvariantCulture));
 
                         if (recentRefund != null)
                         {
@@ -156,20 +157,20 @@ namespace GestorInventario.Application.Services.External_Sevices
 
                 string refundId = refundResponse.Id;
 
-                var producto = pedido.Producto.NombreProducto;
+                var producto = pedido.Data.Item1.Producto.NombreProducto;
                
                 await _paypalService.RegistrarReembolsoParcialAsync(
-                    pedido.Pedido.Id,
+                    pedido.Data.Item1.Pedido.Id,
                     detalle.Id,
                     refundId,
-                    totalAmount,
+                    pedido.Data.Item2,
                     motivo,
                     estadoVenta
                 );
 
                 var emailSuccess = await _paypalService.EnviarEmailNotificacionRembolso(
-                    pedido.Pedido.Id,
-                    totalAmount,
+                    pedido.Data.Item1.Pedido.Id,
+                    pedido.Data.Item2,
                     motivo
                 );
 

@@ -16,10 +16,10 @@ namespace GestorInventario.Infraestructure.Repositories
             _logger = logger;     
          
         }
-        public  OperationResult<IQueryable<Role>> ObtenerRoles()
+        public  IQueryable<Role> ObtenerRoles()
         {
             var roles = _context.Roles.Include(x => x.Usuarios).AsQueryable();
-            return OperationResult<IQueryable<Role>>.Ok("", roles);
+            return roles;
         }
         public IQueryable<Usuario> ObtenerUsuariosPorRol(int rolId)
         {
@@ -119,16 +119,14 @@ namespace GestorInventario.Infraestructure.Repositories
              
             return OperationResult<string>.Ok("Proveedores reasignados correctamente");
         }
-        public async Task<OperationResult<Usuario>> ObtenerUsuarioConProveedoresYPedidosAsync(int id)
+        public async Task<Usuario> ObtenerUsuarioConProveedoresYPedidosAsync(int id)
         {
             var usuario = await _context.Usuarios
                 .Include(u => u.Pedidos)
                 .Include(u => u.Proveedores)
                 .FirstOrDefaultAsync(u => u.Id == id);
 
-            return usuario is null
-                ? OperationResult<Usuario>.Fail("Usuario no encontrado")
-                : OperationResult<Usuario>.Ok("", usuario);
+            return usuario;
         }
     }     
 }

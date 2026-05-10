@@ -32,10 +32,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 {
                     return OperationResult<string>.Fail("El rembolso no existe");
                 }
-
-
-                await _context.DeleteEntityAsync(rembolso);
-               
+                await _context.DeleteEntityAsync(rembolso);             
                 return OperationResult<string>.Ok("Rembolso eliminado con exito");
             });
           

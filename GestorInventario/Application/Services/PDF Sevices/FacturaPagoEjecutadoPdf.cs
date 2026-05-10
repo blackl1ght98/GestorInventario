@@ -97,6 +97,9 @@ namespace GestorInventario.Application.Services.Generic_Services
 
         private void ComposeTransactionDetails(IContainer container)
         {
+            var ultimoCapture = _data.PayPalPaymentCaptures
+       .OrderByDescending(c => c.Id)
+       .FirstOrDefault();
             container.Border(1).BorderColor(Colors.Grey.Lighten2).Padding(10).Column(col =>
             {
                 col.Item().Text("Detalles de la Transacción").FontSize(14).Bold().FontColor(Colors.Blue.Darken2);
@@ -112,8 +115,8 @@ namespace GestorInventario.Application.Services.Generic_Services
 
                     AddDetailRow(table, "Estado", _data.OrderStatus ?? "N/A");
                     AddDetailRow(table, "Descripción", _data.Description ?? "N/A");
-                    AddDetailRow(table, "ID de Venta/Captura", _data.PayPalPaymentCaptures.FirstOrDefault()?.CaptureId ?? "N/A");
-                    AddDetailRow(table, "Estado de Captura", _data.PayPalPaymentCaptures.FirstOrDefault()?.Status ?? "N/A");
+                    AddDetailRow(table, "ID de Venta/Captura", ultimoCapture.CaptureId ?? "N/A");
+                    AddDetailRow(table, "Estado de Captura", ultimoCapture.Status ?? "N/A");
                 });
             });
         }
@@ -188,6 +191,10 @@ namespace GestorInventario.Application.Services.Generic_Services
 
         private void ComposeAdditionalDetails(IContainer container)
         {
+            var ultimoCapture = _data.PayPalPaymentCaptures
+      .OrderByDescending(c => c.Id)
+      .FirstOrDefault();
+
             container.Border(1).BorderColor(Colors.Grey.Lighten2).Padding(10).Column(col =>
             {
                 col.Item().Text("Detalles Adicionales").FontSize(14).Bold().FontColor(Colors.Blue.Darken2);
@@ -201,9 +208,9 @@ namespace GestorInventario.Application.Services.Generic_Services
                         columns.RelativeColumn(2);
                     });
 
-                    AddDetailRow(table, "Comisión PayPal", $"{_data.PayPalPaymentCaptures.FirstOrDefault()?.TransactionFeeAmount?.ToString("C") ?? "0.00"} {_data.PayPalPaymentCaptures.FirstOrDefault()?.TransactionFeeCurrency}");
-                    AddDetailRow(table, "Tasa de cambio", _data.PayPalPaymentCaptures.FirstOrDefault()?.ExchangeRate?.ToString("F4") ?? "N/A");
-                    AddDetailRow(table, "Monto recibible", $"{_data.PayPalPaymentCaptures.FirstOrDefault()?.ReceivableAmount?.ToString("C") ?? "0.00"} {_data.PayPalPaymentCaptures.FirstOrDefault()?.ReceivableCurrency}");
+                    AddDetailRow(table, "Comisión PayPal", $"{ultimoCapture.TransactionFeeAmount?.ToString("C") ?? "0.00"} {ultimoCapture.TransactionFeeCurrency}");
+                    AddDetailRow(table, "Tasa de cambio", ultimoCapture.ExchangeRate?.ToString("F4") ?? "N/A");
+                    AddDetailRow(table, "Monto recibible", $"{ultimoCapture.ReceivableAmount?.ToString("C") ?? "0.00"} {ultimoCapture.ReceivableCurrency}");
                     AddDetailRow(table, "ID de Seguimiento", _data.TrackingId ?? "N/A");
                     AddDetailRow(table, "Estado de Seguimiento", _data.TrackingStatus ?? "N/A");
                 });
@@ -235,8 +242,9 @@ namespace GestorInventario.Application.Services.Generic_Services
             table.Cell().Padding(5).Background(Colors.Grey.Lighten2).Text(label).SemiBold();
             var cell = table.Cell().Padding(5).AlignRight();
             if (isBold)
-               
-            cell.Text(value).FontColor(Colors.Black);
+                cell.Text(value).Bold().FontColor(Colors.Black);
+            else
+                cell.Text(value).FontColor(Colors.Black);
         }
     }
 }

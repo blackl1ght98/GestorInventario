@@ -188,7 +188,7 @@ namespace GestorInventario.Application.Services.External_Sevices
         #endregion
 
         #region Obtener detalles del pago v2 paypal   
-        public async Task<OrderDetailsResponse> ObtenerDetallesPagoEjecutadoV2(string id)
+        public async Task<OrderDetailsResponse> ObtenerDetallesPagoEjecutadoAsync(string id)
         {
             var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
              HttpMethod.Get,

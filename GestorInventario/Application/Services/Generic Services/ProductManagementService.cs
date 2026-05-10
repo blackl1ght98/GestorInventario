@@ -59,7 +59,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                 }
             }
 
-            var existeProducto = await _productoRepository.ExisteProductoAsync(producto.NombreProducto);
+            var existeProducto = await _productoRepository.ExisteNombreProductoAsync(producto.NombreProducto);
             if (existeProducto)
                 return OperationResult<Producto>.Fail("Ya hay un producto con ese nombre, proporcione otro nombre");
 
@@ -71,7 +71,7 @@ namespace GestorInventario.Application.Services.Generic_Services
         }
         public async Task<OperationResult<string>> EditarProducto(ProductosViewModel model, int usuarioId)
         {
-            var producto = await _productoRepository.ObtenerProductoPorId(model.Id);
+            var producto = await _productoRepository.ObtenerProductoPorIdAsync(model.Id);
             if (producto == null)
                 return OperationResult<string>.Fail("Producto no encontrado");
 

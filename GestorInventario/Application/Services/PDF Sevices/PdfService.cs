@@ -3,6 +3,7 @@ using GestorInventario.Application.Services.Generic_Services;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Infraestructure;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
 
@@ -10,20 +11,17 @@ namespace GestorInventario.Application.Services
 {
     public class PdfService:IPdfService
     {
-        private readonly GestorInventarioContext _context;
+        private readonly IPaymentRepository _paymentRepository;
 
-        public PdfService(GestorInventarioContext context)
+        public PdfService(IPaymentRepository repository)
         {
-            _context = context;
+            _paymentRepository = repository;
         }
        
 
         public async Task<OperationResult<byte[]>> GenerarFacturaPagoEjecutadoAsync(string pagoId)
         {
-            var detalle = await _context.PayPalPaymentDetails
-                .Include(d => d.PayPalPaymentItems)
-                .Include(d=>d.PayPalPaymentShippings)
-                .FirstOrDefaultAsync(d => d.Id == pagoId);
+            var detalle = await _paymentRepository.ObtenerDetallesPagoPorIDAsync(pagoId);
 
             if (detalle == null)
                 return OperationResult<byte[]>.Fail("No se encontró el detalle de pago");

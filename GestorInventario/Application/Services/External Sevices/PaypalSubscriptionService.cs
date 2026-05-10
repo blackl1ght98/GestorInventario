@@ -241,7 +241,7 @@ namespace GestorInventario.Application.Services.External_Sevices
         #endregion
 
         #region Obtener Planes de suscripcion
-        public async Task<(List<PaypalPlanResponseDto> plans, bool HasNextPage)> GetSubscriptionPlansAsyncV2(int page = 1, int pageSize = 6)
+        public async Task<(List<PaypalPlanResponseDto> plans, bool HasNextPage)> GetSubscriptionPlansAsync(int page = 1, int pageSize = 6)
         {
 
 

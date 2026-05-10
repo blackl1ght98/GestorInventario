@@ -10,7 +10,7 @@ namespace GestorInventario.Interfaces.Application
         Task<string> CreateSubscriptionPlanAsync(string productId, string planName, string description, decimal amount, string currency, string intervalUnit, int trialDays = 0, decimal trialAmount = 0.00m);
         Task<PaypalPlanResponseDto> ObtenerDetallesPlan(string id);
         Task<(PaypalProductListResponseDto ProductsResponse, bool HasNextPage)> GetProductsAsync(int page = 1, int pageSize = 10);
-        Task<(List<PaypalPlanResponseDto> plans, bool HasNextPage)> GetSubscriptionPlansAsyncV2(int page = 1, int pageSize = 6);
+        Task<(List<PaypalPlanResponseDto> plans, bool HasNextPage)> GetSubscriptionPlansAsync(int page = 1, int pageSize = 6);
         Task<string> EditarProducto(string id, string name, string description);
         Task<string> UpdatePricingPlanAsync(string planId, decimal? trialAmount, decimal regularAmount, string currency);
         Task<string> Subscribirse(string id, string returnUrl, string cancelUrl, string planName);

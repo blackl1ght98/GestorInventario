@@ -107,7 +107,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
                 // Obtener planes de PayPal
                 var (plans, hasNextPage) = await _policyExecutor.ExecutePolicyAsync(() =>
-                    _paypalSubscriptionService.GetSubscriptionPlansAsyncV2(paginacion.Pagina, paginacion.CantidadAMostrar));
+                    _paypalSubscriptionService.GetSubscriptionPlansAsync(paginacion.Pagina, paginacion.CantidadAMostrar));
 
                 // Mapear a ViewModel
                 var planesViewModel = new List<PlanesDto>();
@@ -147,8 +147,8 @@ namespace GestorInventario.Infraestructure.Controllers
                         cantidadAMostrar: paginacion.CantidadAMostrar,
                         radio: paginacion.Radio
                     );
-                var resultadoMonedas = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.CarritoRepository.ObtenerMoneda());
-                var monedas = resultadoMonedas.Data;
+                var monedas = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.CarritoRepository.ObtenerMoneda());
+         
                 // Crear el ViewModel final usando el resultado del helper
                 var model = new PlanesPaginadosViewModel
                 {
@@ -182,9 +182,9 @@ namespace GestorInventario.Infraestructure.Controllers
         //Metodo que obtiene los datos necesarios antes de crear el producto al que se suscribira
         public async Task<IActionResult> CrearProductoYPlan()
         {
-            var resultadoMonedas = await _policyExecutor.ExecutePolicyAsync(
+            var monedas = await _policyExecutor.ExecutePolicyAsync(
             () => _unitOfWork.CarritoRepository.ObtenerMoneda());
-            var monedas = resultadoMonedas.Data;
+         
             var model = new ProductViewModelPaypal();
             ViewData["Moneda"] = new SelectList(monedas, "Codigo", "Codigo");
             // Obtener las categorías desde la enumeración y asignarlas al modelo
@@ -200,8 +200,8 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             CultureHelper.SetInvariantCulture();
 
-            var resultadoMonedas = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.CarritoRepository.ObtenerMoneda());
-            var monedas = resultadoMonedas?.Data ?? new List<Monedum>(); 
+            var monedas = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.CarritoRepository.ObtenerMoneda());
+
 
             ViewData["Moneda"] = new SelectList(monedas, "Codigo", "Codigo", monedaSeleccionada);           
             model.Categories = _unitOfWork.PaypalRepository.GetCategoriesFromEnum();         
@@ -260,7 +260,7 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
                 var activeSubscriptions = await _unitOfWork.PaypalRepository.ObtenerSuscriptcionesActivas(id);
-                var userSubscriptions = await _unitOfWork.PaypalRepository.SusbcripcionesUsuario(id);
+                var userSubscriptions = await _unitOfWork.PaypalRepository.ObtenerSusbcripcionesUsuario(id);
                 if (activeSubscriptions.Any() || userSubscriptions.Any())
                 {
                     TempData["ErrorMessage"] = "No se puede desactivar el plan hay subscriptores activos";

@@ -6,9 +6,11 @@ namespace GestorInventario.Interfaces.Infraestructure
 {
     public interface IProveedorRepository
     {
+        //Consultas
         IQueryable<Proveedore> ObtenerProveedores();
-        Task<OperationResult<string>> CrearProveedor(ProveedorViewModel model);
-        Task<OperationResult<Proveedore>> ObtenerProveedorId(int id);
+        Task<Proveedore> ObtenerProveedorId(int id);
+        //Operaciones
+        Task<OperationResult<string>> CrearProveedor(ProveedorViewModel model); 
         Task<OperationResult<string>> EliminarProveedor(int Id);
         Task<OperationResult<string>> EditarProveedor(ProveedorViewModel model, int Id);
        

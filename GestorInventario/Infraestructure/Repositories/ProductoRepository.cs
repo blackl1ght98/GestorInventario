@@ -9,15 +9,12 @@ namespace GestorInventario.Infraestructure.Repositories
     public class ProductoRepository : IProductoRepository
     {
         private readonly GestorInventarioContext _context;      
-        private readonly ILogger<ProductoRepository> _logger;   
-     
-        public ProductoRepository(GestorInventarioContext context, 
-        ILogger<ProductoRepository> logger)
-        {
-            _context = context;
-                
-            _logger = logger;
          
+     
+        public ProductoRepository(GestorInventarioContext context)
+        {
+            _context = context;              
+                
         }    
      
         public IQueryable<Producto> ObtenerTodosLosProductos()=>from p in _context.Productos.Include(x => x.IdProveedorNavigation)orderby p.Id  select p;
@@ -32,16 +29,13 @@ namespace GestorInventario.Infraestructure.Repositories
             });
         }
        
-        public async Task<bool> ExisteProductoAsync(string nombre)
+        public async Task<bool> ExisteNombreProductoAsync(string nombre)
         {
             return await _context.Productos.AnyAsync(x => x.NombreProducto == nombre);
         }
         public async Task<List<Proveedore>> ObtenerProveedores()=>await _context.Proveedores.ToListAsync();
-        public async Task<Producto> ObtenerProductoPorIdAsync(int productoId)
-        {
-            return await _context.Productos.FindAsync(productoId);
-        }
-        public async Task<Producto> ObtenerProductoPorId(int id)
+       
+        public async Task<Producto> ObtenerProductoPorIdAsync(int id)
         {
             var producto = await _context.Productos.Include(p => p.IdProveedorNavigation).FirstOrDefaultAsync(m => m.Id == id);
             return producto;
@@ -54,6 +48,12 @@ namespace GestorInventario.Infraestructure.Repositories
                    .Include(p => p.IdProveedorNavigation)
                    .FirstOrDefaultAsync(m => m.Id == Id);
             return producto;
+        }
+        public async Task<DetallePedido> ObtenerDetallesCarrito(int idCarrito, int idProducto)
+        {
+            var detallesCarrito = await _context.DetallePedidos
+                .FirstOrDefaultAsync(d => d.PedidoId == idCarrito && d.ProductoId == idProducto);
+            return  detallesCarrito;
         }
         public async Task<OperationResult<Producto>> EliminarProductoAsync(Producto producto)
         {
@@ -71,12 +71,5 @@ namespace GestorInventario.Infraestructure.Repositories
                 return OperationResult<Producto>.Ok("Producto actualizado", producto);
             });
         }
-      
-        public async Task<DetallePedido?> ObtenerDetallesCarrito(int idCarrito, int idProducto)
-        {
-            return await _context.DetallePedidos
-                .FirstOrDefaultAsync(d => d.PedidoId == idCarrito && d.ProductoId == idProducto);
-        }
-
     }
 }

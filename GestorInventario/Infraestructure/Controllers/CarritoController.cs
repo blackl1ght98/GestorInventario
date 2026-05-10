@@ -38,11 +38,11 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                 int usuarioId = _currentUserAccessor.GetCurrentUserId();
 
-                var resultado = await _policyExecutor.ExecutePolicyAsync(
+                var carrito = await _policyExecutor.ExecutePolicyAsync(
                     () => _carritoRepository.ObtenerCarritoUsuario(usuarioId)
                 );
 
-                var carrito = resultado.Data;
+              
 
                 // Crear carrito automáticamente si no existe
                 if (carrito == null)
@@ -58,7 +58,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 );
 
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
-                    _paginationHelper.PaginarAsync(itemsDelCarrito.Data, paginacion)
+                    _paginationHelper.PaginarAsync(itemsDelCarrito, paginacion)
                 );
 
                
@@ -77,7 +77,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     Impuestos = impuestos,          // ← IVA 
                     Shipping = 0m,
                     Total = total,                  // ← Total con IVA
-                    Monedas = new SelectList(resultadoMonedas.Data, "Codigo", "Codigo"),
+                    Monedas = new SelectList(resultadoMonedas, "Codigo", "Codigo"),
                     Paginas = paginationResult.Paginas.ToList(),
                     TotalPaginas = paginationResult.TotalPaginas,
                     PaginaActual = paginationResult.PaginaActual

@@ -99,7 +99,7 @@ namespace GestorInventario.Application.Services.Generic_Services
         {
             try
             {
-                var pedido = await _pedidoRepository.ObtenerPedidoPorIdAsync(pedidoId);
+                var pedido = await _pedidoRepository.ObtenerPedidoConDetallesAsync(pedidoId);
 
                 if (pedido == null)
                 {
@@ -149,7 +149,7 @@ namespace GestorInventario.Application.Services.Generic_Services
         public async Task UpdatePedidoStatusAsync(int pedidoId, string status, string refundId, string estadoVenta)
         {
            
-                var pedido = await _pedidoRepository.ObtenerPedidoPorIdAsync(pedidoId);
+                var pedido = await _pedidoRepository.ObtenerPedidoConDetallesAsync(pedidoId);
                 if (pedido == null)
                     throw new ArgumentException($"Pedido con ID {pedidoId} no encontrado.");
 
@@ -201,7 +201,7 @@ namespace GestorInventario.Application.Services.Generic_Services
         {
 
             // Obtener el pedido con los datos relacionados
-            var pedido = await _pedidoRepository.ObtenerPedidoPorIdAsync(pedidoId);
+            var pedido = await _pedidoRepository.ObtenerPedidoConDetallesAsync(pedidoId);
 
                 if (pedido == null)
                     throw new ArgumentException($"Pedido con ID {pedidoId} no encontrado.");
@@ -245,7 +245,7 @@ namespace GestorInventario.Application.Services.Generic_Services
         public async Task AddInfoTrackingOrder(int pedidoId, string tracking, string url, string carrier)
         {
            
-                var pedido = await _pedidoRepository.ObtenerPedidoPorIdAsync(pedidoId);
+                var pedido = await _pedidoRepository.ObtenerPedidoConDetallesAsync(pedidoId);
                 if (pedido == null)
                     throw new ArgumentException($"Pedido con ID {pedidoId} no encontrado.");
 

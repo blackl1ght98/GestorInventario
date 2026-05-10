@@ -95,27 +95,27 @@ namespace GestorInventario.Application.Services.Generic_Services
             }
             var infoUsuario = new InfoUsuarioDto
             {
-                NombreCompletoUsuario = usuarioActual.Data.NombreCompleto ?? "Nombre no facilitado",
-                Telefono = usuarioActual.Data.Telefono ?? "Telefono no facilitado",
-                CodigoPostal = usuarioActual.Data.CodigoPostal ?? "Codigo Postal no facilitado",
-                Ciudad = usuarioActual.Data.Ciudad ?? "Ciudad no facilitado",
-                Line1 = usuarioActual.Data.Direccion.Split(",")[0].Trim(),
-                Line2 = usuarioActual.Data.Direccion.Split(",").Length > 1 ? usuarioActual.Data.Direccion.Split(",")[1].Trim() : ""
+                NombreCompletoUsuario = usuarioActual.NombreCompleto ?? "Nombre no facilitado",
+                Telefono = usuarioActual.Telefono ?? "Telefono no facilitado",
+                CodigoPostal = usuarioActual.CodigoPostal ?? "Codigo Postal no facilitado",
+                Ciudad = usuarioActual.Ciudad ?? "Ciudad no facilitado",
+                Line1 = usuarioActual.Direccion.Split(",")[0].Trim(),
+                Line2 = usuarioActual.Direccion.Split(",").Length > 1 ? usuarioActual.Direccion.Split(",")[1].Trim() : ""
             };
 
             return OperationResult<InfoUsuarioDto>.Ok("Validacion exitosa", infoUsuario);
         }
         private async Task<OperationResult<CarritoConItemsDto>> ValidarCarritoYObtenerItems(int userId)
         {
-            var result = await _unitOfWork.CarritoRepository.ObtenerCarritoUsuario(userId);
-            var carrito = result.Data;
+            var carrito = await _unitOfWork.CarritoRepository.ObtenerCarritoUsuario(userId);
+          
             if (carrito == null)
             {
                 return OperationResult<CarritoConItemsDto>.Fail("No se encontró un carrito para el usuario.");
             }
 
             var itemsDelCarrito = await _unitOfWork.CarritoRepository.ObtenerItemsDelCarritoUsuario(carrito.Id);
-            if (!itemsDelCarrito.Data.Any())
+            if (!itemsDelCarrito.Any())
             {
                 return OperationResult<CarritoConItemsDto>.Fail("El carrito está vacío.");
             }
@@ -123,7 +123,7 @@ namespace GestorInventario.Application.Services.Generic_Services
             var resultado = new CarritoConItemsDto
             {
                 Carrito = carrito,
-                Items = itemsDelCarrito.Data
+                Items = itemsDelCarrito
             };
 
             return OperationResult<CarritoConItemsDto>.Ok("Validacion exitosa", resultado);

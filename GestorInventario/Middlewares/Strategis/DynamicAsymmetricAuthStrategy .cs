@@ -205,7 +205,7 @@ namespace GestorInventario.Middlewares.Strategis
                 return;
             }
             //7º Llamamos a los metodos para regenerar ambos token y creamos las cookies
-            var newAccessToken = await tokenService.GenerateTokenAsync(user.Data);
+            var newAccessToken = await tokenService.GenerateTokenAsync(user);
           
 
 

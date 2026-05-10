@@ -4,7 +4,6 @@ namespace GestorInventario.Interfaces.Application
 {
     public interface IPdfService
     {
-      
         Task<OperationResult<byte[]>> GenerarFacturaPagoEjecutadoAsync(string pagoId);
     }
 }

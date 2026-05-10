@@ -139,10 +139,10 @@ namespace GestorInventario.Infraestructure.Controllers
                 var proveedor = await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.ObtenerProveedorId(id));
                 if (proveedor == null)
                 {
-                    TempData["NotFoundError"]= proveedor.Message;
+                    _logger.LogInformation("Proveedor no encontrado");
+                    return RedirectToAction(nameof(Index));
                 }
-
-                return View(proveedor.Data);
+                return View(proveedor);
             }
             catch (Exception ex)
             {
@@ -188,17 +188,22 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-               
+                var listaUsuarios = await _policyExecutor.ExecutePolicyAsync(() => _userRepository.ObtenerUsuariosAsync());
 
-                var usuarios = new SelectList(await _policyExecutor.ExecutePolicyAsync(() => _userRepository.ObtenerUsuariosAsync()), "Id", "NombreCompleto");
+                var usuarios = new SelectList(listaUsuarios, "Id", "NombreCompleto");
 
-                var proveedores = await _proveedorRepository.ObtenerProveedorId(id);
+                var proveedor = await _proveedorRepository.ObtenerProveedorId(id);
+                if(proveedor == null)
+                {
+                    _logger.LogInformation("Proveedor no encontrado");
+                    return RedirectToAction(nameof(Index));
+                }
                 var model = new ProveedorViewModel
                 {
-                    NombreProveedor= proveedores.Data.NombreProveedor,
-                    Contacto = proveedores.Data.Contacto,
-                    Direccion = proveedores.Data.Direccion,
-                    IdUsuario = proveedores.Data.IdUsuario,
+                    NombreProveedor= proveedor.NombreProveedor,
+                    Contacto = proveedor.Contacto,
+                    Direccion = proveedor.Direccion,
+                    IdUsuario = proveedor.IdUsuario,
                     Usuarios = usuarios
                 };
                 return View(model);
@@ -218,14 +223,14 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-               
+                var listaUsuarios = await _policyExecutor.ExecutePolicyAsync(() => _userRepository.ObtenerUsuariosAsync());
 
                 // Validación del modelo (opcional, pero recomendado)
                 if (!ModelState.IsValid)
                 {
                     
                     model.Usuarios = new SelectList(
-                        await _policyExecutor.ExecutePolicyAsync(() => _userRepository.ObtenerUsuariosAsync()),
+                       listaUsuarios,
                         "Id",
                         "NombreCompleto",
                         model.IdUsuario
@@ -247,7 +252,7 @@ namespace GestorInventario.Infraestructure.Controllers
 
                     // Recargar SelectList para mostrarlo en caso de error
                     model.Usuarios = new SelectList(
-                        await _policyExecutor.ExecutePolicyAsync(() => _userRepository.ObtenerUsuariosAsync()),
+                       listaUsuarios,
                         "Id",
                         "NombreCompleto",
                         model.IdUsuario

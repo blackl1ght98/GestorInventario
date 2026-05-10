@@ -1,15 +1,9 @@
-﻿using GestorInventario.Application.DTOs.Email;
-using GestorInventario.Application.DTOs.Response_paypal.GET;
-using GestorInventario.Domain.Models;
+﻿using GestorInventario.Domain.Models;
 using GestorInventario.enums;
 using GestorInventario.Infraestructure.Utils;
-using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
-using GestorInventario.Interfaces.Utils;
 using GestorInventario.MetodosExtension;
-using GestorInventario.ViewModels.Paypal;
 using Microsoft.EntityFrameworkCore;
-using System.Globalization;
 
 namespace GestorInventario.Infraestructure.Repositories
 {
@@ -25,7 +19,15 @@ namespace GestorInventario.Infraestructure.Repositories
          
         }
       
-       
+       public async Task<PayPalPaymentDetail> ObtenerDetallesPagoPorIDAsync(string pagoId)=> await _context.PayPalPaymentDetails
+                .Include(d => d.PayPalPaymentItems)
+                .Include(d => d.PayPalPaymentCaptures)
+                .Include(d => d.PayPalPaymentShippings)
+                .FirstOrDefaultAsync(d => d.Id == pagoId);
+        public async Task<Pedido> BuscarPedidoCorrupto(int userId) => await _context.Pedidos.Include(x => x.DetallePedidos).Where(p => p.IdUsuario == userId && p.EstadoPedido == EstadoPedido.En_Proceso.ToString() &&
+          string.IsNullOrEmpty(p.CaptureId)).FirstOrDefaultAsync();
+        public async Task<PayPalPaymentDetail> ObtenerDetallesPago(string id) => await _context.PayPalPaymentDetails.Include(d => d.PayPalPaymentItems).Include(x => x.PayPalPaymentShippings).Include(x => x.PayPalPaymentCaptures).FirstOrDefaultAsync(x => x.Id == id);
+
         public async Task<OperationResult<PayPalPaymentDetail>> AgregarDetallePagoAsync(PayPalPaymentDetail detalle)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
@@ -42,6 +44,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 return OperationResult<PayPalPaymentItem>.Ok("", detalle);
             });
         }
+     
         public async Task<OperationResult<PayPalPaymentShipping>> AgregarInfoEnvioAsync(PayPalPaymentShipping detalle)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
@@ -59,7 +62,6 @@ namespace GestorInventario.Infraestructure.Repositories
             });
         }
         
-        public async Task<PayPalPaymentDetail> ObtenerDetallesPago(string id) => await _context.PayPalPaymentDetails.Include(d => d.PayPalPaymentItems).Include(x=>x.PayPalPaymentShippings).Include(x=>x.PayPalPaymentCaptures).FirstOrDefaultAsync(x => x.Id == id);
 
         public async Task<OperationResult<string>> EliminarDetallesPagoAsync(PayPalPaymentDetail pago)
         {
@@ -70,9 +72,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 return OperationResult<string>.Ok("Pedido eliminado con exito");
             });
         }
-       public async Task<Pedido> BuscarPedidoCorrupto(int userId)=> await _context.Pedidos.Include(x => x.DetallePedidos).Where(p => p.IdUsuario == userId && p.EstadoPedido == EstadoPedido.En_Proceso.ToString() &&
-            string.IsNullOrEmpty(p.CaptureId)).FirstOrDefaultAsync();
-
+     
 
     }
 }

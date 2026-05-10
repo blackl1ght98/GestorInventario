@@ -59,7 +59,7 @@ namespace GestorInventario.Application.Services.Generic_Services
             
 
                 int usuarioId = _currentUserAccesor.GetCurrentUserId();
-                var pedidoOriginal = await _pedidoRepository.ObtenerPedidoPorIdAsync(model.Id);
+                var pedidoOriginal = await _pedidoRepository.ObtenerPedidoConDetallesAsync(model.Id);
                 if (pedidoOriginal == null)
                 {
                     return OperationResult<string>.Fail("Pedido no encontrado");
@@ -79,7 +79,7 @@ namespace GestorInventario.Application.Services.Generic_Services
             var existingDetail = await _payment.ObtenerDetallesPago(id);
 
             // Obtener los detalles actualizados desde la API de PayPal
-            var detalles = await _paypalOrder.ObtenerDetallesPagoEjecutadoV2(id);
+            var detalles = await _paypalOrder.ObtenerDetallesPagoEjecutadoAsync(id);
             if (detalles == null)
             {
                 return OperationResult<PayPalPaymentDetail>.Fail("Detalles del pedido no encontrados para generar la factura");

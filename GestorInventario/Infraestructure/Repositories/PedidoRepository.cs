@@ -11,8 +11,7 @@ namespace GestorInventario.Infraestructure.Repositories
 {
     public class PedidoRepository : IPedidoRepository
     {
-        private readonly GestorInventarioContext _context;              
-      
+        private readonly GestorInventarioContext _context;                   
         private readonly ILogger<PedidoRepository> _logger;        
      
         public PedidoRepository(GestorInventarioContext context, 
@@ -23,14 +22,10 @@ namespace GestorInventario.Infraestructure.Repositories
             _logger = logger;            
          
         }
-        public async Task<OperationResult<Pedido>> ObtenerNumeroPedido(RefundFormViewModel form)
+        public async Task<Pedido> ObtenerNumeroPedido(RefundFormViewModel form)
         {
-            var numeroPedido = await _context.Pedidos.FirstOrDefaultAsync(p => p.NumeroPedido == form.NumeroPedido);
-            if (numeroPedido is null)
-            {
-                return OperationResult<Pedido>.Fail("El numero de pedido no se encuentra");
-            }
-            return OperationResult<Pedido>.Ok("", numeroPedido);
+            var numeroPedido = await _context.Pedidos.FirstOrDefaultAsync(p => p.NumeroPedido == form.NumeroPedido);    
+            return  numeroPedido;
         }
         public async Task<Pedido?> ObtenerPedidoEnProcesoUsuarioAsync(int usuarioId)
         {
@@ -51,6 +46,83 @@ namespace GestorInventario.Infraestructure.Repositories
         {
             var detalle = await _context.DetallePedidos.FirstOrDefaultAsync(x => x.Id == id);
             return detalle;
+        }
+        public async Task<Pedido> ObtenerPedidoConDetallesAsync(int id) =>
+          await _context.Pedidos
+              .Include(p => p.DetallePedidos)
+                  .ThenInclude(dp => dp.Producto)
+              .Include(p => p.IdUsuarioNavigation)
+              .FirstOrDefaultAsync(m => m.Id == id);
+        public async Task<Pedido> ObtenerPedidoPorIdAsync(int id) => await _context.Pedidos.FirstOrDefaultAsync(x => x.Id == id);
+        public async Task<Pedido> ObtenerPedidoConRembolso(int id) => await _context.Pedidos.Include(p => p.DetallePedidos).Include(x => x.Rembolsos).FirstOrDefaultAsync(m => m.Id == id);
+        public async Task<OperationResult<(Pedido, decimal)>> GetPedidoWithDetailsAsync(int pedidoId)
+        {
+            var pedido = await _context.Pedidos
+                .Include(p => p.DetallePedidos)
+                .ThenInclude(d => d.Producto)
+                .FirstOrDefaultAsync(p => p.Id == pedidoId);
+
+            if (pedido == null || string.IsNullOrEmpty(pedido.CaptureId))
+                return OperationResult<(Pedido, decimal)>.Fail("Pedido no encontrado o SaleId no disponible.");
+
+            if (string.IsNullOrEmpty(pedido.Currency))
+                return OperationResult<(Pedido, decimal)>.Fail("El código de moneda no está definido.");
+
+            decimal totalAmount = pedido.DetallePedidos.Sum(d => d.Producto.Precio * (d.Cantidad ?? 0));
+            return OperationResult<(Pedido, decimal)>.Ok("", (pedido, totalAmount));
+        }
+        public async Task<OperationResult<(DetallePedido, decimal)>> GetProductoDePedidoAsync(int detallePedidoId)
+        {
+            try
+            {
+                var detalle = await _context.DetallePedidos
+                    .Include(dp => dp.Producto)
+                    .Include(dp => dp.Pedido)
+                    .FirstOrDefaultAsync(dp => dp.Id == detallePedidoId);
+
+                if (detalle == null)
+                    return OperationResult<(DetallePedido, decimal)>.Fail("Detalle de pedido no encontrado");
+
+                if (detalle.Producto == null)
+                    return OperationResult<(DetallePedido, decimal)>.Fail("Producto no encontrado en el detalle");
+
+                return OperationResult<(DetallePedido, decimal)>.Ok("", (detalle, detalle.Producto.Precio));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener el detalle de pedido {DetallePedidoId}", detallePedidoId);
+                return OperationResult<(DetallePedido, decimal)>.Fail("Error inesperado al obtener el detalle del pedido");
+            }
+        }
+
+        public async Task<OperationResult<(Pedido, List<DetallePedido>)>> GetPedidoConDetallesAsync(int pedidoId)
+        {
+            try
+            {
+                var pedido = await _context.Pedidos
+                    .Include(p => p.DetallePedidos)
+                    .ThenInclude(d => d.Producto)
+                    .FirstOrDefaultAsync(p => p.Id == pedidoId);
+
+                if (pedido == null || string.IsNullOrEmpty(pedido.CaptureId))
+                {
+                    _logger.LogWarning("Pedido {PedidoId} no encontrado o sin SaleId", pedidoId);
+                    return OperationResult<(Pedido, List<DetallePedido>)>.Fail("Pedido no encontrado o SaleId no disponible.");
+                }
+
+                if (string.IsNullOrEmpty(pedido.Currency))
+                {
+                    _logger.LogWarning("Pedido {PedidoId} sin moneda definida", pedidoId);
+                    return OperationResult<(Pedido, List<DetallePedido>)>.Fail("El código de moneda no está definido.");
+                }
+
+                return OperationResult<(Pedido, List<DetallePedido>)>.Ok("", (pedido, pedido.DetallePedidos?.ToList() ?? new List<DetallePedido>()));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener el pedido {PedidoId}", pedidoId);
+                return OperationResult<(Pedido, List<DetallePedido>)>.Fail("Error inesperado al obtener el pedido");
+            }
         }
         public async Task<OperationResult<Pedido>> AgregarPedidoAsync(Pedido pedido)
         {
@@ -102,94 +174,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 return OperationResult<string>.Ok("Pedido eliminado con exito");
             });
         }
-        public async Task<Pedido> ObtenerPedidoPorIdAsync(int id) =>
-            await _context.Pedidos
-                .Include(p => p.DetallePedidos)
-                    .ThenInclude(dp => dp.Producto)
-                .Include(p => p.IdUsuarioNavigation)
-                .FirstOrDefaultAsync(m => m.Id == id);
-
-        public async Task<Pedido> ObtenerPedidoPorId(int id)=> await _context.Pedidos.FirstOrDefaultAsync(x => x.Id == id);
-
-
-        public async Task<Pedido> ObtenerPedidoConRembolso(int id) => await _context.Pedidos.Include(p => p.DetallePedidos).Include(x => x.Rembolsos).FirstOrDefaultAsync(m => m.Id == id);
-        public async Task<(Pedido Pedido, decimal TotalAmount)> GetPedidoWithDetailsAsync(int pedidoId)
-        {
-            try
-            {
-                var pedido = await _context.Pedidos
-                    .Include(p => p.DetallePedidos)
-                    .ThenInclude(d => d.Producto)
-                    .FirstOrDefaultAsync(p => p.Id == pedidoId);
-
-                if (pedido == null || string.IsNullOrEmpty(pedido.CaptureId))
-                    throw new ArgumentException("Pedido no encontrado o SaleId no disponible.");
-
-                if (string.IsNullOrEmpty(pedido.Currency))
-                    throw new ArgumentException("El código de moneda no está definido.");
-
-                decimal totalAmount = pedido.DetallePedidos.Sum(d => d.Producto.Precio * (d.Cantidad ?? 0));
-
-                return (pedido, totalAmount);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error al obtener el pedido {pedidoId}");
-                throw;
-            }
-        }
-        public async Task<(DetallePedido Detalle, decimal PrecioProducto)> GetProductoDePedidoAsync(int detallePedidoId)
-        {
-            try
-            {
-                var detalle = await _context.DetallePedidos
-                    .Include(dp => dp.Producto)
-                    .Include(dp => dp.Pedido)
-                    .FirstOrDefaultAsync(dp => dp.Id == detallePedidoId);
-
-                if (detalle == null)
-                    throw new ArgumentException("Detalle de pedido no encontrado");
-
-                if (detalle.Producto == null)
-                    throw new ArgumentException("Producto no encontrado en el detalle");
-
-                return (detalle, detalle.Producto.Precio);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error al obtener el detalle de pedido {detallePedidoId}");
-                throw;
-            }
-        }
-        public async Task<(Pedido? Pedido, List<DetallePedido>? Detalles)> GetPedidoConDetallesAsync(int pedidoId)
-        {
-            try
-            {
-                var pedido = await _context.Pedidos
-                    .Include(p => p.DetallePedidos)
-                    .ThenInclude(d => d.Producto)
-                    .FirstOrDefaultAsync(p => p.Id == pedidoId);
-
-                if (pedido == null || string.IsNullOrEmpty(pedido.CaptureId))
-                {
-                    _logger.LogWarning($"Pedido {pedidoId} no encontrado o sin SaleId");
-                    return (null, null);
-                }
-
-                if (string.IsNullOrEmpty(pedido.Currency))
-                {
-                    _logger.LogWarning($"Pedido {pedidoId} sin moneda definida");
-                    return (null, null);
-                }
-
-                return (pedido, pedido.DetallePedidos?.ToList());
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error al obtener el pedido {pedidoId}");
-                throw;
-            }
-        }
+      
 
     }
     

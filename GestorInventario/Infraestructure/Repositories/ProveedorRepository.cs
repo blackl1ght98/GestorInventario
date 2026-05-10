@@ -1,5 +1,4 @@
-﻿
-using GestorInventario.Domain.Models;
+﻿using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
@@ -25,7 +24,11 @@ namespace GestorInventario.Infraestructure.Repositories
             return _context.Proveedores
                 .Include(p => p.IdUsuarioNavigation); 
         }
-
+        public async Task<Proveedore> ObtenerProveedorId(int id)
+        {
+            var proveedor = await _context.Proveedores.FirstOrDefaultAsync(m => m.Id == id);         
+            return  proveedor;
+        }
 
         public async Task<OperationResult<string>> CrearProveedor(ProveedorViewModel model)
         {
@@ -51,18 +54,7 @@ namespace GestorInventario.Infraestructure.Repositories
             });
            
 
-        }
-        public async Task<OperationResult<Proveedore>> ObtenerProveedorId(int id)
-        {
-            var proveedor= await _context.Proveedores.FirstOrDefaultAsync(m => m.Id == id);
-            if (proveedor is null) 
-            {
-                return OperationResult<Proveedore>.Fail("Proveedor no encontrado");
-            
-            }
-            return OperationResult<Proveedore>.Ok("",proveedor);
-        }
-
+        }      
         public async Task<OperationResult<string>> EliminarProveedor(int Id)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
@@ -80,9 +72,7 @@ namespace GestorInventario.Infraestructure.Repositories
               
                 return OperationResult<string>.Ok("Proveedor eliminado con exito");
 
-            });
-            
-           
+            });                   
         }
         public async Task<OperationResult<string>> EditarProveedor(ProveedorViewModel model, int Id)
         {

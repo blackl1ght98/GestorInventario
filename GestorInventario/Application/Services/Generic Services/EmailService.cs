@@ -217,35 +217,6 @@ namespace GestorInventario.Application.Services
             await smtp.DisconnectAsync(true);
         }
 
-        public async Task SendEmailCreateProduct(EmailDto correo, string productName)
-        {
-            // Crear el modelo para la vista del correo electrónico
-            var model = new CreateProductEmailViewmodel
-            {
-                NombreProducto = productName
-               
-            };
-            // Crear el correo electrónico
-            var email = new MimeMessage();
-            email.From.Add(MailboxAddress.Parse(_config.GetSection("Email:UserName").Value));
-            email.To.Add(MailboxAddress.Parse(correo.ToEmail));
-            email.Subject = "Producto creado paypal";
-            email.Body = new TextPart(TextFormat.Html)
-            {
-                Text = await RenderViewToStringAsync("ViewsEmailService/ViewCreateProductPaypal", model)
-            };
-
-            // Enviar el correo electrónico
-            using var smtp = new SmtpClient();
-            await smtp.ConnectAsync(
-                _config.GetSection("Email:Host").Value,
-                Convert.ToInt32(_config.GetSection("Email:Port").Value),
-                SecureSocketOptions.StartTls
-            );
-            await smtp.AuthenticateAsync(_config.GetSection("Email:UserName").Value, _config.GetSection("Email:PassWord").Value);
-            await smtp.SendAsync(email);
-            await smtp.DisconnectAsync(true);
-        }
         public async Task EnviarEmailSolicitudRembolso(EmailRembolsoDto correo)
         {
 

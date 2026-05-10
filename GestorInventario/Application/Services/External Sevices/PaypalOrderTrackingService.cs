@@ -32,15 +32,15 @@ namespace GestorInventario.Application.Services
         {
             try
             {
-                var (pedido, detalles) = await _pedidoRepository.GetPedidoConDetallesAsync(pedidoId);
-                if (pedido == null || detalles == null)
+                var pedido = await _pedidoRepository.GetPedidoConDetallesAsync(pedidoId);
+                if (pedido == null || pedido.Data.Item2 == null)
                 {
                     throw new Exception("No se pudo obtener la información completa del pedido.");
                 }
-                var trackingInfo = CrearTrackingInfo(pedido, detalles, carrier, barcode);
+                var trackingInfo = CrearTrackingInfo(pedido.Data.Item1, pedido.Data.Item2, carrier, barcode);
                 var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                 HttpMethod.Post,
-                $"v2/checkout/orders/{pedido.OrderId}/track",
+                $"v2/checkout/orders/{pedido.Data.Item1.OrderId}/track",
                 trackingInfo,
                async resp =>
                {

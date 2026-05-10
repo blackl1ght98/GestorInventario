@@ -133,14 +133,13 @@ namespace GestorInventario.Middlewares.Strategis
                 return;
             }
 
-            var newAccessToken = await tokenService.GenerateTokenAsync(user.Data);
-            var newRefreshToken = await refreshTokenMethod.GenerarTokenRefresco(user.Data);
+            var newAccessToken = await tokenService.GenerateTokenAsync(user);
+            var newRefreshToken = await refreshTokenMethod.GenerarTokenRefresco(user);
 
             context.Response.Cookies.Append("auth", newAccessToken.Token, new CookieOptions
             {
                 HttpOnly = true,
-                SameSite = SameSiteMode.Lax,
-               
+                SameSite = SameSiteMode.Lax,              
                 Secure = true,
                 Expires = DateTime.UtcNow.AddMinutes(10)
             });

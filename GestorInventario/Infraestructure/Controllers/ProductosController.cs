@@ -224,7 +224,7 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                
                 
-                var producto = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProductoPorId(id));    
+                var producto = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProductoPorIdAsync(id));    
                 if (producto == null)
                 {
                     _logger.LogError("No se ha encontrado el producto");
@@ -284,7 +284,7 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                
 
-                var producto = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProductoPorId(id));
+                var producto = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProductoPorIdAsync(id));
                 if (producto == null)
                 {
                     TempData["ErrorMessage"] = "No se ha encontrado el producto";

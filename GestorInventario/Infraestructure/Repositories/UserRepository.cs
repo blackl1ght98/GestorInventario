@@ -1,6 +1,4 @@
-﻿using AutoMapper;
-using GestorInventario.Application.DTOs.User;
-
+﻿using GestorInventario.Application.DTOs.User;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Infraestructure;
@@ -14,46 +12,51 @@ namespace GestorInventario.Infraestructure.Repositories
        
         private readonly GestorInventarioContext _context;
         private readonly ILogger<UserRepository> _logger;  
-        private readonly IMapper _mapper;
-        public UserRepository( GestorInventarioContext context, ILogger<UserRepository> logger, IMapper map)
+       
+        public UserRepository(GestorInventarioContext context, ILogger<UserRepository> logger)
         {
          
             _context = context;
-            _logger = logger;
-            _mapper = map;
-
+            _logger = logger;   
         }
-        // Devuelve entidad EF - usar para operaciones de persistencia
-        public async Task<OperationResult<Usuario>> ObtenerUsuarioPorId(int id)
+        public async Task<Usuario> ObtenerUsuarioPorId(int id)
         {
             var usuario = await _context.Usuarios.AsTracking()
                 .Include(x => x.IdRolNavigation)
                 .FirstOrDefaultAsync(x => x.Id == id);
-            if (usuario == null)
-            {
-                return OperationResult<Usuario>.Fail("Usuario no encontrado");
-            }
-            else
-                return OperationResult<Usuario>.Ok("Usuario obtenido con exito", usuario);
-        }
-        // Devuelve entidad de dominio mapeada - usar para lógica de negocio y edición
-        public async Task<OperationResult<Usuario>> ObtenerUsuarioParaEdicionAsync(int id)
+            return usuario;
+        }  
+        public async Task<Usuario> ObtenerEmail(string email)
         {
-            var usuarioEf = await _context.Usuarios.AsTracking()
-                .Include(x => x.IdRolNavigation)
-                .FirstOrDefaultAsync(x => x.Id == id);
+            var correo = await _context.Usuarios.Include(x => x.IdRolNavigation).FirstOrDefaultAsync(u => u.Email == email); 
+            return  correo;
 
-            if (usuarioEf == null)
-                return OperationResult<Usuario>.Fail("Usuario no encontrado");
-
-            return OperationResult<Usuario>.Ok("Usuario obtenido con éxito", usuarioEf);
         }
-        public async Task<Usuario> ObtenerEmail(string email) => await _context.Usuarios.Include(x => x.IdRolNavigation).FirstOrDefaultAsync(u => u.Email == email);
-        public async Task<List<Usuario>> ObtenerUsuariosAsync() =>await _context.Usuarios.Include(u => u.IdRolNavigation).ToListAsync();
-        public async Task<(Usuario?, string)> ObtenerUsuarioConPedido(int id)
+        public async Task<List<Usuario>> ObtenerUsuariosAsync() 
+        { 
+            var listaUsuarios= await _context.Usuarios.Include(u => u.IdRolNavigation).ToListAsync();
+            return listaUsuarios;
+
+        }
+        public async Task<List<string>> ObtenerEmailsEmpleadosAsync()
         {
-            var usuario = await _context.Usuarios.Include(p => p.Pedidos).FirstOrDefaultAsync(m => m.Id == id);
-            return usuario is null ? (null, "Este usuario no tiene pedidos") : (usuario, "Usuario con pedidos encontrado");
+            return await _context.Usuarios
+                .Where(u => u.IdRolNavigation.Nombre == "Empleado")
+                .Select(u => u.Email)
+                .ToListAsync();
+        }
+        public async Task<Usuario> ObtenerUsuarioConProveedoresYPedidosAsync(int id)
+        {
+            var usuario = await _context.Usuarios
+                .Include(u => u.Pedidos)
+                .Include(u => u.Proveedores)
+                .FirstOrDefaultAsync(u => u.Id == id);
+
+            return usuario;
+        }
+        public async Task<bool> ExisteEmailAsync(string email)
+        {
+            return await _context.Usuarios.AnyAsync(x => x.Email == email);
         }
         public async Task ConfirmEmail(ConfirmRegistrationDto confirm)
         {
@@ -95,17 +98,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 await _context.UpdateEntityAsync(usuario);
                 return OperationResult<Usuario>.Ok("Password temporal guardada", usuario);
             });
-        }
-        public async Task<List<string>> ObtenerEmailsEmpleadosAsync()
-        {
-            return await _context.Usuarios
-                .Where(u => u.IdRolNavigation.Nombre == "Empleado")
-                .Select(u => u.Email)
-                .ToListAsync();
-        }
-        /**
-        Metodo llamado en el servicio UserManagementService.
-        */
+        }      
         public async Task<OperationResult<Usuario>> AgregarUsuarioAsync(Usuario usuario)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
@@ -113,11 +106,7 @@ namespace GestorInventario.Infraestructure.Repositories
                 await _context.AddEntityAsync(usuario);
                 return OperationResult<Usuario>.Ok("Usuario guardado", usuario);
             });
-        }
-        public async Task<bool> ExisteEmailAsync(string email)
-        {
-            return await _context.Usuarios.AnyAsync(x => x.Email == email);
-        }
+        }      
         public async Task<OperationResult<string>> ActualizarUsuarioAsync(Usuario usuario)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
@@ -127,16 +116,6 @@ namespace GestorInventario.Infraestructure.Repositories
                 return OperationResult<string>.Ok("Edicion realizada con exito");
             });
         }
-        public async Task<OperationResult<Usuario>> ObtenerUsuarioConProveedoresYPedidosAsync(int id)
-        {
-            var usuario = await _context.Usuarios
-                .Include(u => u.Pedidos)
-                .Include(u => u.Proveedores)
-                .FirstOrDefaultAsync(u => u.Id == id);
-
-            return usuario is null
-                ? OperationResult<Usuario>.Fail("Usuario no encontrado")
-                : OperationResult<Usuario>.Ok("", usuario);
-        }
+       
     }
 }

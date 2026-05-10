@@ -124,6 +124,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (obtenerNumeroPedido == null)
                 {
                     _logger.LogInformation("El numero de pedido proporcionado no existe " + obtenerNumeroPedido);
+                    return RedirectToAction(nameof(FormularioRembolso));
                 }
 
                 int usuarioActual = _currentUserAccessor.GetCurrentUserId();
@@ -131,13 +132,13 @@ namespace GestorInventario.Infraestructure.Controllers
                 var emailCliente =  _policyExecutor.ExecutePolicy(() => _currentUserAccessor.GetCurrentUserEmail());
                 if(emailCliente == null)
                 {
-                    _logger.LogInformation("El email proporcionado no se encuentra registrado "+ emailCliente);
+                    _logger.LogInformation("El email proporcionado no se encuentra registrado " + emailCliente);
                 }
               
 
                 var pedido = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.ObtenerNumeroPedido(form));
 
-                if (pedido == null || pedido.Data== null)
+                if (pedido == null)
                 {
                     
                    _logger.LogInformation("El pedido con el numero de pedido proporcionado no existe ");
@@ -145,7 +146,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
                
                 var detallespago = await _policyExecutor.ExecutePolicyAsync(() =>
-                    _paypalOrderService.ObtenerDetallesPagoEjecutadoV2(pedido.Data.OrderId));
+                    _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(pedido.OrderId));
 
                 if (detallespago == null)
                 {
@@ -164,7 +165,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 var detallesSuscripcion = _paymentService.ProcesarDetallesRembolsoAsync(detallespago);
 
                 // Lista para almacenar los ítems de PayPal
-                var paypalItems = await _paymentService.ProcesarRembolso(firstPurchaseUnit, detallesSuscripcion.Data,usuarioActual,form,obtenerNumeroPedido.Data,emailCliente);
+                var paypalItems = await _paymentService.ProcesarRembolso(firstPurchaseUnit, detallesSuscripcion.Data,usuarioActual,form,obtenerNumeroPedido,emailCliente);
                 if (User.IsAdministrador())
                 {
                     return RedirectToAction("Index", "Admin");

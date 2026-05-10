@@ -110,7 +110,7 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
                                           
-                var pedido = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerPedidoPorIdAsync(id));
+                var pedido = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerPedidoConDetallesAsync(id));
             
                 if (pedido == null)
                 {
@@ -169,7 +169,7 @@ namespace GestorInventario.Infraestructure.Controllers
             try
             {
                                      
-                var pedido = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerPedidoPorId(id));
+                var pedido = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerPedidoPorIdAsync(id));
                 if (pedido == null)
                 {
                     _logger.LogError("El pedido no existe");
@@ -250,7 +250,7 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                 
             
-               var pedido= await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerPedidoPorIdAsync(id)) ;
+               var pedido= await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerPedidoConDetallesAsync(id)) ;
                 if (pedido == null)
                 {
                     _logger.LogCritical("Pedido no encontrado: no se puede mostrar los detalles de un pedido inexistente");
@@ -406,7 +406,7 @@ namespace GestorInventario.Infraestructure.Controllers
      
         public async Task<IActionResult> AgregarInfoEnvio(int pedidoId, Carrier carrier, BarcodeType barcode)
         {
-            var pedido = await _pedidoRepository.ObtenerPedidoPorId(pedidoId);
+            var pedido = await _pedidoRepository.ObtenerPedidoPorIdAsync(pedidoId);
             if (pedido == null)
             {
                 _logger.LogError("Intento de manipulacion de id");

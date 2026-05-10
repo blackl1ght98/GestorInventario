@@ -44,23 +44,23 @@ namespace GestorInventario.Application.Services.Generic_Services
                 // 1. Obtener el carrito activo del usuario (debería ser solo uno)
                 var carritoActivo = await _carritoRepository.ObtenerCarritoUsuario(usuarioId);
 
-                if (carritoActivo.Data == null)
+                if (carritoActivo == null)
                 {
                     _logger.LogDebug("No se encontró carrito activo para el usuario {UsuarioId}", usuarioId);
                     return;
                 }
 
                 // 2. Verificar si tiene items
-                var items = await _carritoRepository.ObtenerItemsDelCarritoUsuario(carritoActivo.Data.Id);
+                var items = await _carritoRepository.ObtenerItemsDelCarritoUsuario(carritoActivo.Id);
 
-                if (items?.Data?.Any() == true)
+                if (items.Any() == true)
                 {
                     _logger.LogInformation("Carrito activo del usuario {UsuarioId} tiene items → no se elimina", usuarioId);
                     return;
                 }
 
                 // 3. Eliminar (delegado al repositorio)
-                await EliminarCarritoAsync(carritoActivo.Data.Id);
+                await EliminarCarritoAsync(carritoActivo.Id);
 
                 _logger.LogInformation("Carrito activo vacío eliminado para el usuario {UsuarioId}", usuarioId);
             }
@@ -80,8 +80,8 @@ namespace GestorInventario.Application.Services.Generic_Services
 
             try
             {
-                var resultado = await _carritoRepository.ObtenerCarritoUsuario(userId);
-                var carrito = resultado.Data;
+                var carrito = await _carritoRepository.ObtenerCarritoUsuario(userId);
+              
                 if (carrito == null)
                 {
                     carrito = new Pedido
@@ -108,11 +108,11 @@ namespace GestorInventario.Application.Services.Generic_Services
         public async Task<OperationResult<string>> Incremento(int id)
         {
             
-                var resultado = await _carritoRepository.ItemsDelCarrito(id);
-                var detalle = resultado.Data;
+                var detalle = await _carritoRepository.ItemsDelCarrito(id);
+               
                 if (detalle == null)
                 {
-                    return OperationResult<string>.Fail(resultado.Message);
+                _logger.LogError("Item no encontrado");
                 }
 
                 detalle.Cantidad++;
@@ -142,7 +142,7 @@ namespace GestorInventario.Application.Services.Generic_Services
             }
 
             // Validar existencia del producto y stock
-            var producto = await _productoRepository.ObtenerProductoPorId(idProducto);
+            var producto = await _productoRepository.ObtenerProductoPorIdAsync(idProducto);
             if (producto == null)
             {
                 return OperationResult<string>.Fail("El producto no existe.");
@@ -186,11 +186,11 @@ namespace GestorInventario.Application.Services.Generic_Services
         public async Task<OperationResult<string>> Decremento(int id)
         {
            
-                var resultado = await _carritoRepository.ItemsDelCarrito(id);
-                var detalle = resultado.Data;
+                var detalle = await _carritoRepository.ItemsDelCarrito(id);
+              
                 if (detalle == null)
                 {
-                    return OperationResult<string>.Fail(resultado.Message);
+                _logger.LogError("Item no encontrado");
                 }
 
                 detalle.Cantidad--;

@@ -91,19 +91,19 @@ namespace GestorInventario.Application.Services.Generic_Services
             if (usuario == null)
                 return OperationResult<Usuario>.Fail("El usuario no existe");
 
-            if (usuario.Data.EmailVerificationToken != cambio.Token)
+            if (usuario.EmailVerificationToken != cambio.Token)
                 return OperationResult<Usuario>.Fail("El token no es valido");
 
-            if (usuario.Data.FechaEnlaceCambioPass < DateTime.Now || usuario.Data.FechaExpiracionContrasenaTemporal < DateTime.Now)
+            if (usuario.FechaEnlaceCambioPass < DateTime.Now || usuario.FechaExpiracionContrasenaTemporal < DateTime.Now)
             {
-                usuario.Data.FechaEnlaceCambioPass = null;
-                usuario.Data.FechaExpiracionContrasenaTemporal = null;
-                usuario.Data.TemporaryPassword = null;
-                await _userRepository.ActualizarUsuarioAsync(usuario.Data);
+                usuario.FechaEnlaceCambioPass = null;
+                usuario.FechaExpiracionContrasenaTemporal = null;
+                usuario.TemporaryPassword = null;
+                await _userRepository.ActualizarUsuarioAsync(usuario);
 
                 return OperationResult<Usuario>.Fail("El enlace y contraseña temporal han expirado. Solicite una nueva");
             }    
-            return OperationResult<Usuario>.Ok("Token valido", usuario.Data);
+            return OperationResult<Usuario>.Ok("Token valido", usuario);
 
         }
         public async Task<OperationResult<string>> ChangePassword(string passwordAnterior, string passwordActual)
@@ -115,15 +115,15 @@ namespace GestorInventario.Application.Services.Generic_Services
                 {
                     return OperationResult<string>.Fail("Usuario no encontrado");
                 }
-                var anteriorpass = _hashService.Hash(passwordAnterior, usuarioDB.Data.Salt);
-                if (usuarioDB.Data.Password != anteriorpass.Hash)
+                var anteriorpass = _hashService.Hash(passwordAnterior, usuarioDB.Salt);
+                if (usuarioDB.Password != anteriorpass.Hash)
                 {
                     return OperationResult<string>.Fail("Contraseña anterior incorrecta");
                 }
                 var actualPassword = _hashService.Hash(passwordActual);
-                usuarioDB.Data.Password = actualPassword.Hash;
-                usuarioDB.Data.Salt = actualPassword.Salt;
-                await _userRepository.ActualizarUsuarioAsync(usuarioDB.Data);
+                usuarioDB.Password = actualPassword.Hash;
+                usuarioDB.Salt = actualPassword.Salt;
+                await _userRepository.ActualizarUsuarioAsync(usuarioDB);
 
                 return OperationResult<string>.Ok("Contraseña cambiada con exito");
           
@@ -154,24 +154,23 @@ namespace GestorInventario.Application.Services.Generic_Services
         public async Task<OperationResult<string>> EnviarCorreoResetAsync(string email)
         {
             if (string.IsNullOrWhiteSpace(email) || !new EmailAddressAttribute().IsValid(email))
-            {
                 return OperationResult<string>.Fail("El correo proporcionado no es valido");
-            }
+
             var user = await _userRepository.ObtenerEmail(email);
+
+            if (user == null)
+                return OperationResult<string>.Fail("No existe ningún usuario con ese correo");
 
             var userEmail = await _emailService.SendEmailAsyncResetPassword(new EmailDto
             {
                 ToEmail = email
             }, user.Id);
 
-            if (userEmail.Success)
-            {
-                _logger.LogInformation("Email de restablecimiento de contraseña enviado con éxito");
-            }
+            if (!userEmail.Success)
+                _logger.LogError("Error al enviar el email: {error}", userEmail.Message);
             else
-            {
-                _logger.LogError("Error al enviar el email: {error}", userEmail);
-            }
+                _logger.LogInformation("Email de restablecimiento de contraseña enviado con éxito");
+
             return OperationResult<string>.Ok("", userEmail.Data);
         }
     }

@@ -147,8 +147,8 @@ namespace GestorInventario.Middlewares.Strategis
                 return;
             }
 
-            var newAccessToken = await tokenService.GenerateTokenAsync(user.Data);
-            var newRefreshToken = await refreshTokenMethod.GenerarTokenRefresco(user.Data);
+            var newAccessToken = await tokenService.GenerateTokenAsync(user);
+            var newRefreshToken = await refreshTokenMethod.GenerarTokenRefresco(user);
 
             context.Response.Cookies.Append("auth", newAccessToken.Token, new CookieOptions
             {

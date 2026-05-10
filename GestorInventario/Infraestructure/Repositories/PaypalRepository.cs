@@ -1,8 +1,6 @@
-﻿
-using GestorInventario.Domain.Models;
+﻿using GestorInventario.Domain.Models;
 using GestorInventario.enums;
 using GestorInventario.Infraestructure.Utils;
-
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using Microsoft.EntityFrameworkCore;
@@ -19,8 +17,7 @@ namespace GestorInventario.Infraestructure.Repositories
   
         public PaypalRepository(GestorInventarioContext context, ILogger<PaypalRepository> logger)
         {
-            _context = context;
-           
+            _context = context;          
             _logger = logger;          
          
         }
@@ -37,7 +34,7 @@ namespace GestorInventario.Infraestructure.Repositories
             return plan;
         }
    
-        public async Task<List<UserSubscription>> SusbcripcionesUsuario(string planId)
+        public async Task<List<UserSubscription>> ObtenerSusbcripcionesUsuario(string planId)
         {
             return await _context.UserSubscriptions
                 .Where(us => us.PaypalPlanId == planId)
@@ -56,7 +53,9 @@ namespace GestorInventario.Infraestructure.Repositories
                    .Where(x => x.UserId == usuarioId);
             return queryable;
         }
-
+        public async Task<Rembolso> ObtenRembolsoAsync(string numeroPedido) => await _context.Rembolsos.FirstOrDefaultAsync(x => x.NumeroPedido == numeroPedido);
+        public async Task<SubscriptionDetail> ObtenerSubscriptionIdAsync(string subscriptionId) => await _context.SubscriptionDetails.FirstOrDefaultAsync(s => s.SubscriptionId == subscriptionId);
+        public async Task<UserSubscription> ObtenerSubscricionUsuarioAsync(int userId, string subscriptionId) => await _context.UserSubscriptions.FirstOrDefaultAsync(us => us.UserId == userId && us.SubscriptionId == subscriptionId);
         public async Task<OperationResult<PlanDetail>> AgregarPlanAsync(PlanDetail plan)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
@@ -114,9 +113,8 @@ namespace GestorInventario.Infraestructure.Repositories
                 return OperationResult<UserSubscription>.Ok("Detalles de subscripcion creada", subscripcion);
             });
         }
-        public async Task<Rembolso> ObtenRembolsoAsync(string numeroPedido) => await _context.Rembolsos.FirstOrDefaultAsync(x => x.NumeroPedido == numeroPedido);
-        public async Task<SubscriptionDetail> ObtenerSubscriptionIdAsync(string subscriptionId) => await _context.SubscriptionDetails.FirstOrDefaultAsync(s => s.SubscriptionId == subscriptionId);
-        public async Task<UserSubscription> ObtenerSubscricionUsuarioAsync(int userId, string subscriptionId) => await _context.UserSubscriptions.FirstOrDefaultAsync(us => us.UserId == userId && us.SubscriptionId == subscriptionId);
+      
+        
         // Método para crear la lista de categorías a partir de la enumeración
         public List<string> GetCategoriesFromEnum()
         {

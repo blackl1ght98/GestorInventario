@@ -152,19 +152,19 @@ namespace GestorInventario.Infraestructure.Controllers
                 int usuarioAEditarId = id == 0 ? userIdClaim : id;
 
                
-                var resultado = await _policyExecutor.ExecutePolicyAsync(
-                    () => _unitOfWork.UserRepository.ObtenerUsuarioParaEdicionAsync(usuarioAEditarId));
+                var usuario = await _policyExecutor.ExecutePolicyAsync(
+                    () => _unitOfWork.UserRepository.ObtenerUsuarioPorId(usuarioAEditarId));
 
-                if (!resultado.Success || resultado.Data == null)
+                if ( usuario == null)
                 {
-                    TempData["ErrorMessage"] = resultado.Message ?? "Usuario no encontrado";
+                    TempData["ErrorMessage"] =  "Usuario no encontrado";
                     _logger.LogWarning("Intento de editar usuario inexistente con ID {UserId}", id);
                     return RedirectToAction(nameof(Index));
                 }
 
-                var usuarioDominio = resultado.Data;
+               
             
-                var viewModel = _mapper.Map<UsuarioEditViewModel>(usuarioDominio);
+                var viewModel = _mapper.Map<UsuarioEditViewModel>(usuario);
                 // Marcamos si es edición propia
                 viewModel.EsEdicionPropia = (usuarioAEditarId == userIdClaim);            
                 return View(viewModel);
@@ -211,13 +211,25 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                var (user, mensaje) = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.UserRepository.ObtenerUsuarioConPedido(id));
-                if (user == null)
+                var usuario = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.UserRepository.ObtenerUsuarioPorId(id));
+                if (usuario == null)
                 {
                     _logger.LogCritical("Se intento manipular la url por el usuario: " + _currentUserAccessor.GetCurrentUserId());
                     return RedirectToAction(nameof(Index));
                 }
-                return View(user);
+                var viewModel = new EliminarUsuarioViewModel
+                {
+                    Id = usuario.Id,
+                    NombreCompleto = usuario.NombreCompleto,
+                    Email = usuario.Email,
+                    Direccion = usuario.Direccion,
+                    Ciudad = usuario.Ciudad,
+                    CodigoPostal = usuario.CodigoPostal,
+                    FechaNacimiento = usuario.FechaNacimiento,
+                    FechaRegistro = usuario.FechaRegistro
+                };
+
+                return View(viewModel);
             }
             catch (Exception ex)
             {
@@ -308,7 +320,7 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                 var queryable = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles());
 
-                var paginationResult = await _policyExecutor.ExecutePolicyAsync(()=>_paginationHelper.PaginarAsync(queryable.Data,paginacion));
+                var paginationResult = await _policyExecutor.ExecutePolicyAsync(()=>_paginationHelper.PaginarAsync(queryable,paginacion));
 
                 var viewModel = new RolesViewModel
                 {
@@ -349,7 +361,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     TotalPaginas = paginationResult.TotalPaginas,
                     PaginaActual = paginacion.Pagina,
                     RolId = id,
-                    TodosLosRoles = todosLosRoles.Data.ToList(),
+                    TodosLosRoles = todosLosRoles.ToList(),
                 };
 
                 return View(viewModel);
@@ -372,12 +384,12 @@ namespace GestorInventario.Infraestructure.Controllers
                 var usuario = await _policyExecutor.ExecutePolicyAsync(() =>
                     _unitOfWork.UserRepository.ObtenerUsuarioPorId(request.Id));
 
-                if (usuario?.Data == null)
+                if (usuario == null)
                 {
-                    return Json(new { success = false, errorMessage = usuario?.Message ?? "Usuario no encontrado" });
+                    return Json(new { success = false, errorMessage =  "Usuario no encontrado" });
                 }
 
-                if (usuario.Data.IdRolNavigation == null)
+                if (usuario.IdRolNavigation == null)
                 {
                     return Json(new { success = false, errorMessage = "El rol actual del usuario no está definido." });
                 }
@@ -385,13 +397,13 @@ namespace GestorInventario.Infraestructure.Controllers
                 // Obtener todos los roles disponibles
                 var rolesDomainResult = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles()); ;
 
-                if (rolesDomainResult == null || !rolesDomainResult.Data.Any())
+                if (rolesDomainResult == null || !rolesDomainResult.Any())
                 {
                     return Json(new { success = false, errorMessage = "No se encontraron roles disponibles." });
                 }
 
                 // Mapear correctamente la lista
-                var roles = _mapper.Map<List<Role>>(rolesDomainResult.Data);
+                var roles = _mapper.Map<List<Role>>(rolesDomainResult);
 
                 // Buscar el nuevo rol
                 var nuevoRol = roles.FirstOrDefault(r => r.Id == request.RolId);
@@ -401,7 +413,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 }
 
                 // Evitar cambio innecesario
-                if (usuario.Data.IdRol == nuevoRol.Id)
+                if (usuario.IdRol == nuevoRol.Id)
                 {
                     return Json(new { success = false, errorMessage = "El usuario ya tiene el rol seleccionado." });
                 }
@@ -426,7 +438,7 @@ namespace GestorInventario.Infraestructure.Controllers
         private void CargarRolesEnViewData()
         {
             var roles = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles()); 
-            ViewData["Roles"] = new SelectList(roles.Data, "Id", "Nombre");
+            ViewData["Roles"] = new SelectList(roles, "Id", "Nombre");
         }
         [HttpGet]
         [Authorize(Roles = "Administrador")]
@@ -435,10 +447,10 @@ namespace GestorInventario.Infraestructure.Controllers
             var usuario = await _policyExecutor.ExecutePolicyAsync(() =>
                 _unitOfWork.AdminRepository.ObtenerUsuarioConProveedoresYPedidosAsync(id));
 
-            if (usuario.Data is null)
+            if (usuario is null)
                 return Json(new { success = false, message = "Usuario no encontrado" });
 
-            if (!usuario.Data.Proveedores.Any())
+            if (!usuario.Proveedores.Any())
                 return Json(new { success = false, message = "Este usuario no tiene proveedores asignados" });
 
             var usuarios = _unitOfWork.AdminRepository.ObtenerUsuarios()

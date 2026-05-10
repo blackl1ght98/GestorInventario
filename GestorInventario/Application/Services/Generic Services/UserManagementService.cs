@@ -47,7 +47,7 @@ namespace GestorInventario.Application.Services.Generic_Services
             var usuarioEf = _mapper.Map<Usuario>(model);
             usuarioEf.Password = resultadoHash.Hash;
             usuarioEf.Salt = resultadoHash.Salt;
-
+            usuarioEf.FechaRegistro = DateTime.Now;
             var resultadoGuardado = await _usuarioRepository.AgregarUsuarioAsync(usuarioEf);
             if (!resultadoGuardado.Success)
                 return OperationResult<string>.Fail(resultadoGuardado.Message);
@@ -64,28 +64,28 @@ namespace GestorInventario.Application.Services.Generic_Services
         public async Task<OperationResult<string>> EditarUsuarioAsync(UsuarioEditViewModel userVM)
         {
             var resultado = await _usuarioRepository.ObtenerUsuarioPorId(userVM.Id);
-            if (resultado?.Data is null)
-                return OperationResult<string>.Fail(resultado?.Message ?? "Usuario no encontrado");
+            if (resultado is null)
+                return OperationResult<string>.Fail("Usuario no encontrado");
 
-            var usuarioEf = resultado.Data;
-            string emailActual = usuarioEf.Email;
+           
+            string emailActual = resultado.Email;
 
-            _mapper.Map(userVM, usuarioEf);
+            _mapper.Map(userVM, resultado);
 
             if (emailActual != userVM.Email)
             {
-                usuarioEf.Email = userVM.Email;
-                usuarioEf.ConfirmacionEmail = false;
+                resultado.Email = userVM.Email;
+                resultado.ConfirmacionEmail = false;
             }
 
-            var resultadoEdicion = await _usuarioRepository.ActualizarUsuarioAsync(usuarioEf);
+            var resultadoEdicion = await _usuarioRepository.ActualizarUsuarioAsync(resultado);
             if (!resultadoEdicion.Success)
                 return OperationResult<string>.Fail(resultadoEdicion.Message);
 
             if (emailActual != userVM.Email)
             {
                 var correo = await _emailService.SendEmailAsyncRegister(
-                    new EmailDto { ToEmail = userVM.Email }, usuarioEf.Id);
+                    new EmailDto { ToEmail = userVM.Email }, resultado.Id);
 
                 if (!correo.Success)
                     _logger.LogWarning("Error al enviar correo de confirmación: {Error}", correo.Message);
@@ -99,13 +99,13 @@ namespace GestorInventario.Application.Services.Generic_Services
         {
             var usuario = await _usuarioRepository.ObtenerUsuarioConProveedoresYPedidosAsync(id);
 
-            if (usuario.Data is null)
+            if (usuario is null)
                 return OperationResult<string>.Fail("El usuario no existe");
 
-            if (usuario.Data.Pedidos.Any())
+            if (usuario.Pedidos.Any())
                 return OperationResult<string>.Fail("El usuario no se puede eliminar porque tiene pedidos asociados");
 
-            if (usuario.Data.Proveedores.Any())
+            if (usuario.Proveedores.Any())
                 return OperationResult<string>.Fail("El usuario no se puede eliminar porque tiene proveedores asociados");
 
             return await _adminRepository.EliminarUsuario(id);
@@ -114,22 +114,22 @@ namespace GestorInventario.Application.Services.Generic_Services
         {
             var usuarioDB = await _usuarioRepository.ObtenerUsuarioPorId(confirmar.UserId);
 
-            if (usuarioDB is null || usuarioDB.Data is null)
+            if (usuarioDB is null)
             {
 
                 _logger.LogWarning("Intento de confirmar un usuario inexistente con ID {UserId}", confirmar.UserId);
                 return OperationResult<string>.Fail("Error al confirmar el usuario. Intentelo de nuevo mas tarde"); 
             }
 
-            if (usuarioDB.Data.ConfirmacionEmail != false)
+            if (usuarioDB.ConfirmacionEmail != false)
             {
              
-                _logger.LogInformation($"El usuario con email {usuarioDB.Data.Email} ha intentado confirmar su correo estando confirmado");
+                _logger.LogInformation($"El usuario con email {usuarioDB.Email} ha intentado confirmar su correo estando confirmado");
                 return OperationResult<string>.Fail("Usuario ya validado");
             }
-            if (usuarioDB.Data.EmailVerificationToken != confirmar.Token)
+            if (usuarioDB.EmailVerificationToken != confirmar.Token)
             {
-                _logger.LogCritical("Intento de manipulacion del token por el usuario: " + usuarioDB.Data.Id);
+                _logger.LogCritical("Intento de manipulacion del token por el usuario: " + usuarioDB.Id);
                 return OperationResult<string>.Fail("Ocurrio un error al confirmar el usuario");
             }
             await _usuarioRepository.ConfirmEmail(new ConfirmRegistrationDto

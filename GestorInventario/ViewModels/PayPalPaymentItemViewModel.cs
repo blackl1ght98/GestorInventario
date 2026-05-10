@@ -1,6 +1,6 @@
 ﻿namespace GestorInventario.ViewModels
 {
-    internal class PayPalPaymentItemViewModel
+    public class PayPalPaymentItemViewModel
     {
         public string ItemName { get; set; }
         public string ItemSku { get; set; }
