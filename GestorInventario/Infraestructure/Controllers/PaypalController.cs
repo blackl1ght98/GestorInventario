@@ -630,18 +630,25 @@ namespace GestorInventario.Infraestructure.Controllers
                 var detallesSuscripcion = await _subscription.CreateSubscriptionDetailAsync(subscriptionDetails, planId);
 
               
+               
                 int trialIntervalCount = detallesSuscripcion.TrialIntervalCount ?? 0;
                 int trialTotalCycles = detallesSuscripcion.TrialTotalCycles ?? 0;
                 int trialDays = trialIntervalCount > 0 ? trialIntervalCount * trialTotalCycles : 0;
 
-                DateTime trialEndDate = DateTime.MinValue;
-            
+                bool tieneTrialConfigurado = detallesSuscripcion.TotalCycles == 1 || trialDays > 0;
 
-                if (detallesSuscripcion.TrialCyclesCompleted == 1 && detallesSuscripcion.TrialCyclesRemaining == 0)
-                {
-                    trialEndDate = detallesSuscripcion.StartTime.AddDays(trialDays);
-                   
-                }
+                DateTime now = DateTime.UtcNow;
+
+                 bool enPeriodoPruebaActivo =
+                 detallesSuscripcion.Status == "ACTIVE" &&
+                 detallesSuscripcion.NextBillingTime.HasValue &&
+                 DateTime.UtcNow < detallesSuscripcion.NextBillingTime.Value &&
+                 detallesSuscripcion.LastPaymentTime <= new DateTime(1900, 1, 1);
+
+
+
+
+
 
                 var viewModel = new SuscripcionDetalleViewModel
                 {
@@ -653,7 +660,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     PayerId = detallesSuscripcion.PayerId,
                     StartDate = detallesSuscripcion.StartTime,
                     StatusUpdateDate = detallesSuscripcion.StatusUpdateTime,
-                    TrialEndDate = trialEndDate != DateTime.MinValue ? trialEndDate : null,
+                   // TrialEndDate = trialEndDate != DateTime.MinValue ? trialEndDate : null,
                     NextBillingTime = detallesSuscripcion.NextBillingTime,
                     LastPaymentTime = detallesSuscripcion.LastPaymentTime,
                     FinalPaymentTime = detallesSuscripcion.FinalPaymentTime,
@@ -669,9 +676,8 @@ namespace GestorInventario.Infraestructure.Controllers
                                     detallesSuscripcion.CyclesRemaining > 0 ||
                                     detallesSuscripcion.TotalCycles > 0 ||
                                     trialDays > 0,
-                    EnPeriodoPrueba = detallesSuscripcion.TrialCyclesCompleted == 1 && trialDays > 0,
-
-                    MostrarPeriodoPrueba = trialEndDate != DateTime.MinValue && trialDays > 0
+                    EnPeriodoPrueba = enPeriodoPruebaActivo
+                  
                 };
 
                 return View(viewModel);
@@ -684,6 +690,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
+
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> TodasSuscripciones([FromQuery] Paginacion paginacion)
@@ -701,16 +708,17 @@ namespace GestorInventario.Infraestructure.Controllers
                     paginacion.CantidadAMostrar
                 );
 
-                // Consulta base (IQueryable)
-                var queryable = _unitOfWork.PaypalRepository.ObtenerSubscripciones();
+                // CORRECCIÓN: Añadimos OrderByDescending para que las más nuevas salgan primero
+                // Usamos StartTime o StatusUpdateTime según prefieras
+                var queryable = _unitOfWork.PaypalRepository.ObtenerSubscripciones()
+                                           .OrderByDescending(s => s.StartTime);
 
-                // Usamos el helper para paginar (calcula todo: total, items, páginas)
+                // Usamos el helper para paginar sobre la consulta ya ordenada
                 var paginationResult = await _paginationHelper.PaginarAsync(
                     query: queryable,
                     paginacion: paginacion
                 );
 
-                // Construimos el modelo usando directamente el resultado del helper
                 var model = new SuscripcionesPaginadosViewModel
                 {
                     Suscripciones = paginationResult.Items ?? new List<SubscriptionDetail>(),
@@ -731,6 +739,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
+
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> ObtenerSuscripcionUsuario([FromQuery] Paginacion paginacion)

@@ -104,24 +104,62 @@
                     </p>
                 </div>
             </div>
-            @if (Model.EnPeriodoPrueba)
+            <!-- Ciclos y Período de Prueba -->
+            <!-- Ciclos y Período de Prueba -->
+            @if (Model.MostrarCiclos)
             {
-                <div class="alert alert-warning">
-                    <i class="bi bi-clock me-2"></i>
-                    Estás en tu período de prueba de <strong>@Model.TrialDays días</strong>.
-                    Finaliza el <strong>@Model.TrialEndDate?.ToString("dd/MM/yyyy")</strong>.
-                    Tu primer cobro será el <strong>@Model.NextBillingTime?.ToString("dd/MM/yyyy")</strong>.
+                <div class="mt-5 pt-5 border-top">
+                    <h5 class="text-primary border-bottom pb-3 mb-4">
+                        <i class="bi bi-arrow-repeat me-2"></i>Progreso de la Suscripción
+                    </h5>
+                    @{
+                        var porcentaje = Model.TotalCycles > 0
+                        ? (int)Math.Round((decimal)(Model.CyclesCompleted ?? 0) / Model.TotalCycles.Value * 100)
+                        : 0;
+                    }
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span><strong>@Model.CyclesCompleted</strong> de <strong>@Model.TotalCycles</strong> meses completados</span>
+                            <span class="text-muted">@Model.CyclesRemaining meses restantes</span>
+                        </div>
+                        <div class="progress" style="height: 12px;">
+                            <div class="progress-bar bg-success"
+                                 style="width: @porcentaje%"
+                                 role="progressbar">
+                            </div>
+                        </div>
+                        <small class="text-muted mt-1 d-block">
+                            Tu suscripción finaliza el @Model.FinalPaymentTime.ToString("dd/MM/yyyy")
+                        </small>
+                    </div>
+                    @if (Model.EnPeriodoPrueba)
+                    {
+                        <div class="alert alert-warning">
+                            <i class="bi bi-clock me-2"></i>
+                            Estás en tu período de prueba de <strong>@Model.TrialDays días</strong>.
+                            Finaliza el <strong>@Model.TrialEndDate?.ToString("dd/MM/yyyy")</strong>.
+                            Tu primer cobro será el <strong>@Model.NextBillingTime?.ToString("dd/MM/yyyy")</strong>.
+                        </div>
+                    }
+                    else if (Model.MostrarPeriodoPrueba)
+                    {
+                        <div class="alert alert-info">
+                            <i class="bi bi-gift me-2"></i>
+                            Disfrutaste de <strong>@Model.TrialDays días de prueba</strong>
+                            que finalizaron el <strong>@Model.TrialEndDate?.ToString("dd/MM/yyyy")</strong>.
+                            Tu primer cobro fue el <strong>@Model.NextBillingTime?.ToString("dd/MM/yyyy")</strong>.
+                        </div>
+                    }
                 </div>
             }
-            else if (Model.MostrarPeriodoPrueba)
+            else
             {
-                <div class="alert alert-info">
-                    <i class="bi bi-gift me-2"></i>
-                    Disfrutaste de <strong>@Model.TrialDays días de prueba</strong>
-                    que finalizaron el <strong>@Model.TrialEndDate?.ToString("dd/MM/yyyy")</strong>.
-                    Tu primer cobro fue el <strong>@Model.NextBillingTime?.ToString("dd/MM/yyyy")</strong>.
+                <div class="alert alert-info mt-5">
+                    <i class="bi bi-info-circle me-2"></i>No hay detalles del ciclo disponibles.
                 </div>
             }
+
+
         </div>
     </div>
 </div>

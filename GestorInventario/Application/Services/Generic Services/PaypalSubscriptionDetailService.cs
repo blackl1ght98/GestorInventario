@@ -87,23 +87,23 @@ namespace GestorInventario.Application.Services.Generic_Services
                     }
                 }
 
-                // 3. Recálculo de NextBillingTime (solo si es necesario)
-                bool shouldRecalculateNextBilling =
-                    detallesSuscripcion.Status == "ACTIVE" &&
-                    detallesSuscripcion.CyclesCompleted == 1 &&
-                    detallesSuscripcion.CyclesRemaining == 0 &&
-                    plan?.TrialTotalCycles > 0 &&
-                    (detallesSuscripcion.NextBillingTime == minSqlDate ||
-                     detallesSuscripcion.NextBillingTime < DateTime.UtcNow.AddDays(7));
+                //// 3. Recálculo de NextBillingTime (solo si es necesario)
+                //bool shouldRecalculateNextBilling =
+                //    detallesSuscripcion.Status == "ACTIVE" &&
+                //    detallesSuscripcion.CyclesCompleted == 1 &&
+                //    detallesSuscripcion.CyclesRemaining == 0 &&
+                //    plan?.TrialTotalCycles > 0 &&
+                //    (detallesSuscripcion.NextBillingTime == minSqlDate ||
+                //     detallesSuscripcion.NextBillingTime < DateTime.UtcNow.AddDays(7));
 
-                if (shouldRecalculateNextBilling)
-                {
-                    detallesSuscripcion.NextBillingTime = detallesSuscripcion.StartTime.AddDays(
-                        (double)detallesSuscripcion.TrialIntervalCount * (double)detallesSuscripcion.TrialTotalCycles + 1);
+                //if (shouldRecalculateNextBilling)
+                //{
+                //    detallesSuscripcion.NextBillingTime = detallesSuscripcion.StartTime.AddDays(
+                //        (double)detallesSuscripcion.TrialIntervalCount * (double)detallesSuscripcion.TrialTotalCycles + 1);
 
-                    _logger.LogInformation("Recalculando NextBillingTime después del trial para suscripción {SubscriptionId}",
-                        detallesSuscripcion.SubscriptionId);
-                }
+                //    _logger.LogInformation("Recalculando NextBillingTime después del trial para suscripción {SubscriptionId}",
+                //        detallesSuscripcion.SubscriptionId);
+                //}
 
                 // 4. Guardar en base de datos
                 await _paypalService.SaveOrUpdateSubscriptionDetailsAsync(detallesSuscripcion);
