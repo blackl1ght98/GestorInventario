@@ -14,15 +14,13 @@ namespace GestorInventario.MetodosExtension
          * global.
          * T entity esto quire decir que admite cualquier tipo de entidad(tabla).
          * where T: class--> es una restriccion de tipo que asegura que este metodo solo pueda ser usado en clases
-         */
-       
-      
+         */             
         public static void UpdateEntity<T>(this DbContext context, T entity, bool saveImmediately = true) where T : class
         {
             context.Set<T>().Update(entity);
             if (saveImmediately) context.SaveChanges();
         }
-        public static void UpdateRangeEntity<T>( this DbContext context,IEnumerable<T> entities, bool saveImmediately = true) where T : class
+        public static void UpdateRangeEntity<T>(this DbContext context,IEnumerable<T> entities, bool saveImmediately = true) where T : class
         {
             context.Set<T>().UpdateRange(entities);
 

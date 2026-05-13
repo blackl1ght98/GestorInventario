@@ -354,7 +354,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                         existingSubscription.TrialTotalCycles == subscriptionDetails.TrialTotalCycles &&
                         existingSubscription.TrialFixedPrice == subscriptionDetails.TrialFixedPrice
                     );
-
+              
                     if (hasChanges)
                     {
                         await _paypalRepository.ActualizarDetallesSubscripcionAsync(subscriptionDetails);

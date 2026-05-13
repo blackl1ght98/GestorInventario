@@ -1,24 +1,7 @@
-﻿@using Newtonsoft.Json
-@using System.Globalization
-@model GestorInventario.Domain.Models.SubscriptionDetail
+﻿@model GestorInventario.ViewModels.SuscripcionDetalleViewModel
 
 @{
     ViewData["Title"] = "Detalles de la Suscripción";
-
-    DateTime trialEndDate = DateTime.MinValue;
-    DateTime nextBillingTime = DateTime.MinValue;
-    int trialIntervalCount = Model.TrialIntervalCount ?? 0;
-    int trialTotalCycles = Model.TrialTotalCycles ?? 0;
-    int trialDays = trialIntervalCount > 0 ? trialIntervalCount * trialTotalCycles : 0;
-
-    DateTime startDate = Model.StartTime;
-    DateTime statusUpdateDate = Model.StatusUpdateTime;
-
-    if (Model.CyclesCompleted == 1 && Model.CyclesRemaining == 0)
-    {
-        trialEndDate = startDate.AddDays(trialDays);
-        nextBillingTime = trialEndDate.AddDays(1);
-    }
 }
 
 <div class="container my-5">
@@ -32,7 +15,7 @@
 
         <div class="card-body p-5">
 
-            <!-- Estado actual (CORREGIDO) -->
+            <!-- Estado actual -->
             <div class="text-center mb-5 bg-info">
                 <span class="badge fs-5 px-5 py-3">
                     <i class="bi bi-circle-fill me-2"></i>@Model.Status
@@ -51,12 +34,14 @@
                         <p><strong>ID del Plan:</strong> @Model.PlanId</p>
                     </div>
                     <div class="mb-4">
-                        <p><strong>Fecha de Inicio:</strong> @startDate.ToString("dd/MM/yyyy HH:mm:ss")</p>
+                        <p><strong>Fecha de Inicio:</strong> @Model.StartDate.ToString("dd/MM/yyyy HH:mm:ss")</p>
                         <p>
                             <strong>Fecha de Actualización:</strong>
-                            @(statusUpdateDate.Year == 1753 ? "Información no disponible" : statusUpdateDate.ToString("dd/MM/yyyy HH:mm:ss"))
+                            @(Model.StatusUpdateDate.Year == 1753
+                                                        ? "Información no disponible"
+                                                        : Model.StatusUpdateDate.ToString("dd/MM/yyyy HH:mm:ss"))
                         </p>
-                        <p><strong>Días de Prueba:</strong> @trialDays</p>
+                        <p><strong>Días de Prueba:</strong> @Model.TrialDays</p>
                     </div>
                 </div>
 
@@ -82,9 +67,10 @@
                 <div class="col-md-6">
                     <p><strong>Balance Pendiente:</strong> @Model.OutstandingBalance @Model.OutstandingCurrency</p>
                     <p>
+                      
                         <strong>Próximo Pago:</strong>
-                        @(Model.NextBillingTime != DateTime.MinValue
-                                                ? Model.NextBillingTime
+                        @(Model.NextBillingTime.HasValue
+                                                ? Model.NextBillingTime.Value.ToString("dd/MM/yyyy HH:mm:ss")
                                                 : "Información no disponible")
                     </p>
                 </div>
@@ -101,7 +87,6 @@
                             <span class="text-muted">No hay información disponible</span>
                         }
                     </p>
-
                     <p>
                         <strong>Fecha Final de Pago:</strong><br />
                         @if (Model.FinalPaymentTime.Year >= 2030)
@@ -119,68 +104,22 @@
                     </p>
                 </div>
             </div>
-
-            <!-- Ciclos y Período de Prueba -->
-            @if (Model.CyclesCompleted > 0 || Model.CyclesRemaining > 0 || Model.TotalCycles > 0 || trialDays > 0)
+            @if (Model.EnPeriodoPrueba)
             {
-                <div class="mt-5 pt-5 border-top">
-                    <h5 class="text-primary border-bottom pb-3 mb-4">
-                        <i class="bi bi-arrow-repeat me-2"></i>Detalles del Ciclo
-                    </h5>
-
-                    <div class="row text-center g-4">
-                        <div class="col-md-4">
-                            <div class="bg-light p-4 rounded-3">
-                                <p class="text-muted mb-1">Ciclos Completados</p>
-                                <h4 class="fw-bold text-success">@Model.CyclesCompleted</h4>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="bg-light p-4 rounded-3">
-                                <p class="text-muted mb-1">Ciclos Restantes</p>
-                                <h4 class="fw-bold">@Model.CyclesRemaining</h4>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="bg-light p-4 rounded-3">
-                                <p class="text-muted mb-1">Total de Ciclos</p>
-                                <h4 class="fw-bold">@Model.TotalCycles</h4>
-                            </div>
-                        </div>
-                    </div>
-
-                    @if (trialEndDate != DateTime.MinValue && trialDays > 0)
-                    {
-                        <div class="mt-5">
-                            <h5 class="text-primary mb-4">Período de Prueba</h5>
-                            <div class="row text-center g-4">
-                                <div class="col-md-4">
-                                    <div class="bg-light p-4 rounded-3">
-                                        <p class="text-muted mb-1">Días de Prueba</p>
-                                        <h4 class="fw-bold text-success">@trialDays</h4>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="bg-light p-4 rounded-3">
-                                        <p class="text-muted mb-1">Fin del Período</p>
-                                        <h5 class="fw-semibold">@trialEndDate.ToString("dd/MM/yyyy HH:mm:ss")</h5>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="bg-light p-4 rounded-3">
-                                        <p class="text-muted mb-1">Primer Cobro</p>
-                                        <h5 class="fw-semibold">@nextBillingTime.ToString("dd/MM/yyyy HH:mm:ss")</h5>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    }
+                <div class="alert alert-warning">
+                    <i class="bi bi-clock me-2"></i>
+                    Estás en tu período de prueba de <strong>@Model.TrialDays días</strong>.
+                    Finaliza el <strong>@Model.TrialEndDate?.ToString("dd/MM/yyyy")</strong>.
+                    Tu primer cobro será el <strong>@Model.NextBillingTime?.ToString("dd/MM/yyyy")</strong>.
                 </div>
             }
-            else
+            else if (Model.MostrarPeriodoPrueba)
             {
-                <div class="alert alert-info mt-5">
-                    <i class="bi bi-info-circle me-2"></i>No hay detalles del ciclo disponibles.
+                <div class="alert alert-info">
+                    <i class="bi bi-gift me-2"></i>
+                    Disfrutaste de <strong>@Model.TrialDays días de prueba</strong>
+                    que finalizaron el <strong>@Model.TrialEndDate?.ToString("dd/MM/yyyy")</strong>.
+                    Tu primer cobro fue el <strong>@Model.NextBillingTime?.ToString("dd/MM/yyyy")</strong>.
                 </div>
             }
         </div>

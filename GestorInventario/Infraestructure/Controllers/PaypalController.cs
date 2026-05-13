@@ -7,6 +7,7 @@ using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.PaginacionLogica;
+using GestorInventario.ViewModels;
 using GestorInventario.ViewModels.Paypal;
 using GestorInventario.ViewModels.product;
 using Microsoft.AspNetCore.Authorization;
@@ -625,14 +626,56 @@ namespace GestorInventario.Infraestructure.Controllers
                     return RedirectToAction("Error", "Home");
                 }
 
-                // 3. Crear/actualizar el SubscriptionDetail (esto ya hace el mapeo y lógica)
+                // 3. Crear/actualizar el SubscriptionDetail 
                 var detallesSuscripcion = await _subscription.CreateSubscriptionDetailAsync(subscriptionDetails, planId);
 
-                // 4. Guardar o actualizar en BD
-                await _paypalService.SaveOrUpdateSubscriptionDetailsAsync(detallesSuscripcion);
+              
+                int trialIntervalCount = detallesSuscripcion.TrialIntervalCount ?? 0;
+                int trialTotalCycles = detallesSuscripcion.TrialTotalCycles ?? 0;
+                int trialDays = trialIntervalCount > 0 ? trialIntervalCount * trialTotalCycles : 0;
 
-                // 5. Devolver la vista con los datos frescos
-                return View(detallesSuscripcion);
+                DateTime trialEndDate = DateTime.MinValue;
+            
+
+                if (detallesSuscripcion.TrialCyclesCompleted == 1 && detallesSuscripcion.TrialCyclesRemaining == 0)
+                {
+                    trialEndDate = detallesSuscripcion.StartTime.AddDays(trialDays);
+                   
+                }
+
+                var viewModel = new SuscripcionDetalleViewModel
+                {
+                    SubscriptionId = detallesSuscripcion.SubscriptionId,
+                    PlanId = detallesSuscripcion.PlanId,
+                    Status = detallesSuscripcion.Status,
+                    SubscriberName = detallesSuscripcion.SubscriberName,
+                    SubscriberEmail = detallesSuscripcion.SubscriberEmail,
+                    PayerId = detallesSuscripcion.PayerId,
+                    StartDate = detallesSuscripcion.StartTime,
+                    StatusUpdateDate = detallesSuscripcion.StatusUpdateTime,
+                    TrialEndDate = trialEndDate != DateTime.MinValue ? trialEndDate : null,
+                    NextBillingTime = detallesSuscripcion.NextBillingTime,
+                    LastPaymentTime = detallesSuscripcion.LastPaymentTime,
+                    FinalPaymentTime = detallesSuscripcion.FinalPaymentTime,
+                    OutstandingBalance = detallesSuscripcion.OutstandingBalance,
+                    OutstandingCurrency = detallesSuscripcion.OutstandingCurrency,
+                    LastPaymentAmount = detallesSuscripcion.LastPaymentAmount,
+                    LastPaymentCurrency = detallesSuscripcion.LastPaymentCurrency,
+                    TrialDays = trialDays,
+                    CyclesCompleted = detallesSuscripcion.CyclesCompleted,
+                    CyclesRemaining = detallesSuscripcion.CyclesRemaining,
+                    TotalCycles = detallesSuscripcion.TotalCycles,
+                    MostrarCiclos = detallesSuscripcion.CyclesCompleted > 0 ||
+                                    detallesSuscripcion.CyclesRemaining > 0 ||
+                                    detallesSuscripcion.TotalCycles > 0 ||
+                                    trialDays > 0,
+                    EnPeriodoPrueba = detallesSuscripcion.TrialCyclesCompleted == 1 && trialDays > 0,
+
+                    MostrarPeriodoPrueba = trialEndDate != DateTime.MinValue && trialDays > 0
+                };
+
+                return View(viewModel);
+                
             }
             catch (Exception ex)
             {

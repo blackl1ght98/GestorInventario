@@ -1,7 +1,6 @@
 ﻿using GestorInventario.Application.DTOs.Response_paypal.GET;
 using GestorInventario.Interfaces.Application;
 using Newtonsoft.Json;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 
@@ -24,7 +23,6 @@ namespace GestorInventario.Application.Services.External_Sevices
             var tokenUrl = "v1/oauth2/token";
             var byteArray = Encoding.ASCII.GetBytes($"{clientId}:{clientSecret}");
             var authHeader = Convert.ToBase64String(byteArray);
-
             var request = new HttpRequestMessage(HttpMethod.Post, tokenUrl);
             request.Headers.Authorization = new AuthenticationHeaderValue("Basic", authHeader);
             request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
@@ -55,11 +53,11 @@ namespace GestorInventario.Application.Services.External_Sevices
             return (clientId, clientSecret);
         }
         public async Task<T> ExecutePayPalRequestAsync<T>(
-          HttpMethod method,
-          string endpoint,
-          object? content = null,
-          string? rawJsonBody = null,
-          Func<HttpResponseMessage, Task>? onError = null)
+         HttpMethod method,
+         string endpoint,
+         object? content = null,
+         string? rawJsonBody = null,
+         Func<HttpResponseMessage, Task>? onError = null)
         {
             var client = _httpClientFactory.CreateClient("PayPal");
             var (clientId, clientSecret) = GetPaypalCredentials();
@@ -101,7 +99,7 @@ namespace GestorInventario.Application.Services.External_Sevices
         }
         // 1. Para POST/PATCH con objeto (el más común para creación/actualización)
         public async Task<T> ExecutePayPalRequestAsync<T>(
-            HttpMethod method,              // POST, PATCH, etc.
+            HttpMethod method,              
             string endpoint,
             object content,                 // DTO o anónimo → se serializa
             Func<HttpResponseMessage, Task>? onError = null)
@@ -109,7 +107,7 @@ namespace GestorInventario.Application.Services.External_Sevices
             return await ExecutePayPalRequestAsync<T>(method, endpoint, content, null, onError);
         }
 
-        // 2. Para POST/PATCH con body JSON crudo (casos raros como "{}" especial)
+        // 2. Para POST/PATCH con body JSON crudo (casos especiales que la api devuelve "{}" )
         public async Task<T> ExecutePayPalRequestAsync<T>(
             HttpMethod method,
             string endpoint,
@@ -121,7 +119,7 @@ namespace GestorInventario.Application.Services.External_Sevices
 
         // 3. Para GET / DELETE / HEAD (sin body nunca)
         public async Task<T> ExecutePayPalRequestAsync<T>(
-            HttpMethod method,              // GET, DELETE, etc.
+            HttpMethod method,             
             string endpoint,
             Func<HttpResponseMessage, Task>? onError = null)
         {

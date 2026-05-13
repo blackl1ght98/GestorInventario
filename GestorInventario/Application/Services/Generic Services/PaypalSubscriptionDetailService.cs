@@ -53,12 +53,16 @@ namespace GestorInventario.Application.Services.Generic_Services
 
                     LastPaymentCurrency = subscriptionDetails.BillingInfo?.LastPayment?.Amount?.CurrencyCode ?? string.Empty,
 
-                    CyclesCompleted = subscriptionDetails.BillingInfo?.CycleExecutions?.FirstOrDefault()?.CyclesCompleted ?? 0,
-                    CyclesRemaining = subscriptionDetails.BillingInfo?.CycleExecutions?.FirstOrDefault()?.CyclesRemaining ?? 0,
-                    TotalCycles = subscriptionDetails.BillingInfo?.CycleExecutions?.FirstOrDefault()?.TotalCycles ?? 0,
+                    CyclesCompleted = subscriptionDetails.BillingInfo?.CycleExecutions?.LastOrDefault()?.CyclesCompleted ?? 0,
+
+                    CyclesRemaining = subscriptionDetails.BillingInfo?.CycleExecutions?.LastOrDefault()?.CyclesRemaining ?? 0,
+
+                    TotalCycles = subscriptionDetails.BillingInfo?.CycleExecutions?.LastOrDefault()?.TotalCycles ?? 0,
 
                     TrialIntervalUnit = plan?.TrialIntervalUnit,
                     TrialIntervalCount = plan?.TrialIntervalCount ?? 0,
+                    TrialCyclesCompleted= subscriptionDetails.BillingInfo?.CycleExecutions?.FirstOrDefault()?.CyclesCompleted ?? 0,
+                    TrialCyclesRemaining= subscriptionDetails.BillingInfo?.CycleExecutions?.FirstOrDefault()?.CyclesRemaining ?? 0,
                     TrialTotalCycles = plan?.TrialTotalCycles ?? 0,
                     TrialFixedPrice = plan?.TrialFixedPrice ?? 0
                 };

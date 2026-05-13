@@ -105,9 +105,10 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (!result.Success)
                 {
                     TempData["ErrorMessage"] = result.Message;
-                     CargarRolesEnViewData();
+                    CargarRolesEnViewData();
                     return View(model);
                 }
+
                 if (User.IsAdministrador())
                 {
                     return RedirectToAction(nameof(Index));

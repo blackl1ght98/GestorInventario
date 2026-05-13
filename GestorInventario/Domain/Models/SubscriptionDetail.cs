@@ -45,6 +45,10 @@ public partial class SubscriptionDetail
 
     public int? TrialIntervalCount { get; set; }
 
+    public int? TrialCyclesCompleted { get; set; }
+
+    public int? TrialCyclesRemaining { get; set; }
+
     public int? TrialTotalCycles { get; set; }
 
     public decimal? TrialFixedPrice { get; set; }
