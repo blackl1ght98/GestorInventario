@@ -635,20 +635,11 @@ namespace GestorInventario.Infraestructure.Controllers
                 int trialTotalCycles = detallesSuscripcion.TrialTotalCycles ?? 0;
                 int trialDays = trialIntervalCount > 0 ? trialIntervalCount * trialTotalCycles : 0;
 
-                bool tieneTrialConfigurado = detallesSuscripcion.TotalCycles == 1 || trialDays > 0;
-
-                DateTime now = DateTime.UtcNow;
-
                  bool enPeriodoPruebaActivo =
                  detallesSuscripcion.Status == "ACTIVE" &&
                  detallesSuscripcion.NextBillingTime.HasValue &&
                  DateTime.UtcNow < detallesSuscripcion.NextBillingTime.Value &&
                  detallesSuscripcion.LastPaymentTime <= new DateTime(1900, 1, 1);
-
-
-
-
-
 
                 var viewModel = new SuscripcionDetalleViewModel
                 {
@@ -660,7 +651,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     PayerId = detallesSuscripcion.PayerId,
                     StartDate = detallesSuscripcion.StartTime,
                     StatusUpdateDate = detallesSuscripcion.StatusUpdateTime,
-                   // TrialEndDate = trialEndDate != DateTime.MinValue ? trialEndDate : null,
+                 
                     NextBillingTime = detallesSuscripcion.NextBillingTime,
                     LastPaymentTime = detallesSuscripcion.LastPaymentTime,
                     FinalPaymentTime = detallesSuscripcion.FinalPaymentTime,
@@ -708,12 +699,11 @@ namespace GestorInventario.Infraestructure.Controllers
                     paginacion.CantidadAMostrar
                 );
 
-                // CORRECCIÓN: Añadimos OrderByDescending para que las más nuevas salgan primero
-                // Usamos StartTime o StatusUpdateTime según prefieras
+        
                 var queryable = _unitOfWork.PaypalRepository.ObtenerSubscripciones()
                                            .OrderByDescending(s => s.StartTime);
 
-                // Usamos el helper para paginar sobre la consulta ya ordenada
+                
                 var paginationResult = await _paginationHelper.PaginarAsync(
                     query: queryable,
                     paginacion: paginacion

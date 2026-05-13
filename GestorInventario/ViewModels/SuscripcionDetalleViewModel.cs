@@ -13,7 +13,6 @@
         // Fechas ya calculadas
         public DateTime StartDate { get; set; }
         public DateTime StatusUpdateDate { get; set; }
-        public DateTime? TrialEndDate { get; set; }
         public DateTime? NextBillingTime { get; set; }
         public DateTime? LastPaymentTime { get; set; }
         public DateTime FinalPaymentTime { get; set; }
