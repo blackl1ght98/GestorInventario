@@ -69,7 +69,7 @@ namespace GestorInventario.Application.Services
                 Upc = new Upc
                 {
                     Type = barcode,
-                    Code = item.Producto?.UpcCode ?? "N/A"
+                    Code = item.Producto?.CodigoBarras ?? "N/A"
                 },
                 ImageUrl = item.Producto?.Imagen ?? string.Empty,
                 Url = string.Empty

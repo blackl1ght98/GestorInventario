@@ -138,15 +138,15 @@ namespace GestorInventario.Application.Services.Generic_Services
             }
 
             // Calcular el dígito de control según el estándar EAN-13
-            int sumaPosicionesImpares = 0; // Suma de dígitos en posiciones impares (1ª, 3ª, 5ª, ...)
-            int sumaPosicionesPares = 0;   // Suma de dígitos en posiciones pares (2ª, 4ª, 6ª, ...)
+            int sumaPosicionesImpares = 0; 
+            int sumaPosicionesPares = 0;   
             for (int i = 0; i < 12; i++)
             {
-                int digito = digitos[i] - '0'; // Convertir carácter a número (ejemplo: '5' -> 5)
+                int digito = digitos[i] - '0'; 
                 if (i % 2 == 0)
-                    sumaPosicionesImpares += digito; // Sumar dígitos en posiciones impares
+                    sumaPosicionesImpares += digito; 
                 else
-                    sumaPosicionesPares += digito;   // Sumar dígitos en posiciones pares
+                    sumaPosicionesPares += digito;   
             }
 
             // Fórmula EAN-13: suma de impares + (suma de pares * 3)
@@ -176,7 +176,6 @@ namespace GestorInventario.Application.Services.Generic_Services
         {
             try
             {
-                // Validar el parámetro barcode
                 if (string.IsNullOrEmpty(barcode))
                 {
                     _logger.LogError("El código de barras proporcionado es nulo o está vacío.");
@@ -200,43 +199,61 @@ namespace GestorInventario.Application.Services.Generic_Services
                     }
                 };
 
-                // Generar los datos de píxeles del código de barras
                 var pixelData = barcodeWriter.Write(barcode);
                 if (pixelData == null || pixelData.Pixels == null || pixelData.Width <= 0 || pixelData.Height <= 0)
                 {
-                    _logger.LogError("Los datos del código de barras son inválidos (pixelData o Pixels nulo, o dimensiones inválidas) para: {Barcode}", barcode);
+                    _logger.LogError("Los datos del código de barras son inválidos para: {Barcode}", barcode);
                     throw new InvalidOperationException("No se pudo generar la imagen del código de barras.");
                 }
 
-                // Crear una imagen Bitmap a partir de los datos de píxeles
-                var pixels = pixelData.Pixels;
+                // Altura extra para el texto de los números
+                int textAreaHeight = 25;
+                int totalHeight = pixelData.Height + textAreaHeight;
+
                 using var ms = new MemoryStream();
-                using var bitmap = new Bitmap(pixelData.Width, pixelData.Height, PixelFormat.Format32bppRgb);
-                var bitmapData = bitmap.LockBits(new Rectangle(0, 0, pixelData.Width, pixelData.Height), ImageLockMode.WriteOnly, PixelFormat.Format32bppRgb);
 
-                // Copiar los píxeles del código de barras a la memoria del Bitmap
-                // Marshal.Copy traslada los datos de píxeles (pixels, un byte[] en memoria administrada por .NET) 
-                // a la memoria no administrada del Bitmap (bitmapData.Scan0, un IntPtr que apunta a la memoria nativa).
-                // La memoria administrada es gestionada automáticamente por el recolector de basura de .NET, mientras 
-                // que la memoria no administrada es gestionada por el sistema operativo (usada por System.Drawing.Bitmap 
-                // para interactuar con APIs nativas de Windows como GDI+). Marshal.Copy actúa como un puente para copiar 
-                // eficientemente los bytes entre estos dos entornos.
-                Marshal.Copy(pixels, 0, bitmapData.Scan0, pixels.Length);
-                bitmap.UnlockBits(bitmapData);
+                // Bitmap final con espacio para el texto
+                using var bitmapFinal = new Bitmap(pixelData.Width, totalHeight, PixelFormat.Format32bppRgb);
+                using var graphics = Graphics.FromImage(bitmapFinal);
 
-                // Guardar la imagen en formato PNG
-                bitmap.Save(ms, ImageFormat.Png);
+                // Fondo blanco
+                graphics.Clear(Color.White);
+
+                // Dibujar el código de barras en la parte superior
+                using var bitmapBarcode = new Bitmap(pixelData.Width, pixelData.Height, PixelFormat.Format32bppRgb);
+                var bitmapData = bitmapBarcode.LockBits(
+                    new Rectangle(0, 0, pixelData.Width, pixelData.Height),
+                    ImageLockMode.WriteOnly,
+                    PixelFormat.Format32bppRgb);
+
+                Marshal.Copy(pixelData.Pixels, 0, bitmapData.Scan0, pixelData.Pixels.Length);
+                bitmapBarcode.UnlockBits(bitmapData);
+
+                graphics.DrawImage(bitmapBarcode, 0, 0);
+
+                // Dibujar los números debajo del código de barras
+                using var font = new Font("Arial", 10, FontStyle.Regular);
+                using var brush = new SolidBrush(Color.Black);
+
+                var textSize = graphics.MeasureString(barcode, font);
+                float textX = (pixelData.Width - textSize.Width) / 2;
+                float textY = pixelData.Height + (textAreaHeight - textSize.Height) / 2;
+
+                graphics.DrawString(barcode, font, brush, textX, textY);
+
+                // Guardar imagen final
+                bitmapFinal.Save(ms, ImageFormat.Png);
                 var imageBytes = ms.ToArray();
-
-                // Guardar la imagen en el sistema de archivos
+                var folder = "barcodes";
                 _logger.LogDebug("Guardando imagen del código de barras: {Barcode}", barcode);
-                var imagePath = await _gestorArchivos.GuardarArchivo(imageBytes, ".png", "barcodes");
+                var imagePath = await _gestorArchivos.GuardarArchivo(imageBytes, ".png",folder );
+
                 if (string.IsNullOrEmpty(imagePath))
                 {
                     _logger.LogError("No se pudo guardar la imagen del código de barras: {Barcode}", barcode);
                     throw new InvalidOperationException("No se pudo guardar la imagen del código de barras.");
                 }
-
+               
                 return imagePath;
             }
             catch (Exception ex)
@@ -245,7 +262,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                 throw;
             }
         }
-      
+
     }
 }
 

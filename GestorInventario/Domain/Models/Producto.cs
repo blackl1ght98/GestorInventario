@@ -23,7 +23,9 @@ public partial class Producto
 
     public int? IdProveedor { get; set; }
 
-    public string? UpcCode { get; set; }
+    public string? CodigoBarras { get; set; }
+
+    public string? CodigoBarrasImagen { get; set; }
 
     public virtual ICollection<DetallePedido> DetallePedidos { get; set; } = new List<DetallePedido>();
 

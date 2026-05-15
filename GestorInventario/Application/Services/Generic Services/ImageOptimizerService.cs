@@ -142,7 +142,7 @@ namespace GestorInventario.Application.Services
                 await image.SaveAsync(filePath, encoder);
 
                 _logger.LogInformation("Imagen optimizada y guardada: {FilePath}, Tamaño: {Size} bytes", filePath, new FileInfo(filePath).Length);
-                return $"/{folder}/{fileName}";
+                return $"{folder}/{fileName}";
             }
             catch (Exception ex)
             {

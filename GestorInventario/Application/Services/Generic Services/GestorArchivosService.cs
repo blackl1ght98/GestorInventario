@@ -37,29 +37,23 @@ namespace GestorInventario.Application.Services
             return await GuardarArchivo(contenido, extension, carpeta);
         }
 
-        public async Task<string> GuardarArchivo(byte[] contenido, string extension, string carpeta
-            )
+        public async Task<string> GuardarArchivo(byte[] contenido, string extension, string carpeta)
         {
-            // Creamos un nombre aleatorio con la extensión
             var nombreArchivo = $"{Guid.NewGuid()}{extension}";
-            // La ruta será wwwroot/carpeta (en este caso imagenes)
+
             string folder = Path.Combine(env.WebRootPath, carpeta);
 
-            // Si no existe la carpeta la creamos
             if (!Directory.Exists(folder))
             {
                 Directory.CreateDirectory(folder);
             }
 
-            // La ruta donde dejaremos el archivo será la concatenación de la ruta de la carpeta y el nombre del archivo
-            string ruta = Path.Combine(folder, nombreArchivo);
-            // Guardamos el archivo
-            await File.WriteAllBytesAsync(ruta, contenido);
+            string rutaFisica = Path.Combine(folder, nombreArchivo);
 
-            // La url de la ímagen será http o https://dominio/carpeta/nombreimagen
-            var urlActual = $"{httpContextAccessor.HttpContext.Request.Scheme}://{httpContextAccessor.HttpContext.Request.Host}";
-            var urlParaBD = Path.Combine(urlActual, carpeta, nombreArchivo).Replace("\\", "/");
-            return urlParaBD;
+            await File.WriteAllBytesAsync(rutaFisica, contenido);
+
+            
+            return Path.Combine(carpeta, nombreArchivo).Replace("\\", "/");
         }
     }
 }

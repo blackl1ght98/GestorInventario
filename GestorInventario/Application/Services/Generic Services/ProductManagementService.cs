@@ -30,7 +30,7 @@ namespace GestorInventario.Application.Services.Generic_Services
 
         public async Task<OperationResult<Producto>> CrearProducto(ProductosViewModel model)
         {
-            var barcodeResult = await _barCodeService.GenerateUniqueBarCodeAsync(BarcodeType.UPC_A, "", true);
+            var barcodeResult = await _barCodeService.GenerateUniqueBarCodeAsync(BarcodeType.EAN_13, "", true);
 
             var producto = new Producto
             {
@@ -42,9 +42,9 @@ namespace GestorInventario.Application.Services.Generic_Services
                 FechaCreacion = DateTime.Now,
                 FechaModificacion = DateTime.Now,
                 IdProveedor = model.IdProveedor,
-                UpcCode = barcodeResult.Code
+                CodigoBarras = barcodeResult.Code,
+                CodigoBarrasImagen = barcodeResult.ImagePath,
             };
-
             if (model.ArchivoImagen != null && model.ArchivoImagen.Length > 0)
             {
                 try
@@ -65,7 +65,7 @@ namespace GestorInventario.Application.Services.Generic_Services
 
             await _productoRepository.AgregarProductoAsync(producto);
             _logger.LogInformation("Producto creado exitosamente: {NombreProducto}, UpcCode: {UpcCode}",
-                producto.NombreProducto, producto.UpcCode);
+                producto.NombreProducto, producto.CodigoBarras);
 
             return OperationResult<Producto>.Ok("", producto);
         }
@@ -122,15 +122,18 @@ namespace GestorInventario.Application.Services.Generic_Services
             var producto = await _productoRepository.ObtenerProductoCompletoAsync(Id);
             if (producto == null)
                 return OperationResult<string>.Fail("No hay productos para eliminar");
-
+            
             // 1. Elimina en BD primero
             var resultado = await _productoRepository.EliminarProductoAsync(producto);
-
+           
             // 2. Solo borra la imagen si la BD confirmó
-            if (resultado.Success && !string.IsNullOrEmpty(producto.Imagen))
+            if (resultado.Success && !string.IsNullOrEmpty(producto.Imagen) && !string.IsNullOrEmpty(producto.CodigoBarrasImagen))
             {
                 string fileName = Path.GetFileName(producto.Imagen);
+                string codigoBarras = Path.GetFileName(producto.CodigoBarrasImagen);
                 await _gestorArchivos.BorrarArchivo(fileName, "imagenes");
+                await _gestorArchivos.BorrarArchivo(codigoBarras, "barcodes");
+
             }
 
             _logger.LogInformation("Producto con ID {Id} eliminado correctamente.", Id);
