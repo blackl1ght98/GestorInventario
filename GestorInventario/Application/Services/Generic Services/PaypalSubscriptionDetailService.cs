@@ -32,6 +32,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                 // 1. Creamos primero el objeto con los datos básicos
                 var detallesSuscripcion = new SubscriptionDetail
                 {
+                    //Datos del subscriptor
                     SubscriptionId = subscriptionDetails.Id ?? string.Empty,
                     PlanId = subscriptionDetails.PlanId ?? string.Empty,
                     Status = subscriptionDetails.Status ?? string.Empty,
@@ -40,25 +41,21 @@ namespace GestorInventario.Application.Services.Generic_Services
                     SubscriberName = $"{subscriptionDetails.Subscriber?.Name?.GivenName ?? ""} {subscriptionDetails.Subscriber?.Name?.Surname ?? ""}".Trim(),
                     SubscriberEmail = subscriptionDetails.Subscriber?.EmailAddress ?? string.Empty,
                     PayerId = subscriptionDetails.Subscriber?.PayerId ?? string.Empty,
-
                     OutstandingBalance = subscriptionDetails.BillingInfo?.OutstandingBalance?.Value != null
                         ? Convert.ToDecimal(subscriptionDetails.BillingInfo.OutstandingBalance.Value) : 0,
-
                     OutstandingCurrency = subscriptionDetails.BillingInfo?.OutstandingBalance?.CurrencyCode ?? string.Empty,
-
+                    //Periodo regular
                     NextBillingTime = subscriptionDetails.BillingInfo?.NextBillingTime ?? minSqlDate,
                     LastPaymentTime = subscriptionDetails.BillingInfo?.LastPayment?.Time ?? minSqlDate,
                     LastPaymentAmount = subscriptionDetails.BillingInfo?.LastPayment?.Amount?.Value != null
                         ? Convert.ToDecimal(subscriptionDetails.BillingInfo.LastPayment.Amount.Value) : 0,
-
                     LastPaymentCurrency = subscriptionDetails.BillingInfo?.LastPayment?.Amount?.CurrencyCode ?? string.Empty,
-
                     CyclesCompleted = subscriptionDetails.BillingInfo?.CycleExecutions?.LastOrDefault()?.CyclesCompleted ?? 0,
 
                     CyclesRemaining = subscriptionDetails.BillingInfo?.CycleExecutions?.LastOrDefault()?.CyclesRemaining ?? 0,
 
                     TotalCycles = subscriptionDetails.BillingInfo?.CycleExecutions?.LastOrDefault()?.TotalCycles ?? 0,
-
+                    //Periodo de prueba
                     TrialIntervalUnit = plan?.TrialIntervalUnit,
                     TrialIntervalCount = plan?.TrialIntervalCount ?? 0,
                     TrialCyclesCompleted= subscriptionDetails.BillingInfo?.CycleExecutions?.FirstOrDefault()?.CyclesCompleted ?? 0,
@@ -87,25 +84,9 @@ namespace GestorInventario.Application.Services.Generic_Services
                     }
                 }
 
-                //// 3. Recálculo de NextBillingTime (solo si es necesario)
-                //bool shouldRecalculateNextBilling =
-                //    detallesSuscripcion.Status == "ACTIVE" &&
-                //    detallesSuscripcion.CyclesCompleted == 1 &&
-                //    detallesSuscripcion.CyclesRemaining == 0 &&
-                //    plan?.TrialTotalCycles > 0 &&
-                //    (detallesSuscripcion.NextBillingTime == minSqlDate ||
-                //     detallesSuscripcion.NextBillingTime < DateTime.UtcNow.AddDays(7));
+               
 
-                //if (shouldRecalculateNextBilling)
-                //{
-                //    detallesSuscripcion.NextBillingTime = detallesSuscripcion.StartTime.AddDays(
-                //        (double)detallesSuscripcion.TrialIntervalCount * (double)detallesSuscripcion.TrialTotalCycles + 1);
-
-                //    _logger.LogInformation("Recalculando NextBillingTime después del trial para suscripción {SubscriptionId}",
-                //        detallesSuscripcion.SubscriptionId);
-                //}
-
-                // 4. Guardar en base de datos
+                // 3. Guardar en base de datos
                 await _paypalService.SaveOrUpdateSubscriptionDetailsAsync(detallesSuscripcion);
 
                 return detallesSuscripcion;

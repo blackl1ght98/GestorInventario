@@ -2,6 +2,7 @@
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.PaginacionLogica;
+using GestorInventario.ViewModels;
 using GestorInventario.ViewModels.provider;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -142,7 +143,15 @@ namespace GestorInventario.Infraestructure.Controllers
                     _logger.LogInformation("Proveedor no encontrado");
                     return RedirectToAction(nameof(Index));
                 }
-                return View(proveedor);
+                var viewmodel = new DeleteProvedorViewmodel 
+                {
+                    Id = id,
+                    NombreProveedor=proveedor.NombreProveedor,
+                    Contacto=proveedor.Contacto,
+                    Direccion=proveedor.Direccion,
+                
+                };
+                return View(viewmodel);
             }
             catch (Exception ex)
             {

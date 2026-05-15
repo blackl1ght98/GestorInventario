@@ -1,4 +1,5 @@
-﻿@model Pedido
+﻿@using GestorInventario.ViewModels
+@model PedidoDeleteViewmodel
 
 @{
     ViewData["Title"] = "Eliminar Pedido";
@@ -35,7 +36,7 @@
                 <dd class="col-sm-9">@Model.FechaPedido.ToString("d MMMM yyyy")</dd>
 
                 <dt class="col-sm-3 fw-bold"><i class="bi bi-person me-2"></i>Cliente</dt>
-                <dd class="col-sm-9">@Model.IdUsuarioNavigation?.NombreCompleto</dd>
+                <dd class="col-sm-9">@Model.NombreCompleto</dd>
 
                 <dt class="col-sm-3 fw-bold"><i class="bi bi-tag me-2"></i>Estado</dt>
                 <dd class="col-sm-9">

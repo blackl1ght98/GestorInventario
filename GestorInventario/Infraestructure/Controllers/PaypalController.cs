@@ -634,8 +634,12 @@ namespace GestorInventario.Infraestructure.Controllers
                 int trialIntervalCount = detallesSuscripcion.TrialIntervalCount ?? 0;
                 int trialTotalCycles = detallesSuscripcion.TrialTotalCycles ?? 0;
                 int trialDays = trialIntervalCount > 0 ? trialIntervalCount * trialTotalCycles : 0;
-
-                 bool enPeriodoPruebaActivo =
+                // PayPal no expone directamente si una suscripción está en período de prueba activo.
+                // Se deduce de forma indirecta: si está activa, tiene próximo cobro programado,
+                // ese cobro aún no ha ocurrido y nunca ha habido un pago previo,
+                // entonces está en período de prueba.
+                // LastPaymentTime <= 1900 indica que PayPal no registra ningún pago real aún.
+                bool enPeriodoPruebaActivo =
                  detallesSuscripcion.Status == "ACTIVE" &&
                  detallesSuscripcion.NextBillingTime.HasValue &&
                  DateTime.UtcNow < detallesSuscripcion.NextBillingTime.Value &&

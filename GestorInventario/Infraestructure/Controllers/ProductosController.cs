@@ -4,6 +4,7 @@ using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.PaginacionLogica;
+using GestorInventario.ViewModels;
 using GestorInventario.ViewModels.product;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -229,8 +230,19 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     _logger.LogError("No se ha encontrado el producto");
                     return RedirectToAction(nameof(Index));
-                }             
-                return View(producto);
+                }
+                var viewmodel = new DeleteProductoViewmodel 
+                { 
+                    Id = id,
+                    NombreProducto= producto.NombreProducto,
+                    Descripcion= producto.Descripcion,
+                    Cantidad= producto.Cantidad,
+                    Precio= producto.Precio,
+                    NombreProvedor= producto.IdProveedorNavigation.NombreProveedor
+                
+                
+                };
+                return View(viewmodel);
             }
             catch (Exception ex)
             {

@@ -1,4 +1,5 @@
-﻿@model Pedido
+﻿@using GestorInventario.ViewModels
+@model DetallePedidoViewmodel
 <link rel="stylesheet" href="~/css/detallePedido.css" />
 
 <div class="container my-5">
@@ -16,7 +17,7 @@
             <div class="row mb-4">
                 <div class="col-md-6">
                     <p><strong>Fecha del pedido:</strong> @Model.FechaPedido.ToString("dd/MM/yyyy HH:mm")</p>
-                    <p><strong>Cliente:</strong> @Model.IdUsuarioNavigation?.NombreCompleto</p>
+                    <p><strong>Cliente:</strong> @Model.NombreCompleto</p>
                 </div>
                 <div class="col-md-6 text-md-end">
                     @if (!string.IsNullOrEmpty(Model.TrackingNumber))

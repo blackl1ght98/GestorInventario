@@ -116,8 +116,17 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     _logger.LogCritical("Pedido no encontrado");
                     return RedirectToAction(nameof(Index));
-                }               
-                return View(pedido);
+                }
+                var viewmodel = new PedidoDeleteViewmodel
+                {
+                    Id = pedido.Id,
+                    NumeroPedido = pedido.NumeroPedido,
+                    FechaPedido = pedido.FechaPedido,
+                    NombreCompleto = pedido.IdUsuarioNavigation.NombreCompleto,
+                    EstadoPedido = pedido.EstadoPedido,
+                    DetallePedidos = pedido.DetallePedidos.ToList(),
+                };
+                return View(viewmodel);
             }
             catch (Exception ex)
             {
@@ -256,8 +265,18 @@ namespace GestorInventario.Infraestructure.Controllers
                     _logger.LogCritical("Pedido no encontrado: no se puede mostrar los detalles de un pedido inexistente");
                     return RedirectToAction(nameof(Index));
                 }
-
-                return View(pedido);
+                var viewmodel = new DetallePedidoViewmodel
+                {
+                    FechaPedido= pedido.FechaPedido,
+                    NombreCompleto=pedido.IdUsuarioNavigation.NombreCompleto,
+                    TrackingNumber=pedido.TrackingNumber,
+                    Transportista=pedido.Transportista,
+                    NumeroPedido=pedido.NumeroPedido,
+                    EstadoPedido=pedido.EstadoPedido,
+                    Currency=pedido.Currency,
+                    DetallePedidos=pedido.DetallePedidos.ToList(),
+                };
+                return View(viewmodel);
             }
             catch (Exception ex)
             {
