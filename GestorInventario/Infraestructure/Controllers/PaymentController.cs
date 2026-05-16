@@ -20,16 +20,22 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IPedidoRepository _pedidoRepository;
         private readonly IPedidoManagementService _pedidoService;
         private readonly IPaymentService _paymentService;
-        public PaymentController(ILogger<PaymentController> logger,   ICurrentUserAccessor current, IPedidoRepository pedido,
-            IPolicyExecutor executor, IPaypalOrderService service, IPaypalRefundService pay, 
-            IPedidoManagementService pedidoService, IPaymentService paymentService)
+        public PaymentController(
+            ILogger<PaymentController> logger,   
+            ICurrentUserAccessor currentUser, 
+            IPedidoRepository pedidoRepository,
+            IPolicyExecutor policyExecutor, 
+            IPaypalOrderService paypalOrderService, 
+            IPaypalRefundService paypalRefundService, 
+            IPedidoManagementService pedidoService, 
+            IPaymentService paymentService)
         {
             _logger = logger;           
-            _policyExecutor = executor;
-            _paypalOrderService = service;             
-            _currentUserAccessor = current;
-            _paypalRefundService = pay;
-            _pedidoRepository = pedido;
+            _policyExecutor = policyExecutor;
+            _paypalOrderService = paypalOrderService;             
+            _currentUserAccessor = currentUser;
+            _paypalRefundService = paypalRefundService;
+            _pedidoRepository = pedidoRepository;
             _pedidoService = pedidoService;
             _paymentService = paymentService;
            

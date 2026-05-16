@@ -23,16 +23,22 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IPaginationHelper _paginationHelper;
         private readonly IUserManagementService _userManagementService;
-        public AdminController(ILogger<AdminController> logger, IAdminRepository adminRepository, IUnitOfWork unit, IUserManagementService userManagement,
-        IMapper map, IPolicyExecutor executor, IUserRepository user, IPaginationHelper paginationHelper, ICurrentUserAccessor current)
-        {           
-            
+        public AdminController(
+            ILogger<AdminController> logger, 
+            IUnitOfWork unitOfWork, 
+            IUserManagementService userManagement,
+            IMapper map, 
+            IPolicyExecutor policyExecutor, 
+            IPaginationHelper paginationHelper, 
+            ICurrentUserAccessor currentUser
+         )
+        {                    
             _logger = logger;         
             _mapper= map;
-            _policyExecutor = executor;   
-            _unitOfWork = unit;
+            _policyExecutor = policyExecutor;   
+            _unitOfWork = unitOfWork;
             _paginationHelper = paginationHelper;
-            _currentUserAccessor = current;
+            _currentUserAccessor = currentUser;
             _userManagementService = userManagement;
         }
         [Authorize(Roles = "Administrador")]
@@ -61,9 +67,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     TotalPaginas = paginationResult.TotalPaginas,
                     PaginaActual = paginationResult.PaginaActual,
                     Buscar = buscar
-                };
-
-               
+                };              
                 return View(viewModel);
             }
             catch (Exception ex)
@@ -313,163 +317,11 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
        
-        [Authorize(Roles ="Administrador")]
-        [HttpGet]
-        public async Task<IActionResult> ObtenerRoles([FromQuery] Paginacion paginacion)
-        {
-            try
-            {
-                var queryable = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles());
-
-                var paginationResult = await _policyExecutor.ExecutePolicyAsync(()=>_paginationHelper.PaginarAsync(queryable,paginacion));
-
-                var viewModel = new RolesViewModel
-                {
-                    Roles = paginationResult.Items,
-                    Paginas = paginationResult.Paginas.ToList(),
-                    TotalPaginas = paginationResult.TotalPaginas,
-                    PaginaActual = paginationResult.PaginaActual,
-                   
-                };
-
-                return View(viewModel);
-            }
-            catch (Exception ex)
-            {
-             
-                _logger.LogError(ex, "Error al obtener los roles");
-                return RedirectToAction("Error", "Home");
-            }
-        }
- 
-        [Authorize(Roles = "Administrador")]
-        [HttpGet]
-        public async Task<IActionResult> VerUsuariosPorRol(int id, [FromQuery] Paginacion paginacion)
-        {
-            try
-            {
-                
-
-                var usuariosQueryable =  _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerUsuariosPorRol(id));
-                var paginationResult = await _policyExecutor.ExecutePolicyAsync(() => _paginationHelper.PaginarAsync(usuariosQueryable, paginacion));
-
-                var todosLosRoles = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles());
-               
-                var viewModel = new UsuariosPorRolViewModel
-                {
-                    Usuarios = paginationResult.Items,
-                    Paginas = paginationResult.Paginas.ToList(),
-                    TotalPaginas = paginationResult.TotalPaginas,
-                    PaginaActual = paginacion.Pagina,
-                    RolId = id,
-                    TodosLosRoles = todosLosRoles.ToList(),
-                };
-
-                return View(viewModel);
-            }
-            catch (Exception ex)
-            {
-            
-                _logger.LogError(ex, "Error al obtener los usuarios del rol con Id {Id}", id);
-                return RedirectToAction("Error", "Home");
-            }
-        }
-
-        //Metodo para editar el rol se llama desde el script ver-usuario-rol.js
-        [HttpPost]
-        [Authorize(Roles = "Administrador")]
-        public async Task<IActionResult> CambiarRol([FromBody] CambiarRolDto request)
-        {
-            try
-            {
-                var usuario = await _policyExecutor.ExecutePolicyAsync(() =>
-                    _unitOfWork.UserRepository.ObtenerUsuarioPorId(request.Id));
-
-                if (usuario == null)
-                {
-                    return Json(new { success = false, errorMessage =  "Usuario no encontrado" });
-                }
-
-                if (usuario.IdRolNavigation == null)
-                {
-                    return Json(new { success = false, errorMessage = "El rol actual del usuario no está definido." });
-                }
-
-                // Obtener todos los roles disponibles
-                var rolesDomainResult = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles()); ;
-
-                if (rolesDomainResult == null || !rolesDomainResult.Any())
-                {
-                    return Json(new { success = false, errorMessage = "No se encontraron roles disponibles." });
-                }
-
-                // Mapear correctamente la lista
-                var roles = _mapper.Map<List<Role>>(rolesDomainResult);
-
-                // Buscar el nuevo rol
-                var nuevoRol = roles.FirstOrDefault(r => r.Id == request.RolId);
-                if (nuevoRol == null)
-                {
-                    return Json(new { success = false, errorMessage = "El rol seleccionado no existe." });
-                }
-
-                // Evitar cambio innecesario
-                if (usuario.IdRol == nuevoRol.Id)
-                {
-                    return Json(new { success = false, errorMessage = "El usuario ya tiene el rol seleccionado." });
-                }
-
-                // Actualizar el rol
-                await _policyExecutor.ExecutePolicy(() =>
-                    _unitOfWork.AdminRepository.ActualizarRolUsuario(request.Id, nuevoRol.Id));
-
-                return Json(new
-                {
-                    success = true,
-                    message = $"El rol del usuario ha sido cambiado a {nuevoRol.Nombre}."
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al cambiar el rol del usuario con Id {Id}", request.Id);
-                return Json(new { success = false, errorMessage = "El servidor ha tardado mucho en responder, intenta de nuevo más tarde." });
-            }
-        }
-
+       
         private void CargarRolesEnViewData()
         {
-            var roles = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles()); 
+            var roles = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles());
             ViewData["Roles"] = new SelectList(roles, "Id", "Nombre");
-        }
-        [HttpGet]
-        [Authorize(Roles = "Administrador")]
-        public async Task<IActionResult> ObtenerInfoReasignacion(int id)
-        {
-            var usuario = await _policyExecutor.ExecutePolicyAsync(() =>
-                _unitOfWork.AdminRepository.ObtenerUsuarioConProveedoresYPedidosAsync(id));
-
-            if (usuario is null)
-                return Json(new { success = false, message = "Usuario no encontrado" });
-
-            if (!usuario.Proveedores.Any())
-                return Json(new { success = false, message = "Este usuario no tiene proveedores asignados" });
-
-            var usuarios = _unitOfWork.AdminRepository.ObtenerUsuarios()
-                .Where(u => u.Id != id)
-                .Select(u => new { u.Id, u.NombreCompleto })
-                .ToList();
-
-            return Json(new { success = true, usuarios });
-        }
-        [HttpPost]
-        [Authorize(Roles = "Administrador")]
-        public async Task<IActionResult> ReasignarProveedores([FromBody] ReasignarProveedoresDto request)
-        {
-            var result = await _policyExecutor.ExecutePolicyAsync(() =>
-                _unitOfWork.AdminRepository.ReasignarProveedoresAsync(
-                    request.UsuarioOrigenId, request.UsuarioDestinoId));
-
-            return Json(new { success = result.Success, message = result.Message });
         }
     }
 }

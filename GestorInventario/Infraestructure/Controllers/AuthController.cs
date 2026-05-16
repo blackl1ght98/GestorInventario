@@ -21,15 +21,21 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly ICarritoService _carritoService;
         private readonly ICurrentUserAccessor _current;
         private readonly IAuthService _authService;
-        public AuthController( ITokenService tokenService,  ICurrentUserAccessor current,
-        ILogger<AuthController> logger,   IPolicyExecutor executor,  ICarritoService carrito, IAuthService authService)
+        public AuthController(
+         ITokenService tokenService,  
+         ICurrentUserAccessor currentUser,
+         ILogger<AuthController> logger,   
+         IPolicyExecutor policyExecutor,  
+         ICarritoService carritoService, 
+         IAuthService authService
+        )
         {
            
             _tokenService = tokenService;                
             _logger = logger;     
-            _policyExecutor = executor;
-            _carritoService = carrito;
-            _current=current;
+            _policyExecutor = policyExecutor;
+            _carritoService = carritoService;
+            _current= currentUser;
             _authService = authService;
         }
         

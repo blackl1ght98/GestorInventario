@@ -31,16 +31,24 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IPaypalSubscriptionDetailService _subscription;
         private readonly IPayPalMappingUtils _map;
         private readonly IPaypalService _paypalService;
-        public PaypalController(ILogger<PaypalController> logger,  IPaginationHelper pagination, IPaypalSubscriptionDetailService subs, IUnitOfWork unit,
-         IPolicyExecutor executor, IPaypalSubscriptionService service, ICurrentUserAccessor current, IPayPalMappingUtils map, IPaypalService paypalService)
+        public PaypalController(
+         ILogger<PaypalController> logger,
+         IUnitOfWork unitOfWork,
+         IPolicyExecutor policyExecutor,
+         IPaginationHelper paginationHelper,
+         ICurrentUserAccessor currentUserAccessor,
+         IPaypalSubscriptionService paypalSubscriptionService,
+         IPaypalSubscriptionDetailService subscriptionDetailService,
+         IPaypalService paypalService,
+         IPayPalMappingUtils map)
         {
-            _paypalSubscriptionService = service;        
-           _policyExecutor=executor;
+            _paypalSubscriptionService = paypalSubscriptionService;        
+           _policyExecutor= policyExecutor;
             _logger = logger;
-             _unitOfWork= unit;            
-            _paginationHelper = pagination;
-            _currentUserAccessor = current;
-            _subscription = subs;
+             _unitOfWork= unitOfWork;            
+            _paginationHelper = paginationHelper;
+            _currentUserAccessor = currentUserAccessor;
+            _subscription = subscriptionDetailService;
             _map = map;
             _paypalService = paypalService;
         }
@@ -395,14 +403,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (string.IsNullOrWhiteSpace(Id))
                 {
                     _logger.LogError("ID de la susbcripcion requerido para poder cancelarla");
-                    if (User.IsInRole("Administrador"))
-                    {
-                        return RedirectToAction(nameof(TodasSuscripciones));
-                    }
-                    else
-                    {
-                        return RedirectToAction(nameof(ObtenerSuscripcionUsuario));
-                    }
+                    return RedirigirSegunRol();
                 }
 
                 string result = await _paypalSubscriptionService.CancelarSuscripcion(Id, Reason);
@@ -410,27 +411,13 @@ namespace GestorInventario.Infraestructure.Controllers
                 // Update subscription status using the repository
                 await _paypalService.UpdateSubscriptionStatusAsync(Id, "CANCELLED");
 
-                if (User.IsInRole("Administrador"))
-                {
-                    return RedirectToAction(nameof(TodasSuscripciones));
-                }
-                else
-                {
-                    return RedirectToAction(nameof(ObtenerSuscripcionUsuario));
-                }
+                return RedirigirSegunRol();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al cancelar suscripción {Id}", Id);
                 TempData["ErrorMessage"] = $"Error al cancelar la suscripción";
-                if (User.IsInRole("Administrador"))
-                {
-                    return RedirectToAction(nameof(TodasSuscripciones));
-                }
-                else
-                {
-                    return RedirectToAction(nameof(ObtenerSuscripcionUsuario));
-                }
+                return RedirigirSegunRol();
             }
         }
  
@@ -445,14 +432,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 if (string.IsNullOrWhiteSpace(Id))
                 {
                     _logger.LogError("ID de la susbcripcion requerido para poder suspenderla");
-                    if (User.IsInRole("Administrador"))
-                    {
-                        return RedirectToAction(nameof(TodasSuscripciones));
-                    }
-                    else
-                    {
-                        return RedirectToAction(nameof(ObtenerSuscripcionUsuario));
-                    }
+                    return RedirigirSegunRol();
                 }
 
                 if (string.IsNullOrWhiteSpace(Reason))
@@ -463,27 +443,13 @@ namespace GestorInventario.Infraestructure.Controllers
                 // Update subscription status using the repository
                 await _paypalService.UpdateSubscriptionStatusAsync(Id, "SUSPENDED");
 
-                if (User.IsInRole("Administrador"))
-                {
-                    return RedirectToAction(nameof(TodasSuscripciones));
-                }
-                else
-                {
-                    return RedirectToAction(nameof(ObtenerSuscripcionUsuario));
-                }
+                return RedirigirSegunRol();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al suspender suscripción {Id}", Id);
                 TempData["ErrorMessage"] = $"Error al suspender la suscripción: {ex.Message}";
-                if (User.IsInRole("Administrador"))
-                {
-                    return RedirectToAction(nameof(TodasSuscripciones));
-                }
-                else
-                {
-                    return RedirectToAction(nameof(ObtenerSuscripcionUsuario));
-                }
+                return RedirigirSegunRol();
             }
         }
         [HttpPost]
@@ -494,14 +460,7 @@ namespace GestorInventario.Infraestructure.Controllers
             if (string.IsNullOrWhiteSpace(Id))
             {
                 _logger.LogError("ID de la susbcripcion requerido para poder activarla");
-                if (User.IsInRole("Administrador"))
-                {
-                    return RedirectToAction(nameof(TodasSuscripciones));
-                }
-                else
-                {
-                    return RedirectToAction(nameof(ObtenerSuscripcionUsuario));
-                }
+                return RedirigirSegunRol();
             }             
             if (string.IsNullOrWhiteSpace(Reason))
                 Reason = "Activación manual por administrador"; 
@@ -509,30 +468,15 @@ namespace GestorInventario.Infraestructure.Controllers
             {
                 string result = await _paypalSubscriptionService.ActivarSuscripcion(Id, Reason);
                 await _paypalService.UpdateSubscriptionStatusAsync(Id, "ACTIVE");
-
                 TempData["SuccessMessage"] = "Suscripción activada correctamente.";
-                if (User.IsInRole("Administrador"))
-                {
-                    return RedirectToAction(nameof(TodasSuscripciones));
-                }
-                else
-                {
-                    return RedirectToAction(nameof(ObtenerSuscripcionUsuario));
-                }
-               
+                return RedirigirSegunRol();
+
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al activar suscripción {Id}", Id);
                 TempData["ErrorMessage"] = $"Error al activar la suscripción: {ex.Message}";
-                if (User.IsInRole("Administrador"))
-                {
-                    return RedirectToAction(nameof(TodasSuscripciones));
-                }
-                else
-                {
-                    return RedirectToAction(nameof(ObtenerSuscripcionUsuario));
-                }
+                return RedirigirSegunRol();
             }
         }
 
@@ -692,16 +636,7 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                if (!(_currentUserAccessor.IsAuthenticated()))
-                {
-                    return RedirectToAction("Login", "Auth");
-                }
-
-                _logger.LogInformation(
-                    "Página solicitada: {Pagina}, CantidadAMostrar: {Cantidad}",
-                    paginacion.Pagina,
-                    paginacion.CantidadAMostrar
-                );
+               
 
         
                 var queryable = _unitOfWork.PaypalRepository.ObtenerSubscripciones()
@@ -782,7 +717,10 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-
+        private IActionResult RedirigirSegunRol() =>
+            User.IsInRole("Administrador")
+                ? RedirectToAction(nameof(TodasSuscripciones))
+                : RedirectToAction(nameof(ObtenerSuscripcionUsuario));
 
     }
 }

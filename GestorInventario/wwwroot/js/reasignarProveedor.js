@@ -5,7 +5,7 @@
 
         document.getElementById('nombreUsuario').textContent = userName;
 
-        const response = await fetch(`/Admin/ObtenerInfoReasignacion?id=${userId}`);
+        const response = await fetch(`/SupplierReassignment/ObtenerInfoReasignacion?id=${userId}`);
         const data = await response.json();
 
         const contenido = document.getElementById('contenidoModal');
@@ -37,7 +37,7 @@ document.getElementById('confirmarReasignacion').addEventListener('click', async
         return;
     }
 
-    const response = await fetch('/Admin/ReasignarProveedores', {
+    const response = await fetch('/SupplierReassignment/ReasignarProveedores', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ usuarioOrigenId: parseInt(userId), usuarioDestinoId: parseInt(usuarioDestino) })

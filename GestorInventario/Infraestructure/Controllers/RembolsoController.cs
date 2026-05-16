@@ -16,12 +16,14 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly ILogger<RembolsoController> _logger;
         private readonly IPaginationHelper _paginationHelper;
 
-        public RembolsoController(IPolicyExecutor policyExecutor, IRembolsoRepository rembolsoRepository, 
-             ILogger<RembolsoController> logger, IPaginationHelper paginationHelper)
+        public RembolsoController(
+            IPolicyExecutor policyExecutor, 
+            IRembolsoRepository rembolsoRepository, 
+             ILogger<RembolsoController> logger, 
+             IPaginationHelper paginationHelper)
         {
             _policyExecutor = policyExecutor;
-            _rembolsoRepository = rembolsoRepository;
-           
+            _rembolsoRepository = rembolsoRepository;  
             _logger = logger;
             _paginationHelper = paginationHelper;
 
@@ -38,9 +40,6 @@ namespace GestorInventario.Infraestructure.Controllers
                 {
                     queryable = queryable.Where(s => s.NumeroPedido.Contains(buscar));
                 }
-
-
-
                 // 🔹 Usamos el helper directamente
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
                     _paginationHelper.PaginarAsync(queryable, paginacion)
@@ -53,10 +52,7 @@ namespace GestorInventario.Infraestructure.Controllers
                     TotalPaginas = paginationResult.TotalPaginas,
                     PaginaActual = paginacion.Pagina,
                     Buscar = buscar
-                };
-
-            
-
+                };   
                 return View(viewModel);
             }
             catch (Exception ex)

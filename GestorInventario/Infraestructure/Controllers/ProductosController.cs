@@ -27,18 +27,26 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly ICurrentUserAccessor _current;
         private readonly IProductManagementService _productoService;
         private readonly ICarritoService _carritoService;
-        public ProductosController(IPolicyExecutor executor,IPaginationHelper pagination,ICurrentUserAccessor current, ICarritoService carrito,
-        ILogger<ProductosController> logger, IEmailService emailService, IProductoRepository producto,IPdfService pdf, IProductManagementService productoService)
+        public ProductosController(
+            IPolicyExecutor policyExecutor,
+            IPaginationHelper pagination,
+            ICurrentUserAccessor currentUserAccessor, 
+            ICarritoService carritoService,
+            ILogger<ProductosController> logger, 
+            IEmailService emailService, 
+            IProductoRepository productoRepository,
+            IPdfService pdfService, 
+            IProductManagementService productoService)
         {
             _logger = logger;         
             _emailService = emailService;
-            _productoRepository = producto;         
-            _policyExecutor = executor;
-            _pdfService = pdf;
+            _productoRepository = productoRepository;         
+            _policyExecutor = policyExecutor;
+            _pdfService = pdfService;
             _paginationHelper = pagination;
-            _current = current;
+            _current = currentUserAccessor;
             _productoService = productoService;
-            _carritoService=carrito;
+            _carritoService= carritoService;
         }
         //Metodo para obtener los productos
         [HttpGet]
@@ -390,11 +398,6 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
         }
-
-
-
-      
-
 
     }
 }

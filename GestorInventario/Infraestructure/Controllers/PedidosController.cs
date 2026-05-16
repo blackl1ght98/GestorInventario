@@ -27,22 +27,29 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IPaypalOrderTrackingService _paypalService;     
         private readonly IPaginationHelper _paginationHelper;       
         private readonly ICurrentUserAccessor _currentUserAccessor;
-        private readonly IEmailService _emailService;
-       
+        private readonly IEmailService _emailService;  
         private readonly IPedidoManagementService _pedidoService;
         private readonly IPaymentService _paymentService;
-        public PedidosController( ILogger<PedidosController> logger, IPaginationHelper pagination,  ICurrentUserAccessor current,  IPaymentService paymentService,
-            IPedidoRepository pedido,   IPdfService pdf, IPolicyExecutor executor, IPaypalOrderTrackingService paypal, IEmailService email, IPedidoManagementService pedidoService)
+        public PedidosController( 
+            ILogger<PedidosController> logger, 
+            IPaginationHelper pagination,  
+            ICurrentUserAccessor currentUser,  
+            IPaymentService paymentService,
+            IPedidoRepository pedidoRepository,   
+            IPdfService pdfService, 
+            IPolicyExecutor policyExecutor, 
+            IPaypalOrderTrackingService paypalOrderTrackingService, 
+            IEmailService emailService,
+            IPedidoManagementService pedidoService)
         {          
             _logger = logger;
-            _pedidoRepository = pedido;           
-            _pdfservice= pdf;   
-            _policyExecutor = executor;
-            _paypalService = paypal;           
+            _pedidoRepository = pedidoRepository;           
+            _pdfservice= pdfService;   
+            _policyExecutor = policyExecutor;
+            _paypalService = paypalOrderTrackingService;           
             _paginationHelper = pagination;          
-            _currentUserAccessor = current;
-            _emailService = email;
-         
+            _currentUserAccessor = currentUser;
+            _emailService = emailService;
             _pedidoService = pedidoService;
             _paymentService = paymentService;
         }
@@ -52,48 +59,45 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-               
+                var usuarioId = _currentUserAccessor.GetCurrentUserId();
+                await _paymentService.LimpiarPedidoCorruptoUsuarioAsync(usuarioId);
+                var pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidos());
+                if (User.IsAdministrador())
+                {
 
-                    var usuarioId =  _currentUserAccessor.GetCurrentUserId();
-                    await _paymentService.LimpiarPedidoCorruptoUsuarioAsync(usuarioId);
-                    var pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidos());
-                    if (User.IsAdministrador())
-                    {
+                    pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidos());
+                }
+                else
+                {
 
-                        pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidos());
-                    }
-                    else
-                    {
+                    pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidoUsuario(usuarioId));
+                }
+                ViewData["Buscar"] = buscar;
+                ViewData["FechaInicio"] = fechaInicio;
+                ViewData["FechaFin"] = fechaFin;
+                if (!String.IsNullOrEmpty(buscar))
+                {
+                    pedidos = pedidos.Where(p => p.NumeroPedido.Contains(buscar) || p.EstadoPedido.Contains(buscar) || p.IdUsuarioNavigation.NombreCompleto.Contains(buscar));
+                }
+                if (fechaInicio.HasValue && fechaFin.HasValue)
+                {
+                    pedidos = pedidos.Where(s => s.FechaPedido >= fechaInicio.Value && s.FechaPedido <= fechaFin.Value);
+                }
+                var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
+              _paginationHelper.PaginarAsync(pedidos, paginacion)
+                );
+                var viewModel = new PedidoViewModel
+                {
+                    Pedidos = paginationResult.Items,
+                    Paginas = paginationResult.Paginas.ToList(),
+                    TotalPaginas = paginationResult.TotalPaginas,
+                    PaginaActual = paginacion.Pagina,
+                    Buscar = buscar
+                };
 
-                        pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidoUsuario(usuarioId));
-                    }
-                    ViewData["Buscar"] = buscar;
-                    ViewData["FechaInicio"] = fechaInicio;
-                    ViewData["FechaFin"] = fechaFin;
-                    if (!String.IsNullOrEmpty(buscar))
-                    {
-                        pedidos = pedidos.Where(p => p.NumeroPedido.Contains(buscar) || p.EstadoPedido.Contains(buscar) || p.IdUsuarioNavigation.NombreCompleto.Contains(buscar));
-                    }
-                    if (fechaInicio.HasValue && fechaFin.HasValue)
-                    {
-                        pedidos = pedidos.Where(s => s.FechaPedido >= fechaInicio.Value && s.FechaPedido <= fechaFin.Value);
-                    }
-                    var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
-                  _paginationHelper.PaginarAsync(pedidos, paginacion)
-                    );
-                    var viewModel = new PedidoViewModel
-                    {
-                        Pedidos = paginationResult.Items,
-                        Paginas = paginationResult.Paginas.ToList(),
-                        TotalPaginas = paginationResult.TotalPaginas,
-                        PaginaActual = paginacion.Pagina,
-                        Buscar = buscar
-                    };
 
-                 
-                    return View(viewModel);
-                
-               
+                return View(viewModel);
+
             }
             catch (Exception ex)
             {
@@ -144,24 +148,21 @@ namespace GestorInventario.Infraestructure.Controllers
         {
             try
             {
-                            
-                    
-                    var success = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoService.EliminarPedido(Id)) ;
-                    if (success.Success)
-                    {
-                       
-                        
-                        return RedirectToAction(nameof(Index));
-                    }
-                    else
-                    {
-                        
-                        TempData["ErrorMessage"] = success.Message;
-                      
-                        return RedirectToAction(nameof(Delete), new { id = Id });
+                var success = await _policyExecutor.ExecutePolicyAsync(() => _pedidoService.EliminarPedido(Id));
+                if (success.Success)
+                {
 
-                    }                         
 
+                    return RedirectToAction(nameof(Index));
+                }
+                else
+                {
+
+                    TempData["ErrorMessage"] = success.Message;
+
+                    return RedirectToAction(nameof(Delete), new { id = Id });
+
+                }
             }
             catch (Exception ex)
             {

@@ -22,15 +22,20 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IPaginationHelper _paginationHelper;
         private readonly IUserRepository _userRepository;
         private readonly ICurrentUserAccessor _current;
-        public ProveedorController( ILogger<ProveedorController> logger, IUserRepository user, ICurrentUserAccessor current,
-            IProveedorRepository proveedor,  IPolicyExecutor executor, IPaginationHelper pagination)
+        public ProveedorController( 
+            ILogger<ProveedorController> logger, 
+            IUserRepository userRepository, 
+            ICurrentUserAccessor currentUserAccessor,
+            IProveedorRepository proveedorRepository,  
+            IPolicyExecutor policyExecutor, 
+            IPaginationHelper pagination)
         {           
             _logger = logger;                
-            _proveedorRepository= proveedor;           
-            _policyExecutor = executor;
+            _proveedorRepository= proveedorRepository;           
+            _policyExecutor = policyExecutor;
             _paginationHelper = pagination;
-            _userRepository = user;
-            _current = current;
+            _userRepository = userRepository;
+            _current = currentUserAccessor;
         }
       
      

@@ -30,7 +30,7 @@
             return Promise.reject(new Error("Token CSRF no encontrado"));
         }
         const token = tokenElement.getAttribute("content");
-        fetch(`/Admin/CambiarRol`, {
+        fetch(`/Role/CambiarRol`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

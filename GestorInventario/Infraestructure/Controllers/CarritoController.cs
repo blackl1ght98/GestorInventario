@@ -18,16 +18,22 @@ namespace GestorInventario.Infraestructure.Controllers
         private readonly IPaginationHelper _paginationHelper;
         private readonly IPaymentService _paymentService;
         private readonly ICarritoService _carritoService;
-        public CarritoController( ICarritoRepository carritorepository,   ICurrentUserAccessor current, ICarritoService carrito,
-        ILogger<CarritoController> logger,  IPolicyExecutor executor,  IPaginationHelper pagination, IPaymentService pay)
+        public CarritoController(
+         ICarritoRepository carritorepository,  
+         ICurrentUserAccessor currentUser, 
+         ICarritoService carritoService,
+         ILogger<CarritoController> logger,  
+         IPolicyExecutor policyExecutor,  
+         IPaginationHelper pagination, 
+         IPaymentService paymentService)
         {          
             _carritoRepository = carritorepository;       
             _logger = logger;              
-            _policyExecutor=executor;           
+            _policyExecutor= policyExecutor;           
             _paginationHelper = pagination;
-            _currentUserAccessor = current;
-            _paymentService = pay;
-            _carritoService=carrito;
+            _currentUserAccessor = currentUser;
+            _paymentService = paymentService;
+            _carritoService=carritoService;
         }
 
         [HttpGet]
@@ -99,22 +105,21 @@ namespace GestorInventario.Infraestructure.Controllers
         public async Task<IActionResult> Checkout(string monedaSeleccionada)
         {
             CultureHelper.SetInvariantCulture();
-                try
+            try
+            {
+                int usuarioId = _currentUserAccessor.GetCurrentUserId();
+
+                var resultado = await _policyExecutor.ExecutePolicyAsync(() => _paymentService.Pagar(monedaSeleccionada, usuarioId));
+                if (resultado.Success)
                 {
-               
-               
-                    int usuarioId= _currentUserAccessor.GetCurrentUserId();   
-                        
-                    var resultado = await _policyExecutor.ExecutePolicyAsync(()=> _paymentService.Pagar(monedaSeleccionada, usuarioId))  ;
-                    if (resultado.Success)
-                    {
-                        return Redirect(resultado.Data);
-                    }
-                    else
-                    {
+                    return Redirect(resultado.Data);
+                }
+                else
+                {
                     _logger.LogError("Ocurrio un error al redireccionar a paypal");
                     return RedirectToAction("Index", "Home");
-                    }                                     
+                }
+
             }
             catch (Exception ex)
             {
