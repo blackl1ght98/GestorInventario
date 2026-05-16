@@ -1,5 +1,4 @@
-﻿
-using GestorInventario.Interfaces.Application;
+﻿using GestorInventario.Interfaces.Application.Common;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Text;

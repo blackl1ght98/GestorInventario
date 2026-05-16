@@ -3,7 +3,9 @@ using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Application.DTOs.Response_paypal.POST;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
-using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Application.Common;
+using GestorInventario.Interfaces.Application.ExternalServices;
+using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure;
 using System.Globalization;
 

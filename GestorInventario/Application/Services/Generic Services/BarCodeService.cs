@@ -1,9 +1,9 @@
 ﻿using GestorInventario.Application.DTOs.Barcode;
 using GestorInventario.Domain.Models;
 using GestorInventario.enums;
-using GestorInventario.Interfaces;
-using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.Interfaces.Utils;
 using Microsoft.EntityFrameworkCore;
 using System.Drawing;
 using System.Drawing.Imaging;

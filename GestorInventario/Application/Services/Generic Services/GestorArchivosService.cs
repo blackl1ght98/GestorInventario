@@ -1,4 +1,4 @@
-﻿using GestorInventario.Interfaces;
+﻿using GestorInventario.Interfaces.Utils;
 
 namespace GestorInventario.Application.Services
 {

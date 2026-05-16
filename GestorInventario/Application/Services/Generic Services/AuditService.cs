@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Application.Common;
+using GestorInventario.Interfaces.Application.Services;
 
 namespace GestorInventario.Application.Services.Generic_Services
 {

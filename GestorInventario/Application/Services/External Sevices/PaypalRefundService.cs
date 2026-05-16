@@ -3,7 +3,7 @@ using GestorInventario.Application.DTOs.Response_paypal.GET;
 using GestorInventario.Application.DTOs.Response_paypal.POST;
 using GestorInventario.Domain.Models;
 using GestorInventario.enums;
-using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Infraestructure;
 using Newtonsoft.Json;
 using System.Globalization;

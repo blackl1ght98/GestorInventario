@@ -1,4 +1,4 @@
-﻿using GestorInventario.Interfaces.Application;
+﻿using GestorInventario.Interfaces.Application.Services;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Jpeg;

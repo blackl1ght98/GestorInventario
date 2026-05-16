@@ -1,0 +1,15 @@
+﻿using System.Security.Claims;
+
+namespace GestorInventario.Interfaces.Application.Common
+{
+    public interface ICurrentUserAccessor
+    {
+        int GetCurrentUserId();
+        string? GetCurrentUserEmail();
+        bool IsInRole(string role);
+        ClaimsPrincipal? GetPrincipal();
+        string GetClientIpAddress();
+        string GetRequestMethod();
+        bool IsAuthenticated();
+    }
+}

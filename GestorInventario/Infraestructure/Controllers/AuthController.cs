@@ -1,5 +1,7 @@
 ﻿using GestorInventario.Application.DTOs.User;
-using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Application.Authentication;
+using GestorInventario.Interfaces.Application.Common;
+using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.ViewModels.user;

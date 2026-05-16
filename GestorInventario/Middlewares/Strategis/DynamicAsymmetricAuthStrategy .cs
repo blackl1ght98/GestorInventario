@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Application.Authentication;
 using GestorInventario.Interfaces.Infraestructure;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;

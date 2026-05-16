@@ -1,6 +1,6 @@
 ﻿using GestorInventario.Application.DTOs;
 using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Infraestructure;
 
 

@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 using MimeKit.Text;
 using MimeKit;
 using MailKit.Net.Smtp;
-using GestorInventario.Interfaces.Application;
 using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.ViewModels.email;
@@ -16,6 +15,8 @@ using GestorInventario.ViewModels.order;
 using GestorInventario.ViewModels.Paypal;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.Application.DTOs;
+using GestorInventario.Interfaces.Application.Services;
+using GestorInventario.Interfaces.Application.Authentication;
 
 namespace GestorInventario.Application.Services
 {

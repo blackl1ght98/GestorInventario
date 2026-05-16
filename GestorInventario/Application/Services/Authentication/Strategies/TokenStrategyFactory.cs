@@ -1,6 +1,7 @@
 ﻿using GestorInventario.Application.Services.Authentication.Strategies;
 using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Application.Authentication;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;

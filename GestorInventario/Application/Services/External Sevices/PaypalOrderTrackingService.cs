@@ -5,7 +5,7 @@ using GestorInventario.Domain.Models;
 using GestorInventario.enums;
 using GestorInventario.Infraestructure.Repositories;
 using GestorInventario.Infraestructure.Utils;
-using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Infraestructure;
 
 

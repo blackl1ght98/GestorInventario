@@ -1,6 +1,6 @@
 ﻿using GestorInventario.Application.DTOs.User;
 using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Application.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;

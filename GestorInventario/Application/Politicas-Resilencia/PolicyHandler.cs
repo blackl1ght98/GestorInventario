@@ -1,4 +1,4 @@
-﻿using GestorInventario.Interfaces.Application;
+﻿using GestorInventario.Interfaces.Application.Common;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Polly;

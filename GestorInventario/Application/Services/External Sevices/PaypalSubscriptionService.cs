@@ -6,7 +6,7 @@ using GestorInventario.Application.DTOs.Response_paypal.PATCH;
 using GestorInventario.Application.DTOs.Response_paypal.POST;
 using GestorInventario.Application.Exceptions;
 using GestorInventario.Infraestructure.Utils;
-using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Infraestructure;
 using Newtonsoft.Json;
 using System.Globalization;

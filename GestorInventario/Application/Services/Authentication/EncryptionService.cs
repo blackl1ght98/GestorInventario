@@ -1,5 +1,5 @@
 ﻿using GestorInventario.Application.Services.Authentication.Strategies;
-using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Application.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;

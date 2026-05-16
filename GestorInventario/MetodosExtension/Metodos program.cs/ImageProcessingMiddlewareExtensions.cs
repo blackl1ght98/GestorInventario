@@ -1,6 +1,4 @@
-﻿
-using GestorInventario.Interfaces.Application;
-
+﻿using GestorInventario.Interfaces.Application.Services;
 
 namespace GestorInventario.Middlewares
 {

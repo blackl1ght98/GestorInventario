@@ -1,5 +1,5 @@
 ﻿using GestorInventario.Application.DTOs.Response_paypal.GET;
-using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Application.ExternalServices;
 using Newtonsoft.Json;
 using System.Net.Http.Headers;
 using System.Text;

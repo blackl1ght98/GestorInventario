@@ -1,6 +1,7 @@
 ﻿using GestorInventario.Domain.Models.ViewModels;
 using GestorInventario.Infraestructure.Utils;
-using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Application.Common;
+using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.PaginacionLogica;
 using Microsoft.AspNetCore.Authorization;

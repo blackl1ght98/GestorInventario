@@ -28,6 +28,16 @@ namespace GestorInventario.Infraestructure.Repositories
                 .Include(u => u.IdRolNavigation)
                 .AsQueryable();
         }
+        public async Task<List<string>> ObtenerEmailsAdministradoresAsync(CancellationToken cancellationToken = default)
+        {
+           
+            return await _context.Usuarios
+                .AsNoTracking()
+                .Where(u => u.IdRolNavigation.Id == 2 && u.Email != null)
+                .Select(u => u.Email)
+                .Distinct()
+                .ToListAsync(cancellationToken);
+        }
         public IQueryable<Usuario> ObtenerUsuarios()
         {
             return _context.Usuarios
