@@ -124,7 +124,7 @@
                                            class="btn btn-outline-danger">
                                             Eliminar Pedido
                                         </a>
-                                        <a asp-action="DetallesPagoEjecutado" asp-route-id="@pedido.OrderId"
+                                        <a asp-action="DetallesPagoEjecutado" asp-controller="Pagos" asp-route-id="@pedido.OrderId"
                                            class="btn btn-outline-info">
                                             Detalles del Pago
                                         </a>
@@ -167,7 +167,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="agregarEnvioForm" method="post" asp-controller="Pedidos" asp-action="AgregarInfoEnvio">
+                <form id="agregarEnvioForm" method="post" asp-controller="Envios" asp-action="AgregarInfoEnvio">
                     <input type="hidden" name="pedidoId" id="pedidoIdInput" />
 
                     <div class="mb-3">

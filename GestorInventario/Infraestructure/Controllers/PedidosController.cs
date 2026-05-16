@@ -21,13 +21,10 @@ namespace GestorInventario.Infraestructure.Controllers
        
        
         private readonly ILogger<PedidosController> _logger;
-        private readonly IPedidoRepository _pedidoRepository;                 
-        private readonly IPdfService _pdfservice;
-        private readonly IPolicyExecutor _policyExecutor;
-        private readonly IPaypalOrderTrackingService _paypalService;     
+        private readonly IPedidoRepository _pedidoRepository;                   
+        private readonly IPolicyExecutor _policyExecutor;      
         private readonly IPaginationHelper _paginationHelper;       
-        private readonly ICurrentUserAccessor _currentUserAccessor;
-        private readonly IEmailService _emailService;  
+        private readonly ICurrentUserAccessor _currentUserAccessor;     
         private readonly IPedidoManagementService _pedidoService;
         private readonly IPaymentService _paymentService;
         public PedidosController( 
@@ -35,21 +32,18 @@ namespace GestorInventario.Infraestructure.Controllers
             IPaginationHelper pagination,  
             ICurrentUserAccessor currentUser,  
             IPaymentService paymentService,
-            IPedidoRepository pedidoRepository,   
-            IPdfService pdfService, 
-            IPolicyExecutor policyExecutor, 
-            IPaypalOrderTrackingService paypalOrderTrackingService, 
-            IEmailService emailService,
+            IPedidoRepository pedidoRepository,        
+            IPolicyExecutor policyExecutor,         
             IPedidoManagementService pedidoService)
         {          
             _logger = logger;
             _pedidoRepository = pedidoRepository;           
-            _pdfservice= pdfService;   
+        
             _policyExecutor = policyExecutor;
-            _paypalService = paypalOrderTrackingService;           
+          
             _paginationHelper = pagination;          
             _currentUserAccessor = currentUser;
-            _emailService = emailService;
+       
             _pedidoService = pedidoService;
             _paymentService = paymentService;
         }
@@ -286,178 +280,6 @@ namespace GestorInventario.Infraestructure.Controllers
                 return RedirectToAction("Error", "Home");
             }
 
-        }
-
-
-
-        [Authorize]
-        public async Task<IActionResult> DetallesPagoEjecutado(string id)
-        {
-            var result = await _policyExecutor.ExecutePolicyAsync(() => _pedidoService.SincronizarDetallePagoAsync(id));
-
-            if (!result.Success || result.Data == null)
-            {
-                _logger.LogError(result.Message);
-                return RedirectToAction(nameof(Index));
-            }
-
-            var paypalDetail = result.Data;
-            var ultimoCapture = paypalDetail.PayPalPaymentCaptures
-                .OrderByDescending(c => c.Id)
-                .FirstOrDefault();
-            var ultimaInfoEnvio = paypalDetail.PayPalPaymentShippings.OrderByDescending(c => c.Id).FirstOrDefault();
-            var viewModel = new PayPalPaymentDetailViewModel
-            {
-                //Datos del pagador
-                Id = paypalDetail.Id,
-                Intent = paypalDetail.Intent,
-                Status = paypalDetail.OrderStatus,
-                CreateTime = paypalDetail.CreateTime,
-                UpdateTime = paypalDetail.UpdateTime,
-
-                PayerEmail = paypalDetail.PayerEmail,
-                PayerFirstName = paypalDetail.PayerFirstName,
-                PayerLastName = paypalDetail.PayerLastName,
-                PayerId = paypalDetail.PayerId,
-                //Datos de envio
-                ShippingRecipientName = ultimaInfoEnvio.RecipientName,
-                ShippingLine1 = ultimaInfoEnvio.AddressLine1,
-                ShippingCity = ultimaInfoEnvio.City,
-                ShippingState = ultimaInfoEnvio.State,
-                ShippingPostalCode = ultimaInfoEnvio.PostalCode,
-                ShippingCountryCode = ultimaInfoEnvio.CountryCode,
-                //Importe 
-                AmountTotal = paypalDetail.AmountTotal,
-                AmountCurrency = paypalDetail.AmountCurrency,
-                AmountItemTotal = paypalDetail.AmountItemTotal,
-                AmountShipping = paypalDetail.AmountShipping,
-                //Datos vendedor
-                PayeeMerchantId = paypalDetail.PayeeMerchantId,
-                PayeeEmail = paypalDetail.PayeeEmail,
-                Description = paypalDetail.Description,
-                //Datos del pago
-                SaleId = ultimoCapture?.CaptureId,
-                CaptureStatus = ultimoCapture?.Status,
-                CaptureAmount = ultimoCapture?.Amount,
-                CaptureCurrency = ultimoCapture?.Currency,
-                ProtectionEligibility = ultimoCapture?.ProtectionEligibility,
-                TransactionFeeAmount = ultimoCapture?.TransactionFeeAmount,
-                TransactionFeeCurrency = ultimoCapture?.TransactionFeeCurrency,
-                ReceivableAmount = ultimoCapture?.ReceivableAmount,
-                ReceivableCurrency = ultimoCapture?.ReceivableCurrency,
-                ExchangeRate = ultimoCapture?.ExchangeRate,
-                FinalCapture = ultimoCapture?.FinalCapture,
-                DisputeCategories = ultimoCapture?.DisputeCategories,
-
-                TrackingId = paypalDetail.TrackingId,
-                TrackingStatus = paypalDetail.TrackingStatus,
-
-                PayPalPaymentItems = paypalDetail.PayPalPaymentItems?.Select(item => new PayPalPaymentItemViewModel
-                {
-                    ItemName = item.ItemName,
-                    ItemSku = item.ItemSku,
-                    ItemPrice = item.ItemPrice,
-                    ItemCurrency = item.ItemCurrency,
-                    ItemTax = item.ItemTax,
-                    ItemQuantity = item.ItemQuantity
-                }).ToList() ?? new List<PayPalPaymentItemViewModel>()
-            };
-
-            return View(viewModel);
-        }
-        [HttpGet]
-        public async Task<IActionResult> DownloadInvoice(string id)
-        {
-            if (string.IsNullOrEmpty(id))
-            {
-                _logger.LogError("Intento de manipulacion de id");
-                return RedirectToAction("Error", "Home");
-            }
-
-            var resultado = await _pdfservice.GenerarFacturaPagoEjecutadoAsync(id);
-
-            if (!resultado.Success)
-            {
-                TempData["ErrorMessage"] = resultado.Message ?? "No se pudo generar la factura.";
-                return RedirectToAction("DetallesPagoEjecutado", new { id }); 
-            }
-
-            var pdfBytes = resultado.Data;
-            var fileName = $"Factura_Pago_{id}.pdf";
-           
-      
-            return File(pdfBytes, "application/pdf", fileName);
-        }
-        [HttpGet]
-        [Authorize] // Opcional, según quién pueda enviar facturas
-        public async Task<IActionResult> SendInvoiceByEmail(string id)
-        {
-            if (string.IsNullOrEmpty(id))
-            {
-                _logger.LogError("Intento de manipulacion de id");
-                return RedirectToAction("Error", "Home");
-            }
-         
-            // Obtener email del cliente       
-            var emailDestinatario =  _currentUserAccessor.GetCurrentUserEmail();
-
-            if (string.IsNullOrEmpty(emailDestinatario))
-            {
-                TempData["ErrorMessage"] = "No se encontró email del cliente.";
-                return RedirectToAction("DetallesPagoEjecutado", new { id });
-            }
-
-            // Preparar modelo para la plantilla del email
-            var emailModel = new FacturaViewmodel
-            {
-                IdPago = id,
-                EnlaceDescarga = Url.Action(nameof(DownloadInvoice), "Pedidos", new { id }, Request.Scheme) 
-                                                                                                     
-            };
-            
-            var emailDto = new EmailDto { ToEmail = emailDestinatario };
-            await _emailService.SendEmailAsyncFactura(emailDto, id); 
-            TempData["SuccessMessage"] = "Factura enviada por email correctamente.";
-
-            return RedirectToAction(nameof(Index));
-        }
-        [Authorize]
-        [HttpPost]
-     
-        public async Task<IActionResult> AgregarInfoEnvio(int pedidoId, Carrier carrier, BarcodeType barcode)
-        {
-            var pedido = await _pedidoRepository.ObtenerPedidoPorIdAsync(pedidoId);
-            if (pedido == null)
-            {
-                _logger.LogError("Intento de manipulacion de id");
-                return RedirectToAction(nameof(Index));
-            }
-
-            try
-            {
-                await _paypalService.SeguimientoPedido(pedido.Id, carrier, barcode);
-
-                TempData["SuccessMessage"] = "Información de envío agregada con éxito.";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al agregar seguimiento para pedido {PedidoId}", pedidoId);
-
-                // Mensaje amigable para el usuario (no exponer detalles técnicos)
-                string userMessage = "No se pudo agregar la información de envío en este momento. " +
-                                    "Parece haber un problema temporal con los servidores de PayPal. " +
-                                    "Por favor, inténtelo de nuevo más tarde.";
-
-                // Opcional: si quieres diferenciar errores
-                if (ex.Message.Contains("INTERNAL_SERVICE_ERROR") || ex.Message.Contains("500"))
-                {
-                    userMessage = "Error temporal en PayPal. Intente nuevamente en unos minutos.";
-                }
-
-                TempData["ErrorMessage"] = userMessage;
-                return RedirectToAction(nameof(Index));
-            }
         }
 
     }
