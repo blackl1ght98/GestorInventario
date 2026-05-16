@@ -1,0 +1,298 @@
+﻿using GestorInventario.Application.DTOs.Response_paypal.Controller_Paypal_y_payment;
+using GestorInventario.Application.Exceptions;
+using GestorInventario.Infraestructure.Utils;
+using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.PaginacionLogica;
+using GestorInventario.ViewModels.Paypal;
+using GestorInventario.ViewModels.product;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+
+namespace GestorInventario.Infraestructure.Controllers
+{
+    public class PaypalPlanController : Controller
+    {
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IPolicyExecutor _policyExecutor;
+        private readonly IPaypalSubscriptionService _paypalSubscriptionService;
+        private readonly IPayPalMappingUtils _payPalMappingUtils;
+        private readonly IPaginationHelper _paginationHelper;
+        private readonly ILogger<PaypalPlanController> _logger;
+        public PaypalPlanController(
+            IUnitOfWork unitOfWork, 
+            IPolicyExecutor policyExecutor, 
+            IPaypalSubscriptionService paypalSubscriptionService,
+            IPayPalMappingUtils payPalMappingUtils,
+            IPaginationHelper paginationHelper,
+            ILogger<PaypalPlanController> logger)
+        {
+            _unitOfWork = unitOfWork;
+            _policyExecutor = policyExecutor;
+            _paypalSubscriptionService = paypalSubscriptionService;
+            _payPalMappingUtils = payPalMappingUtils;
+            _paginationHelper = paginationHelper;
+            _logger = logger;
+        }
+
+        public IActionResult Index()
+        {
+            return View();
+        }
+        [HttpPost]
+
+        public async Task<IActionResult> ActualizarPrecioPlan([FromBody] UpdatePlanPriceRequestDto request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                    return BadRequest(new { success = false, errorMessage = string.Join("; ", errors) });
+                }
+
+                // Validar que el plan exista
+                var plan = await _unitOfWork.PaypalRepository.ObtenerPlanPorIdAsync(request.PlanId);
+                if (plan == null)
+                {
+                    return NotFound(new { success = false, errorMessage = $"No se encontró el plan con ID {request.PlanId}" });
+                }
+
+                // Obtener los detalles del plan desde PayPal para verificar la moneda
+                var planDetails = await _policyExecutor.ExecutePolicyAsync(() => _paypalSubscriptionService.ObtenerDetallesPlan(request.PlanId));
+                string planCurrency = planDetails.BillingCycles?.FirstOrDefault(c => c.PricingScheme?.FixedPrice?.CurrencyCode != null)
+                    ?.PricingScheme.FixedPrice.CurrencyCode;
+                if (string.IsNullOrEmpty(planCurrency))
+                {
+                    return BadRequest(new { success = false, errorMessage = "No se pudo determinar la moneda del plan." });
+                }
+
+                // Validar que la moneda solicitada coincida con la del plan
+                if (request.Currency != planCurrency)
+                {
+                    return BadRequest(new { success = false, errorMessage = $"La moneda {request.Currency} no coincide con la moneda del plan ({planCurrency})." });
+                }
+
+                // Llamar al servicio para actualizar el precio
+                string result = await _paypalSubscriptionService.UpdatePricingPlanAsync(request.PlanId, request.TrialAmount, request.RegularAmount, request.Currency);
+
+                TempData["SuccessMessage"] = "Precio del plan actualizado con éxito.";
+                return Ok(new { success = true, message = "Precio del plan actualizado con éxito." });
+            }
+            catch (PayPalException ex) when (ex.Message.Contains("No se proporcionaron esquemas de precios válidos"))
+            {
+                return BadRequest(new { success = false, errorMessage = "No se proporcionaron precios diferentes a los actuales para actualizar el plan." });
+            }
+            catch (PayPalException ex) when (ex.Message.Contains("PRICING_SCHEME_UPDATE_NOT_ALLOWED"))
+            {
+                return BadRequest(new { success = false, errorMessage = "No se puede actualizar el precio de un plan activo con suscripciones asociadas. Por favor, crea un nuevo plan o actualiza las suscripciones individualmente." });
+            }
+            catch (PayPalException ex) when (ex.Message.Contains("CURRENCY_MISMATCH"))
+            {
+                return BadRequest(new { success = false, errorMessage = "La moneda no coincide con la moneda del plan." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, errorMessage = $"Error al actualizar el precio del plan: {ex.Message}" });
+            }
+        }
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> MostrarPlanes([FromQuery] Paginacion paginacion)
+        {
+            try
+            {
+
+
+                _logger.LogInformation("Página solicitada: {Pagina}, CantidadAMostrar: {Cantidad}", paginacion.Pagina, paginacion.CantidadAMostrar);
+
+                // Obtener planes de PayPal
+                var (plans, hasNextPage) = await _policyExecutor.ExecutePolicyAsync(() =>
+                    _paypalSubscriptionService.GetSubscriptionPlansAsync(paginacion.Pagina, paginacion.CantidadAMostrar));
+
+                // Mapear a ViewModel
+                var planesViewModel = new List<PlanesDto>();
+
+                if (plans != null)
+                {
+                    foreach (var plan in plans)
+                    {
+                        var viewModel = new PlanesDto
+                        {
+                            Id = plan.Id,
+                            productId = plan.ProductId,
+                            Name = plan.Name,
+                            Description = plan.Description,
+                            Status = plan.Status,
+                            Usage_type = plan.UsageType,
+                            CreateTime = plan.CreateTime,
+                            Billing_cycles = _payPalMappingUtils.MapBillingCycles(plan.BillingCycles),
+                            Taxes = _payPalMappingUtils.MapTaxes(plan.Taxes),
+                            CurrencyCode = plan.BillingCycles?.FirstOrDefault()?.PricingScheme?.FixedPrice?.CurrencyCode ?? string.Empty,
+                        };
+                        planesViewModel.Add(viewModel);
+                    }
+                }
+                else
+                {
+                    _logger.LogInformation("Hubo un valor nulo al obtene los planes");
+                }
+
+                // ────────────────────────────────────────────────
+                // USAMOS EL HELPER → modo "sin total real" (PayPal)
+                // ────────────────────────────────────────────────
+                var paginationResult = _paginationHelper.PaginarSinTotal(
+                    items: planesViewModel,
+                    paginaActual: paginacion.Pagina,
+                    hasNextPage: hasNextPage,
+                    cantidadAMostrar: paginacion.CantidadAMostrar,
+                    radio: paginacion.Radio
+                );
+                var monedas = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.CarritoRepository.ObtenerMoneda());
+
+                // Crear el ViewModel final usando el resultado del helper
+                var model = new PlanesPaginadosViewModel
+                {
+                    Planes = paginationResult.Items,
+                    Paginas = paginationResult.Paginas.ToList(),
+                    TotalPaginas = paginationResult.TotalPaginas,
+                    PaginaActual = paginationResult.PaginaActual,
+                    TienePaginaSiguiente = paginationResult.Paginas.LastOrDefault()?.Habilitada ?? false,
+                    TienePaginaAnterior = paginacion.Pagina > 1,
+                    CantidadAMostrar = paginacion.CantidadAMostrar
+                };
+
+                ViewBag.Monedas = new SelectList(
+                   monedas,
+                    "Codigo",
+                    "Codigo"
+                );
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                TempData["ConectionError"] = "Error al obtener los planes de suscripción. Intenta de nuevo más tarde.";
+                _logger.LogError(ex, "Error al obtener los planes de suscripción para la página {Pagina}", paginacion.Pagina);
+                return RedirectToAction("Error", "Home");
+            }
+        }
+
+
+        [Authorize]
+        //Metodo que obtiene los datos necesarios antes de crear el producto al que se suscribira
+        public async Task<IActionResult> CrearProductoYPlan()
+        {
+            var monedas = await _policyExecutor.ExecutePolicyAsync(
+            () => _unitOfWork.CarritoRepository.ObtenerMoneda());
+
+            var model = new ProductViewModelPaypal();
+            ViewData["Moneda"] = new SelectList(monedas, "Codigo", "Codigo");
+            // Obtener las categorías desde la enumeración y asignarlas al modelo
+            model.Categories = _unitOfWork.PaypalRepository.GetCategoriesFromEnum();
+
+            return View(model);
+        }
+
+        //Metodo que crea el producto  y plan al que se suscribira el usuario
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> CrearProductoYPlan(ProductViewModelPaypal model, string monedaSeleccionada)
+        {
+            CultureHelper.SetInvariantCulture();
+
+            var monedas = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.CarritoRepository.ObtenerMoneda());
+
+
+            ViewData["Moneda"] = new SelectList(monedas, "Codigo", "Codigo", monedaSeleccionada);
+            model.Categories = _unitOfWork.PaypalRepository.GetCategoriesFromEnum();
+            if (!ModelState.IsValid)
+            {
+
+                return View(model);
+            }
+            try
+            {
+                var product = await _paypalSubscriptionService.CreateProductAsync(
+                    model.Name,
+                    model.Description,
+                    model.Type,
+                    model.Category
+                );
+
+                if (product == null)
+                {
+                    _logger.LogWarning("Hubo un error al crear el producto en PayPal");
+                    TempData["ErrorMessage"] = "No se pudo crear el producto en PayPal.";
+                    return View(model);
+                }
+
+                string productId = product.Id;
+
+                string planResponse = await _paypalSubscriptionService.CreateSubscriptionPlanAsync(
+                    productId,
+                    model.PlanName,
+                    model.PlanDescription,
+                    model.Amount,
+                    monedaSeleccionada,
+                    model.IntervaUnit,
+                    model.HasTrialPeriod ? model.TrialPeriodDays : 0,
+                    model.HasTrialPeriod ? model.TrialAmount : 0.00m
+                );
+                if (planResponse.Contains("\"error\""))
+                {
+                    TempData["ErrorMessage"] = $"Error al crear el plan: {planResponse}";
+                    return View(model);
+                }
+                return RedirectToAction("MostrarProductos", "Paypal");
+               
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error inesperado al crear producto/plan");
+                TempData["ErrorMessage"] = "Ocurrió un error inesperado. Inténtalo de nuevo.";
+                return View(model);
+            }
+        }
+        //Metodo para desactivar el plan
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> DesactivarPlan(string id)
+        {
+            try
+            {
+                var activeSubscriptions = await _unitOfWork.PaypalRepository.ObtenerSuscriptcionesActivas(id);
+                var userSubscriptions = await _unitOfWork.PaypalRepository.ObtenerSusbcripcionesUsuario(id);
+                if (activeSubscriptions.Any() || userSubscriptions.Any())
+                {
+                    TempData["ErrorMessage"] = "No se puede desactivar el plan hay subscriptores activos";
+                    return RedirectToAction(nameof(MostrarPlanes));
+                }
+                var deleteResponse = await _paypalSubscriptionService.DesactivarPlan(id);
+
+
+                return RedirectToAction(nameof(MostrarPlanes), new { mensaje = deleteResponse });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error al eliminar el producto y el plan: {ex.Message}");
+            }
+        }
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> ActivarPlan(string id)
+        {
+            try
+            {
+
+                var activateResponse = await _paypalSubscriptionService.ActivarPlan(id);
+                return RedirectToAction(nameof(MostrarPlanes), new { mensaje = activateResponse });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error al eliminar el producto y el plan: {ex.Message}");
+            }
+        }
+    }
+}

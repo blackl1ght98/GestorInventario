@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const token = tokenElement.getAttribute("content");
         try {
-            const response = await fetch('/Payment/RefundSale', {
+            const response = await fetch('/Rembolso/RefundSale', {
                 method: 'POST',
                 headers: {
                     'Content-Type':

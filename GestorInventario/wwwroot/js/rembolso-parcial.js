@@ -62,7 +62,7 @@
         confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Procesando...';
 
         try {
-            const response = await fetch('/Payment/RefundPartial', {
+            const response = await fetch('/Rembolso/RefundPartial', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

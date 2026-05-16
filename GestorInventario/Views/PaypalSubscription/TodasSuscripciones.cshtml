@@ -87,7 +87,7 @@
                             {
                                 <div class="mt-auto pt-3 border-top">
                                     <div class="d-flex flex-wrap gap-2">
-                                        <a asp-action="DetallesSuscripcion" asp-controller="Paypal"
+                                        <a asp-action="DetallesSuscripcion" asp-controller="PaypalSubscription"
                                            asp-route-id="@sub.SubscriptionId"
                                            class="btn btn-outline-primary flex-fill btn-sm">
                                             <i class="bi bi-eye me-1"></i> Detalles
@@ -167,7 +167,7 @@
                 <h5 class="modal-title"><i class="bi bi-x-circle me-2"></i>Cancelar Suscripción</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form id="cancelForm" asp-controller="Paypal" asp-action="CancelarSuscripcion" method="post">
+            <form id="cancelForm" asp-controller="PaypalSubscription" asp-action="CancelarSuscripcion" method="post">
                 <div class="modal-body">
                     <input type="hidden" name="Id" id="cancelSubscriptionId" />
                     <p class="mb-3">Estás a punto de cancelar la suscripción <strong id="cancelSubscriptionIdDisplay"></strong>.</p>
@@ -196,7 +196,7 @@
                 <h5 class="modal-title text-dark"><i class="bi bi-pause-circle me-2"></i>Suspender Suscripción</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form id="suspendForm" asp-controller="Paypal" asp-action="SuspenderSuscripcion" method="post">
+            <form id="suspendForm" asp-controller="PaypalSubscription" asp-action="SuspenderSuscripcion" method="post">
                 <div class="modal-body">
                     <input type="hidden" name="Id" id="suspendSubscriptionId" />
                     <p class="mb-3">Estás a punto de suspender la suscripción <strong id="suspendSubscriptionIdDisplay"></strong>.</p>
@@ -225,7 +225,7 @@
                 <h5 class="modal-title"><i class="bi bi-check-circle me-2"></i>Activar Suscripción</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form id="activateForm" asp-controller="Paypal" asp-action="ActivarSuscripcion" method="post">
+            <form id="activateForm" asp-controller="PaypalSubscription" asp-action="ActivarSuscripcion" method="post">
                 <div class="modal-body">
                     <input type="hidden" name="Id" id="activateSubscriptionId" />
                     <p class="mb-3">Estás a punto de reactivar la suscripción <strong id="activateSubscriptionIdDisplay"></strong>.</p>

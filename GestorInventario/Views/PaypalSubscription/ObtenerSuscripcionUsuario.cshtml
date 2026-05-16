@@ -139,7 +139,7 @@
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form id="cancelForm" asp-controller="Paypal" asp-action="CancelarSuscripcion" method="post">
+            <form id="cancelForm" asp-controller="PaypalSubscription" asp-action="CancelarSuscripcion" method="post">
                 <div class="modal-body">
                     <input type="hidden" name="Id" id="cancelSubscriptionId" />
                     <p class="mb-3">Estás a punto de <strong>cancelar</strong> la suscripción:</p>

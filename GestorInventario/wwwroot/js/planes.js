@@ -94,7 +94,7 @@ function actualizarPrecioPlan(planId, trialPrice, regularPrice, currency) {
 
     console.log("Cuerpo de la solicitud:", JSON.stringify(requestBody));
 
-    return fetch('/Paypal/ActualizarPrecioPlan', {
+    return fetch('/PaypalPlan/ActualizarPrecioPlan', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

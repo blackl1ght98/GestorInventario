@@ -103,7 +103,7 @@
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="transaccionesDropdown">
                                 <li>
-                                    <a asp-area="" asp-controller="Payment" asp-action="FormularioRembolso" class="dropdown-item" data-bs-toggle="tooltip" title="Gestionar reembolsos"><i class="bi bi-cash nav-icon"></i> Formulario rembolso</a>
+                                    <a asp-area="" asp-controller="Rembolso" asp-action="FormularioRembolso" class="dropdown-item" data-bs-toggle="tooltip" title="Gestionar reembolsos"><i class="bi bi-cash nav-icon"></i> Formulario rembolso</a>
                                 </li>
                                 <li>
                                     <a asp-area="" asp-controller="Carrito" asp-action="Index" class="dropdown-item" data-bs-toggle="tooltip" title="Ver carrito"><i class="bi bi-cart3 nav-icon"></i> Carrito</a>
@@ -124,9 +124,9 @@
                                     {
                                         <li><a asp-area="" asp-controller="Paypal" asp-action="MostrarProductos" class="dropdown-item">Productos PayPal</a></li>
                                     }
-                                    <li><a asp-area="" asp-controller="Paypal" asp-action="MostrarPlanes" class="dropdown-item">Planes PayPal</a></li>
-                                    <li><a asp-area="" asp-controller="Paypal" asp-action="TodasSuscripciones" class="dropdown-item">Suscriptores</a></li>
-                                    <li><a asp-area="" asp-controller="Paypal" asp-action="ObtenerSuscripcionUsuario" class="dropdown-item">Suscripción Usuario</a></li>
+                                    <li><a asp-area="" asp-controller="PaypalPlan" asp-action="MostrarPlanes" class="dropdown-item">Planes PayPal</a></li>
+                                    <li><a asp-area="" asp-controller="PaypalSubscription" asp-action="TodasSuscripciones" class="dropdown-item">Suscriptores</a></li>
+                                    <li><a asp-area="" asp-controller="PaypalSubscription" asp-action="ObtenerSuscripcionUsuario" class="dropdown-item">Suscripción Usuario</a></li>
                                 </ul>
                             </li>
                         }
