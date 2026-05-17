@@ -1,0 +1,75 @@
+﻿using GestorInventario.Domain.Models;
+using GestorInventario.Infraestructure.Utils;
+using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.MetodosExtension;
+using Microsoft.EntityFrameworkCore;
+
+namespace GestorInventario.Infraestructure.Repositories.ProductoRepository
+{
+    public class ProductoRepository : IProductoRepository
+    {
+        private readonly GestorInventarioContext _context;      
+         
+     
+        public ProductoRepository(GestorInventarioContext context)
+        {
+            _context = context;              
+                
+        }    
+     
+        public IQueryable<Producto> ObtenerTodosLosProductos()=>from p in _context.Productos.Include(x => x.IdProveedorNavigation)orderby p.Id  select p;
+
+        public async Task<bool> ObtenerCodigoUPC(string code) => await _context.Productos.AnyAsync(p => p.CodigoBarras == code);
+        public async Task<OperationResult<Producto>> AgregarProductoAsync(Producto producto)
+        {
+            return await _context.ExecuteInTransactionAsync(async () =>
+            {
+                await _context.AddEntityAsync(producto);
+                return OperationResult<Producto>.Ok("Producto creado", producto);
+            });
+        }
+       
+        public async Task<bool> ExisteNombreProductoAsync(string nombre)
+        {
+            return await _context.Productos.AnyAsync(x => x.NombreProducto == nombre);
+        }
+        public async Task<List<Proveedore>> ObtenerProveedores()=>await _context.Proveedores.ToListAsync();
+       
+        public async Task<Producto> ObtenerProductoPorIdAsync(int id)
+        {
+            var producto = await _context.Productos.Include(p => p.IdProveedorNavigation).FirstOrDefaultAsync(m => m.Id == id);
+            return producto;
+        }
+        public async Task<Producto> ObtenerProductoCompletoAsync(int Id)
+        {
+            var producto = await _context.Productos
+                   .Include(p => p.DetallePedidos)
+                   .ThenInclude(dp => dp.Pedido)
+                   .Include(p => p.IdProveedorNavigation)
+                   .FirstOrDefaultAsync(m => m.Id == Id);
+            return producto;
+        }
+        public async Task<DetallePedido> ObtenerDetallesCarrito(int idCarrito, int idProducto)
+        {
+            var detallesCarrito = await _context.DetallePedidos
+                .FirstOrDefaultAsync(d => d.PedidoId == idCarrito && d.ProductoId == idProducto);
+            return  detallesCarrito;
+        }
+        public async Task<OperationResult<Producto>> EliminarProductoAsync(Producto producto)
+        {
+            return await _context.ExecuteInTransactionAsync(async () =>
+            {
+                await _context.DeleteEntityAsync(producto);
+                return OperationResult<Producto>.Ok("Producto eliminado", producto);
+            });
+        }
+        public async Task<OperationResult<Producto>> ActualizarProductoAsync(Producto producto)
+        {
+            return await _context.ExecuteInTransactionAsync(async () =>
+            {
+                await _context.UpdateEntityAsync(producto);
+                return OperationResult<Producto>.Ok("Producto actualizado", producto);
+            });
+        }
+    }
+}

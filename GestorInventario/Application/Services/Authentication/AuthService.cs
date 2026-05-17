@@ -6,7 +6,7 @@ using GestorInventario.Interfaces.Application.Authentication;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure;
-using GestorInventario.ViewModels.user;
+using GestorInventario.ViewModels.Usuarios;
 using System.ComponentModel.DataAnnotations;
 
 namespace GestorInventario.Application.Services.Authentication

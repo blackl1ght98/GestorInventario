@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Application.DTOs;
+using GestorInventario.Application.DTOS.Paypal.Responses.GET.Subscription;
 
 namespace GestorInventario.Interfaces.Infraestructure
 {

@@ -1,9 +1,8 @@
 ﻿using GestorInventario.Application.DTOs;
-using GestorInventario.Application.DTOs.Response.PayPal;
-using GestorInventario.Application.DTOs.Response_paypal;
-using GestorInventario.Application.DTOs.Response_paypal.GET;
-using GestorInventario.Application.DTOs.Response_paypal.PATCH;
-using GestorInventario.Application.DTOs.Response_paypal.POST;
+using GestorInventario.Application.DTOs.Paypal.Responses.PATCH;
+using GestorInventario.Application.DTOS.Paypal.Responses.Error;
+using GestorInventario.Application.DTOS.Paypal.Responses.GET.Subscription;
+using GestorInventario.Application.DTOS.Paypal.Responses.POST.Subscription;
 using GestorInventario.Application.Exceptions;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.ExternalServices;

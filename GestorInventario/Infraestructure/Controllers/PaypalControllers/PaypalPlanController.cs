@@ -1,4 +1,5 @@
-﻿using GestorInventario.Application.DTOs.Response_paypal.Controller_Paypal_y_payment;
+﻿using GestorInventario.Application.DTOS.Paypal;
+using GestorInventario.Application.DTOS.Paypal.Projections;
 using GestorInventario.Application.Exceptions;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.Common;
@@ -6,7 +7,7 @@ using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.PaginacionLogica;
 using GestorInventario.ViewModels.Paypal;
-using GestorInventario.ViewModels.product;
+using GestorInventario.ViewModels.Productos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -113,13 +114,13 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                     _paypalSubscriptionService.GetSubscriptionPlansAsync(paginacion.Pagina, paginacion.CantidadAMostrar));
 
                 // Mapear a ViewModel
-                var planesViewModel = new List<PlanesDto>();
+                var planesViewModel = new List<PlanProjection>();
 
                 if (plans != null)
                 {
                     foreach (var plan in plans)
                     {
-                        var viewModel = new PlanesDto
+                        var viewModel = new PlanProjection
                         {
                             Id = plan.Id,
                             productId = plan.ProductId,

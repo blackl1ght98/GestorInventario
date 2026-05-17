@@ -1,6 +1,6 @@
 ﻿using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
-using GestorInventario.ViewModels.product;
+using GestorInventario.ViewModels.Productos;
 
 namespace GestorInventario.Interfaces.Application.Services
 {

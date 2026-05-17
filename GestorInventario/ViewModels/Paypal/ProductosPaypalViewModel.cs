@@ -1,5 +1,4 @@
-﻿
-using GestorInventario.Application.DTOs.Response_paypal;
+﻿using GestorInventario.Application.DTOS.Paypal;
 using GestorInventario.PaginacionLogica;
 
 namespace GestorInventario.ViewModels.Paypal

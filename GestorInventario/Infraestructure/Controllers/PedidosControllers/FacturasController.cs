@@ -1,7 +1,7 @@
 ﻿using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.Services;
-using GestorInventario.ViewModels.order;
+using GestorInventario.ViewModels.Pedidos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

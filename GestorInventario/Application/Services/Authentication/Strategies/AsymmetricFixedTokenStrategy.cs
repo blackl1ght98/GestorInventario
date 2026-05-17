@@ -3,7 +3,6 @@ using GestorInventario.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using System.Security.Cryptography;
 
 namespace GestorInventario.Application.Services.Authentication.Strategies

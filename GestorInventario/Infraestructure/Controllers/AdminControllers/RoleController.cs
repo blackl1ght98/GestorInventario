@@ -4,7 +4,7 @@ using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.PaginacionLogica;
-using GestorInventario.ViewModels.user;
+using GestorInventario.ViewModels.Usuarios;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

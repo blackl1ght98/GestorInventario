@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 
 using GestorInventario.Domain.Models;
-using GestorInventario.ViewModels.user;
+using GestorInventario.ViewModels.Usuarios;
 
 namespace GestorInventario.Application.Classes
 {

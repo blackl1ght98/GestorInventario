@@ -51,7 +51,7 @@ namespace GestorInventario.Application.Services.Generic_Services
            *   using var scope = _serviceProvider.CreateScope();
            * Esto simula una petición HTTP: crea instancias scoped frescas, las usa y las destruye
            * al cerrar el 'using', liberando DbContext y conexiones.
-   */
+          */
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation(
@@ -90,8 +90,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                     "Próxima verificación de stock en {Intervalo}",
                     _intervalo);
 
-                // Dormimos el tiempo configurado. Si el token se activa durante la siesta,
-                // Task.Delay lanza OperationCanceledException y salimos del while limpiamente.
+                //3. Dormimos al servicio hasta la siguiente ejecucion
                 await Task.Delay(_intervalo, stoppingToken);
             }
 

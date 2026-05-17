@@ -1,6 +1,6 @@
 ﻿using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
-using GestorInventario.ViewModels.order;
+using GestorInventario.ViewModels.Pedidos;
 
 namespace GestorInventario.Interfaces.Application.Services
 {

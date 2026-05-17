@@ -1,13 +1,10 @@
-﻿using GestorInventario.Application.DTOs.Email;
-using GestorInventario.Domain.Models;
-using GestorInventario.enums;
-using GestorInventario.Interfaces.Application.Common;
+﻿using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.MetodosExtension;
 using GestorInventario.PaginacionLogica;
-using GestorInventario.ViewModels;
-using GestorInventario.ViewModels.order;
+using GestorInventario.ViewModels.Pedidos;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

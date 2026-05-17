@@ -1,19 +1,12 @@
-﻿using GestorInventario.Application.DTOs.Response_paypal;
-using GestorInventario.Application.DTOs.Response_paypal.Controller_Paypal_y_payment;
-using GestorInventario.Application.Exceptions;
-using GestorInventario.Domain.Models;
-using GestorInventario.Infraestructure.Utils;
+﻿using GestorInventario.Application.DTOS.Paypal;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.PaginacionLogica;
-using GestorInventario.ViewModels;
 using GestorInventario.ViewModels.Paypal;
-using GestorInventario.ViewModels.product;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Security.Claims;
 
 namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
 {

@@ -1,14 +1,9 @@
 ﻿using GestorInventario.Interfaces.Application.Services;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.Formats.Webp;
-using SixLabors.ImageSharp.Processing;
+using SkiaSharp;
 
 namespace GestorInventario.Application.Services.Common
 {
-    public class ImageOptimizerService: IImageOptimizerService
+    public class ImageOptimizerService : IImageOptimizerService
     {
         private readonly ILogger<ImageOptimizerService> _logger;
         private readonly IWebHostEnvironment _environment;
@@ -31,49 +26,70 @@ namespace GestorInventario.Application.Services.Common
                     return null;
                 }
 
-                using var image = await Image.LoadAsync(physicalPath);
-                var outputStream = new MemoryStream();
+                // Cargar imagen con SkiaSharp
+                using var inputStream = File.OpenRead(physicalPath);
+                using var bitmap = SKBitmap.Decode(inputStream);
+
+                if (bitmap == null)
+                {
+                    _logger.LogWarning("No se pudo decodificar la imagen: {Path}", physicalPath);
+                    return null;
+                }
 
                 // Redimensionar manteniendo el aspect ratio
+                SKBitmap resizedBitmap = bitmap;
                 if (width.HasValue || height.HasValue)
                 {
-                    var originalWidth = image.Width;
-                    var originalHeight = image.Height;
-                    int targetWidth = width ?? originalWidth;
-                    int targetHeight = height ?? originalHeight;
+                    int targetWidth = width ?? bitmap.Width;
+                    int targetHeight = height ?? bitmap.Height;
 
                     // Preservar aspect ratio
                     if (width.HasValue && !height.HasValue)
                     {
-                        targetHeight = (int)(originalHeight * ((double)targetWidth / originalWidth));
+                        targetHeight = (int)(bitmap.Height * ((double)targetWidth / bitmap.Width));
                     }
                     else if (height.HasValue && !width.HasValue)
                     {
-                        targetWidth = (int)(originalWidth * ((double)targetHeight / originalHeight));
+                        targetWidth = (int)(bitmap.Width * ((double)targetHeight / bitmap.Height));
                     }
 
-                    var resizeOptions = new ResizeOptions
-                    {
-                        Size = new Size(targetWidth, targetHeight),
-                        Mode = ResizeMode.Max,
-                        Sampler = isLcpCandidate ? KnownResamplers.Lanczos3 : KnownResamplers.Bicubic // Mejor calidad para LCP
-                    };
+                    // Usar Lanczos para LCP, Bicubic para el resto
+                    var filterQuality = isLcpCandidate ? SKFilterQuality.High : SKFilterQuality.Medium;
+                    resizedBitmap = bitmap.Resize(new SKImageInfo(targetWidth, targetHeight), filterQuality);
 
-                    image.Mutate(x => x.Resize(resizeOptions));
-                    _logger.LogDebug("Imagen redimensionada a {Width}x{Height}", image.Width, image.Height);
+                    if (resizedBitmap != bitmap)
+                    {
+                        bitmap.Dispose(); // Liberar el original si se creó uno nuevo
+                    }
+
+                    _logger.LogDebug("Imagen redimensionada a {Width}x{Height}", resizedBitmap.Width, resizedBitmap.Height);
                 }
 
-                // Strip metadata
-                image.Metadata.ExifProfile = null;
-                image.Metadata.IccProfile = null;
-                image.Metadata.XmpProfile = null;
+                // Convertir a imagen y codificar
+                using var image = SKImage.FromBitmap(resizedBitmap);
+                var outputStream = new MemoryStream();
 
-                // Guardar con compresión optimizada
-                IImageEncoder encoder = GetEncoder(Path.GetExtension(imagePath).ToLowerInvariant(), quality, isLcpCandidate);
-                await image.SaveAsync(outputStream, encoder);
+                var format = GetSkiaFormat(Path.GetExtension(imagePath).ToLowerInvariant());
+                int effectiveQuality = isLcpCandidate ? Math.Max(quality, 60) : quality;
+
+                var encodedData = EncodeImage(image, format, effectiveQuality);
+                if (encodedData != null)
+                {
+                    encodedData.SaveTo(outputStream);
+                    encodedData.Dispose();
+                }
+
                 outputStream.Position = 0;
 
-                _logger.LogDebug("Imagen procesada: {Path} {Width}x{Height}, Tamaño: {Size} bytes", imagePath, image.Width, image.Height, outputStream.Length);
+                _logger.LogDebug("Imagen procesada: {Path} {Width}x{Height}, Tamaño: {Size} bytes",
+                    imagePath, resizedBitmap.Width, resizedBitmap.Height, outputStream.Length);
+
+                // Liberar recursos
+                if (resizedBitmap != null && resizedBitmap != bitmap)
+                {
+                    resizedBitmap.Dispose();
+                }
+
                 return outputStream;
             }
             catch (Exception ex)
@@ -83,32 +99,6 @@ namespace GestorInventario.Application.Services.Common
             }
         }
 
-        private IImageEncoder GetEncoder(string extension, int quality, bool isLcpCandidate)
-        {
-            // Usar calidad más alta para imágenes LCP
-            int effectiveQuality = isLcpCandidate ? Math.Max(quality, 60) : quality;
-            return extension switch
-            {
-                ".webp" => new WebpEncoder
-                {
-                    Quality = effectiveQuality,
-                    Method = WebpEncodingMethod.Level6,
-                    UseAlphaCompression = false, // Asegurar compresión con pérdida
-                    FileFormat = WebpFileFormatType.Lossy,
-                  
-                },
-                ".png" => new PngEncoder { CompressionLevel = PngCompressionLevel.BestCompression },
-                ".jpg" or ".jpeg" => new JpegEncoder { Quality = effectiveQuality },
-                _ => new WebpEncoder
-                {
-                    Quality = effectiveQuality,
-                    Method = WebpEncodingMethod.Level6,
-                    UseAlphaCompression = false,
-                    FileFormat = WebpFileFormatType.Lossy
-                }
-            };
-        }
-
         public async Task<string> OptimizeAndSaveImage(IFormFile imageFile, string folder = "imagenes", bool isLcpCandidate = false)
         {
             try
@@ -116,32 +106,64 @@ namespace GestorInventario.Application.Services.Common
                 var extension = Path.GetExtension(imageFile.FileName).ToLowerInvariant();
                 var finalExtension = ShouldConvertToWebP(extension) ? ".webp" : extension;
                 var fileName = $"{Guid.NewGuid()}{finalExtension}";
-                var filePath = Path.Combine(_environment.WebRootPath, folder, fileName);
+                var folderPath = Path.Combine(_environment.WebRootPath, folder);
 
-                using var image = await Image.LoadAsync(imageFile.OpenReadStream());
+                // Crear carpeta si no existe
+                if (!Directory.Exists(folderPath))
+                {
+                    Directory.CreateDirectory(folderPath);
+                }
+
+                var filePath = Path.Combine(folderPath, fileName);
+
+                // Cargar imagen desde el stream del archivo subido
+                using var inputStream = imageFile.OpenReadStream();
+                using var bitmap = SKBitmap.Decode(inputStream);
+
+                if (bitmap == null)
+                {
+                    throw new InvalidOperationException($"No se pudo decodificar la imagen: {imageFile.FileName}");
+                }
 
                 // Redimensionar a un máximo de 388px para pantallas estándar, 776px para alta densidad
                 int maxDimension = isLcpCandidate ? 776 : 388;
-                if (image.Width > maxDimension || image.Height > maxDimension)
+                SKBitmap finalBitmap = bitmap;
+
+                if (bitmap.Width > maxDimension || bitmap.Height > maxDimension)
                 {
-                    image.Mutate(x => x.Resize(new ResizeOptions
+                    var filterQuality = isLcpCandidate ? SKFilterQuality.High : SKFilterQuality.Medium;
+                    finalBitmap = bitmap.Resize(new SKImageInfo(maxDimension, maxDimension), filterQuality);
+
+                    if (finalBitmap != bitmap)
                     {
-                        Size = new Size(maxDimension, maxDimension),
-                        Mode = ResizeMode.Max,
-                        Sampler = isLcpCandidate ? KnownResamplers.Lanczos3 : KnownResamplers.Bicubic
-                    }));
+                        bitmap.Dispose();
+                    }
+
+                    _logger.LogDebug("Imagen redimensionada a {Width}x{Height} para optimización", finalBitmap.Width, finalBitmap.Height);
                 }
 
-                // Strip metadata
-                image.Metadata.ExifProfile = null;
-                image.Metadata.IccProfile = null;
-                image.Metadata.XmpProfile = null;
+                // Convertir a imagen y guardar
+                using var image = SKImage.FromBitmap(finalBitmap);
+                var format = GetSkiaFormat(finalExtension);
+                int effectiveQuality = isLcpCandidate ? Math.Max(50, 60) : 50;
 
-                // Guardar optimizada
-                IImageEncoder encoder = GetEncoder(finalExtension, 50, isLcpCandidate);
-                await image.SaveAsync(filePath, encoder);
+                var encodedData = EncodeImage(image, format, effectiveQuality);
+                if (encodedData != null)
+                {
+                    using var fileStream = File.OpenWrite(filePath);
+                    encodedData.SaveTo(fileStream);
+                    encodedData.Dispose();
+                }
 
-                _logger.LogInformation("Imagen optimizada y guardada: {FilePath}, Tamaño: {Size} bytes", filePath, new FileInfo(filePath).Length);
+                // Liberar recursos
+                if (finalBitmap != null && finalBitmap != bitmap)
+                {
+                    finalBitmap.Dispose();
+                }
+
+                _logger.LogInformation("Imagen optimizada y guardada: {FilePath}, Tamaño: {Size} bytes",
+                    filePath, new FileInfo(filePath).Length);
+
                 return $"{folder}/{fileName}";
             }
             catch (Exception ex)
@@ -154,6 +176,32 @@ namespace GestorInventario.Application.Services.Common
         private bool ShouldConvertToWebP(string extension)
         {
             return extension != ".webp";
+        }
+
+        private SKEncodedImageFormat GetSkiaFormat(string extension)
+        {
+            return extension switch
+            {
+                ".webp" => SKEncodedImageFormat.Webp,
+                ".png" => SKEncodedImageFormat.Png,
+                ".jpg" or ".jpeg" => SKEncodedImageFormat.Jpeg,
+                _ => SKEncodedImageFormat.Webp
+            };
+        }
+
+        private SKData EncodeImage(SKImage image, SKEncodedImageFormat format, int quality)
+        {
+            // Para WebP, SkiaSharp usa calidad 0-100 directamente
+            // Para PNG, la calidad no aplica (siempre lossless)
+            // Para JPEG, calidad 0-100
+
+            return format switch
+            {
+                SKEncodedImageFormat.Webp => image.Encode(format, quality),
+                SKEncodedImageFormat.Png => image.Encode(format, 100), // PNG es lossless, calidad no aplica
+                SKEncodedImageFormat.Jpeg => image.Encode(format, quality),
+                _ => image.Encode(format, quality)
+            };
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.Services;
-using GestorInventario.ViewModels;
+using GestorInventario.ViewModels.Paypal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

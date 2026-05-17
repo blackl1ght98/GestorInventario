@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.ViewModels.email
+﻿namespace GestorInventario.ViewModels.Email
 {
     public class ResetPasswordEmailViewmodel
     {

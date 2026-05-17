@@ -1,7 +1,7 @@
-﻿using GestorInventario.Application.DTOs.Response_paypal.GET;
+﻿
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
-using GestorInventario.ViewModels.Paypal;
+
 
 namespace GestorInventario.Interfaces.Infraestructure
 {

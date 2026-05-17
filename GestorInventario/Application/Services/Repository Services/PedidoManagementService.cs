@@ -7,7 +7,7 @@ using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.Interfaces.Utils;
-using GestorInventario.ViewModels.order;
+using GestorInventario.ViewModels.Pedidos;
 using Newtonsoft.Json;
 using System.Globalization;
 

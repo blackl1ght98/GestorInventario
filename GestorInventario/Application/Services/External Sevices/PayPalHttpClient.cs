@@ -1,4 +1,5 @@
-﻿using GestorInventario.Application.DTOs.Response_paypal.GET;
+﻿
+using GestorInventario.Application.DTOS.Paypal.Responses.GET.PaypalAuthentication;
 using GestorInventario.Interfaces.Application.ExternalServices;
 using Newtonsoft.Json;
 using System.Net.Http.Headers;

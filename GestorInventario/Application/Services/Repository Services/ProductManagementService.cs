@@ -4,8 +4,7 @@ using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.Interfaces.Utils;
-using GestorInventario.ViewModels.product;
-
+using GestorInventario.ViewModels.Productos;
 
 namespace GestorInventario.Application.Services.Products
 {

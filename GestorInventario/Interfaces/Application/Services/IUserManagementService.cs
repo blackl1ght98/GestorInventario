@@ -1,6 +1,6 @@
 ﻿using GestorInventario.Application.DTOs.User;
 using GestorInventario.Infraestructure.Utils;
-using GestorInventario.ViewModels.user;
+using GestorInventario.ViewModels.Usuarios;
 
 namespace GestorInventario.Interfaces.Application.Services
 {
