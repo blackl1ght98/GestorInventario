@@ -107,7 +107,7 @@
                     </div>
 
                     <div class="card-footer bg-white border-0 pt-0">
-                        <form asp-action="AgregarAlCarrito" method="post" class="mb-2">
+                        <form asp-action="Agregar" asp-controller="Carrito" method="post" class="mb-2">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="idProducto" value="@producto.Id" />
                             <div class="input-group input-group-sm">

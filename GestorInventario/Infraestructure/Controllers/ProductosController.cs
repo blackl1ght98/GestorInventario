@@ -16,13 +16,9 @@ namespace GestorInventario.Infraestructure.Controllers
 {
     public class ProductosController : Controller
     {
-        
-       
-       
-        private readonly ILogger<ProductosController> _logger;   
-        private readonly IEmailService _emailService;
-        private readonly IProductoRepository _productoRepository;            
-        private readonly IPdfService _pdfService;
+             
+        private readonly ILogger<ProductosController> _logger;       
+        private readonly IProductoRepository _productoRepository;                    
         private readonly IPolicyExecutor _policyExecutor;
         private readonly IPaginationHelper _paginationHelper;
         private readonly ICurrentUserAccessor _current;
@@ -34,16 +30,12 @@ namespace GestorInventario.Infraestructure.Controllers
             ICurrentUserAccessor currentUserAccessor, 
             ICarritoService carritoService,
             ILogger<ProductosController> logger, 
-            IEmailService emailService, 
-            IProductoRepository productoRepository,
-            IPdfService pdfService, 
+            IProductoRepository productoRepository,    
             IProductManagementService productoService)
         {
-            _logger = logger;         
-            _emailService = emailService;
+            _logger = logger;                  
             _productoRepository = productoRepository;         
-            _policyExecutor = policyExecutor;
-            _pdfService = pdfService;
+            _policyExecutor = policyExecutor;      
             _paginationHelper = pagination;
             _current = currentUserAccessor;
             _productoService = productoService;
@@ -330,38 +322,8 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
-        //Metodo que agrega el producto al carrito
-        [HttpPost]
-        [Authorize]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AgregarAlCarrito(int idProducto, int cantidad)
-        {
-            try
-            {
-               
-              
-                    int usuarioId=_current.GetCurrentUserId();
-               
-                    var success= await _policyExecutor.ExecutePolicyAsync(()=> _carritoService.AgregarProductoAlCarrito(idProducto, cantidad, usuarioId)) ;
-                    if (success.Success) 
-                    {
-                        return RedirectToAction("Index");
-
-                    }
-                    else
-                    {
-                        TempData["ErrorMessage"] = success.Message;
-                    }
-                
-                return RedirectToAction("Index");
-            }
-            catch (Exception ex)
-            {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al agregar el producto al carrito");
-                return RedirectToAction("Error", "Home");
-            }
-        }
+       
+       
 
     }
 }

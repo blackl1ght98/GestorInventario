@@ -196,6 +196,37 @@ namespace GestorInventario.Infraestructure.Controllers
             }
 
         }
-        
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Agregar(int idProducto, int cantidad)
+        {
+            try
+            {
+
+
+                int usuarioId = _currentUserAccessor.GetCurrentUserId();
+
+                var success = await _policyExecutor.ExecutePolicyAsync(() => _carritoService.AgregarProductoAlCarrito(idProducto, cantidad, usuarioId));
+                if (success.Success)
+                {
+                    return RedirectToAction("Index", "Productos");
+
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = success.Message;
+                }
+
+                return RedirectToAction("Index","Productos");
+            }
+            catch (Exception ex)
+            {
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
+                _logger.LogError(ex, "Error al agregar el producto al carrito");
+                return RedirectToAction("Error", "Home");
+            }
+        }
+
     }
 }
