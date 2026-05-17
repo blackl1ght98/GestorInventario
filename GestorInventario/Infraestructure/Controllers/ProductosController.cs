@@ -91,8 +91,7 @@ namespace GestorInventario.Infraestructure.Controllers
                 // Obtener proveedores
                 var proveedores = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProveedores());
 
-                // Verificar stock (manteniendo la lógica existente)
-                await VerificarStock();
+           
 
                 // Crear el ViewModel
                 var viewModel = new ProductsViewModel
@@ -118,42 +117,6 @@ namespace GestorInventario.Infraestructure.Controllers
             }
         }
 
-        //Metodo para verificar el stock de un producto
-        public async Task VerificarStock()
-        {
-            try
-            {
-                var emailUsuario = User.FindFirstValue(ClaimTypes.Email);
-
-                if (emailUsuario != null)
-                {
-                    var productos = _policyExecutor.ExecutePolicy(() => _productoRepository.ObtenerTodosLosProductos());
-                    foreach (var producto in productos)
-                    {
-                        if (producto.Cantidad < 10) 
-                        {
-                            var lowStockData = new LowStockEmailData
-                            {
-                                NombreProducto = producto.NombreProducto,
-                                Cantidad = producto.Cantidad,
-                                
-                            };
-                            await _emailService.SendEmailAsyncLowStock(new EmailDto
-                            {
-                                ToEmail = emailUsuario
-                            }, lowStockData);
-                        }
-                    }
-                }
-
-            }
-            catch (Exception ex)
-            {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex,"Error al verificar el stock");
-            }
-           
-        }
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Create()
         {

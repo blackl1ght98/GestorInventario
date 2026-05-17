@@ -10,7 +10,7 @@ namespace GestorInventario.Interfaces.Infraestructure
         IQueryable<Usuario> ObtenerUsuarios();
         IQueryable<Usuario> ObtenerUsuariosPorRol(int rolId);
         Task<Usuario> ObtenerUsuarioConProveedoresYPedidosAsync(int id);
-        Task<List<string>> ObtenerEmailsAdministradoresAsync(CancellationToken cancellationToken = default);
+        Task<List<string>> ObtenerEmailsAdministradoresAsync(CancellationToken stoppingToken = default);
         //Operaciones
         Task<OperationResult<string>> EliminarUsuario(int id);  
         Task<OperationResult<string>> BajaUsuario(int id);
