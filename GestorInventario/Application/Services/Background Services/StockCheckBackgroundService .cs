@@ -26,9 +26,9 @@ namespace GestorInventario.Application.Services.Generic_Services
         }
 
         /**
-           * CancellationToken es una señal de cooperación que el Host de ASP.NET Core
-           * envía cuando la aplicación se está deteniendo (cierre controlado, redeploy,
-           * reinicio del servidor, escalado en la nube, Docker enviando SIGTERM, etc.).
+           * CancellationToken se usa en tareas de segundo plano. Tú mismo construyes el flujo completo pasándolo como 
+           * parámetro de método en método. El Host genera la señal, pero tú decides la ruta: quién la recibe, quién la 
+           * pasa al siguiente y quién la consume para detener algo real (una query, un delay, un bucle).
            * 
            * Flujo de propagación (cascada):
            * IHost (ASP.NET) -> ExecuteAsync(stoppingToken) -> VerificarYNotificarStockBajoAsync(stoppingToken)
@@ -59,9 +59,8 @@ namespace GestorInventario.Application.Services.Generic_Services
                 "Intervalo configurado: {Intervalo}. Delay inicial: {Delay}",
                 _intervalo, StartupDelay);
 
-            // Esperamos 1 minuto antes de la primera ejecución para no competir con el arranque de la app.
-            // Si durante esta espera el servidor se apaga (stoppingToken se activa), Task.Delay se interrumpe
-            // inmediatamente y salimos sin ejecutar nada.
+            //1. Pasamos la señal (CancellationToken) a Task.Delay(), pero antes de pasarla esperamos
+            //un poco para evitar chocar con el inicio de la aplicacion
             await Task.Delay(StartupDelay, stoppingToken);
 
             // Bucle infinito que solo se rompe cuando el Host solicita la detención.
@@ -72,17 +71,14 @@ namespace GestorInventario.Application.Services.Generic_Services
 
                 try
                 {
-                    // Creamos un scope de inyección de dependencias manual.
-                    // Esto simula una "petición HTTP" para que los servicios scoped funcionen dentro de un singleton.
-                    // El 'using' garantiza que se liberen recursos (DbContext, conexiones, etc.) al terminar.
+                  
                     using var scope = _serviceProvider.CreateScope();
 
                     // Resolvemos el servicio desde el scope, no desde el constructor.
                     var stockService = scope.ServiceProvider
                         .GetRequiredService<IStockNotificationService>();
 
-                    // Pasamos el token para que, si el servidor se apaga mientras envía 50 emails,
-                    // el servicio pueda abortar en el producto 20 y no seguir ciego hasta el 50.
+                    //2. Pasamos la señal al servicio
                     await stockService.VerificarYNotificarStockBajoAsync(stoppingToken);
                 }
                 catch (Exception ex)

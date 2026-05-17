@@ -10,7 +10,7 @@ using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using ZXing;
 
-namespace GestorInventario.Application.Services.Generic_Services
+namespace GestorInventario.Application.Services.Common
 {
     public class BarCodeService : IBarCodeService
     {
@@ -116,11 +116,11 @@ namespace GestorInventario.Application.Services.Generic_Services
             for (int i = 0; i < 11; i++)
             {
                 int digito = digitos[i] - '0'; // Convertir carácter a número (ejemplo: '5' -> 5)
-                sumaPonderada += (i % 2 == 0) ? digito * 3 : digito; // Multiplicar por 3 en posiciones impares
+                sumaPonderada += i % 2 == 0 ? digito * 3 : digito; // Multiplicar por 3 en posiciones impares
             }
 
             // Calcular el dígito de control para que la suma total sea divisible por 10
-            int digitoControl = (10 - (sumaPonderada % 10)) % 10;
+            int digitoControl = (10 - sumaPonderada % 10) % 10;
 
             // Combinar los 11 dígitos con el dígito de control
             return new string(digitos) + digitoControl;
@@ -150,10 +150,10 @@ namespace GestorInventario.Application.Services.Generic_Services
             }
 
             // Fórmula EAN-13: suma de impares + (suma de pares * 3)
-            int sumaPonderada = sumaPosicionesImpares + (sumaPosicionesPares * 3);
+            int sumaPonderada = sumaPosicionesImpares + sumaPosicionesPares * 3;
 
             // Calcular el dígito de control para que la suma total sea divisible por 10
-            int digitoControl = (10 - (sumaPonderada % 10)) % 10;
+            int digitoControl = (10 - sumaPonderada % 10) % 10;
 
             // Combinar los 12 dígitos con el dígito de control
             return new string(digitos) + digitoControl;

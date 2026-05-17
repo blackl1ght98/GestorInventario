@@ -9,7 +9,7 @@ using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure;
 using System.Globalization;
 
-namespace GestorInventario.Application.Services.Generic_Services
+namespace GestorInventario.Application.Services.Common
 {
     public class PaypalService: IPaypalService
     {
@@ -306,7 +306,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                         planDetail.TrialFixedPrice = price;
                         _logger.LogInformation($"Precio del ciclo de prueba para el plan {planId} actualizado a {price}.");
                     }
-                    else if ((hasTrial && billingCycleSequence == 2) || (!hasTrial && billingCycleSequence == 1))
+                    else if (hasTrial && billingCycleSequence == 2 || !hasTrial && billingCycleSequence == 1)
                     {
                         // Actualizar el precio del ciclo regular
                         planDetail.RegularFixedPrice = price;

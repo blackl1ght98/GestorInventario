@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Net.Sockets;
 using System.Security.Claims;
 
-namespace GestorInventario.Application.Services.Generic_Services
+namespace GestorInventario.Application.Services.Common
 {
     public class CurrentUserAccessor : ICurrentUserAccessor
     {

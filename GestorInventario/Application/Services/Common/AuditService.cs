@@ -2,7 +2,7 @@
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.Services;
 
-namespace GestorInventario.Application.Services.Generic_Services
+namespace GestorInventario.Application.Services.Common
 {
     public class AuditService : IAuditService
     {

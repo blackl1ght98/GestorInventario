@@ -1,10 +1,9 @@
-﻿using GestorInventario.Application.Services.Authentication;
-using GestorInventario.Infraestructure.Utils;
+﻿using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.Authentication;
 using GestorInventario.Interfaces.Infraestructure;
 using System.Security.Cryptography;
 
-namespace GestorInventario.Application.Services.Generic_Services
+namespace GestorInventario.Application.Services.Authentication
 {
     public class PasswordResetService: IPasswordResetService
     {

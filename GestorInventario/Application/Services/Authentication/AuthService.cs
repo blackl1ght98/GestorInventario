@@ -9,7 +9,7 @@ using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.ViewModels.user;
 using System.ComponentModel.DataAnnotations;
 
-namespace GestorInventario.Application.Services.Generic_Services
+namespace GestorInventario.Application.Services.Authentication
 {
     public class AuthService : IAuthService
     {

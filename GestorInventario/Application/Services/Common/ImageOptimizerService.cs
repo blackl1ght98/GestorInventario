@@ -6,7 +6,7 @@ using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.Processing;
 
-namespace GestorInventario.Application.Services
+namespace GestorInventario.Application.Services.Common
 {
     public class ImageOptimizerService: IImageOptimizerService
     {

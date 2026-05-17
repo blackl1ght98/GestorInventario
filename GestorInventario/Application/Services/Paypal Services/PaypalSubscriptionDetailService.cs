@@ -4,7 +4,7 @@ using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Infraestructure;
 
 
-namespace GestorInventario.Application.Services.Generic_Services
+namespace GestorInventario.Application.Services.Common
 {
     public class PaypalSubscriptionDetailService:IPaypalSubscriptionDetailService
     {

@@ -2,7 +2,6 @@
 using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Application.DTOs.User;
 using GestorInventario.Application.Services.Authentication;
-
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Repositories;
 using GestorInventario.Infraestructure.Utils;
@@ -11,7 +10,7 @@ using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure;
 using GestorInventario.ViewModels.user;
 
-namespace GestorInventario.Application.Services.Generic_Services
+namespace GestorInventario.Application.Services.User
 {
     public class UserManagementService : IUserManagementService
     {

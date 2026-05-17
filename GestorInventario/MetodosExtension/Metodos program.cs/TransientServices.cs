@@ -1,8 +1,11 @@
 ﻿using GestorInventario.Application.Politicas_Resilencia;
 using GestorInventario.Application.Services;
 using GestorInventario.Application.Services.Authentication;
+using GestorInventario.Application.Services.Common;
 using GestorInventario.Application.Services.External_Sevices;
 using GestorInventario.Application.Services.Generic_Services;
+using GestorInventario.Application.Services.Products;
+using GestorInventario.Application.Services.User;
 using GestorInventario.Infraestructure.Repositories;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application;

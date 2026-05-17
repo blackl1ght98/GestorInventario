@@ -7,7 +7,7 @@ using GestorInventario.Interfaces.Utils;
 using GestorInventario.ViewModels.product;
 
 
-namespace GestorInventario.Application.Services.Generic_Services
+namespace GestorInventario.Application.Services.Products
 {
     public class ProductManagementService: IProductManagementService
     {

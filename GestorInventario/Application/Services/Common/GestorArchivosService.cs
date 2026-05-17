@@ -1,6 +1,6 @@
 ﻿using GestorInventario.Interfaces.Utils;
 
-namespace GestorInventario.Application.Services
+namespace GestorInventario.Application.Services.Common
 {
     public class GestorArchivosService : IGestorArchivos
     {
