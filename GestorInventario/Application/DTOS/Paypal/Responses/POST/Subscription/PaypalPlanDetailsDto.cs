@@ -24,10 +24,10 @@ namespace GestorInventario.Application.DTOS.Paypal.Responses.POST.Subscription
         public required BillingCycleDto[] BillingCycles { get; set; } // Ciclos de facturación
 
         [JsonProperty("payment_preferences")]
-        public required PaymentPreferencesDto PaymentPreferences { get; set; } // Preferencias de pago
+        public PaymentPreferencesDto? PaymentPreferences { get; set; } // Preferencias de pago
 
         [JsonProperty("taxes")]
-        public required TaxesDto Taxes { get; set; } // Impuestos
+        public  TaxesDto? Taxes { get; set; } // Impuestos
     }
 
     public class BillingCycleDto
@@ -60,31 +60,31 @@ namespace GestorInventario.Application.DTOS.Paypal.Responses.POST.Subscription
     public class PricingSchemeDto
     {
         [JsonProperty("fixed_price")]
-        public required FixedPriceDto FixedPrice { get; set; } // Precio fijo
+        public  FixedPriceDto FixedPrice { get; set; } // Precio fijo
     }
 
     public class FixedPriceDto
     {
         [JsonProperty("value")]
-        public required string Value { get; set; } // Valor del precio
+        public  string Value { get; set; } // Valor del precio
 
         [JsonProperty("currency_code")]
-        public required string CurrencyCode { get; set; } // Código de moneda
+        public  string CurrencyCode { get; set; } // Código de moneda
     }
 
     public class PaymentPreferencesDto
     {
         [JsonProperty("auto_bill_outstanding")]
-        public required bool AutoBillOutstanding { get; set; } // Preferencia de facturación automática
+        public  bool AutoBillOutstanding { get; set; } // Preferencia de facturación automática
 
         [JsonProperty("setup_fee")]
-        public required FixedPriceDto SetupFee { get; set; } // Tarifa inicial
+        public  FixedPriceDto SetupFee { get; set; } // Tarifa inicial
 
         [JsonProperty("setup_fee_failure_action")]
-        public required string SetupFeeFailureAction { get; set; } // Acción en caso de fallo de tarifa inicial
+        public  string SetupFeeFailureAction { get; set; } // Acción en caso de fallo de tarifa inicial
 
         [JsonProperty("payment_failure_threshold")]
-        public required int PaymentFailureThreshold { get; set; } // Umbral de fallos de pago
+        public  int PaymentFailureThreshold { get; set; } // Umbral de fallos de pago
     }
 
     public class TaxesDto

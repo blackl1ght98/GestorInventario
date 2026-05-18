@@ -1,7 +1,7 @@
 ﻿using GestorInventario.Domain.Models;
 using GestorInventario.enums;
 using GestorInventario.Infraestructure.Utils;
-using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.MetodosExtension;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,7 +33,12 @@ namespace GestorInventario.Infraestructure.Repositories.PaypalRepository
             var plan= await _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId);
             return plan;
         }
-   
+        public IQueryable<PlanDetail> ObtenerPlanes()
+        {
+            return _context.PlanDetails
+                           .OrderBy(s => s.PaypalPlanId)
+                           .AsQueryable();
+        }
         public async Task<List<UserSubscription>> ObtenerSusbcripcionesUsuario(string planId)
         {
             return await _context.UserSubscriptions

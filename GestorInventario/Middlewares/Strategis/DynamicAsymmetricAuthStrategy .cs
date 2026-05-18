@@ -1,6 +1,6 @@
 ﻿using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Application.Authentication;
-using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.Interfaces.Infraestructure.Repositories;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;

@@ -1,5 +1,4 @@
-﻿
-using GestorInventario.Interfaces.Infraestructure;
+﻿using GestorInventario.Interfaces.Infraestructure.Common;
 using Microsoft.EntityFrameworkCore;
 
 namespace GestorInventario.PaginacionLogica

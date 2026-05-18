@@ -4,7 +4,7 @@ using GestorInventario.enums;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.Services;
-using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.Interfaces.Infraestructure.Repositories;
 
 
 namespace GestorInventario.Application.Services.Generic_Services

@@ -122,7 +122,7 @@
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="operacionesDropdown">
                                     @if (User.IsInRole("Administrador"))
                                     {
-                                        <li><a asp-area="" asp-controller="Paypal" asp-action="MostrarProductos" class="dropdown-item">Productos PayPal</a></li>
+                                        <li><a asp-area="" asp-controller="PaypalProduct" asp-action="MostrarProductos" class="dropdown-item">Productos PayPal</a></li>
                                     }
                                     <li><a asp-area="" asp-controller="PaypalPlan" asp-action="MostrarPlanes" class="dropdown-item">Planes PayPal</a></li>
                                     <li><a asp-area="" asp-controller="PaypalSubscription" asp-action="TodasSuscripciones" class="dropdown-item">Suscriptores</a></li>

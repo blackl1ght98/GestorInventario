@@ -21,8 +21,8 @@ using GestorInventario.Interfaces.Application.Authentication;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Application.Services;
-using GestorInventario.Interfaces.Infraestructure;
-using GestorInventario.Interfaces.Utils;
+using GestorInventario.Interfaces.Infraestructure.Common;
+using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.PaginacionLogica;
 
 namespace GestorInventario.MetodosExtension.Metodos_program.cs
@@ -73,8 +73,9 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<IPaymentService, PaymentService>();
             services.AddTransient<IPaypalService,PaypalService>();
             services.AddTransient<IAuthService, AuthService>();
+            services.AddTransient<IPayPalOrderMappingService, PayPalOrderMappingService>();
             services.AddScoped<IStockNotificationService, StockNotificationService>();
-          services.AddHostedService <StockCheckBackgroundService> ();
+            services.AddHostedService <StockCheckBackgroundService> ();
             return services;
 
         }

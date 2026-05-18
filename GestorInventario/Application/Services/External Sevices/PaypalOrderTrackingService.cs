@@ -1,10 +1,10 @@
-﻿using GestorInventario.Application.DTOS.Paypal.Responses.POST.Order;
+﻿using GestorInventario.Application.DTOS.Paypal.Requests.POST;
 using GestorInventario.Domain.Models;
 using GestorInventario.enums;
 using GestorInventario.Infraestructure.Repositories;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.ExternalServices;
-using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.Interfaces.Infraestructure.Repositories;
 
 
 
@@ -57,7 +57,7 @@ namespace GestorInventario.Application.Services
                 throw new InvalidOperationException($"No se pudo agregar el seguimiento para el pedido {pedidoId}.", ex);
             }
         }
-        private PayPalTrackingInfoDto CrearTrackingInfo(Pedido pedido, IEnumerable<DetallePedido> detalles, Carrier carrier, BarcodeType barcode)
+        private PayPalTrackingInfoRequestDto CrearTrackingInfo(Pedido pedido, IEnumerable<DetallePedido> detalles, Carrier carrier, BarcodeType barcode)
         {
             var trackingItems = detalles.Select(item => new TrackingItems
             {
@@ -73,7 +73,7 @@ namespace GestorInventario.Application.Services
                 Url = string.Empty
             }).ToList();
 
-            return new PayPalTrackingInfoDto
+            return new PayPalTrackingInfoRequestDto
             {
                 CaptureId = pedido.CaptureId,
                 TrackingNumber = GenerarNumeroSeguimiento(),

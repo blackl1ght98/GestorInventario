@@ -1,7 +1,7 @@
-﻿using GestorInventario.Application.DTOS.Paypal;
+﻿using GestorInventario.Application.DTOS.Paypal.Projections;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
-using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.PaginacionLogica;
 using GestorInventario.ViewModels.Paypal;
 
@@ -46,23 +46,29 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
         {
             try
             {
-                
+                // Obtener productos de PayPal 
+                var result = await _policyExecutor.ExecutePolicyAsync(() =>
+                    _paypalSubscriptionService.GetProductsAsync(paginacion.Pagina, paginacion.CantidadAMostrar));
 
-             
+                if (!result.Success)
+                {
+                    _logger.LogWarning("Error al obtener productos de PayPal: {Message}", result.Message);
+                    TempData["ErrorMessage"] = result.Message ?? "No se pudieron obtener los productos de PayPal.";
+                    return RedirectToAction("Index", "Home");
+                }
 
-                // Obtener productos de PayPal
-                var (respuestaProductos, tienePaginaSiguiente) = await _policyExecutor.ExecutePolicyAsync(() =>
-                    _paypalSubscriptionService.GetProductsAsync(paginacion.Pagina,paginacion.CantidadAMostrar));
+                // Desestructurar la tupla desde result.Data
+                var (respuestaProductos, tienePaginaSiguiente) = result.Data;
 
                 // Mapear productos a DTO
-                var productos = respuestaProductos?.Products?.Select(p => new ProductoPaypalDto
+                var productos = respuestaProductos?.Products?.Select(p => new ProductoProjection
                 {
                     Id = p.Id,
                     Nombre = p.Name,
                     Descripcion = p.Description
-                }).ToList() ?? new List<ProductoPaypalDto>();
+                }).ToList() ?? new List<ProductoProjection>();
 
-                // Usar el helper para generar la paginación (modo "sin total real")
+                // Usar el helper para generar la paginación
                 var paginationResult = _paginationHelper.PaginarSinTotal(
                     items: productos,
                     paginaActual: paginacion.Pagina,
@@ -71,7 +77,6 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                     radio: paginacion.Radio
                 );
 
-                // Crear el ViewModel usando el resultado del helper
                 var model = new ProductosPaypalViewModel
                 {
                     Productos = paginationResult.Items,
@@ -90,7 +95,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                 return RedirectToAction("Error", "Home");
             }
         }
-       
+
         public IActionResult EditarProductoPaypal()
         {
             return View();

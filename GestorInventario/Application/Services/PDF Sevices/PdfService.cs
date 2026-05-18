@@ -3,7 +3,7 @@ using GestorInventario.Application.Services.Generic_Services;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.Services;
-using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.Interfaces.Infraestructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
 

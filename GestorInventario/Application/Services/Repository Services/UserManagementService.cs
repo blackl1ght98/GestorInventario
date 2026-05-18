@@ -7,7 +7,7 @@ using GestorInventario.Infraestructure.Repositories;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.Authentication;
 using GestorInventario.Interfaces.Application.Services;
-using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.ViewModels.Usuarios;
 
 namespace GestorInventario.Application.Services.User

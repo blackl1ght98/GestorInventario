@@ -1,14 +1,17 @@
 ﻿using GestorInventario.Application.DTOs;
-using GestorInventario.Application.DTOs.Paypal.Responses.PATCH;
+using GestorInventario.Application.DTOS.Paypal.Requests.PATCH;
+using GestorInventario.Application.DTOS.Paypal.Requests.POST;
 using GestorInventario.Application.DTOS.Paypal.Responses.Error;
 using GestorInventario.Application.DTOS.Paypal.Responses.GET.Subscription;
 using GestorInventario.Application.DTOS.Paypal.Responses.POST.Subscription;
 using GestorInventario.Application.Exceptions;
+using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Infraestructure;
 using Newtonsoft.Json;
 using System.Globalization;
+using System.Numerics;
 
 namespace GestorInventario.Application.Services.External_Sevices
 {
@@ -29,7 +32,7 @@ namespace GestorInventario.Application.Services.External_Sevices
             _paypalService = paypalService;
         }
         #region creacion de un producto y plan de suscripcion
-        public async Task<CreateProductResponseDto> CreateProductAsync(string productName, string productDescription, string productType, string productCategory)
+        public async Task<OperationResult<string>> CreateProductAsync(string productName, string productDescription, string productType, string productCategory)
         {
 
             var productRequest = BuildProductRequest(productName, productDescription, productType, productCategory);
@@ -43,11 +46,8 @@ namespace GestorInventario.Application.Services.External_Sevices
                     throw new InvalidOperationException($"Error al crear el producto {error.StatusCode} - {errorBody}");
                 });
             var productResponse = JsonConvert.DeserializeObject<CreateProductResponseDto>(responseBody);
-            if (productResponse == null)
-            {
-                throw new ArgumentNullException("No se pudo obtener el producto");
-            }
-            return productResponse;
+            string productId = productResponse.Id;
+            return OperationResult<string>.Ok("", productId);
         }
 
         // Update the BuildProductRequest to use the request DTO
@@ -62,13 +62,13 @@ namespace GestorInventario.Application.Services.External_Sevices
                 Imagen = "https://example.com/product-image.jpg"
             };
         }
-
-        public async Task<string> CreateSubscriptionPlanAsync(string productId, string planName, string description, decimal amount, string currency,string intervalUnit, int trialDays = 0, decimal trialAmount = 0.00m)
+        public async Task<OperationResult<string>> CreateSubscriptionPlanAsync(string productId, string planName, string description, decimal amount, string currency, string intervalUnit, int trialDays = 0, decimal trialAmount = 0.00m)
         {
             _culture.SetInvariantCultureSafe();
             try
             {
-                var planRequest = BuildPaypalPlanRequest(productId, planName, description, amount, currency, trialDays, trialAmount,intervalUnit);
+                var planRequest = BuildPaypalPlanRequest(productId, planName, description, amount, currency, trialDays, trialAmount, intervalUnit);
+
                 var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                     HttpMethod.Post,
                     "v1/billing/plans",
@@ -78,19 +78,19 @@ namespace GestorInventario.Application.Services.External_Sevices
                         var errorBody = await err.Content.ReadAsStringAsync();
                         throw new InvalidOperationException($"Error al crear la suscripcion {err.StatusCode} - {errorBody}");
                     });
+
                 var responseObject = JsonConvert.DeserializeObject<PaypalPlanDetailsDto>(responseBody);
+
                 string createdPlanId = responseObject.Id;
-                // Guardar los detalles del plan en la base de datos con la ID de PayPal
-                await _paypalService.SavePlanDetailsAsync(createdPlanId, planRequest);
-                return responseBody;
+                return OperationResult<string>.Ok("", createdPlanId);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al crear el plan de suscripción");
-                return $"{{\"error\":\"Se produjo un error al crear el plan de suscripción: {ex.Message}\"}}";
+                return OperationResult<string>.Fail("Ocurrio un error al crear el plan de suscripcion intentelo de nuevo mas tarde");
             }
         }
-        private PaypalPlanDetailsDto BuildPaypalPlanRequest(
+        private PlanRequest BuildPaypalPlanRequest(
           string productId,
           string planName,
           string description,
@@ -98,26 +98,26 @@ namespace GestorInventario.Application.Services.External_Sevices
           string currency,
           int trialDays = 0,
           decimal trialAmount = 0.00m,
-          string intervalUnit = "MONTH")   // ← Nuevo parámetro
+          string intervalUnit = "MONTH")   
         {
-            var billingCycles = new List<BillingCycleDto>();
+            var billingCycles = new List<BillingCycleRq>();
 
             // Ciclo de prueba (si existe)
             if (trialDays > 0)
             {
-                billingCycles.Add(new BillingCycleDto
+                billingCycles.Add(new BillingCycleRq
                 {
                     TenureType = "TRIAL",
                     Sequence = 1,
-                    Frequency = new FrequencyDto
+                    Frequency = new FrequencyRq
                     {
                         IntervalUnit = "DAY",
                         IntervalCount = trialDays
                     },
                     TotalCycles = 1,
-                    PricingScheme = new PricingSchemeDto
+                    PricingScheme = new PricingSchemeRq
                     {
-                        FixedPrice = new FixedPriceDto
+                        FixedPrice = new FixedPriceRq
                         {
                             Value = trialAmount.ToString("0.00", CultureInfo.InvariantCulture),
                             CurrencyCode = currency
@@ -130,19 +130,19 @@ namespace GestorInventario.Application.Services.External_Sevices
             int sequence = trialDays > 0 ? 2 : 1;
             int totalCycles = intervalUnit == "YEAR" ? 1 : 12;   // 1 año o 12 meses
                                                                  // Ciclo regular (dinámico: MONTH o YEAR)
-            billingCycles.Add(new BillingCycleDto
+            billingCycles.Add(new BillingCycleRq
             {
                 TenureType = "REGULAR",
                 Sequence = trialDays > 0 ? 2 : 1,
-                Frequency = new FrequencyDto
+                Frequency = new FrequencyRq
                 {
                     IntervalUnit = intervalUnit,        // "MONTH" o "YEAR"
                     IntervalCount = 1
                 },
                 TotalCycles = intervalUnit == "YEAR" ? 0 : 12,   // ← Aquí está el cambio importante
-                PricingScheme = new PricingSchemeDto
+                PricingScheme = new PricingSchemeRq
                 {
-                    FixedPrice = new FixedPriceDto
+                    FixedPrice = new FixedPriceRq
                     {
                         Value = amount.ToString("0.00", CultureInfo.InvariantCulture),
                         CurrencyCode = currency
@@ -150,21 +150,21 @@ namespace GestorInventario.Application.Services.External_Sevices
                 }
             });
 
-            return new PaypalPlanDetailsDto
+            return new PlanRequest
             {
                 ProductId = productId,
                 Name = planName,
                 Description = description,
                 Status = "ACTIVE",
                 BillingCycles = billingCycles.ToArray(),
-                PaymentPreferences = new PaymentPreferencesDto
+                PaymentPreferences = new PaymentPreferencesRq
                 {
                     AutoBillOutstanding = true,
-                    SetupFee = new FixedPriceDto { Value = "0.00", CurrencyCode = currency },
+                    SetupFee = new FixedPriceRq { Value = "0.00", CurrencyCode = currency },
                     SetupFeeFailureAction = "CONTINUE",
                     PaymentFailureThreshold = 3
                 },
-                Taxes = new TaxesDto
+                Taxes = new TaxesRq
                 {
                     Percentage = "10",
                     Inclusive = false
@@ -174,7 +174,7 @@ namespace GestorInventario.Application.Services.External_Sevices
         #endregion
 
         #region Obtener detalles del plan 
-        public async Task<PaypalPlanResponseDto> ObtenerDetallesPlan(string id)
+        public async Task<OperationResult<PaypalPlanDetailsDto>> ObtenerDetallesPlan(string id)
         {
 
             if (string.IsNullOrEmpty(id))
@@ -193,21 +193,12 @@ namespace GestorInventario.Application.Services.External_Sevices
                         var errBody = await error.Content.ReadAsStringAsync();
                         throw new InvalidOperationException($"Error al obtener los detalles del plan: {error.StatusCode} - {errBody}");
                     });
-                // Deserializa la respuesta a PaypalPlanResponse           
-                var planDetails = JsonConvert.DeserializeObject<PaypalPlanResponseDto>(responseBody);
-                if (planDetails == null)
-                {
-                    _logger.LogError($"No se pudo deserializar la respuesta del plan {id}: {responseBody}");
-                    throw new Exception("La respuesta de PayPal no contiene datos válidos.");
-                }
-                _logger.LogInformation($"Detalles del plan {id} obtenidos correctamente.");
-                return planDetails;
+                  
+                var planDetails = JsonConvert.DeserializeObject<PaypalPlanDetailsDto>(responseBody);
+               
+                return OperationResult< PaypalPlanDetailsDto>.Ok("",planDetails);
             }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogError($"Error de red al obtener los detalles del plan {id}: {ex.Message}");
-                throw new Exception("Error de red al comunicarse con PayPal.", ex);
-            }
+           
             catch (Exception ex)
             {
                 _logger.LogError($"Error inesperado al obtener los detalles del plan {id}: {ex.Message}");
@@ -217,7 +208,7 @@ namespace GestorInventario.Application.Services.External_Sevices
         #endregion
 
         #region Obtener producto asociado a un plan
-        public async Task<(PaypalProductListResponseDto ProductsResponse, bool HasNextPage)> GetProductsAsync(int page = 1, int pageSize = 10)
+        public async Task<OperationResult<(PaypalProductListResponseDto ProductsResponse, bool HasNextPage)>> GetProductsAsync(int page = 1, int pageSize = 10)
         {
 
             var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
@@ -229,22 +220,19 @@ namespace GestorInventario.Application.Services.External_Sevices
                     throw new InvalidOperationException($"Error al obtener los productos {err.StatusCode} - {errorBody} ");
                 });
             var jsonResponse = JsonConvert.DeserializeObject<PaypalProductListResponseDto>(responseBody);
-            if (jsonResponse == null)
-            {
-                throw new ArgumentNullException("No se ha podido obtener los productos");
-
-            }
+          
             bool hasNextPage = jsonResponse.Links.Any(link => link.Rel == "next");
-            return (jsonResponse, hasNextPage);
+            return OperationResult<(PaypalProductListResponseDto, bool)>.Ok("", (jsonResponse, hasNextPage));
         }
         #endregion
 
         #region Obtener Planes de suscripcion
-        public async Task<(List<PaypalPlanResponseDto> plans, bool HasNextPage)> GetSubscriptionPlansAsync(int page = 1, int pageSize = 6)
+        public async Task<OperationResult<(List<PaypalPlanResponseDto> plans, bool HasNextPage)>> GetSubscriptionPlansAsync(int page = 1, int pageSize = 6)
         {
 
-
-            var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
+            try
+            {
+                var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                 HttpMethod.Get,
                 $"v1/billing/plans?page_size={pageSize}&page={page}",
                 async err =>
@@ -263,8 +251,7 @@ namespace GestorInventario.Application.Services.External_Sevices
             // Obtener detalles completos de cada plan (si quieres detalles completos)
             foreach (var plan in plansListResponse.Plans)
             {
-                try
-                {
+                
                     var requestPlanDetails = await _paypal.ExecutePayPalRequestAsync<string>(
                         HttpMethod.Get,
                         $"v1/billing/plans/{plan.Id}",
@@ -276,36 +263,27 @@ namespace GestorInventario.Application.Services.External_Sevices
                     var planDetails = JsonConvert.DeserializeObject<PaypalPlanResponseDto>(requestPlanDetails);
                     if (planDetails != null)
                         detailedPlans.Add(planDetails);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, $"Error al procesar detalles del plan {plan.Id}: {ex.Message}");
-
-                }
+               
+            }
+               
+                return OperationResult<(List<PaypalPlanResponseDto>, bool)>.Ok("", (detailedPlans, hasNextPage));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al procesar detalles del plan");
+                return OperationResult<(List<PaypalPlanResponseDto>, bool)>.Fail("Error al obtener los detalles del plan");
             }
 
-            return (detailedPlans, hasNextPage);
-
         }
+
+        
         #endregion
 
         #region Editar producto vinculado a un plan
-        public async Task<string> EditarProducto(string id, string name, string description)
+        public async Task<OperationResult<string>> EditarProducto(string id, string name, string description)
         {
 
-            // Validar parámetros de entrada
-            if (string.IsNullOrEmpty(id))
-            {
-                throw new ArgumentException("El ID del producto no puede ser nulo o vacío.", nameof(id));
-            }
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentException("El nombre del producto no puede ser nulo o vacío.", nameof(name));
-            }
-            if (string.IsNullOrEmpty(description))
-            {
-                throw new ArgumentException("La descripción del producto no puede ser nula o vacía.", nameof(description));
-            }
+           
             try
             {
                 var productrequest = await _paypal.ExecutePayPalRequestAsync<string>(
@@ -328,7 +306,7 @@ namespace GestorInventario.Application.Services.External_Sevices
                         var errorBody = await err.Content.ReadAsStringAsync();
                         throw new InvalidOperationException($"Error al  editar el producto: {err.StatusCode} - {errorBody}");
                     });
-                return "Producto actualizado con éxito";
+                return OperationResult<string>.Ok("Producto actualizado con éxito");
             }
             catch (Exception ex)
             {
@@ -358,24 +336,17 @@ namespace GestorInventario.Application.Services.External_Sevices
         #endregion
 
         #region Actualizar precios de un plan
-        public async Task<string> UpdatePricingPlanAsync(string planId, decimal? trialAmount, decimal regularAmount, string currency)
+        public async Task<OperationResult<(string, UpdatePricingPlanDto)>> UpdatePricingPlanAsync(string planId, decimal? trialAmount, decimal regularAmount, string currency)
         {
             _culture.SetInvariantCultureSafe();
-
-
             try
             {
-                var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
-                    HttpMethod.Get,
-                    $"v1/billing/plans/{planId}",
-                    async err =>
-                    {
-                        var errorBody = await err.Content.ReadAsStringAsync();
-                        throw new InvalidOperationException($"Error al obtener el plan {err.StatusCode} - {errorBody}");
-                    });
-                var planDetails = JsonConvert.DeserializeObject<PaypalPlanDetailsDto>(responseBody);
-                var pricingUpdates = DeterminePricingUpdates(planDetails, trialAmount, regularAmount, currency, planId);
-
+                var responseBody = await ObtenerDetallesPlan(planId);
+                if (!responseBody.Success)
+                {
+                    return OperationResult<(string, UpdatePricingPlanDto )>.Fail("Ocurrio un error al actualizar al obtener el plan intentelo de nuevo mas tarde");
+                }
+                var pricingUpdates = DeterminePricingUpdates(responseBody.Data, trialAmount, regularAmount, currency, planId);
                 if (!pricingUpdates.Any())
                 {
                     throw new PayPalException("No se proporcionaron esquemas de precios válidos para actualizar el plan. Los precios enviados son idénticos a los actuales o no se proporcionaron cambios.");
@@ -403,19 +374,9 @@ namespace GestorInventario.Application.Services.External_Sevices
                          }
 
                      });
-                var verifyPlanDetails = await _paypal.ExecutePayPalRequestAsync<string>(
-                    HttpMethod.Get,
-                    $"v1/billing/plans/{planId}",
-                    async err =>
-                    {
-                        var errorBody = await err.Content.ReadAsStringAsync();
-                        var errorResponse = JsonConvert.DeserializeObject<PaypalErrorResponse>(errorBody);
-                        throw new PayPalException($"No se pudo obtener los detalles actualizados del plan con ID {planId}: {err.StatusCode} - {errorResponse?.Message ?? "Error desconocido"} (Debug ID: {errorResponse?.DebugId})");
-                    });
-                var updatedPlanDetails = JsonConvert.DeserializeObject<PaypalPlanDetailsDto>(verifyPlanDetails);
-                await _paypalService.SavePlanPriceUpdateAsync(planId, new UpdatePricingPlanDto { PricingSchemes = pricingUpdates });
 
-                return "Precio del plan actualizado con éxito";
+                return OperationResult<(string, UpdatePricingPlanDto)>.Ok("Precio actualizado en PayPal",(planId, planRequest));
+
             }
             catch (PayPalException ex)
             {
@@ -510,7 +471,7 @@ namespace GestorInventario.Application.Services.External_Sevices
         #endregion
 
         #region Suscribirse a un plan
-        public async Task<string> Subscribirse(string id, string returnUrl, string cancelUrl, string planName)
+        public async Task<OperationResult<string>> Subscribirse(string id, string returnUrl, string cancelUrl, string planName)
         {
 
             _culture.SetInvariantCultureSafe();
@@ -538,7 +499,7 @@ namespace GestorInventario.Application.Services.External_Sevices
             {
                 throw new InvalidOperationException("No se encontró el enlace de aprobación en la respuesta de PayPal.");
             }
-            return approvalLink;
+            return OperationResult<string>.Ok("", approvalLink);
 
         }
         private SubscriptionCreateRequestDto BuildSubscriptionRequest(string id, string returnUrl, string cancelUrl, string planName)
@@ -723,7 +684,7 @@ namespace GestorInventario.Application.Services.External_Sevices
                       var errorBody = await error.Content.ReadAsStringAsync();
                       throw new InvalidOperationException($"Error al obtener la subscripcion");
                   });
-            var activateSubscription = JsonConvert.DeserializeObject<ActivateSubscription>(planDetailsResponseBody);
+            var activateSubscription = JsonConvert.DeserializeObject<ActivateSubscriptionResponseDto>(planDetailsResponseBody);
             if (activateSubscription == null)
             {
                 throw new ArgumentNullException("No se puede activar la suscripcion: respuesta del servidor no valida");

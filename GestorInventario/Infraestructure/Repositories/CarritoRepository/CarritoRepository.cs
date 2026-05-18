@@ -1,5 +1,5 @@
 ﻿using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.Interfaces.Infraestructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace GestorInventario.Infraestructure.Repositories.CarritoRepository

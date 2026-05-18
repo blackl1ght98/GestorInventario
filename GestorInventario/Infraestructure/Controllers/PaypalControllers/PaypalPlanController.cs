@@ -1,16 +1,18 @@
-﻿using GestorInventario.Application.DTOS.Paypal;
-using GestorInventario.Application.DTOS.Paypal.Projections;
+﻿using GestorInventario.Application.DTOS.Paypal.Projections;
+using GestorInventario.Application.DTOS.Paypal.Requests;
+using GestorInventario.Application.DTOS.Paypal.Responses.POST.Subscription;
 using GestorInventario.Application.Exceptions;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
-using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.PaginacionLogica;
 using GestorInventario.ViewModels.Paypal;
 using GestorInventario.ViewModels.Productos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Numerics;
 
 namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
 {
@@ -22,13 +24,16 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
         private readonly IPayPalMappingUtils _payPalMappingUtils;
         private readonly IPaginationHelper _paginationHelper;
         private readonly ILogger<PaypalPlanController> _logger;
+        private readonly IPaypalService _paypalService;
         public PaypalPlanController(
             IUnitOfWork unitOfWork, 
             IPolicyExecutor policyExecutor, 
             IPaypalSubscriptionService paypalSubscriptionService,
             IPayPalMappingUtils payPalMappingUtils,
             IPaginationHelper paginationHelper,
-            ILogger<PaypalPlanController> logger)
+            ILogger<PaypalPlanController> logger,
+            IPaypalService paypalService
+            )
         {
             _unitOfWork = unitOfWork;
             _policyExecutor = policyExecutor;
@@ -36,14 +41,12 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
             _payPalMappingUtils = payPalMappingUtils;
             _paginationHelper = paginationHelper;
             _logger = logger;
+            _paypalService = paypalService;
+           
         }
 
-        public IActionResult Index()
-        {
-            return View();
-        }
+      
         [HttpPost]
-
         public async Task<IActionResult> ActualizarPrecioPlan([FromBody] UpdatePlanPriceRequestDto request)
         {
             try
@@ -63,7 +66,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
 
                 // Obtener los detalles del plan desde PayPal para verificar la moneda
                 var planDetails = await _policyExecutor.ExecutePolicyAsync(() => _paypalSubscriptionService.ObtenerDetallesPlan(request.PlanId));
-                string planCurrency = planDetails.BillingCycles?.FirstOrDefault(c => c.PricingScheme?.FixedPrice?.CurrencyCode != null)
+                string planCurrency = planDetails.Data.BillingCycles?.FirstOrDefault(c => c.PricingScheme?.FixedPrice?.CurrencyCode != null)
                     ?.PricingScheme.FixedPrice.CurrencyCode;
                 if (string.IsNullOrEmpty(planCurrency))
                 {
@@ -77,8 +80,12 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                 }
 
                 // Llamar al servicio para actualizar el precio
-                string result = await _paypalSubscriptionService.UpdatePricingPlanAsync(request.PlanId, request.TrialAmount, request.RegularAmount, request.Currency);
-
+                var result=  await _paypalSubscriptionService.UpdatePricingPlanAsync(request.PlanId, request.TrialAmount, request.RegularAmount, request.Currency);
+                if (!result.Success)
+                {
+                    return BadRequest(new { success = false, errorMessage = $"No se ha podido actualizar el plan en este momento, intentelo de nuevo mas tarde" });
+                }
+                await _paypalService.SavePlanPriceUpdateAsync(result.Data.Item1, result.Data.Item2);
                 TempData["SuccessMessage"] = "Precio del plan actualizado con éxito.";
                 return Ok(new { success = true, message = "Precio del plan actualizado con éxito." });
             }
@@ -110,15 +117,19 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                 _logger.LogInformation("Página solicitada: {Pagina}, CantidadAMostrar: {Cantidad}", paginacion.Pagina, paginacion.CantidadAMostrar);
 
                 // Obtener planes de PayPal
-                var (plans, hasNextPage) = await _policyExecutor.ExecutePolicyAsync(() =>
+                var result = await _policyExecutor.ExecutePolicyAsync(() =>
                     _paypalSubscriptionService.GetSubscriptionPlansAsync(paginacion.Pagina, paginacion.CantidadAMostrar));
-
+                if (!result.Success)
+                {
+                    return RedirectToAction("Index","Home");
+                }
+                var (respuestaPlanes, tienePaginaSiguiente) = result.Data;
                 // Mapear a ViewModel
                 var planesViewModel = new List<PlanProjection>();
 
-                if (plans != null)
+                if (respuestaPlanes != null)
                 {
-                    foreach (var plan in plans)
+                    foreach (var plan in respuestaPlanes)
                     {
                         var viewModel = new PlanProjection
                         {
@@ -147,7 +158,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                 var paginationResult = _paginationHelper.PaginarSinTotal(
                     items: planesViewModel,
                     paginaActual: paginacion.Pagina,
-                    hasNextPage: hasNextPage,
+                    hasNextPage: tienePaginaSiguiente,
                     cantidadAMostrar: paginacion.CantidadAMostrar,
                     radio: paginacion.Radio
                 );
@@ -223,16 +234,16 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                     model.Category
                 );
 
-                if (product == null)
+                if (product.Data == null)
                 {
                     _logger.LogWarning("Hubo un error al crear el producto en PayPal");
                     TempData["ErrorMessage"] = "No se pudo crear el producto en PayPal.";
                     return View(model);
                 }
 
-                string productId = product.Id;
+                string productId = product.Data;
 
-                string planResponse = await _paypalSubscriptionService.CreateSubscriptionPlanAsync(
+                var planResponse = await _paypalSubscriptionService.CreateSubscriptionPlanAsync(
                     productId,
                     model.PlanName,
                     model.PlanDescription,
@@ -242,12 +253,18 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                     model.HasTrialPeriod ? model.TrialPeriodDays : 0,
                     model.HasTrialPeriod ? model.TrialAmount : 0.00m
                 );
-                if (planResponse.Contains("\"error\""))
+                if (!planResponse.Success)
                 {
-                    TempData["ErrorMessage"] = $"Error al crear el plan: {planResponse}";
+                    TempData["ErrorMessage"] = planResponse.Message;
                     return View(model);
                 }
-                return RedirectToAction("MostrarProductos", "Paypal");
+                var detallesPlan = await _paypalSubscriptionService.ObtenerDetallesPlan(planResponse.Data);
+                if (detallesPlan.Success) {
+                    await _paypalService.SavePlanDetailsAsync(planResponse.Data, detallesPlan.Data);
+
+                }
+
+                return RedirectToAction("MostrarProductos", "PaypalProduct");
                
             }
             catch (Exception ex)

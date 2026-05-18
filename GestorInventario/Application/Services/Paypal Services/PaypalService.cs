@@ -6,8 +6,9 @@ using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Application.Services;
-using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.Interfaces.Infraestructure.Repositories;
 using System.Globalization;
+using System.Numerics;
 
 namespace GestorInventario.Application.Services.Common
 {
@@ -18,6 +19,7 @@ namespace GestorInventario.Application.Services.Common
         private readonly IPedidoRepository _pedidoRepository;
         private readonly IEmailService _emailService;
         private readonly ICurrentUserAccessor _currentUserAccessor;
+       
         public PaypalService(IPaypalRepository paypalRepository, ILogger<PaypalService> logger, IPedidoRepository pedido, IEmailService email, ICurrentUserAccessor currentUserAccessor)
         {
             _paypalRepository = paypalRepository;
@@ -36,13 +38,13 @@ namespace GestorInventario.Application.Services.Common
                 if (existingPlan != null)
                 {
                     _logger.LogInformation($"El plan con ID {planId} ya existe en la base de datos.");
-                    return;   // Sale de la transacción sin hacer nada más
+                    return;   
                 }
 
                 // Mapeo y guardado
                 var planDetail = MapToPlanDetail(planId, planDetails);
                 await _paypalRepository.AgregarPlanAsync(planDetail);
-
+              
                 _logger.LogInformation($"Detalles del plan {planId} guardados exitosamente.");
            
         }
@@ -56,15 +58,24 @@ namespace GestorInventario.Application.Services.Common
                 Name = planDetails.Name,
                 Description = planDetails.Description,
                 Status = planDetails.Status,
-                AutoBillOutstanding = planDetails.PaymentPreferences.AutoBillOutstanding,
-                SetupFee = planDetails.PaymentPreferences.SetupFee?.Value != null
-                    ? decimal.Parse(planDetails.PaymentPreferences.SetupFee.Value, CultureInfo.InvariantCulture)
-                    : 0,
-                SetupFeeFailureAction = planDetails.PaymentPreferences.SetupFeeFailureAction,
-                PaymentFailureThreshold = planDetails.PaymentPreferences.PaymentFailureThreshold,
+
+                
+                AutoBillOutstanding = planDetails.PaymentPreferences?.AutoBillOutstanding ?? true,
+
+                SetupFee = planDetails.PaymentPreferences?.SetupFee?.Value != null
+          ? decimal.Parse(planDetails.PaymentPreferences.SetupFee.Value, CultureInfo.InvariantCulture)
+          : 0,
+
+             
+                SetupFeeFailureAction = planDetails.PaymentPreferences?.SetupFeeFailureAction ?? "CONTINUE",
+
+               
+                PaymentFailureThreshold = planDetails.PaymentPreferences?.PaymentFailureThreshold ?? 3,
+
                 TaxPercentage = planDetails.Taxes?.Percentage != null
-                    ? decimal.Parse(planDetails.Taxes.Percentage, CultureInfo.InvariantCulture)
-                    : 0,
+          ? decimal.Parse(planDetails.Taxes.Percentage, CultureInfo.InvariantCulture)
+          : 0,
+
                 TaxInclusive = planDetails.Taxes?.Inclusive ?? false
             };
 
@@ -77,7 +88,7 @@ namespace GestorInventario.Application.Services.Common
                 planDetail.TrialFixedPrice = planDetails.BillingCycles[0].PricingScheme.FixedPrice?.Value != null
                     ? decimal.Parse(planDetails.BillingCycles[0].PricingScheme.FixedPrice.Value, CultureInfo.InvariantCulture)
                     : 0;
-
+                //planDetail.CurrencyCode = planDetails.BillingCycles?.FirstOrDefault()?.PricingScheme?.FixedPrice?.CurrencyCode;
                 planDetail.RegularIntervalUnit = planDetails.BillingCycles[1].Frequency.IntervalUnit;
                 planDetail.RegularIntervalCount = planDetails.BillingCycles[1].Frequency.IntervalCount;
                 planDetail.RegularTotalCycles = planDetails.BillingCycles[1].TotalCycles;

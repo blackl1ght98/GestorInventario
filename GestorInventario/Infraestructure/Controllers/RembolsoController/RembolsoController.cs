@@ -2,7 +2,8 @@
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Application.Services;
-using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.Interfaces.Infraestructure.Common;
+using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.MetodosExtension;
 using GestorInventario.PaginacionLogica;
 using GestorInventario.ViewModels.Paypal;
@@ -24,6 +25,7 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IPaypalOrderService _paypalOrderService;
         private readonly IPaymentService _paymentService;
+        private readonly IPayPalOrderMappingService _mappingService;
         public RembolsoController(
             IPolicyExecutor policyExecutor, 
             IRembolsoRepository rembolsoRepository, 
@@ -33,7 +35,8 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
              IPedidoRepository pedidoRepository,
              ICurrentUserAccessor currentUserAccessor,
              IPaypalOrderService paypalOrderService,
-             IPaymentService paymentService)
+             IPaymentService paymentService,
+             IPayPalOrderMappingService mappingService)
         {
             _policyExecutor = policyExecutor;
             _rembolsoRepository = rembolsoRepository;  
@@ -44,6 +47,7 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
             _currentUserAccessor = currentUserAccessor;
             _paypalOrderService = paypalOrderService;
             _paymentService = paymentService;
+            _mappingService = mappingService;
 
         }
         [Authorize(Roles = "Administrador")]
@@ -189,10 +193,10 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
 
                 var firstPurchaseUnit = detallespago.PurchaseUnits.First();
 
-                var detallesSuscripcion = _paymentService.ProcesarDetallesRembolsoAsync(detallespago);
+                var paymentDetail = _mappingService.MapearOrdenADetallePago(detallespago);
 
                 // Lista para almacenar los ítems de PayPal
-                var paypalItems = await _paymentService.ProcesarRembolso(firstPurchaseUnit, detallesSuscripcion.Data, usuarioActual, form, obtenerNumeroPedido, emailCliente);
+                var paypalItems = await _paymentService.ProcesarRembolso(firstPurchaseUnit, paymentDetail, usuarioActual, form, obtenerNumeroPedido, emailCliente);
                 if (User.IsAdministrador())
                 {
                     return RedirectToAction("Index", "Admin");

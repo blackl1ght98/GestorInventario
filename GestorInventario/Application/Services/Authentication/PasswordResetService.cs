@@ -1,6 +1,6 @@
 ﻿using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.Authentication;
-using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.Interfaces.Infraestructure.Repositories;
 using System.Security.Cryptography;
 
 namespace GestorInventario.Application.Services.Authentication

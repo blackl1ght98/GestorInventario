@@ -1,10 +1,11 @@
 ﻿using GestorInventario.Application.DTOs.Paypal.Responses.GET.Order;
+using GestorInventario.Application.DTOS.Paypal.Requests.POST;
 using GestorInventario.Application.DTOS.Paypal.Responses.Error;
 using GestorInventario.Application.DTOS.Paypal.Responses.POST.Refund;
 using GestorInventario.Domain.Models;
 using GestorInventario.enums;
 using GestorInventario.Interfaces.Application.ExternalServices;
-using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.Interfaces.Infraestructure.Repositories;
 using Newtonsoft.Json;
 using System.Globalization;
 
@@ -71,14 +72,14 @@ namespace GestorInventario.Application.Services.External_Sevices
                 throw new InvalidOperationException("No se pudo realizar el reembolso", ex);
             }
         }
-        private PaypalRefundResponseDto BuildRefundRequest(decimal totalAmount, Pedido pedido)
+        private PaypalRefundRequest BuildRefundRequest(decimal totalAmount, Pedido pedido)
         {
             const decimal IVA = 0.21m;
             decimal totalConIva = Math.Round(totalAmount * (1 + IVA), 2);
-            return new PaypalRefundResponseDto
+            return new PaypalRefundRequest
             {
                 NotaParaElCliente = "Pedido rembolsado",
-                Amount = new AmountRefund
+                Amount = new AmountRefundRequest
                 {
                     Value = totalConIva.ToString("F2", CultureInfo.InvariantCulture),
                     CurrencyCode = pedido.Currency
@@ -99,11 +100,11 @@ namespace GestorInventario.Application.Services.External_Sevices
 
 
                 var captureDetails = await _order.ObtenerDetallesPagoEjecutadoAsync(pedido.Data.Item1.Pedido.OrderId);
-                var (availableAmount, estadoVenta) = await CalcularMontoDisponibleYEstadoAsync(
-                    captureDetails, pedido.Data.Item2, currency);
+                var (montoReembolso, montoDisponible, estadoVenta) = CalcularMontoDisponibleYEstado(
+                captureDetails, pedido.Data.Item2, currency);
 
                 // 4. Construir request y ejecutar reembolso en PayPal
-                var refundRequest = BuildRefundPartialRequest(availableAmount, pedido.Data.Item1);
+                var refundRequest = BuildRefundPartialRequest(montoReembolso, pedido.Data.Item1);
                 var requestJson = JsonConvert.SerializeObject(refundRequest);
                 _logger.LogInformation("Refund request JSON: {RequestJson}", requestJson);
 
@@ -128,7 +129,7 @@ namespace GestorInventario.Application.Services.External_Sevices
 
                     if (errorDetails?.Details?.Any(d => d.Issue == "REFUND_AMOUNT_EXCEEDED") == true)
                     {
-                        errorMessage = $"El monto ({pedido.Data.Item2} {currency}) excede disponible ({availableAmount} {currency}).";
+                        errorMessage = $"El monto ({pedido.Data.Item2} {currency}) excede disponible ({montoDisponible} {currency}).";
 
                         var recentRefund = updatedCapture?.PurchaseUnits[0].Payments.Refunds?
                             .FirstOrDefault(r => r.Amount.Value == pedido.Data.Item2.ToString("F2", CultureInfo.InvariantCulture));
@@ -163,7 +164,7 @@ namespace GestorInventario.Application.Services.External_Sevices
                     pedido.Data.Item1.Pedido.Id,
                     detalle.Id,
                     refundId,
-                    pedido.Data.Item2,
+                    montoReembolso,
                     motivo,
                     estadoVenta
                 );
@@ -190,40 +191,82 @@ namespace GestorInventario.Application.Services.External_Sevices
                 throw new InvalidOperationException("No se pudo realizar el reembolso parcial. Intenta de nuevo o contacta soporte.", ex);
             }
         }
-        private async Task<(decimal availableAmount, string estadoVenta)> CalcularMontoDisponibleYEstadoAsync(
-        OrderDetailsResponse captureDetails, decimal totalAmount, string currency)
+        private (decimal montoReembolso, decimal montoDisponible, string estadoVenta)
+         CalcularMontoDisponibleYEstado(
+         OrderDetailsResponse captureDetails,
+         decimal montoSolicitado,
+         string currency)
         {
-            var capture = captureDetails.PurchaseUnits[0].Payments.Captures[0];
+            var firstUnit = captureDetails.PurchaseUnits?.FirstOrDefault()
+                ?? throw new InvalidOperationException("La orden no contiene unidades de compra.");
 
-            if (currency != capture.Amount.CurrencyCode)
-                throw new InvalidOperationException($"Moneda solicitada ({currency}) no coincide con captura.");
+            var capture = firstUnit.Payments?.Captures?.FirstOrDefault()
+                ?? throw new InvalidOperationException("La orden no contiene capturas de pago.");
 
-            var netAmount = decimal.Parse(capture.SellerReceivableBreakdown.NetAmount.Value, CultureInfo.InvariantCulture);
+            if (currency != capture.Amount?.CurrencyCode)
+            {
+                throw new InvalidOperationException(
+                    $"Moneda solicitada ({currency}) no coincide con la captura ({capture.Amount?.CurrencyCode}).");
+            }
 
-            var refundedAmount = captureDetails.PurchaseUnits[0].Payments.Refunds?
-                .Sum(r => decimal.Parse(r.SellerPayableBreakdown.NetAmount.Value, CultureInfo.InvariantCulture)) ?? 0m;
+            // Parseo seguro del net amount
+            var netAmount = ParseDecimalSeguro(
+                capture.SellerReceivableBreakdown?.NetAmount?.Value,
+                "monto neto de la captura");
+
+            // Suma de reembolsos previos
+            var refundedAmount = firstUnit.Payments?.Refunds?
+                .Where(r => r.SellerPayableBreakdown?.NetAmount?.Value != null)
+                .Sum(r => ParseDecimalSeguro(r.SellerPayableBreakdown.NetAmount.Value, "monto de reembolso previo"))
+                ?? 0m;
 
             var availableAmount = netAmount - refundedAmount;
 
-            if (totalAmount > availableAmount)
+            if (availableAmount <= 0)
             {
-                _logger.LogWarning("Monto solicitado excede disponible. Ajustando.");
-                totalAmount = availableAmount;
+                _logger.LogWarning("No hay fondos disponibles para reembolsar. Net: {Net}, Ya reembolsado: {Refunded}",
+                    netAmount, refundedAmount);
+                throw new InvalidOperationException("No hay monto disponible para reembolsar.");
             }
 
-            if (availableAmount <= 0)
-                throw new InvalidOperationException("No hay monto disponible para reembolsar.");
+            // Ajustar monto solicitado al disponible
+            var finalRefundAmount = Math.Min(montoSolicitado, availableAmount);
 
-            var estadoVenta = capture.Status ?? "PARTIALLY_REFUNDED";
+            if (finalRefundAmount < montoSolicitado)
+            {
+                _logger.LogWarning(
+                    "Monto solicitado ({Solicitado}) excede disponible ({Disponible}). Ajustando a {Ajustado}.",
+                    montoSolicitado, availableAmount, finalRefundAmount);
+            }
 
-            return (availableAmount, estadoVenta);
+            // Estado: si reembolsamos todo lo disponible, es refund completo. Si no, parcial.
+            var estadoVenta = finalRefundAmount >= availableAmount && refundedAmount == 0
+                ? "REFUNDED"
+                : "PARTIALLY_REFUNDED";
+
+            return (finalRefundAmount, availableAmount, estadoVenta);
         }
-        private PaypalRefundResponseDto BuildRefundPartialRequest(decimal totalAmount, DetallePedido pedido)
+
+        private static decimal ParseDecimalSeguro(string? value, string campo)
         {
-            return new PaypalRefundResponseDto
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                throw new InvalidOperationException($"El campo '{campo}' no contiene un valor válido.");
+            }
+
+            if (!decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var result))
+            {
+                throw new InvalidOperationException($"No se pudo parsear el campo '{campo}': {value}");
+            }
+
+            return result;
+        }
+        private PaypalRefundRequest BuildRefundPartialRequest(decimal totalAmount, DetallePedido pedido)
+        {
+            return new PaypalRefundRequest
             {
                 NotaParaElCliente = "Pedido rembolsado",
-                Amount = new AmountRefund
+                Amount = new AmountRefundRequest
                 {
                     Value = totalAmount.ToString("F2", CultureInfo.InvariantCulture),
                     CurrencyCode = pedido.Pedido.Currency,

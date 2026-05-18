@@ -1,4 +1,4 @@
-﻿using GestorInventario.Interfaces.Utils;
+﻿using GestorInventario.Interfaces.Application.Common;
 using System.Globalization;
 
 namespace GestorInventario.Infraestructure.Utils

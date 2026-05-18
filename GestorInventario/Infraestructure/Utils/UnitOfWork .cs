@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.Interfaces.Infraestructure.Common;
+using GestorInventario.Interfaces.Infraestructure.Repositories;
 
 namespace GestorInventario.Infraestructure.Utils
 {

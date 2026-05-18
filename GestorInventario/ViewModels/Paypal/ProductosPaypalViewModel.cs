@@ -1,11 +1,11 @@
-﻿using GestorInventario.Application.DTOS.Paypal;
+﻿using GestorInventario.Application.DTOS.Paypal.Projections;
 using GestorInventario.PaginacionLogica;
 
 namespace GestorInventario.ViewModels.Paypal
 {
     public class ProductosPaypalViewModel
     {
-        public List<ProductoPaypalDto> Productos { get; set; } = new List<ProductoPaypalDto>();
+        public List<ProductoProjection> Productos { get; set; } = new List<ProductoProjection>();
         public List<PaginasModel> Paginas { get; set; } = new List<PaginasModel>();
         public int TotalPaginas { get; set; }
         public int PaginaActual { get; set; }

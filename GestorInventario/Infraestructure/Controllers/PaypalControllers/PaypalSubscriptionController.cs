@@ -2,7 +2,7 @@
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
-using GestorInventario.Interfaces.Infraestructure;
+using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.PaginacionLogica;
 using GestorInventario.ViewModels.Paypal;
 using Microsoft.AspNetCore.Authorization;
@@ -53,10 +53,14 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
             try
             {
 
-                string approvalUrl = await _paypalSubscriptionService.Subscribirse(plan_id, returnUrl, cancelUrl, planName);
+               var approvalUrl = await _paypalSubscriptionService.Subscribirse(plan_id, returnUrl, cancelUrl, planName);
+                if (!approvalUrl.Success)
+                {
+                    return RedirectToAction("Index", "Home");
+                }
 
 
-                return Redirect(approvalUrl);
+                return Redirect(approvalUrl.Data);
             }
             catch (Exception ex)
             {
