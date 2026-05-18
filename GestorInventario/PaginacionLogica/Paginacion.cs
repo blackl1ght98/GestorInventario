@@ -3,7 +3,7 @@
     public class Paginacion
     {
         private int _pagina = 1;
-        private int _cantidadAMostrar = 12;
+        private int _cantidadAMostrar = 10;
 
         public int Pagina
         {
@@ -14,7 +14,7 @@
         public int CantidadAMostrar
         {
             get => _cantidadAMostrar;
-            set => _cantidadAMostrar = value <= 0 ? 12 : value; // 🔹 Evita cantidad <= 0
+            set => _cantidadAMostrar = value <= 0 ? 10 : value; // 🔹 Evita cantidad <= 0
         }
 
         public int Radio { get; set; } = 3;

@@ -76,6 +76,8 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<IPayPalOrderMappingService, PayPalOrderMappingService>();
             services.AddScoped<IStockNotificationService, StockNotificationService>();
             services.AddHostedService <StockCheckBackgroundService> ();
+            services.AddTransient<SyncService>();
+           
             return services;
 
         }

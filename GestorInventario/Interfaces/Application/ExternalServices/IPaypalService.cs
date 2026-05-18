@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Application.DTOs;
+using GestorInventario.Application.DTOS.Paypal.Responses.GET.Subscription;
 using GestorInventario.Application.DTOS.Paypal.Responses.POST.Subscription;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
@@ -17,5 +18,6 @@ namespace GestorInventario.Interfaces.Application.ExternalServices
         Task SaveOrUpdateSubscriptionDetailsAsync(SubscriptionDetail subscriptionDetails);
         Task SaveUserSubscriptionAsync(int userId, string subscriptionId, string subscriberName, string planId);
         Task UpdateSubscriptionStatusAsync(string subscriptionId, string status);
+       
     }
 }

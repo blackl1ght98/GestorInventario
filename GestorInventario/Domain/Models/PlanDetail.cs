@@ -45,5 +45,7 @@ public partial class PlanDetail
 
     public bool? TaxInclusive { get; set; }
 
+    public string? CurrencyCode { get; set; }
+
     public virtual ICollection<SubscriptionDetail> SubscriptionDetails { get; set; } = new List<SubscriptionDetail>();
 }

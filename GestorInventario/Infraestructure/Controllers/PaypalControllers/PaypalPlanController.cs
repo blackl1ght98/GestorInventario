@@ -2,6 +2,9 @@
 using GestorInventario.Application.DTOS.Paypal.Requests;
 using GestorInventario.Application.DTOS.Paypal.Responses.POST.Subscription;
 using GestorInventario.Application.Exceptions;
+using GestorInventario.Application.Mappers;
+using GestorInventario.Application.Services;
+using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
@@ -12,6 +15,7 @@ using GestorInventario.ViewModels.Productos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Globalization;
 using System.Numerics;
 
 namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
@@ -25,6 +29,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
         private readonly IPaginationHelper _paginationHelper;
         private readonly ILogger<PaypalPlanController> _logger;
         private readonly IPaypalService _paypalService;
+        private readonly SyncService _syncService;
         public PaypalPlanController(
             IUnitOfWork unitOfWork, 
             IPolicyExecutor policyExecutor, 
@@ -32,7 +37,8 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
             IPayPalMappingUtils payPalMappingUtils,
             IPaginationHelper paginationHelper,
             ILogger<PaypalPlanController> logger,
-            IPaypalService paypalService
+            IPaypalService paypalService,
+            SyncService sync
             )
         {
             _unitOfWork = unitOfWork;
@@ -42,6 +48,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
             _paginationHelper = paginationHelper;
             _logger = logger;
             _paypalService = paypalService;
+            _syncService = sync;
            
         }
 
@@ -106,6 +113,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                 return StatusCode(500, new { success = false, errorMessage = $"Error al actualizar el precio del plan: {ex.Message}" });
             }
         }
+
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> MostrarPlanes([FromQuery] Paginacion paginacion)
@@ -114,68 +122,28 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
             {
 
 
-                _logger.LogInformation("Página solicitada: {Pagina}, CantidadAMostrar: {Cantidad}", paginacion.Pagina, paginacion.CantidadAMostrar);
+                var queryable = _unitOfWork.PaypalRepository.ObtenerPlanes()
+                .OrderByDescending(s => s.PaypalPlanId)
+                .Select(p => p.ToPlanProjection()); 
 
-                // Obtener planes de PayPal
-                var result = await _policyExecutor.ExecutePolicyAsync(() =>
-                    _paypalSubscriptionService.GetSubscriptionPlansAsync(paginacion.Pagina, paginacion.CantidadAMostrar));
-                if (!result.Success)
-                {
-                    return RedirectToAction("Index","Home");
-                }
-                var (respuestaPlanes, tienePaginaSiguiente) = result.Data;
-                // Mapear a ViewModel
-                var planesViewModel = new List<PlanProjection>();
-
-                if (respuestaPlanes != null)
-                {
-                    foreach (var plan in respuestaPlanes)
-                    {
-                        var viewModel = new PlanProjection
-                        {
-                            Id = plan.Id,
-                            productId = plan.ProductId,
-                            Name = plan.Name,
-                            Description = plan.Description,
-                            Status = plan.Status,
-                            Usage_type = plan.UsageType,
-                            CreateTime = plan.CreateTime,
-                            Billing_cycles = _payPalMappingUtils.MapBillingCycles(plan.BillingCycles),
-                            Taxes = _payPalMappingUtils.MapTaxes(plan.Taxes),
-                            CurrencyCode = plan.BillingCycles?.FirstOrDefault()?.PricingScheme?.FixedPrice?.CurrencyCode ?? string.Empty,
-                        };
-                        planesViewModel.Add(viewModel);
-                    }
-                }
-                else
-                {
-                    _logger.LogInformation("Hubo un valor nulo al obtene los planes");
-                }
-
-                // ────────────────────────────────────────────────
-                // USAMOS EL HELPER → modo "sin total real" (PayPal)
-                // ────────────────────────────────────────────────
-                var paginationResult = _paginationHelper.PaginarSinTotal(
-                    items: planesViewModel,
-                    paginaActual: paginacion.Pagina,
-                    hasNextPage: tienePaginaSiguiente,
-                    cantidadAMostrar: paginacion.CantidadAMostrar,
-                    radio: paginacion.Radio
+                var paginationResult = await _paginationHelper.PaginarAsync(
+                    query: queryable,
+                    paginacion: paginacion
                 );
-                var monedas = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.CarritoRepository.ObtenerMoneda());
 
-                // Crear el ViewModel final usando el resultado del helper
+                var monedas = await _policyExecutor.ExecutePolicyAsync(() =>
+                    _unitOfWork.CarritoRepository.ObtenerMoneda());
+               await _syncService.SyncPlansFromPayPalAsync(6);
                 var model = new PlanesPaginadosViewModel
                 {
                     Planes = paginationResult.Items,
                     Paginas = paginationResult.Paginas.ToList(),
                     TotalPaginas = paginationResult.TotalPaginas,
                     PaginaActual = paginationResult.PaginaActual,
-                    TienePaginaSiguiente = paginationResult.Paginas.LastOrDefault()?.Habilitada ?? false,
-                    TienePaginaAnterior = paginacion.Pagina > 1,
+                   
                     CantidadAMostrar = paginacion.CantidadAMostrar
                 };
-
+         
                 ViewBag.Monedas = new SelectList(
                    monedas,
                     "Codigo",
@@ -192,7 +160,20 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
             }
         }
 
+        //[HttpPost]
+        //[Authorize(Roles = "Administrador")]
+        //public async Task<IActionResult> SincronizarPlanes()
+        //{
+        //    // Ya no pasas número de página, el servicio itera todo solo
+        //    var result = await _syncService.SyncPlansFromPayPalAsync();
 
+        //    if (!result.Success)
+        //        TempData["ErrorMessage"] = result.Message;
+        //    else
+        //        TempData["SuccessMessage"] = result.Message;
+
+        //    return RedirectToAction("MostrarPlanes");
+        //}
         [Authorize]
         //Metodo que obtiene los datos necesarios antes de crear el producto al que se suscribira
         public async Task<IActionResult> CrearProductoYPlan()

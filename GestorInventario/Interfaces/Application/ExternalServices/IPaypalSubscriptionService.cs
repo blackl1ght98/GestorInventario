@@ -22,6 +22,6 @@ namespace GestorInventario.Interfaces.Application.ExternalServices
         Task<string> CancelarSuscripcion(string subscription_id, string reason);
         Task<string> SuspenderSuscripcion(string subscription_id, string reason);
         Task<string> ActivarSuscripcion(string subscription_id, string reason);
-
+      
     }
 }

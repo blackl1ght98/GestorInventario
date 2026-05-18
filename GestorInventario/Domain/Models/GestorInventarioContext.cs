@@ -6,16 +6,13 @@ namespace GestorInventario.Domain.Models;
 
 public partial class GestorInventarioContext : DbContext
 {
-    private readonly IConfiguration _configuration;
     public GestorInventarioContext()
     {
-        
     }
 
-    public GestorInventarioContext(DbContextOptions<GestorInventarioContext> options, IConfiguration configuration)
+    public GestorInventarioContext(DbContextOptions<GestorInventarioContext> options)
         : base(options)
     {
-        _configuration = configuration;
     }
 
     public virtual DbSet<AuditLog> AuditLogs { get; set; }
@@ -53,22 +50,20 @@ public partial class GestorInventarioContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER") == "true";
-        var dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? _configuration["DataBaseConection:DBHost"];
-        var dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? _configuration["DataBaseConection:DBName"];
-    
-        var dbUserName = Environment.GetEnvironmentVariable("DB_USERNAME")?? _configuration["DataBaseConection:DBUserName"];
-       var dbPassword = Environment.GetEnvironmentVariable("DB_SA_PASSWORD") ?? _configuration["DataBaseConection:DBPassword"];
+
         if (isDocker)
         {
-          
-         
-            var connectionString = $"Data Source={dbHost};Initial Catalog={dbName};User ID={dbUserName};Password={dbPassword};TrustServerCertificate=True";
+            var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
+            var dbName = Environment.GetEnvironmentVariable("DB_NAME");
+            var dbPassword = Environment.GetEnvironmentVariable("DB_SA_PASSWORD");
+
+            var connectionString = $"Data Source={dbHost};Initial Catalog={dbName};User ID=sa;Password={dbPassword};TrustServerCertificate=True";
             optionsBuilder.UseSqlServer(connectionString);
         }
         else
         {
             // Cadena de conexión en duro para entorno local
-            var connectionString = $"Data Source={dbHost};Initial Catalog={dbName};User ID={dbUserName};Password={dbPassword};TrustServerCertificate=True";
+            var connectionString = "Data Source=GUILLERMO\\SQLEXPRESS;Initial Catalog=GestorInventario;User ID=sa;Password=SQL#1234;TrustServerCertificate=True";
             optionsBuilder.UseSqlServer(connectionString);
         }
     }
@@ -356,6 +351,9 @@ public partial class GestorInventarioContext : DbContext
             entity.HasIndex(e => e.PaypalPlanId, "UQ__PlanDeta__C8025F80D0AF9CCD").IsUnique();
 
             entity.Property(e => e.Id)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.CurrencyCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.Description)

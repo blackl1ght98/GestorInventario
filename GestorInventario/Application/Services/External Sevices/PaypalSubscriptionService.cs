@@ -227,6 +227,7 @@ namespace GestorInventario.Application.Services.External_Sevices
         #endregion
 
         #region Obtener Planes de suscripcion
+     
         public async Task<OperationResult<(List<PaypalPlanResponseDto> plans, bool HasNextPage)>> GetSubscriptionPlansAsync(int page = 1, int pageSize = 6)
         {
 
@@ -261,6 +262,7 @@ namespace GestorInventario.Application.Services.External_Sevices
                             throw new InvalidOperationException($"Error al obtener los detalles de los planes");
                         });
                     var planDetails = JsonConvert.DeserializeObject<PaypalPlanResponseDto>(requestPlanDetails);
+                    
                     if (planDetails != null)
                         detailedPlans.Add(planDetails);
                
@@ -275,8 +277,8 @@ namespace GestorInventario.Application.Services.External_Sevices
             }
 
         }
+      
 
-        
         #endregion
 
         #region Editar producto vinculado a un plan

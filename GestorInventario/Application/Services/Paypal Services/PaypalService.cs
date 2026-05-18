@@ -1,11 +1,14 @@
 ﻿using GestorInventario.Application.DTOs;
 using GestorInventario.Application.DTOs.Email;
+using GestorInventario.Application.DTOS.Paypal.Responses.GET.Subscription;
 using GestorInventario.Application.DTOS.Paypal.Responses.POST.Subscription;
+using GestorInventario.Application.Services.External_Sevices;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Application.Services;
+using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using System.Globalization;
 using System.Numerics;
@@ -28,7 +31,7 @@ namespace GestorInventario.Application.Services.Common
             _emailService = email;
             _currentUserAccessor = currentUserAccessor;
         }
-
+       
         public async Task SavePlanDetailsAsync(string planId, PaypalPlanDetailsDto planDetails)
         {
            
@@ -88,7 +91,7 @@ namespace GestorInventario.Application.Services.Common
                 planDetail.TrialFixedPrice = planDetails.BillingCycles[0].PricingScheme.FixedPrice?.Value != null
                     ? decimal.Parse(planDetails.BillingCycles[0].PricingScheme.FixedPrice.Value, CultureInfo.InvariantCulture)
                     : 0;
-                //planDetail.CurrencyCode = planDetails.BillingCycles?.FirstOrDefault()?.PricingScheme?.FixedPrice?.CurrencyCode;
+                planDetail.CurrencyCode = planDetails.BillingCycles?.FirstOrDefault()?.PricingScheme?.FixedPrice?.CurrencyCode;
                 planDetail.RegularIntervalUnit = planDetails.BillingCycles[1].Frequency.IntervalUnit;
                 planDetail.RegularIntervalCount = planDetails.BillingCycles[1].Frequency.IntervalCount;
                 planDetail.RegularTotalCycles = planDetails.BillingCycles[1].TotalCycles;
@@ -108,6 +111,7 @@ namespace GestorInventario.Application.Services.Common
 
             return planDetail;
         }
+  
         public async Task<OperationResult<string>> EnviarEmailNotificacionRembolso(int pedidoId, decimal montoReembolsado, string motivo)
         {
             try
@@ -381,6 +385,7 @@ namespace GestorInventario.Application.Services.Common
                 }
            
         }
+       
         public async Task SaveUserSubscriptionAsync(int userId, string subscriptionId, string subscriberName, string planId)
         {
             
