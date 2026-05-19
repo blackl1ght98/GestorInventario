@@ -8,6 +8,7 @@ using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
+using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.PaginacionLogica;
 using GestorInventario.ViewModels.Paypal;
@@ -29,7 +30,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
         private readonly IPaginationHelper _paginationHelper;
         private readonly ILogger<PaypalPlanController> _logger;
         private readonly IPaypalService _paypalService;
-        private readonly SyncService _syncService;
+        private readonly ISyncService _syncService;
         public PaypalPlanController(
             IUnitOfWork unitOfWork, 
             IPolicyExecutor policyExecutor, 
@@ -38,7 +39,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
             IPaginationHelper paginationHelper,
             ILogger<PaypalPlanController> logger,
             IPaypalService paypalService,
-            SyncService sync
+            ISyncService sync
             )
         {
             _unitOfWork = unitOfWork;
@@ -133,7 +134,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
 
                 var monedas = await _policyExecutor.ExecutePolicyAsync(() =>
                     _unitOfWork.CarritoRepository.ObtenerMoneda());
-               await _syncService.SyncPlansFromPayPalAsync(6);
+              
                 var model = new PlanesPaginadosViewModel
                 {
                     Planes = paginationResult.Items,
@@ -160,20 +161,22 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
             }
         }
 
-        //[HttpPost]
-        //[Authorize(Roles = "Administrador")]
-        //public async Task<IActionResult> SincronizarPlanes()
-        //{
-        //    // Ya no pasas número de página, el servicio itera todo solo
-        //    var result = await _syncService.SyncPlansFromPayPalAsync();
+        [HttpPost]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> SincronizarPagina(int pagina)
+        {
+            var result = await _syncService.SyncPlansFromPayPalAsync(pagina);
 
-        //    if (!result.Success)
-        //        TempData["ErrorMessage"] = result.Message;
-        //    else
-        //        TempData["SuccessMessage"] = result.Message;
+            if (!result.Success)
+                return Json(new { success = false, message = result.Message });
 
-        //    return RedirectToAction("MostrarPlanes");
-        //}
+            return Json(new
+            {
+                success = true,
+                message = result.Message,
+                actualizados = result.Data 
+            });
+        }
         [Authorize]
         //Metodo que obtiene los datos necesarios antes de crear el producto al que se suscribira
         public async Task<IActionResult> CrearProductoYPlan()
@@ -269,10 +272,10 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                     TempData["ErrorMessage"] = "No se puede desactivar el plan hay subscriptores activos";
                     return RedirectToAction(nameof(MostrarPlanes));
                 }
-                var deleteResponse = await _paypalSubscriptionService.DesactivarPlan(id);
+                var result = await _paypalSubscriptionService.DesactivarPlan(id);
+                await _paypalService.UpdatePlanStatusAsync(result.Data.planId, result.Data.planStatus);
 
-
-                return RedirectToAction(nameof(MostrarPlanes), new { mensaje = deleteResponse });
+                return RedirectToAction(nameof(MostrarPlanes), new { mensaje = result.Message });
             }
             catch (Exception ex)
             {
@@ -286,8 +289,12 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
             try
             {
 
-                var activateResponse = await _paypalSubscriptionService.ActivarPlan(id);
-                return RedirectToAction(nameof(MostrarPlanes), new { mensaje = activateResponse });
+                var activatePlan = await _paypalSubscriptionService.ActivarPlan(id);
+                if (activatePlan.Success)
+                {
+                    await _paypalService.UpdatePlanStatusAsync(activatePlan.Data.planId, activatePlan.Data.planStatus);
+                }
+                return RedirectToAction(nameof(MostrarPlanes), new { mensaje = activatePlan.Message });
             }
             catch (Exception ex)
             {

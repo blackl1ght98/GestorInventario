@@ -2,6 +2,7 @@
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
+using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.PaginacionLogica;
 using GestorInventario.ViewModels.Paypal;
@@ -16,7 +17,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
         private readonly IPaypalSubscriptionService _paypalSubscriptionService;
         private readonly ILogger<PaypalSubscriptionController> _logger;
         private readonly IPolicyExecutor _policyExecutor;
-        private readonly IPaypalSubscriptionDetailService _paypalSubscriptionDetailService;
+        private readonly ICreateSunscription _paypalSubscriptionDetailService;
         private readonly IPaypalService _paypalService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPaginationHelper _paginationHelper;
@@ -26,7 +27,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
             IPaypalSubscriptionService paypalSubscriptionService, 
             ILogger<PaypalSubscriptionController> logger, 
             IPolicyExecutor policyExecutor, 
-            IPaypalSubscriptionDetailService paypalSubscriptionDetailService,
+            ICreateSunscription paypalSubscriptionDetailService,
             IPaypalService paypalService, 
             IUnitOfWork unitOfWork, 
             IPaginationHelper paginationHelper,
@@ -89,16 +90,16 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                 }
 
                 var subscriptionDetails = await _policyExecutor.ExecutePolicyAsync(() => _paypalSubscriptionService.ObtenerDetallesSuscripcion(subscription_id));
-                if (subscriptionDetails == null)
+                if (!subscriptionDetails.Success)
                 {
                     TempData["ErrorMessage"] = "No se pudieron obtener los detalles de la suscripción desde PayPal.";
                     return RedirectToAction("Error", "Home");
                 }
 
-                string planId = subscriptionDetails.PlanId ?? string.Empty;
+                string planId = subscriptionDetails.Data.PlanId ?? string.Empty;
 
 
-                var detallesSuscripcion = await _paypalSubscriptionDetailService.CreateSubscriptionDetailAsync(subscriptionDetails, planId);
+                var detallesSuscripcion = await _paypalSubscriptionDetailService.CreateSubscriptionDetailAsync(subscriptionDetails.Data, planId);
 
                 await _paypalService.SaveOrUpdateSubscriptionDetailsAsync(detallesSuscripcion);
                 await _paypalService.SaveUserSubscriptionAsync(usuarioId, subscription_id, detallesSuscripcion.SubscriberName, detallesSuscripcion.PlanId);
@@ -126,10 +127,10 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                     return RedirigirSegunRol();
                 }
 
-                string result = await _paypalSubscriptionService.CancelarSuscripcion(Id, Reason);
+                var result =   await _paypalSubscriptionService.CancelarSuscripcion(Id, Reason);
 
-                // Update subscription status using the repository
-                await _paypalService.UpdateSubscriptionStatusAsync(Id, "CANCELLED");
+             
+                await _paypalService.UpdateSubscriptionStatusAsync(result.Data.subId, result.Data.subStatus);
 
                 return RedirigirSegunRol();
             }
@@ -158,10 +159,10 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                 if (string.IsNullOrWhiteSpace(Reason))
                     Reason = "Suspension manual por administrador";
 
-                string result = await _paypalSubscriptionService.SuspenderSuscripcion(Id, Reason);
+                var result = await _paypalSubscriptionService.SuspenderSuscripcion(Id, Reason);
 
                 // Update subscription status using the repository
-                await _paypalService.UpdateSubscriptionStatusAsync(Id, "SUSPENDED");
+                await _paypalService.UpdateSubscriptionStatusAsync(result.Data.subId, result.Data.subStatus);
 
                 return RedirigirSegunRol();
             }
@@ -186,8 +187,13 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                 Reason = "Activación manual por administrador";
             try
             {
-                string result = await _paypalSubscriptionService.ActivarSuscripcion(Id, Reason);
-                await _paypalService.UpdateSubscriptionStatusAsync(Id, "ACTIVE");
+                var result = await _paypalSubscriptionService.ActivarSuscripcion(Id, Reason);
+                if (!result.Success)
+                {
+                    _logger.LogError("Error al realizar la peticion");
+                    return RedirigirSegunRol();
+                }
+                await _paypalService.UpdateSubscriptionStatusAsync(result.Data.subId, result.Data.subStatus);
                 TempData["SuccessMessage"] = "Suscripción activada correctamente.";
                 return RedirigirSegunRol();
 
@@ -219,14 +225,14 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                 var subscriptionDetails = await _policyExecutor.ExecutePolicyAsync(
                     () => _paypalSubscriptionService.ObtenerDetallesSuscripcion(id));
 
-                if (subscriptionDetails == null)
+                if (!subscriptionDetails.Success)
                 {
                     TempData["ErrorMessage"] = "No se pudieron obtener los detalles desde PayPal.";
                     return RedirectToAction("Error", "Home");
                 }
 
                 // 2. Extraer planId
-                string planId = subscriptionDetails.PlanId;
+                string planId = subscriptionDetails.Data.PlanId;
                 if (string.IsNullOrEmpty(planId))
                 {
                     _logger.LogWarning("El planId de la suscripción {SubscriptionId} es nulo o vacío", id);
@@ -235,7 +241,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                 }
 
                 // 3. Crear/actualizar el SubscriptionDetail 
-                var detallesSuscripcion = await _paypalSubscriptionDetailService.CreateSubscriptionDetailAsync(subscriptionDetails, planId);
+                var detallesSuscripcion = await _paypalSubscriptionDetailService.CreateSubscriptionDetailAsync(subscriptionDetails.Data, planId);
 
 
 

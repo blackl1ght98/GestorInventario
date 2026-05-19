@@ -29,6 +29,40 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
             </div>
         }
+        @if (User.IsInRole("Administrador"))
+        {
+            <div class="text-center mb-4">
+                <button id="btnSincronizar" class="btn btn-outline-primary btn-lg">
+                    <i class="bi bi-arrow-repeat me-2"></i>Sincronizar con PayPal
+                </button>
+            </div>
+
+            <!-- Modal de progreso -->
+            <div class="modal fade" id="syncModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <i class="bi bi-cloud-arrow-down me-2"></i>Sincronizando planes
+                            </h5>
+                        </div>
+                        <div class="modal-body text-center p-4">
+                            <div class="mb-3">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Cargando...</span>
+                                </div>
+                            </div>
+                            <p id="syncTexto" class="fs-5 mb-2">Preparando...</p>
+                            <div class="progress mb-2" style="height: 25px;">
+                                <div id="syncBarra" class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                                     role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <p id="syncDetalle" class="text-muted small mb-0">Esperando...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
 
         <div class="row g-4">
             @foreach (var plan in Model.Planes)
@@ -207,4 +241,5 @@
 
 @section Scripts {
     <script src="~/js/planes.js" asp-append-version="true"></script>
+    <script src="~/js/sincronizarPlanes.js" asp-append-version="true"></script>
 }

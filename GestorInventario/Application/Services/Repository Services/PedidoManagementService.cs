@@ -1,6 +1,8 @@
 ﻿
+using GestorInventario.Application.Services.Common;
 using GestorInventario.Domain.Models;
 using GestorInventario.enums;
+using GestorInventario.Infraestructure.Repositories.PaypalRepository;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
@@ -20,9 +22,9 @@ namespace GestorInventario.Application.Services.Generic_Services
         private readonly IConversionUtils _conversion;
         private readonly IPaypalOrderService _paypalOrder;
         private readonly IPaymentRepository _payment;
-       
+        private readonly IPaypalRepository _paypalRepository;
         public PedidoManagementService( ILogger<PedidoManagementService> logger,  IPedidoRepository pedido, ICurrentUserAccessor current,
-            IConversionUtils conversion, IPaypalOrderService paypal, IPaymentRepository payment)
+            IConversionUtils conversion, IPaypalOrderService paypal, IPaymentRepository payment, IPaypalRepository paypalRepository)
         {
             
             _logger = logger;
@@ -31,7 +33,7 @@ namespace GestorInventario.Application.Services.Generic_Services
             _conversion = conversion;
             _paypalOrder = paypal;
             _payment = payment;
-      
+        _paypalRepository=paypalRepository;
         
         }
         public async Task<OperationResult<string>> EliminarPedido(int Id)
@@ -300,6 +302,57 @@ namespace GestorInventario.Application.Services.Generic_Services
                 await _pedidoRepository.ActualizarPedidoAsync(pedido);
                 return OperationResult<Pedido>.Ok("", pedido);
             
+        }
+        public async Task ProcesarRembolsoAsync(int pedidoId, string status, string refundId)
+        {
+
+            var pedido = await _pedidoRepository.ObtenerPedidoConDetallesAsync(pedidoId);
+            if (pedido == null)
+                throw new ArgumentException($"Pedido con ID {pedidoId} no encontrado.");
+
+            pedido.EstadoPedido = status;
+            pedido.RefundId = refundId;
+
+            await _pedidoRepository.ActualizarPedidoAsync(pedido);
+
+            var usuarioActual = _currentUserAccesor.GetCurrentUserId();
+
+            // Crear o actualizar registro de reembolso
+            var obtenerRembolso = await _paypalRepository.ObtenRembolsoAsync(pedido.NumeroPedido);
+
+            if (obtenerRembolso == null)
+            {
+                var rembolso = new Rembolso
+                {
+
+                    NumeroPedido = pedido.NumeroPedido,
+                    NombreCliente = pedido.IdUsuarioNavigation?.NombreCompleto,
+                    EmailCliente = pedido.IdUsuarioNavigation?.Email,
+                    FechaRembolso = DateTime.UtcNow,
+                    MotivoRembolso = "Rembolso solicitado por el usuario",
+                    EstadoRembolso = "REMBOLSO APROVADO",
+                    RembosoRealizado = true,
+                    UsuarioId = usuarioActual,
+                    PedidoId = pedido.Id,
+                 
+                };
+                await _paypalRepository.AgregarRembolsoAsync(rembolso);
+            }
+            else
+            {
+                obtenerRembolso.EstadoRembolso = "REMBOLSO APROVADO";
+                obtenerRembolso.RembosoRealizado = true;
+               
+                obtenerRembolso.FechaRembolso = DateTime.UtcNow;
+
+
+                await _paypalRepository.ActualizarRembolsoAsync(obtenerRembolso);
+            }
+
+
+            _logger.LogInformation($"Estado del pedido {pedidoId} actualizado a {status}");
+
+
         }
 
     }

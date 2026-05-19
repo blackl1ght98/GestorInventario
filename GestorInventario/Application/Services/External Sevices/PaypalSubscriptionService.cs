@@ -1,35 +1,30 @@
-﻿using GestorInventario.Application.DTOs;
-using GestorInventario.Application.DTOS.Paypal.Requests.PATCH;
+﻿using GestorInventario.Application.DTOS.Paypal.Requests.PATCH;
 using GestorInventario.Application.DTOS.Paypal.Requests.POST;
 using GestorInventario.Application.DTOS.Paypal.Responses.Error;
 using GestorInventario.Application.DTOS.Paypal.Responses.GET.Subscription;
 using GestorInventario.Application.DTOS.Paypal.Responses.POST.Subscription;
 using GestorInventario.Application.Exceptions;
-using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.ExternalServices;
-using GestorInventario.Interfaces.Infraestructure;
 using Newtonsoft.Json;
 using System.Globalization;
-using System.Numerics;
 
 namespace GestorInventario.Application.Services.External_Sevices
 {
     public class PaypalSubscriptionService: IPaypalSubscriptionService
     {
         private readonly ILogger<PaypalSubscriptionService> _logger;
-
         private readonly IPayPalHttpClient _paypal;
         private readonly CultureHelper _culture;
-        private readonly IPaypalService _paypalService;
+       
 
         public PaypalSubscriptionService(ILogger<PaypalSubscriptionService> logger,
-           IPayPalHttpClient paypal,  CultureHelper culture, IPaypalService paypalService)
+           IPayPalHttpClient paypal,  CultureHelper culture)
         {
             _logger = logger;
             _culture = culture;
             _paypal = paypal;
-            _paypalService = paypalService;
+            
         }
         #region creacion de un producto y plan de suscripcion
         public async Task<OperationResult<string>> CreateProductAsync(string productName, string productDescription, string productType, string productCategory)
@@ -528,7 +523,7 @@ namespace GestorInventario.Application.Services.External_Sevices
         #endregion
 
         #region Obtener detalles de la suscripción
-        public async Task<PaypalSubscriptionResponse> ObtenerDetallesSuscripcion(string subscription_id)
+        public async Task<OperationResult<PaypalSubscriptionResponse>> ObtenerDetallesSuscripcion(string subscription_id)
         {
 
             var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
@@ -541,16 +536,13 @@ namespace GestorInventario.Application.Services.External_Sevices
                 });
 
             var subscriptionDetails = JsonConvert.DeserializeObject<PaypalSubscriptionResponse>(responseBody);
-            if (subscriptionDetails == null)
-            {
-                throw new InvalidOperationException("No se pudieron obtener los detalles de la suscripción: la respuesta del servidor no es válida.");
-            }
-            return subscriptionDetails;
+            
+            return OperationResult< PaypalSubscriptionResponse>.Ok("", subscriptionDetails);
         }
         #endregion
 
         #region desactivar plan de suscripcion
-        public async Task<string> DesactivarPlan(string planId)
+        public async Task<OperationResult<(string planId, string planStatus)>> DesactivarPlan(string planId)
         {
             var deactivatePlanRequest = await _paypal.ExecutePayPalRequestAsync<string>(
                 HttpMethod.Post,
@@ -560,28 +552,15 @@ namespace GestorInventario.Application.Services.External_Sevices
                     var errBody = await error.Content.ReadAsStringAsync();
                     throw new InvalidOperationException($"Error al desactivar el plan: {error.StatusCode}- {errBody}");
                 });
-            var planDetailsResponseBody = await _paypal.ExecutePayPalRequestAsync<string>(
-                HttpMethod.Get,
-                $"v1/billing/plans/{planId}",
-                async error =>
-                {
-                    var errBody = await error.Content.ReadAsStringAsync();
-                    throw new InvalidOperationException($"Error al obtener el plan: {error.StatusCode}- {errBody}");
-                });
-
-            var planDetails = JsonConvert.DeserializeObject<PaypalPlanDetailsDto>(planDetailsResponseBody);
-            if (planDetails == null)
-            {
-                throw new ArgumentNullException("No se puede desactivar el plan: respuesta del servidor no valida");
-            }
-            string planStatusResult = planDetails.Status;
-            await _paypalService.UpdatePlanStatusAsync(planId, planStatusResult);
-            return "Plan desactivado con éxito";
+            var planresponse = await ObtenerDetallesPlan(planId); 
+            var planStatusResult = planresponse.Data.Status;
+            
+            return OperationResult<(string,string)>.Ok("Plan desactivado con exito",(planId,planStatusResult));
         }
         #endregion
 
         #region Activar plan
-        public async Task<string> ActivarPlan(string planId)
+        public async Task<OperationResult<(string planId, string planStatus)>> ActivarPlan(string planId)
         {
             var activatePlanRequest = await _paypal.ExecutePayPalRequestAsync<string>(
                 HttpMethod.Post,
@@ -591,27 +570,16 @@ namespace GestorInventario.Application.Services.External_Sevices
                     var errorBody = await error.Content.ReadAsStringAsync();
                     throw new InvalidOperationException($"Error al activar el plan: {error.StatusCode} - {errorBody}");
                 });
-            var planDetailsResponseBody = await _paypal.ExecutePayPalRequestAsync<string>(
-                HttpMethod.Get,
-                $"v1/billing/plans/{planId}",
-                 async error =>
-                 {
-                     var errorBody = await error.Content.ReadAsStringAsync();
-                     throw new InvalidOperationException($"Error al obtener el plan: {error.StatusCode} - {errorBody}");
-                 });
-            var planDetails = JsonConvert.DeserializeObject<PaypalPlanDetailsDto>(planDetailsResponseBody);
-            if (planDetails == null)
-            {
-                throw new ArgumentNullException("No se puede activar el plan: respuesta del servidor no valida");
-            }
-            string planStatusResult = planDetails.Status;
-            await _paypalService.UpdatePlanStatusAsync(planId, planStatusResult);
-            return "Plan activado con éxito";
+            var planDetails = await ObtenerDetallesPlan(planId);
+            
+            string planStatusResult = planDetails.Data.Status;
+         
+            return OperationResult<(string,string)>.Ok( "Plan activado con éxito",(planId,planStatusResult));
         }
         #endregion
 
         #region Cancelar Subscripcion
-        public async Task<string> CancelarSuscripcion(string subscription_id, string reason)
+        public async Task<OperationResult<(string subId, string subStatus)>> CancelarSuscripcion(string subscription_id, string reason)
         {
             var subscriptionRequest = new
             {
@@ -626,13 +594,14 @@ namespace GestorInventario.Application.Services.External_Sevices
                    var errorBody = await error.Content.ReadAsStringAsync();
                    throw new InvalidOperationException($"Error al cancelar la subscripcion");
                });
-            await ObtenerDetallesSuscripcion(subscription_id);
-            return "Suscripción cancelada exitosamente";
+            var detalles= await ObtenerDetallesSuscripcion(subscription_id);
+            string status = detalles.Data.Status;
+            return OperationResult<(string,string)>.Ok("Suscripción cancelada exitosamente",(subscription_id,status));
         }
         #endregion
 
         #region Suspender suscripcion
-        public async Task<string> SuspenderSuscripcion(string subscription_id, string reason)
+        public async Task<OperationResult<(string subId, string subStatus)>> SuspenderSuscripcion(string subscription_id, string reason)
         {
 
             var razon = new { reason = reason };
@@ -646,26 +615,14 @@ namespace GestorInventario.Application.Services.External_Sevices
                     throw new InvalidOperationException($"Error al suspender la subscripcion");
                 });
 
-            var planDetailsResponseBody = await _paypal.ExecutePayPalRequestAsync<string>(
-                HttpMethod.Get,
-                $"v1/billing/subscriptions/{subscription_id}",
-                async error =>
-                {
-                    var errorBody = await error.Content.ReadAsStringAsync();
-                    throw new InvalidOperationException($"Error al obtener la subscripcion");
-                });
-            var subscriptionDetails = JsonConvert.DeserializeObject<SuspendSubscription>(planDetailsResponseBody);
-            if (subscriptionDetails == null)
-            {
-                throw new ArgumentNullException("No se puede suspender la suscripcion: respuesta del servidor no valida");
-            }
-            string subscriptionResult = subscriptionDetails.Status;
-            return "Subscripcion suspendida con éxito";
+            var subscriptionDetails = await ObtenerDetallesSuscripcion(subscription_id);           
+            string subscriptionStatus = subscriptionDetails.Data.Status;
+            return OperationResult<(string,string)>.Ok( "Subscripcion suspendida con éxito",(subscription_id,subscriptionStatus));
         }
         #endregion
 
         #region Activar suscripcion
-        public async Task<string> ActivarSuscripcion(string subscription_id, string reason)
+        public async Task<OperationResult<(string subId, string subStatus)>> ActivarSuscripcion(string subscription_id, string reason)
         {
             var razon = new { reason = reason };
             var activateSubscriptionRequest = await _paypal.ExecutePayPalRequestAsync<string>(
@@ -678,21 +635,9 @@ namespace GestorInventario.Application.Services.External_Sevices
                     throw new InvalidOperationException($"Error al activar la subscripcion");
                 });
 
-            var planDetailsResponseBody = await _paypal.ExecutePayPalRequestAsync<string>(
-                HttpMethod.Get,
-                $"v1/billing/subscriptions/{subscription_id}",
-                  async error =>
-                  {
-                      var errorBody = await error.Content.ReadAsStringAsync();
-                      throw new InvalidOperationException($"Error al obtener la subscripcion");
-                  });
-            var activateSubscription = JsonConvert.DeserializeObject<ActivateSubscriptionResponseDto>(planDetailsResponseBody);
-            if (activateSubscription == null)
-            {
-                throw new ArgumentNullException("No se puede activar la suscripcion: respuesta del servidor no valida");
-            }
-            string activateResult = activateSubscription.Status;
-            return "Subscripcion activada con éxito";
+            var subscriptionDetails = await ObtenerDetallesSuscripcion(subscription_id);
+            string subscriptionStatus = subscriptionDetails.Data.Status;
+            return OperationResult<(string, string)>.Ok("Subscripcion activada con éxito", (subscription_id, subscriptionStatus));
         }
         #endregion  
     }

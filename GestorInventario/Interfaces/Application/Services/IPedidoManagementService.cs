@@ -11,7 +11,8 @@ namespace GestorInventario.Interfaces.Application.Services
         Task<OperationResult<PayPalPaymentDetail>> SincronizarDetallePagoAsync(string id);
     
         Task<OperationResult<Pedido>> ConfirmarPagoDelPedidoAsync(int usuarioActual, string? captureId, string? total, string? currency, string? orderId);
+        Task ProcesarRembolsoAsync(int pedidoId, string status, string refundId);
 
- 
+
     }
 }

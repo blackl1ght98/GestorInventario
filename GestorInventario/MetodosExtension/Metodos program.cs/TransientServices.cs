@@ -1,9 +1,11 @@
-﻿using GestorInventario.Application.Politicas_Resilencia;
+﻿
+using GestorInventario.Application.Politicas_Resilencia;
 using GestorInventario.Application.Services;
 using GestorInventario.Application.Services.Authentication;
 using GestorInventario.Application.Services.Common;
 using GestorInventario.Application.Services.External_Sevices;
 using GestorInventario.Application.Services.Generic_Services;
+using GestorInventario.Application.Services.Notifications;
 using GestorInventario.Application.Services.Products;
 using GestorInventario.Application.Services.User;
 using GestorInventario.Infraestructure.Repositories.AdminRepository;
@@ -24,6 +26,7 @@ using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.PaginacionLogica;
+
 
 namespace GestorInventario.MetodosExtension.Metodos_program.cs
 {
@@ -59,7 +62,7 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<ICarritoService, CarritoService>();
             services.AddTransient<IConversionUtils, ConversionUtils>();
             services.AddTransient<IPayPalHttpClient, PayPalHttpClient>();
-            services.AddTransient<IPaypalSubscriptionDetailService, PaypalSubscriptionDetailService>();
+            services.AddTransient<ICreateSunscription, CreateSunscription>();
             services.AddTransient<CultureHelper>();
             services.AddTransient<IPayPalMappingUtils, PayPalMappingUtils>();
             services.AddTransient<IPaypalOrderService, PaypalOrderService>();
@@ -76,8 +79,9 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<IPayPalOrderMappingService, PayPalOrderMappingService>();
             services.AddScoped<IStockNotificationService, StockNotificationService>();
             services.AddHostedService <StockCheckBackgroundService> ();
-            services.AddTransient<SyncService>();
-           
+            services.AddTransient<ISyncService,SyncService>();
+            services.AddTransient<IReembolsoNotificationService, ReembolsoNotificationService>();
+            services.AddTransient<IBackgroundTaskQueue, BackgroundTaskQueue>();
             return services;
 
         }

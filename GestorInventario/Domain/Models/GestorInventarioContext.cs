@@ -447,9 +447,6 @@ public partial class GestorInventarioContext : DbContext
             entity.Property(e => e.EstadoRembolso)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-            entity.Property(e => e.EstadoVenta)
-                .HasMaxLength(50)
-                .IsUnicode(false);
             entity.Property(e => e.FechaRembolso).HasColumnType("datetime");
             entity.Property(e => e.MotivoRembolso)
                 .HasMaxLength(255)

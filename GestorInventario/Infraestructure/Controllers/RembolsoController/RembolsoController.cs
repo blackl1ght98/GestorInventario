@@ -1,4 +1,6 @@
 ﻿using GestorInventario.Application.DTOs.Rembolso;
+using GestorInventario.Domain.Models;
+using GestorInventario.enums;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Application.Services;
@@ -10,6 +12,8 @@ using GestorInventario.ViewModels.Paypal;
 using GestorInventario.ViewModels.Rembolsos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics;
 
 namespace GestorInventario.Infraestructure.Controllers.RembolsoController
 {
@@ -26,6 +30,9 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
         private readonly IPaypalOrderService _paypalOrderService;
         private readonly IPaymentService _paymentService;
         private readonly IPayPalOrderMappingService _mappingService;
+       
+        private readonly IPedidoManagementService _pedidoService;
+        private readonly IBackgroundTaskQueue _background;
         public RembolsoController(
             IPolicyExecutor policyExecutor, 
             IRembolsoRepository rembolsoRepository, 
@@ -36,7 +43,9 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
              ICurrentUserAccessor currentUserAccessor,
              IPaypalOrderService paypalOrderService,
              IPaymentService paymentService,
-             IPayPalOrderMappingService mappingService)
+             IPayPalOrderMappingService mappingService,
+             IPedidoManagementService pedido,
+             IBackgroundTaskQueue provider)
         {
             _policyExecutor = policyExecutor;
             _rembolsoRepository = rembolsoRepository;  
@@ -47,7 +56,9 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
             _currentUserAccessor = currentUserAccessor;
             _paypalOrderService = paypalOrderService;
             _paymentService = paymentService;
-            _mappingService = mappingService;
+            _mappingService = mappingService;      
+            _pedidoService = pedido;
+            _background = provider;
 
         }
         [Authorize(Roles = "Administrador")]
@@ -109,11 +120,30 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
 
             try
             {
-                await _paypalRefundService.RefundSaleAsync(request.PedidoId, request.Currency);
-                return Ok(new { success = true });
+                var result = await _paypalRefundService.RefundSaleAsync(request.PedidoId, request.Currency);
+
+                if (!result.Success)
+                    return BadRequest(new { success = false, message = result.Message });
+
+                await _pedidoService.ProcesarRembolsoAsync(
+                    result.Data.pedidoId,
+                    EstadoPedido.Rembolsado.ToString(),
+                    result.Data.refundId);
+
+                _background.Enqueue(async (sp, ct) =>
+                {
+                    var emailService = sp.GetRequiredService<IReembolsoNotificationService>();
+                    await emailService.EnviarEmailNotificacionRembolso(
+                        result.Data.pedidoId,
+                        result.Data.totalAmount,
+                        "Rembolso Aprobado");
+                });
+
+                return Ok(new { success = true, refundId = result.Data.refundId });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error inesperado en refund pedido {PedidoId}", request.PedidoId);
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
         }

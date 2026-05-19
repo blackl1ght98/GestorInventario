@@ -4,6 +4,7 @@ using GestorInventario.Application.DTOS.Paypal.Responses.Error;
 using GestorInventario.Application.DTOS.Paypal.Responses.POST.Refund;
 using GestorInventario.Domain.Models;
 using GestorInventario.enums;
+using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using Newtonsoft.Json;
@@ -29,20 +30,17 @@ namespace GestorInventario.Application.Services.External_Sevices
             _paypalService = paypalService;
         }
         #region Realizar reembolso 
-        public async Task<string> RefundSaleAsync(int pedidoId, string currency)
+        public async Task<OperationResult<(int pedidoId,string refundId, decimal totalAmount,string orderId)>> RefundSaleAsync(int pedidoId, string currency)
         {
             try
             {
                 
                 // Obtener el pedido y el monto total desde el repositorio
                 var pedido = await _pedidoRepository.GetPedidoWithDetailsAsync(pedidoId);
-
-                // Item2-> representa el totalAmount
-                //Item1->representa el pedido
-                var refundRequest = BuildRefundRequest(pedido.Data.Item2, pedido.Data.Item1);
+                var refundRequest = BuildRefundRequest(pedido.Data.totalAmount, pedido.Data.currency);
                 var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                    HttpMethod.Post,
-                   $"v2/payments/captures/{pedido.Data.Item1.CaptureId}/refund",
+                   $"v2/payments/captures/{pedido.Data.captureId}/refund",
                    refundRequest,
                     async resp =>
                     {
@@ -56,15 +54,7 @@ namespace GestorInventario.Application.Services.External_Sevices
                     throw new ArgumentNullException("No se pudo obtener los destalles de la devolucion");
                 }
                 string refundId = refundResponse.Id;
-                var updatedCapture = await _order.ObtenerDetallesPagoEjecutadoAsync(pedido.Data.Item1.OrderId);
-                if (updatedCapture == null)
-                {
-                    throw new ArgumentNullException("No se pudo obtener los detalles actualizados");
-                }
-                string estadoVenta = updatedCapture.PurchaseUnits[0].Payments.Captures[0].Status;
-                await _paypalService.UpdatePedidoStatusAsync(pedidoId, EstadoPedido.Rembolsado.ToString(), refundId, estadoVenta);
-                await _paypalService.EnviarEmailNotificacionRembolso(pedidoId, pedido.Data.Item2, "Rembolso Aprobado");
-                return responseBody;
+               return OperationResult<(int,string,decimal,string)>.Ok("",(pedidoId,refundId,pedido.Data.totalAmount,pedido.Data.orderId)) ;
             }
             catch (Exception ex)
             {
@@ -72,7 +62,7 @@ namespace GestorInventario.Application.Services.External_Sevices
                 throw new InvalidOperationException("No se pudo realizar el reembolso", ex);
             }
         }
-        private PaypalRefundRequest BuildRefundRequest(decimal totalAmount, Pedido pedido)
+        private PaypalRefundRequest BuildRefundRequest(decimal totalAmount, string currency)
         {
             const decimal IVA = 0.21m;
             decimal totalConIva = Math.Round(totalAmount * (1 + IVA), 2);
@@ -82,7 +72,7 @@ namespace GestorInventario.Application.Services.External_Sevices
                 Amount = new AmountRefundRequest
                 {
                     Value = totalConIva.ToString("F2", CultureInfo.InvariantCulture),
-                    CurrencyCode = pedido.Currency
+                    CurrencyCode = currency
                 }
             };
         }

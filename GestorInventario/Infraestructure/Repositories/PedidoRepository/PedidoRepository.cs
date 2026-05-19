@@ -54,7 +54,7 @@ namespace GestorInventario.Infraestructure.Repositories.PedidoRepository
               .FirstOrDefaultAsync(m => m.Id == id);
         public async Task<Pedido> ObtenerPedidoPorIdAsync(int id) => await _context.Pedidos.FirstOrDefaultAsync(x => x.Id == id);
         public async Task<Pedido> ObtenerPedidoConRembolso(int id) => await _context.Pedidos.Include(p => p.DetallePedidos).Include(x => x.Rembolsos).FirstOrDefaultAsync(m => m.Id == id);
-        public async Task<OperationResult<(Pedido, decimal)>> GetPedidoWithDetailsAsync(int pedidoId)
+        public async Task<OperationResult<(string captureId,string orderId,string currency, decimal totalAmount)>> GetPedidoWithDetailsAsync(int pedidoId)
         {
             var pedido = await _context.Pedidos
                 .Include(p => p.DetallePedidos)
@@ -62,13 +62,16 @@ namespace GestorInventario.Infraestructure.Repositories.PedidoRepository
                 .FirstOrDefaultAsync(p => p.Id == pedidoId);
 
             if (pedido == null || string.IsNullOrEmpty(pedido.CaptureId))
-                return OperationResult<(Pedido, decimal)>.Fail("Pedido no encontrado o SaleId no disponible.");
+                return OperationResult<(string,string,string, decimal)>.Fail("Pedido no encontrado o SaleId no disponible.");
 
             if (string.IsNullOrEmpty(pedido.Currency))
-                return OperationResult<(Pedido, decimal)>.Fail("El código de moneda no está definido.");
+                return OperationResult<(string,string,string, decimal)>.Fail("El código de moneda no está definido.");
 
             decimal totalAmount = pedido.DetallePedidos.Sum(d => d.Producto.Precio * (d.Cantidad ?? 0));
-            return OperationResult<(Pedido, decimal)>.Ok("", (pedido, totalAmount));
+            string captureId = pedido.CaptureId;
+            string currency = pedido.Currency;
+            string orderId= pedido.OrderId;
+            return OperationResult<(string,string,string,decimal)>.Ok("", (captureId,orderId,currency, totalAmount));
         }
         public async Task<OperationResult<(DetallePedido, decimal)>> GetProductoDePedidoAsync(int detallePedidoId)
         {

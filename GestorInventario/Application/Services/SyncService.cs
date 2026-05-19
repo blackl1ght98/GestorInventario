@@ -1,12 +1,13 @@
 ﻿using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.ExternalServices;
+using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using System.Globalization;
 
 namespace GestorInventario.Application.Services
 {
-    public class SyncService
+    public class SyncService: ISyncService
     {
         private readonly IPaypalSubscriptionService _paypalSubscriptionService;
         private readonly IPaypalRepository _paypalRepository;

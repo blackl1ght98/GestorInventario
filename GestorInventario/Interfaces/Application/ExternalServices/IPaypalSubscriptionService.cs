@@ -16,12 +16,12 @@ namespace GestorInventario.Interfaces.Application.ExternalServices
         Task<OperationResult<string>> EditarProducto(string id, string name, string description);
         Task<OperationResult<(string, UpdatePricingPlanDto)>> UpdatePricingPlanAsync(string planId, decimal? trialAmount, decimal regularAmount, string currency);
         Task<OperationResult<string>> Subscribirse(string id, string returnUrl, string cancelUrl, string planName);
-        Task<PaypalSubscriptionResponse> ObtenerDetallesSuscripcion(string subscription_id);
-        Task<string> DesactivarPlan(string planId);
-        Task<string> ActivarPlan(string planId);
-        Task<string> CancelarSuscripcion(string subscription_id, string reason);
-        Task<string> SuspenderSuscripcion(string subscription_id, string reason);
-        Task<string> ActivarSuscripcion(string subscription_id, string reason);
+        Task<OperationResult<PaypalSubscriptionResponse>> ObtenerDetallesSuscripcion(string subscription_id);
+        Task<OperationResult<(string planId, string planStatus)>> DesactivarPlan(string planId);
+        Task<OperationResult<(string planId, string planStatus)>> ActivarPlan(string planId);
+        Task<OperationResult<(string subId, string subStatus)>> CancelarSuscripcion(string subscription_id, string reason);
+        Task<OperationResult<(string subId, string subStatus)>> SuspenderSuscripcion(string subscription_id, string reason);
+        Task<OperationResult<(string subId, string subStatus)>> ActivarSuscripcion(string subscription_id, string reason);
       
     }
 }

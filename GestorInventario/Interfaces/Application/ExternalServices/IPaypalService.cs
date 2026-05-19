@@ -10,7 +10,7 @@ namespace GestorInventario.Interfaces.Application.ExternalServices
     {
         Task SavePlanDetailsAsync(string planId, PaypalPlanDetailsDto planDetails);
         Task<OperationResult<string>> EnviarEmailNotificacionRembolso(int pedidoId, decimal montoReembolsado, string motivo);
-        Task UpdatePedidoStatusAsync(int pedidoId, string status, string refundId, string estadoVenta);
+  
         Task RegistrarReembolsoParcialAsync(int pedidoId, int detalleId, string refundId, decimal montoReembolsado, string motivo, string estadoVenta);
         Task AddInfoTrackingOrder(int pedidoId, string tracking, string url, string carrier);
         Task UpdatePlanStatusAsync(string planId, string status);

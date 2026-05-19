@@ -2,16 +2,14 @@
 using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Application.DTOS.Paypal.Responses.GET.Subscription;
 using GestorInventario.Application.DTOS.Paypal.Responses.POST.Subscription;
-using GestorInventario.Application.Services.External_Sevices;
+using GestorInventario.Application.Mappers;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Application.Services;
-using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using System.Globalization;
-using System.Numerics;
 
 namespace GestorInventario.Application.Services.Common
 {
@@ -33,8 +31,7 @@ namespace GestorInventario.Application.Services.Common
         }
        
         public async Task SavePlanDetailsAsync(string planId, PaypalPlanDetailsDto planDetails)
-        {
-           
+        {          
                 // Verificar si el plan ya existe
                 var existingPlan = await _paypalRepository.ObtenerPlanPorIdAsync(planId);
 
@@ -43,74 +40,12 @@ namespace GestorInventario.Application.Services.Common
                     _logger.LogInformation($"El plan con ID {planId} ya existe en la base de datos.");
                     return;   
                 }
-
                 // Mapeo y guardado
-                var planDetail = MapToPlanDetail(planId, planDetails);
-                await _paypalRepository.AgregarPlanAsync(planDetail);
-              
-                _logger.LogInformation($"Detalles del plan {planId} guardados exitosamente.");
-           
+                var planDetail = PlanMapper.MapPayPalPlanToEntity(planId, planDetails);
+                await _paypalRepository.AgregarPlanAsync(planDetail);            
+                _logger.LogInformation($"Detalles del plan {planId} guardados exitosamente.");  
         }
-        private PlanDetail MapToPlanDetail(string planId, PaypalPlanDetailsDto planDetails)
-        {
-            var planDetail = new PlanDetail
-            {
-                Id = Guid.NewGuid().ToString(),
-                PaypalPlanId = planId,
-                ProductId = planDetails.ProductId,
-                Name = planDetails.Name,
-                Description = planDetails.Description,
-                Status = planDetails.Status,
-
-                
-                AutoBillOutstanding = planDetails.PaymentPreferences?.AutoBillOutstanding ?? true,
-
-                SetupFee = planDetails.PaymentPreferences?.SetupFee?.Value != null
-          ? decimal.Parse(planDetails.PaymentPreferences.SetupFee.Value, CultureInfo.InvariantCulture)
-          : 0,
-
-             
-                SetupFeeFailureAction = planDetails.PaymentPreferences?.SetupFeeFailureAction ?? "CONTINUE",
-
-               
-                PaymentFailureThreshold = planDetails.PaymentPreferences?.PaymentFailureThreshold ?? 3,
-
-                TaxPercentage = planDetails.Taxes?.Percentage != null
-          ? decimal.Parse(planDetails.Taxes.Percentage, CultureInfo.InvariantCulture)
-          : 0,
-
-                TaxInclusive = planDetails.Taxes?.Inclusive ?? false
-            };
-
-            // Manejo de ciclos de facturación
-            if (planDetails.BillingCycles.Length > 1)
-            {
-                planDetail.TrialIntervalUnit = planDetails.BillingCycles[0].Frequency.IntervalUnit;
-                planDetail.TrialIntervalCount = planDetails.BillingCycles[0].Frequency.IntervalCount;
-                planDetail.TrialTotalCycles = planDetails.BillingCycles[0].TotalCycles;
-                planDetail.TrialFixedPrice = planDetails.BillingCycles[0].PricingScheme.FixedPrice?.Value != null
-                    ? decimal.Parse(planDetails.BillingCycles[0].PricingScheme.FixedPrice.Value, CultureInfo.InvariantCulture)
-                    : 0;
-                planDetail.CurrencyCode = planDetails.BillingCycles?.FirstOrDefault()?.PricingScheme?.FixedPrice?.CurrencyCode;
-                planDetail.RegularIntervalUnit = planDetails.BillingCycles[1].Frequency.IntervalUnit;
-                planDetail.RegularIntervalCount = planDetails.BillingCycles[1].Frequency.IntervalCount;
-                planDetail.RegularTotalCycles = planDetails.BillingCycles[1].TotalCycles;
-                planDetail.RegularFixedPrice = planDetails.BillingCycles[1].PricingScheme.FixedPrice?.Value != null
-                    ? decimal.Parse(planDetails.BillingCycles[1].PricingScheme.FixedPrice.Value, CultureInfo.InvariantCulture)
-                    : 0;
-            }
-            else if (planDetails.BillingCycles.Length == 1)
-            {
-                planDetail.RegularIntervalUnit = planDetails.BillingCycles[0].Frequency.IntervalUnit;
-                planDetail.RegularIntervalCount = planDetails.BillingCycles[0].Frequency.IntervalCount;
-                planDetail.RegularTotalCycles = planDetails.BillingCycles[0].TotalCycles;
-                planDetail.RegularFixedPrice = planDetails.BillingCycles[0].PricingScheme.FixedPrice?.Value != null
-                    ? decimal.Parse(planDetails.BillingCycles[0].PricingScheme.FixedPrice.Value, CultureInfo.InvariantCulture)
-                    : 0;
-            }
-
-            return planDetail;
-        }
+      
   
         public async Task<OperationResult<string>> EnviarEmailNotificacionRembolso(int pedidoId, decimal montoReembolsado, string motivo)
         {
@@ -163,57 +98,7 @@ namespace GestorInventario.Application.Services.Common
 
             }
         }
-        public async Task UpdatePedidoStatusAsync(int pedidoId, string status, string refundId, string estadoVenta)
-        {
-           
-                var pedido = await _pedidoRepository.ObtenerPedidoConDetallesAsync(pedidoId);
-                if (pedido == null)
-                    throw new ArgumentException($"Pedido con ID {pedidoId} no encontrado.");
 
-                pedido.EstadoPedido = status;
-                pedido.RefundId = refundId;
-
-                await _pedidoRepository.ActualizarPedidoAsync(pedido);
-
-                var usuarioActual = _currentUserAccessor.GetCurrentUserId();
-
-                // Crear o actualizar registro de reembolso
-                var obtenerRembolso = await _paypalRepository.ObtenRembolsoAsync(pedido.NumeroPedido);
-
-                if (obtenerRembolso == null)
-                {
-                    var rembolso = new Rembolso
-                    {
-
-                        NumeroPedido = pedido.NumeroPedido,
-                        NombreCliente = pedido.IdUsuarioNavigation?.NombreCompleto,
-                        EmailCliente = pedido.IdUsuarioNavigation?.Email,
-                        FechaRembolso = DateTime.UtcNow,
-                        MotivoRembolso = "Rembolso solicitado por el usuario",
-                        EstadoRembolso = "REMBOLSO APROVADO",
-                        RembosoRealizado = true,
-                        UsuarioId = usuarioActual,
-                        PedidoId = pedido.Id,
-                        EstadoVenta = estadoVenta
-                    };
-                    await _paypalRepository.AgregarRembolsoAsync(rembolso);
-                }
-                else
-                {
-                    obtenerRembolso.EstadoRembolso = "REMBOLSO APROVADO";
-                    obtenerRembolso.RembosoRealizado = true;
-                    obtenerRembolso.EstadoVenta = estadoVenta;
-                    obtenerRembolso.FechaRembolso = DateTime.UtcNow;
-
-
-                    await _paypalRepository.ActualizarRembolsoAsync(obtenerRembolso);
-                }
-
-
-                _logger.LogInformation($"Estado del pedido {pedidoId} actualizado a {status}");
-            
-
-        }
         public async Task RegistrarReembolsoParcialAsync(int pedidoId, int detalleId, string refundId, decimal montoReembolsado, string motivo, string estadoVenta)
         {
 
@@ -246,7 +131,7 @@ namespace GestorInventario.Application.Services.Common
                     EstadoRembolso = "REMBOLSO PARACIAL APROVADO",
                     RembosoRealizado = true,
                     UsuarioId = usuarioActual,
-                    EstadoVenta = estadoVenta
+                   
 
                 };
 
@@ -341,51 +226,25 @@ namespace GestorInventario.Application.Services.Common
         }
         public async Task SaveOrUpdateSubscriptionDetailsAsync(SubscriptionDetail subscriptionDetails)
         {
-           
-                // Verificar si la suscripción ya existe
-                var existingSubscription = await _paypalRepository.ObtenerSubscriptionIdAsync(subscriptionDetails.SubscriptionId);
+            var existingSubscription = await _paypalRepository.ObtenerSubscriptionIdAsync(subscriptionDetails.SubscriptionId);
 
-                if (existingSubscription != null)
+            if (existingSubscription != null)
+            {
+                bool updated = SubscriptionMappers.TryUpdateFromPayPal(existingSubscription, subscriptionDetails);
+
+                if (updated)
                 {
-                    // Comparar los detalles para determinar si hay cambios
-                    bool hasChanges = !(
-                        existingSubscription.PlanId == subscriptionDetails.PlanId &&
-                        existingSubscription.Status == subscriptionDetails.Status &&
-                        existingSubscription.StartTime == subscriptionDetails.StartTime &&
-                        existingSubscription.StatusUpdateTime == subscriptionDetails.StatusUpdateTime &&
-                        existingSubscription.SubscriberName == subscriptionDetails.SubscriberName &&
-                        existingSubscription.SubscriberEmail == subscriptionDetails.SubscriberEmail &&
-                        existingSubscription.PayerId == subscriptionDetails.PayerId &&
-                        existingSubscription.OutstandingBalance == subscriptionDetails.OutstandingBalance &&
-                        existingSubscription.OutstandingCurrency == subscriptionDetails.OutstandingCurrency &&
-                        existingSubscription.NextBillingTime == subscriptionDetails.NextBillingTime &&
-                        existingSubscription.LastPaymentTime == subscriptionDetails.LastPaymentTime &&
-                        existingSubscription.LastPaymentAmount == subscriptionDetails.LastPaymentAmount &&
-                        existingSubscription.LastPaymentCurrency == subscriptionDetails.LastPaymentCurrency &&
-                        existingSubscription.FinalPaymentTime == subscriptionDetails.FinalPaymentTime &&
-                        existingSubscription.CyclesCompleted == subscriptionDetails.CyclesCompleted &&
-                        existingSubscription.CyclesRemaining == subscriptionDetails.CyclesRemaining &&
-                        existingSubscription.TotalCycles == subscriptionDetails.TotalCycles &&
-                        existingSubscription.TrialIntervalUnit == subscriptionDetails.TrialIntervalUnit &&
-                        existingSubscription.TrialIntervalCount == subscriptionDetails.TrialIntervalCount &&
-                        existingSubscription.TrialTotalCycles == subscriptionDetails.TrialTotalCycles &&
-                        existingSubscription.TrialFixedPrice == subscriptionDetails.TrialFixedPrice
-                    );
-              
-                    if (hasChanges)
-                    {
-                        await _paypalRepository.ActualizarDetallesSubscripcionAsync(subscriptionDetails);
-                        _logger.LogInformation($"Suscripción actualizada: {subscriptionDetails.SubscriptionId}");
-                    }
+                    await _paypalRepository.ActualizarDetallesSubscripcionAsync(existingSubscription);
+                    _logger.LogInformation("Suscripción actualizada: {SubscriptionId}", subscriptionDetails.SubscriptionId);
                 }
-                else
-                {
-                    await _paypalRepository.AgregarDetallesSubscripcionAsync(subscriptionDetails);
-                    _logger.LogInformation($"Suscripción creada: {subscriptionDetails.SubscriptionId}");
-                }
-           
+            }
+            else
+            {
+                await _paypalRepository.AgregarDetallesSubscripcionAsync(subscriptionDetails);
+                _logger.LogInformation("Suscripción creada: {SubscriptionId}", subscriptionDetails.SubscriptionId);
+            }
         }
-       
+
         public async Task SaveUserSubscriptionAsync(int userId, string subscriptionId, string subscriberName, string planId)
         {
             
