@@ -4,6 +4,7 @@ using GestorInventario.Application.Services;
 using GestorInventario.Application.Services.Authentication;
 using GestorInventario.Application.Services.Common;
 using GestorInventario.Application.Services.External_Sevices;
+using GestorInventario.Application.Services.External_Sevices.Refunds;
 using GestorInventario.Application.Services.Generic_Services;
 using GestorInventario.Application.Services.Notifications;
 using GestorInventario.Application.Services.Products;
@@ -66,7 +67,6 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<CultureHelper>();
             services.AddTransient<IPayPalMappingUtils, PayPalMappingUtils>();
             services.AddTransient<IPaypalOrderService, PaypalOrderService>();
-            services.AddTransient<IPaypalRefundService, PaypalRefundService>();
             services.AddTransient<IPaypalSubscriptionService, PaypalSubscriptionService>();
             services.AddTransient<IAuditService, AuditService>();
             services.AddTransient<IUserManagementService,UserManagementService>();
@@ -82,6 +82,8 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<ISyncService,SyncService>();
             services.AddTransient<IReembolsoNotificationService, ReembolsoNotificationService>();
             services.AddTransient<IBackgroundTaskQueue, BackgroundTaskQueue>();
+            services.AddTransient<IPaypalPartialRefundService, PaypalPartialRefundService>();
+            services.AddTransient<IPaypalFullRefundService, PaypalFullRefundService>();
             return services;
 
         }

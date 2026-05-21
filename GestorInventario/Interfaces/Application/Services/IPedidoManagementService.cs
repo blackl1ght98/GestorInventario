@@ -10,7 +10,7 @@ namespace GestorInventario.Interfaces.Application.Services
         Task<OperationResult<string>> EditarPedido(EditPedidoViewModel model);
         Task<OperationResult<PayPalPaymentDetail>> SincronizarDetallePagoAsync(string id);
     
-        Task<OperationResult<Pedido>> ConfirmarPagoDelPedidoAsync(int usuarioActual, string? captureId, string? total, string? currency, string? orderId);
+        Task<OperationResult<Pedido>> ConfirmarPagoDelPedidoAsync(int usuarioActual, string? captureId, decimal? total, string? currency, string? orderId);
         Task ProcesarRembolsoAsync(int pedidoId, string status, string refundId);
 
 

@@ -5,6 +5,7 @@ using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Application.DTOs.Paypal.Responses.GET.Order;
 using GestorInventario.Application.DTOs.User;
 using GestorInventario.Application.DTOS.Paypal.Responses.POST.Order;
+using GestorInventario.Application.Services.Common;
 using GestorInventario.Domain.Models;
 using GestorInventario.enums;
 using GestorInventario.Infraestructure.Utils;
@@ -51,42 +52,40 @@ namespace GestorInventario.Application.Services.Generic_Services
 
         public async Task<OperationResult<string>> Pagar(string moneda, int userId)
         {
-           
-                // Recolectar información del usuario
-                var result = await ValidarUsuarioYObtenerInfo();
-                if (!result.Success)
-                    return OperationResult<string>.Fail(result.Message);
+            // 1. Info usuario
+            var result = await ValidarUsuarioYObtenerInfo();
+            if (!result.Success)
+                return OperationResult<string>.Fail(result.Message);
 
-                var infoUsuario = result.Data;
+            var infoUsuario = result.Data;
 
-                // Validar carrito
-                var resultado = await ValidarCarritoYObtenerItems(userId);
-                if (!resultado.Success)
-                    return OperationResult<string>.Fail(resultado.Message);
+            // 2. Validar carrito
+            var resultado = await ValidarCarritoYObtenerItems(userId);
+            if (!resultado.Success)
+                return OperationResult<string>.Fail(resultado.Message);
 
-                var carrito = resultado.Data.Carrito;
-                var itemsDelCarrito = resultado.Data.Items;
+            var carrito = resultado.Data.Carrito;
+            var itemsDelCarrito = resultado.Data.Items;
 
-                // Convertir carrito a pedido
-                await ConvertirCarritoAPedido(carrito);
+            // 3. Preparar checkout (calcula subtotal, iva, total)
+            moneda = string.IsNullOrEmpty(moneda) ? "EUR" : moneda;
+            var checkout = await PrepararCheckoutParaPagoPayPal(itemsDelCarrito, moneda, infoUsuario);
 
-                // Preparar y procesar pago con PayPal
-                moneda = string.IsNullOrEmpty(moneda) ? "EUR" : moneda;
-                var checkout = await PrepararCheckoutParaPagoPayPal(itemsDelCarrito, moneda, infoUsuario);
+            // 4. ✅ Convertir carrito a pedido PERSISTIENDO los totales calculados
+            await ConvertirCarritoAPedido(carrito, checkout);
 
-                var approvalUrl = await ProcesarPagoPayPal(checkout);
+            // 5. Procesar pago con PayPal
+            var approvalUrl = await ProcesarPagoPayPal(checkout);
 
-                if (!approvalUrl.Success)
-                {
+            if (!approvalUrl.Success)
+                return OperationResult<string>.Fail(approvalUrl.Message);
 
-                    return OperationResult<string>.Fail(approvalUrl.Message);
-                }
+            // 6. Limpiar
+            await EliminarCarritosVaciosUsuario(userId);
 
-                await EliminarCarritosVaciosUsuario(userId);
-                return OperationResult<string>.Ok(
-                    "Redirigiendo a PayPal para completar el pago",
-                    approvalUrl.Data);
-        
+            return OperationResult<string>.Ok(
+                "Redirigiendo a PayPal para completar el pago",
+                approvalUrl.Data);
         }
         private async Task<OperationResult<InfoUsuarioDto>> ValidarUsuarioYObtenerInfo()
         {
@@ -132,61 +131,90 @@ namespace GestorInventario.Application.Services.Generic_Services
             return OperationResult<CarritoConItemsDto>.Ok("Validacion exitosa", resultado);
         }
 
-        private async Task ConvertirCarritoAPedido(Pedido carrito)
-        {
+        //private async Task ConvertirCarritoAPedido(Pedido carrito)
+        //{
 
+        //    try
+        //    {
+        //        carrito.EsCarrito = false;
+        //        carrito.NumeroPedido = GenerarNumPedido.GenerarNumeroPedido();
+        //        carrito.FechaPedido = DateTime.Now;
+        //        carrito.EstadoPedido = EstadoPedido.En_Proceso.ToString();
+        //        await _unitOfWork.PedidoRepository.ActualizarPedidoAsync(carrito);
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+
+        //        _logger.LogError(ex, "Ocurrio un error inesperado");
+
+        //    }
+
+        //}
+        private async Task ConvertirCarritoAPedido(Pedido carrito, CheckoutDto checkout)
+        {
             try
             {
                 carrito.EsCarrito = false;
                 carrito.NumeroPedido = GenerarNumPedido.GenerarNumeroPedido();
                 carrito.FechaPedido = DateTime.Now;
                 carrito.EstadoPedido = EstadoPedido.En_Proceso.ToString();
-                await _unitOfWork.PedidoRepository.ActualizarPedidoAsync(carrito);
 
+                // ✅ PERSISTIR totales calculados previamente
+                carrito.Subtotal = checkout.Subtotal;
+                carrito.Iva = checkout.Iva;
+                carrito.Total = checkout.TotalAmount;
+                carrito.Currency = checkout.Currency;
+
+
+                await _unitOfWork.PedidoRepository.ActualizarPedidoAsync(carrito);
             }
             catch (Exception ex)
             {
-
-                _logger.LogError(ex, "Ocurrio un error inesperado");
-
+                _logger.LogError(ex, "Error al convertir carrito a pedido ID {PedidoId}", carrito.Id);
+                throw; // Propagar para que falle la transacción completa
             }
-
         }
-
-        private async Task<CheckoutDto> PrepararCheckoutParaPagoPayPal(List<DetallePedido> itemsDelCarrito, string moneda, InfoUsuarioDto infoUsuario)
+        private async Task<CheckoutDto> PrepararCheckoutParaPagoPayPal(
+     List<DetallePedido> itemsDelCarrito,
+     string moneda,
+     InfoUsuarioDto infoUsuario)
         {
             var items = new List<ItemModelDto>();
-            decimal totalAmount = 0;
+            var lineasParaCalculo = new List<(decimal precio, int cantidad)>();
 
             foreach (var item in itemsDelCarrito)
             {
+                var producto = await _unitOfWork.ProductoRepository
+                    .ObtenerProductoPorIdAsync(item.ProductoId.Value);
 
-                var producto = await _unitOfWork.ProductoRepository.ObtenerProductoPorIdAsync(item.ProductoId.Value);
-                if (producto != null)
+                if (producto == null) continue;
+
+                var cantidad = item.Cantidad ?? 0;
+                var precio = Convert.ToDecimal(producto.Precio);
+
+                items.Add(new ItemModelDto
                 {
+                    Name = producto.NombreProducto,
+                    Currency = moneda,
+                    Price = producto.Precio,
+                    Quantity = cantidad.ToString(),
+                    Sku = producto.Descripcion
+                });
 
-                    var paypalItem = new ItemModelDto
-                    {
-                        Name = producto.NombreProducto,
-                        Currency = moneda,
-                        Price = producto.Precio,
-
-                        Quantity = item.Cantidad.Value.ToString(),
-                        Sku = producto.Descripcion
-                    };
-                    items.Add(paypalItem);
-                    totalAmount += Convert.ToDecimal(producto.Precio) * Convert.ToDecimal(item.Cantidad ?? 0);
-                }
-
-
+                lineasParaCalculo.Add((precio, cantidad));
             }
+
+            var (subtotal, iva, total) = CalculadoraFiscal.CalcularTotales(lineasParaCalculo);
 
             string returnUrl = ObtenerReturnUrl();
             string cancelUrl = "https://localhost:7056/Payment/Cancel";
 
             return new CheckoutDto
             {
-                TotalAmount = totalAmount,
+                TotalAmount = total,        
+                Subtotal = subtotal,        
+                Iva = iva,                  
                 Currency = moneda,
                 Items = items,
                 NombreCompleto = infoUsuario.NombreCompletoUsuario,

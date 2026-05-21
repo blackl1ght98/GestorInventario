@@ -5,6 +5,7 @@ using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.MetodosExtension;
 using GestorInventario.ViewModels.Paypal;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
 
 namespace GestorInventario.Infraestructure.Repositories.PedidoRepository
 {
@@ -60,20 +61,23 @@ namespace GestorInventario.Infraestructure.Repositories.PedidoRepository
                 .Include(p => p.DetallePedidos)
                 .ThenInclude(d => d.Producto)
                 .FirstOrDefaultAsync(p => p.Id == pedidoId);
-
+            var detalle = pedido.DetallePedidos.FirstOrDefault();
             if (pedido == null || string.IsNullOrEmpty(pedido.CaptureId))
                 return OperationResult<(string,string,string, decimal)>.Fail("Pedido no encontrado o SaleId no disponible.");
 
             if (string.IsNullOrEmpty(pedido.Currency))
                 return OperationResult<(string,string,string, decimal)>.Fail("El código de moneda no está definido.");
+          
+           
 
             decimal totalAmount = pedido.DetallePedidos.Sum(d => d.Producto.Precio * (d.Cantidad ?? 0));
             string captureId = pedido.CaptureId;
             string currency = pedido.Currency;
             string orderId= pedido.OrderId;
+           
             return OperationResult<(string,string,string,decimal)>.Ok("", (captureId,orderId,currency, totalAmount));
         }
-        public async Task<OperationResult<(DetallePedido, decimal)>> GetProductoDePedidoAsync(int detallePedidoId)
+        public async Task<OperationResult<(int idPedido, string captureId, decimal precioProducto, string orderId, string currency, int detalleId)>> GetProductoDePedidoAsync(int detallePedidoId)
         {
             try
             {
@@ -83,17 +87,24 @@ namespace GestorInventario.Infraestructure.Repositories.PedidoRepository
                     .FirstOrDefaultAsync(dp => dp.Id == detallePedidoId);
 
                 if (detalle == null)
-                    return OperationResult<(DetallePedido, decimal)>.Fail("Detalle de pedido no encontrado");
+                    return OperationResult<(int,string,decimal,string,string,int)>.Fail("Detalle de pedido no encontrado");
 
                 if (detalle.Producto == null)
-                    return OperationResult<(DetallePedido, decimal)>.Fail("Producto no encontrado en el detalle");
-
-                return OperationResult<(DetallePedido, decimal)>.Ok("", (detalle, detalle.Producto.Precio));
+                    return OperationResult<(int, string, decimal, string, string, int)>.Fail("Producto no encontrado en el detalle");
+                if (detalle.Rembolsado ?? false)
+                    return OperationResult<(int, string, decimal, string, string, int)>.Fail("El pedido ha sido rembolsado");
+                int idPedido = detalle.Pedido.Id;
+                string captureId = detalle.Pedido.CaptureId;
+                decimal precioProducto = detalle.Producto.Precio;
+                string orderId= detalle.Pedido.OrderId;
+                string currency= detalle.Pedido.Currency;
+                int detalleId = detalle.Id;
+                return OperationResult<(int, string, decimal, string, string, int)>.Ok("", (idPedido,captureId,precioProducto,orderId,currency,detalleId));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al obtener el detalle de pedido {DetallePedidoId}", detallePedidoId);
-                return OperationResult<(DetallePedido, decimal)>.Fail("Error inesperado al obtener el detalle del pedido");
+                return OperationResult<(int, string, decimal, string, string, int)>.Fail("Error inesperado al obtener el detalle del pedido");
             }
         }
 

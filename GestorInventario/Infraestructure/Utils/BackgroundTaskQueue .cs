@@ -7,10 +7,11 @@ namespace GestorInventario.Infraestructure.Utils
     {
         private readonly Channel<Func<IServiceProvider, CancellationToken, Task>> _queue;
         private readonly IServiceScopeFactory _serviceScopeFactory;
-
-        public BackgroundTaskQueue(IServiceScopeFactory serviceScopeFactory)
+        private readonly ILogger<BackgroundTaskQueue> _logger;
+        public BackgroundTaskQueue(IServiceScopeFactory serviceScopeFactory, ILogger<BackgroundTaskQueue> logger)
         {
             _serviceScopeFactory = serviceScopeFactory;
+            _logger = logger;
             _queue = Channel.CreateUnbounded<Func<IServiceProvider, CancellationToken, Task>>();
 
             _ = ProcessQueueAsync();
@@ -32,7 +33,7 @@ namespace GestorInventario.Infraestructure.Utils
                 }
                 catch (Exception ex)
                 {
-                    // Log
+                    _logger.LogError("Error al ejecutar la tarea en segundo plano ", ex.Message);
                 }
             }
         }

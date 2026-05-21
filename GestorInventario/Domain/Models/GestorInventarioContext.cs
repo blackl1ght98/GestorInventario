@@ -98,7 +98,7 @@ public partial class GestorInventarioContext : DbContext
 
             entity.HasOne(d => d.Pedido).WithMany(p => p.DetallePedidos)
                 .HasForeignKey(d => d.PedidoId)
-                .HasConstraintName("FK__DetallePe__Pedid__29221CFB");
+                .HasConstraintName("FK__DetallePe__Pedid__12E8C319");
 
             entity.HasOne(d => d.Producto).WithMany(p => p.DetallePedidos)
                 .HasForeignKey(d => d.ProductoId)
@@ -299,7 +299,7 @@ public partial class GestorInventarioContext : DbContext
 
         modelBuilder.Entity<Pedido>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC0775AB72C3");
+            entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC07CAFF3F4D");
 
             entity.Property(e => e.CaptureId)
                 .HasMaxLength(100)
@@ -313,6 +313,7 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false);
             entity.Property(e => e.FechaPedido).HasColumnType("datetime");
+            entity.Property(e => e.Iva).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.NumeroPedido)
                 .HasMaxLength(20)
                 .IsUnicode(false);
@@ -324,10 +325,8 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("refundId");
-            entity.Property(e => e.Total)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("total");
+            entity.Property(e => e.Subtotal).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.Total).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.TrackingNumber)
                 .HasMaxLength(100)
                 .IsUnicode(false)

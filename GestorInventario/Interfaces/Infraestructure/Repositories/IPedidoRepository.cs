@@ -16,7 +16,7 @@ namespace GestorInventario.Interfaces.Infraestructure.Repositories
         Task<Pedido> ObtenerNumeroPedido(RefundFormViewModel form);
         //Excepciones en consultas uso de OperationResult por complejidad
         Task<OperationResult<(string captureId, string orderId, string currency, decimal totalAmount)>> GetPedidoWithDetailsAsync(int pedidoId);
-        Task<OperationResult<(DetallePedido, decimal)>> GetProductoDePedidoAsync(int detallePedidoId);
+        Task<OperationResult<(int idPedido, string captureId, decimal precioProducto, string orderId, string currency, int detalleId)>> GetProductoDePedidoAsync(int detallePedidoId);
         Task<OperationResult<(Pedido, List<DetallePedido>)>> GetPedidoConDetallesAsync(int pedidoId);
         Task<DetallePedido> ObtenerDetallePorIdAsync(int id);
         //Operaciones

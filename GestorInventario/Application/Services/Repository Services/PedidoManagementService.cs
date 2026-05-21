@@ -276,11 +276,11 @@ namespace GestorInventario.Application.Services.Generic_Services
         }
  
 
-        public async Task<OperationResult<Pedido>> ConfirmarPagoDelPedidoAsync(int usuarioActual, string? captureId, string? total, string? currency, string? orderId)
+        public async Task<OperationResult<Pedido>> ConfirmarPagoDelPedidoAsync(int usuarioActual, string? captureId, decimal? total, string? currency, string? orderId)
         {
            
                 // Validar parámetros de entrada
-                if (string.IsNullOrWhiteSpace(captureId) || string.IsNullOrWhiteSpace(total) ||
+                if (string.IsNullOrWhiteSpace(captureId)  ||
                 string.IsNullOrWhiteSpace(currency) || string.IsNullOrWhiteSpace(orderId))
                 {
                     _logger.LogWarning("Parámetros inválidos en ConfirmarPagoDelPedidoAsync: usuarioActual={UsuarioId}, captureId={CaptureId}, total={Total}, currency={Currency}, orderId={OrderId}",
@@ -307,12 +307,16 @@ namespace GestorInventario.Application.Services.Generic_Services
         {
 
             var pedido = await _pedidoRepository.ObtenerPedidoConDetallesAsync(pedidoId);
+            
             if (pedido == null)
                 throw new ArgumentException($"Pedido con ID {pedidoId} no encontrado.");
 
             pedido.EstadoPedido = status;
             pedido.RefundId = refundId;
-
+            foreach (var detalle in pedido.DetallePedidos)
+            {
+                detalle.Rembolsado = true;
+            }
             await _pedidoRepository.ActualizarPedidoAsync(pedido);
 
             var usuarioActual = _currentUserAccesor.GetCurrentUserId();
@@ -344,7 +348,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                 obtenerRembolso.RembosoRealizado = true;
                
                 obtenerRembolso.FechaRembolso = DateTime.UtcNow;
-
+                
 
                 await _paypalRepository.ActualizarRembolsoAsync(obtenerRembolso);
             }

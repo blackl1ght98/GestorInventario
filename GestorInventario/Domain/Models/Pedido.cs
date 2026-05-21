@@ -17,7 +17,11 @@ public partial class Pedido
 
     public string? CaptureId { get; set; }
 
-    public string? Total { get; set; }
+    public decimal? Subtotal { get; set; }
+
+    public decimal? Iva { get; set; }
+
+    public decimal? Total { get; set; }
 
     public string? Currency { get; set; }
 

@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Application.DTOs.Rembolso;
+using GestorInventario.Application.Services.Common;
 using GestorInventario.Domain.Models;
 using GestorInventario.enums;
 using GestorInventario.Interfaces.Application.Common;
@@ -24,34 +25,38 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
         private readonly IRembolsoRepository _rembolsoRepository;       
         private readonly ILogger<RembolsoController> _logger;
         private readonly IPaginationHelper _paginationHelper;
-        private readonly IPaypalRefundService _paypalRefundService;
+      
         private readonly IPedidoRepository _pedidoRepository;
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IPaypalOrderService _paypalOrderService;
         private readonly IPaymentService _paymentService;
-        private readonly IPayPalOrderMappingService _mappingService;
-       
+        private readonly IPayPalOrderMappingService _mappingService;   
         private readonly IPedidoManagementService _pedidoService;
         private readonly IBackgroundTaskQueue _background;
+        private readonly IPaypalService _paypalService;
+        private readonly IPaypalPartialRefundService _paypalPartialRefundService;
+        private readonly IPaypalFullRefundService _paypalFullRefundService;
         public RembolsoController(
             IPolicyExecutor policyExecutor, 
             IRembolsoRepository rembolsoRepository, 
              ILogger<RembolsoController> logger, 
              IPaginationHelper paginationHelper,
-             IPaypalRefundService paypalRefundService,
+            
              IPedidoRepository pedidoRepository,
              ICurrentUserAccessor currentUserAccessor,
              IPaypalOrderService paypalOrderService,
              IPaymentService paymentService,
              IPayPalOrderMappingService mappingService,
              IPedidoManagementService pedido,
-             IBackgroundTaskQueue provider)
+             IBackgroundTaskQueue provider,
+             IPaypalService paypalService,
+             IPaypalPartialRefundService paypalPartialRefundService,
+             IPaypalFullRefundService paypalFullRefundService)
         {
             _policyExecutor = policyExecutor;
             _rembolsoRepository = rembolsoRepository;  
             _logger = logger;
             _paginationHelper = paginationHelper;
-            _paypalRefundService = paypalRefundService;
             _pedidoRepository = pedidoRepository;
             _currentUserAccessor = currentUserAccessor;
             _paypalOrderService = paypalOrderService;
@@ -59,6 +64,9 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
             _mappingService = mappingService;      
             _pedidoService = pedido;
             _background = provider;
+            _paypalService = paypalService;
+            _paypalPartialRefundService = paypalPartialRefundService;
+            _paypalFullRefundService= paypalFullRefundService;
 
         }
         [Authorize(Roles = "Administrador")]
@@ -120,7 +128,7 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
 
             try
             {
-                var result = await _paypalRefundService.RefundSaleAsync(request.PedidoId, request.Currency);
+                var result = await _paypalFullRefundService.RefundSaleAsync(request.PedidoId, request.Currency);
 
                 if (!result.Success)
                     return BadRequest(new { success = false, message = result.Message });
@@ -158,7 +166,27 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
 
             try
             {
-                await _paypalRefundService.RefundPartialAsync(request.PedidoId, request.Currency, request.Motivo);
+                var result =  await _paypalPartialRefundService.RefundPartialAsync(request.PedidoId, request.Currency, request.Motivo);
+
+
+                await _paypalService.RegistrarReembolsoParcialAsync(
+                    result.Data.pedidoId,
+                    result.Data.detalleId,
+                    result.Data.refundId,
+                    result.Data.montoRembolsado,
+                    result.Data.motivo,
+                    result.Data.estadoVenta
+                );
+                _background.Enqueue(async (sp, ct) =>
+                {
+                    var emailService = sp.GetRequiredService<IReembolsoNotificationService>();
+                    await emailService.EnviarEmailNotificacionRembolso(
+                    result.Data.pedidoId,
+                     result.Data.precioProducto,
+                     result.Data.motivo
+                );
+                });
+               
 
                 return Json(new { success = true });
             }

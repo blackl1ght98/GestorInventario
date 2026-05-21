@@ -3,6 +3,7 @@ using GestorInventario.Application.DTOs.Checkout;
 using GestorInventario.Application.DTOs.Paypal.Responses.GET.Order;
 using GestorInventario.Application.DTOS.Paypal.Requests.POST;
 using GestorInventario.Application.DTOS.Paypal.Responses.POST.Order;
+using GestorInventario.Application.Services.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using Newtonsoft.Json;
@@ -12,16 +13,15 @@ namespace GestorInventario.Application.Services.External_Sevices
 {
     public class PaypalOrderService: IPaypalOrderService
     {
-        private readonly ILogger<PaypalOrderService> _logger;
-        private readonly IPaypalRepository _repo;
+        private readonly ILogger<PaypalOrderService> _logger;    
         private readonly IPayPalHttpClient _paypal;
     
         public PaypalOrderService(ILogger<PaypalOrderService> logger,
-           IPayPalHttpClient paypal, IPaypalRepository repo)
+           IPayPalHttpClient paypal)
         {
             _logger = logger;           
             _paypal = paypal;
-            _repo = repo;
+          
         }
         #region Crear orden 
         public async Task<string> CreateOrderWithPaypalAsync(CheckoutDto pagar)
@@ -48,13 +48,9 @@ namespace GestorInventario.Application.Services.External_Sevices
 
             var itemsParaPayPal = pagar.Items.ConvertAll(item =>
             {
-               
                 decimal precioUnitario = item.Price;
-
-               
-                int cantidad = int.Parse(item.Quantity);                   
-
-                decimal impuestoPorUnidad = precioUnitario * 0.21m;        
+                int cantidad = int.Parse(item.Quantity);
+                decimal impuestoPorUnidad = CalculadoraFiscal.CalcularIvaUnitario(precioUnitario);
 
                 totalNeto += precioUnitario * cantidad;
                 totalImpuestos += impuestoPorUnidad * cantidad;
@@ -63,22 +59,31 @@ namespace GestorInventario.Application.Services.External_Sevices
                 {
                     Name = item.Name,
                     Description = item.Description,
-                    Quantity = cantidad.ToString(),                         
+                    Quantity = cantidad.ToString(),
                     UnitAmount = new Money
                     {
-                        Value = precioUnitario.ToString("F2", CultureInfo.InvariantCulture),
+                        Value = CalculadoraFiscal.FormatearPayPal(precioUnitario),
                         CurrencyCode = pagar.Currency
                     },
                     Tax = new Money
                     {
-                        Value = impuestoPorUnidad.ToString("F2", CultureInfo.InvariantCulture),
+                        Value = CalculadoraFiscal.FormatearPayPal(impuestoPorUnidad),
                         CurrencyCode = pagar.Currency
                     },
                     Sku = item.Sku
                 };
             });
 
-            decimal totalFinal = totalNeto + totalImpuestos;
+            // ✅ Validación de coherencia: lo que calculamos debe coincidir con el checkout
+            var (subtotalEsperado, ivaEsperado, totalEsperado) = CalculadoraFiscal.CalcularTotales(
+                pagar.Items.Select(i => (i.Price, int.Parse(i.Quantity))));
+
+            if (totalNeto != subtotalEsperado || totalImpuestos != ivaEsperado)
+            {
+                _logger.LogError("Descuadre fiscal: Neto={Neto} vs {Esperado}, IVA={Iva} vs {Esperado}",
+                    totalNeto, subtotalEsperado, totalImpuestos, ivaEsperado);
+                throw new InvalidOperationException("Descuadre en cálculo fiscal del pedido");
+            }
 
             return new CreateOrderRequest
             {
@@ -90,23 +95,23 @@ namespace GestorInventario.Application.Services.External_Sevices
                 Amount = new Amount
                 {
                     CurrencyCode = pagar.Currency,
-                    Value = totalFinal.ToString("F2", CultureInfo.InvariantCulture),
+                    Value = CalculadoraFiscal.FormatearPayPal(totalEsperado),
                     Breakdown = new AmountBreakdown
                     {
                         ItemTotal = new Money
                         {
                             CurrencyCode = pagar.Currency,
-                            Value = totalNeto.ToString("F2", CultureInfo.InvariantCulture)
+                            Value = CalculadoraFiscal.FormatearPayPal(totalNeto)
                         },
                         TaxTotal = new Money
                         {
                             CurrencyCode = pagar.Currency,
-                            Value = totalImpuestos.ToString("F2", CultureInfo.InvariantCulture)   
+                            Value = CalculadoraFiscal.FormatearPayPal(totalImpuestos)
                         },
                         ShippingAmount = new Money
                         {
                             CurrencyCode = pagar.Currency,
-                            Value = "0.00" //<- coste de envio
+                            Value = "0.00"
                         }
                     }
                 },
@@ -148,7 +153,7 @@ namespace GestorInventario.Application.Services.External_Sevices
         #endregion
 
         #region Capturar el pago (orden)
-        public async Task<(string CaptureId, string Total, string Currency)> CapturarPagoAsync(string orderId)
+        public async Task<(string CaptureId, decimal Total, string Currency)> CapturarPagoAsync(string orderId)
         {
             try
             {
@@ -176,8 +181,8 @@ namespace GestorInventario.Application.Services.External_Sevices
                 {
                     throw new Exception("No se pudo extraer la información de la captura del pago.");
                 }
-
-                return (capture.Id, capture.Amount.Value, capture.Amount.CurrencyCode);
+                decimal amountValue= Decimal.Parse(capture.Amount.Value);
+                return (capture.Id, amountValue, capture.Amount.CurrencyCode);
             }
             catch (Exception ex)
             {
