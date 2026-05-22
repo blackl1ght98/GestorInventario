@@ -1,11 +1,9 @@
-﻿using GestorInventario.Application.Classes;
-using GestorInventario.Application.DTOs.Checkout;
+﻿using GestorInventario.Application.DTOs.Checkout;
 using GestorInventario.Application.DTOs.Paypal.Responses.GET.Order;
 using GestorInventario.Application.DTOS.Paypal.Requests.POST;
 using GestorInventario.Application.DTOS.Paypal.Responses.POST.Order;
 using GestorInventario.Application.Services.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
-using GestorInventario.Interfaces.Infraestructure.Repositories;
 using Newtonsoft.Json;
 using System.Globalization;
 
@@ -181,7 +179,7 @@ namespace GestorInventario.Application.Services.External_Sevices
                 {
                     throw new Exception("No se pudo extraer la información de la captura del pago.");
                 }
-                decimal amountValue= Decimal.Parse(capture.Amount.Value);
+                decimal amountValue= decimal.Parse(capture.Amount.Value, CultureInfo.InvariantCulture);
                 return (capture.Id, amountValue, capture.Amount.CurrencyCode);
             }
             catch (Exception ex)

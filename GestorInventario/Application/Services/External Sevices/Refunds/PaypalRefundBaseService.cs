@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Application.DTOS.Paypal.Requests.POST;
 using GestorInventario.Application.DTOS.Paypal.Responses.POST.Refund;
+using GestorInventario.Application.Services.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using Newtonsoft.Json;
@@ -30,12 +31,12 @@ namespace GestorInventario.Application.Services.External_Sevices.Refunds
                 NotaParaElCliente = nota,
                 Amount = new AmountRefundRequest
                 {
-                    Value = amount.ToString("F2", CultureInfo.InvariantCulture),
+                    
+                    Value = CalculadoraFiscal.FormatearPayPal(amount),
                     CurrencyCode = currency
                 }
             };
         }
-
         protected async Task<PaypalRefundResponseDto> ExecuteRefundAsync(
             string captureId,
             PaypalRefundRequest request)

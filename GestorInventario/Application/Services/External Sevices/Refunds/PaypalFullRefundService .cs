@@ -18,16 +18,27 @@ namespace GestorInventario.Application.Services.External_Sevices.Refunds
         }
 
         public async Task<OperationResult<(int pedidoId, string refundId, decimal totalAmount, string orderId)>> 
-        RefundSaleAsync(int pedidoId, string currency)
+            RefundSaleAsync(int pedidoId, string currency)
         {
             var pedido = await _pedidoRepository.GetPedidoWithDetailsAsync(pedidoId);
-            var totalConIva = Math.Round(pedido.Data.totalAmount * 1.21m, 2);
 
-            var request = BuildRefundRequest(totalConIva, currency);
+           
+            var totalReembolso = pedido.Data.total;
+
+            _logger.LogInformation(
+                "Reembolso total pedido {PedidoId} -> Subtotal:{Subtotal} IVA:{Iva} Total:{Total}",
+                pedidoId, pedido.Data.subtotal, pedido.Data.iva, totalReembolso);
+
+            if (!totalReembolso.HasValue)
+            {
+                return OperationResult<(int, string, decimal, string)>.Fail("El total del pedido es nulo.");
+            }
+
+            var request = BuildRefundRequest(totalReembolso.Value, currency);
             var response = await ExecuteRefundAsync(pedido.Data.captureId, request);
 
             return OperationResult<(int, string, decimal, string)>.Ok("",
-                (pedidoId, response.Id, totalConIva, pedido.Data.orderId));
+                (pedidoId, response.Id, totalReembolso.Value, pedido.Data.orderId));
         }
     }
 }

@@ -55,27 +55,24 @@ namespace GestorInventario.Infraestructure.Repositories.PedidoRepository
               .FirstOrDefaultAsync(m => m.Id == id);
         public async Task<Pedido> ObtenerPedidoPorIdAsync(int id) => await _context.Pedidos.FirstOrDefaultAsync(x => x.Id == id);
         public async Task<Pedido> ObtenerPedidoConRembolso(int id) => await _context.Pedidos.Include(p => p.DetallePedidos).Include(x => x.Rembolsos).FirstOrDefaultAsync(m => m.Id == id);
-        public async Task<OperationResult<(string captureId,string orderId,string currency, decimal totalAmount)>> GetPedidoWithDetailsAsync(int pedidoId)
+        public async Task<OperationResult<(string captureId, string orderId, string currency, decimal? subtotal, decimal? iva, decimal? total)>> 
+    GetPedidoWithDetailsAsync(int pedidoId)
         {
+            // ✅ Ya no necesitamos Include de detalles/productos para los totales
             var pedido = await _context.Pedidos
-                .Include(p => p.DetallePedidos)
-                .ThenInclude(d => d.Producto)
                 .FirstOrDefaultAsync(p => p.Id == pedidoId);
-            var detalle = pedido.DetallePedidos.FirstOrDefault();
+
             if (pedido == null || string.IsNullOrEmpty(pedido.CaptureId))
-                return OperationResult<(string,string,string, decimal)>.Fail("Pedido no encontrado o SaleId no disponible.");
+                return OperationResult<(string, string, string, decimal?, decimal?, decimal?)>.Fail(
+                    "Pedido no encontrado o CaptureId no disponible.");
 
             if (string.IsNullOrEmpty(pedido.Currency))
-                return OperationResult<(string,string,string, decimal)>.Fail("El código de moneda no está definido.");
-          
-           
+                return OperationResult<(string, string, string, decimal?, decimal?, decimal?)>.Fail(
+                    "El código de moneda no está definido.");
 
-            decimal totalAmount = pedido.DetallePedidos.Sum(d => d.Producto.Precio * (d.Cantidad ?? 0));
-            string captureId = pedido.CaptureId;
-            string currency = pedido.Currency;
-            string orderId= pedido.OrderId;
-           
-            return OperationResult<(string,string,string,decimal)>.Ok("", (captureId,orderId,currency, totalAmount));
+            // ✅ Usar los totales que persistimos al crear el pedido
+            return OperationResult<(string, string, string, decimal?, decimal?, decimal?)>.Ok("",
+                (pedido.CaptureId, pedido.OrderId, pedido.Currency, pedido.Subtotal, pedido.Iva, pedido.Total));
         }
         public async Task<OperationResult<(int idPedido, string captureId, decimal precioProducto, string orderId, string currency, int detalleId)>> GetProductoDePedidoAsync(int detallePedidoId)
         {

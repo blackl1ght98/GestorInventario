@@ -1,5 +1,4 @@
-﻿using GestorInventario.Application.Classes;
-using GestorInventario.Application.DTOs.Carrito;
+﻿using GestorInventario.Application.DTOs.Carrito;
 using GestorInventario.Application.DTOs.Checkout;
 using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Application.DTOs.Paypal.Responses.GET.Order;
@@ -16,7 +15,6 @@ using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.ViewModels.Paypal;
 using Newtonsoft.Json;
-using System.Globalization;
 
 namespace GestorInventario.Application.Services.Generic_Services
 {
@@ -131,26 +129,7 @@ namespace GestorInventario.Application.Services.Generic_Services
             return OperationResult<CarritoConItemsDto>.Ok("Validacion exitosa", resultado);
         }
 
-        //private async Task ConvertirCarritoAPedido(Pedido carrito)
-        //{
-
-        //    try
-        //    {
-        //        carrito.EsCarrito = false;
-        //        carrito.NumeroPedido = GenerarNumPedido.GenerarNumeroPedido();
-        //        carrito.FechaPedido = DateTime.Now;
-        //        carrito.EstadoPedido = EstadoPedido.En_Proceso.ToString();
-        //        await _unitOfWork.PedidoRepository.ActualizarPedidoAsync(carrito);
-
-        //    }
-        //    catch (Exception ex)
-        //    {
-
-        //        _logger.LogError(ex, "Ocurrio un error inesperado");
-
-        //    }
-
-        //}
+      
         private async Task ConvertirCarritoAPedido(Pedido carrito, CheckoutDto checkout)
         {
             try
@@ -166,7 +145,9 @@ namespace GestorInventario.Application.Services.Generic_Services
                 carrito.Total = checkout.TotalAmount;
                 carrito.Currency = checkout.Currency;
 
-
+                _logger.LogInformation(
+                "Valores checkout -> Subtotal:{Subtotal} Iva:{Iva} Total:{Total}",
+                checkout.Subtotal, checkout.Iva, checkout.TotalAmount);
                 await _unitOfWork.PedidoRepository.ActualizarPedidoAsync(carrito);
             }
             catch (Exception ex)
@@ -176,9 +157,9 @@ namespace GestorInventario.Application.Services.Generic_Services
             }
         }
         private async Task<CheckoutDto> PrepararCheckoutParaPagoPayPal(
-     List<DetallePedido> itemsDelCarrito,
-     string moneda,
-     InfoUsuarioDto infoUsuario)
+         List<DetallePedido> itemsDelCarrito,
+         string moneda,
+         InfoUsuarioDto infoUsuario)
         {
             var items = new List<ItemModelDto>();
             var lineasParaCalculo = new List<(decimal precio, int cantidad)>();

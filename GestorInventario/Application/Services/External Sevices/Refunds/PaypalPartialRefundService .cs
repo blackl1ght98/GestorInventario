@@ -2,6 +2,7 @@
 using GestorInventario.Application.DTOS.Paypal.Requests.POST;
 using GestorInventario.Application.DTOS.Paypal.Responses.Error;
 using GestorInventario.Application.DTOS.Paypal.Responses.POST.Refund;
+using GestorInventario.Application.Services.Common;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
@@ -22,16 +23,28 @@ namespace GestorInventario.Application.Services.External_Sevices.Refunds
         {
             _orderService = orderService;
         }
-        public async Task<OperationResult<(int pedidoId, int detalleId, string refundId, decimal montoRembolsado, string motivo, string estadoVenta, decimal precioProducto)>> RefundPartialAsync(int pedidoId, string currency, string motivo)
+
+        public async Task<OperationResult<(int pedidoId, int detalleId, string refundId, decimal montoRembolsado, string motivo, string estadoVenta, decimal precioProducto)>> 
+            RefundPartialAsync(int pedidoId, string currency, string motivo)
         {
             try
             {
                 var pedido = await _pedidoRepository.GetProductoDePedidoAsync(pedidoId);
+
+                // ✅ Calcular el monto REAL a reembolsar (precio + IVA)
+                var precioSinIva = pedido.Data.precioProducto;
+                var ivaUnitario = CalculadoraFiscal.CalcularIvaUnitario(precioSinIva);
+                var montoSolicitadoConIva = precioSinIva + ivaUnitario;
+
+                _logger.LogInformation(
+                    "Reembolso parcial pedido {PedidoId} -> Precio:{Precio} IVA:{Iva} Total:{Total}",
+                    pedidoId, precioSinIva, ivaUnitario, montoSolicitadoConIva);
+
                 var captureDetails = await _orderService.ObtenerDetallesPagoEjecutadoAsync(pedido.Data.orderId);
                 var (montoReembolso, montoDisponible, estadoVenta) = CalcularMontoDisponibleYEstado(
-                captureDetails, pedido.Data.precioProducto, currency);
+                    captureDetails, montoSolicitadoConIva, currency);
 
-                // 4. Construir request y ejecutar reembolso en PayPal
+                // Construir request y ejecutar reembolso en PayPal
                 var refundRequest = BuildRefundRequest(montoReembolso, pedido.Data.currency);
 
                 var requestJson = JsonConvert.SerializeObject(refundRequest);
@@ -53,15 +66,18 @@ namespace GestorInventario.Application.Services.External_Sevices.Refunds
                 // Manejo de errores específicos 
                 if (!responseBody.StartsWith("{") || responseBody.Contains("error"))
                 {
-                    var errorDetails = JsonConvert.DeserializeObject<PaypalErrorResponse>(responseBody);
+                    var errorDetails = JsonConvert.DeserializeObject <PaypalErrorResponse > (responseBody);
                     string errorMessage = $"Error al procesar el reembolso: {errorDetails?.Message ?? "Error desconocido"}";
 
                     if (errorDetails?.Details?.Any(d => d.Issue == "REFUND_AMOUNT_EXCEEDED") == true)
                     {
-                        errorMessage = $"El monto ({pedido.Data.Item2} {currency}) excede disponible ({montoDisponible} {currency}).";
+                        //Corregido: usar el monto con IVA en el mensaje
+                        errorMessage = $"El monto ({montoSolicitadoConIva} {currency}) excede disponible ({montoDisponible} {currency}).";
 
+                        // Comparar con el monto correcto formateado 
+                        var montoFormateado = CalculadoraFiscal.FormatearPayPal(montoSolicitadoConIva);
                         var recentRefund = updatedCapture?.PurchaseUnits[0].Payments.Refunds?
-                            .FirstOrDefault(r => r.Amount.Value == pedido.Data.precioProducto.ToString("F2", CultureInfo.InvariantCulture));
+                            .FirstOrDefault(r => r.Amount.Value == montoFormateado);
 
                         if (recentRefund != null)
                         {
@@ -82,22 +98,19 @@ namespace GestorInventario.Application.Services.External_Sevices.Refunds
 
                 _logger.LogInformation("Reembolso parcial exitoso: {ResponseBody}", responseBody);
 
-                var refundResponse = JsonConvert.DeserializeObject<PaypalRefundResponseDto>(responseBody)
+                var refundResponse = JsonConvert.DeserializeObject <PaypalRefundResponseDto > (responseBody)
                     ?? throw new InvalidOperationException("No se pudo deserializar respuesta de reembolso");
 
                 string refundId = refundResponse.Id;
 
-
-
-
-                return OperationResult<(int, int, string, decimal, string, string, decimal)>.Ok("", (pedido.Data.idPedido,
-                    pedido.Data.detalleId,
-                    refundId,
-                    montoReembolso,
-                    motivo,
-                    estadoVenta,
-                    pedido.Data.precioProducto
-                   ));
+                return OperationResult<(int, int, string, decimal, string, string, decimal)>.Ok("",
+                    (pedido.Data.idPedido,
+                     pedido.Data.detalleId,
+                     refundId,
+                     montoReembolso,
+                     motivo,
+                     estadoVenta,
+                     pedido.Data.precioProducto));
             }
             catch (ArgumentException ex)
             {
@@ -110,11 +123,12 @@ namespace GestorInventario.Application.Services.External_Sevices.Refunds
                 throw new InvalidOperationException("No se pudo realizar el reembolso parcial. Intenta de nuevo o contacta soporte.", ex);
             }
         }
+
         private (decimal montoReembolso, decimal montoDisponible, string estadoVenta)
-         CalcularMontoDisponibleYEstado(
-         OrderDetailsResponse captureDetails,
-         decimal montoSolicitado,
-         string currency)
+            CalcularMontoDisponibleYEstado(
+                OrderDetailsResponse captureDetails,
+                decimal montoSolicitado,
+                string currency)
         {
             var firstUnit = captureDetails.PurchaseUnits?.FirstOrDefault()
                 ?? throw new InvalidOperationException("La orden no contiene unidades de compra.");
@@ -180,7 +194,5 @@ namespace GestorInventario.Application.Services.External_Sevices.Refunds
 
             return result;
         }
-        
-
     }
 }

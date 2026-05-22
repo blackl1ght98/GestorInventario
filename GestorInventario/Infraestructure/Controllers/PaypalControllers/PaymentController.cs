@@ -43,6 +43,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                 //total-> lo que has pagado
                 //currency-> la moneda
                 var (captureId, total, currency) = await _paypalOrderService.CapturarPagoAsync(orderId);
+                
 
                 var usuarioActual = _currentUserAccessor.GetCurrentUserId();
  
