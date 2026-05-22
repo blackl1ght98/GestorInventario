@@ -3,6 +3,7 @@ using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.ViewModels.Paypal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 
 namespace GestorInventario.Infraestructure.Controllers.PedidosControllers
 {
@@ -31,13 +32,19 @@ namespace GestorInventario.Infraestructure.Controllers.PedidosControllers
             }
 
             var paypalDetail = result.Data;
-            var ultimoCapture = paypalDetail.PayPalPaymentCaptures
+
+            var ultimoCapture = paypalDetail.PayPalPaymentCaptures?
                 .OrderByDescending(c => c.Id)
                 .FirstOrDefault();
-            var ultimaInfoEnvio = paypalDetail.PayPalPaymentShippings.OrderByDescending(c => c.Id).FirstOrDefault();
+
+            // ✅ Proteger contra null
+            var ultimaInfoEnvio = paypalDetail.PayPalPaymentShippings
+                .OrderByDescending(c => c.Id)
+                .FirstOrDefault();
+
             var viewModel = new PayPalPaymentDetailViewModel
             {
-                //Datos del pagador
+                // Datos del pagador
                 Id = paypalDetail.Id,
                 Intent = paypalDetail.Intent,
                 Status = paypalDetail.OrderStatus,
@@ -48,23 +55,27 @@ namespace GestorInventario.Infraestructure.Controllers.PedidosControllers
                 PayerFirstName = paypalDetail.PayerFirstName,
                 PayerLastName = paypalDetail.PayerLastName,
                 PayerId = paypalDetail.PayerId,
-                //Datos de envio
-                ShippingRecipientName = ultimaInfoEnvio.RecipientName,
-                ShippingLine1 = ultimaInfoEnvio.AddressLine1,
-                ShippingCity = ultimaInfoEnvio.City,
-                ShippingState = ultimaInfoEnvio.State,
-                ShippingPostalCode = ultimaInfoEnvio.PostalCode,
-                ShippingCountryCode = ultimaInfoEnvio.CountryCode,
-                //Importe 
+
+                // ✅ Datos de envío con protección null
+                ShippingRecipientName = ultimaInfoEnvio?.RecipientName,
+                ShippingLine1 = ultimaInfoEnvio?.AddressLine1,
+                ShippingCity = ultimaInfoEnvio?.City,
+                ShippingState = ultimaInfoEnvio?.State,
+                ShippingPostalCode = ultimaInfoEnvio?.PostalCode,
+                ShippingCountryCode = ultimaInfoEnvio?.CountryCode,
+
+                // Importe 
                 AmountTotal = paypalDetail.AmountTotal,
                 AmountCurrency = paypalDetail.AmountCurrency,
                 AmountItemTotal = paypalDetail.AmountItemTotal,
                 AmountShipping = paypalDetail.AmountShipping,
-                //Datos vendedor
+
+                // Datos vendedor
                 PayeeMerchantId = paypalDetail.PayeeMerchantId,
                 PayeeEmail = paypalDetail.PayeeEmail,
                 Description = paypalDetail.Description,
-                //Datos del pago
+
+                // ✅ Datos del pago con protección null
                 SaleId = ultimoCapture?.CaptureId,
                 CaptureStatus = ultimoCapture?.Status,
                 CaptureAmount = ultimoCapture?.Amount,
@@ -89,10 +100,9 @@ namespace GestorInventario.Infraestructure.Controllers.PedidosControllers
                     ItemCurrency = item.ItemCurrency,
                     ItemTax = item.ItemTax,
                     ItemQuantity = item.ItemQuantity
-                }).ToList() ?? new List<PayPalPaymentItemViewModel>()
+                }).ToList() ?? new List< PayPalPaymentItemViewModel > ()
             };
 
             return View(viewModel);
-        }
+        } }
     }
-}

@@ -11,6 +11,7 @@ namespace GestorInventario.Interfaces.Infraestructure.Repositories
         //Consultas
         Task<Pedido> BuscarPedidoCorrupto(int userId);
         Task<PayPalPaymentDetail> ObtenerDetallesPago(string id);
+        Task<PayPalPaymentCapture?> ObtenerCapturePorCaptureIdAsync(string captureId);
         Task<PayPalPaymentDetail> ObtenerDetallesPagoPorIDAsync(string pagoId);
         //Operaciones
         Task<OperationResult<PayPalPaymentDetail>> AgregarDetallePagoAsync(PayPalPaymentDetail detalle);
@@ -18,6 +19,8 @@ namespace GestorInventario.Interfaces.Infraestructure.Repositories
         Task<OperationResult<string>> EliminarDetallesPagoAsync(PayPalPaymentDetail pago);
         Task<OperationResult<PayPalPaymentShipping>> AgregarInfoEnvioAsync(PayPalPaymentShipping detalle);
         Task<OperationResult<PayPalPaymentCapture>> AgregarCaptureAsync(PayPalPaymentCapture detalle);
-       
+      
+        Task<OperationResult<PayPalPaymentCapture>> EliminarCapturesAsync(PayPalPaymentCapture detalle);
+
     }
 }

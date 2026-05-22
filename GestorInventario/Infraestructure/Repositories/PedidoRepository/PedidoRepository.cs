@@ -34,7 +34,7 @@ namespace GestorInventario.Infraestructure.Repositories.PedidoRepository
                 .Where(p => p.IdUsuario == usuarioId &&
                             p.EstadoPedido == EstadoPedido.En_Proceso.ToString())
                 .OrderByDescending(p => p.FechaPedido)
-
+                
                 .FirstOrDefaultAsync();
         }
        

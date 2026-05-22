@@ -77,204 +77,137 @@ namespace GestorInventario.Application.Services.Generic_Services
         }
         public async Task<OperationResult<PayPalPaymentDetail>> SincronizarDetallePagoAsync(string id)
         {
-
-            // Buscar el detalle de pago existente en la base de datos
-            var existingDetail = await _payment.ObtenerDetallesPago(id);
-
-            // Obtener los detalles actualizados desde la API de PayPal
             var detalles = await _paypalOrder.ObtenerDetallesPagoEjecutadoAsync(id);
             if (detalles == null)
-            {
                 return OperationResult<PayPalPaymentDetail>.Fail("Detalles del pedido no encontrados para generar la factura");
-            }
 
-            // Si el detalle no existe, crear uno nuevo; si existe, actualizarlo
+            var existingDetail = await _payment.ObtenerDetallesPago(id);
             PayPalPaymentDetail detallesPago;
+
             if (existingDetail == null)
             {
-                detallesPago = new PayPalPaymentDetail
-                {
-                    Id = detalles.Id
-                };
+                // Crear nuevo registro
+                detallesPago = new PayPalPaymentDetail { Id = detalles.Id };
                 await _payment.AgregarDetallePagoAsync(detallesPago);
+                _logger.LogInformation("Detalle de pago {Id} creado en BD", id);
             }
             else
             {
+                // Limpiar datos relacionados para reinsertar frescos
+                await _payment.EliminarDetallesPagoAsync(existingDetail);
+              
                 detallesPago = existingDetail;
-                // Opcional: Limpiar los ítems existentes si se desea actualizarlos completamente
-                await _payment.EliminarDetallesPagoAsync(detallesPago);
+                _logger.LogInformation("Detalle de pago {Id} actualizado en BD", id);
             }
 
-            // Actualizar los campos del objeto PayPalPaymentDetail con los datos de la API
+            // Actualizar campos principales
             detallesPago.Intent = detalles.Intent;
             detallesPago.OrderStatus = detalles.Status;
             detallesPago.PayerEmail = detalles.Payer?.Email;
             detallesPago.PayerFirstName = detalles.Payer?.Name?.GivenName;
             detallesPago.PayerLastName = detalles.Payer?.Name?.Surname;
             detallesPago.PayerId = detalles.Payer?.PayerId;
-            var informacionEnvio = new PayPalPaymentShipping
-            {
-                PaymentId=detalles.Id,
-                RecipientName= detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Name?.FullName,
-                AddressLine1= detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.AddressLine1,
-                City= detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.AdminArea2,
-                State= detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.AdminArea1,
-                PostalCode= detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.PostalCode,
-                CountryCode= detalles.PurchaseUnits?.FirstOrDefault()?.Shipping?.Address?.CountryCode
-            };
-            await _payment.AgregarInfoEnvioAsync(informacionEnvio);
 
-            if (detalles.PurchaseUnits != null)
+            // Información de envío
+            var firstUnit = detalles.PurchaseUnits?.FirstOrDefault();
+            if (firstUnit != null)
             {
-                foreach (var purchaseUnit in detalles.PurchaseUnits)
+                var informacionEnvio = new PayPalPaymentShipping
                 {
-                    if (purchaseUnit != null)
+                    PaymentId = detalles.Id,
+                    RecipientName = firstUnit.Shipping?.Name?.FullName,
+                    AddressLine1 = firstUnit.Shipping?.Address?.AddressLine1,
+                    City = firstUnit.Shipping?.Address?.AdminArea2,
+                    State = firstUnit.Shipping?.Address?.AdminArea1,
+                    PostalCode = firstUnit.Shipping?.Address?.PostalCode,
+                    CountryCode = firstUnit.Shipping?.Address?.CountryCode
+                };
+                await _payment.AgregarInfoEnvioAsync(informacionEnvio);
+
+                // Montos
+                detallesPago.AmountTotal = _conversion.ConvertToDecimal(firstUnit.Amount?.Value);
+                detallesPago.AmountCurrency = firstUnit.Amount?.CurrencyCode;
+                detallesPago.AmountItemTotal = _conversion.ConvertToDecimal(firstUnit.Amount?.Breakdown?.ItemTotal?.Value);
+
+                // Calcular subtotal si es necesario
+                if (detallesPago.AmountItemTotal == 0 && firstUnit.Items != null)
+                {
+                    detallesPago.AmountItemTotal = firstUnit.Items.Sum(item =>
+                        _conversion.ConvertToDecimal(item.UnitAmount?.Value.ToString()) *
+                        _conversion.ConvertToInt(item.Quantity?.ToString()));
+                }
+
+                detallesPago.AmountShipping = _conversion.ConvertToDecimal(firstUnit.Amount?.Breakdown?.Shipping?.Value);
+                detallesPago.PayeeMerchantId = firstUnit.Payee?.MerchantId;
+                detallesPago.PayeeEmail = firstUnit.Payee?.EmailAddress;
+                detallesPago.Description = firstUnit.Description;
+
+                // Tracking
+                var firstTracker = firstUnit.Shipping?.Trackers?.FirstOrDefault();
+                if (firstTracker != null)
+                {
+                    detallesPago.TrackingId = firstTracker.Id;
+                    detallesPago.TrackingStatus = firstTracker.Status;
+                }
+
+                // Captures
+                if (firstUnit.Payments?.Captures != null)
+                {
+                    foreach (var capture in firstUnit.Payments.Captures.Where(c => c != null))
                     {
-                        detallesPago.AmountTotal = _conversion.ConvertToDecimal(purchaseUnit.Amount?.Value);
-                        detallesPago.AmountCurrency = purchaseUnit.Amount?.CurrencyCode;
-                        detallesPago.AmountItemTotal = _conversion.ConvertToDecimal(purchaseUnit.Amount?.Breakdown?.ItemTotal?.Value);
-
-                        // Calcular subtotal si es necesario
-                        if (detallesPago.AmountItemTotal == 0 && purchaseUnit.Items != null)
+                        var paypalCapture = new PayPalPaymentCapture
                         {
-                            decimal? subtotal = 0;
-                            foreach (var item in purchaseUnit.Items)
-                            {
+                            PaymentId = detallesPago.Id,
+                            CaptureId = capture.Id,
+                            Status = capture.Status,
+                           
+                            Amount = _conversion.ConvertToDecimal(capture.Amount?.Value),
+                            Currency = capture.Amount?.CurrencyCode,
+                            ProtectionEligibility = capture.SellerProtection?.Status,
+                            TransactionFeeAmount = _conversion.ConvertToDecimal(capture.SellerReceivableBreakdown?.PaypalFee?.Value),
+                            TransactionFeeCurrency = capture.SellerReceivableBreakdown?.PaypalFee?.CurrencyCode,
+                            ReceivableAmount = _conversion.ConvertToDecimal(capture.SellerReceivableBreakdown?.NetAmount?.Value),
+                            ReceivableCurrency = capture.SellerReceivableBreakdown?.NetAmount?.CurrencyCode,
+                            FinalCapture = capture.FinalCapture,
+                            CreateTime = _conversion.ConvertToDateTime(capture.CreateTime),
+                            UpdateTime = _conversion.ConvertToDateTime(capture.UpdateTime),
+                           
+                        };
 
-                                var unitAmount = _conversion.ConvertToDecimal(item.UnitAmount?.Value.ToString());
-                                var quantity = _conversion.ConvertToInt(item.Quantity?.ToString());
-                                subtotal += unitAmount * quantity;
-                            }
-                            detallesPago.AmountItemTotal = subtotal;
-                        }
+                        if (decimal.TryParse(capture.SellerReceivableBreakdown?.ExchangeRate?.Value,
+                            NumberStyles.Any, CultureInfo.InvariantCulture, out decimal exchangeRate))
+                            paypalCapture.ExchangeRate = exchangeRate;
 
-                        detallesPago.AmountShipping = _conversion.ConvertToDecimal(purchaseUnit.Amount?.Breakdown?.Shipping?.Value);
-                        detallesPago.PayeeMerchantId = purchaseUnit.Payee?.MerchantId;
-                        detallesPago.PayeeEmail = purchaseUnit.Payee?.EmailAddress;
-                        detallesPago.Description = purchaseUnit.Description;
+                        if (capture.SellerProtection?.DisputeCategories != null)
+                            paypalCapture.DisputeCategories = JsonConvert.SerializeObject(capture.SellerProtection.DisputeCategories);
 
-                        if (purchaseUnit.Payments?.Captures != null)
+                        await _payment.AgregarCaptureAsync(paypalCapture);
+                    }
+                }
+
+                // Items
+                if (firstUnit.Items != null)
+                {
+                    foreach (var item in firstUnit.Items)
+                    {
+                        var paymentItem = new PayPalPaymentItem
                         {
-                            foreach (var capture in purchaseUnit.Payments.Captures)
-                            {
-                                if (capture != null)
-                                {
-                                    var paypalCapture = new PayPalPaymentCapture
-                                    {
-                                        PaymentId = detallesPago.Id,
-                                        CaptureId = capture.Id,
-                                        Status = capture.Status,
-
-                                        Amount = _conversion.ConvertToDecimal(capture.Amount?.Value),
-                                        Currency = capture.Amount?.CurrencyCode,
-
-                                        ProtectionEligibility = capture.SellerProtection?.Status,
-
-                                        TransactionFeeAmount =
-                                            _conversion.ConvertToDecimal(
-                                                capture.SellerReceivableBreakdown?.PaypalFee?.Value),
-
-                                        TransactionFeeCurrency =
-                                            capture.SellerReceivableBreakdown?.PaypalFee?.CurrencyCode,
-
-                                        ReceivableAmount =
-                                            _conversion.ConvertToDecimal(
-                                                capture.SellerReceivableBreakdown?.NetAmount?.Value),
-
-                                        ReceivableCurrency =
-                                            capture.SellerReceivableBreakdown?.NetAmount?.CurrencyCode,
-
-                                        FinalCapture = capture.FinalCapture,
-
-                                        CreateTime =
-                                            _conversion.ConvertToDateTime(capture.CreateTime),
-
-                                        UpdateTime =
-                                            _conversion.ConvertToDateTime(capture.UpdateTime)
-                                    };
-
-                                    var exchangeRateValue =
-                                        capture.SellerReceivableBreakdown?.ExchangeRate?.Value;
-
-                                    if (decimal.TryParse(exchangeRateValue,
-                                        NumberStyles.Any,
-                                        CultureInfo.InvariantCulture,
-                                        out decimal exchangeRate))
-                                    {
-                                        paypalCapture.ExchangeRate = exchangeRate;
-                                    }
-
-                                    if (capture.SellerProtection?.DisputeCategories != null)
-                                    {
-                                        paypalCapture.DisputeCategories =
-                                            JsonConvert.SerializeObject(
-                                                capture.SellerProtection.DisputeCategories);
-                                    }
-
-                                    await _payment.AgregarCaptureAsync(paypalCapture);
-                                }
-                            }
-                            var firstPurchaseUnit = detalles.PurchaseUnits?.FirstOrDefault();
-                            if (firstPurchaseUnit != null)
-                            {
-                                // Campos de tracking
-                                var firstTracker = firstPurchaseUnit.Shipping?.Trackers?.FirstOrDefault();
-                                if (firstTracker != null)
-                                {
-                                    detallesPago.TrackingId = firstTracker.Id;
-                                    detallesPago.TrackingStatus = firstTracker.Status;
-
-
-
-                                }
-
-                                // Campos de captura
-                                var firstCapture = firstPurchaseUnit.Payments?.Captures?.FirstOrDefault();
-                                var primeraCaptura = detallesPago.PayPalPaymentCaptures.FirstOrDefault();
-
-                                if (primeraCaptura != null)
-                                {
-                                    primeraCaptura.FinalCapture = firstCapture.FinalCapture;
-
-                                    if (firstCapture.SellerProtection != null)
-                                    {
-                                        primeraCaptura.DisputeCategories =
-                                            JsonConvert.SerializeObject(
-                                                firstCapture.SellerProtection.DisputeCategories);
-                                    }
-                                }
-                            }
-
-                        }
-
-                        var items = purchaseUnit.Items;
-                        if (items != null)
-                        {
-                            foreach (var item in items)
-                            {
-                                var paymentItem = new PayPalPaymentItem
-                                {
-                                    PayPalId = detallesPago.Id,
-                                    ItemName = item.Name,
-                                    ItemSku = item.Sku,
-                                    ItemPrice = _conversion.ConvertToDecimal(item.UnitAmount?.Value),
-                                    ItemCurrency = item.UnitAmount?.CurrencyCode,
-                                    ItemTax = _conversion.ConvertToDecimal(item.Tax?.Value),
-                                    ItemQuantity = _conversion.ConvertToInt(item.Quantity)
-                                };
-                                await _payment.AgregarPagoItemAsync(paymentItem);
-                            }
-                        }
+                            PayPalId = detallesPago.Id,
+                            ItemName = item.Name,
+                            ItemSku = item.Sku,
+                            ItemPrice = _conversion.ConvertToDecimal(item.UnitAmount?.Value),
+                            ItemCurrency = item.UnitAmount?.CurrencyCode,
+                            ItemTax = _conversion.ConvertToDecimal(item.Tax?.Value),
+                            ItemQuantity = _conversion.ConvertToInt(item.Quantity)
+                        };
+                        await _payment.AgregarPagoItemAsync(paymentItem);
                     }
                 }
             }
 
-
             return OperationResult<PayPalPaymentDetail>.Ok("", detallesPago);
-
-
         }
- 
+
 
         public async Task<OperationResult<Pedido>> ConfirmarPagoDelPedidoAsync(int usuarioActual, string captureId, decimal total, string? currency, string orderId)
         {
