@@ -276,7 +276,7 @@ namespace GestorInventario.Application.Services.Generic_Services
         }
  
 
-        public async Task<OperationResult<Pedido>> ConfirmarPagoDelPedidoAsync(int usuarioActual, string? captureId, decimal? total, string? currency, string? orderId)
+        public async Task<OperationResult<Pedido>> ConfirmarPagoDelPedidoAsync(int usuarioActual, string captureId, decimal total, string? currency, string orderId)
         {
            
                 // Validar parámetros de entrada
@@ -294,6 +294,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                     _logger.LogWarning("No se encontró un pedido en proceso para el usuario {UsuarioId}", usuarioActual);
                     return OperationResult<Pedido>.Fail("Pedido no encontrado para el usuario especificado");
                 }
+
                 pedido.CaptureId = captureId;
                 pedido.Total = total;
                 pedido.Currency = currency;

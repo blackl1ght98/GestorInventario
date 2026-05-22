@@ -89,7 +89,7 @@ namespace GestorInventario.Application.Services
                         if (regularCycle != null)
                         {
                             existingPlan.RegularIntervalUnit = regularCycle.Frequency?.IntervalUnit;
-                            existingPlan.RegularIntervalCount = regularCycle.Frequency?.IntervalCount;
+                            existingPlan.RegularIntervalCount = regularCycle.Frequency.IntervalCount;
                             existingPlan.RegularTotalCycles = regularCycle.TotalCycles;
                             if (regularCycle.PricingScheme?.FixedPrice?.Value != null)
                                 existingPlan.RegularFixedPrice = decimal.Parse(regularCycle.PricingScheme.FixedPrice.Value, CultureInfo.InvariantCulture);
@@ -131,7 +131,7 @@ namespace GestorInventario.Application.Services
                     if (regularCycle != null)
                     {
                         nuevoPlan.RegularIntervalUnit = regularCycle.Frequency?.IntervalUnit;
-                        nuevoPlan.RegularIntervalCount = regularCycle.Frequency?.IntervalCount;
+                        nuevoPlan.RegularIntervalCount = regularCycle.Frequency.IntervalCount;
                         nuevoPlan.RegularTotalCycles = regularCycle.TotalCycles;
                         if (regularCycle.PricingScheme?.FixedPrice?.Value != null)
                             nuevoPlan.RegularFixedPrice = decimal.Parse(regularCycle.PricingScheme.FixedPrice.Value, CultureInfo.InvariantCulture);

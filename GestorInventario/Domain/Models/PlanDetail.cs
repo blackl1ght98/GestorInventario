@@ -9,13 +9,13 @@ public partial class PlanDetail
 
     public string PaypalPlanId { get; set; } = null!;
 
-    public string? ProductId { get; set; }
+    public string ProductId { get; set; } = null!;
 
-    public string? Name { get; set; }
+    public string Name { get; set; } = null!;
 
-    public string? Description { get; set; }
+    public string Description { get; set; } = null!;
 
-    public string? Status { get; set; }
+    public string Status { get; set; } = null!;
 
     public string? TrialIntervalUnit { get; set; }
 
@@ -25,13 +25,13 @@ public partial class PlanDetail
 
     public decimal? TrialFixedPrice { get; set; }
 
-    public string? RegularIntervalUnit { get; set; }
+    public string RegularIntervalUnit { get; set; } = null!;
 
-    public int? RegularIntervalCount { get; set; }
+    public int RegularIntervalCount { get; set; }
 
-    public int? RegularTotalCycles { get; set; }
+    public int RegularTotalCycles { get; set; }
 
-    public decimal? RegularFixedPrice { get; set; }
+    public decimal RegularFixedPrice { get; set; }
 
     public bool? AutoBillOutstanding { get; set; }
 
@@ -45,7 +45,7 @@ public partial class PlanDetail
 
     public bool? TaxInclusive { get; set; }
 
-    public string? CurrencyCode { get; set; }
+    public string CurrencyCode { get; set; } = null!;
 
     public virtual ICollection<SubscriptionDetail> SubscriptionDetails { get; set; } = new List<SubscriptionDetail>();
 }

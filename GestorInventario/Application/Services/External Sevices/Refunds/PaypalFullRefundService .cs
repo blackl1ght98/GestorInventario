@@ -29,16 +29,16 @@ namespace GestorInventario.Application.Services.External_Sevices.Refunds
                 "Reembolso total pedido {PedidoId} -> Subtotal:{Subtotal} IVA:{Iva} Total:{Total}",
                 pedidoId, pedido.Data.subtotal, pedido.Data.iva, totalReembolso);
 
-            if (!totalReembolso.HasValue)
+            if (totalReembolso < 0)
             {
-                return OperationResult<(int, string, decimal, string)>.Fail("El total del pedido es nulo.");
+                return OperationResult<(int, string, decimal, string)>.Fail("El total del pedido no puede ser negativo.");
             }
 
-            var request = BuildRefundRequest(totalReembolso.Value, currency);
+            var request = BuildRefundRequest(totalReembolso, currency);
             var response = await ExecuteRefundAsync(pedido.Data.captureId, request);
 
             return OperationResult<(int, string, decimal, string)>.Ok("",
-                (pedidoId, response.Id, totalReembolso.Value, pedido.Data.orderId));
+                (pedidoId, response.Id, totalReembolso, pedido.Data.orderId));
         }
     }
 }

@@ -43,7 +43,7 @@ namespace GestorInventario.Application.Services.Notifications
                         ItemName = detalle.Producto?.NombreProducto ?? "N/A",
                         ItemQuantity = detalle.Cantidad ?? 0,
                         ItemPrice = detalle.Producto?.Precio ?? 0,
-                        ItemCurrency = pedido.Currency ?? "USD",
+                        ItemCurrency = pedido.Currency,
                         ItemSku = detalle.Producto?.Descripcion ?? "N/A"
                     })
                     .ToList() ?? new List<PayPalPaymentItem>();

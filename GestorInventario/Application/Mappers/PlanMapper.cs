@@ -37,25 +37,25 @@ namespace GestorInventario.Application.Mappers
             }
 
             // Ciclo regular (siempre debería existir a menos que la api de paypal cambie)
-            if (detail.RegularFixedPrice.HasValue && detail.RegularIntervalUnit != null)
+            if (detail.RegularFixedPrice > 0 && detail.RegularIntervalUnit != null)
             {
                 billingCycles.Add(new BillingCycle
                 {
                     TenureType = "REGULAR",
-                    TotalCycles = detail.RegularTotalCycles ?? 0,
+                    TotalCycles = detail.RegularTotalCycles,
                     Sequence = detail.TrialFixedPrice.HasValue ? 2 : 1,
                     PricingScheme = new PricingScheme
                     {
                         FixedPrice = new Money
                         {
-                            Value = detail.RegularFixedPrice.Value.ToString("F2", CultureInfo.InvariantCulture),
+                            Value = detail.RegularFixedPrice.ToString("F2", CultureInfo.InvariantCulture),
                             CurrencyCode = detail.CurrencyCode ?? "EUR"
                         }
                     },
                     Frequency = new Frequency
                     {
                         IntervalUnit = detail.RegularIntervalUnit,
-                        IntervalCount = detail.RegularIntervalCount ?? 1
+                        IntervalCount = detail.RegularIntervalCount 
                     }
                 });
             }

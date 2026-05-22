@@ -129,9 +129,19 @@ namespace GestorInventario.Application.Services.Generic_Services
             return OperationResult<CarritoConItemsDto>.Ok("Validacion exitosa", resultado);
         }
 
-      
+
         private async Task ConvertirCarritoAPedido(Pedido carrito, CheckoutDto checkout)
         {
+            if (checkout == null)
+                throw new ArgumentNullException(nameof(checkout));
+
+            if (checkout.TotalAmount <= 0)
+                throw new InvalidOperationException(
+                    $"No se puede crear un pedido con total 0. Subtotal:{checkout.Subtotal}, Iva:{checkout.Iva}");
+
+            if (string.IsNullOrWhiteSpace(checkout.Currency))
+                throw new InvalidOperationException("La moneda es obligatoria para crear el pedido.");
+
             try
             {
                 carrito.EsCarrito = false;
@@ -139,21 +149,21 @@ namespace GestorInventario.Application.Services.Generic_Services
                 carrito.FechaPedido = DateTime.Now;
                 carrito.EstadoPedido = EstadoPedido.En_Proceso.ToString();
 
-                // ✅ PERSISTIR totales calculados previamente
                 carrito.Subtotal = checkout.Subtotal;
                 carrito.Iva = checkout.Iva;
                 carrito.Total = checkout.TotalAmount;
                 carrito.Currency = checkout.Currency;
 
                 _logger.LogInformation(
-                "Valores checkout -> Subtotal:{Subtotal} Iva:{Iva} Total:{Total}",
-                checkout.Subtotal, checkout.Iva, checkout.TotalAmount);
+                    "Persistiendo pedido {PedidoId} -> Subtotal:{Subtotal} Iva:{Iva} Total:{Total} {Currency}",
+                    carrito.Id, checkout.Subtotal, checkout.Iva, checkout.TotalAmount, checkout.Currency);
+
                 await _unitOfWork.PedidoRepository.ActualizarPedidoAsync(carrito);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al convertir carrito a pedido ID {PedidoId}", carrito.Id);
-                throw; // Propagar para que falle la transacción completa
+                throw;
             }
         }
         private async Task<CheckoutDto> PrepararCheckoutParaPagoPayPal(

@@ -13,15 +13,15 @@ public partial class Pedido
 
     public string EstadoPedido { get; set; } = null!;
 
-    public int? IdUsuario { get; set; }
+    public int IdUsuario { get; set; }
 
     public string? CaptureId { get; set; }
 
-    public decimal? Subtotal { get; set; }
+    public decimal Subtotal { get; set; }
 
-    public decimal? Iva { get; set; }
+    public decimal Iva { get; set; }
 
-    public decimal? Total { get; set; }
+    public decimal Total { get; set; }
 
     public string? Currency { get; set; }
 
@@ -39,7 +39,7 @@ public partial class Pedido
 
     public virtual ICollection<DetallePedido> DetallePedidos { get; set; } = new List<DetallePedido>();
 
-    public virtual Usuario? IdUsuarioNavigation { get; set; }
+    public virtual Usuario IdUsuarioNavigation { get; set; } = null!;
 
     public virtual ICollection<Rembolso> Rembolsos { get; set; } = new List<Rembolso>();
 }

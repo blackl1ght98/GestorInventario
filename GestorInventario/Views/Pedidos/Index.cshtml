@@ -125,10 +125,15 @@
                                            class="btn btn-outline-danger">
                                             Eliminar Pedido
                                         </a>
-                                        <a asp-action="DetallesPagoEjecutado" asp-controller="Pagos" asp-route-id="@pedido.OrderId"
-                                           class="btn btn-outline-info">
-                                            Detalles del Pago
-                                        </a>
+
+                                      
+                                                <a asp-action="DetallesPagoEjecutado" asp-controller="Pagos"
+                                                   asp-route-id="@pedido.OrderId"
+                                                   class="btn btn-outline-info">
+                                                    Detalles del Pago
+                                                </a>
+                                          
+                                        
                                     </div>
                                 }
                             </div>
