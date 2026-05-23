@@ -15,8 +15,6 @@ public partial class Pedido
 
     public int IdUsuario { get; set; }
 
-    public string? CaptureId { get; set; }
-
     public decimal Subtotal { get; set; }
 
     public decimal Iva { get; set; }
@@ -24,8 +22,6 @@ public partial class Pedido
     public decimal Total { get; set; }
 
     public string? Currency { get; set; }
-
-    public string? OrderId { get; set; }
 
     public bool EsCarrito { get; set; }
 

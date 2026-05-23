@@ -111,16 +111,18 @@ namespace GestorInventario.Infraestructure.Repositories.PedidoRepository
             }
         }
 
-        public async Task<OperationResult<(Pedido, List<DetallePedido>)>> GetPedidoConDetallesAsync(int pedidoId)
+        public async Task<OperationResult<(Pedido pedido, List<DetallePedido> detalles)>> GetPedidoConDetallesAsync(int pedidoId)
         {
             try
             {
                 var pedido = await _context.Pedidos
                     .Include(p => p.DetallePedidos)
+                    
                     .ThenInclude(d => d.Producto)
+                    .Include(p => p.PayPalPaymentCaptures)
                     .FirstOrDefaultAsync(p => p.Id == pedidoId);
 
-                if (pedido == null || string.IsNullOrEmpty(pedido.CaptureId))
+                if (pedido == null)
                 {
                     _logger.LogWarning("Pedido {PedidoId} no encontrado o sin SaleId", pedidoId);
                     return OperationResult<(Pedido, List<DetallePedido>)>.Fail("Pedido no encontrado o SaleId no disponible.");

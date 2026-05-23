@@ -28,8 +28,8 @@ namespace GestorInventario.Infraestructure.Repositories.PaymentRepository
                 .Include(d => d.PayPalPaymentCaptures)
                 .Include(d => d.PayPalPaymentShippings)
                 .FirstOrDefaultAsync(d => d.Id == pagoId);
-        public async Task<Pedido> BuscarPedidoCorrupto(int userId) => await _context.Pedidos.Include(x => x.DetallePedidos).Where(p => p.IdUsuario == userId && p.EstadoPedido == EstadoPedido.En_Proceso.ToString() &&
-          string.IsNullOrEmpty(p.CaptureId)).FirstOrDefaultAsync();
+        public async Task<Pedido> BuscarPedidoCorrupto(int userId) => await _context.Pedidos.Include(x => x.DetallePedidos).Where(p => p.IdUsuario == userId && p.EstadoPedido == EstadoPedido.En_Proceso.ToString() 
+         ).FirstOrDefaultAsync();
         public async Task<PayPalPaymentDetail> ObtenerDetallesPago(string id) => await _context.PayPalPaymentDetails.Include(d => d.PayPalPaymentItems).Include(x => x.PayPalPaymentShippings).Include(x => x.PayPalPaymentCaptures).FirstOrDefaultAsync(x => x.Id == id);
         public async Task<PayPalPaymentCapture?> ObtenerCapturePorCaptureIdAsync(string captureId)
         {

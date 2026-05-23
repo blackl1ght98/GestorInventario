@@ -17,7 +17,7 @@ namespace GestorInventario.Interfaces.Infraestructure.Repositories
         //Excepciones en consultas uso de OperationResult por complejidad
         Task<OperationResult<( string captureId, string currency, decimal subtotal, decimal iva, decimal total)>> GetPedidoWithDetailsAsync(int pedidoId);
         Task<OperationResult<(int idPedido, string captureId, decimal precioProducto, string paymentId, string currency, int detalleId)>> GetProductoDePedidoAsync(int detallePedidoId);
-        Task<OperationResult<(Pedido, List<DetallePedido>)>> GetPedidoConDetallesAsync(int pedidoId);
+        Task<OperationResult<(Pedido pedido, List<DetallePedido> detalles)>> GetPedidoConDetallesAsync(int pedidoId);
         Task<DetallePedido> ObtenerDetallePorIdAsync(int id);
         //Operaciones
         Task<OperationResult<Pedido>> ActualizarPedidoAsync(Pedido pedido);

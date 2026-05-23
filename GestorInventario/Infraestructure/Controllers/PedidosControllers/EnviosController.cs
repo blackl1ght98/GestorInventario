@@ -52,7 +52,7 @@ namespace GestorInventario.Infraestructure.Controllers.PedidosControllers
                 }
 
                 TempData["ErrorMessage"] = userMessage;
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index","Pedidos");
             }
         }
     }

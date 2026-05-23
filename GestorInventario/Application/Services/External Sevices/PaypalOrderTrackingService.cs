@@ -5,6 +5,7 @@ using GestorInventario.Infraestructure.Repositories;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
 
 
 
@@ -31,14 +32,15 @@ namespace GestorInventario.Application.Services
             try
             {
                 var pedido = await _pedidoRepository.GetPedidoConDetallesAsync(pedidoId);
-                if (pedido == null || pedido.Data.Item2 == null)
+                var capture = pedido.Data.pedido.PayPalPaymentCaptures?.FirstOrDefault();
+                if (pedido == null || pedido.Data.detalles == null)
                 {
                     throw new Exception("No se pudo obtener la información completa del pedido.");
                 }
-                var trackingInfo = CrearTrackingInfo(pedido.Data.Item1, pedido.Data.Item2, carrier, barcode);
+                var trackingInfo = CrearTrackingInfo(pedido.Data.pedido, pedido.Data.detalles, carrier, barcode);
                 var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                 HttpMethod.Post,
-                $"v2/checkout/orders/{pedido.Data.Item1.OrderId}/track",
+                $"v2/checkout/orders/{capture.PaymentId}/track",
                 trackingInfo,
                async resp =>
                {
@@ -59,6 +61,7 @@ namespace GestorInventario.Application.Services
         }
         private PayPalTrackingInfoRequestDto CrearTrackingInfo(Pedido pedido, IEnumerable<DetallePedido> detalles, Carrier carrier, BarcodeType barcode)
         {
+            var capture = pedido.PayPalPaymentCaptures?.FirstOrDefault();
             var trackingItems = detalles.Select(item => new TrackingItems
             {
                 Name = item.Producto?.NombreProducto ?? "Producto no disponible",
@@ -75,7 +78,7 @@ namespace GestorInventario.Application.Services
 
             return new PayPalTrackingInfoRequestDto
             {
-                CaptureId = pedido.CaptureId,
+                CaptureId = capture.CaptureId,
                 TrackingNumber = GenerarNumeroSeguimiento(),
                 Carrier = carrier,
                 NotifyPayer = true,
