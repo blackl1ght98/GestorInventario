@@ -23,7 +23,7 @@ namespace GestorInventario.Application.Services.Generic_Services
         private readonly IPaypalOrderService _paypalOrder;
         private readonly IPaymentRepository _payment;
         private readonly IPaypalRepository _paypalRepository;
-        public PedidoManagementService( ILogger<PedidoManagementService> logger,  IPedidoRepository pedido, ICurrentUserAccessor current,
+        public PedidoManagementService(ILogger<PedidoManagementService> logger,  IPedidoRepository pedido, ICurrentUserAccessor current,
             IConversionUtils conversion, IPaypalOrderService paypal, IPaymentRepository payment, IPaypalRepository paypalRepository)
         {
             
@@ -33,7 +33,7 @@ namespace GestorInventario.Application.Services.Generic_Services
             _conversion = conversion;
             _paypalOrder = paypal;
             _payment = payment;
-        _paypalRepository=paypalRepository;
+            _paypalRepository=paypalRepository;
         
         }
         public async Task<OperationResult<string>> EliminarPedido(int Id)
@@ -75,7 +75,7 @@ namespace GestorInventario.Application.Services.Generic_Services
 
 
         }
-        public async Task<OperationResult<PayPalPaymentDetail>> SincronizarDetallePagoAsync(string id)
+        public async Task<OperationResult<PayPalPaymentDetail>> SincronizarDetallePagoAsync(string id, int pedidoId)
         {
             var detalles = await _paypalOrder.ObtenerDetallesPagoEjecutadoAsync(id);
             if (detalles == null)
@@ -155,12 +155,15 @@ namespace GestorInventario.Application.Services.Generic_Services
                 {
                     foreach (var capture in firstUnit.Payments.Captures.Where(c => c != null))
                     {
+                        
+
+                        // Solo crear si no existe
                         var paypalCapture = new PayPalPaymentCapture
                         {
                             PaymentId = detallesPago.Id,
                             CaptureId = capture.Id,
                             Status = capture.Status,
-                           
+                            PedidoId = pedidoId,           
                             Amount = _conversion.ConvertToDecimal(capture.Amount?.Value),
                             Currency = capture.Amount?.CurrencyCode,
                             ProtectionEligibility = capture.SellerProtection?.Status,
@@ -171,7 +174,6 @@ namespace GestorInventario.Application.Services.Generic_Services
                             FinalCapture = capture.FinalCapture,
                             CreateTime = _conversion.ConvertToDateTime(capture.CreateTime),
                             UpdateTime = _conversion.ConvertToDateTime(capture.UpdateTime),
-                           
                         };
 
                         if (decimal.TryParse(capture.SellerReceivableBreakdown?.ExchangeRate?.Value,

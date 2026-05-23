@@ -13,6 +13,7 @@ namespace GestorInventario.Interfaces.Infraestructure.Repositories
         Task<PayPalPaymentDetail> ObtenerDetallesPago(string id);
         Task<PayPalPaymentCapture?> ObtenerCapturePorCaptureIdAsync(string captureId);
         Task<PayPalPaymentDetail> ObtenerDetallesPagoPorIDAsync(string pagoId);
+        Task<PayPalPaymentCapture?> ObtenerCapturePorPedidoIdAsync(int pedidoId);
         //Operaciones
         Task<OperationResult<PayPalPaymentDetail>> AgregarDetallePagoAsync(PayPalPaymentDetail detalle);
         Task<OperationResult<PayPalPaymentItem>> AgregarPagoItemAsync(PayPalPaymentItem detalle);

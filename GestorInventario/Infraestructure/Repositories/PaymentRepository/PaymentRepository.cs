@@ -18,8 +18,12 @@ namespace GestorInventario.Infraestructure.Repositories.PaymentRepository
             _logger = logger;
          
         }
-      
-       public async Task<PayPalPaymentDetail> ObtenerDetallesPagoPorIDAsync(string pagoId)=> await _context.PayPalPaymentDetails
+        public async Task<PayPalPaymentCapture?> ObtenerCapturePorPedidoIdAsync(int pedidoId)
+        {
+            return await _context.PayPalPaymentCaptures.Include(x=>x.Pedido)
+                .FirstOrDefaultAsync(c => c.PedidoId == pedidoId);
+        }
+        public async Task<PayPalPaymentDetail> ObtenerDetallesPagoPorIDAsync(string pagoId)=> await _context.PayPalPaymentDetails
                 .Include(d => d.PayPalPaymentItems)
                 .Include(d => d.PayPalPaymentCaptures)
                 .Include(d => d.PayPalPaymentShippings)

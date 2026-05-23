@@ -21,9 +21,9 @@ namespace GestorInventario.Infraestructure.Controllers.PedidosControllers
         }
 
         [Authorize]
-        public async Task<IActionResult> DetallesPagoEjecutado(string id)
+        public async Task<IActionResult> DetallesPagoEjecutado(string id, int pedidoId)
         {
-            var result = await _policyExecutor.ExecutePolicyAsync(() => _pedidoService.SincronizarDetallePagoAsync(id));
+            var result = await _policyExecutor.ExecutePolicyAsync(() => _pedidoService.SincronizarDetallePagoAsync(id, pedidoId));
 
             if (!result.Success || result.Data == null)
             {

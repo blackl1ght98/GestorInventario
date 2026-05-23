@@ -11,6 +11,8 @@ public partial class PayPalPaymentCapture
 
     public string CaptureId { get; set; } = null!;
 
+    public int? PedidoId { get; set; }
+
     public string? Status { get; set; }
 
     public decimal? Amount { get; set; }
@@ -38,4 +40,6 @@ public partial class PayPalPaymentCapture
     public DateTime? UpdateTime { get; set; }
 
     public virtual PayPalPaymentDetail Payment { get; set; } = null!;
+
+    public virtual Pedido? Pedido { get; set; }
 }

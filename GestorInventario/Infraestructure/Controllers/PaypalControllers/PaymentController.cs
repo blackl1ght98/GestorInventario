@@ -50,7 +50,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                 var pedido =  await _pedidoService.ConfirmarPagoDelPedidoAsync(usuarioActual,captureId,total,currency,orderId);
 
 
-                return RedirectToAction("DetallesPagoEjecutado", "Pagos", new { id = orderId });
+                return RedirectToAction("DetallesPagoEjecutado", "Pagos", new { id = orderId, pedidoId= pedido.Data.Id });
             }
             catch (Exception ex)
             {

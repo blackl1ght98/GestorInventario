@@ -126,7 +126,8 @@ public partial class GestorInventarioContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.Status)
                 .HasMaxLength(20)
-                .IsUnicode(false);
+                .IsUnicode(false)
+                .HasColumnName("Status ");
             entity.Property(e => e.TransactionFeeAmount).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.TransactionFeeCurrency)
                 .HasMaxLength(10)
@@ -137,6 +138,10 @@ public partial class GestorInventarioContext : DbContext
                 .HasForeignKey(d => d.PaymentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_PayPalPaymentCaptures_Payment");
+
+            entity.HasOne(d => d.Pedido).WithMany(p => p.PayPalPaymentCaptures)
+                .HasForeignKey(d => d.PedidoId)
+                .HasConstraintName("FK_PayPalPaymentCaptures_Pedido");
         });
 
         modelBuilder.Entity<PayPalPaymentDetail>(entity =>
