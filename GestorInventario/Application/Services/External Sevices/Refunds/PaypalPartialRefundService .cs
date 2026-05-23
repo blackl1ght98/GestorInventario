@@ -40,7 +40,7 @@ namespace GestorInventario.Application.Services.External_Sevices.Refunds
                     "Reembolso parcial pedido {PedidoId} -> Precio:{Precio} IVA:{Iva} Total:{Total}",
                     pedidoId, precioSinIva, ivaUnitario, montoSolicitadoConIva);
 
-                var captureDetails = await _orderService.ObtenerDetallesPagoEjecutadoAsync(pedido.Data.orderId);
+                var captureDetails = await _orderService.ObtenerDetallesPagoEjecutadoAsync(pedido.Data.paymentId);
                 var (montoReembolso, montoDisponible, estadoVenta) = CalcularMontoDisponibleYEstado(
                     captureDetails, montoSolicitadoConIva, currency);
 
@@ -61,7 +61,7 @@ namespace GestorInventario.Application.Services.External_Sevices.Refunds
                     });
 
                 // Consultar estado actualizado (para falsos positivos y estado final)
-                var updatedCapture = await _orderService.ObtenerDetallesPagoEjecutadoAsync(pedido.Data.orderId);
+                var updatedCapture = await _orderService.ObtenerDetallesPagoEjecutadoAsync(pedido.Data.paymentId);
 
                 // Manejo de errores específicos 
                 if (!responseBody.StartsWith("{") || responseBody.Contains("error"))

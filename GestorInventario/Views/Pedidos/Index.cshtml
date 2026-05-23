@@ -126,13 +126,27 @@
                                             Eliminar Pedido
                                         </a>
 
-                                      
-                                                <a asp-action="DetallesPagoEjecutado" asp-controller="Pagos"
-                                                   asp-route-id="@pedido.OrderId"
-                                                   asp-route-pedidoId="@pedido.Id"
-                                                   class="btn btn-outline-info">
-                                                    Detalles del Pago
-                                                </a>
+
+                                        @{
+                                            // Buscar el capture asociado (nueva forma)
+                                            var capture = pedido.PayPalPaymentCaptures?.FirstOrDefault();
+                                            var orderId = capture?.PaymentId; // fallback legacy
+                                        }
+
+                                        @if (!string.IsNullOrEmpty(orderId))
+                                        {
+                                            <a asp-action="DetallesPagoEjecutado"
+                                               asp-controller="Pagos"
+                                               asp-route-id="@orderId"
+                                               asp-route-pedidoId="@pedido.Id"
+                                               class="btn btn-outline-info">
+                                                Detalles del Pago
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Sin información de pago</span>
+                                        }
                                           
                                         
                                     </div>

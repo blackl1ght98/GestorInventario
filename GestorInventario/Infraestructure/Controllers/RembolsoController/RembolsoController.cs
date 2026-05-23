@@ -233,9 +233,10 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
                     _logger.LogInformation("El pedido con el numero de pedido proporcionado no existe ");
                     return View(nameof(FormularioRembolso));
                 }
-
+                var capture = pedido.PayPalPaymentCaptures?.FirstOrDefault();
+                var orderId = capture?.PaymentId;
                 var detallespago = await _policyExecutor.ExecutePolicyAsync(() =>
-                    _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(pedido.OrderId));
+                    _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(orderId));
 
                 if (detallespago == null)
                 {

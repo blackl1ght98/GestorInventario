@@ -38,7 +38,7 @@ namespace GestorInventario.Application.Services.External_Sevices.Refunds
             var response = await ExecuteRefundAsync(pedido.Data.captureId, request);
 
             return OperationResult<(int, string, decimal, string)>.Ok("",
-                (pedidoId, response.Id, totalReembolso, pedido.Data.orderId));
+                (pedidoId, response.Id, totalReembolso, pedido.Data.captureId));
         }
     }
 }

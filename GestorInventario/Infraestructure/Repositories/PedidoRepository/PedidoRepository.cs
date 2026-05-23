@@ -25,7 +25,7 @@ namespace GestorInventario.Infraestructure.Repositories.PedidoRepository
         }
         public async Task<Pedido> ObtenerNumeroPedido(RefundFormViewModel form)
         {
-            var numeroPedido = await _context.Pedidos.FirstOrDefaultAsync(p => p.NumeroPedido == form.NumeroPedido);    
+            var numeroPedido = await _context.Pedidos.Include(x=>x.PayPalPaymentCaptures).FirstOrDefaultAsync(p => p.NumeroPedido == form.NumeroPedido);    
             return  numeroPedido;
         }
         public async Task<Pedido?> ObtenerPedidoEnProcesoUsuarioAsync(int usuarioId)
@@ -39,7 +39,7 @@ namespace GestorInventario.Infraestructure.Repositories.PedidoRepository
         }
        
         public IQueryable<Pedido> ObtenerPedidos()=>
-            from p in _context.Pedidos.Include(dp => dp.DetallePedidos).ThenInclude(p => p.Producto).Include(u => u.IdUsuarioNavigation)
+            from p in _context.Pedidos.Include(dp => dp.DetallePedidos).ThenInclude(p => p.Producto).Include(u => u.IdUsuarioNavigation).Include(x=>x.PayPalPaymentCaptures)
             select p;
       
         public IQueryable<Pedido> ObtenerPedidoUsuario(int userId)=>_context.Pedidos.Where(p => p.IdUsuario == userId).Include(dp => dp.DetallePedidos).ThenInclude(p => p.Producto).Include(u => u.IdUsuarioNavigation);
@@ -57,35 +57,38 @@ namespace GestorInventario.Infraestructure.Repositories.PedidoRepository
               .FirstOrDefaultAsync(m => m.Id == id);
         public async Task<Pedido> ObtenerPedidoPorIdAsync(int id) => await _context.Pedidos.FirstOrDefaultAsync(x => x.Id == id);
         public async Task<Pedido> ObtenerPedidoConRembolso(int id) => await _context.Pedidos.Include(p => p.DetallePedidos).Include(x => x.Rembolsos).FirstOrDefaultAsync(m => m.Id == id);
-        public async Task<OperationResult<(string captureId, string orderId, string currency, decimal subtotal, decimal iva, decimal total)>>
+        public async Task<OperationResult<( string captureId, string currency, decimal subtotal, decimal iva, decimal total)>>
     GetPedidoWithDetailsAsync(int pedidoId)
         {
             // ✅ Ya no necesitamos Include de detalles/productos para los totales
-            var pedido = await _context.Pedidos
+            var pedido = await _context.Pedidos.Include(x=>x.PayPalPaymentCaptures)
                 .FirstOrDefaultAsync(p => p.Id == pedidoId);
-
-            if (pedido == null || string.IsNullOrEmpty(pedido.CaptureId))
-                return OperationResult<(string, string, string, decimal, decimal, decimal)>.Fail(
+            var capture = pedido.PayPalPaymentCaptures?.FirstOrDefault();
+            var captureId = capture?.CaptureId;
+            if (pedido == null)
+                return OperationResult<(string, string, decimal, decimal, decimal)>.Fail(
                     "Pedido no encontrado o CaptureId no disponible.");
 
             if (string.IsNullOrEmpty(pedido.Currency))
-                return OperationResult<(string, string, string, decimal, decimal, decimal)>.Fail(
+                return OperationResult<( string, string, decimal, decimal, decimal)>.Fail(
                     "El código de moneda no está definido.");
 
             // ✅ Usar los totales que persistimos al crear el pedido
-            return OperationResult<(string, string, string, decimal, decimal, decimal)>.Ok("",
-                (pedido.CaptureId, pedido.OrderId, pedido.Currency, pedido.Subtotal, pedido.Iva, pedido.Total));
+            return OperationResult<(string, string, decimal, decimal, decimal)>.Ok("",
+                ( captureId, pedido.Currency, pedido.Subtotal, pedido.Iva, pedido.Total));
         }
 
-        public async Task<OperationResult<(int idPedido, string captureId, decimal precioProducto, string orderId, string currency, int detalleId)>> GetProductoDePedidoAsync(int detallePedidoId)
+        public async Task<OperationResult<(int idPedido, string captureId, decimal precioProducto, string paymentId, string currency, int detalleId)>> GetProductoDePedidoAsync(int detallePedidoId)
         {
             try
             {
                 var detalle = await _context.DetallePedidos
                     .Include(dp => dp.Producto)
                     .Include(dp => dp.Pedido)
+                    .ThenInclude(x=>x.PayPalPaymentCaptures)
                     .FirstOrDefaultAsync(dp => dp.Id == detallePedidoId);
-
+                var capture = detalle.Pedido.PayPalPaymentCaptures?.FirstOrDefault();
+               
                 if (detalle == null)
                     return OperationResult<(int, string, decimal, string, string, int)>.Fail("Detalle de pedido no encontrado");
 
@@ -94,12 +97,12 @@ namespace GestorInventario.Infraestructure.Repositories.PedidoRepository
                 if (detalle.Rembolsado ?? false)
                     return OperationResult<(int, string, decimal, string, string, int)>.Fail("El pedido ha sido rembolsado");
                 int idPedido = detalle.Pedido.Id;
-                string captureId = detalle.Pedido.CaptureId;
+                string captureId = capture.CaptureId;
                 decimal precioProducto = detalle.Producto.Precio;
-                string orderId = detalle.Pedido.OrderId;
+                string paymentId = capture.PaymentId;
                 string currency = detalle.Pedido.Currency;
                 int detalleId = detalle.Id;
-                return OperationResult<(int, string, decimal, string, string, int)>.Ok("", (idPedido, captureId, precioProducto, orderId, currency, detalleId));
+                return OperationResult<(int, string, decimal, string, string, int)>.Ok("", (idPedido, captureId, precioProducto, paymentId, currency, detalleId));
             }
             catch (Exception ex)
             {

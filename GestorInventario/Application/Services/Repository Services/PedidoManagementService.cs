@@ -211,33 +211,71 @@ namespace GestorInventario.Application.Services.Generic_Services
         }
 
 
-        public async Task<OperationResult<Pedido>> ConfirmarPagoDelPedidoAsync(int usuarioActual, string captureId, decimal total, string? currency, string orderId)
+        public async Task<OperationResult<Pedido>> ConfirmarPagoDelPedidoAsync(
+           int usuarioActual,
+           string captureId,
+           decimal total,
+           string? currency,
+           string orderId)
         {
-           
-                // Validar parámetros de entrada
-                if (string.IsNullOrWhiteSpace(captureId)  ||
-                string.IsNullOrWhiteSpace(currency) || string.IsNullOrWhiteSpace(orderId))
-                {
-                    _logger.LogWarning("Parámetros inválidos en ConfirmarPagoDelPedidoAsync: usuarioActual={UsuarioId}, captureId={CaptureId}, total={Total}, currency={Currency}, orderId={OrderId}",
-                        usuarioActual, captureId, total, currency, orderId);
-                    return OperationResult<Pedido>.Fail("Datos no validos");
-                }
-                var pedido = await _pedidoRepository.ObtenerPedidoEnProcesoUsuarioAsync(usuarioActual);
+            // 1. Validar parámetros
+            if (string.IsNullOrWhiteSpace(captureId) ||
+                string.IsNullOrWhiteSpace(currency) ||
+                string.IsNullOrWhiteSpace(orderId))
+            {
+                _logger.LogWarning("Parámetros inválidos...");
+                return OperationResult<Pedido>.Fail("Datos no validos");
+            }
 
-                if (pedido == null)
-                {
-                    _logger.LogWarning("No se encontró un pedido en proceso para el usuario {UsuarioId}", usuarioActual);
-                    return OperationResult<Pedido>.Fail("Pedido no encontrado para el usuario especificado");
-                }
+            // 2. Buscar pedido
+            var pedido = await _pedidoRepository.ObtenerPedidoEnProcesoUsuarioAsync(usuarioActual);
+            if (pedido == null)
+            {
+                _logger.LogWarning("No se encontró pedido...");
+                return OperationResult<Pedido>.Fail("Pedido no encontrado");
+            }
 
-                pedido.CaptureId = captureId;
-                pedido.Total = total;
-                pedido.Currency = currency;
-                pedido.OrderId = orderId;
-                pedido.EstadoPedido = EstadoPedido.Pagado.ToString();
-                await _pedidoRepository.ActualizarPedidoAsync(pedido);
-                return OperationResult<Pedido>.Ok("", pedido);
-            
+            // 3. ✅ CREAR/VERIFICAR PayPalPaymentDetail (PADRE) primero
+            var paymentDetail = await _payment.ObtenerDetallesPago(orderId);
+
+            if (paymentDetail == null)
+            {
+                paymentDetail = new PayPalPaymentDetail
+                {
+                    Id = orderId,           
+                    Intent = "CAPTURE",
+                    OrderStatus = "COMPLETED",
+                    AmountTotal = total,
+                    AmountCurrency = currency,
+                    CreateTime = DateTime.UtcNow,
+                    UpdateTime = DateTime.UtcNow
+                };
+                await _payment.AgregarDetallePagoAsync(paymentDetail);
+            }
+
+            // 4. ✅ AHORA SÍ crear el capture (HIJO), con el padre ya existente
+            var capturePayment = new PayPalPaymentCapture
+            {
+                PaymentId = orderId,      
+                CaptureId = captureId,
+                PedidoId = pedido.Id,
+                Amount = total,
+                Currency = currency,
+                Status = "COMPLETED",
+                CreateTime = DateTime.UtcNow,
+                UpdateTime = DateTime.UtcNow
+            };
+
+            await _payment.AgregarCaptureAsync(capturePayment);
+
+            // 5. Actualizar pedido (legacy por ahora)
+            pedido.Total = total;
+            pedido.Currency = currency;
+            pedido.EstadoPedido = EstadoPedido.Pagado.ToString();
+
+            await _pedidoRepository.ActualizarPedidoAsync(pedido);
+
+            return OperationResult<Pedido>.Ok("", pedido);
         }
         public async Task ProcesarRembolsoAsync(int pedidoId, string status, string refundId)
         {
