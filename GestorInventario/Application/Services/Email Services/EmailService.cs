@@ -37,16 +37,13 @@ namespace GestorInventario.Application.Services
             ICompositeViewEngine viewEngine, IServiceProvider serviceProvider, IPasswordResetService pass)
         {
             _config = config;
-            _httpContextAccessor = httpContextAccessor;
-           
+            _httpContextAccessor = httpContextAccessor;      
             _tempDataProvider = tempDataProvider;
             _viewEngine = viewEngine;
-            _serviceProvider = serviceProvider;
-            
+            _serviceProvider = serviceProvider;   
             _logger = logger;
             _userRepository = user;
-            _password = pass;
-           
+            _password = pass;   
         }
 
         public async Task<OperationResult<string>> SendEmailAsyncRegister(EmailDto userDataRegister, int usuarioId)
@@ -54,13 +51,12 @@ namespace GestorInventario.Application.Services
             try
             {
                 
-
                 // Generar token
                 string textoEnlace = Convert.ToBase64String(Guid.NewGuid().ToByteArray())
                     .Replace("=", "").Replace("+", "").Replace("/", "")
                     .Replace("?", "").Replace("&", "").Replace("!", "").Replace("¡", "");
 
-                // ← Llamada al repositorio (ya no usamos _context directamente)
+              
                 var resultadoToken = await _userRepository.ActualizarEmailVerificationTokenAsync(usuarioId, textoEnlace);
 
                 if (!resultadoToken.Success)
@@ -267,7 +263,7 @@ namespace GestorInventario.Application.Services
             {
                 var email = new MimeMessage();
                 email.From.Add(MailboxAddress.Parse(_config.GetSection("Email:UserName").Value));
-                email.To.Add(MailboxAddress.Parse(correo.EmailCliente)); // Enviar solo al usuario
+                email.To.Add(MailboxAddress.Parse(correo.EmailCliente)); 
                 email.Subject = $"Tu reembolso para el pedido #{correo.NumeroPedido} ha sido aprobado";
                 var viewmodel = new RembolsoAprobadoViewmodel
                 {

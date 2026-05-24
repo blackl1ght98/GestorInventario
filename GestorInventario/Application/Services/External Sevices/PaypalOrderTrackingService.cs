@@ -15,19 +15,17 @@ namespace GestorInventario.Application.Services
     {       
         private readonly ILogger<PaypalOrderTrackingService> _logger;
         private readonly IPayPalHttpClient _paypal;
-        private readonly IPaypalService _paypalService;
         private readonly IPedidoRepository _pedidoRepository;
         public PaypalOrderTrackingService( ILogger<PaypalOrderTrackingService> logger,   
-           IPayPalHttpClient paypal,  IPedidoRepository pedido, IPaypalService paypalService)
+           IPayPalHttpClient paypal,  IPedidoRepository pedido)
         {                
-            _logger = logger;           
-            _paypalService = paypalService;                
+            _logger = logger;                          
             _paypal = paypal;    
             _pedidoRepository=pedido;
         }
 
         #region Seguimiento pedido
-        public async Task<string> SeguimientoPedido(int pedidoId, Carrier carrier, BarcodeType barcode)
+        public async Task<OperationResult<(int pedidoId,string trackingNumber, string trackingURL,string carrier)>> SeguimientoPedido(int pedidoId, Carrier carrier, BarcodeType barcode)
         {
             try
             {
@@ -47,11 +45,7 @@ namespace GestorInventario.Application.Services
                    var errBody = await resp.Content.ReadAsStringAsync();
                    throw new InvalidOperationException($"Error al establecer el seguimiento del pedido: {resp.StatusCode} - {errBody} ");
                });
-
-                // Actualizar el estado del pedido usando UnitOfWork
-                await _paypalService.AddInfoTrackingOrder(pedidoId, trackingInfo.TrackingNumber, "URL NO ESPECIFICADA", carrier.ToString());
-                _logger.LogInformation("Seguimiento agregado exitosamente para el pedido {PedidoId}", pedidoId);
-                return responseBody;
+                return OperationResult<(int,string,string,string)>.Ok("",(pedidoId,trackingInfo.TrackingNumber, "URL NO ESPECIFICADA",carrier.ToString()));
             }
             catch (Exception ex)
             {

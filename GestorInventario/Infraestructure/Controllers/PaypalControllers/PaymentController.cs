@@ -60,10 +60,9 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
             }
         }
         [Authorize]
-        public async Task<IActionResult> Cancel()
+        public IActionResult Cancel()
         {
-            var usuarioActual = _currentUserAccessor.GetCurrentUserId();
-            await _paymentService.LimpiarPedidoCorruptoUsuarioAsync(usuarioActual);
+  
             return RedirectToAction("Index", "Productos");
         }
        

@@ -235,7 +235,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                 return OperationResult<Pedido>.Fail("Pedido no encontrado");
             }
 
-            // 3. ✅ CREAR/VERIFICAR PayPalPaymentDetail (PADRE) primero
+            
             var paymentDetail = await _payment.ObtenerDetallesPago(orderId);
 
             if (paymentDetail == null)
@@ -253,7 +253,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                 await _payment.AgregarDetallePagoAsync(paymentDetail);
             }
 
-            // 4. ✅ AHORA SÍ crear el capture (HIJO), con el padre ya existente
+            
             var capturePayment = new PayPalPaymentCapture
             {
                 PaymentId = orderId,      

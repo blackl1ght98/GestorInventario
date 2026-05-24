@@ -317,24 +317,6 @@ namespace GestorInventario.Application.Services.Generic_Services
             return OperationResult<PayPalPaymentItem>.Ok("", paypalItems.First());
 
         }
-        public async Task LimpiarPedidoCorruptoUsuarioAsync(int userId)
-        {
-            // Buscar SOLO UN pedido pendiente/corrupto del usuario
-            var pedidoCorrupto = await _paymentrepository.BuscarPedidoCorrupto(userId);
-
-            if (pedidoCorrupto != null)
-            {
-                // Opcional: verificar que efectivamente es un carrito/checkout abandonado
-                if (pedidoCorrupto.EsCarrito == false)
-                {
-                    await _pedidoRepository.EliminarPedidoAsync(pedidoCorrupto);
-                   
-
-                    _logger.LogInformation(
-                        "Limpieza automática: pedido corrupto eliminado para usuario {UserId}. ID: {PedidoId}, Fecha: {FechaPedido}",
-                        userId, pedidoCorrupto.Id, pedidoCorrupto.FechaPedido);
-                }
-            }
-        }
+       
     }
 }

@@ -9,32 +9,32 @@ namespace GestorInventario.Infraestructure.Controllers.PedidosControllers
     public class EnviosController : Controller
     {
         private readonly IPedidoRepository _pedidoRepository;
-        private readonly IPaypalOrderTrackingService _paypalService;
+        private readonly IPaypalOrderTrackingService _paypalOrderService;
         private readonly ILogger<EnviosController> _logger;
-
-        public EnviosController(IPedidoRepository pedidoRepository, IPaypalOrderTrackingService paypalService, ILogger<EnviosController> logger)
+        private readonly IPaypalService _paypalService;
+        public EnviosController(IPedidoRepository pedidoRepository, IPaypalOrderTrackingService paypalOrderService, IPaypalService paypalService, ILogger<EnviosController> logger)
         {
             _pedidoRepository = pedidoRepository;
-            _paypalService = paypalService;
+            _paypalOrderService = paypalOrderService;
             _logger = logger;
+            _paypalService=paypalService;
         }
 
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> AgregarInfoEnvio(int pedidoId, Carrier carrier, BarcodeType barcode)
         {
-            var pedido = await _pedidoRepository.ObtenerPedidoPorIdAsync(pedidoId);
-            if (pedido == null)
-            {
-                _logger.LogError("Intento de manipulacion de id");
-                return RedirectToAction("Index", "Pedidos");
-               
-            }
-
+            
             try
             {
-                await _paypalService.SeguimientoPedido(pedido.Id, carrier, barcode);
-
+                var pedido = await _pedidoRepository.ObtenerPedidoPorIdAsync(pedidoId);
+                if (pedido == null)
+                {
+                    _logger.LogError("Intento de manipulacion de id");
+                    return RedirectToAction("Index", "Pedidos");
+                }
+                var result=  await _paypalOrderService.SeguimientoPedido(pedido.Id, carrier, barcode);
+                await _paypalService.AddInfoTrackingOrder(result.Data.pedidoId, result.Data.trackingNumber, result.Data.trackingURL, result.Data.carrier);
                 TempData["SuccessMessage"] = "Información de envío agregada con éxito.";
                 return RedirectToAction("Index", "Pedidos");
             }

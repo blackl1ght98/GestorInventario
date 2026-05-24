@@ -18,24 +18,15 @@ namespace GestorInventario.Infraestructure.Repositories.PaymentRepository
             _logger = logger;
          
         }
-        public async Task<PayPalPaymentCapture?> ObtenerCapturePorPedidoIdAsync(int pedidoId)
-        {
-            return await _context.PayPalPaymentCaptures.Include(x=>x.Pedido)
-                .FirstOrDefaultAsync(c => c.PedidoId == pedidoId);
-        }
+    
         public async Task<PayPalPaymentDetail> ObtenerDetallesPagoPorIDAsync(string pagoId)=> await _context.PayPalPaymentDetails
                 .Include(d => d.PayPalPaymentItems)
                 .Include(d => d.PayPalPaymentCaptures)
                 .Include(d => d.PayPalPaymentShippings)
                 .FirstOrDefaultAsync(d => d.Id == pagoId);
-        public async Task<Pedido> BuscarPedidoCorrupto(int userId) => await _context.Pedidos.Include(x => x.DetallePedidos).Where(p => p.IdUsuario == userId && p.EstadoPedido == EstadoPedido.En_Proceso.ToString() 
-         ).FirstOrDefaultAsync();
+      
         public async Task<PayPalPaymentDetail> ObtenerDetallesPago(string id) => await _context.PayPalPaymentDetails.Include(d => d.PayPalPaymentItems).Include(x => x.PayPalPaymentShippings).Include(x => x.PayPalPaymentCaptures).FirstOrDefaultAsync(x => x.Id == id);
-        public async Task<PayPalPaymentCapture?> ObtenerCapturePorCaptureIdAsync(string captureId)
-        {
-            var capture = await _context.PayPalPaymentCaptures.FirstOrDefaultAsync(x=>x.CaptureId==captureId);
-            return capture;
-        }
+       
         public async Task<OperationResult<PayPalPaymentDetail>> AgregarDetallePagoAsync(PayPalPaymentDetail detalle)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
@@ -70,14 +61,7 @@ namespace GestorInventario.Infraestructure.Repositories.PaymentRepository
             });
         }
 
-        public async Task<OperationResult<PayPalPaymentCapture>> EliminarCapturesAsync(PayPalPaymentCapture detalle)
-        {
-            return await _context.ExecuteInTransactionAsync(async () =>
-            {
-                await _context.DeleteEntityAsync(detalle);
-                return OperationResult<PayPalPaymentCapture>.Ok("", detalle);
-            });
-        }
+       
         
         public async Task<OperationResult<string>> EliminarDetallesPagoAsync(PayPalPaymentDetail pago)
         {

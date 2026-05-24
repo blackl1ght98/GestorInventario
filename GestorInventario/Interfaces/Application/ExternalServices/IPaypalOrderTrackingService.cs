@@ -1,9 +1,10 @@
 ﻿using GestorInventario.enums;
+using GestorInventario.Infraestructure.Utils;
 
 namespace GestorInventario.Interfaces.Application.ExternalServices
 {
     public interface IPaypalOrderTrackingService
     {
-        Task<string> SeguimientoPedido(int pedidoId, Carrier carrier, BarcodeType barcode);
+        Task<OperationResult<(int pedidoId, string trackingNumber, string trackingURL, string carrier)>> SeguimientoPedido(int pedidoId, Carrier carrier, BarcodeType barcode);
     }
 }
