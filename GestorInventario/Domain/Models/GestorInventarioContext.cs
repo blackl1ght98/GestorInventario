@@ -64,7 +64,7 @@ public partial class GestorInventarioContext : DbContext
         else
         {
             // Cadena de conexión en duro para entorno local
-            var connectionString = "Data Source=DESKTOP-GN4VRAH\\SQLEXPRESS;Initial Catalog=GestorInventario;User ID=sqluser;Password=12345678;TrustServerCertificate=True";
+            var connectionString = "Data Source=DESKTOP-GN4VRAH\\SQLEXPRESS;Initial Catalog=GestorInventario;User ID=sqluser;Password=12345678SQL#1234;TrustServerCertificate=True";
             optionsBuilder.UseSqlServer(connectionString);
         }
     }
