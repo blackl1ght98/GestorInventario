@@ -78,19 +78,19 @@ Al terminar de ejecutar estos comandos veremos una carpeta en la unidad C llamad
 7. Revisar el archivo **docker-compose** para asegurarnos que el nombre del certificado es el mismo que pusimos a la hora de generar el certificado autofirmado, en el ejemplo de uso del comando de generar el certificado ese certicado se llamara: **aspnetapp** pues en el docker compose tendremos que asegurarnos que este en dos sitios exactamente el mismo nombre y esos dos sitios son:
 ```sh
   volumes:
-      - ./certs/aspnetapp.pfx:/https/aspnetapp.pfx:ro
+      - ./certs/certificado.pfx:/https/certificado.pfx:ro
 ```
-Aqui solo ajustamos el valor de la variable de entorno
+Aqui solo ajustamos el valor de la variable de entorno (en caso de poner un nombre distinto al certificado)
 ````sh
- - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+ - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/certificado.pfx
 ````
 7. Una vez tenemos todo esto echo ejecutar:
 ```sh
 docker-compose up -d --build
 ````
 # Credenciales para probar
-- **Email**: keuppa@yopmail.com
-- **Contraseña**: 1A2a3A4a5@
+- **Email**: keupa@yopmail.com
+- **Contraseña**: 1a2a3a4a5
 - Estas credenciales para probar son del usuario administrador.
  Una vez instalado reiniciamos docker y ya dejaria iniciarlo.
 # Puesta en marcha en local:
