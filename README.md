@@ -50,20 +50,26 @@ Para el archivo de secretos se usara los mismos valores empleados que para las v
 ```sh
 git clone https://github.com/blackl1ght98/GestorInventario
 ````
-2. Crear la carpeta **certs** en la raiz del proyecto
 3. Generar el certificado para https y ponerlo en la carpeta anteriormente creada:
    - Para ello la sintaxis del comando a usar es:
-   ```sh
-   dotnet dev-certs https -ep RUTA-DESEADA\NOMBRECERTIFICADO.pfx -p password
+   ```powershell
+   New-Item -ItemType Directory -Path C:\certs
    ````
-   - Ejemplo de uso:
-   ```sh
-   dotnet dev-certs https -ep C:\Users\guillermo\.aspnet\https\aspnetapp.pfx -p password
+   ```powershell
+   $cert = New-SelfSignedCertificate `
+   -DnsName "localhost" `
+   -CertStoreLocation "cert:\LocalMachine\My"
    ````
-4. Hacer que nuestro sistema confie en ese cercificado para ello el comando a ejecutar es:
-```sh
-dotnet dev-certs https --trust
-````
+   ```powershell
+   $password = ConvertTo-SecureString "0000" -AsPlainText -Force
+   ````
+    ```powershell
+   Export-PfxCertificate `
+   -Cert $cert `
+   -FilePath ".\certificado.pfx" `
+   -Password $password
+   ````
+Al terminar de ejecutar estos comandos veremos una carpeta en la unidad C llamada certs y esta la copiaremos en la carpeta raiz de nuestro proyecto.
 5. Crear el archivo **.env** basandose en **.env.example** este archivo contendra las variables de entorno, para obtener ciertas variables como las siguientes:  
   - **CertificatePassword**: Importante tener aqui la misma contraseña que pusimos al momento de generar el certificado https si no tenemos aqui la misma contraseña fallara.
 6. Eliminar .env.example
