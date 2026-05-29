@@ -29,7 +29,7 @@ Tener instalado lo siguiente:
   - [Visual Studio 2022](https://visualstudio.microsoft.com/) 
   - [.NET 10.0 SDK](https://dotnet.microsoft.com/es-es/download/visual-studio-sdks)
   - [Git](https://git-scm.com/)  
-  - [SQL Server](https://www.microsoft.com/es-es/sql-server/sql-server-downloads) (última versión)  
+  - [SQL Server](https://www.microsoft.com/es-es/download/details.aspx?id=104781)
   - [SQL Server Management Studio (SSMS)](https://aka.ms/ssmsfullsetup)  para gestionar la BD
     
 # 🔑 Configuración común (Docker y entorno local)
@@ -50,39 +50,47 @@ Para el archivo de secretos se usara los mismos valores empleados que para las v
 ```sh
 git clone https://github.com/blackl1ght98/GestorInventario
 ````
-2. Crear la carpeta **certs** en la raiz del proyecto
 3. Generar el certificado para https y ponerlo en la carpeta anteriormente creada:
    - Para ello la sintaxis del comando a usar es:
-   ```sh
-   dotnet dev-certs https -ep RUTA-DESEADA\NOMBRECERTIFICADO.pfx -p password
+   ```powershell
+   New-Item -ItemType Directory -Path C:\certs
    ````
-   - Ejemplo de uso:
-   ```sh
-   dotnet dev-certs https -ep C:\Users\guillermo\.aspnet\https\aspnetapp.pfx -p password
+   ```powershell
+   $cert = New-SelfSignedCertificate `
+   -DnsName "localhost" `
+   -CertStoreLocation "cert:\LocalMachine\My"
    ````
-4. Hacer que nuestro sistema confie en ese cercificado para ello el comando a ejecutar es:
-```sh
-dotnet dev-certs https --trust
-````
+   ```powershell
+   $password = ConvertTo-SecureString "0000" -AsPlainText -Force
+   ````
+    ```powershell
+   Export-PfxCertificate `
+   -Cert $cert `
+   -FilePath ".\certificado.pfx" `
+   -Password $password
+   ````
+Al terminar de ejecutar estos comandos veremos una carpeta en la unidad C llamada certs y esta la copiaremos en la carpeta raiz de nuestro proyecto.
+
+
 5. Crear el archivo **.env** basandose en **.env.example** este archivo contendra las variables de entorno, para obtener ciertas variables como las siguientes:  
   - **CertificatePassword**: Importante tener aqui la misma contraseña que pusimos al momento de generar el certificado https si no tenemos aqui la misma contraseña fallara.
 6. Eliminar .env.example
 7. Revisar el archivo **docker-compose** para asegurarnos que el nombre del certificado es el mismo que pusimos a la hora de generar el certificado autofirmado, en el ejemplo de uso del comando de generar el certificado ese certicado se llamara: **aspnetapp** pues en el docker compose tendremos que asegurarnos que este en dos sitios exactamente el mismo nombre y esos dos sitios son:
 ```sh
   volumes:
-      - ./certs/aspnetapp.pfx:/https/aspnetapp.pfx:ro
+      - ./certs/certificado.pfx:/https/certificado.pfx:ro
 ```
-Aqui solo ajustamos el valor de la variable de entorno
+Aqui solo ajustamos el valor de la variable de entorno (en caso de poner un nombre distinto al certificado)
 ````sh
- - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+ - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/certificado.pfx
 ````
 7. Una vez tenemos todo esto echo ejecutar:
 ```sh
 docker-compose up -d --build
 ````
 # Credenciales para probar
-- **Email**: keuppa@yopmail.com
-- **Contraseña**: 1A2a3A4a5@
+- **Email**: keupa@yopmail.com
+- **Contraseña**: 1a2a3a4a5
 - Estas credenciales para probar son del usuario administrador.
  Una vez instalado reiniciamos docker y ya dejaria iniciarlo.
 # Puesta en marcha en local:
