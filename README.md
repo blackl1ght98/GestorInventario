@@ -29,7 +29,7 @@ Tener instalado lo siguiente:
   - [Visual Studio 2022](https://visualstudio.microsoft.com/) 
   - [.NET 10.0 SDK](https://dotnet.microsoft.com/es-es/download/visual-studio-sdks)
   - [Git](https://git-scm.com/)  
-  - [SQL Server]([https://www.microsoft.com/es-es/sql-server/sql-server-downloads](https://www.microsoft.com/es-es/download/details.aspx?id=104781)) 
+  - [SQL Server]([https://www.microsoft.com/es-es/sql-server/sql-server-downloads](https://www.microsoft.com/es-es/download/details.aspx?id=104781]) 
   - [SQL Server Management Studio (SSMS)](https://aka.ms/ssmsfullsetup)  para gestionar la BD
     
 # 🔑 Configuración común (Docker y entorno local)
