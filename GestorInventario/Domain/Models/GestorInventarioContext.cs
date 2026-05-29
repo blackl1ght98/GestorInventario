@@ -47,6 +47,7 @@ public partial class GestorInventarioContext : DbContext
 
     public virtual DbSet<Usuario> Usuarios { get; set; }
 
+   
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER") == "true";
@@ -63,11 +64,10 @@ public partial class GestorInventarioContext : DbContext
         else
         {
             // Cadena de conexión en duro para entorno local
-            var connectionString = "Data Source=GUILLERMO\\SQLEXPRESS;Initial Catalog=GestorInventario;User ID=sa;Password=SQL#1234;TrustServerCertificate=True";
+            var connectionString = "Data Source=DESKTOP-GN4VRAH\\SQLEXPRESS;Initial Catalog=GestorInventario;User ID=sqluser;Password=12345678;TrustServerCertificate=True";
             optionsBuilder.UseSqlServer(connectionString);
         }
     }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AuditLog>(entity =>
@@ -96,6 +96,10 @@ public partial class GestorInventarioContext : DbContext
 
             entity.ToTable("DetallePedido");
 
+            entity.HasIndex(e => e.PedidoId, "IX_DetallePedido_PedidoId");
+
+            entity.HasIndex(e => e.ProductoId, "IX_DetallePedido_ProductoId");
+
             entity.HasOne(d => d.Pedido).WithMany(p => p.DetallePedidos)
                 .HasForeignKey(d => d.PedidoId)
                 .HasConstraintName("FK__DetallePe__Pedid__3CDEFCE5");
@@ -119,6 +123,10 @@ public partial class GestorInventarioContext : DbContext
 
         modelBuilder.Entity<PayPalPaymentCapture>(entity =>
         {
+            entity.HasIndex(e => e.PaymentId, "IX_PayPalPaymentCaptures_PaymentId");
+
+            entity.HasIndex(e => e.PedidoId, "IX_PayPalPaymentCaptures_PedidoId");
+
             entity.Property(e => e.Amount).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.CaptureId)
                 .HasMaxLength(50)
@@ -237,6 +245,8 @@ public partial class GestorInventarioContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__PayPalPa__3213E83F77BE0112");
 
+            entity.HasIndex(e => e.PayPalId, "IX_PayPalPaymentItems_payPal_id");
+
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.ItemCurrency)
                 .HasMaxLength(10)
@@ -274,6 +284,8 @@ public partial class GestorInventarioContext : DbContext
 
             entity.ToTable("PayPalPaymentShipping");
 
+            entity.HasIndex(e => e.PaymentId, "IX_PayPalPaymentShipping_PaymentId");
+
             entity.Property(e => e.AddressLine1)
                 .HasMaxLength(100)
                 .IsUnicode(false);
@@ -305,6 +317,8 @@ public partial class GestorInventarioContext : DbContext
         modelBuilder.Entity<Pedido>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC07480D2CCE");
+
+            entity.HasIndex(e => e.IdUsuario, "IX_Pedidos_IdUsuario");
 
             entity.Property(e => e.Currency)
                 .HasMaxLength(100)
@@ -344,6 +358,8 @@ public partial class GestorInventarioContext : DbContext
         modelBuilder.Entity<PlanDetail>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC0750705EBA");
+
+            entity.HasIndex(e => e.PaypalPlanId, "AK_PlanDetails_PaypalPlanId").IsUnique();
 
             entity.HasIndex(e => e.PaypalPlanId, "UQ__PlanDeta__C8025F80D0AF9CCD").IsUnique();
 
@@ -387,6 +403,8 @@ public partial class GestorInventarioContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC074C62FFC1");
 
+            entity.HasIndex(e => e.IdProveedor, "IX_Productos_IdProveedor");
+
             entity.Property(e => e.CodigoBarras)
                 .HasMaxLength(20)
                 .IsUnicode(false);
@@ -417,6 +435,8 @@ public partial class GestorInventarioContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__Proveedo__3214EC075BCA4372");
 
+            entity.HasIndex(e => e.IdUsuario, "IX_Proveedores_IdUsuario");
+
             entity.Property(e => e.Contacto)
                 .HasMaxLength(100)
                 .IsUnicode(false);
@@ -437,6 +457,10 @@ public partial class GestorInventarioContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC076ABC116C");
 
             entity.ToTable("rembolso");
+
+            entity.HasIndex(e => e.PedidoId, "IX_rembolso_PedidoId");
+
+            entity.HasIndex(e => e.UsuarioId, "IX_rembolso_UsuarioId");
 
             entity.Property(e => e.EmailCliente)
                 .HasMaxLength(100)
@@ -478,6 +502,8 @@ public partial class GestorInventarioContext : DbContext
         modelBuilder.Entity<SubscriptionDetail>(entity =>
         {
             entity.HasKey(e => e.SubscriptionId).HasName("PK__tmp_ms_x__9A2B24BD32070402");
+
+            entity.HasIndex(e => e.PlanId, "IX_SubscriptionDetails_PlanID");
 
             entity.Property(e => e.SubscriptionId)
                 .HasMaxLength(50)
@@ -531,6 +557,10 @@ public partial class GestorInventarioContext : DbContext
 
             entity.ToTable("UserSubscription");
 
+            entity.HasIndex(e => e.SubscriptionId, "IX_UserSubscription_SubscriptionID");
+
+            entity.HasIndex(e => e.UserId, "IX_UserSubscription_UserId");
+
             entity.Property(e => e.NombreSusbcriptor)
                 .HasMaxLength(100)
                 .IsUnicode(false);
@@ -555,6 +585,8 @@ public partial class GestorInventarioContext : DbContext
         modelBuilder.Entity<Usuario>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC075EC55856");
+
+            entity.HasIndex(e => e.IdRol, "IX_Usuarios_IdRol");
 
             entity.Property(e => e.Ciudad)
                 .HasMaxLength(50)
