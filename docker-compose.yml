@@ -118,7 +118,7 @@ services:
       - LicenseKeyAutoMapper=${LicenseKeyAutoMapper}
       - PublicKey=${PublicKey}
       - PrivateKey=${PrivateKey}
-      - DB_USERNAME=${DB_USERNAME}
+      
       # Credenciales de PayPal
       - Paypal_ClientId=${Paypal_ClientId}
       - Paypal_ClientSecret=${Paypal_ClientSecret}
