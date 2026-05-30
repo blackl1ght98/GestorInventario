@@ -127,6 +127,8 @@ services:
       - DB_NAME=${DB_NAME}
       - DB_SA_USERNAME=${DB_SA_USERNAME}
       - DB_SA_PASSWORD=${DB_SA_PASSWORD}
+      - DB_SQLUSER=${DB_SQLUSER}
+      - DB_SQLUSER_PASSWORD=${DB_SQLUSER_PASSWORD}
       - IS_DOCKER=true # Flag para que la app sepa que está en Docker
       - USE_REDIS=true # Flag para que la app sepa que use redis
 

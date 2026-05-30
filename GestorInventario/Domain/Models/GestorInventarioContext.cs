@@ -47,7 +47,7 @@ public partial class GestorInventarioContext : DbContext
 
     public virtual DbSet<Usuario> Usuarios { get; set; }
 
-   
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER") == "true";
@@ -55,10 +55,10 @@ public partial class GestorInventarioContext : DbContext
         if (isDocker)
         {
             var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
-            var dbName = Environment.GetEnvironmentVariable("DB_NAME");
-            var dbPassword = Environment.GetEnvironmentVariable("DB_SA_PASSWORD");
-
-            var connectionString = $"Data Source={dbHost};Initial Catalog={dbName};User ID=sa;Password={dbPassword};TrustServerCertificate=True";
+            var dbName = Environment.GetEnvironmentVariable("DB_NAME"); 
+            var dbUserUsername = Environment.GetEnvironmentVariable("DB_SQLUSER");
+            var dbUserPassword = Environment.GetEnvironmentVariable("DB_SQLUSER_PASSWORD");
+            var connectionString = $"Data Source={dbHost};Initial Catalog={dbName};User ID={dbUserUsername};Password={dbUserPassword};TrustServerCertificate=True";
             optionsBuilder.UseSqlServer(connectionString);
         }
         else
