@@ -15,15 +15,9 @@ public partial class AuditLog
 
     public string Operacion { get; set; } = null!;
 
-    public int RegistroId { get; set; }
-
-    public string? Campo { get; set; }
-
     public string? ValorAnterior { get; set; }
 
     public string? ValorNuevo { get; set; }
 
     public string? IpAddress { get; set; }
-
-    public string? Descripcion { get; set; }
 }

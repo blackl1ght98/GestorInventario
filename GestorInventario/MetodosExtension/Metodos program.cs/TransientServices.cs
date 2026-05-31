@@ -68,7 +68,7 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<IPayPalMappingUtils, PayPalMappingUtils>();
             services.AddTransient<IPaypalOrderService, PaypalOrderService>();
             services.AddTransient<IPaypalSubscriptionService, PaypalSubscriptionService>();
-            services.AddTransient<IAuditService, AuditService>();
+       
             services.AddTransient<IUserManagementService,UserManagementService>();
             services.AddTransient<IPasswordResetService, PasswordResetService>();
             services.AddTransient<IProductManagementService, ProductManagementService>();

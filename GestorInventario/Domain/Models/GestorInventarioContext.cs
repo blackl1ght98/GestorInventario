@@ -15,8 +15,6 @@ public partial class GestorInventarioContext : DbContext
     {
     }
 
-    public virtual DbSet<AuditLog> AuditLogs { get; set; }
-
     public virtual DbSet<DetallePedido> DetallePedidos { get; set; }
 
     public virtual DbSet<Monedum> Moneda { get; set; }
@@ -47,7 +45,6 @@ public partial class GestorInventarioContext : DbContext
 
     public virtual DbSet<Usuario> Usuarios { get; set; }
 
-
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER") == "true";
@@ -55,7 +52,7 @@ public partial class GestorInventarioContext : DbContext
         if (isDocker)
         {
             var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
-            var dbName = Environment.GetEnvironmentVariable("DB_NAME"); 
+            var dbName = Environment.GetEnvironmentVariable("DB_NAME");
             var dbUserUsername = Environment.GetEnvironmentVariable("DB_SQLUSER");
             var dbUserPassword = Environment.GetEnvironmentVariable("DB_SQLUSER_PASSWORD");
             var connectionString = $"Data Source={dbHost};Initial Catalog={dbName};User ID={dbUserUsername};Password={dbUserPassword};TrustServerCertificate=True";
@@ -68,28 +65,9 @@ public partial class GestorInventarioContext : DbContext
             optionsBuilder.UseSqlServer(connectionString);
         }
     }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<AuditLog>(entity =>
-        {
-            entity.ToTable("AuditLog");
-
-            entity.Property(e => e.Campo)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.Descripcion).HasMaxLength(500);
-            entity.Property(e => e.Fecha).HasDefaultValueSql("(getutcdate())");
-            entity.Property(e => e.IpAddress)
-                .HasMaxLength(45)
-                .IsUnicode(false);
-            entity.Property(e => e.Operacion)
-                .HasMaxLength(20)
-                .IsUnicode(false);
-            entity.Property(e => e.Tabla)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-        });
-
         modelBuilder.Entity<DetallePedido>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__DetalleP__3214EC07A64B3C50");

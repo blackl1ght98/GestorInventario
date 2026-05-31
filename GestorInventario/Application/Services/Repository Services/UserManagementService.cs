@@ -20,13 +20,14 @@ namespace GestorInventario.Application.Services.User
         private readonly IMapper _mapper;
         private readonly ILogger<UserManagementService> _logger;
         private readonly IAdminRepository _adminRepository;
-      
+   
         public UserManagementService(
             IUserRepository usuarioRepository,
             IHashService hashService,
             IEmailService emailService,
             IMapper mapper,
             IAdminRepository admin,
+          
             ILogger<UserManagementService> logger)
         {
             _usuarioRepository = usuarioRepository;
@@ -35,6 +36,7 @@ namespace GestorInventario.Application.Services.User
             _mapper = mapper;
             _logger = logger;
             _adminRepository = admin;
+           
         }
 
         public async Task<OperationResult<string>> CrearUsuarioAsync(UserViewModel model)
@@ -51,7 +53,6 @@ namespace GestorInventario.Application.Services.User
             var resultadoGuardado = await _usuarioRepository.AgregarUsuarioAsync(usuarioEf);
             if (!resultadoGuardado.Success)
                 return OperationResult<string>.Fail(resultadoGuardado.Message);
-
             var correo = await _emailService.SendEmailAsyncRegister(
                 new EmailDto { ToEmail = model.Email }, usuarioEf.Id);
 
