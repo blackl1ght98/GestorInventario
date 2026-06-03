@@ -6,7 +6,7 @@ using System.Text;
 
 namespace GestorInventario.Configuracion.Strategies
 {
-    public class SymmetricAuthenticationStrategy : IAuthenticationStrategy
+    public class SymmetricAuthenticationStrategy : IConfigurationAuthenticationStrategy
     {
         public IServiceCollection ConfigureAuthentication(IServiceCollection services, IConfiguration configuration)
         {

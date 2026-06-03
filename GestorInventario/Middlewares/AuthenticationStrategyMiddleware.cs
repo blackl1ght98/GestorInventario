@@ -11,11 +11,11 @@ namespace GestorInventario.Middlewares
      delegando toda la lógica específica a la implementación de estrategia inyectada.
      
      */
-    public class AuthProcessor
+    public class AuthenticationStrategyMiddleware
     {
-        private IAuthProcessingStrategy _strategy;
+        private IAuthenticationMiddlewareStrategy _strategy;
 
-        public AuthProcessor(IAuthProcessingStrategy strategy)
+        public AuthenticationStrategyMiddleware(IAuthenticationMiddlewareStrategy strategy)
         {
             _strategy = strategy;
         }

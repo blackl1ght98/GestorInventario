@@ -17,16 +17,15 @@ namespace GestorInventario.Application.Services.Common
     {
         private readonly IPaypalRepository _paypalRepository;
         private readonly ILogger<PaypalService> _logger;
-        private readonly IPedidoRepository _pedidoRepository;
-        private readonly IEmailService _emailService;
+        private readonly IPedidoRepository _pedidoRepository;  
         private readonly ICurrentUserAccessor _currentUserAccessor;
        
-        public PaypalService(IPaypalRepository paypalRepository, ILogger<PaypalService> logger, IPedidoRepository pedido, IEmailService email, ICurrentUserAccessor currentUserAccessor)
+        public PaypalService(IPaypalRepository paypalRepository, ILogger<PaypalService> logger, IPedidoRepository pedido,  ICurrentUserAccessor currentUserAccessor)
         {
             _paypalRepository = paypalRepository;
             _logger = logger;
             _pedidoRepository = pedido;
-            _emailService = email;
+           
             _currentUserAccessor = currentUserAccessor;
         }
        
@@ -47,58 +46,7 @@ namespace GestorInventario.Application.Services.Common
         }
       
   
-        public async Task<OperationResult<string>> EnviarEmailNotificacionRembolso(int pedidoId, decimal montoReembolsado, string motivo)
-        {
-            try
-            {
-                var pedido = await _pedidoRepository.ObtenerPedidoConDetallesAsync(pedidoId);
-
-                if (pedido == null)
-                {
-                    _logger.LogWarning("No se encontró el pedido con ID {PedidoId}", pedidoId);
-                    return OperationResult<string>.Fail("Pedido no encontrado");
-                }
-
-                var usuarioPedido = pedido.IdUsuarioNavigation?.Email ?? "Email no disponible";
-                var nombreCliente = pedido.IdUsuarioNavigation?.NombreCompleto ?? "Cliente";
-
-                // Extraer la lista de productos con detalles
-                var productosConDetalles = pedido.DetallePedidos?
-                    .Select(detalle => new PayPalPaymentItem
-                    {
-                        ItemName = detalle.Producto?.NombreProducto ?? "N/A",
-                        ItemQuantity = detalle.Cantidad ?? 0,
-                        ItemPrice = detalle.Producto?.Precio ?? 0,
-                        ItemCurrency = pedido.Currency ?? "N/A",
-                        ItemSku = detalle.Producto?.Descripcion ?? "N/A"
-                    })
-                    .ToList() ?? new List<PayPalPaymentItem>();
-
-                // Crear DTO para el correo
-                var correo = new EmailReembolsoAprobadoDto
-                {
-                    NumeroPedido = pedido.NumeroPedido,
-                    NombreCliente = nombreCliente,
-                    EmailCliente = usuarioPedido,
-                    FechaRembolso = DateTime.UtcNow,
-                    CantidadADevolver = montoReembolsado,
-                    MotivoRembolso = motivo,
-                    Productos = productosConDetalles
-                };
-
-                // Enviar el correo
-                await _emailService.EnviarNotificacionReembolsoAsync(correo);
-                return OperationResult<string>.Ok("Correo de notificación de reembolso enviado correctamente");
-
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al enviar notificación de reembolso para el pedido ID {PedidoId}", pedidoId);
-                return OperationResult<string>.Fail("Error al enviar el correo");
-
-            }
-        }
-
+     
         public async Task RegistrarReembolsoParcialAsync(int pedidoId, int detalleId, string refundId, decimal montoReembolsado, string motivo, string estadoVenta)
         {
 
@@ -160,17 +108,13 @@ namespace GestorInventario.Application.Services.Common
         }
         public async Task UpdatePlanStatusAsync(string planId, string status)
         {
-            
-                var planDetails = await _paypalRepository.ObtenerPlanPorIdAsync(planId);
-                if (planDetails != null)
-                {
-                    planDetails.Status = status;
-                    await _paypalRepository.ActualizarPlanAsync(planDetails);
+            var planDetails = await _paypalRepository.ObtenerPlanPorIdAsync(planId);
+            if (planDetails != null)
+            {
+                planDetails.Status = status;
+                await _paypalRepository.ActualizarPlanAsync(planDetails);
 
-                }
-         
-
-
+            }
         }
         public async Task SavePlanPriceUpdateAsync(string planId, UpdatePricingPlanDto planPriceUpdate)
         {

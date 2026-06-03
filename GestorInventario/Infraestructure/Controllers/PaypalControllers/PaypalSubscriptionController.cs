@@ -82,12 +82,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                     return RedirectToAction("Error", "Home");
                 }
 
-                var existeUsuario = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (!int.TryParse(existeUsuario, out int usuarioId))
-                {
-                    TempData["ErrorMessage"] = "No se pudo identificar al usuario.";
-                    return RedirectToAction("Error", "Home");
-                }
+                int usuarioId =  _currentUserAccessor.GetCurrentUserId();
 
                 var subscriptionDetails = await _policyExecutor.ExecutePolicyAsync(() => _paypalSubscriptionService.ObtenerDetallesSuscripcion(subscription_id));
                 if (!subscriptionDetails.Success)
@@ -101,7 +96,6 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
 
                 var detallesSuscripcion = await _paypalSubscriptionDetailService.CreateSubscriptionDetailAsync(subscriptionDetails.Data, planId);
 
-                await _paypalService.SaveOrUpdateSubscriptionDetailsAsync(detallesSuscripcion);
                 await _paypalService.SaveUserSubscriptionAsync(usuarioId, subscription_id, detallesSuscripcion.SubscriberName, detallesSuscripcion.PlanId);
 
                 TempData["SuccessMessage"] = "¡Suscripción confirmada con éxito!";

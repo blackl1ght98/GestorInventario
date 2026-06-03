@@ -10,7 +10,7 @@ namespace GestorInventario.Configuracion
     /// </summary>
     public static class AuthenticationConfigurationStrategyFactory
     {
-        public static IAuthenticationStrategy CreateAuthenticationStrategy(string authMode)
+        public static IConfigurationAuthenticationStrategy Create(string authMode)
         {
 
             return authMode switch

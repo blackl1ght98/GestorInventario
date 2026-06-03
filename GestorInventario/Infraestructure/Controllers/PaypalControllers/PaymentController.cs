@@ -21,7 +21,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
         private readonly ICurrentUserAccessor _currentUserAccessor;     
         private readonly IPedidoManagementService _pedidoService;
         private readonly IPaymentService _paymentService;
-        private readonly GestorInventarioContext _context;
+      
      
         public PaymentController(
             ILogger<PaymentController> logger,   
@@ -29,8 +29,8 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
             IPolicyExecutor policyExecutor, 
             IPaypalOrderService paypalOrderService,     
             IPedidoManagementService pedidoService, 
-            IPaymentService paymentService,
-            GestorInventarioContext context
+            IPaymentService paymentService
+          
            )
         {
             _logger = logger;           
@@ -39,7 +39,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
             _currentUserAccessor = currentUser;  
             _pedidoService = pedidoService;
             _paymentService = paymentService;
-            _context = context;
+            
            
            
         }

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace GestorInventario.Configuracion.Strategies
 {
-    public class AsymmetricDynamicAuthenticationStrategy : IAuthenticationStrategy
+    public class AsymmetricDynamicAuthenticationStrategy : IConfigurationAuthenticationStrategy
     {
         public IServiceCollection ConfigureAuthentication(IServiceCollection services, IConfiguration configuration)
         {

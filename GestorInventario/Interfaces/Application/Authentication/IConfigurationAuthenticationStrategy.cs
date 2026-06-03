@@ -1,6 +1,6 @@
 ﻿namespace GestorInventario.Interfaces.Application
 {
-    public interface IAuthenticationStrategy
+    public interface IConfigurationAuthenticationStrategy
     {
         IServiceCollection ConfigureAuthentication(IServiceCollection services, IConfiguration configuration);
     }

@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 
 namespace GestorInventario.Configuracion.Strategies
 {
-    public class AsymmetricFixedAuthenticationStrategy : IAuthenticationStrategy
+    public class AsymmetricFixedAuthenticationStrategy : IConfigurationAuthenticationStrategy
     {
         public IServiceCollection ConfigureAuthentication(IServiceCollection services, IConfiguration configuration)
         {

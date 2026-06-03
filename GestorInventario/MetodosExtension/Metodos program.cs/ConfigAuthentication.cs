@@ -7,7 +7,7 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
     {
         public static IServiceCollection ConfigureAuthentication(this IServiceCollection services,IConfiguration configuration, string authStrategy)
         {
-            IAuthenticationStrategy strategy = AuthenticationConfigurationStrategyFactory.CreateAuthenticationStrategy(authStrategy);
+            IConfigurationAuthenticationStrategy strategy = AuthenticationConfigurationStrategyFactory.Create(authStrategy);
 
             var configurator = new AuthenticationConfigurator(strategy);
             configurator.Configure(services, configuration);

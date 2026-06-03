@@ -7,7 +7,7 @@ using System.Security.Cryptography;
 
 namespace GestorInventario.Middlewares.Strategis
 {
-    public class FixedAsymmetricAuthStrategy : IAuthProcessingStrategy
+    public class FixedAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
     {
       
 

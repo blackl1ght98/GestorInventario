@@ -7,7 +7,7 @@ using System.Text;
 
 namespace GestorInventario.Middlewares.Strategis
 {
-    public class SymmetricAuthStrategy : IAuthProcessingStrategy
+    public class SymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
     {
       
 

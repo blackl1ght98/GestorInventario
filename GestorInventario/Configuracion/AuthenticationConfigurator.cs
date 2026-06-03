@@ -4,9 +4,9 @@ namespace GestorInventario.Configuracion
 {
     public class AuthenticationConfigurator
     {
-        private readonly IAuthenticationStrategy _strategy;
+        private readonly IConfigurationAuthenticationStrategy _strategy;
 
-        public AuthenticationConfigurator(IAuthenticationStrategy strategy)
+        public AuthenticationConfigurator(IConfigurationAuthenticationStrategy strategy)
         {
             _strategy = strategy;
         }

@@ -28,7 +28,7 @@ namespace GestorInventario.Middlewares.Strategis
     /// 2. Si está expirado → intenta refresh
     /// 3. Si refresh también falla → borra cookies y redirige a login
     /// </summary>
-    public class DynamicAsymmetricAuthStrategy : IAuthProcessingStrategy
+    public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
     {
         public async Task ProcessAuthentication(HttpContext context, Func<Task> next)
         {
