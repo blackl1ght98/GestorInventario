@@ -67,7 +67,7 @@ namespace GestorInventario.Application.Services.Generic_Services
 
             // 3. Preparar checkout (calcula subtotal, iva, total)
             moneda = string.IsNullOrEmpty(moneda) ? "EUR" : moneda;
-            var checkout = await PrepararCheckoutParaPagoPayPal(itemsDelCarrito, moneda, infoUsuario);
+            var checkout = await PrepararCheckoutParaPagoPayPal(itemsDelCarrito, moneda, infoUsuario, carrito.Id);
 
             // 4. ✅ Convertir carrito a pedido PERSISTIENDO los totales calculados
             await ConvertirCarritoAPedido(carrito, checkout);
@@ -80,6 +80,49 @@ namespace GestorInventario.Application.Services.Generic_Services
 
             // 6. Limpiar
             await EliminarCarritosVaciosUsuario(userId);
+
+            return OperationResult<string>.Ok(
+                "Redirigiendo a PayPal para completar el pago",
+                approvalUrl.Data);
+        }
+        public async Task<OperationResult<string>> ReintentarPago(int pedidoId)
+        {
+     
+            var pedido = await _unitOfWork.PedidoRepository.ObtenerPedidoPorIdAsync(pedidoId);
+            if (pedido == null)
+                return OperationResult<string>.Fail("Pedido no encontrado.");
+
+            if (pedido.EstadoPedido != EstadoPedido.Pendiente.ToString())
+                return OperationResult<string>.Fail("El pedido no está pendiente de pago.");
+
+            
+            var itemsPedido = await _unitOfWork.PedidoRepository.ObtenerDetallesPedidoAsync(pedidoId);
+            if (!itemsPedido.Any())
+                return OperationResult<string>.Fail("El pedido no tiene items.");
+
+         
+            var result = await ValidarUsuarioYObtenerInfo();
+            if (!result.Success)
+                return OperationResult<string>.Fail(result.Message);
+
+         
+            var checkout = await PrepararCheckoutParaPagoPayPal(
+                itemsPedido,
+                pedido.Currency ?? "EUR",
+                result.Data,pedidoId);
+
+         
+            checkout.Subtotal = pedido.Subtotal;
+            checkout.Iva = pedido.Iva;
+            checkout.TotalAmount = pedido.Total;
+           
+
+          
+            var approvalUrl = await ProcesarPagoPayPal(checkout);
+            if (!approvalUrl.Success)
+                return OperationResult<string>.Fail(approvalUrl.Message);
+
+           
 
             return OperationResult<string>.Ok(
                 "Redirigiendo a PayPal para completar el pago",
@@ -147,7 +190,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                 carrito.EsCarrito = false;
                 carrito.NumeroPedido = GenerarNumPedido.GenerarNumeroPedido();
                 carrito.FechaPedido = DateTime.Now;
-                carrito.EstadoPedido = EstadoPedido.En_Proceso.ToString();
+                carrito.EstadoPedido = EstadoPedido.Pendiente.ToString();
 
                 carrito.Subtotal = checkout.Subtotal;
                 carrito.Iva = checkout.Iva;
@@ -169,7 +212,8 @@ namespace GestorInventario.Application.Services.Generic_Services
         private async Task<CheckoutDto> PrepararCheckoutParaPagoPayPal(
          List<DetallePedido> itemsDelCarrito,
          string moneda,
-         InfoUsuarioDto infoUsuario)
+         InfoUsuarioDto infoUsuario,
+         int? pedidoId = null)
         {
             var items = new List<ItemModelDto>();
             var lineasParaCalculo = new List<(decimal precio, int cantidad)>();
@@ -198,7 +242,7 @@ namespace GestorInventario.Application.Services.Generic_Services
 
             var (subtotal, iva, total) = CalculadoraFiscal.CalcularTotales(lineasParaCalculo);
 
-            string returnUrl = ObtenerReturnUrl();
+            string returnUrl = ObtenerReturnUrl(pedidoId);
             string cancelUrl = "https://localhost:7056/Payment/Cancel";
 
             return new CheckoutDto
@@ -218,14 +262,25 @@ namespace GestorInventario.Application.Services.Generic_Services
                 Line2 = infoUsuario.Line2
             };
         }
-        private string ObtenerReturnUrl()
+        private string ObtenerReturnUrl(int? pedidoId = null)
         {
             var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER") == "true";
             var configKey = isDocker ? "Paypal:returnUrlConDocker" : "Paypal:returnUrlSinDocker";
             var envVarKey = isDocker ? "Paypal_returnUrlConDocker" : "Paypal_returnUrlSinDocker";
 
             var returnUrl = _configuration[configKey] ?? Environment.GetEnvironmentVariable(envVarKey);
-            return returnUrl ?? throw new InvalidOperationException($"La URL de retorno no está configurada. Verifique la clave '{configKey}' o la variable de entorno '{envVarKey}'.");
+
+            if (string.IsNullOrEmpty(returnUrl))
+                throw new InvalidOperationException($"La URL de retorno no está configurada. Verifique la clave '{configKey}' o la variable de entorno '{envVarKey}'.");
+
+            // ⬇️ Inyecta el pedidoId si viene
+            if (pedidoId.HasValue)
+            {
+                var separador = returnUrl.Contains("?") ? "&" : "?";
+                returnUrl = $"{returnUrl}{separador}pedidoId={pedidoId.Value}";
+            }
+
+            return returnUrl;
         }
         private async Task<OperationResult<string>> ProcesarPagoPayPal(CheckoutDto checkout)
         {
@@ -318,5 +373,6 @@ namespace GestorInventario.Application.Services.Generic_Services
 
         }
        
+
     }
 }

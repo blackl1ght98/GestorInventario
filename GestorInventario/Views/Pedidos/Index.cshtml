@@ -145,7 +145,12 @@
                                         }
                                         else
                                         {
-                                            <span class="text-muted">Sin información de pago</span>
+                                            <a asp-action="ReintentarPago" 
+                                               asp-controller="Payment" 
+                                               asp-route-pedidoId="@pedido.Id" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-credit-card me-1"></i> Completar pago
+                                            </a>    
                                         }
                                           
                                         

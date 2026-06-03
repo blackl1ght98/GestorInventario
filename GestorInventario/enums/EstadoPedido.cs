@@ -12,6 +12,8 @@ namespace GestorInventario.enums
 
         [Display(Name = "En Proceso")]
         En_Proceso,
+        [Display(Name = "Pendiente de pago")]
+        Pendiente,
 
         [Display(Name = "Rembolsado")]
         Rembolsado,

@@ -49,7 +49,7 @@ namespace GestorInventario.Infraestructure.Controllers.PedidosControllers
             try
             {
                 var usuarioId = _currentUserAccessor.GetCurrentUserId();
-               // await _paymentService.LimpiarPedidoCorruptoUsuarioAsync(usuarioId);
+           
                 var pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidos());
                 if (User.IsAdministrador())
                 {

@@ -55,6 +55,10 @@
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index" data-bs-toggle="tooltip" title="Página principal"><i class="bi bi-house nav-icon"></i> Inicio</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="DashBoard" data-bs-toggle="tooltip" title="Página principal"><i class="bi bi-house nav-icon"></i> Dashboard</a>
+                        </li>
+                        
                         @if (User.IsInRole("Administrador"))
                         {
                             <li class="nav-item dropdown">

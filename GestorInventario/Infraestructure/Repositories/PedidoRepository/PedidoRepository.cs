@@ -28,16 +28,22 @@ namespace GestorInventario.Infraestructure.Repositories.PedidoRepository
             var numeroPedido = await _context.Pedidos.Include(x=>x.PayPalPaymentCaptures).FirstOrDefaultAsync(p => p.NumeroPedido == form.NumeroPedido);    
             return  numeroPedido;
         }
-        public async Task<Pedido?> ObtenerPedidoEnProcesoUsuarioAsync(int usuarioId)
+        public async Task<Pedido?> ObtenerPedidoPendienteUsuarioAsync(int usuarioId)
         {
             return await _context.Pedidos
                 .Where(p => p.IdUsuario == usuarioId &&
-                            p.EstadoPedido == EstadoPedido.En_Proceso.ToString())
+                            p.EstadoPedido == EstadoPedido.Pendiente.ToString())
                 .OrderByDescending(p => p.FechaPedido)
                 
                 .FirstOrDefaultAsync();
         }
-       
+        public async Task<List<DetallePedido>> ObtenerDetallesPedidoAsync(int pedidoId)
+        {
+            return await _context.DetallePedidos
+                .Where(d => d.PedidoId == pedidoId)
+                .Include(d => d.Producto)  
+                .ToListAsync();
+        }
         public IQueryable<Pedido> ObtenerPedidos()=>
             from p in _context.Pedidos.Include(dp => dp.DetallePedidos).ThenInclude(p => p.Producto).Include(u => u.IdUsuarioNavigation).Include(x=>x.PayPalPaymentCaptures)
             select p;

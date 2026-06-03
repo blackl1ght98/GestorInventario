@@ -12,8 +12,9 @@ namespace GestorInventario.Interfaces.Infraestructure.Repositories
         Task<Pedido> ObtenerPedidoConRembolso(int id);      
         Task<Pedido> ObtenerPedidoConDetallesAsync(int id);
         Task<Pedido> ObtenerPedidoPorIdAsync(int id);
-        Task<Pedido?> ObtenerPedidoEnProcesoUsuarioAsync(int usuarioId);
+        Task<Pedido?> ObtenerPedidoPendienteUsuarioAsync(int usuarioId);
         Task<Pedido> ObtenerNumeroPedido(RefundFormViewModel form);
+        Task<List<DetallePedido>> ObtenerDetallesPedidoAsync(int pedidoId);
         //Excepciones en consultas uso de OperationResult por complejidad
         Task<OperationResult<( string captureId, string currency, decimal subtotal, decimal iva, decimal total)>> GetPedidoWithDetailsAsync(int pedidoId);
         Task<OperationResult<(int idPedido, string captureId, decimal precioProducto, string paymentId, string currency, int detalleId)>> GetProductoDePedidoAsync(int detallePedidoId);
@@ -26,5 +27,8 @@ namespace GestorInventario.Interfaces.Infraestructure.Repositories
         Task<OperationResult<DetallePedido>> EliminarDetallePedidoAsync(DetallePedido pedido);
         Task<OperationResult<DetallePedido>> AgregarDetallePedidoAsync(DetallePedido detalle); 
         Task<OperationResult<string>> EliminarPedidoAsync(Pedido pedido);
+     
+
+
     }
 }

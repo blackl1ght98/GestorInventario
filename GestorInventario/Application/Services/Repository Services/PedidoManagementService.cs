@@ -228,7 +228,7 @@ namespace GestorInventario.Application.Services.Generic_Services
             }
 
             // 2. Buscar pedido
-            var pedido = await _pedidoRepository.ObtenerPedidoEnProcesoUsuarioAsync(usuarioActual);
+            var pedido = await _pedidoRepository.ObtenerPedidoPendienteUsuarioAsync(usuarioActual);
             if (pedido == null)
             {
                 _logger.LogWarning("No se encontró pedido...");
@@ -268,7 +268,7 @@ namespace GestorInventario.Application.Services.Generic_Services
 
             await _payment.AgregarCaptureAsync(capturePayment);
 
-            // 5. Actualizar pedido (legacy por ahora)
+            // 5. Actualizar pedido 
             pedido.Total = total;
             pedido.Currency = currency;
             pedido.EstadoPedido = EstadoPedido.Pagado.ToString();
