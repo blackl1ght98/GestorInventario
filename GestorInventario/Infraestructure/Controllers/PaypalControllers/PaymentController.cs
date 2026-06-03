@@ -43,12 +43,8 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
            
            
         }
-        /**
-         Metodo en el que entra para capturar el pago, si el usuario cancela el pago para pagar despues se hace
-         uso del parametro pedidoId para obtener la id desde la url este parametro lo ponemos nosotros en el metodo
-         ObtenerReturnUrl() de PaymentService.       
-         */
-        public async Task<IActionResult> Success(string token=null, int? pedidoId = null)
+        
+        public async Task<IActionResult> Success(string token=null)
         {
             try
             {
@@ -63,18 +59,16 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
 
                var usuarioActual = _currentUserAccessor.GetCurrentUserId();
  
-               var pedido =  await _pedidoService.ConfirmarPagoDelPedidoAsync(usuarioActual,captureId,total,currency,orderId);
-               if(pedido.Data != null)
+               var result = await _pedidoService.ConfirmarPagoDelPedidoAsync(usuarioActual,captureId,total,currency,orderId);
+                if (result.Success)
                 {
-                    return RedirectToAction("DetallesPagoEjecutado", "Pagos", new { id = orderId, pedidoId = pedido.Data.Id });
+                    return RedirectToAction("Index", "Pedidos");
                 }
                 else
                 {
-                    return RedirectToAction("DetallesPagoEjecutado", "Pagos", new { id = orderId, pedidoId = pedidoId });
+                    return RedirectToAction("Error", "Home");
                 }
-
-
-               
+                    
             }
             catch (Exception ex)
             {
