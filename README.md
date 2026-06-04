@@ -180,7 +180,7 @@ Luego, agrega los siguientes valores en formato JSON:
 ## Modificación del archivo GestorInventarioContext.cs 
 Una vez que hemos ejecutado el comando que realiza el scaffold tenemos  que poner esto y sobrescribir el valor que haya en el metodo **OnConfiguring**
 ```csharp
-  protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+   protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
  {
      var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER") == "true";
 
@@ -188,15 +188,15 @@ Una vez que hemos ejecutado el comando que realiza el scaffold tenemos  que pone
      {
          var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
          var dbName = Environment.GetEnvironmentVariable("DB_NAME");
-         var dbPassword = Environment.GetEnvironmentVariable("DB_SA_PASSWORD");
-
-         var connectionString = $"Data Source={dbHost};Initial Catalog={dbName};User ID=sa;Password={dbPassword};TrustServerCertificate=True";
+         var dbUserUsername = Environment.GetEnvironmentVariable("DB_SQLUSER");
+         var dbUserPassword = Environment.GetEnvironmentVariable("DB_SQLUSER_PASSWORD");
+         var connectionString = $"Data Source={dbHost};Initial Catalog={dbName};User ID={dbUserUsername};Password={dbUserPassword};TrustServerCertificate=True";
          optionsBuilder.UseSqlServer(connectionString);
      }
      else
      {
          // Cadena de conexión en duro para entorno local
-         var connectionString = "Data Source=GUILLERMO\\SQLEXPRESS;Initial Catalog=GestorInventario;User ID=sa;Password=SQL#1234;TrustServerCertificate=True";
+         var connectionString = "Data Source=DESKTOP-GN4VRAH\\SQLEXPRESS;Initial Catalog=GestorInventario;User ID=sqluser;Password=12345678SQL#1234;TrustServerCertificate=True";
          optionsBuilder.UseSqlServer(connectionString);
      }
  }
