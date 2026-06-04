@@ -223,14 +223,14 @@ namespace GestorInventario.Middlewares.Strategis
 
             logger.Info($"Nuevos tokens generados para el usuario {userId}.");
         }
-        //Metodo encargado de recuperar las claves de la memoria
+      
         // Metodo encargado de recuperar las claves de la memoria
         public static async Task<(RSAParameters?, string?)> RetrieveKeys(
             string kid,
             IDistributedCache? redis,
             IMemoryCache? memoryCache,
             bool useRedis,
-            IEncryptionService encryptionService)   // ← Añade este parámetro
+            IEncryptionService encryptionService)   
         {
             string? encryptedPrivateBase64 = null;
             string? encryptedAesKeyBase64 = null;

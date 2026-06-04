@@ -60,10 +60,11 @@ namespace GestorInventario.Infraestructure.Repositories.PedidoRepository
               .Include(p => p.DetallePedidos)
                   .ThenInclude(dp => dp.Producto)
               .Include(p => p.IdUsuarioNavigation)
+               .Include(p=>p.PayPalPaymentCaptures)
               .FirstOrDefaultAsync(m => m.Id == id);
         public async Task<Pedido> ObtenerPedidoPorIdAsync(int id) => await _context.Pedidos.FirstOrDefaultAsync(x => x.Id == id);
         public async Task<Pedido> ObtenerPedidoConRembolso(int id) => await _context.Pedidos.Include(p => p.DetallePedidos).Include(x => x.Rembolsos).FirstOrDefaultAsync(m => m.Id == id);
-        public async Task<OperationResult<( string captureId, string currency, decimal subtotal, decimal iva, decimal total)>>
+        public async Task<OperationResult<( string captureId, string currency, decimal subtotal, decimal iva, decimal total, int pedidoId, string numeroPedido)>>
     GetPedidoWithDetailsAsync(int pedidoId)
         {
             // ✅ Ya no necesitamos Include de detalles/productos para los totales
@@ -71,17 +72,18 @@ namespace GestorInventario.Infraestructure.Repositories.PedidoRepository
                 .FirstOrDefaultAsync(p => p.Id == pedidoId);
             var capture = pedido.PayPalPaymentCaptures?.FirstOrDefault();
             var captureId = capture?.CaptureId;
+            string numeroPedido= pedido.NumeroPedido;
             if (pedido == null)
-                return OperationResult<(string, string, decimal, decimal, decimal)>.Fail(
+                return OperationResult<(string, string, decimal, decimal, decimal,int,string)>.Fail(
                     "Pedido no encontrado o CaptureId no disponible.");
 
             if (string.IsNullOrEmpty(pedido.Currency))
-                return OperationResult<( string, string, decimal, decimal, decimal)>.Fail(
+                return OperationResult<( string, string, decimal, decimal, decimal,int,string)>.Fail(
                     "El código de moneda no está definido.");
 
             // ✅ Usar los totales que persistimos al crear el pedido
-            return OperationResult<(string, string, decimal, decimal, decimal)>.Ok("",
-                ( captureId, pedido.Currency, pedido.Subtotal, pedido.Iva, pedido.Total));
+            return OperationResult<(string, string, decimal, decimal, decimal,int,string)>.Ok("",
+                ( captureId, pedido.Currency, pedido.Subtotal, pedido.Iva, pedido.Total,pedidoId,numeroPedido));
         }
 
         public async Task<OperationResult<(int idPedido, string captureId, decimal precioProducto, string paymentId, string currency, int detalleId)>> GetProductoDePedidoAsync(int detallePedidoId)
@@ -117,37 +119,7 @@ namespace GestorInventario.Infraestructure.Repositories.PedidoRepository
             }
         }
 
-        public async Task<OperationResult<(Pedido pedido, List<DetallePedido> detalles)>> GetPedidoConDetallesAsync(int pedidoId)
-        {
-            try
-            {
-                var pedido = await _context.Pedidos
-                    .Include(p => p.DetallePedidos)
-                    
-                    .ThenInclude(d => d.Producto)
-                    .Include(p => p.PayPalPaymentCaptures)
-                    .FirstOrDefaultAsync(p => p.Id == pedidoId);
-
-                if (pedido == null)
-                {
-                    _logger.LogWarning("Pedido {PedidoId} no encontrado o sin SaleId", pedidoId);
-                    return OperationResult<(Pedido, List<DetallePedido>)>.Fail("Pedido no encontrado o SaleId no disponible.");
-                }
-
-                if (string.IsNullOrEmpty(pedido.Currency))
-                {
-                    _logger.LogWarning("Pedido {PedidoId} sin moneda definida", pedidoId);
-                    return OperationResult<(Pedido, List<DetallePedido>)>.Fail("El código de moneda no está definido.");
-                }
-
-                return OperationResult<(Pedido, List<DetallePedido>)>.Ok("", (pedido, pedido.DetallePedidos?.ToList() ?? new List<DetallePedido>()));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al obtener el pedido {PedidoId}", pedidoId);
-                return OperationResult<(Pedido, List<DetallePedido>)>.Fail("Error inesperado al obtener el pedido");
-            }
-        }
+       
      
         public async Task<OperationResult<Pedido>> AgregarPedidoAsync(Pedido pedido)
         {

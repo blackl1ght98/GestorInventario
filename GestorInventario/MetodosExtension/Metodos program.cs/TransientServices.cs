@@ -67,8 +67,7 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<CultureHelper>();
             services.AddTransient<IPayPalMappingUtils, PayPalMappingUtils>();
             services.AddTransient<IPaypalOrderService, PaypalOrderService>();
-            services.AddTransient<IPaypalSubscriptionService, PaypalSubscriptionService>();
-       
+            services.AddTransient<IPaypalSubscriptionService, PaypalSubscriptionService>();     
             services.AddTransient<IUserManagementService,UserManagementService>();
             services.AddTransient<IPasswordResetService, PasswordResetService>();
             services.AddTransient<IProductManagementService, ProductManagementService>();
@@ -82,8 +81,7 @@ namespace GestorInventario.MetodosExtension.Metodos_program.cs
             services.AddTransient<ISyncService,SyncService>();
             services.AddTransient<IReembolsoNotificationService, ReembolsoNotificationService>();
             services.AddTransient<IBackgroundTaskQueue, BackgroundTaskQueue>();
-            services.AddTransient<IPaypalPartialRefundService, PaypalPartialRefundService>();
-            services.AddTransient<IPaypalFullRefundService, PaypalFullRefundService>();
+            services.AddTransient<IPaypalRefundService, PaypalRefundService>();
             return services;
 
         }

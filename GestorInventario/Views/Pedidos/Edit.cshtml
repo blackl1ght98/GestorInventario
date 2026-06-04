@@ -19,11 +19,7 @@
         }
         <form asp-action="Edit" asp-controller="Pedidos" method="post">
             <input type="hidden" asp-for="Id" />
-            <div class="form-group mb-3">
-                <label asp-for="FechaPedido" class="form-label">Fecha del Pedido</label>
-                <input type="date" class="form-control" asp-for="FechaPedido" id="FechaPedido" />
-                <span asp-validation-for="FechaPedido" class="text-danger"></span>
-            </div>
+           
             <select asp-for="EstadoPedido" class="form-select">
                 @foreach (var value in Enum.GetValues(typeof(EstadoPedido)))
                 {

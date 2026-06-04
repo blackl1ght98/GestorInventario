@@ -1,106 +1,85 @@
-﻿using GestorInventario.Application.DTOS.Paypal.Requests.POST;
+﻿using GestorInventario.Application.DTOS.Paypal;
+using GestorInventario.Application.DTOS.Paypal.Requests.POST;
 using GestorInventario.Domain.Models;
 using GestorInventario.enums;
-using GestorInventario.Infraestructure.Repositories;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.ExternalServices;
-using GestorInventario.Interfaces.Infraestructure.Repositories;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
 
+namespace GestorInventario.Application.Services.External_Sevices;
 
-
-namespace GestorInventario.Application.Services
+public class PaypalOrderTrackingService : IPaypalOrderTrackingService
 {
-    public class PaypalOrderTrackingService : IPaypalOrderTrackingService
-    {       
-        private readonly ILogger<PaypalOrderTrackingService> _logger;
-        private readonly IPayPalHttpClient _paypal;
-        private readonly IPedidoRepository _pedidoRepository;
-        public PaypalOrderTrackingService( ILogger<PaypalOrderTrackingService> logger,   
-           IPayPalHttpClient paypal,  IPedidoRepository pedido)
-        {                
-            _logger = logger;                          
-            _paypal = paypal;    
-            _pedidoRepository=pedido;
-        }
+    private readonly ILogger<PaypalOrderTrackingService> _logger;
+    private readonly IPayPalHttpClient _paypal;
 
-        #region Seguimiento pedido
-        public async Task<OperationResult<(int pedidoId,string trackingNumber, string trackingURL,string carrier)>> SeguimientoPedido(int pedidoId, Carrier carrier, BarcodeType barcode)
-        {
-            try
-            {
-                var pedido = await _pedidoRepository.GetPedidoConDetallesAsync(pedidoId);
-                var capture = pedido.Data.pedido.PayPalPaymentCaptures?.FirstOrDefault();
-                if (pedido == null || pedido.Data.detalles == null)
-                {
-                    throw new Exception("No se pudo obtener la información completa del pedido.");
-                }
-                var trackingInfo = CrearTrackingInfo(pedido.Data.pedido, pedido.Data.detalles, carrier, barcode);
-                var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
-                HttpMethod.Post,
-                $"v2/checkout/orders/{capture.PaymentId}/track",
-                trackingInfo,
-               async resp =>
-               {
-                   var errBody = await resp.Content.ReadAsStringAsync();
-                   throw new InvalidOperationException($"Error al establecer el seguimiento del pedido: {resp.StatusCode} - {errBody} ");
-               });
-                return OperationResult<(int,string,string,string)>.Ok("",(pedidoId,trackingInfo.TrackingNumber, "URL NO ESPECIFICADA",carrier.ToString()));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al agregar seguimiento para el pedido {PedidoId}", pedidoId);
-                throw new InvalidOperationException($"No se pudo agregar el seguimiento para el pedido {pedidoId}.", ex);
-            }
-        }
-        private PayPalTrackingInfoRequestDto CrearTrackingInfo(Pedido pedido, IEnumerable<DetallePedido> detalles, Carrier carrier, BarcodeType barcode)
-        {
-            var capture = pedido.PayPalPaymentCaptures?.FirstOrDefault();
-            var trackingItems = detalles.Select(item => new TrackingItems
-            {
-                Name = item.Producto?.NombreProducto ?? "Producto no disponible",
-                Sku = item.Producto?.Descripcion ?? "N/A",
-                Quantity = item.Cantidad ?? 1,
-                Upc = new Upc
-                {
-                    Type = barcode,
-                    Code = item.Producto?.CodigoBarras ?? "N/A"
-                },
-                ImageUrl = item.Producto?.Imagen ?? string.Empty,
-                Url = string.Empty
-            }).ToList();
-
-            return new PayPalTrackingInfoRequestDto
-            {
-                CaptureId = capture.CaptureId,
-                TrackingNumber = GenerarNumeroSeguimiento(),
-                Carrier = carrier,
-                NotifyPayer = true,
-                Items = trackingItems
-            };
-        }
-        private string GenerarNumeroSeguimiento()
-        {
-            // Prefijo opcional para identificar el tipo de pedido
-            string prefijo = "PKG";
-
-            // Fecha y hora para hacerlo único
-            string fecha = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
-
-            // Parte aleatoria para reducir riesgo de colisión
-            string aleatorio = new Random().Next(1000, 9999).ToString();
-
-            // Concatenamos todo
-            return $"{prefijo}-{fecha}-{aleatorio}";
-        }
-        #endregion
-
-       
-
-
-      
-       
-
+    public PaypalOrderTrackingService(
+        ILogger<PaypalOrderTrackingService> logger,
+        IPayPalHttpClient paypal)
+    {
+        _logger = logger;
+        _paypal = paypal;
     }
 
+    public async Task<OperationResult<(string TrackingNumber, string TrackingUrl)>> 
+        AddTrackingAsync(
+            string payPalOrderId,
+            string captureId,
+            Carrier carrier,
+            BarcodeType barcode,
+            List<TrackingItemDto> items)
+    {
+        try
+        {
+            var trackingNumber = GenerarNumeroSeguimiento();
+
+            var trackingInfo = new PayPalTrackingInfoRequestDto
+            {
+                CaptureId = captureId,
+                TrackingNumber = trackingNumber,
+                Carrier = carrier,
+                NotifyPayer = true,
+                Items = items.Select(i => new TrackingItems
+                {
+                    Name = i.Name,
+                    Sku = i.Sku,
+                    Quantity = i.Quantity,
+                    Upc = new Upc
+                    {
+                        Type = barcode,
+                        Code = i.BarcodeCode
+                    },
+                    ImageUrl = i.ImageUrl,
+                    Url = i.Url
+                }).ToList()
+            };
+
+            await _paypal.ExecutePayPalRequestAsync<string>(
+                HttpMethod.Post,
+                $"v2/checkout/orders/{payPalOrderId}/track",
+                trackingInfo,
+                async resp =>
+                {
+                    var errBody = await resp.Content.ReadAsStringAsync();
+                    throw new InvalidOperationException(
+                        $"Error al establecer el seguimiento: {resp.StatusCode} - {errBody}");
+                });
+
+            return OperationResult<(string, string)>.Ok(
+                "Seguimiento registrado en PayPal",
+                (trackingNumber, "URL NO ESPECIFICADA"));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al agregar seguimiento en PayPal");
+            throw new InvalidOperationException("No se pudo agregar el seguimiento.", ex);
+        }
+    }
+
+    private string GenerarNumeroSeguimiento()
+    {
+        string prefijo = "PKG";
+        string fecha = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+        string aleatorio = Random.Shared.Next(1000, 9999).ToString();
+        return $"{prefijo}-{fecha}-{aleatorio}";
+    }
 }

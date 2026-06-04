@@ -177,7 +177,7 @@ namespace GestorInventario.Infraestructure.Controllers.PedidosControllers
                 EditPedidoViewModel pedidosViewModel = new EditPedidoViewModel
                 {
                     
-                    FechaPedido = pedido.FechaPedido,
+  
                     EstadoPedido = pedido.EstadoPedido,
 
                 };

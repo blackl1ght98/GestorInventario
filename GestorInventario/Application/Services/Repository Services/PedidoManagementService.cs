@@ -67,7 +67,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                 {
                     return OperationResult<string>.Fail("Pedido no encontrado");
                 }
-                pedidoOriginal.FechaPedido = model.FechaPedido;
+             
                 pedidoOriginal.EstadoPedido = model.EstadoPedido;
                 await _pedidoRepository.ActualizarPedidoAsync(pedidoOriginal);
                 return OperationResult<string>.Ok("Pedido editado con exito");
