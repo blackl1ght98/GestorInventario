@@ -8,17 +8,13 @@ namespace GestorInventario.Interfaces.Infraestructure.Repositories
     {
         //Consultas
         IQueryable<Pedido> ObtenerPedidos();
-        IQueryable<Pedido> ObtenerPedidoUsuario(int userId); 
-      
+        IQueryable<Pedido> ObtenerPedidoUsuario(int userId);     
         Task<Pedido> ObtenerPedidoConDetallesAsync(int id);
         Task<Pedido> ObtenerPedidoPorIdAsync(int id);
         Task<Pedido?> ObtenerPedidoPendienteUsuarioAsync(int usuarioId);
         Task<Pedido> ObtenerNumeroPedido(RefundFormViewModel form);
         Task<List<DetallePedido>> ObtenerDetallesPedidoAsync(int pedidoId);
-       
         Task<DetallePedido> ObtenerDetalleParaReembolsoAsync(int detallePedidoId);
-
-     
         Task<DetallePedido> ObtenerDetallePorIdAsync(int id);
         Task<Pedido> ObtenerPedidoConCapturasAsync(int id);
         //Operaciones

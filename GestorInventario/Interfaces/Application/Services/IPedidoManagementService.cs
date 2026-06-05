@@ -7,7 +7,7 @@ namespace GestorInventario.Interfaces.Application.Services
     public interface IPedidoManagementService
     {
         Task<OperationResult<string>> EliminarPedido(int Id);
-        Task<OperationResult<string>> EditarPedido(EditPedidoViewModel model);
+
         Task<OperationResult<PayPalPaymentDetail>> SincronizarDetallePagoAsync(string id, int pedidoId);
     
         Task<OperationResult<Pedido>> ConfirmarPagoDelPedidoAsync(int usuarioActual, string captureId, decimal total, string? currency, string orderId);

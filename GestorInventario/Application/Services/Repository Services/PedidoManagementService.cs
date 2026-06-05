@@ -52,24 +52,7 @@ namespace GestorInventario.Application.Services.Generic_Services
 
             return OperationResult<string>.Fail("No se puede eliminar un pedido con historial");
         }
-        public async Task<OperationResult<string>> EditarPedido(EditPedidoViewModel model)
-        {
-            
-
-                int usuarioId = _currentUserAccesor.GetCurrentUserId();
-                var pedidoOriginal = await _pedidoRepository.ObtenerPedidoPorIdAsync(model.Id);
-                if (pedidoOriginal == null)
-                {
-                    return OperationResult<string>.Fail("Pedido no encontrado");
-                }
-             
-                pedidoOriginal.EstadoPedido = model.EstadoPedido;
-                await _pedidoRepository.ActualizarPedidoAsync(pedidoOriginal);
-                return OperationResult<string>.Ok("Pedido editado con exito");
       
-
-
-        }
         public async Task<OperationResult<PayPalPaymentDetail>> SincronizarDetallePagoAsync(string id, int pedidoId)
         {
             var detalles = await _paypalOrder.ObtenerDetallesPagoEjecutadoAsync(id);

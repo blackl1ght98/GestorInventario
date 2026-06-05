@@ -100,10 +100,7 @@
                                 @if (User.IsAdministrador())
                                 {
                                     <div class="btn-group" role="group">
-                                        <a asp-action="Edit" asp-route-id="@pedido.Id"
-                                           class="btn btn-outline-secondary flex-fill">
-                                            Actualizar
-                                        </a>
+                                      
                                         <button type="button"
                                                 class="btn btn-outline-warning flex-fill refund-total-btn"
                                                 data-pedido-id="@pedido.Id"

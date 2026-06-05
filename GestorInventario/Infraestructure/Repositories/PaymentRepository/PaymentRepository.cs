@@ -62,7 +62,7 @@ namespace GestorInventario.Infraestructure.Repositories.PaymentRepository
         }
 
        
-        
+        // METODO USADO SOLO EN SINCRONIZACION DE DATOS CON PAYPAL
         public async Task<OperationResult<string>> EliminarDetallesPagoAsync(PayPalPaymentDetail pago)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
