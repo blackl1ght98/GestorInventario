@@ -295,7 +295,7 @@ namespace GestorInventario.Application.Services.Generic_Services
             {
                 if (!carritoActivo.DetallePedidos.Any())
                 {
-                    await _unitOfWork.PedidoRepository.EliminarPedidoAsync(carritoActivo);
+                    await _unitOfWork.PedidoRepository.EliminarCarritoAsync(carritoActivo);
                     _logger.LogInformation($"Carrito vacío eliminado para el usuario {userId}, ID: {carritoActivo.Id}");
                 }
             }

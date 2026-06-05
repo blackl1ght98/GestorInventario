@@ -20,7 +20,7 @@
     // Evento para todos los botones de reembolso
     document.querySelectorAll('.refund-btn').forEach(btn => {
         btn.addEventListener('click', function () {
-            currentPedidoId = this.dataset.pedidoId;
+            currentPedidoId = this.dataset.detalleId;
             currentCurrency = this.dataset.currency;
             currentButton = this;
             // Reiniciar el formulario al abrir el modal
@@ -69,7 +69,7 @@
                     'RequestVerificationToken': token
                 },
                 body: JSON.stringify({
-                    PedidoId: currentPedidoId,
+                    DetalleId: currentPedidoId,
                     currency: currentCurrency,
                     motivo: finalReason
                 })

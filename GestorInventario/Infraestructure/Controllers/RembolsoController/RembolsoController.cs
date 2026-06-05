@@ -124,42 +124,42 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RefundSale([FromBody] RefundRequestModelDto request)
         {
-            if (request == null || request.PedidoId <= 0)
+            if (request == null || request.DetalleId <= 0)
                 return BadRequest("Datos inválidos");
 
             try
             {
                 // 1. TU dominio: leer pedido de TU base de datos
                 var pedido = await _pedidoRepository
-                    .GetPedidoWithDetailsAsync(request.PedidoId);
-
-                if (pedido?.Data == null)
+                    .ObtenerPedidoConDetallesAsync(request.DetalleId);
+                
+                if (pedido == null)
                     return NotFound("Pedido no encontrado");
-
-                if (string.IsNullOrEmpty(pedido.Data.captureId))
+                var captureId = pedido.PayPalPaymentCaptures.FirstOrDefault().CaptureId;
+                if (string.IsNullOrEmpty(captureId))
                     return BadRequest("El pedido no tiene pago capturado para reembolsar");
 
-                var totalReembolso = pedido.Data.total;
+                var totalReembolso = pedido.Total;
                 if (totalReembolso <= 0)
                     return BadRequest("El total del pedido no es válido para reembolso");
 
                 _logger.LogInformation(
                     "Reembolso total pedido {PedidoId} -> Subtotal:{Subtotal} IVA:{Iva} Total:{Total}",
-                    request.PedidoId, pedido.Data.subtotal, pedido.Data.iva, totalReembolso);
+                    request.DetalleId, pedido.Subtotal, pedido.Iva, totalReembolso);
 
                 // 2. Llamar al servicio de PayPal con datos planos (sin BD)
                 var refundResult = await _refundService.RefundCaptureAsync(
-                    captureId: pedido.Data.captureId,
+                    captureId: captureId,
                     amount: totalReembolso,
                     currency: request.Currency,
-                    nota: $"Reembolso pedido #{pedido.Data.numeroPedido}");
+                    nota: $"Reembolso pedido #{pedido.NumeroPedido}");
 
                 if (!refundResult.Success)
                     return BadRequest(new { success = false, message = refundResult.Message });
 
                 // 3. TU dominio: actualizar estado del pedido
                 await _pedidoService.ProcesarRembolsoAsync(
-                    pedido.Data.pedidoId,
+                    pedido.Id,
                     EstadoPedido.Rembolsado.ToString(),
                     refundResult.Data.RefundId);
 
@@ -168,7 +168,7 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
                 {
                     var emailService = sp.GetRequiredService<IReembolsoNotificationService>();
                     await emailService.EnviarEmailNotificacionRembolso(
-                        pedido.Data.pedidoId,
+                        pedido.Id,
                         refundResult.Data.AmountRefunded,
                         "Reembolso Aprobado");
                 });
@@ -177,7 +177,7 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error inesperado en refund pedido {PedidoId}", request.PedidoId);
+                _logger.LogError(ex, "Error inesperado en refund pedido {PedidoId}", request.DetalleId);
                 return StatusCode(500, new { success = false, message = "Error procesando reembolso" });
             }
         }
@@ -185,7 +185,7 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RefundPartial([FromBody] RefundRequestModelDto request)
         {
-            if (request?.PedidoId <= 0)
+            if (request?.DetalleId <= 0)
             {
                 return Json(new { success = false, message = "Solicitud inválida." });
             }
@@ -195,25 +195,25 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
                 // ============================================
                 // 1. OBTENER DATOS DEL PEDIDO (tu BD)
                 // ============================================
-                var pedido = await _pedidoRepository.GetProductoDePedidoAsync(request.PedidoId);
-                if (pedido?.Data == null)
+                var pedido = await _pedidoRepository.ObtenerDetalleParaReembolsoAsync(request.DetalleId);
+                if (pedido == null)
                     return Json(new { success = false, message = "Pedido no encontrado." });
 
                 // ============================================
                 // 2. CALCULAR MONTO CON IVA (tu lógica de negocio)
                 // ============================================
-                var precioSinIva = pedido.Data.precioProducto;
+                var precioSinIva = pedido.Producto.Precio;
                 var ivaUnitario = CalculadoraFiscal.CalcularIvaUnitario(precioSinIva);
                 var montoSolicitadoConIva = precioSinIva + ivaUnitario;
 
                 _logger.LogInformation(
                     "Reembolso parcial pedido {PedidoId} -> Precio:{Precio} IVA:{Iva} Total:{Total}",
-                    request.PedidoId, precioSinIva, ivaUnitario, montoSolicitadoConIva);
+                    request.DetalleId, precioSinIva, ivaUnitario, montoSolicitadoConIva);
 
                 // ============================================
                 // 3. VERIFICAR ESTADO ACTUAL EN PAYPAL
                 // ============================================
-                var captureDetails = await _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(pedido.Data.paymentId);
+                var captureDetails = await _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(pedido.Pedido.PayPalPaymentCaptures.First().PaymentId);
                 var (montoReembolso, montoDisponible, estadoVenta) = CalcularMontoDisponibleYEstado(
                     captureDetails, montoSolicitadoConIva, request.Currency);
 
@@ -221,10 +221,10 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
                 // 4. EJECUTAR REEMBOLSO EN PAYPAL (servicio puro)
                 // ============================================
                 var refundResult = await _refundService.RefundCaptureAsync(
-                    captureId: pedido.Data.captureId,
+                    captureId: pedido.Pedido.PayPalPaymentCaptures.First().CaptureId,
                     amount: montoReembolso,
-                    currency: pedido.Data.currency,
-                    nota: $"Reembolso parcial pedido #{pedido.Data.idPedido} - {request.Motivo}");
+                    currency: pedido.Pedido.Currency,
+                    nota: $"Reembolso parcial pedido #{pedido.Pedido.Id} - {request.Motivo}");
 
                 if (!refundResult.Success)
                 {
@@ -234,7 +234,7 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
                     if (refundResult.Message.Contains("REFUND_AMOUNT_EXCEEDED") ||
                         refundResult.Message.Contains("UnprocessableEntity"))
                     {
-                        var updatedCapture = await _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(pedido.Data.paymentId);
+                        var updatedCapture = await _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(pedido.Pedido.PayPalPaymentCaptures.First().PaymentId);
                         var montoFormateado = CalculadoraFiscal.FormatearPayPal(montoSolicitadoConIva);
 
                         var recentRefund = updatedCapture?.PurchaseUnits[0].Payments.Refunds?
@@ -268,8 +268,8 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
                 // 6. REGISTRAR EN TU BASE DE DATOS (tu dominio)
                 // ============================================
                 await _paypalService.RegistrarReembolsoParcialAsync(
-                    pedido.Data.idPedido,
-                    pedido.Data.detalleId,
+                    pedido.Pedido.Id,
+                    pedido.Id,
                     refundResult.Data.RefundId,
                     refundResult.Data.AmountRefunded,
                     request.Motivo,
@@ -282,8 +282,8 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
                 {
                     var emailService = sp.GetRequiredService<IReembolsoNotificationService>();
                     await emailService.EnviarEmailNotificacionRembolso(
-                        pedido.Data.idPedido,
-                        pedido.Data.precioProducto,
+                        pedido.Pedido.Id,
+                        pedido.Producto.Precio,
                         request.Motivo);
                 });
 
@@ -291,12 +291,12 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
             }
             catch (ArgumentException ex)
             {
-                _logger.LogWarning(ex, "Validación fallida en reembolso parcial pedido {PedidoId}", request.PedidoId);
+                _logger.LogWarning(ex, "Validación fallida en reembolso parcial pedido {PedidoId}", request.DetalleId);
                 return Json(new { success = false, message = ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error inesperado en reembolso parcial pedido {PedidoId}", request.PedidoId);
+                _logger.LogError(ex, "Error inesperado en reembolso parcial pedido {PedidoId}", request.DetalleId);
                 return Json(new { success = false, message = "No se pudo realizar el reembolso. Intenta de nuevo o contacta soporte." });
             }
         }

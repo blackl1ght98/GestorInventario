@@ -95,7 +95,7 @@ namespace GestorInventario.Application.Services.Common
         public async Task AddInfoTrackingOrder(int pedidoId, string tracking, string url, string carrier)
         {
            
-                var pedido = await _pedidoRepository.ObtenerPedidoConDetallesAsync(pedidoId);
+                var pedido = await _pedidoRepository.ObtenerPedidoPorIdAsync(pedidoId);
                 if (pedido == null)
                     throw new ArgumentException($"Pedido con ID {pedidoId} no encontrado.");
 

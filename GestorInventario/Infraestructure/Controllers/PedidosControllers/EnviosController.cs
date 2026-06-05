@@ -28,7 +28,7 @@ namespace GestorInventario.Infraestructure.Controllers.PedidosControllers
             try
             {
                 // 1. Leer pedido de TU base de datos (con detalles y captures)
-                var pedido = await _pedidoRepository.ObtenerPedidoConDetallesAsync(pedidoId);
+                var pedido = await _pedidoRepository.ObtenerPedidoConCapturasAsync(pedidoId);
                 if (pedido == null)
                 {
                     _logger.LogError("Intento de manipulacion de id: {PedidoId}", pedidoId);

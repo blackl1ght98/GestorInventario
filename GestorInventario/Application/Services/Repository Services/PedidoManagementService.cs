@@ -36,33 +36,28 @@ namespace GestorInventario.Application.Services.Generic_Services
             _paypalRepository=paypalRepository;
         
         }
-        public async Task<OperationResult<string>> EliminarPedido(int Id)
+        public async Task<OperationResult<string>> EliminarPedido(int id)
         {
-          
-                var pedido = await _pedidoRepository.ObtenerPedidoConRembolso(Id);
-                if (pedido == null)
-                {
-                    return OperationResult<string>.Fail("No hay pedido para eliminar");
-                }
-            if (pedido.EstadoPedido != EstadoPedido.Carrito.ToString())
+            var pedido = await _pedidoRepository.ObtenerPedidoConDetallesAsync(id);
+            if (pedido == null)
+                return OperationResult<string>.Fail("Pedido no encontrado");
+
+            // Solo carritos sin capturas de PayPal
+            if (pedido.EstadoPedido == EstadoPedido.Carrito.ToString()
+                && !pedido.PayPalPaymentCaptures.Any())
             {
-                await _pedidoRepository.EliminarPedidoAsync(pedido);
-                return OperationResult<string>.Ok("Pedido eliminado con exito");
+                await _pedidoRepository.EliminarCarritoAsync(pedido);
+                return OperationResult<string>.Ok("Carrito eliminado");
             }
-            if (pedido.EstadoPedido != EstadoPedido.Entregado.ToString())
-            {
-                return OperationResult<string>.Fail("El pedido tiene que tener el estado Entregado para ser eliminado y no tener historial asociado");
-            }
-          
-            await _pedidoRepository.EliminarPedidoAsync(pedido);
-                return OperationResult<string>.Ok("Pedido eliminado con exito");
+
+            return OperationResult<string>.Fail("No se puede eliminar un pedido con historial");
         }
         public async Task<OperationResult<string>> EditarPedido(EditPedidoViewModel model)
         {
             
 
                 int usuarioId = _currentUserAccesor.GetCurrentUserId();
-                var pedidoOriginal = await _pedidoRepository.ObtenerPedidoConDetallesAsync(model.Id);
+                var pedidoOriginal = await _pedidoRepository.ObtenerPedidoPorIdAsync(model.Id);
                 if (pedidoOriginal == null)
                 {
                     return OperationResult<string>.Fail("Pedido no encontrado");

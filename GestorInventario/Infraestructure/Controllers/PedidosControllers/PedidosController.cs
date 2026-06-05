@@ -97,70 +97,7 @@ namespace GestorInventario.Infraestructure.Controllers.PedidosControllers
         }
       
        
-        [Authorize]
-        public async Task<IActionResult> Delete(int id)
-        {
-            try
-            {
-                                          
-                var pedido = await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerPedidoConDetallesAsync(id));
-            
-                if (pedido == null)
-                {
-                    _logger.LogCritical("Pedido no encontrado");
-                    return RedirectToAction(nameof(Index));
-                }
-                var viewmodel = new PedidoDeleteViewmodel
-                {
-                    Id = pedido.Id,
-                    NumeroPedido = pedido.NumeroPedido,
-                    FechaPedido = pedido.FechaPedido,
-                    NombreCompleto = pedido.IdUsuarioNavigation.NombreCompleto,
-                    EstadoPedido = pedido.EstadoPedido,
-                    DetallePedidos = pedido.DetallePedidos.ToList(),
-                };
-                return View(viewmodel);
-            }
-            catch (Exception ex)
-            {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al mostrar la vista de eliminacion del pedido");
-                return RedirectToAction("Error", "Home");
-            }
-
-        }
-
-        [Authorize]
-        [HttpPost, ActionName("DeleteConfirmed")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int Id)
-        {
-            try
-            {
-                var success = await _policyExecutor.ExecutePolicyAsync(() => _pedidoService.EliminarPedido(Id));
-                if (success.Success)
-                {
-
-
-                    return RedirectToAction(nameof(Index));
-                }
-                else
-                {
-
-                    TempData["ErrorMessage"] = success.Message;
-
-                    return RedirectToAction(nameof(Delete), new { id = Id });
-
-                }
-            }
-            catch (Exception ex)
-            {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al eliminar el pedido");
-                return RedirectToAction("Error", "Home");
-            }
-
-        }
+       
        
         [Authorize]
         public async Task<ActionResult> Edit(int id)

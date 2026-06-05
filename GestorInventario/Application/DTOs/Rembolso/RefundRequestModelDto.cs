@@ -2,7 +2,7 @@
 {
     public class RefundRequestModelDto
     {
-        public required int PedidoId { get; set; }
+        public required int DetalleId { get; set; }
         public decimal Amount { get; set; }
         public required string Currency { get; set; }
         public  string Motivo { get; set; }
