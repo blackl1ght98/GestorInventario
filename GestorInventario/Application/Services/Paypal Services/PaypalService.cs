@@ -4,6 +4,7 @@ using GestorInventario.Application.DTOS.Paypal.Responses.GET.Subscription;
 using GestorInventario.Application.DTOS.Paypal.Responses.POST.Subscription;
 using GestorInventario.Application.Mappers;
 using GestorInventario.Domain.Models;
+using GestorInventario.enums;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
@@ -98,7 +99,7 @@ namespace GestorInventario.Application.Services.Common
                 var pedido = await _pedidoRepository.ObtenerPedidoPorIdAsync(pedidoId);
                 if (pedido == null)
                     throw new ArgumentException($"Pedido con ID {pedidoId} no encontrado.");
-
+                pedido.EstadoPedido= EstadoPedido.Enviado.ToString();
                 pedido.TrackingNumber = tracking;
                 pedido.UrlTracking = url;
                 pedido.Transportista = carrier;

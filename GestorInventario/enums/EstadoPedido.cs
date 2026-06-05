@@ -10,8 +10,8 @@ namespace GestorInventario.enums
         [Display(Name = "Pagado")]
         Pagado,
 
-        [Display(Name = "En Proceso")]
-        En_Proceso,
+        Enviado,
+        Cancelado,
         [Display(Name = "Pendiente de pago")]
         Pendiente,
 

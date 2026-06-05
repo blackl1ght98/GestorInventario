@@ -108,11 +108,16 @@
                                                 @(pedido.EstadoPedido == "Rembolsado" ? "disabled" : "")>
                                             Rembolsar
                                         </button>
+                                        <button type="button"
+                                                class="btn btn-outline-warning flex-fill cancel-btn"
+                                                data-pedido-id="@pedido.Id"                                        
+                                            @(pedido.EstadoPedido == "Cancelado" ? "disabled" : "")>
+                                            Cancelar
+                                        </button>
                                     </div>
 
-                                    <button class="btn btn-success activate-action-button mt-2"
-                                            data-pedido-id="@pedido.Id"
-                                            data-bs-toggle="tooltip"
+                                    <button class="btn btn-success activate-action-button mt-2 envio-btn"
+                                            data-pedido-id="@pedido.Id"                                      
                                             title="Agregar información de envío">
                                         <i class="bi bi-truck me-2"></i>Agregar Envío
                                     </button>
@@ -177,7 +182,7 @@
     }
 </div>
 
-<!-- Modales (mejorados) -->
+
 <!-- Modal Agregar Info Envío -->
 <div class="modal fade" id="agregarEnvioModal" tabindex="-1" aria-labelledby="agregarEnvioModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -187,8 +192,12 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
+                <div class="modal-body">
+                   
+                    <div id="envioResult" class="alert d-none" role="alert"></div>
+                </div>
                 <form id="agregarEnvioForm" method="post" asp-controller="Envios" asp-action="AgregarInfoEnvio">
-                    <input type="hidden" name="pedidoId" id="pedidoIdInput" />
+                    <input type="hidden" name="PedidoId" id="pedidoIdInput" />
 
                     <div class="mb-3">
                         <label class="form-label">Transportista</label>
@@ -244,7 +253,27 @@
     </div>
 </div>
 
+<!-- Modal CancelarPedido -->
+<div class="modal fade" id="confirmCancelarModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">Cancelar Pedido</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="cancelText" class="mb-3">¿Esta seguro que desea cancelar el pedido?</p>
+                <div id="cancelResult" class="alert d-none" role="alert"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-danger" id="confirmCancelBtn">Sí, Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
 @section Scripts {
     <script src="~/js/agregar-info-envio.js" asp-append-version="true"></script>
     <script src="~/js/rembolso.js" asp-append-version="true"></script>
+    <script src="~/js/cancelarPedido.js" asp-append-version="true"></script>
 }

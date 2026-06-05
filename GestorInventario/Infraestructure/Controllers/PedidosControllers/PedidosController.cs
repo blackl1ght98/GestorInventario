@@ -1,4 +1,6 @@
-﻿using GestorInventario.Interfaces.Application.Common;
+﻿using GestorInventario.enums;
+using GestorInventario.Infraestructure.Utils;
+using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
@@ -130,6 +132,38 @@ namespace GestorInventario.Infraestructure.Controllers.PedidosControllers
             }
 
         }
+        // Usuario o Admin cancela antes de envío
+        [HttpPost]
+        public async Task<IActionResult> CancelarPedido([FromQuery] int pedidoId)
+        {
+            var pedido = await _pedidoRepository.ObtenerPedidoPorIdAsync(pedidoId);
+            if (pedido == null) return NotFound();
 
+            // Solo se puede cancelar si no está enviado ni entregado
+            if (pedido.EstadoPedido == EstadoPedido.Enviado.ToString()
+                || pedido.EstadoPedido == EstadoPedido.Entregado.ToString())
+                 return BadRequest(new { success = false, errorMessage = "No se puede cancelar un pedido ya enviado" });
+
+            pedido.EstadoPedido = EstadoPedido.Cancelado.ToString();
+            await _pedidoRepository.ActualizarPedidoAsync(pedido);
+
+            return Ok(new {success = true, message="Pedido cancelado correctamente"});
+        }
+
+        // Usuario confirma que recibió (o tracking automático)
+        [HttpPost]
+        public async Task<IActionResult> ConfirmarEntrega(int pedidoId)
+        {
+            var pedido = await _pedidoRepository.ObtenerPedidoPorIdAsync(pedidoId);
+            if (pedido == null) return NotFound();
+
+            if (pedido.EstadoPedido != EstadoPedido.Enviado.ToString())
+                return BadRequest("El pedido no está enviado");
+
+            pedido.EstadoPedido = EstadoPedido.Entregado.ToString();
+            await _pedidoRepository.ActualizarPedidoAsync(pedido);
+
+            return Ok();
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using GestorInventario.Application.DTOS.Paypal;
+﻿using GestorInventario.Application.DTOS;
+using GestorInventario.Application.DTOS.Paypal;
 
 using GestorInventario.enums;
 using GestorInventario.Interfaces.Application.ExternalServices;
@@ -23,24 +24,30 @@ namespace GestorInventario.Infraestructure.Controllers.PedidosControllers
         }  
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> AgregarInfoEnvio(int pedidoId, Carrier carrier, BarcodeType barcode)
+      
+        public async Task<IActionResult> AgregarInfoEnvio([FromBody] InfoEnvioDTO envio)
         {
             try
             {
+                
                 // 1. Leer pedido de TU base de datos (con detalles y captures)
-                var pedido = await _pedidoRepository.ObtenerPedidoConCapturasAsync(pedidoId);
+                var pedido = await _pedidoRepository.ObtenerPedidoConCapturasAsync(envio.PedidoId);
                 if (pedido == null)
                 {
-                    _logger.LogError("Intento de manipulacion de id: {PedidoId}", pedidoId);
-                    return RedirectToAction("Index", "Pedidos");
+                    _logger.LogError("Intento de manipulacion de id: {PedidoId}", envio.PedidoId);
+                    return BadRequest(new {success=false, message="El pedido no es valido"});
                 }
-
+                if (pedido.EstadoPedido == EstadoPedido.Cancelado.ToString())
+                {
+                 
+                    return BadRequest(new {success=false, message= "El pedido ha sido cancelado no se puede establecer informacion de envio." });
+                }
                 var capture = pedido.PayPalPaymentCaptures?.FirstOrDefault();
                 if (capture == null)
                 {
-                    _logger.LogError("Pedido {PedidoId} no tiene captura de PayPal", pedidoId);
-                    TempData["ErrorMessage"] = "El pedido no tiene pago asociado en PayPal.";
-                    return RedirectToAction("Index", "Pedidos");
+                    _logger.LogError("Pedido {PedidoId} no tiene captura de PayPal", envio.PedidoId);
+                 
+                    return BadRequest(new {success=true, message= "El pedido no tiene pago asociado en PayPal" });
                 }
 
                 // 2. Mapear items del pedido a DTOs planos (tu dominio → datos planos)
@@ -49,7 +56,7 @@ namespace GestorInventario.Infraestructure.Controllers.PedidosControllers
                     Name = d.Producto?.NombreProducto ?? "Producto no disponible",
                     Sku = d.Producto?.Descripcion ?? "N/A",
                     Quantity = d.Cantidad ?? 1,
-                    BarcodeType = barcode,
+                    BarcodeType = envio.Barcode,
                     BarcodeCode = d.Producto?.CodigoBarras ?? "N/A",
                     ImageUrl = d.Producto?.Imagen ?? string.Empty,
                     Url = string.Empty
@@ -59,29 +66,29 @@ namespace GestorInventario.Infraestructure.Controllers.PedidosControllers
                 var result = await _paypalOrderService.AddTrackingAsync(
                     payPalOrderId: capture.PaymentId,   // El OrderId de PayPal para la URL
                     captureId: capture.CaptureId,       // El CaptureId para el body
-                    carrier: carrier,
-                    barcode: barcode,
+                    carrier: envio.Carrier,
+                    barcode: envio.Barcode,
                     items: items);
 
                 if (!result.Success)
                 {
-                    TempData["ErrorMessage"] = result.Message;
-                    return RedirectToAction("Index", "Pedidos");
+                    
+                    return BadRequest(new {success=false,message=result.Message});
                 }
 
                 // 4. Guardar resultado en base de datos
                 await _paypalService.AddInfoTrackingOrder(
-                    pedidoId,
+                    envio.PedidoId,
                     result.Data.TrackingNumber,
                     result.Data.TrackingUrl,
-                    carrier.ToString());
+                    envio.Carrier.ToString());
 
-                TempData["SuccessMessage"] = "Información de envío agregada con éxito.";
-                return RedirectToAction("Index", "Pedidos");
+                
+                return Ok(new {success=true,message= "Información de envío agregada con éxito." });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al agregar seguimiento para pedido {PedidoId}", pedidoId);
+                _logger.LogError(ex, "Error al agregar seguimiento para pedido {PedidoId}", envio.PedidoId);
 
                 string userMessage = "No se pudo agregar la información de envío en este momento. " +
                                      "Parece haber un problema temporal con los servidores de PayPal. " +
@@ -92,8 +99,8 @@ namespace GestorInventario.Infraestructure.Controllers.PedidosControllers
                     userMessage = "Error temporal en PayPal. Intente nuevamente en unos minutos.";
                 }
 
-                TempData["ErrorMessage"] = userMessage;
-                return RedirectToAction("Index", "Pedidos");
+            
+                return BadRequest(new { success=false, message=userMessage });
             }
         }
     }
