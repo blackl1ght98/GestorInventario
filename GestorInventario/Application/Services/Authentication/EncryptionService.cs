@@ -23,21 +23,7 @@ namespace GestorInventario.Application.Services.Authentication
             _httpContextAccessor = httpContextAccessor;
         }
 
-        // Método existente: descifra la clave AES con la privada RSA
-        public byte[] Descifrar(byte[] encryptedData, byte[] privateKeyBytes)
-        {
-            try
-            {
-                using var rsa = RSA.Create();
-                rsa.ImportRSAPrivateKey(privateKeyBytes, out _);
-                return rsa.Decrypt(encryptedData, RSAEncryptionPadding.OaepSHA256);
-            }
-            catch (Exception ex)
-            {
-                HandleDecryptionError(ex);
-                return Array.Empty<byte>();
-            }
-        }
+
 
         // Nuevo método: descifra la clave privada RSA cifrada con la master key
         public string? DescifrarClavePrivada(string? encryptedBase64)

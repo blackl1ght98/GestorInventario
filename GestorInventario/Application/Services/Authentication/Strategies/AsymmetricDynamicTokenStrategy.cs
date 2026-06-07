@@ -39,7 +39,6 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
 
         public override async Task<LoginResponseDto> GenerateTokenAsync(Usuario credencialesUsuario)
         {
-            // Obtener usuario de la base de datos
             var usuarioDB = await _context.Usuarios
                 .Include(u => u.IdRolNavigation)
                 .FirstOrDefaultAsync(u => u.Id == credencialesUsuario.Id);
@@ -58,45 +57,32 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
 
             _logger.LogInformation($"Rol del usuario {credencialesUsuario.Id}: {usuarioDB.IdRolNavigation.Nombre}");
 
-            // Usamos el método de la clase base
             var claims = CrearClaims(credencialesUsuario);
 
             // 1. Generar par de claves RSA
             using var rsa = RSA.Create(2048);
             var privateKey = rsa.ExportParameters(true);
             var publicKey = rsa.ExportParameters(false);
-
-            // 2. AES para el token
-            using var aes = Aes.Create();
-            aes.GenerateKey();
-            var aesKey = aes.Key;
-
+     
             // 3. Cifrar AES con la clave pública RSA
             rsa.ImportParameters(publicKey);
-            var encryptedAesKey = rsa.Encrypt(aesKey, RSAEncryptionPadding.OaepSHA256);
-            var encryptedAesKeyBase64 = Convert.ToBase64String(encryptedAesKey);
-
+       
             // 4. Serializar la clave privada RSA a JSON
-            var privateKeyJson = JsonConvert.SerializeObject(privateKey);
-
-            // 5. CIFRAR la clave privada con la clave maestra estática
-            string encryptedPrivateBase64 = _encryptionService.EncryptPrivateKey(privateKeyJson);
-
-            // 6. Guardar en caché
-            string privateKeyCacheKey = $"{credencialesUsuario.Id}PrivateKey";
-            string aesKeyCacheKey = $"{credencialesUsuario.Id}EncryptedAesKey";
+            var privateKeyJson = JsonConvert.SerializeObject(privateKey); 
+     
+            string publicKeyCacheKey = $"{credencialesUsuario.Id}PublicKey";
 
             bool useRedis = _connectionMultiplexer != null && _connectionMultiplexer.IsConnected;
 
+            var publicKeyJson = JsonConvert.SerializeObject(publicKey);
+
             if (useRedis)
-            {
-                await _redis.SetStringAsync(privateKeyCacheKey, encryptedPrivateBase64);
-                await _redis.SetStringAsync(aesKeyCacheKey, encryptedAesKeyBase64);
+            {                 
+                await _redis.SetStringAsync(publicKeyCacheKey, publicKeyJson);
             }
             else
-            {
-                _memoryCache.Set(privateKeyCacheKey, encryptedPrivateBase64);
-                _memoryCache.Set(aesKeyCacheKey, encryptedAesKeyBase64);
+            {           
+                _memoryCache.Set(publicKeyCacheKey, publicKeyJson);
             }
 
             // 7. Firmar JWT con la clave privada original (en memoria)

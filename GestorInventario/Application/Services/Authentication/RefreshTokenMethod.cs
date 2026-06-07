@@ -83,61 +83,41 @@ namespace GestorInventario.Application.Services.Authentication
                     break;
 
                 case "AsymmetricDynamic":
-                    // === TU LÓGICA ORIGINAL COMPLETA (sin tocar) ===
-                    string? privateKeyJson;
                     string? publicKeyJson;
                     RSAParameters privateKey;
                     RSAParameters publicKey;
 
                     bool useRedis = _connectionMultiplexer != null && _connectionMultiplexer.IsConnected;
 
+                    // 1. Solo intentamos recuperar la PÚBLICA para consistencia,
+                    // pero para generar el token SIEMPRE necesitamos una privada fresca.
                     if (useRedis)
                     {
-                        privateKeyJson = await _redis.GetStringAsync(credencialesUsuario.Id.ToString() + "PrivateKeyRefresco");
                         publicKeyJson = await _redis.GetStringAsync(credencialesUsuario.Id.ToString() + "PublicKeyRefresco");
-
-                        if (string.IsNullOrEmpty(privateKeyJson) || string.IsNullOrEmpty(publicKeyJson))
-                        {
-                            using var rsa = new RSACryptoServiceProvider(2048);
-                            privateKey = rsa.ExportParameters(true);
-                            publicKey = rsa.ExportParameters(false);
-
-                            privateKeyJson = JsonConvert.SerializeObject(privateKey);
-                            publicKeyJson = JsonConvert.SerializeObject(publicKey);
-
-                            await _redis.SetStringAsync(credencialesUsuario.Id.ToString() + "PrivateKeyRefresco",
-                                privateKeyJson, new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(30) });
-
-                            await _redis.SetStringAsync(credencialesUsuario.Id.ToString() + "PublicKeyRefresco",
-                                publicKeyJson, new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(30) });
-                        }
-                        else
-                        {
-                            privateKey = JsonConvert.DeserializeObject<RSAParameters>(privateKeyJson)!;
-                            publicKey = JsonConvert.DeserializeObject<RSAParameters>(publicKeyJson)!;
-                        }
                     }
                     else
                     {
-                        _memoryCache.TryGetValue(credencialesUsuario.Id.ToString() + "PrivateKeyRefresco", out privateKeyJson);
                         _memoryCache.TryGetValue(credencialesUsuario.Id.ToString() + "PublicKeyRefresco", out publicKeyJson);
+                    }
 
-                        if (string.IsNullOrEmpty(privateKeyJson) || string.IsNullOrEmpty(publicKeyJson))
+                    // 2. Generamos un nuevo par de claves cada vez que se crea el Refresh Token
+                    // No recuperamos la privada de Redis, la creamos en RAM.
+                    using (var rsa = new RSACryptoServiceProvider(2048))
+                    {
+                        privateKey = rsa.ExportParameters(true);
+                        publicKey = rsa.ExportParameters(false);
+
+                        // 3. Guardamos ÚNICAMENTE la pública
+                        var publicKeyJsonToSave = JsonConvert.SerializeObject(publicKey);
+
+                        if (useRedis)
                         {
-                            using var rsa = new RSACryptoServiceProvider(2048);
-                            privateKey = rsa.ExportParameters(true);
-                            publicKey = rsa.ExportParameters(false);
-
-                            privateKeyJson = JsonConvert.SerializeObject(privateKey);
-                            publicKeyJson = JsonConvert.SerializeObject(publicKey);
-
-                            _memoryCache.Set(credencialesUsuario.Id.ToString() + "PrivateKeyRefresco", privateKeyJson);
-                            _memoryCache.Set(credencialesUsuario.Id.ToString() + "PublicKeyRefresco", publicKeyJson);
+                            await _redis.SetStringAsync(credencialesUsuario.Id.ToString() + "PublicKeyRefresco",
+                                publicKeyJsonToSave, new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(30) });
                         }
                         else
                         {
-                            privateKey = JsonConvert.DeserializeObject<RSAParameters>(privateKeyJson!)!;
-                            publicKey = JsonConvert.DeserializeObject<RSAParameters>(publicKeyJson!)!;
+                            _memoryCache.Set(credencialesUsuario.Id.ToString() + "PublicKeyRefresco", publicKeyJsonToSave);
                         }
                     }
 
