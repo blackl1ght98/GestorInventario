@@ -89,7 +89,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                     {
                         IdUsuario = userId,
                         NumeroPedido = GenerarNumPedido.GenerarNumeroPedido(),
-                        FechaPedido = DateTime.Now,
+                        FechaPedido = DateTime.UtcNow,
                         EstadoPedido = EstadoPedido.Carrito.ToString(),
                         EsCarrito = true
                     };

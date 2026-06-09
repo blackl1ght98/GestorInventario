@@ -46,7 +46,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
                 issuer: ObtenerIssuer(),
                 audience: ObtenerAudience(),
                 claims: claims,
-                expires: DateTime.Now.AddDays(30),
+                expires: DateTime.UtcNow.AddDays(30),
                 signingCredentials: signingCredentials);
 
             var tokenString = new JwtSecurityTokenHandler().WriteToken(securityToken);

@@ -21,7 +21,7 @@ namespace GestorInventario.Application.Services.Authentication
             // Lógica de generación y hash aquí
             var contrasenaTemporal = GenerarContrasenaTemporal();
             var resultadoHash = _hashService.Hash(contrasenaTemporal);
-            var fechaExpiracion = DateTime.Now.AddMinutes(5);
+            var fechaExpiracion = DateTime.UtcNow.AddMinutes(5);
 
             // El repositorio solo guarda
             var resultado = await _userRepository.GuardarPasswordTemporalAsync(

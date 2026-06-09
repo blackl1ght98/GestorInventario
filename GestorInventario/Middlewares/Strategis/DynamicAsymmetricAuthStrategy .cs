@@ -34,11 +34,8 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
         {
             var token = context.Request.Cookies["auth"];
             var refreshToken = context.Request.Cookies["refreshToken"];
-
-            var tokenService = context.RequestServices.GetRequiredService<ITokenGenerator>();
-            var encryptionService = context.RequestServices.GetRequiredService<IEncryptionService>();
-            var utility = context.RequestServices.GetRequiredService<IUserRepository>();
-            var refreshTokenMethod = context.RequestServices.GetRequiredService<IRefreshTokenMethod>();
+            var tokenService = context.RequestServices.GetRequiredService<ITokenGenerator>();         
+            var utility = context.RequestServices.GetRequiredService<IUserRepository>();       
             var redis = context.RequestServices.GetService<IDistributedCache>();
             var memoryCache = context.RequestServices.GetService<IMemoryCache>();
             var connectionMultiplexer = context.RequestServices.GetService<IConnectionMultiplexer>();
@@ -48,7 +45,7 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
             if (!string.IsNullOrEmpty(token))
             {
                 var (jwtToken, principal) = await ValidateToken(
-                    token, configuration, tokenService, redis, memoryCache, encryptionService, useRedis);
+                    token, configuration,  redis, memoryCache,  useRedis);
 
                 if (jwtToken != null && principal != null)
                 {
@@ -57,13 +54,13 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
                 else if (!string.IsNullOrEmpty(refreshToken))
                 {
                     await HandleExpiredToken(context, refreshToken, configuration, tokenService,
-                        utility, redis, memoryCache, refreshTokenMethod, useRedis);
+                        utility, redis, memoryCache,  useRedis);
                 }
             }
             else if (!string.IsNullOrEmpty(refreshToken))
             {
                 await HandleExpiredToken(context, refreshToken, configuration, tokenService,
-                    utility, redis, memoryCache, refreshTokenMethod, useRedis);
+                    utility, redis, memoryCache,  useRedis);
             }
         }
         catch (Exception ex)
@@ -77,11 +74,9 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
 
     private static async Task<(JwtSecurityToken?, ClaimsPrincipal?)> ValidateToken(
         string token,
-        IConfiguration configuration,
-        ITokenGenerator tokenService,
+        IConfiguration configuration,     
         IDistributedCache? redis,
-        IMemoryCache? memoryCache,
-        IEncryptionService encryptionService,
+        IMemoryCache? memoryCache,     
         bool useRedis)
     {
         var handler = new JwtSecurityTokenHandler();
@@ -104,7 +99,7 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
                 return (null, null);
             }
 
-            // CORRECCIÓN: recuperamos la CLAVE PÚBLICA para validar, no la privada
+            // Recuperamos la CLAVE PÚBLICA para validar
             var publicKeyParams = await RetrievePublicKey(kid, redis, memoryCache, useRedis);
             if (publicKeyParams == null)
             {
@@ -174,8 +169,7 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
         ITokenGenerator tokenService,
         IUserRepository utility,
         IDistributedCache? redis,
-        IMemoryCache? memoryCache,
-        IRefreshTokenMethod refreshTokenMethod,
+        IMemoryCache? memoryCache,     
         bool useRedis)
     {
         var logger = log4net.LogManager.GetLogger(typeof(DynamicAsymmetricAuthStrategy));
@@ -249,11 +243,17 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
             if (string.IsNullOrEmpty(publicKeyJson))
                 return false;
 
+            // Deserializamos la clave pública desde la caché (solo estructura de datos)
             var publicKeyParams = JsonConvert.DeserializeObject<RSAParameters>(publicKeyJson);
+
+            // Inicializamos el motor RSA e importamos los parámetros para habilitar la lógica de validación
             using var rsa = RSA.Create();
             rsa.ImportParameters(publicKeyParams);
 
+            // Adaptamos la instancia RSA al formato requerido por el middleware de autenticación de JWT
             var rsaSecurityKey = new RsaSecurityKey(rsa) { KeyId = kid };
+
+            // Configuración de validación: Verificamos Firma, Emisor, Audiencia y Vigencia
             var validationParameters = new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,

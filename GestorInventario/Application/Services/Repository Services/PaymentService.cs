@@ -189,7 +189,7 @@ namespace GestorInventario.Application.Services.Generic_Services
             {
                 carrito.EsCarrito = false;
                 carrito.NumeroPedido = GenerarNumPedido.GenerarNumeroPedido();
-                carrito.FechaPedido = DateTime.Now;
+                carrito.FechaPedido = DateTime.UtcNow;
                 carrito.EstadoPedido = EstadoPedido.Pendiente.ToString();
 
                 carrito.Subtotal = checkout.Subtotal;

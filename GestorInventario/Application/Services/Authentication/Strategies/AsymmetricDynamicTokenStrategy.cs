@@ -12,6 +12,18 @@ using System.Security.Cryptography;
 
 namespace GestorInventario.Application.Services.Authentication.Strategies
 {
+    /// <summary>
+    /// Estrategia de generación de tokens JWT utilizando claves RSA asimétricas dinámicas por usuario.
+    ///
+    /// Modelo de Seguridad:
+    /// 1. Generación efímera: Se crea un nuevo par de claves RSA (2048 bits) en cada proceso de login.
+    /// 2. Aislamiento de secretos: La clave privada NUNCA se almacena en disco ni en caché.
+    ///    Reside únicamente en la RAM durante el tiempo necesario para firmar el token y luego es descartada.
+    /// 3. Validación descentralizada: Solo la clave pública se almacena en Redis/MemoryCache.
+    ///    Esto permite que el middleware valide la firma del token sin riesgo de comprometer la capacidad de firma del servidor.
+    /// 4. Mitigación de riesgos: En caso de un volcado (dump) completo de la caché de Redis, el atacante
+    ///    solo obtendrá claves públicas, las cuales son inútiles para falsificar tokens.
+    /// </summary>
     public class AsymmetricDynamicTokenStrategy : BaseTokenStrategy
     {
         private readonly IDistributedCache _redis;
@@ -59,33 +71,28 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
 
             var claims = CrearClaims(credencialesUsuario);
 
-            // 1. Generar par de claves RSA
+            // 1. Generar un par de claves RSA efímero para esta sesión
             using var rsa = RSA.Create(2048);
-            var privateKey = rsa.ExportParameters(true);
-            var publicKey = rsa.ExportParameters(false);
-     
-            // 3. Cifrar AES con la clave pública RSA
-            rsa.ImportParameters(publicKey);
-       
-            // 4. Serializar la clave privada RSA a JSON
-            var privateKeyJson = JsonConvert.SerializeObject(privateKey); 
-     
-            string publicKeyCacheKey = $"{credencialesUsuario.Id}PublicKey";
+            var privateKey = rsa.ExportParameters(true); 
+            var publicKey = rsa.ExportParameters(false);   
 
+            // 2. Preparar la clave pública para el almacenamiento en caché
+            string publicKeyCacheKey = $"{credencialesUsuario.Id}PublicKey";
+            var publicKeyJson = JsonConvert.SerializeObject(publicKey);
             bool useRedis = _connectionMultiplexer != null && _connectionMultiplexer.IsConnected;
 
-            var publicKeyJson = JsonConvert.SerializeObject(publicKey);
-
+            // 3. Persistir ÚNICAMENTE la clave pública.
+          
             if (useRedis)
-            {                 
+            {
                 await _redis.SetStringAsync(publicKeyCacheKey, publicKeyJson);
             }
             else
-            {           
+            {
                 _memoryCache.Set(publicKeyCacheKey, publicKeyJson);
             }
 
-            // 7. Firmar JWT con la clave privada original (en memoria)
+            // 4. Firmar el JWT utilizando la clave privada en memoria
             var rsaSecurityKey = new RsaSecurityKey(privateKey)
             {
                 KeyId = credencialesUsuario.Id.ToString()

@@ -96,7 +96,7 @@ namespace GestorInventario.Application.Services.Authentication
             if (usuario.EmailVerificationToken != cambio.Token)
                 return OperationResult<Usuario>.Fail("El token no es valido");
 
-            if (usuario.FechaEnlaceCambioPass < DateTime.Now || usuario.FechaExpiracionContrasenaTemporal < DateTime.Now)
+            if (usuario.FechaEnlaceCambioPass < DateTime.UtcNow || usuario.FechaExpiracionContrasenaTemporal < DateTime.UtcNow)
             {
                 usuario.FechaEnlaceCambioPass = null;
                 usuario.FechaExpiracionContrasenaTemporal = null;

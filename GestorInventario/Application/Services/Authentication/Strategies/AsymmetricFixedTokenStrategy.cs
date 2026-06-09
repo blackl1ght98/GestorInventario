@@ -41,8 +41,9 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
             }
 
             // Cargar clave privada en RSA
-            using var rsa = new RSACryptoServiceProvider();
+            using var rsa = RSA.Create();
             rsa.FromXmlString(privateKeyXml);
+
 
             // Crear la clave de seguridad con la clave PRIVADA completa
             var rsaSecurityKey = new RsaSecurityKey(rsa.ExportParameters(true))
@@ -57,7 +58,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
                 issuer: ObtenerIssuer(),
                 audience: ObtenerAudience(),
                 claims: claims,
-                expires: DateTime.Now.AddDays(1),
+                expires: DateTime.UtcNow.AddDays(1),
                 signingCredentials: signingCredentials);
 
             var tokenString = new JwtSecurityTokenHandler().WriteToken(securityToken);

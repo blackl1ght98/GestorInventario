@@ -159,14 +159,7 @@ namespace GestorInventario.Middlewares.Strategis
                 Expires = DateTime.UtcNow.AddMinutes(10)
             });
 
-            context.Response.Cookies.Append("refreshToken", newRefreshToken, new CookieOptions
-            {
-                HttpOnly = true,
-                SameSite = SameSiteMode.Lax,
-             
-                Secure = true,
-                Expires = DateTime.UtcNow.AddDays(7)
-            });
+        
 
            logger.Info("Tokens generados con exito");
         }

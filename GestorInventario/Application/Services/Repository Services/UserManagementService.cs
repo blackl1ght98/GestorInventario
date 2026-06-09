@@ -49,7 +49,7 @@ namespace GestorInventario.Application.Services.User
             var usuarioEf = _mapper.Map<Usuario>(model);
             usuarioEf.Password = resultadoHash.Hash;
             usuarioEf.Salt = resultadoHash.Salt;
-            usuarioEf.FechaRegistro = DateTime.Now;
+            usuarioEf.FechaRegistro = DateTime.UtcNow;
             var resultadoGuardado = await _usuarioRepository.AgregarUsuarioAsync(usuarioEf);
             if (!resultadoGuardado.Success)
                 return OperationResult<string>.Fail(resultadoGuardado.Message);
