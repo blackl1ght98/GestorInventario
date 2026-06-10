@@ -1,6 +1,7 @@
 ﻿using GestorInventario.Application.DTOs.User;
 using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application.Authentication;
+using GestorInventario.Interfaces.Application.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
@@ -26,26 +27,21 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
     /// </summary>
     public class AsymmetricDynamicTokenStrategy : BaseTokenStrategy
     {
-        private readonly IDistributedCache _redis;
-        private readonly IMemoryCache _memoryCache;
-        private readonly IConnectionMultiplexer _connectionMultiplexer;
+        private readonly ICacheService _cache;
         private readonly ILogger<AsymmetricDynamicTokenStrategy> _logger;
         private readonly IEncryptionService _encryptionService;
 
         public AsymmetricDynamicTokenStrategy(
             IConfiguration configuration,
-            IDistributedCache redis,
-            IMemoryCache memoryCache,
-            IConnectionMultiplexer connectionMultiplexer,
             ILogger<AsymmetricDynamicTokenStrategy> logger,
             GestorInventarioContext context,
+            ICacheService cache,
             IEncryptionService encryptionService)
             : base(configuration, context)
         {
-            _redis = redis;
-            _memoryCache = memoryCache;
-            _connectionMultiplexer = connectionMultiplexer;
+            
             _logger = logger;
+            _cache = cache;
             _encryptionService = encryptionService;
         }
 
@@ -79,18 +75,8 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
             // 2. Preparar la clave pública para el almacenamiento en caché
             string publicKeyCacheKey = $"{credencialesUsuario.Id}PublicKey";
             var publicKeyJson = JsonConvert.SerializeObject(publicKey);
-            bool useRedis = _connectionMultiplexer != null && _connectionMultiplexer.IsConnected;
 
-            // 3. Persistir ÚNICAMENTE la clave pública.
-          
-            if (useRedis)
-            {
-                await _redis.SetStringAsync(publicKeyCacheKey, publicKeyJson);
-            }
-            else
-            {
-                _memoryCache.Set(publicKeyCacheKey, publicKeyJson);
-            }
+            await _cache.SetStringAsync(publicKeyCacheKey, publicKeyJson);
 
             // 4. Firmar el JWT utilizando la clave privada en memoria
             var rsaSecurityKey = new RsaSecurityKey(privateKey)

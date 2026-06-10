@@ -1,6 +1,7 @@
 ﻿using GestorInventario.Application.Politicas_Resilencia;
 using GestorInventario.Application.Services;
 using GestorInventario.Application.Services.Authentication;
+using GestorInventario.Application.Services.Authentication.Strategies;
 using GestorInventario.Application.Services.Common;
 using GestorInventario.Application.Services.External_Sevices;
 using GestorInventario.Application.Services.External_Sevices.Refunds;
@@ -8,6 +9,7 @@ using GestorInventario.Application.Services.Generic_Services;
 using GestorInventario.Application.Services.Notifications;
 using GestorInventario.Application.Services.Products;
 using GestorInventario.Application.Services.User;
+using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Repositories.AdminRepository;
 using GestorInventario.Infraestructure.Repositories.CarritoRepository;
 using GestorInventario.Infraestructure.Repositories.PaymentRepository;
@@ -26,6 +28,9 @@ using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.PaginacionLogica;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
+using StackExchange.Redis;
 
 
 namespace GestorInventario.MetodosExtension
@@ -49,14 +54,15 @@ namespace GestorInventario.MetodosExtension
         }
 
         // 2. CAPA de LÓGICA DE NEGOCIO: Servicios de Aplicación
-        // Estos coordinan los repositorios y aplican reglas de negocio
+   
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
             // Servicios de Auth y Seguridad
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<ITokenGenerator, TokenGenerator>();
             services.AddScoped<IAuthService, AuthService>();
-
+            services.AddScoped<ITokenStrategyFactory, TokenStrategyFactory>();
+            services.AddScoped<IRefreshTokenMethod, RefreshTokenMethod>();
             // Servicios de Notificaciones y Documentos
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IPdfService, PdfService>();
@@ -101,6 +107,7 @@ namespace GestorInventario.MetodosExtension
             services.AddSingleton<IImageOptimizerService, ImageOptimizerService>();
             services.AddSingleton<ICurrentUserAccessor, CurrentUserAccessor>();
             services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
+            
             return services;
         }
 
@@ -108,6 +115,26 @@ namespace GestorInventario.MetodosExtension
         public static IServiceCollection AddBackgroundServices(this IServiceCollection services)
         {
             services.AddHostedService<StockCheckBackgroundService>();
+            return services;
+        }
+        //5. SERVICIOS QUE REQUIEREN CONFIGURACION MANUAL
+        public static IServiceCollection AddCacheServices(this IServiceCollection services, bool useRedis)
+        {
+           
+            services.AddSingleton<ICacheService, HybridCacheService>(provider =>
+            {
+                var redis = provider.GetRequiredService<IDistributedCache>();
+                var memoryCache = provider.GetRequiredService<IMemoryCache>();
+             
+                IConnectionMultiplexer connectionMultiplexer = null;
+                if (useRedis)
+                {
+                    connectionMultiplexer = provider.GetService<IConnectionMultiplexer>();
+                }
+                return new HybridCacheService(redis,memoryCache,connectionMultiplexer);
+
+            });
+       
             return services;
         }
     }

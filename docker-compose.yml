@@ -101,7 +101,7 @@ services:
         ALTER ROLE db_datareader ADD MEMBER [${DB_SQLUSER}];
         ALTER ROLE db_datawriter ADD MEMBER [${DB_SQLUSER}];
         ALTER LOGIN [${DB_SQLUSER}] WITH DEFAULT_DATABASE = [GestorInventario];
-        ALTER LOGIN [${DB_SA_USERNAME}] DISABLE;
+        
         GRANT EXECUTE TO [${DB_SQLUSER}];" || echo "CREACIÓN DE USUARIO FALLÓ";
         
         echo "AQUI TERMINA CREACION, CODIGO=$?";

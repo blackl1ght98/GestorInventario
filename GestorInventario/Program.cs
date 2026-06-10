@@ -62,7 +62,7 @@ if (useRedis)
    builder.Services.AddRedisCache(builder.Configuration);
 }
 
-builder.Services.AddTokenServices(useRedis);
+builder.Services.AddCacheServices(useRedis);
 builder.Services.ConfigureAuthentication(builder.Configuration, authStrategy);
 builder.Services.ConfigureAntiforgery();
 

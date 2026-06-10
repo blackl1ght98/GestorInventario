@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Application.Authentication;
+using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
@@ -34,18 +35,17 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
         {
             var token = context.Request.Cookies["auth"];
             var refreshToken = context.Request.Cookies["refreshToken"];
-            var tokenService = context.RequestServices.GetRequiredService<ITokenGenerator>();         
-            var utility = context.RequestServices.GetRequiredService<IUserRepository>();       
-            var redis = context.RequestServices.GetService<IDistributedCache>();
-            var memoryCache = context.RequestServices.GetService<IMemoryCache>();
-            var connectionMultiplexer = context.RequestServices.GetService<IConnectionMultiplexer>();
+
+            
+            var tokenService = context.RequestServices.GetRequiredService<ITokenGenerator>();
+            var utility = context.RequestServices.GetRequiredService<IUserRepository>();
+            var cache = context.RequestServices.GetRequiredService<ICacheService>(); 
             var configuration = context.RequestServices.GetService<IConfiguration>();
-            bool useRedis = connectionMultiplexer?.IsConnected ?? false;
 
             if (!string.IsNullOrEmpty(token))
             {
-                var (jwtToken, principal) = await ValidateToken(
-                    token, configuration,  redis, memoryCache,  useRedis);
+               
+                var (jwtToken, principal) = await ValidateToken(token, configuration, cache);
 
                 if (jwtToken != null && principal != null)
                 {
@@ -53,14 +53,12 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
                 }
                 else if (!string.IsNullOrEmpty(refreshToken))
                 {
-                    await HandleExpiredToken(context, refreshToken, configuration, tokenService,
-                        utility, redis, memoryCache,  useRedis);
+                    await HandleExpiredToken(context, refreshToken, configuration, tokenService, utility, cache);
                 }
             }
             else if (!string.IsNullOrEmpty(refreshToken))
             {
-                await HandleExpiredToken(context, refreshToken, configuration, tokenService,
-                    utility, redis, memoryCache,  useRedis);
+                await HandleExpiredToken(context, refreshToken, configuration, tokenService, utility, cache);
             }
         }
         catch (Exception ex)
@@ -74,10 +72,8 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
 
     private static async Task<(JwtSecurityToken?, ClaimsPrincipal?)> ValidateToken(
         string token,
-        IConfiguration configuration,     
-        IDistributedCache? redis,
-        IMemoryCache? memoryCache,     
-        bool useRedis)
+        IConfiguration configuration,
+        ICacheService cache) 
     {
         var handler = new JwtSecurityTokenHandler();
         var logger = log4net.LogManager.GetLogger(typeof(DynamicAsymmetricAuthStrategy));
@@ -99,8 +95,8 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
                 return (null, null);
             }
 
-            // Recuperamos la CLAVE PÚBLICA para validar
-            var publicKeyParams = await RetrievePublicKey(kid, redis, memoryCache, useRedis);
+            // Usamos la abstracción de caché para recuperar la clave pública
+            var publicKeyParams = await RetrievePublicKey(kid, cache);
             if (publicKeyParams == null)
             {
                 logger.Warn($"Clave pública no encontrada en caché para kid: {kid}. Posible reinicio de servidor.");
@@ -133,22 +129,10 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
         }
     }
 
-    /// <summary>
-    /// Recupera la clave pública RSA del caché para validar la firma del JWT.
-    /// La pública se guarda en texto plano porque no es un secreto.
-    /// </summary>
-    private static async Task<RSAParameters?> RetrievePublicKey(
-        string kid,
-        IDistributedCache? redis,
-        IMemoryCache? memoryCache,
-        bool useRedis)
+    private static async Task<RSAParameters?> RetrievePublicKey(string kid, ICacheService cache)
     {
-        string? publicKeyJson = null;
-
-        if (useRedis && redis != null)
-            publicKeyJson = await redis.GetStringAsync($"{kid}PublicKey");
-        else if (memoryCache != null)
-            memoryCache.TryGetValue($"{kid}PublicKey", out publicKeyJson);
+       
+        string? publicKeyJson = await cache.GetStringAsync($"{kid}PublicKey");
 
         if (string.IsNullOrEmpty(publicKeyJson))
             return null;
@@ -162,19 +146,17 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
             return null;
         }
     }
+
     private static async Task HandleExpiredToken(
         HttpContext context,
         string refreshToken,
         IConfiguration configuration,
         ITokenGenerator tokenService,
         IUserRepository utility,
-        IDistributedCache? redis,
-        IMemoryCache? memoryCache,     
-        bool useRedis)
+        ICacheService cache) 
     {
         var logger = log4net.LogManager.GetLogger(typeof(DynamicAsymmetricAuthStrategy));
-        var refreshTokenValid = await ValidateRefreshToken(
-            refreshToken, configuration, redis, memoryCache, useRedis);
+        var refreshTokenValid = await ValidateRefreshToken(refreshToken, configuration, cache);
 
         if (!refreshTokenValid)
         {
@@ -214,12 +196,11 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
 
         logger.Info($"Access token regenerado para el usuario {userId}.");
     }
+
     private static async Task<bool> ValidateRefreshToken(
         string refreshToken,
         IConfiguration configuration,
-        IDistributedCache? redis,
-        IMemoryCache? memoryCache,
-        bool useRedis)
+        ICacheService cache) 
     {
         try
         {
@@ -233,27 +214,19 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
             if (string.IsNullOrEmpty(kid))
                 return false;
 
-            string? publicKeyJson = null;
-
-            if (useRedis && redis != null)
-                publicKeyJson = await redis.GetStringAsync($"{kid}PublicKeyRefresco");
-            else if (memoryCache != null)
-                memoryCache.TryGetValue($"{kid}PublicKeyRefresco", out publicKeyJson);
+           
+            string? publicKeyJson = await cache.GetStringAsync($"{kid}PublicKeyRefresco");
 
             if (string.IsNullOrEmpty(publicKeyJson))
                 return false;
 
-            // Deserializamos la clave pública desde la caché (solo estructura de datos)
             var publicKeyParams = JsonConvert.DeserializeObject<RSAParameters>(publicKeyJson);
 
-            // Inicializamos el motor RSA e importamos los parámetros para habilitar la lógica de validación
             using var rsa = RSA.Create();
             rsa.ImportParameters(publicKeyParams);
 
-            // Adaptamos la instancia RSA al formato requerido por el middleware de autenticación de JWT
             var rsaSecurityKey = new RsaSecurityKey(rsa) { KeyId = kid };
 
-            // Configuración de validación: Verificamos Firma, Emisor, Audiencia y Vigencia
             var validationParameters = new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,

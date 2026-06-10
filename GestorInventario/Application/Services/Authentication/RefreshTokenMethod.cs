@@ -2,6 +2,7 @@
 using GestorInventario.Application.Services.Authentication.Strategies;
 using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Application.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
@@ -19,33 +20,26 @@ namespace GestorInventario.Application.Services.Authentication
     {
         private readonly GestorInventarioContext _context;
         private readonly IConfiguration _configuration;
-        private readonly IMemoryCache _memoryCache;
-        private readonly IDistributedCache _redis;
-        private readonly IConnectionMultiplexer _connectionMultiplexer;
+        private readonly ICacheService _cache;
         private readonly ILogger<RefreshTokenMethod> _logger;
         private readonly ITokenStrategyFactory _tokenStrategyFactory;
 
         public RefreshTokenMethod(
             GestorInventarioContext context,
             IConfiguration configuration,
-            IMemoryCache memoryCache,
-            IDistributedCache redis,
-            IConnectionMultiplexer connectionMultiplexer,
+            ICacheService cache,
             ILogger<RefreshTokenMethod> logger,
             ITokenStrategyFactory tokenStrategyFactory)
         {
             _context = context;
             _configuration = configuration;
-            _memoryCache = memoryCache;
-            _redis = redis;
-            _connectionMultiplexer = connectionMultiplexer;
+            _cache = cache;
             _logger = logger;
             _tokenStrategyFactory = tokenStrategyFactory;
         }
 
         public async Task<string> GenerarTokenRefresco(Usuario credencialesUsuario)
         {
-            // Obtener usuario completo de la BD
             var usuarioDB = await _context.Usuarios
                 .Include(u => u.IdRolNavigation)
                 .FirstOrDefaultAsync(x => x.Id == credencialesUsuario.Id);
@@ -55,13 +49,9 @@ namespace GestorInventario.Application.Services.Authentication
                 throw new ArgumentException("El usuario no existe en la base de datos.");
             }
 
-            // Obtenemos la estrategia actual y la casteamos para usar los métodos de la base
             var strategy = (BaseTokenStrategy)_tokenStrategyFactory.CreateStrategy();
-
-            // Usamos los métodos reutilizables de BaseTokenStrategy
             var claims = strategy.CrearClaims(credencialesUsuario);
 
-            // Determinar la estrategia según AuthMode
             string authMode = _configuration["AuthMode"] ?? "Symmetric";
             SigningCredentials signingCredentials;
 
@@ -83,42 +73,26 @@ namespace GestorInventario.Application.Services.Authentication
                     break;
 
                 case "AsymmetricDynamic":
-                    string? publicKeyJson;
+                 
+                    string cacheKey = credencialesUsuario.Id.ToString() + "PublicKeyRefresco";
+
+                    // 1. Recuperar la pública 
+                    string? publicKeyJson = await _cache.GetStringAsync(cacheKey);
+
+                    // 2. Generamos la nueva pareja de claves
                     RSAParameters privateKey;
                     RSAParameters publicKey;
 
-                    bool useRedis = _connectionMultiplexer != null && _connectionMultiplexer.IsConnected;
-
-                    // 1. Solo intentamos recuperar la PÚBLICA para consistencia,
-                    // pero para generar el token SIEMPRE necesitamos una privada fresca.
-                    if (useRedis)
-                    {
-                        publicKeyJson = await _redis.GetStringAsync(credencialesUsuario.Id.ToString() + "PublicKeyRefresco");
-                    }
-                    else
-                    {
-                        _memoryCache.TryGetValue(credencialesUsuario.Id.ToString() + "PublicKeyRefresco", out publicKeyJson);
-                    }
-
-                    // 2. Generamos un nuevo par de claves cada vez que se crea el Refresh Token
-                    // No recuperamos la privada de Redis, la creamos en RAM.
                     using (var rsa = new RSACryptoServiceProvider(2048))
                     {
                         privateKey = rsa.ExportParameters(true);
                         publicKey = rsa.ExportParameters(false);
 
-                        // 3. Guardamos ÚNICAMENTE la pública
+                        // 3. Guardamos la pública 
                         var publicKeyJsonToSave = JsonConvert.SerializeObject(publicKey);
 
-                        if (useRedis)
-                        {
-                            await _redis.SetStringAsync(credencialesUsuario.Id.ToString() + "PublicKeyRefresco",
-                                publicKeyJsonToSave, new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(30) });
-                        }
-                        else
-                        {
-                            _memoryCache.Set(credencialesUsuario.Id.ToString() + "PublicKeyRefresco", publicKeyJsonToSave);
-                        }
+                        // Usamos un tiempo de expiración de 30 días
+                        await _cache.SetStringAsync(cacheKey, publicKeyJsonToSave, TimeSpan.FromDays(30));
                     }
 
                     var rsaSecurityKeyDynamic = new RsaSecurityKey(privateKey)
@@ -150,7 +124,6 @@ namespace GestorInventario.Application.Services.Authentication
                     throw new NotSupportedException($"Modo de autenticación no soportado: {authMode}");
             }
 
-            // Generar el token de refresco
             var refreshToken = new JwtSecurityToken(
                 issuer: _configuration["JwtIssuer"],
                 audience: _configuration["JwtAudience"],
