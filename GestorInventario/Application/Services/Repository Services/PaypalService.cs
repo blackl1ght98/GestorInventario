@@ -25,8 +25,7 @@ namespace GestorInventario.Application.Services.Common
         {
             _paypalRepository = paypalRepository;
             _logger = logger;
-            _pedidoRepository = pedido;
-           
+            _pedidoRepository = pedido;          
             _currentUserAccessor = currentUserAccessor;
         }
        

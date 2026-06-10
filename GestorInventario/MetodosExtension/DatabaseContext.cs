@@ -1,7 +1,7 @@
 ﻿using GestorInventario.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace GestorInventario.MetodosExtension.Metodos_program.cs
+namespace GestorInventario.MetodosExtension
 {
     public static  class DatabaseContext
     {

@@ -127,15 +127,15 @@
 
 
                                         @{
-                                            // Buscar el capture asociado (nueva forma)
+                                            // Buscar el capture asociado 
                                             var capture = pedido.PayPalPaymentCaptures?.FirstOrDefault();
-                                            var orderId = capture?.PaymentId; // fallback legacy
+                                            var orderId = capture?.PaymentId; 
                                         }
 
                                         @if (!string.IsNullOrEmpty(orderId))
                                         {
                                             <a asp-action="DetallesPagoEjecutado"
-                                               asp-controller="Pagos"
+                                               asp-controller="Payment"
                                                asp-route-id="@orderId"
                                                asp-route-pedidoId="@pedido.Id"
                                                class="btn btn-outline-info">

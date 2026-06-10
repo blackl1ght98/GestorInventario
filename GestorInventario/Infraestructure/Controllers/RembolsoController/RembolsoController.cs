@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Application.DTOs.Paypal.Responses.GET.Order;
 using GestorInventario.Application.DTOs.Rembolso;
+using GestorInventario.Application.DTOS.Rembolso;
 using GestorInventario.Application.Services.Common;
 using GestorInventario.Domain.Models;
 using GestorInventario.enums;
@@ -121,17 +122,17 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
             }
         }
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RefundSale([FromBody] RefundRequestModelDto request)
+      
+        public async Task<IActionResult> RefundSale([FromBody] RefundFullDto request)
         {
-            if (request == null || request.DetalleId <= 0)
+            if (request == null || request.PedidoId <= 0)
                 return BadRequest("Datos inválidos");
 
             try
             {
                 // 1. TU dominio: leer pedido de TU base de datos
                 var pedido = await _pedidoRepository
-                    .ObtenerPedidoConDetallesAsync(request.DetalleId);
+                    .ObtenerPedidoConDetallesAsync(request.PedidoId);
                 
                 if (pedido == null)
                     return NotFound("Pedido no encontrado");
@@ -145,7 +146,7 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
 
                 _logger.LogInformation(
                     "Reembolso total pedido {PedidoId} -> Subtotal:{Subtotal} IVA:{Iva} Total:{Total}",
-                    request.DetalleId, pedido.Subtotal, pedido.Iva, totalReembolso);
+                    request.PedidoId, pedido.Subtotal, pedido.Iva, totalReembolso);
 
                 // 2. Llamar al servicio de PayPal con datos planos (sin BD)
                 var refundResult = await _refundService.RefundCaptureAsync(
@@ -177,13 +178,13 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error inesperado en refund pedido {PedidoId}", request.DetalleId);
+                _logger.LogError(ex, "Error inesperado en refund pedido {PedidoId}", request.PedidoId);
                 return StatusCode(500, new { success = false, message = "Error procesando reembolso" });
             }
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RefundPartial([FromBody] RefundRequestModelDto request)
+        public async Task<IActionResult> RefundPartial([FromBody] RefundPartialDto request)
         {
             if (request?.DetalleId <= 0)
             {

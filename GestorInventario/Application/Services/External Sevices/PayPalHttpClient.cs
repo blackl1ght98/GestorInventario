@@ -9,18 +9,18 @@ namespace GestorInventario.Application.Services.External_Sevices
 {
     public class PayPalHttpClient: IPayPalHttpClient
     {
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
 
-        public PayPalHttpClient(IHttpClientFactory httpClientFactory, IConfiguration configuration)
+        public PayPalHttpClient(HttpClient httpClientFactory, IConfiguration configuration)
         {
-            _httpClientFactory = httpClientFactory;
+            _httpClient = httpClientFactory;
             _configuration = configuration;
         }
 
         public async Task<string> GetAccessTokenAsync(string clientId, string clientSecret)
         {
-            var client = _httpClientFactory.CreateClient("PayPal");
+          
             var tokenUrl = "v1/oauth2/token";
             var byteArray = Encoding.ASCII.GetBytes($"{clientId}:{clientSecret}");
             var authHeader = Convert.ToBase64String(byteArray);
@@ -31,7 +31,7 @@ namespace GestorInventario.Application.Services.External_Sevices
                 { "grant_type", "client_credentials" }
             });
 
-            var response = await client.SendAsync(request);
+            var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
 
             var responseString = await response.Content.ReadAsStringAsync();
@@ -60,7 +60,7 @@ namespace GestorInventario.Application.Services.External_Sevices
          string? rawJsonBody = null,
          Func<HttpResponseMessage, Task>? onError = null)
         {
-            var client = _httpClientFactory.CreateClient("PayPal");
+            
             var (clientId, clientSecret) = GetPaypalCredentials();
             var token = await GetAccessTokenAsync(clientId, clientSecret);
 
@@ -83,7 +83,7 @@ namespace GestorInventario.Application.Services.External_Sevices
                 var json = JsonConvert.SerializeObject(content);
                 request.Content = new StringContent(json, Encoding.UTF8, "application/json");
             }
-            var response = await client.SendAsync(request);
+            var response = await _httpClient.SendAsync(request);
             var body = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)

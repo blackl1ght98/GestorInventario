@@ -4,6 +4,7 @@ using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
+using GestorInventario.ViewModels.Paypal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -83,10 +84,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
             CultureHelper.SetInvariantCulture();
             try
             {
-            
-
-                var resultado = await _policyExecutor.ExecutePolicyAsync(() => _paymentService.ReintentarPago(pedidoId));
-              
+                var resultado = await _policyExecutor.ExecutePolicyAsync(() => _paymentService.ReintentarPago(pedidoId));          
                 if (resultado.Success)
                 {
                     return Redirect(resultado.Data);
@@ -108,31 +106,94 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
         }
         [Authorize]
         public async Task<IActionResult> Cancel()
-        {
-
-            /**
-             * DESCOMENTAR LOGICA DE ELIMINACION EN CASO DE NO QUERER LA LOGICA DE REINTENTO DE PAGO Y COMENTAR LA LOGICA DE REINTENTO DE PAGO
-             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-            // Buscar el pedido más reciente del usuario que esté sin pagar/corrupto
-            var pedidoCorrupto = await _context.Pedidos
-                .Include(p => p.DetallePedidos)
-                .Where(p => p.IdUsuario == userId)
-                .Where(p => p.EstadoPedido == "Pendiente" || p.PayPalPaymentCaptures.Count == 0)
-                .OrderByDescending(p => p.FechaPedido)
-                .FirstOrDefaultAsync();
-
-            if (pedidoCorrupto != null)
-            {
-
-                _context.DetallePedidos.RemoveRange(pedidoCorrupto.DetallePedidos);
-                _context.Pedidos.Remove(pedidoCorrupto);
-                await _context.SaveChangesAsync();
-            }
-             
-             */
+        {        
             return RedirectToAction("Index", "Productos");
         }
-       
-       
-    }      
-}
+        [Authorize]
+        public async Task<IActionResult> DetallesPagoEjecutado(string id, int pedidoId)
+        {
+            var result = await _policyExecutor.ExecutePolicyAsync(() => _pedidoService.SincronizarDetallePagoAsync(id, pedidoId));
+
+            if (!result.Success || result.Data == null)
+            {
+                _logger.LogError(result.Message);
+                return RedirectToAction(nameof(Index));
+            }
+
+            var paypalDetail = result.Data;
+
+            var ultimoCapture = paypalDetail.PayPalPaymentCaptures?
+                .OrderByDescending(c => c.Id)
+                .FirstOrDefault();
+
+            // ✅ Proteger contra null
+            var ultimaInfoEnvio = paypalDetail.PayPalPaymentShippings
+                .OrderByDescending(c => c.Id)
+                .FirstOrDefault();
+
+            var viewModel = new PayPalPaymentDetailViewModel
+            {
+                // Datos del pagador
+                Id = paypalDetail.Id,
+                Intent = paypalDetail.Intent,
+                Status = paypalDetail.OrderStatus,
+                CreateTime = paypalDetail.CreateTime,
+                UpdateTime = paypalDetail.UpdateTime,
+
+                PayerEmail = paypalDetail.PayerEmail,
+                PayerFirstName = paypalDetail.PayerFirstName,
+                PayerLastName = paypalDetail.PayerLastName,
+                PayerId = paypalDetail.PayerId,
+
+                // ✅ Datos de envío con protección null
+                ShippingRecipientName = ultimaInfoEnvio?.RecipientName,
+                ShippingLine1 = ultimaInfoEnvio?.AddressLine1,
+                ShippingCity = ultimaInfoEnvio?.City,
+                ShippingState = ultimaInfoEnvio?.State,
+                ShippingPostalCode = ultimaInfoEnvio?.PostalCode,
+                ShippingCountryCode = ultimaInfoEnvio?.CountryCode,
+
+                // Importe 
+                AmountTotal = paypalDetail.AmountTotal,
+                AmountCurrency = paypalDetail.AmountCurrency,
+                AmountItemTotal = paypalDetail.AmountItemTotal,
+                AmountShipping = paypalDetail.AmountShipping,
+
+                // Datos vendedor
+                PayeeMerchantId = paypalDetail.PayeeMerchantId,
+                PayeeEmail = paypalDetail.PayeeEmail,
+                Description = paypalDetail.Description,
+
+                // ✅ Datos del pago con protección null
+                SaleId = ultimoCapture?.CaptureId,
+                CaptureStatus = ultimoCapture?.Status,
+                CaptureAmount = ultimoCapture?.Amount,
+                CaptureCurrency = ultimoCapture?.Currency,
+                ProtectionEligibility = ultimoCapture?.ProtectionEligibility,
+                TransactionFeeAmount = ultimoCapture?.TransactionFeeAmount,
+                TransactionFeeCurrency = ultimoCapture?.TransactionFeeCurrency,
+                ReceivableAmount = ultimoCapture?.ReceivableAmount,
+                ReceivableCurrency = ultimoCapture?.ReceivableCurrency,
+                ExchangeRate = ultimoCapture?.ExchangeRate,
+                FinalCapture = ultimoCapture?.FinalCapture,
+                DisputeCategories = ultimoCapture?.DisputeCategories,
+
+                TrackingId = paypalDetail.TrackingId,
+                TrackingStatus = paypalDetail.TrackingStatus,
+
+                PayPalPaymentItems = paypalDetail.PayPalPaymentItems?.Select(item => new PayPalPaymentItemViewModel
+                {
+                    ItemName = item.ItemName,
+                    ItemSku = item.ItemSku,
+                    ItemPrice = item.ItemPrice,
+                    ItemCurrency = item.ItemCurrency,
+                    ItemTax = item.ItemTax,
+                    ItemQuantity = item.ItemQuantity
+                }).ToList() ?? new List<PayPalPaymentItemViewModel>()
+            };
+
+            return View(viewModel);
+        }
+    }
+
+}      

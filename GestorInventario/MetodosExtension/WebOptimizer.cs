@@ -1,4 +1,6 @@
-﻿namespace GestorInventario.MetodosExtension.Metodos_program.cs
+﻿using GestorInventario.MetodosExtension;
+
+namespace GestorInventario.MetodosExtension
 {
     public static class WebOptimizer
     {

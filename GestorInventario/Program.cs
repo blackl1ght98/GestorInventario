@@ -1,7 +1,7 @@
 ﻿
 using Azure.Core;
 using Azure.Identity;
-using GestorInventario.MetodosExtension.Metodos_program.cs;
+using GestorInventario.MetodosExtension;
 using GestorInventario.Middlewares;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
@@ -45,19 +45,17 @@ builder.Logging.AddLog4Net();
 builder.Services.AddAntiforgery();
 builder.Services.AddHttpContextAccessor();
 
-//Servicios especificos y transient
-builder.Services.AddTransientServices();
+//Servicios especificos 
+builder.Services.AddRepositories();
+builder.Services.AddApplicationServices();
+builder.Services.AddSingletonServices();
+builder.Services.AddBackgroundServices();
 QuestPDF.Settings.License = LicenseType.Community;
 
 builder.Services.AddHttpClientPayPal();
 builder.Services.AddAutoMapper(builder.Configuration);
 builder.Services.AddWebOptimizer();
-//Para futuro cuando agregue autenticacion por google
-//builder.Services.AddAuthentication().AddGoogle(cfg => {
-//    cfg.ClientId = "";
-//cfg.ClientSecret = "password";
 
-//});
 // Si estamos usando Redis
 if (useRedis)
 {

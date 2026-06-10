@@ -1,10 +1,8 @@
 ﻿
 using GestorInventario.Application.Services.Generic_Services;
-using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
-using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
 
 namespace GestorInventario.Application.Services
@@ -18,7 +16,6 @@ namespace GestorInventario.Application.Services
             _paymentRepository = repository;
         }
        
-
         public async Task<OperationResult<byte[]>> GenerarFacturaPagoEjecutadoAsync(string pagoId)
         {
             var detalle = await _paymentRepository.ObtenerDetallesPagoPorIDAsync(pagoId);

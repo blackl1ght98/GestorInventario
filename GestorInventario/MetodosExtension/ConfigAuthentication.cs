@@ -1,7 +1,7 @@
 ﻿using GestorInventario.Configuracion;
 using GestorInventario.Interfaces.Application;
 
-namespace GestorInventario.MetodosExtension.Metodos_program.cs
+namespace GestorInventario.MetodosExtension
 {
     public static  class ConfigAuthentication
     {

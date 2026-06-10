@@ -12,30 +12,23 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
 {
     public class PaypalProductController : Controller
     {
-       
-       
-        
-        private readonly ILogger<PaypalProductController> _logger;
-      
+          
+        private readonly ILogger<PaypalProductController> _logger;     
         private readonly IPolicyExecutor _policyExecutor;
         private readonly IPaypalSubscriptionService _paypalSubscriptionService;         
-        private readonly IPaginationHelper _paginationHelper;
-     
-        
-        private readonly IPayPalMappingUtils _map;
-       
+        private readonly IPaginationHelper _paginationHelper;      
         public PaypalProductController(
          ILogger<PaypalProductController> logger,
          IPolicyExecutor policyExecutor,
          IPaginationHelper paginationHelper,
-         IPaypalSubscriptionService paypalSubscriptionService,
-         IPayPalMappingUtils map)
+         IPaypalSubscriptionService paypalSubscriptionService
+        )
         {
             _paypalSubscriptionService = paypalSubscriptionService;        
-           _policyExecutor= policyExecutor;
+            _policyExecutor= policyExecutor;
             _logger = logger;               
             _paginationHelper = paginationHelper;
-            _map = map;
+          
             
         }
 

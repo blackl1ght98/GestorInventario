@@ -25,8 +25,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPolicyExecutor _policyExecutor;
-        private readonly IPaypalSubscriptionService _paypalSubscriptionService;
-        private readonly IPayPalMappingUtils _payPalMappingUtils;
+        private readonly IPaypalSubscriptionService _paypalSubscriptionService;     
         private readonly IPaginationHelper _paginationHelper;
         private readonly ILogger<PaypalPlanController> _logger;
         private readonly IPaypalService _paypalService;
@@ -35,7 +34,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
             IUnitOfWork unitOfWork, 
             IPolicyExecutor policyExecutor, 
             IPaypalSubscriptionService paypalSubscriptionService,
-            IPayPalMappingUtils payPalMappingUtils,
+          
             IPaginationHelper paginationHelper,
             ILogger<PaypalPlanController> logger,
             IPaypalService paypalService,
@@ -45,7 +44,6 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
             _unitOfWork = unitOfWork;
             _policyExecutor = policyExecutor;
             _paypalSubscriptionService = paypalSubscriptionService;
-            _payPalMappingUtils = payPalMappingUtils;
             _paginationHelper = paginationHelper;
             _logger = logger;
             _paypalService = paypalService;

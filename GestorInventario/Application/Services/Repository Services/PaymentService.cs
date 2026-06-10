@@ -29,10 +29,10 @@ namespace GestorInventario.Application.Services.Generic_Services
         private readonly IConversionUtils _conversion;
         private readonly IEmailService _emailService;
         private readonly IPaypalRepository _paypalRepository;
-        private readonly IPaymentRepository _paymentrepository;
-        private readonly IPedidoRepository _pedidoRepository;
-        public PaymentService( ICurrentUserAccessor currentUserAccessor, ILogger<PaymentService> logger, IUnitOfWork unit, IPaymentRepository payment,
-        IConfiguration configuration, IPaypalOrderService paypalOrder, IConversionUtils conversion, IEmailService email, IPaypalRepository paypal, IPedidoRepository pedido)
+       
+       
+        public PaymentService( ICurrentUserAccessor currentUserAccessor, ILogger<PaymentService> logger, IUnitOfWork unit,
+        IConfiguration configuration, IPaypalOrderService paypalOrder, IConversionUtils conversion, IEmailService email, IPaypalRepository paypal)
         {
             
             _currentUserAccessor = currentUserAccessor;
@@ -43,8 +43,8 @@ namespace GestorInventario.Application.Services.Generic_Services
             _conversion = conversion;
             _emailService = email;
             _paypalRepository= paypal;
-            _paymentrepository = payment;
-            _pedidoRepository = pedido;
+          
+          
          
         }
 

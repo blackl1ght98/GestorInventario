@@ -8,7 +8,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using StackExchange.Redis;
 
-namespace GestorInventario.MetodosExtension.Metodos_program.cs
+namespace GestorInventario.MetodosExtension
 {
     public static class TokenServices
     {

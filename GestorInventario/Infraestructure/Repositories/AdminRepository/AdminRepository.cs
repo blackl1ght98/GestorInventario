@@ -32,7 +32,6 @@ namespace GestorInventario.Infraestructure.Repositories.AdminRepository
         {
            
             return await _context.Usuarios
-                .AsNoTracking()
                 .Where(u => u.IdRolNavigation.Nombre == "Administrador" && u.Email != null)
                 .Select(u => u.Email)
                 .Distinct()
@@ -117,17 +116,20 @@ namespace GestorInventario.Infraestructure.Repositories.AdminRepository
         }
         public async Task<OperationResult<string>> ReasignarProveedoresAsync(int usuarioOrigenId, int usuarioDestinoId)
         {
-            var proveedores = await _context.Proveedores
+            return await _context.ExecuteInTransactionAsync(async () =>
+            {
+                var proveedores = await _context.Proveedores
                 .Where(p => p.IdUsuario == usuarioOrigenId)
                 .ToListAsync();
 
-            foreach (var proveedor in proveedores)
-            {
-                proveedor.IdUsuario = usuarioDestinoId;
-                await _context.UpdateEntityAsync(proveedor);
-            }
-             
-            return OperationResult<string>.Ok("Proveedores reasignados correctamente");
+                foreach (var proveedor in proveedores)
+                {
+                    proveedor.IdUsuario = usuarioDestinoId;
+                    await _context.UpdateEntityAsync(proveedor);
+                }
+                return OperationResult<string>.Ok("Proveedores reasignados correctamente");
+            });
+           
         }
         public async Task<Usuario> ObtenerUsuarioConProveedoresYPedidosAsync(int id)
         {

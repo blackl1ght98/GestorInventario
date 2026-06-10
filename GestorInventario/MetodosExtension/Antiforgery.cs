@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.MetodosExtension.Metodos_program.cs
+﻿namespace GestorInventario.MetodosExtension
 {
     public static class Antiforgery
     {

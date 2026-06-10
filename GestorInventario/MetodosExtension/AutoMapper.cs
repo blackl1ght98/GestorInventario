@@ -1,6 +1,7 @@
-﻿using System.Reflection;
+﻿using GestorInventario.MetodosExtension;
+using System.Reflection;
 
-namespace GestorInventario.MetodosExtension.Metodos_program.cs
+namespace GestorInventario.MetodosExtension
 {
     public static class AutoMapper
     {

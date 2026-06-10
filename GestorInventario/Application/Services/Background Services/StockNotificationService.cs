@@ -28,7 +28,7 @@ namespace GestorInventario.Application.Services.Generic_Services
         {
             try
             {
-                // 1. Traer administradores desde la base de datos
+             
                 var adminEmails = await _adminNotifierRepository
                     .ObtenerEmailsAdministradoresAsync(stoppingToken);
 
@@ -43,7 +43,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                     "Notificaciones de stock dirigidas a {Count} administrador(es).",
                     adminEmails.Count);
 
-                // 2. Traer productos con stock bajo
+               
                 var productos =  _productoRepository.ObtenerTodosLosProductos();
                 var productosBajoStock = productos.Where(p => p.Cantidad < 10).ToList();
 
@@ -57,7 +57,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                     "Detectados {Count} productos con stock bajo.",
                     productosBajoStock.Count);
 
-                // 3. Enviar un email por producto a cada admin
+                
                 foreach (var producto in productosBajoStock)
                 {
                     stoppingToken.ThrowIfCancellationRequested();

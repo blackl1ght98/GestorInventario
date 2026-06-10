@@ -1,6 +1,6 @@
 ﻿using GestorInventario.Interfaces.Application.Services;
 
-namespace GestorInventario.Middlewares
+namespace GestorInventario.MetodosExtension
 {
     public static class ImageProcessingMiddlewareExtensions
     {
