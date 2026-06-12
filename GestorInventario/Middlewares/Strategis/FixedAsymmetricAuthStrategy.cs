@@ -20,7 +20,7 @@ namespace GestorInventario.Middlewares.Strategis
                 var refreshToken = context.Request.Cookies["refreshToken"];
                 var tokenService = context.RequestServices.GetRequiredService<ITokenGenerator>();
                 var utility = context.RequestServices.GetRequiredService<IUserRepository>();
-                var refreshTokenMethod = context.RequestServices.GetRequiredService<IRefreshTokenMethod>();
+                var refreshTokenMethod = context.RequestServices.GetRequiredService<IRefreshTokenStrategy>();
                 var configuration = context.RequestServices.GetService<IConfiguration>();
                 // Validar el token principal
                 if (!string.IsNullOrEmpty(token))
@@ -110,7 +110,7 @@ namespace GestorInventario.Middlewares.Strategis
         }
 
         private async Task HandleExpiredToken(HttpContext context, string refreshToken,IConfiguration configuration,
-            ITokenGenerator tokenService, IUserRepository utility, IRefreshTokenMethod refreshTokenMethod)
+            ITokenGenerator tokenService, IUserRepository utility, IRefreshTokenStrategy refreshTokenMethod)
         {
             var refreshTokenValid = await ValidateRefreshToken(refreshToken,configuration);
             var logger = log4net.LogManager.GetLogger(typeof(FixedAsymmetricAuthStrategy));

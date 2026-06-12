@@ -2,6 +2,7 @@
 using GestorInventario.Application.Services;
 using GestorInventario.Application.Services.Authentication;
 using GestorInventario.Application.Services.Authentication.Strategies;
+using GestorInventario.Application.Services.Authentication.Token_generation;
 using GestorInventario.Application.Services.Common;
 using GestorInventario.Application.Services.External_Sevices;
 using GestorInventario.Application.Services.External_Sevices.Refunds;
@@ -62,7 +63,9 @@ namespace GestorInventario.MetodosExtension
             services.AddScoped<ITokenGenerator, TokenGenerator>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<ITokenStrategyFactory, TokenStrategyFactory>();
-            services.AddScoped<IRefreshTokenMethod, RefreshTokenMethod>();
+           
+            services.AddScoped<IRefreshTokenGenerator, RefreshTokenGenerator>();
+            services.AddScoped<IRefreshTokenStrategyFactory, RefreshTokenStrategyFactory>();
             // Servicios de Notificaciones y Documentos
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IPdfService, PdfService>();

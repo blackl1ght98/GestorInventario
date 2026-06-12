@@ -1,5 +1,5 @@
-﻿using GestorInventario.Domain.Models;
-using GestorInventario.Application.DTOs.User;
+﻿using GestorInventario.Application.DTOs.User;
+using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Application.Authentication;
 
@@ -9,9 +9,9 @@ namespace GestorInventario.Application.Services
     {
      
         private readonly ITokenGenerator _tokenGenerator;
-        private readonly IRefreshTokenMethod _refreshTokenMethod;
+        private readonly IRefreshTokenGenerator _refreshTokenMethod;
       
-        public TokenService(ITokenGenerator tokenService, IRefreshTokenMethod refresh)
+        public TokenService(ITokenGenerator tokenService, IRefreshTokenGenerator refresh)
         {
 
             _tokenGenerator = tokenService;
@@ -24,7 +24,7 @@ namespace GestorInventario.Application.Services
             // Generar el token principal: dependiendo de la estrategia escogida
             var tokenPrincipal = await _tokenGenerator.GenerateTokenAsync(credencialesUsuario);
             // Generar el token de refresco
-            var tokenRefresco = await _refreshTokenMethod.GenerarTokenRefresco(credencialesUsuario);
+            var tokenRefresco = await _refreshTokenMethod.GenerateTokenAsync(credencialesUsuario);
             // Devolver ambos tokens en la respuesta
             return new LoginResponseDto
             {

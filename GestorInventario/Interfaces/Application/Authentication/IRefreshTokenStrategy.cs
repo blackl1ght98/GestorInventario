@@ -2,7 +2,7 @@
 
 namespace GestorInventario.Interfaces.Application
 {
-    public interface IRefreshTokenMethod
+    public interface IRefreshTokenStrategy
     {
         Task<string> GenerarTokenRefresco(Usuario credencialesUsuario);
     }

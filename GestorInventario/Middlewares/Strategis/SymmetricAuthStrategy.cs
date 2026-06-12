@@ -29,7 +29,7 @@ namespace GestorInventario.Middlewares.Strategis
                 var refreshToken = context.Request.Cookies["refreshToken"];
                 var tokenService = context.RequestServices.GetRequiredService<ITokenGenerator>();
                 var utility = context.RequestServices.GetRequiredService<IUserRepository>();
-                var refreshTokenMethod = context.RequestServices.GetRequiredService<IRefreshTokenMethod>();
+                var refreshTokenMethod = context.RequestServices.GetRequiredService<IRefreshTokenStrategy>();
 
                 // Validar el token principal
                 if (!string.IsNullOrEmpty(token))
@@ -97,7 +97,7 @@ namespace GestorInventario.Middlewares.Strategis
         }
 
         private async Task HandleExpiredToken(HttpContext context, string refreshToken, string secret, IConfiguration configuration,
-            ITokenGenerator tokenService, IUserRepository utility, IRefreshTokenMethod refreshTokenMethod)
+            ITokenGenerator tokenService, IUserRepository utility, IRefreshTokenStrategy refreshTokenMethod)
         {
             var refreshTokenValid = await ValidateRefreshToken(refreshToken, secret,configuration);
             if (!refreshTokenValid)
