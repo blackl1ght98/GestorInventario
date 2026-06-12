@@ -134,6 +134,7 @@ namespace GestorInventario.Infraestructure.Controllers.PedidosControllers
         }
         // Usuario o Admin cancela antes de envío
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> CancelarPedido([FromQuery] int pedidoId)
         {
             var pedido = await _pedidoRepository.ObtenerPedidoPorIdAsync(pedidoId);
@@ -152,6 +153,7 @@ namespace GestorInventario.Infraestructure.Controllers.PedidosControllers
 
         // Usuario confirma que recibió (o tracking automático)
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> ConfirmarEntrega(int pedidoId)
         {
             var pedido = await _pedidoRepository.ObtenerPedidoPorIdAsync(pedidoId);

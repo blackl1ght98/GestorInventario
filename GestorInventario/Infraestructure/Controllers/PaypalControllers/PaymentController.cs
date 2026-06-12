@@ -78,7 +78,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                 return RedirectToAction("Error", "Home");
             }
         }
-      
+        [Authorize]
         public async Task<IActionResult> ReintentarPago(int pedidoId)
         {
             CultureHelper.SetInvariantCulture();

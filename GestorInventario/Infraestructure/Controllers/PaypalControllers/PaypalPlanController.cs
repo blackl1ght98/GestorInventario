@@ -21,6 +21,7 @@ using System.Numerics;
 
 namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
 {
+    [Authorize]
     public class PaypalPlanController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;

@@ -154,8 +154,8 @@ namespace GestorInventario.Infraestructure.Controllers.AuthenticationController
             }
         }
 
-       [AllowAnonymous]
-       [HttpGet("auth/restore-password/{UserId}/{Token}")]
+        [Authorize]
+        [HttpGet("auth/restore-password/{UserId}/{Token}")]
         public async Task<IActionResult> RestorePassword(int UserId, string Token)
         {
             var  modelo = await _authService.PrepareRestorePassModel(UserId, Token);
@@ -176,7 +176,7 @@ namespace GestorInventario.Infraestructure.Controllers.AuthenticationController
             return View(viewModel);
         }
 
-        [AllowAnonymous]
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RestorePasswordUser(RestorePasswordViewModel model)
@@ -228,11 +228,12 @@ namespace GestorInventario.Infraestructure.Controllers.AuthenticationController
 
 
         [HttpGet]
+        [Authorize]
         public  IActionResult ResetPasswordOlvidada()
         {
             return View();
         }
-        [AllowAnonymous]
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ResetPasswordOlvidada(string email)
@@ -255,12 +256,14 @@ namespace GestorInventario.Infraestructure.Controllers.AuthenticationController
                 _logger.LogError(ex, "Error al enviar el email de restablecimiento");
                 return RedirectToAction("Error", "Home");
             }
-        }       
+        }
+        [Authorize]
         public IActionResult ChangePassword()
         {
             return View();
         }
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangePassword(string passwordAnterior, string passwordActual)
         {

@@ -122,7 +122,7 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
             }
         }
         [HttpPost]
-      
+        [Authorize]
         public async Task<IActionResult> RefundSale([FromBody] RefundFullDto request)
         {
             if (request == null || request.PedidoId <= 0)
@@ -184,6 +184,7 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> RefundPartial([FromBody] RefundPartialDto request)
         {
             if (request?.DetalleId <= 0)

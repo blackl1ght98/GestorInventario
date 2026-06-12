@@ -19,6 +19,7 @@ namespace GestorInventario.Infraestructure.Controllers.PedidosControllers
         }
 
         [HttpGet]
+
         public async Task<IActionResult> ObtenerInfoReasignacion(int id)
         {
             var usuario = await _policyExecutor.ExecutePolicyAsync(() =>

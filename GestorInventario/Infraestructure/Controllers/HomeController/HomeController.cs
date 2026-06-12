@@ -1,6 +1,7 @@
 ﻿using GestorInventario.Domain.Models;
 using GestorInventario.enums;
 using GestorInventario.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,20 +20,10 @@ namespace GestorInventario.Infraestructure.Controllers.HomeController
 
         public IActionResult Index()
         {
-            if (!User.Identity.IsAuthenticated) 
-            {
-                // Obtiene las cookies del navegador.
-                var cookieCollection = Request.Cookies;
-
-                // Recorre todas las cookies y las elimina.
-                foreach (var cookie in cookieCollection)
-                {
-                    Response.Cookies.Delete(cookie.Key);
-                }
-
-            }
+           
             return View();
         }
+        [Authorize]
         public async Task<IActionResult> DashBoard()
         {
             var vm = new DashboardViewModel

@@ -23,6 +23,7 @@ namespace GestorInventario.Infraestructure.Controllers.PedidosControllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> DownloadInvoice(string id)
         {
             if (string.IsNullOrEmpty(id))
@@ -46,7 +47,7 @@ namespace GestorInventario.Infraestructure.Controllers.PedidosControllers
             return File(pdfBytes, "application/pdf", fileName);
         }
         [HttpGet]
-        [Authorize] // Opcional, según quién pueda enviar facturas
+        [Authorize] 
         public async Task<IActionResult> SendInvoiceByEmail(string id)
         {
             if (string.IsNullOrEmpty(id))
