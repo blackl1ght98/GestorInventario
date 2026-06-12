@@ -14,26 +14,25 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
         private readonly GestorInventarioContext _context;
         private readonly ICacheService _cache;
         private readonly ILoggerFactory _loggerFactory;           
-        private readonly IEncryptionService _encryptionService;
+    
 
         public TokenStrategyFactory(
             IConfiguration configuration,
             GestorInventarioContext context,
             ICacheService cache,
-       
-            ILoggerFactory loggerFactory,                        
-            IEncryptionService encryptionService)
+            ILoggerFactory loggerFactory                       
+            )
         {
             _configuration = configuration;
             _context = context;
             _cache=cache;
             _loggerFactory = loggerFactory;
-            _encryptionService = encryptionService;
+           
         }
 
         public ITokenStrategy CreateStrategy()
         {
-            string authMode = _configuration["AuthMode"] ?? "Symmetric";
+            string authMode = _configuration["AuthMode"] ?? "AsymmetricDynamic";
 
             return authMode switch
             {
@@ -41,13 +40,8 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
 
                 "AsymmetricFixed" => new AsymmetricFixedTokenStrategy(_context, _configuration),
 
-                //"AsymmetricDynamic" => new AsymmetricDynamicTokenStrategy(
-                //    _configuration,
-                 
-                //    _loggerFactory.CreateLogger<AsymmetricDynamicTokenStrategy>(),   
-                //    _context,
-                //    _encryptionService),
-                "AsymmetricDynamic" => new AsymmetricDynamicTokenStrategy(_configuration,_loggerFactory.CreateLogger<AsymmetricDynamicTokenStrategy>(),_context,_cache,_encryptionService),
+               
+                "AsymmetricDynamic" => new AsymmetricDynamicTokenStrategy(_configuration,_loggerFactory.CreateLogger<AsymmetricDynamicTokenStrategy>(),_context,_cache),
 
                 _ => throw new NotSupportedException($"Modo de autenticación no soportado: {authMode}")
             };

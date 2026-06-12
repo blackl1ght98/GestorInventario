@@ -6,12 +6,12 @@ using Microsoft.EntityFrameworkCore;
 public class TokenGenerator : ITokenGenerator
 {
     private readonly GestorInventarioContext _context;
-    private readonly ITokenStrategy _tokenStrategy;   // ← Aquí guardamos la estrategia elegida
+    private readonly ITokenStrategy _tokenStrategy;   
 
     public TokenGenerator(GestorInventarioContext context, ITokenStrategyFactory factory)
     {
         _context = context;
-        _tokenStrategy = factory.CreateStrategy();   // ← Aquí decido qué estrategia usar
+        _tokenStrategy = factory.CreateStrategy();   // -> Aqui se guarda la estrategia elegida la estrategia se determina en el archivo de secretos
     }
 
     public async Task<LoginResponseDto> GenerateTokenAsync(Usuario credencialesUsuario)

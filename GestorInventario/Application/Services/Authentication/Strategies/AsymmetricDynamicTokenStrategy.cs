@@ -16,33 +16,34 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
     /// <summary>
     /// Estrategia de generación de tokens JWT utilizando claves RSA asimétricas dinámicas por usuario.
     ///
-    /// Modelo de Seguridad:
-    /// 1. Generación efímera: Se crea un nuevo par de claves RSA (2048 bits) en cada proceso de login.
-    /// 2. Aislamiento de secretos: La clave privada NUNCA se almacena en disco ni en caché.
-    ///    Reside únicamente en la RAM durante el tiempo necesario para firmar el token y luego es descartada.
-    /// 3. Validación descentralizada: Solo la clave pública se almacena en Redis/MemoryCache.
-    ///    Esto permite que el middleware valide la firma del token sin riesgo de comprometer la capacidad de firma del servidor.
-    /// 4. Mitigación de riesgos: En caso de un volcado (dump) completo de la caché de Redis, el atacante
-    ///    solo obtendrá claves públicas, las cuales son inútiles para falsificar tokens.
+    /// Modelo de Seguridad (Zero-Persistence Private Key):
+    /// 1. Generación Efímera: Se crea un par de claves RSA (2048 bits) exclusivamente durante el proceso de login.
+    /// 2. Aislamiento Total de Secretos: La clave privada reside únicamente en la RAM el tiempo estrictamente
+    ///    necesario para firmar el token y luego es destruida inmediatamente por el bloque 'using'.
+    /// 3. Persistencia Mínima: Solo la clave pública se almacena en Redis/MemoryCache.
+    ///    Esto garantiza que incluso un volcado completo (dump) de la memoria de Redis no permita
+    ///    a un atacante generar tokens válidos.
+    /// 4. Validación Descentralizada: El middleware de autenticación solo necesita la clave pública
+    ///    para verificar la identidad, manteniendo la capacidad de firma aislada en el servicio de tokens.
     /// </summary>
     public class AsymmetricDynamicTokenStrategy : BaseTokenStrategy
     {
         private readonly ICacheService _cache;
         private readonly ILogger<AsymmetricDynamicTokenStrategy> _logger;
-        private readonly IEncryptionService _encryptionService;
+       
 
         public AsymmetricDynamicTokenStrategy(
             IConfiguration configuration,
             ILogger<AsymmetricDynamicTokenStrategy> logger,
             GestorInventarioContext context,
-            ICacheService cache,
-            IEncryptionService encryptionService)
+            ICacheService cache
+           )
             : base(configuration, context)
         {
             
             _logger = logger;
             _cache = cache;
-            _encryptionService = encryptionService;
+          
         }
 
         public override async Task<LoginResponseDto> GenerateTokenAsync(Usuario credencialesUsuario)

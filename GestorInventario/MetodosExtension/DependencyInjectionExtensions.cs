@@ -86,28 +86,37 @@ namespace GestorInventario.MetodosExtension
             return services;
         }
 
-        // 3. SERVICIOS SINGLETON (Sin estado / Utilidades globales)
+     
+        // 3. SERVICIOS SINGLETON (Sin estado)
         public static IServiceCollection AddSingletonServices(this IServiceCollection services)
         {
-            services.AddSingleton<IHashService, HashService>();
-            services.AddSingleton<IGestorArchivos, GestorArchivosService>();
-            services.AddSingleton<IConversionUtils, ConversionUtils>();
-            services.AddSingleton<IEncryptionService, EncryptionService>();
-            services.AddSingleton<CultureHelper>();
-            services.AddSingleton<IPaypalOrderTrackingService, PaypalOrderTrackingService>();
-            services.AddSingleton<IPaypalOrderService, PaypalOrderService>();
-            services.AddSingleton<IPaypalSubscriptionService, PaypalSubscriptionService>();
-            services.AddSingleton<IPayPalOrderMappingService, PayPalOrderMappingService>();
+            // --- Integraciones de Pagos (PayPal) ---
             services.AddSingleton<IPayPalHttpClient, PayPalHttpClient>();
+            services.AddSingleton<IPayPalOrderMappingService, PayPalOrderMappingService>();
+            services.AddSingleton<IPaypalOrderService, PaypalOrderService>();
+            services.AddSingleton<IPaypalOrderTrackingService, PaypalOrderTrackingService>();
+            services.AddSingleton<IPaypalSubscriptionService, PaypalSubscriptionService>();
             services.AddSingleton<IPaypalRefundService, PaypalRefundService>();
-            services.AddSingleton<IPageLinkGenerator, PageLinkGenerator>();
-            services.AddSingleton<IPaginationHelper, PaginationHelper>();
+
+            // --- Resiliencia y Manejo de Fallos (Políticas) ---
             services.AddSingleton<IPolicyExecutor, PolicyExecutor>();
             services.AddSingleton<IPolicyHandler, PolicyHandler>();
+
+            // --- UI, Paginación y Localización ---
+            services.AddSingleton<IPaginationHelper, PaginationHelper>();
+            services.AddSingleton<IPageLinkGenerator, PageLinkGenerator>();
+            services.AddSingleton<CultureHelper>();
+
+            // --- Seguridad y Gestión de Archivos/Media ---
+            services.AddSingleton<IHashService, HashService>();
+            services.AddSingleton<IGestorArchivos, GestorArchivosService>();
             services.AddSingleton<IImageOptimizerService, ImageOptimizerService>();
+
+            // --- Infraestructura y Utilidades del Sistema ---
+            services.AddSingleton<IConversionUtils, ConversionUtils>();
             services.AddSingleton<ICurrentUserAccessor, CurrentUserAccessor>();
             services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
-            
+
             return services;
         }
 

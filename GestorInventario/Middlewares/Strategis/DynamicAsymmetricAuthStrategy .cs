@@ -113,6 +113,7 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = rsaSecurityKey,
                 ValidateIssuer = true,
+                ClockSkew = TimeSpan.FromMinutes(5),
                 ValidIssuer = configuration["JwtIssuer"],
                 ValidateAudience = true,
                 ValidAudience = configuration["JwtAudience"],

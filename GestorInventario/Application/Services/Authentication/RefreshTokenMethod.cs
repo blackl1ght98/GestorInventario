@@ -64,7 +64,8 @@ namespace GestorInventario.Application.Services.Authentication
                     if (string.IsNullOrEmpty(privateKeyFixed))
                         throw new InvalidOperationException("La clave privada no está configurada.");
 
-                    using (var rsaFixed = new RSACryptoServiceProvider())
+                  
+                    using (var rsaFixed = RSA.Create())
                     {
                         rsaFixed.FromXmlString(privateKeyFixed);
                         var rsaSecurityKeyFixed = new RsaSecurityKey(rsaFixed.ExportParameters(true));
@@ -73,22 +74,23 @@ namespace GestorInventario.Application.Services.Authentication
                     break;
 
                 case "AsymmetricDynamic":
-                 
+
                     string cacheKey = credencialesUsuario.Id.ToString() + "PublicKeyRefresco";
 
-                    // 1. Recuperar la pública 
+                    // 1. Recuperar la pública
                     string? publicKeyJson = await _cache.GetStringAsync(cacheKey);
 
                     // 2. Generamos la nueva pareja de claves
                     RSAParameters privateKey;
                     RSAParameters publicKey;
 
-                    using (var rsa = new RSACryptoServiceProvider(2048))
+                   
+                    using (var rsa = RSA.Create(2048))
                     {
                         privateKey = rsa.ExportParameters(true);
                         publicKey = rsa.ExportParameters(false);
 
-                        // 3. Guardamos la pública 
+                        // 3. Guardamos la pública
                         var publicKeyJsonToSave = JsonConvert.SerializeObject(publicKey);
 
                         // Usamos un tiempo de expiración de 30 días
