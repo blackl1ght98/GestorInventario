@@ -10,13 +10,13 @@ namespace GestorInventario.Application.Services
      
         private readonly ITokenGenerator _tokenGenerator;
         private readonly IRefreshTokenGenerator _refreshTokenMethod;
-      
+   
         public TokenService(ITokenGenerator tokenService, IRefreshTokenGenerator refresh)
         {
 
             _tokenGenerator = tokenService;
             _refreshTokenMethod = refresh;
-          
+     
         }
       
         public async Task<LoginResponseDto> GenerarToken(Usuario credencialesUsuario)

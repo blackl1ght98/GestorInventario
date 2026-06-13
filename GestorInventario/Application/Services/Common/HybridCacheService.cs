@@ -36,7 +36,19 @@ namespace GestorInventario.Application.Services.Common
             _memoryCache.TryGetValue(key, out string? value);
             return value;
         }
-
+        public async Task RemoveAsync(string key)
+        {
+            if (UseRedis())
+            {
+                await _distributedCache.RemoveAsync(key);
+            }
+            else
+            {
+                _memoryCache.Remove(key);
+              
+                await Task.CompletedTask;
+            }
+        }
         // Métodos para cuando sea necesario usar la memoria local
         public void SetLocal(string key, string value) => _memoryCache.Set(key, value);
         public string? GetLocal(string key) { _memoryCache.TryGetValue(key, out string? value); return value; }

@@ -9,7 +9,7 @@ namespace GestorInventario.ViewModels.Usuarios
         [Required(ErrorMessage ="La contraseña es requerida")]
         public required string Password { get; set; }
         [Required(ErrorMessage ="El rol es requerido")]
-        public int IdRol { get; set; } = 1;
+        public int IdRol { get; set; } = 2;
         [Required(ErrorMessage ="El nombre completo es requerido")]
         public required string NombreCompleto { get; set; }
         [Required(ErrorMessage ="La fecha de nacimiento es requerida")]

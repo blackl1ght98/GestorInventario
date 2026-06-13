@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Application.DTOs.User;
+using GestorInventario.Application.Services.Authentication.Strategies.Login;
 using GestorInventario.Interfaces.Application.Authentication;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.Services;
@@ -7,6 +8,7 @@ using GestorInventario.ViewModels.Usuarios;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 
 
@@ -22,13 +24,18 @@ namespace GestorInventario.Infraestructure.Controllers.AuthenticationController
         private readonly ICarritoService _carritoService;
         private readonly ICurrentUserAccessor _current;
         private readonly IAuthService _authService;
+        private readonly ICacheService _cache;   
+        private readonly ILoginGenerator _loginGenerator;
         public AuthController(
          ITokenService tokenService,  
          ICurrentUserAccessor currentUser,
          ILogger<AuthController> logger,   
          IPolicyExecutor policyExecutor,  
          ICarritoService carritoService, 
-         IAuthService authService
+         IAuthService authService,
+         ICacheService cache,
+    
+         ILoginGenerator factory
         )
         {
            
@@ -38,6 +45,9 @@ namespace GestorInventario.Infraestructure.Controllers.AuthenticationController
             _carritoService = carritoService;
             _current= currentUser;
             _authService = authService;
+            _cache = cache;
+         
+            _loginGenerator = factory;
         }
         
         [AllowAnonymous]
@@ -51,31 +61,43 @@ namespace GestorInventario.Infraestructure.Controllers.AuthenticationController
             }
             return View();
         }
-      
+
+     
+       
         [AllowAnonymous]
-        [HttpPost] 
+        [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
-            if (!ModelState.IsValid)
-                return View(model);
+            if (!ModelState.IsValid) return View(model);
 
             try
             {
-                // Eliminar cookies existentes para mayor seguridad
-                foreach (var cookie in Request.Cookies)
-                {
-                    Response.Cookies.Delete(cookie.Key);
-                }
+                foreach (var cookie in Request.Cookies) { Response.Cookies.Delete(cookie.Key); }
+            
+                // 1. Obtenemos la estrategia según la configuración
+              var result = await _loginGenerator.AuthenticateAsync(model);
 
-                // Buscar usuario
-                var user = await _policyExecutor.ExecutePolicyAsync(() => _authService.Login(model.Email,model));
-                if (!user.Success || user.Data == null)
+                if (!result.Success)
                 {
-                    ModelState.AddModelError("", user.Message);
+                    ModelState.AddModelError("", result.Message);
                     return View(model);
                 }
-                // Autenticación exitosa - generar tokens
-                var tokenResponse = await _tokenService.GenerarToken(user.Data);
+
+                // 2. Si la estrategia indica es la que  requiere MFA....
+                if (result.Data.RequiresMfa)
+                {
+                    Response.Cookies.Append("mfa_pending", result.Data.User.Id.ToString(), new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = true,
+                        Expires = DateTime.UtcNow.AddMinutes(5)
+                    });
+                    TempData["LoginModel"] = JsonConvert.SerializeObject(model);
+                    return RedirectToAction("VerifyMfa", "Auth");
+                }
+
+                // 3. Si NO requiere MFA, generamos tokens directamente
+                var tokenResponse = await _tokenService.GenerarToken(result.Data.User);
                 Response.Cookies.Append("auth", tokenResponse.Token, new CookieOptions
                 {
                     HttpOnly = true,
@@ -95,12 +117,105 @@ namespace GestorInventario.Infraestructure.Controllers.AuthenticationController
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al realizar el login");
-                TempData["ConectionError"] = "El servidor tardó mucho en responder, inténtelo de nuevo más tarde.";
+                _logger.LogError(ex, "Error en proceso de autenticación");
                 return RedirectToAction("Error", "Home");
             }
         }
-     
+       
+        [AllowAnonymous]
+        [HttpGet]
+        public IActionResult VerifyMfa()
+        {
+            var pendingUserId = Request.Cookies["mfa_pending"];
+            if (string.IsNullOrEmpty(pendingUserId)) return RedirectToAction("Login");
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> VerifyMfa(string codigo)
+        {
+            var pendingUserId = Request.Cookies["mfa_pending"];
+            if (string.IsNullOrEmpty(pendingUserId)) return RedirectToAction("Login");
+
+            // 1. LOGICA DE REINTENTOS
+            string attemptsKey = $"MFA_Attempts_{pendingUserId}";
+            var attemptsStr = await _cache.GetStringAsync(attemptsKey);
+            int attempts = string.IsNullOrEmpty(attemptsStr) ? 0 : int.Parse(attemptsStr);
+
+            if (attempts >= 3)
+            {
+
+                await _cache.RemoveAsync($"MFA_{pendingUserId}");
+                await _cache.RemoveAsync(attemptsKey);
+                Response.Cookies.Delete("mfa_pending");
+
+                TempData["ErrorMessage"] = "Demasiados intentos fallidos. Por seguridad, reinicie el proceso de login.";
+                return RedirectToAction("Login");
+            }
+
+            // Recuperamos el modelo de TempData para la vista en caso de error
+            var modelJson = TempData["LoginModel"] as string;
+            LoginViewModel model = null;
+            if (!string.IsNullOrEmpty(modelJson))
+            {
+                model = JsonConvert.DeserializeObject<LoginViewModel>(modelJson);
+            }
+
+            // 2. Validar código de la caché
+            var cachedCode = await _cache.GetStringAsync($"MFA_{pendingUserId}");
+
+            if (string.IsNullOrEmpty(codigo) || cachedCode != codigo)
+            {
+
+                attempts++;
+                await _cache.SetStringAsync(attemptsKey, attempts.ToString(), TimeSpan.FromMinutes(5));
+
+                ModelState.AddModelError("", $"Código incorrecto. Le quedan {3 - attempts} intentos.");
+
+
+                TempData["LoginModel"] = modelJson;
+
+                if (model == null) return RedirectToAction(nameof(Login));
+                return View(model);
+            }
+
+            // 3. CÓDIGO CORRECTO: Generamos los tokens 
+            try
+            {
+                // Limpiamos el contador de intentos ya que tuvo éxito
+                await _cache.RemoveAsync(attemptsKey);
+
+                var user = await _policyExecutor.ExecutePolicyAsync(() => _authService.Login(model.Email, model));
+                var tokenResponse = await _tokenService.GenerarToken(user.Data);
+
+                // Creamos las cookies
+                Response.Cookies.Append("auth", tokenResponse.Token, new CookieOptions
+                {
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.None,
+                    Secure = true,
+                    Expires = DateTime.UtcNow.AddMinutes(10)
+                });
+                Response.Cookies.Append("refreshToken", tokenResponse.RefreshToken, new CookieOptions
+                {
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.None,
+                    Secure = true,
+                    Expires = DateTime.UtcNow.AddHours(24)
+                });
+
+                // 4. Limpiar cookie temporal y código de caché
+                Response.Cookies.Delete("mfa_pending");
+                await _cache.RemoveAsync($"MFA_{pendingUserId}");
+
+                return RedirectToAction("Index", "Home");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generando tokens tras MFA");
+                return RedirectToAction("Error", "Home");
+            }
+        }
         [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> Logout()
@@ -271,7 +386,7 @@ namespace GestorInventario.Infraestructure.Controllers.AuthenticationController
             var resultado = await _policyExecutor.ExecutePolicyAsync(() => _authService.ChangePassword(passwordAnterior, passwordActual));
             if (resultado.Success)
             {
-                if (_current.IsAuthenticated() && User.IsAdministrador())
+                if ( User.IsAdministrador())
                 {
                     return RedirectToAction("Index", "Admin");
                 }
@@ -286,6 +401,6 @@ namespace GestorInventario.Infraestructure.Controllers.AuthenticationController
                 return View(nameof(ChangePassword));
             }
 
-        }                
+        }
     }
 }

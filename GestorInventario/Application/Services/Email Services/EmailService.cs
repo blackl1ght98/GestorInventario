@@ -18,6 +18,7 @@ using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Application.Authentication;
 using GestorInventario.ViewModels.Productos;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
+using GestorInventario.ViewModels;
 
 namespace GestorInventario.Application.Services
 {
@@ -301,7 +302,45 @@ namespace GestorInventario.Application.Services
                 throw;
             }
         }
+        public async Task SendMfaCodeEmail(string correo, string codigo)
+        {
+            try
+            {
+                var email = new MimeMessage();
+                email.From.Add(MailboxAddress.Parse(_config.GetSection("Email:UserName").Value));
+                email.To.Add(MailboxAddress.Parse(correo));
+                email.Subject = $"Codigo OTP";
+                var viewmodel = new OTPCode
+                {
+                    Email=correo,
+                    OTP=codigo
+                };
 
+                email.Body = new TextPart(TextFormat.Html)
+                {
+                    Text = await RenderViewToStringAsync("ViewsEmailService/ViewOtpCode", viewmodel)
+                };
+
+                using var smtp = new SmtpClient();
+                await smtp.ConnectAsync(
+                    _config.GetSection("Email:Host").Value,
+                    Convert.ToInt32(_config.GetSection("Email:Port").Value),
+                    SecureSocketOptions.StartTls
+                );
+                await smtp.AuthenticateAsync(
+                    _config.GetSection("Email:UserName").Value,
+                    _config.GetSection("Email:PassWord").Value
+                );
+                await smtp.SendAsync(email);
+                await smtp.DisconnectAsync(true);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Se ha producido un error al enviar la notificacion");
+                throw;
+            }
+        }
         private async Task<string> RenderViewToStringAsync(string viewName, object model)
         {
             var httpContext = new DefaultHttpContext { RequestServices = _serviceProvider };

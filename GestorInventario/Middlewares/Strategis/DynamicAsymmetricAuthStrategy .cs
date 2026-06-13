@@ -255,7 +255,7 @@ private static async Task HandleExpiredToken(
         }
         catch (Exception ex)
         {
-            // Loguea el error completo para ver si es IDX10511 o algo más
+           
             Console.WriteLine($"Error de validación de RefreshToken: {ex.Message}");
             return false;
         }

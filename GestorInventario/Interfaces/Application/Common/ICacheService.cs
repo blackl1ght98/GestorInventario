@@ -6,5 +6,6 @@
         Task<string?> GetStringAsync(string key);
         void SetLocal(string key, string value);
         string? GetLocal(string key);
+        Task RemoveAsync(string key);
     }
 }
