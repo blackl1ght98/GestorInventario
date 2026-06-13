@@ -152,6 +152,7 @@ Luego, agrega los siguientes valores en formato JSON:
     "PrivateKey": ""
   },
   "ClaveJWT": "IntroduceClaveLarga",
+  "IsMfaEnabled": true,
   "DataBaseConection": {
     "DBHost": "",
     "DockerDbHost": "SQL-Server-Local",
