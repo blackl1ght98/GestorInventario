@@ -2,51 +2,51 @@
 
 namespace GestorInventario.Application.DTOS.Paypal.Responses.POST.Subscription
 {
-    public class UpdatePricingPlanDto
+    public record UpdatePricingPlanDto
     {
         [JsonProperty("pricing_schemes")]
-        public required List<UpdatePricingSchemes> PricingSchemes { get; set; }
+        public required List<UpdatePricingSchemes> PricingSchemes { get; init; }
     }
 
-    public class UpdatePricingSchemes
+    public record UpdatePricingSchemes
     {
         [JsonProperty("billing_cycle_sequence")]
-        public int BillingCycleSequence { get; set; } 
+        public int BillingCycleSequence { get; init; } 
 
         [JsonProperty("pricing_scheme")]
-        public  UpdatePricingScheme? PricingScheme { get; set; }
+        public  UpdatePricingScheme? PricingScheme { get; init; }
     }
 
-    public class UpdatePricingScheme
+    public record UpdatePricingScheme
     {
         [JsonProperty("fixed_price")]
-        public required UpdateFixedPrice FixedPrice { get; set; }
+        public required UpdateFixedPrice FixedPrice { get; init; }
 
         [JsonProperty("pricing_model")]
-        public  string? PricingModel { get; set; } 
+        public  string? PricingModel { get; init; } 
 
         [JsonProperty("tiers")]
-        public  List<Tier>? Tiers { get; set; } 
+        public  List<Tier>? Tiers { get; init; } 
     }
 
-    public class UpdateFixedPrice
+    public record UpdateFixedPrice
     {
         [JsonProperty("value")]
-        public string? Value { get; set; }
+        public string? Value { get; init; }
 
         [JsonProperty("currency_code")]
-        public required string CurrencyCode { get; set; }
+        public required string CurrencyCode { get; init; }
     }
 
-    public class Tier
+    public record Tier
     {
         [JsonProperty("starting_quantity")]
-        public required string StartingQuantity { get; set; }
+        public required string StartingQuantity { get; init; }
 
         [JsonProperty("ending_quantity")]
-        public required string EndingQuantity { get; set; } 
+        public required string EndingQuantity { get; init; } 
 
         [JsonProperty("amount")]
-        public required UpdateFixedPrice Amount { get; set; }
+        public required UpdateFixedPrice Amount { get; init; }
     }
 }

@@ -11,10 +11,7 @@ namespace GestorInventario.Interfaces.Infraestructure.Common
         ICarritoRepository CarritoRepository { get; }
         public IPedidoRepository PedidoRepository { get;}
         public IProductoRepository ProductoRepository { get; }
-        Task<int> SaveChangesAsync();
-        Task BeginTransactionAsync();
-        Task CommitTransactionAsync();
-        Task RollbackTransactionAsync();
+       
        
     }
 }

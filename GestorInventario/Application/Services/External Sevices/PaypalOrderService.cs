@@ -34,9 +34,7 @@ namespace GestorInventario.Application.Services.External_Sevices
                    var body = await resp.Content.ReadAsStringAsync();
                    throw new InvalidOperationException($"Error al crear orden: {resp.StatusCode} - {body}");
                });
-            var jsonResponse = JsonConvert.DeserializeObject<PayPalOrderResponse>(responseBody);
-
-
+          
             return responseBody;
         }
         private CreateOrderRequest BuildOrder(CheckoutDto pagar)
@@ -167,7 +165,7 @@ namespace GestorInventario.Application.Services.External_Sevices
                     });
 
 
-                var paypalResponse = JsonConvert.DeserializeObject<CaptureOrderResponse>(responseBody);
+                var paypalResponse = JsonConvert.DeserializeObject<OrderDetailsResponse>(responseBody);
 
                 var capture = paypalResponse?.PurchaseUnits?
                     .FirstOrDefault()?.Payments?

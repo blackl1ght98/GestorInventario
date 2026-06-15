@@ -11,7 +11,7 @@ namespace GestorInventario.Interfaces.Application.Services
         Task<OperationResult<string>> SendEmailAsyncResetPassword(EmailDto userDataResetPassword, int usuarioId);
         Task SendEmailAsyncLowStock(EmailDto correo, LowStockEmailData producto);
          
-        Task EnviarEmailSolicitudRembolso(EmailRembolsoDto correo);
+        Task EnviarEmailSolicitudRembolso(EmailReembolsoAprobadoDto correo);
         Task EnviarNotificacionReembolsoAsync(EmailReembolsoAprobadoDto correo);
         Task SendEmailAsyncFactura(EmailDto correo, string id);
         Task SendMfaCodeEmail(string correo, string codigo);

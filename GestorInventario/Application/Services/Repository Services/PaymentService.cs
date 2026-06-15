@@ -343,7 +343,7 @@ namespace GestorInventario.Application.Services.Generic_Services
             await _paypalRepository.AgregarRembolsoAsync(rembolso);
 
 
-            var emailRembolso = new EmailRembolsoDto
+            var emailRembolso = new EmailReembolsoAprobadoDto
             {
                 NumeroPedido = rembolso.NumeroPedido,
                 NombreCliente = rembolso.NombreCliente,

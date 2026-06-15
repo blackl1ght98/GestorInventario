@@ -62,7 +62,7 @@
             <p>Nos complace informarte que tu solicitud de reembolso para el pedido #@Model.NumeroPedido ha sido aprobada.</p>
             <p><strong>Detalles del reembolso:</strong></p>
             <ul>
-                <li><strong>Fecha del reembolso:</strong> @Model.FechaRembolso.ToString("dd/MM/yyyy HH:mm")</li>
+                <li><strong>Fecha del reembolso:</strong> @Model.FechaRembolso.ToString()</li>
                 <li><strong>Monto reembolsado:</strong> @Model.CantidadADevolver.ToString()</li>
                 <li><strong>Motivo:</strong> @Model.MotivoRembolso</li>
             </ul>

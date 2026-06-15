@@ -2,391 +2,391 @@
 
 namespace GestorInventario.Application.DTOs.Paypal.Responses.GET.Order
 {
-    public class OrderDetailsResponse
+    public record OrderDetailsResponse
     {
         [JsonProperty("id")]
-        public required string Id { get; set; }
+        public required string Id { get; init; }
         [JsonProperty("intent")]
-        public required string Intent { get; set; }
+        public required string Intent { get; init; }
 
         [JsonProperty("status")]
-        public required string Status { get; set; }
+        public required string Status { get; init; }
 
         [JsonProperty("payment_source")]
-        public required PaymentSourceDetails PaymentSource { get; set; }
+        public required PaymentSourceDetails PaymentSource { get; init; }
 
         [JsonProperty("purchase_units")]
-        public required List<PurchaseUnitDetails> PurchaseUnits { get; set; }
+        public required List<PurchaseUnitDetails> PurchaseUnits { get; init; }
 
         [JsonProperty("payer")]
-        public required Payer Payer { get; set; }
+        public required Payer Payer { get; init; }
 
         [JsonProperty("create_time")]
-        public required string CreateTime { get; set; }
+        public required string CreateTime { get; init; }
         [JsonProperty("update_time")]
-        public required string UpdateTime { get; set; }
+        public required string UpdateTime { get; init; }
 
         [JsonProperty("links")]
-        public required List<Link> Links { get; set; }
+        public required List<Link> Links { get; init; }
     }
 
-    public class PaymentSourceDetails
+    public record PaymentSourceDetails
     {
         [JsonProperty("paypal")]
-        public required PayPalDetails Paypal { get; set; }
+        public required PayPalDetails Paypal { get; init; }
     }
 
-    public class PayPalDetails
+    public record PayPalDetails
     {
 
         [JsonProperty("email_address")]
-        public required string Email { get; set; }
+        public required string Email { get; init; }
 
         [JsonProperty("account_id")]
-        public required string AccountId { get; set; }
+        public required string AccountId { get; init; }
         [JsonProperty("account_status")]
-        public required string AccountStatus { get; set; }
+        public required string AccountStatus { get; init; }
         [JsonProperty("name")]
-        public required NameDetails Name { get; set; }
+        public required NameDetails Name { get; init; }
 
         [JsonProperty("address")]
-        public required AddressDetails Address { get; set; }
+        public required AddressDetails Address { get; init; }
     }
-    public class NameDetails
+    public record NameDetails
     {
         [JsonProperty("given_name")]
-        public required string GivenName { get; set; }
+        public required string GivenName { get; init; }
         [JsonProperty("surname")]
-        public required string Surname { get; set; }
+        public required string Surname { get; init; }
     }
 
-    public class AddressDetails
+    public record AddressDetails
     {
         [JsonProperty("country_code")]
-        public required string CountryCode { get; set; }
+        public required string CountryCode { get; init; }
     }
 
-    public class PurchaseUnitDetails
+    public record PurchaseUnitDetails
     {
         [JsonProperty("reference_id")]
-        public required string ReferenceId { get; set; }
+        public required string ReferenceId { get; init; }
         [JsonProperty("amount")]
-        public required AmountDetails Amount { get; set; }
+        public required AmountDetails Amount { get; init; }
         [JsonProperty("payee")]
-        public required PayeeDetails Payee { get; set; }
+        public required PayeeDetails Payee { get; init; }
         [JsonProperty("description")]
-        public required string Description { get; set; }
+        public required string Description { get; init; }
         [JsonProperty("invoice_id")]
-        public required string InvoiceId { get; set; }
+        public required string InvoiceId { get; init; }
         [JsonProperty("items")]
-        public required List<ItemDetails> Items { get; set; }
+        public required List<ItemDetails> Items { get; init; }
 
         [JsonProperty("shipping")]
-        public required ShippingDetails Shipping { get; set; }
+        public required ShippingDetails Shipping { get; init; }
 
         [JsonProperty("payments")]
-        public required PaymentsDetails Payments { get; set; }     
+        public required PaymentsDetails Payments { get; init; }     
     }
 
-    public class AmountDetails
+    public record AmountDetails
     {
         [JsonProperty("currency_code")]
-        public required string CurrencyCode { get; set; }
+        public required string CurrencyCode { get; init; }
 
         [JsonProperty("value")]
-        public required string Value { get; set; }
+        public required string Value { get; init; }
 
         [JsonProperty("breakdown")]
-        public required BreakdownDetails Breakdown { get; set; }
+        public required BreakdownDetails Breakdown { get; init; }
     }
 
-    public class BreakdownDetails
+    public record BreakdownDetails
     {
         [JsonProperty("item_total")]
-        public required MoneyDetails ItemTotal { get; set; }
+        public required MoneyDetails ItemTotal { get; init; }
 
         [JsonProperty("shipping")]
-        public required MoneyDetails Shipping { get; set; }
+        public required MoneyDetails Shipping { get; init; }
 
         [JsonProperty("handling")]
-        public required MoneyDetails Handling { get; set; }
+        public required MoneyDetails Handling { get; init; }
         [JsonProperty("tax_total")]
-        public required MoneyDetails TaxTotal { get; set; }
+        public required MoneyDetails TaxTotal { get; init; }
         [JsonProperty("insurance")]
-        public required MoneyDetails Insurance { get; set; }
+        public required MoneyDetails Insurance { get; init; }
         [JsonProperty("shipping_discount")]
-        public required MoneyDetails ShippingDiscount { get; set; }
+        public required MoneyDetails ShippingDiscount { get; init; }
     }
 
-    public class MoneyDetails
+    public record MoneyDetails
     {
         [JsonProperty("currency_code")]
-        public required string CurrencyCode { get; set; }
+        public required string CurrencyCode { get; init; }
 
         [JsonProperty("value")]
-        public required string Value { get; set; }
+        public required string Value { get; init; }
     }
 
-    public class ItemDetails
+    public record ItemDetails
     {
         [JsonProperty("name")]
-        public required string Name { get; set; }
+        public required string Name { get; init; }
         [JsonProperty("unit_amount")]
-        public required MoneyDetails UnitAmount { get; set; }
+        public required MoneyDetails UnitAmount { get; init; }
         [JsonProperty("tax")]
-        public required MoneyDetails Tax { get; set; }
+        public required MoneyDetails Tax { get; init; }
         [JsonProperty("quantity")]
-        public required string Quantity { get; set; }
+        public required string Quantity { get; init; }
         [JsonProperty("sku")]
-        public required string Sku { get; set; }
+        public required string Sku { get; init; }
       
     }
 
-    public class PayeeDetails
+    public record PayeeDetails
     {
         [JsonProperty("merchant_id")]
-        public required string MerchantId { get; set; }
+        public required string MerchantId { get; init; }
 
         [JsonProperty("email_address")]
-        public required string EmailAddress { get; set; }
+        public required string EmailAddress { get; init; }
     }
 
-    public class PaymentsDetails
+    public record PaymentsDetails
     {
         [JsonProperty("captures")]
-        public required List<CaptureDetails> Captures { get; set; }
+        public required List<CaptureDetails> Captures { get; init; }
 
         [JsonProperty("refunds")]
-        public required List<RefundDetails> Refunds { get; set; }
+        public required List<RefundDetails> Refunds { get; init; }
     }
 
-    public class CaptureDetails
+    public record CaptureDetails
     {
         [JsonProperty("id")]
-        public required string Id { get; set; }
+        public required string Id { get; init; }
 
         [JsonProperty("status")]
-        public required string Status { get; set; }
+        public required string Status { get; init; }
 
         [JsonProperty("amount")]
-        public required MoneyDetails Amount { get; set; }
+        public required MoneyDetails Amount { get; init; }
 
         [JsonProperty("final_capture")]
-        public required bool FinalCapture { get; set; }
+        public required bool FinalCapture { get; init; }
 
         [JsonProperty("seller_protection")]
-        public required SellerProtection SellerProtection { get; set; }
+        public required SellerProtection SellerProtection { get; init; }
 
         [JsonProperty("seller_receivable_breakdown")]
-        public required SellerReceivableBreakdown SellerReceivableBreakdown { get; set; }
+        public required SellerReceivableBreakdown SellerReceivableBreakdown { get; init; }
 
         [JsonProperty("invoice_id")]
-        public required string InvoiceId { get; set; }
+        public required string InvoiceId { get; init; }
 
         [JsonProperty("links")]
-        public required List<Link> Links { get; set; }
+        public required List<Link> Links { get; init; }
 
         [JsonProperty("create_time")]
-        public required string CreateTime { get; set; }
+        public required string CreateTime { get; init; }
 
         [JsonProperty("update_time")]
-        public required string UpdateTime { get; set; }
+        public required string UpdateTime { get; init; }
     }
 
-    public class SellerProtection
+    public record SellerProtection
     {
         [JsonProperty("status")]
-        public required string Status { get; set; }
+        public required string Status { get; init; }
 
         [JsonProperty("dispute_categories")]
-        public required List<string> DisputeCategories { get; set; }
+        public required List<string> DisputeCategories { get; init; }
     }
 
-    public class SellerReceivableBreakdown
+    public record SellerReceivableBreakdown
     {
         [JsonProperty("gross_amount")]
-        public required MoneyDetails GrossAmount { get; set; }
+        public required MoneyDetails GrossAmount { get; init; }
 
         [JsonProperty("paypal_fee")]
-        public required MoneyDetails PaypalFee { get; set; }
+        public required MoneyDetails PaypalFee { get; init; }
 
         [JsonProperty("net_amount")]
-        public required MoneyDetails NetAmount { get; set; }
+        public required MoneyDetails NetAmount { get; init; }
 
         [JsonProperty("exchange_rate")]
-        public ExchangeRate? ExchangeRate { get; set; }
+        public ExchangeRate? ExchangeRate { get; init; }
       
     }
 
-    public class ExchangeRate
+    public record ExchangeRate
     {
         [JsonProperty("value")]
-        public string? Value { get; set; }
+        public string? Value { get; init; }
     }
 
-    public class RefundDetails
+    public record RefundDetails
     {
         [JsonProperty("id")]
-        public required string Id { get; set; }
+        public required string Id { get; init; }
 
         [JsonProperty("amount")]
-        public required MoneyDetails Amount { get; set; }
+        public required MoneyDetails Amount { get; init; }
 
         [JsonProperty("note_to_payer")]
-        public required string NoteToPayer { get; set; }
+        public required string NoteToPayer { get; init; }
 
         [JsonProperty("seller_payable_breakdown")]
-        public required SellerPayableBreakdown SellerPayableBreakdown { get; set; }
+        public required SellerPayableBreakdown SellerPayableBreakdown { get; init; }
 
         [JsonProperty("invoice_id")]
-        public required string InvoiceId { get; set; }
+        public required string InvoiceId { get; init; }
 
         [JsonProperty("status")]
-        public required string Status { get; set; }
+        public required string Status { get; init; }
 
         [JsonProperty("links")]
-        public required List<Link> Links { get; set; }
+        public required List<Link> Links { get; init; }
 
         [JsonProperty("create_time")]
-        public required string CreateTime { get; set; }
+        public required string CreateTime { get; init; }
 
         [JsonProperty("update_time")]
-        public required string UpdateTime { get; set; }
+        public required string UpdateTime { get; init; }
     }
 
-    public class SellerPayableBreakdown
+    public record SellerPayableBreakdown
     {
         [JsonProperty("gross_amount")]
-        public required MoneyDetails GrossAmount { get; set; }
+        public required MoneyDetails GrossAmount { get; init; }
 
         [JsonProperty("paypal_fee")]
-        public required MoneyDetails PaypalFee { get; set; }
+        public required MoneyDetails PaypalFee { get; init; }
 
         [JsonProperty("platform_fees")]
-        public required List<PlatformFee> PlatformFees { get; set; }
+        public required List<PlatformFee> PlatformFees { get; init; }
 
         [JsonProperty("net_amount")]
-        public required MoneyDetails NetAmount { get; set; }
+        public required MoneyDetails NetAmount { get; init; }
 
         [JsonProperty("total_refunded_amount")]
-        public required MoneyDetails TotalRefundedAmount { get; set; }
+        public required MoneyDetails TotalRefundedAmount { get; init; }
 
         [JsonProperty("exchange_rate")]
-        public ExchangeRate? ExchangeRate { get; set; }
+        public ExchangeRate? ExchangeRate { get; init; }
     }    
-    public class PlatformFee
+    public record PlatformFee
     {
         [JsonProperty("amount")]
-        public required MoneyDetails Amount { get; set; }
+        public required MoneyDetails Amount { get; init; }
     }
 
-    public class ShippingDetails
+    public record ShippingDetails
     {
         [JsonProperty("name")]
-        public required ShippingName Name { get; set; }
+        public required ShippingName Name { get; init; }
 
         [JsonProperty("address")]
-        public required ShippingAddress Address { get; set; }
+        public required ShippingAddress Address { get; init; }
 
         [JsonProperty("trackers")]
-        public required List<Tracker> Trackers { get; set; }
+        public required List<Tracker> Trackers { get; init; }
     }
 
-    public class ShippingName
+    public record ShippingName
     {
         [JsonProperty("full_name")]
-        public required string FullName { get; set; }
+        public required string FullName { get; init; }
     }
 
-    public class ShippingAddress
+    public record ShippingAddress
     {
         [JsonProperty("address_line_1")]
-        public required string AddressLine1 { get; set; }
+        public required string AddressLine1 { get; init; }
 
         [JsonProperty("admin_area_1")]
-        public required string AdminArea1 { get; set; }
+        public required string AdminArea1 { get; init; }
 
         [JsonProperty("admin_area_2")]
-        public required string AdminArea2 { get; set; }
+        public required string AdminArea2 { get; init; }
 
         [JsonProperty("postal_code")]
-        public required string PostalCode { get; set; }
+        public required string PostalCode { get; init; }
 
         [JsonProperty("country_code")]
-        public required string CountryCode { get; set; }
+        public required string CountryCode { get; init; }
     }
 
-    public class Tracker
+    public record Tracker
     {
         [JsonProperty("id")]
-        public required string Id { get; set; }
+        public required string Id { get; init; }
 
         [JsonProperty("items")]
-        public required List<TrackerItem> Items { get; set; }
+        public required List<TrackerItem> Items { get; init; }
 
         [JsonProperty("links")]
-        public required List<Link> Links { get; set; }
+        public required List<Link> Links { get; init; }
 
         [JsonProperty("status")]
-        public required string Status { get; set; }
+        public required string Status { get; init; }
 
         [JsonProperty("notify_payer")]
-        public required string NotifyPayer { get; set; }
+        public required string NotifyPayer { get; init; }
     }
 
-    public class TrackerItem
+    public record TrackerItem
     {
         [JsonProperty("name")]
-        public required string Name { get; set; }
+        public required string Name { get; init; }
 
         [JsonProperty("sku")]
-        public required string Sku { get; set; }
+        public required string Sku { get; init; }
 
         [JsonProperty("quantity")]
-        public required string Quantity { get; set; }
+        public required string Quantity { get; init; }
 
         [JsonProperty("image_url")]
-        public required string ImageUrl { get; set; }
+        public required string ImageUrl { get; init; }
 
         [JsonProperty("upc")]
-        public required Upc Upc { get; set; }
+        public required Upc Upc { get; init; }
     }
 
-    public class Upc
+    public record Upc
     {
         [JsonProperty("type")]
-        public required string Type { get; set; }
+        public required string Type { get; init; }
 
         [JsonProperty("code")]
-        public required string Code { get; set; }
+        public required string Code { get; init; }
     }
 
-    public class Payer
+    public record Payer
     {
         [JsonProperty("name")]
-        public required NameDetails Name { get; set; }
+        public required NameDetails Name { get; init; }
 
         [JsonProperty("email_address")]
-        public required string Email { get; set; }
+        public required string Email { get; init; }
 
         [JsonProperty("payer_id")]
-        public required string PayerId { get; set; }
+        public required string PayerId { get; init; }
 
         [JsonProperty("address")]
-        public required AddressDetails Address { get; set; }
+        public required AddressDetails Address { get; init; }
     }
 
      
 
-    public class Link
+    public record Link
     {
         [JsonProperty("href")]
-        public required string Href { get; set; }
+        public required string Href { get; init; }
 
         [JsonProperty("rel")]
-        public required string Rel { get; set; }
+        public required string Rel { get; init; }
 
         [JsonProperty("method")]
-        public required string Method { get; set; }
+        public required string Method { get; init; }
     }
 }

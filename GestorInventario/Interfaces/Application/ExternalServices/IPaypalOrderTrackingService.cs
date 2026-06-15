@@ -1,4 +1,4 @@
-﻿using GestorInventario.Application.DTOS.Paypal;
+﻿using GestorInventario.Application.DTOS.Paypal.Responses.POST.Order;
 using GestorInventario.enums;
 using GestorInventario.Infraestructure.Utils;
 

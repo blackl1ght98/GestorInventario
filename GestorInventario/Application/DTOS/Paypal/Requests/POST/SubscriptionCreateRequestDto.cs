@@ -6,14 +6,9 @@ namespace GestorInventario.Application.DTOS.Paypal.Requests.POST
     // DTO para la respuesta completa de la creación de una suscripción
     public class SubscriptionCreateRequestDto
     {
-        [JsonProperty("id")]
-        public  string? Id { get; set; }
-
+       
         [JsonProperty("plan_id")]
         public required string PlanId { get; set; }
-
-        [JsonProperty("status")]
-        public  string? Status { get; set; }
 
         [JsonProperty("application_context")]
         public required ApplicationContext ApplicationContext { get; set; }
@@ -64,7 +59,6 @@ namespace GestorInventario.Application.DTOS.Paypal.Requests.POST
         [JsonProperty("rel")]
         public required string Rel { get; set; }
 
-        [JsonProperty("method")]
-        public required string Method { get; set; }
+      
     }
 }

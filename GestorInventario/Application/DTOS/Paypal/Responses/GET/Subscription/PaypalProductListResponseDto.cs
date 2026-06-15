@@ -2,39 +2,39 @@
 
 namespace GestorInventario.Application.DTOS.Paypal.Responses.GET.Subscription
 {
-    public class PaypalProductListResponseDto
+    public record PaypalProductListResponseDto
     {
         [JsonProperty("total_items")]
-        public int TotalItems { get; set; }
+        public int TotalItems { get; init; }
         [JsonProperty("total_pages")]
-        public int TotalPages { get; set; }
+        public int TotalPages { get; init; }
         [JsonProperty("products")]
-        public List<Products> Products { get; set; } = new List<Products>();
-        public List<Links> Links { get; set; } = new List<Links>();
+        public List<Products> Products { get; init; } = new List<Products>();
+        public List<Links> Links { get; init; } = new List<Links>();
     }
-    public class Products
+    public record Products
     {
         [JsonProperty("id")]
-        public required string Id { get; set; }
+        public required string Id { get; init; }
         [JsonProperty("name")]
-        public required string Name { get; set; }
+        public required string Name { get; init; }
         [JsonProperty("description")]
-        public required string Description { get; set; }
+        public required string Description { get; init; }
         [JsonProperty("create_time")]
-        public required string CreateTime { get; set; }
+        public required string CreateTime { get; init; }
         [JsonProperty("links")]
-        public required List<Links> Links { get; set; }
+        public required List<Links> Links { get; init; }
     }
-    public class Links
+    public record Links
     {
         [JsonProperty("href")]
-        public required string Href { get; set; }
+        public required string Href { get; init; }
 
         [JsonProperty("rel")]
-        public required string Rel { get; set; }
+        public required string Rel { get; init; }
 
         [JsonProperty("method")]
-        public required string Method { get; set; }
+        public required string Method { get; init; }
 
     }
 }

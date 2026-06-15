@@ -2,19 +2,19 @@
 
 namespace GestorInventario.Application.DTOS.Paypal.Requests.POST
 {
-    public class PaypalRefundRequest
+    public record PaypalRefundRequest
     {
 
         [JsonProperty("note_to_payer")]
-        public string? NotaParaElCliente { get; set; }
+        public string? NotaParaElCliente { get; init; }
         [JsonProperty("amount")]
-        public AmountRefundRequest? Amount { get; set; }
+        public AmountRefundRequest? Amount { get; init; }
     }
-    public class AmountRefundRequest
+    public record AmountRefundRequest
     {
         [JsonProperty("currency_code")]
-        public required string CurrencyCode { get; set; }
+        public required string CurrencyCode { get; init; }
         [JsonProperty("value")]
-        public required string Value { get; set; }
+        public required string Value { get; init; }
     }
 }

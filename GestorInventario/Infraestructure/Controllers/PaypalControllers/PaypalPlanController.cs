@@ -1,5 +1,5 @@
 ﻿using GestorInventario.Application.DTOS.Paypal.Projections;
-using GestorInventario.Application.DTOS.Paypal.Requests;
+using GestorInventario.Application.DTOS.Paypal.Requests.POST;
 using GestorInventario.Application.DTOS.Paypal.Responses.POST.Subscription;
 using GestorInventario.Application.Exceptions;
 using GestorInventario.Application.Mappers;

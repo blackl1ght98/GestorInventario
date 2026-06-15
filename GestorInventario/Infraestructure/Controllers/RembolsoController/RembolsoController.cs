@@ -42,8 +42,7 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
             IPolicyExecutor policyExecutor, 
             IRembolsoRepository rembolsoRepository, 
              ILogger<RembolsoController> logger, 
-             IPaginationHelper paginationHelper,
-            
+             IPaginationHelper paginationHelper,      
              IPedidoRepository pedidoRepository,
              ICurrentUserAccessor currentUserAccessor,
              IPaypalOrderService paypalOrderService,

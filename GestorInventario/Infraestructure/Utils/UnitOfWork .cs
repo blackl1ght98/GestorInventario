@@ -28,26 +28,7 @@ namespace GestorInventario.Infraestructure.Utils
             ProductoRepository = productoRepository;
         }
 
-        public async Task<int> SaveChangesAsync()
-        {
-            return await _context.SaveChangesAsync();
-        }
-
-        public async Task BeginTransactionAsync()
-        {
-            await _context.Database.BeginTransactionAsync();
-        }
-
-        public async Task CommitTransactionAsync()
-        {
-            await _context.Database.CommitTransactionAsync();
-        }
-
-        public async Task RollbackTransactionAsync()
-        {
-            await _context.Database.RollbackTransactionAsync();
-        }
-
+    
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposed)

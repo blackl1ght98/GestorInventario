@@ -75,7 +75,7 @@ namespace GestorInventario.Infraestructure.Controllers.AuthenticationController
                 foreach (var cookie in Request.Cookies) { Response.Cookies.Delete(cookie.Key); }
             
                 // 1. Obtenemos la estrategia según la configuración
-              var result = await _loginGenerator.AuthenticateAsync(model);
+                var result = await _loginGenerator.AuthenticateAsync(model);
 
                 if (!result.Success)
                 {

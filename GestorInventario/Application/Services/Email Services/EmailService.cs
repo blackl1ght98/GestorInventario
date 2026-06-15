@@ -216,7 +216,7 @@ namespace GestorInventario.Application.Services
             await smtp.DisconnectAsync(true);
         }
 
-        public async Task EnviarEmailSolicitudRembolso(EmailRembolsoDto correo)
+        public async Task EnviarEmailSolicitudRembolso(EmailReembolsoAprobadoDto correo)
         {
 
             var empleados = await _userRepository.ObtenerEmailsEmpleadosAsync();

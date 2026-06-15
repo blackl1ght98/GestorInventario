@@ -1,9 +1,9 @@
 ﻿namespace GestorInventario.Application.DTOS.Paypal.Projections
 {
-    public class ProductoProjection
+    public record ProductoProjection
     {
-        public required string Id { get; set; }
-        public required string Nombre { get; set; }
-        public required string Descripcion { get; set; }
+        public required string Id { get; init; }
+        public required string Nombre { get; init; }
+        public required string Descripcion { get; init; }
     }
 }

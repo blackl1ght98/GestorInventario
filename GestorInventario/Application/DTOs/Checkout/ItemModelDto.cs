@@ -8,6 +8,6 @@
         public required string Currency { get; set; }
         public required string Quantity { get; set; }
         public required string Sku { get; set; }
-        public string? ImageUrl { get; set; }         
+              
     }
 }

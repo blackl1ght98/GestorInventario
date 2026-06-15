@@ -2,18 +2,17 @@
 
 namespace GestorInventario.Application.DTOS.Paypal.Requests.PATCH
 {
-    public class PatchOperationDto
+    public record PatchOperationDto
     {
         [JsonProperty("op")]
-        public  string? Operation { get; set; } // Ejemplo: "replace", "add", "remove"
+        public  string? Operation { get; init; } // Ejemplo: "replace", "add", "remove"
 
         [JsonProperty("path")]
-        public  string? Path { get; set; } // Ejemplo: "/description", "/name"
+        public  string? Path { get; init; } // Ejemplo: "/description", "/name"
 
         [JsonProperty("value")]
-        public   object? Value { get; set; } // El valor a aplicar, puede ser string, object, etc.
+        public   object? Value { get; init; } // El valor a aplicar, puede ser string, object, etc.
 
-        [JsonProperty("from", NullValueHandling = NullValueHandling.Ignore)]
-        public  string? From { get; set; } // Opcional, usado en operaciones como "move" o "copy"
+
     }
 }
