@@ -2,8 +2,8 @@
 {
     public interface IConversionUtils
     {
-        decimal? ConvertToDecimal(object value);
-        int? ConvertToInt(object value);
-        DateTime? ConvertToDateTime(object value);
+        decimal ConvertToDecimal(object value);
+        int ConvertToInt(object value);
+        DateTime ConvertToDateTime(object value);
     }
 }

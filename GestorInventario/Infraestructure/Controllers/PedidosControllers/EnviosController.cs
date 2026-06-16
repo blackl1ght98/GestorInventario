@@ -55,7 +55,7 @@ namespace GestorInventario.Infraestructure.Controllers.PedidosControllers
                 {
                     Name = d.Producto?.NombreProducto ?? "Producto no disponible",
                     Sku = d.Producto?.Descripcion ?? "N/A",
-                    Quantity = d.Cantidad ?? 1,
+                    Quantity = d.Cantidad,
                     BarcodeType = envio.Barcode,
                     BarcodeCode = d.Producto?.CodigoBarras ?? "N/A",
                     ImageUrl = d.Producto?.Imagen ?? string.Empty,

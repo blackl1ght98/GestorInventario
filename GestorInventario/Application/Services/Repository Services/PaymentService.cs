@@ -140,7 +140,7 @@ namespace GestorInventario.Application.Services.Generic_Services
             {
                 NombreCompletoUsuario = usuarioActual.NombreCompleto ?? "Nombre no facilitado",
                 Telefono = usuarioActual.Telefono ?? "Telefono no facilitado",
-                CodigoPostal = usuarioActual.CodigoPostal ?? "Codigo Postal no facilitado",
+                CodigoPostal = usuarioActual.CodigoPostal ,
                 Ciudad = usuarioActual.Ciudad ?? "Ciudad no facilitado",
                 Line1 = usuarioActual.Direccion.Split(",")[0].Trim(),
                 Line2 = usuarioActual.Direccion.Split(",").Length > 1 ? usuarioActual.Direccion.Split(",")[1].Trim() : ""
@@ -221,11 +221,11 @@ namespace GestorInventario.Application.Services.Generic_Services
             foreach (var item in itemsDelCarrito)
             {
                 var producto = await _unitOfWork.ProductoRepository
-                    .ObtenerProductoPorIdAsync(item.ProductoId.Value);
+                    .ObtenerProductoPorIdAsync(item.ProductoId);
 
                 if (producto == null) continue;
 
-                var cantidad = item.Cantidad ?? 0;
+                var cantidad = item.Cantidad;
                 var precio = Convert.ToDecimal(producto.Precio);
 
                 items.Add(new ItemModelDto
@@ -317,10 +317,10 @@ namespace GestorInventario.Application.Services.Generic_Services
                         PayPalId = detallesSuscripcion.Id,
                         ItemName = item.Name,
                         ItemSku = item.Sku,
-                        ItemPrice = item.UnitAmount != null ? _conversion.ConvertToDecimal(item.UnitAmount.Value) : 0,
+                        ItemPrice = (decimal)(item.UnitAmount != null ? _conversion.ConvertToDecimal(item.UnitAmount.Value) : 0),
                         ItemCurrency = item.UnitAmount?.CurrencyCode,
-                        ItemTax = item.Tax != null ? _conversion.ConvertToDecimal(item.Tax.Value) : 0,
-                        ItemQuantity = _conversion.ConvertToInt(item.Quantity)
+                        ItemTax = (decimal)(item.Tax != null ? _conversion.ConvertToDecimal(item.Tax.Value) : 0),
+                        ItemQuantity = (int)_conversion.ConvertToInt(item.Quantity)
                     };
 
                     paypalItems.Add(paymentItem);

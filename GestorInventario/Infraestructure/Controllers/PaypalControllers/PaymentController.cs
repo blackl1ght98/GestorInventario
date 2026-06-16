@@ -145,7 +145,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                 PayerLastName = paypalDetail.PayerLastName,
                 PayerId = paypalDetail.PayerId,
 
-                // ✅ Datos de envío con protección null
+                // Datos de envío
                 ShippingRecipientName = ultimaInfoEnvio?.RecipientName,
                 ShippingLine1 = ultimaInfoEnvio?.AddressLine1,
                 ShippingCity = ultimaInfoEnvio?.City,
@@ -164,7 +164,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                 PayeeEmail = paypalDetail.PayeeEmail,
                 Description = paypalDetail.Description,
 
-                // ✅ Datos del pago con protección null
+                // Datos del pago 
                 SaleId = ultimoCapture?.CaptureId,
                 CaptureStatus = ultimoCapture?.Status,
                 CaptureAmount = ultimoCapture?.Amount,
@@ -178,8 +178,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                 FinalCapture = ultimoCapture?.FinalCapture,
                 DisputeCategories = ultimoCapture?.DisputeCategories,
 
-                TrackingId = paypalDetail.TrackingId,
-                TrackingStatus = paypalDetail.TrackingStatus,
+              
 
                 PayPalPaymentItems = paypalDetail.PayPalPaymentItems?.Select(item => new PayPalPaymentItemViewModel
                 {

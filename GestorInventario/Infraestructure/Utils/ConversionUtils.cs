@@ -12,12 +12,10 @@ namespace GestorInventario.Infraestructure.Utils
             _logger = logger;
         }
 
-        public  decimal? ConvertToDecimal(object value)
+        public  decimal ConvertToDecimal(object value)
         {
-            if (value == null)
-            {
-                return null;
-            }
+            
+           
 
             if (value is decimal decimalValue)
             {
@@ -44,14 +42,11 @@ namespace GestorInventario.Infraestructure.Utils
             {
                 _logger.LogError(ex, "Error al realizar la conversión");
             }
-            return null;
+            return 0;
         }
-        public int? ConvertToInt(object value)
+        public int ConvertToInt(object value)
         {
-            if (value == null)
-            {
-                return null;
-            }
+           
 
             if (value is int intValue)
             {
@@ -78,16 +73,13 @@ namespace GestorInventario.Infraestructure.Utils
             {
                 _logger.LogError(ex, "Error al realizar la conversión a int");
             }
-            return null;
+            return 0;
         }
        
        
-        public DateTime? ConvertToDateTime(object value)
+        public DateTime ConvertToDateTime(object value)
         {
-            if (value == null)
-            {
-                return null;
-            }
+            
 
             if (value is DateTime dateTimeValue)
             {
@@ -125,7 +117,7 @@ namespace GestorInventario.Infraestructure.Utils
             }
             Console.WriteLine($"No se pudo convertir. Formatos intentados: {string.Join(", ", formats)}");
 
-            return null;
+            return DateTime.UtcNow;
         }
     }
 }

@@ -46,25 +46,8 @@ public partial class GestorInventarioContext : DbContext
     public virtual DbSet<Usuario> Usuarios { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER") == "true";
-
-        if (isDocker)
-        {
-            var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
-            var dbName = Environment.GetEnvironmentVariable("DB_NAME");
-            var dbUserUsername = Environment.GetEnvironmentVariable("DB_SQLUSER");
-            var dbUserPassword = Environment.GetEnvironmentVariable("DB_SQLUSER_PASSWORD");
-            var connectionString = $"Data Source={dbHost};Initial Catalog={dbName};User ID={dbUserUsername};Password={dbUserPassword};TrustServerCertificate=True";
-            optionsBuilder.UseSqlServer(connectionString);
-        }
-        else
-        {
-            // Cadena de conexión en duro para entorno local
-            var connectionString = "Data Source=DESKTOP-GN4VRAH\\SQLEXPRESS;Initial Catalog=GestorInventario;User ID=sqluser;Password=12345678SQL#1234;TrustServerCertificate=True";
-            optionsBuilder.UseSqlServer(connectionString);
-        }
-    }
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Data Source=DESKTOP-GN4VRAH\\SQLEXPRESS;Initial Catalog=GestorInventario;User ID=sa;Password=SQL#1234;TrustServerCertificate=True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -80,10 +63,12 @@ public partial class GestorInventarioContext : DbContext
 
             entity.HasOne(d => d.Pedido).WithMany(p => p.DetallePedidos)
                 .HasForeignKey(d => d.PedidoId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__DetallePe__Pedid__3CDEFCE5");
 
             entity.HasOne(d => d.Producto).WithMany(p => p.DetallePedidos)
                 .HasForeignKey(d => d.ProductoId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__DetallePe__Produ__65370702");
         });
 
@@ -109,7 +94,9 @@ public partial class GestorInventarioContext : DbContext
             entity.Property(e => e.CaptureId)
                 .HasMaxLength(50)
                 .IsUnicode(false);
-            entity.Property(e => e.CreateTime).HasColumnType("datetime");
+            entity.Property(e => e.CreateTime)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasColumnType("datetime");
             entity.Property(e => e.Currency)
                 .HasMaxLength(10)
                 .IsUnicode(false);
@@ -135,7 +122,9 @@ public partial class GestorInventarioContext : DbContext
             entity.Property(e => e.TransactionFeeCurrency)
                 .HasMaxLength(10)
                 .IsUnicode(false);
-            entity.Property(e => e.UpdateTime).HasColumnType("datetime");
+            entity.Property(e => e.UpdateTime)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasColumnType("datetime");
 
             entity.HasOne(d => d.Payment).WithMany(p => p.PayPalPaymentCaptures)
                 .HasForeignKey(d => d.PaymentId)
@@ -144,6 +133,7 @@ public partial class GestorInventarioContext : DbContext
 
             entity.HasOne(d => d.Pedido).WithMany(p => p.PayPalPaymentCaptures)
                 .HasForeignKey(d => d.PedidoId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_PayPalPaymentCaptures_Pedido");
         });
 
@@ -169,6 +159,7 @@ public partial class GestorInventarioContext : DbContext
                 .HasColumnType("decimal(10, 2)")
                 .HasColumnName("amount_total");
             entity.Property(e => e.CreateTime)
+                .HasDefaultValueSql("(getutcdate())")
                 .HasColumnType("datetime")
                 .HasColumnName("create_time");
             entity.Property(e => e.Description)
@@ -206,15 +197,8 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("payer_last_name");
-            entity.Property(e => e.TrackingId)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("tracking_id");
-            entity.Property(e => e.TrackingStatus)
-                .HasMaxLength(20)
-                .IsUnicode(false)
-                .HasColumnName("tracking_status");
             entity.Property(e => e.UpdateTime)
+                .HasDefaultValueSql("(getutcdate())")
                 .HasColumnType("datetime")
                 .HasColumnName("update_time");
         });
@@ -406,6 +390,7 @@ public partial class GestorInventarioContext : DbContext
 
             entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.Productos)
                 .HasForeignKey(d => d.IdProveedor)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_IdProveedor");
         });
 
@@ -427,6 +412,7 @@ public partial class GestorInventarioContext : DbContext
 
             entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.Proveedores)
                 .HasForeignKey(d => d.IdUsuario)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_IdUsuario_Provedor");
         });
 
@@ -570,11 +556,7 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("ciudad");
-            entity.Property(e => e.CodigoPostal)
-                .HasMaxLength(7)
-                .IsUnicode(false)
-                .IsFixedLength()
-                .HasColumnName("codigoPostal");
+            entity.Property(e => e.CodigoPostal).HasColumnName("codigoPostal");
             entity.Property(e => e.Direccion)
                 .HasMaxLength(100)
                 .IsUnicode(false);

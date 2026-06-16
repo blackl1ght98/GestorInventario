@@ -7,39 +7,35 @@ public partial class PayPalPaymentDetail
 {
     public string Id { get; set; } = null!;
 
-    public string? Intent { get; set; }
+    public string Intent { get; set; } = null!;
 
-    public string? OrderStatus { get; set; }
+    public string OrderStatus { get; set; } = null!;
 
-    public string? PayerEmail { get; set; }
+    public string PayerEmail { get; set; } = null!;
 
-    public string? PayerFirstName { get; set; }
+    public string PayerFirstName { get; set; } = null!;
 
-    public string? PayerLastName { get; set; }
+    public string PayerLastName { get; set; } = null!;
 
-    public string? PayerId { get; set; }
+    public string PayerId { get; set; } = null!;
 
-    public decimal? AmountTotal { get; set; }
+    public decimal AmountTotal { get; set; }
 
-    public string? AmountCurrency { get; set; }
+    public string AmountCurrency { get; set; } = null!;
 
-    public decimal? AmountItemTotal { get; set; }
+    public decimal AmountItemTotal { get; set; }
 
-    public decimal? AmountShipping { get; set; }
+    public decimal AmountShipping { get; set; }
 
-    public string? PayeeMerchantId { get; set; }
+    public string PayeeMerchantId { get; set; } = null!;
 
-    public string? PayeeEmail { get; set; }
+    public string PayeeEmail { get; set; } = null!;
 
-    public string? Description { get; set; }
+    public string Description { get; set; } = null!;
 
-    public DateTime? CreateTime { get; set; }
+    public DateTime CreateTime { get; set; }
 
-    public DateTime? UpdateTime { get; set; }
-
-    public string? TrackingId { get; set; }
-
-    public string? TrackingStatus { get; set; }
+    public DateTime UpdateTime { get; set; }
 
     public virtual ICollection<PayPalPaymentCapture> PayPalPaymentCaptures { get; set; } = new List<PayPalPaymentCapture>();
 

@@ -60,10 +60,10 @@ namespace GestorInventario.Application.Services
             // ----------------------------
             // IMPORTES
             // ----------------------------
-            if (firstPurchaseUnit?.Amount != null)
+            if (firstPurchaseUnit.Amount != null)
             {
                 detallesPagoRembolso.AmountTotal =
-                    _conversion.ConvertToDecimal(firstPurchaseUnit.Amount.Value);
+                    (decimal)_conversion.ConvertToDecimal(firstPurchaseUnit.Amount.Value ?? "0");
 
                 detallesPagoRembolso.AmountCurrency =
                     firstPurchaseUnit.Amount.CurrencyCode;
@@ -71,12 +71,12 @@ namespace GestorInventario.Application.Services
                 if (firstPurchaseUnit.Amount.Breakdown != null)
                 {
                     detallesPagoRembolso.AmountItemTotal =
-                        _conversion.ConvertToDecimal(
-                            firstPurchaseUnit.Amount.Breakdown.ItemTotal?.Value ?? "0");
+                       (decimal) _conversion.ConvertToDecimal(
+                            firstPurchaseUnit.Amount.Breakdown.ItemTotal.Value);
 
                     detallesPagoRembolso.AmountShipping =
-                        _conversion.ConvertToDecimal(
-                            firstPurchaseUnit.Amount.Breakdown.Shipping?.Value ?? "0");
+                       (decimal) _conversion.ConvertToDecimal(
+                            firstPurchaseUnit.Amount.Breakdown.Shipping.Value?? "0");
                 }
             }
 
@@ -113,9 +113,9 @@ namespace GestorInventario.Application.Services
                         CaptureId = capture.Id,
                         Status = capture.Status,
 
-                        Amount = capture.Amount != null
+                        Amount = (capture.Amount != null
                             ? _conversion.ConvertToDecimal(capture.Amount.Value)
-                            : 0,
+                            : 0),
 
                         Currency = capture.Amount?.CurrencyCode,
 
@@ -123,19 +123,19 @@ namespace GestorInventario.Application.Services
                             capture.SellerProtection?.Status,
 
                         TransactionFeeAmount =
-                            capture.SellerReceivableBreakdown?.PaypalFee != null
+                            (capture.SellerReceivableBreakdown?.PaypalFee != null
                                 ? _conversion.ConvertToDecimal(
                                     capture.SellerReceivableBreakdown.PaypalFee.Value)
-                                : 0,
+                                : 0),
 
                         TransactionFeeCurrency =
                             capture.SellerReceivableBreakdown?.PaypalFee?.CurrencyCode,
 
                         ReceivableAmount =
-                            capture.SellerReceivableBreakdown?.NetAmount != null
+                            (capture.SellerReceivableBreakdown?.NetAmount != null
                                 ? _conversion.ConvertToDecimal(
                                     capture.SellerReceivableBreakdown.NetAmount.Value)
-                                : 0,
+                                : 0),
 
                         ReceivableCurrency =
                             capture.SellerReceivableBreakdown?.NetAmount?.CurrencyCode,

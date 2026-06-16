@@ -153,10 +153,10 @@ namespace GestorInventario.Application.Services.Generic_Services
                         foreach (var item in _data.PayPalPaymentItems)
                         {
                             table.Cell().Padding(5).AlignLeft().AlignMiddle().Text(item.ItemName ?? "N/A");
-                            table.Cell().Padding(5).AlignCenter().AlignMiddle().Text(item.ItemQuantity?.ToString() ?? "N/A");
-                            table.Cell().Padding(5).AlignRight().AlignMiddle().Text($"{item.ItemPrice?.ToString("C") ?? "N/A"} {item.ItemCurrency}");
-                            table.Cell().Padding(5).AlignRight().AlignMiddle().Text($"{item.ItemTax?.ToString("C") ?? "0.00"} {item.ItemCurrency}");
-                            table.Cell().Padding(5).AlignRight().AlignMiddle().Text($"{(item.ItemPrice * item.ItemQuantity + item.ItemTax)?.ToString("C") ?? "N/A"} {item.ItemCurrency}");
+                            table.Cell().Padding(5).AlignCenter().AlignMiddle().Text(item.ItemQuantity.ToString() ?? "N/A");
+                            table.Cell().Padding(5).AlignRight().AlignMiddle().Text($"{item.ItemPrice.ToString("C") ?? "N/A"} {item.ItemCurrency}");
+                            table.Cell().Padding(5).AlignRight().AlignMiddle().Text($"{item.ItemTax.ToString("C") ?? "0.00"} {item.ItemCurrency}");
+                            table.Cell().Padding(5).AlignRight().AlignMiddle().Text($"{(item.ItemPrice * item.ItemQuantity + item.ItemTax).ToString("C") ?? "N/A"} {item.ItemCurrency}");
                         }
                     }
                     else
@@ -182,9 +182,9 @@ namespace GestorInventario.Application.Services.Generic_Services
                         columns.RelativeColumn(2);
                     });
 
-                    AddTotalRow(table, "Subtotal ítems", $"{_data.AmountItemTotal?.ToString("C") ?? "0.00"} {_data.AmountCurrency}");
-                    AddTotalRow(table, "Envío", $"{_data.AmountShipping?.ToString("C") ?? "0.00"} {_data.AmountCurrency}");
-                    AddTotalRow(table, "Total", $"{_data.AmountTotal?.ToString("C") ?? "0.00"} {_data.AmountCurrency}", isBold: true);
+                    AddTotalRow(table, "Subtotal ítems", $"{_data.AmountItemTotal.ToString("C") ?? "0.00"} {_data.AmountCurrency}");
+                    AddTotalRow(table, "Envío", $"{_data.AmountShipping.ToString("C") ?? "0.00"} {_data.AmountCurrency}");
+                    AddTotalRow(table, "Total", $"{_data.AmountTotal.ToString("C") ?? "0.00"} {_data.AmountCurrency}", isBold: true);
                 });
             });
         }
@@ -208,11 +208,10 @@ namespace GestorInventario.Application.Services.Generic_Services
                         columns.RelativeColumn(2);
                     });
 
-                    AddDetailRow(table, "Comisión PayPal", $"{ultimoCapture.TransactionFeeAmount?.ToString("C") ?? "0.00"} {ultimoCapture.TransactionFeeCurrency}");
-                    AddDetailRow(table, "Tasa de cambio", ultimoCapture.ExchangeRate?.ToString("F4") ?? "N/A");
-                    AddDetailRow(table, "Monto recibible", $"{ultimoCapture.ReceivableAmount?.ToString("C") ?? "0.00"} {ultimoCapture.ReceivableCurrency}");
-                    AddDetailRow(table, "ID de Seguimiento", _data.TrackingId ?? "N/A");
-                    AddDetailRow(table, "Estado de Seguimiento", _data.TrackingStatus ?? "N/A");
+                    AddDetailRow(table, "Comisión PayPal", $"{ultimoCapture.TransactionFeeAmount.ToString("C") ?? "0.00"} {ultimoCapture.TransactionFeeCurrency}");
+                    AddDetailRow(table, "Tasa de cambio", ultimoCapture.ExchangeRate.ToString("F4") ?? "N/A");
+                    AddDetailRow(table, "Monto recibible", $"{ultimoCapture.ReceivableAmount.ToString("C") ?? "0.00"} {ultimoCapture.ReceivableCurrency}");
+                   
                 });
             });
         }

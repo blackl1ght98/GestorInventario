@@ -9,17 +9,17 @@ public partial class PayPalPaymentShipping
 
     public string PaymentId { get; set; } = null!;
 
-    public string? RecipientName { get; set; }
+    public string RecipientName { get; set; } = null!;
 
-    public string? AddressLine1 { get; set; }
+    public string AddressLine1 { get; set; } = null!;
 
-    public string? City { get; set; }
+    public string City { get; set; } = null!;
 
-    public string? State { get; set; }
+    public string State { get; set; } = null!;
 
-    public string? PostalCode { get; set; }
+    public string PostalCode { get; set; } = null!;
 
-    public string? CountryCode { get; set; }
+    public string CountryCode { get; set; } = null!;
 
     public virtual PayPalPaymentDetail Payment { get; set; } = null!;
 }

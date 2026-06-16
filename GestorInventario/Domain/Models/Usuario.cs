@@ -25,19 +25,19 @@ public partial class Usuario
 
     public string NombreCompleto { get; set; } = null!;
 
-    public DateTime? FechaNacimiento { get; set; }
+    public DateTime FechaNacimiento { get; set; }
 
-    public string? Telefono { get; set; }
+    public string Telefono { get; set; } = null!;
 
     public string Direccion { get; set; } = null!;
 
-    public DateTime? FechaRegistro { get; set; }
+    public DateTime FechaRegistro { get; set; }
 
     public string? TemporaryPassword { get; set; }
 
-    public string? CodigoPostal { get; set; }
+    public int CodigoPostal { get; set; }
 
-    public string? Ciudad { get; set; }
+    public string Ciudad { get; set; } = null!;
 
     public string? EmailVerificationToken { get; set; }
 

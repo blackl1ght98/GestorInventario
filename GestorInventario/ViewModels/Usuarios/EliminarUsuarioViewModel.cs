@@ -7,7 +7,7 @@
         public string Email { get; set; }
         public string? Direccion { get; set; }
         public string? Ciudad { get; set; }
-        public string? CodigoPostal { get; set; }
+        public int? CodigoPostal { get; set; }
         public DateTime? FechaNacimiento { get; set; }
         public DateTime? FechaRegistro { get; set; }
     }

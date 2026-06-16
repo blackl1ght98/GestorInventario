@@ -11,7 +11,7 @@ public partial class Producto
 
     public string Descripcion { get; set; } = null!;
 
-    public string? Imagen { get; set; }
+    public string Imagen { get; set; } = null!;
 
     public int Cantidad { get; set; }
 
@@ -21,13 +21,13 @@ public partial class Producto
 
     public DateTime FechaModificacion { get; set; }
 
-    public int? IdProveedor { get; set; }
+    public int IdProveedor { get; set; }
 
-    public string? CodigoBarras { get; set; }
+    public string CodigoBarras { get; set; } = null!;
 
-    public string? CodigoBarrasImagen { get; set; }
+    public string CodigoBarrasImagen { get; set; } = null!;
 
     public virtual ICollection<DetallePedido> DetallePedidos { get; set; } = new List<DetallePedido>();
 
-    public virtual Proveedore? IdProveedorNavigation { get; set; }
+    public virtual Proveedore IdProveedorNavigation { get; set; } = null!;
 }

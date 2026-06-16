@@ -126,7 +126,7 @@ namespace GestorInventario.Application.Services.External_Sevices
                         AddressLine2 = pagar.Line2 ?? "",
                         City = pagar.Ciudad,
                         State = "ES",
-                        PostalCode = pagar.CodigoPostal,
+                        PostalCode = pagar.CodigoPostal.ToString(),
                         CountryCode = "ES"
                     }
                 }

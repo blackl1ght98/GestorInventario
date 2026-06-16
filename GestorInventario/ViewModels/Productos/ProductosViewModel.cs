@@ -22,7 +22,7 @@ namespace GestorInventario.ViewModels.Productos
         [Required(ErrorMessage ="El precio del producto es requerido")]
         public decimal Precio { get; set; }
         [Display(Name ="Seleccione un proveedor")]
-        public int? IdProveedor { get; set; }
+        public int IdProveedor { get; set; }
         public IEnumerable<SelectListItem> Proveedores { get; set; } = Enumerable.Empty<SelectListItem>();
 
     }

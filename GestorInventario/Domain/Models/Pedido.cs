@@ -21,7 +21,7 @@ public partial class Pedido
 
     public decimal Total { get; set; }
 
-    public string? Currency { get; set; }
+    public string Currency { get; set; } = null!;
 
     public bool EsCarrito { get; set; }
 

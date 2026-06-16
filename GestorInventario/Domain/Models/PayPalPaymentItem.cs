@@ -9,17 +9,17 @@ public partial class PayPalPaymentItem
 
     public string PayPalId { get; set; } = null!;
 
-    public string? ItemName { get; set; }
+    public string ItemName { get; set; } = null!;
 
-    public string? ItemSku { get; set; }
+    public string ItemSku { get; set; } = null!;
 
-    public decimal? ItemPrice { get; set; }
+    public decimal ItemPrice { get; set; }
 
-    public string? ItemCurrency { get; set; }
+    public string ItemCurrency { get; set; } = null!;
 
-    public decimal? ItemTax { get; set; }
+    public decimal ItemTax { get; set; }
 
-    public int? ItemQuantity { get; set; }
+    public int ItemQuantity { get; set; }
 
     public virtual PayPalPaymentDetail PayPal { get; set; } = null!;
 }

@@ -41,7 +41,7 @@ namespace GestorInventario.Application.Services.Notifications
                     .Select(detalle => new PayPalPaymentItem
                     {
                         ItemName = detalle.Producto?.NombreProducto ?? "N/A",
-                        ItemQuantity = detalle.Cantidad ?? 0,
+                        ItemQuantity = detalle.Cantidad,
                         ItemPrice = detalle.Producto?.Precio ?? 0,
                         ItemCurrency = pedido.Currency,
                         ItemSku = detalle.Producto?.Descripcion ?? "N/A"

@@ -11,7 +11,7 @@ namespace GestorInventario.Application.DTOs.Checkout
         public required string Currency { get; set; }
         public required string NombreCompleto { get; set; }
         public required string Telefono { get; set; }
-        public required string CodigoPostal { get; set; }
+        public  int CodigoPostal { get; set; }
         public required string  Ciudad { get; set; }
         public required string Line1 { get; set; }
         public required string Line2 { get; set; }

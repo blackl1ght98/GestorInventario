@@ -70,7 +70,7 @@ namespace GestorInventario.Infraestructure.Controllers.CarritoController
                 );
 
                
-                var subtotal = paginationResult.Items.Sum(item => item.Producto.Precio * (item.Cantidad ?? 0m));
+                var subtotal = paginationResult.Items.Sum(item => item.Producto.Precio * (item.Cantidad));
                 var impuestos = subtotal * 0.21m;        
                 var total = subtotal + impuestos;        
 

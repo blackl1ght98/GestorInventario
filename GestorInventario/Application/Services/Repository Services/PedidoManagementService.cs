@@ -81,10 +81,10 @@ namespace GestorInventario.Application.Services.Generic_Services
             // Actualizar campos principales
             detallesPago.Intent = detalles.Intent;
             detallesPago.OrderStatus = detalles.Status;
-            detallesPago.PayerEmail = detalles.Payer?.Email;
-            detallesPago.PayerFirstName = detalles.Payer?.Name?.GivenName;
-            detallesPago.PayerLastName = detalles.Payer?.Name?.Surname;
-            detallesPago.PayerId = detalles.Payer?.PayerId;
+            detallesPago.PayerEmail = detalles.Payer.Email;
+            detallesPago.PayerFirstName = detalles.Payer.Name.GivenName;
+            detallesPago.PayerLastName = detalles.Payer.Name.Surname;
+            detallesPago.PayerId = detalles.Payer.PayerId;
 
             // Información de envío
             var firstUnit = detalles.PurchaseUnits?.FirstOrDefault();
@@ -93,40 +93,34 @@ namespace GestorInventario.Application.Services.Generic_Services
                 var informacionEnvio = new PayPalPaymentShipping
                 {
                     PaymentId = detalles.Id,
-                    RecipientName = firstUnit.Shipping?.Name?.FullName,
-                    AddressLine1 = firstUnit.Shipping?.Address?.AddressLine1,
-                    City = firstUnit.Shipping?.Address?.AdminArea2,
-                    State = firstUnit.Shipping?.Address?.AdminArea1,
-                    PostalCode = firstUnit.Shipping?.Address?.PostalCode,
-                    CountryCode = firstUnit.Shipping?.Address?.CountryCode
+                    RecipientName = firstUnit.Shipping.Name.FullName,
+                    AddressLine1 = firstUnit.Shipping.Address.AddressLine1,
+                    City = firstUnit.Shipping.Address.AdminArea2,
+                    State = firstUnit.Shipping.Address.AdminArea1,
+                    PostalCode = firstUnit.Shipping.Address.PostalCode,
+                    CountryCode = firstUnit.Shipping.Address.CountryCode
                 };
                 await _payment.AgregarInfoEnvioAsync(informacionEnvio);
 
                 // Montos
-                detallesPago.AmountTotal = _conversion.ConvertToDecimal(firstUnit.Amount?.Value);
-                detallesPago.AmountCurrency = firstUnit.Amount?.CurrencyCode;
-                detallesPago.AmountItemTotal = _conversion.ConvertToDecimal(firstUnit.Amount?.Breakdown?.ItemTotal?.Value);
+                detallesPago.AmountTotal = _conversion.ConvertToDecimal(firstUnit.Amount.Value);
+                detallesPago.AmountCurrency = firstUnit.Amount.CurrencyCode;
+                detallesPago.AmountItemTotal = _conversion.ConvertToDecimal(firstUnit.Amount.Breakdown.ItemTotal.Value);
 
                 // Calcular subtotal si es necesario
                 if (detallesPago.AmountItemTotal == 0 && firstUnit.Items != null)
                 {
                     detallesPago.AmountItemTotal = firstUnit.Items.Sum(item =>
-                        _conversion.ConvertToDecimal(item.UnitAmount?.Value.ToString()) *
-                        _conversion.ConvertToInt(item.Quantity?.ToString()));
+                        _conversion.ConvertToDecimal(item.UnitAmount.Value.ToString()) *
+                        _conversion.ConvertToInt(item.Quantity.ToString()));
                 }
 
-                detallesPago.AmountShipping = _conversion.ConvertToDecimal(firstUnit.Amount?.Breakdown?.Shipping?.Value);
-                detallesPago.PayeeMerchantId = firstUnit.Payee?.MerchantId;
-                detallesPago.PayeeEmail = firstUnit.Payee?.EmailAddress;
+                detallesPago.AmountShipping = _conversion.ConvertToDecimal(firstUnit.Amount.Breakdown.Shipping.Value);
+                detallesPago.PayeeMerchantId = firstUnit.Payee.MerchantId;
+                detallesPago.PayeeEmail = firstUnit.Payee.EmailAddress;
                 detallesPago.Description = firstUnit.Description;
 
-                // Tracking
-                var firstTracker = firstUnit.Shipping?.Trackers?.FirstOrDefault();
-                if (firstTracker != null)
-                {
-                    detallesPago.TrackingId = firstTracker.Id;
-                    detallesPago.TrackingStatus = firstTracker.Status;
-                }
+               
 
                 // Captures
                 if (firstUnit.Payments?.Captures != null)
@@ -142,23 +136,35 @@ namespace GestorInventario.Application.Services.Generic_Services
                             CaptureId = capture.Id,
                             Status = capture.Status,
                             PedidoId = pedidoId,           
-                            Amount = _conversion.ConvertToDecimal(capture.Amount?.Value),
-                            Currency = capture.Amount?.CurrencyCode,
-                            ProtectionEligibility = capture.SellerProtection?.Status,
-                            TransactionFeeAmount = _conversion.ConvertToDecimal(capture.SellerReceivableBreakdown?.PaypalFee?.Value),
-                            TransactionFeeCurrency = capture.SellerReceivableBreakdown?.PaypalFee?.CurrencyCode,
-                            ReceivableAmount = _conversion.ConvertToDecimal(capture.SellerReceivableBreakdown?.NetAmount?.Value),
-                            ReceivableCurrency = capture.SellerReceivableBreakdown?.NetAmount?.CurrencyCode,
+                            Amount = _conversion.ConvertToDecimal(capture.Amount.Value),
+                            Currency = capture.Amount.CurrencyCode,
+                            ProtectionEligibility = capture.SellerProtection.Status,
+                            TransactionFeeAmount = _conversion.ConvertToDecimal(capture.SellerReceivableBreakdown.PaypalFee.Value),
+                            TransactionFeeCurrency = capture.SellerReceivableBreakdown.PaypalFee.CurrencyCode,
+                            ReceivableAmount = _conversion.ConvertToDecimal(capture.SellerReceivableBreakdown.NetAmount.Value),
+                            ReceivableCurrency = capture.SellerReceivableBreakdown.NetAmount.CurrencyCode,
                             FinalCapture = capture.FinalCapture,
                             CreateTime = _conversion.ConvertToDateTime(capture.CreateTime),
                             UpdateTime = _conversion.ConvertToDateTime(capture.UpdateTime),
                         };
 
-                        if (decimal.TryParse(capture.SellerReceivableBreakdown?.ExchangeRate?.Value,
-                            NumberStyles.Any, CultureInfo.InvariantCulture, out decimal exchangeRate))
-                            paypalCapture.ExchangeRate = exchangeRate;
+                        var exchangeValue = capture.SellerReceivableBreakdown?.ExchangeRate?.Value;
 
-                        if (capture.SellerProtection?.DisputeCategories != null)
+                        if (string.IsNullOrEmpty(exchangeValue))
+                        {
+                            paypalCapture.ExchangeRate = 0;
+                        }
+                        else if (decimal.TryParse(exchangeValue, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal exchangeRate))
+                        {
+                            paypalCapture.ExchangeRate = exchangeRate;
+                        }
+                        else
+                        {
+                            paypalCapture.ExchangeRate = 0;
+                        }
+
+
+                        if (capture.SellerProtection.DisputeCategories != null)
                             paypalCapture.DisputeCategories = JsonConvert.SerializeObject(capture.SellerProtection.DisputeCategories);
 
                         await _payment.AgregarCaptureAsync(paypalCapture);
@@ -175,9 +181,9 @@ namespace GestorInventario.Application.Services.Generic_Services
                             PayPalId = detallesPago.Id,
                             ItemName = item.Name,
                             ItemSku = item.Sku,
-                            ItemPrice = _conversion.ConvertToDecimal(item.UnitAmount?.Value),
-                            ItemCurrency = item.UnitAmount?.CurrencyCode,
-                            ItemTax = _conversion.ConvertToDecimal(item.Tax?.Value),
+                            ItemPrice = _conversion.ConvertToDecimal(item.UnitAmount.Value),
+                            ItemCurrency = item.UnitAmount.CurrencyCode,
+                            ItemTax = _conversion.ConvertToDecimal(item.Tax.Value),
                             ItemQuantity = _conversion.ConvertToInt(item.Quantity)
                         };
                         await _payment.AgregarPagoItemAsync(paymentItem);
@@ -223,8 +229,17 @@ namespace GestorInventario.Application.Services.Generic_Services
                     Id = orderId,           
                     Intent = "CAPTURE",
                     OrderStatus = "COMPLETED",
+                    PayeeEmail="email no establecido",
+                    PayerFirstName="no establecido",
+                    PayerLastName="no establecido",
+                    PayerId="no establecido",
                     AmountTotal = total,
                     AmountCurrency = currency,
+                    AmountItemTotal=0,
+                    AmountShipping=0,
+                    PayeeMerchantId="no establecido",
+                   PayerEmail="no establecido",   
+                    Description = "Pedido pagado",
                     CreateTime = DateTime.UtcNow,
                     UpdateTime = DateTime.UtcNow
                 };
@@ -240,6 +255,14 @@ namespace GestorInventario.Application.Services.Generic_Services
                 Amount = total,
                 Currency = currency,
                 Status = "COMPLETED",
+                ProtectionEligibility="no",
+                TransactionFeeAmount=0,
+                TransactionFeeCurrency="no",
+                ReceivableAmount=0,
+                ReceivableCurrency="no",
+                ExchangeRate=0,
+                FinalCapture=false,
+                DisputeCategories="no",
                 CreateTime = DateTime.UtcNow,
                 UpdateTime = DateTime.UtcNow
             };

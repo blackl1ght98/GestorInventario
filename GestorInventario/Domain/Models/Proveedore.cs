@@ -13,9 +13,9 @@ public partial class Proveedore
 
     public string Direccion { get; set; } = null!;
 
-    public int? IdUsuario { get; set; }
+    public int IdUsuario { get; set; }
 
-    public virtual Usuario? IdUsuarioNavigation { get; set; }
+    public virtual Usuario IdUsuarioNavigation { get; set; } = null!;
 
     public virtual ICollection<Producto> Productos { get; set; } = new List<Producto>();
 }

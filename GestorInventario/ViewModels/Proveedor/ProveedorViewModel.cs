@@ -14,7 +14,7 @@ namespace GestorInventario.ViewModels.Proveedor
         [Required(ErrorMessage ="La direccion del proveedor es requerida")]
         public  string? Direccion { get; set; }
         [Required(ErrorMessage ="Elija un proveedor")]
-        public int? IdUsuario { get; set; }
+        public int IdUsuario { get; set; }
         public IEnumerable<SelectListItem> Usuarios { get; set; } = Enumerable.Empty<SelectListItem>();
     }
    

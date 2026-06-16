@@ -91,7 +91,8 @@ namespace GestorInventario.Application.Services.Generic_Services
                         NumeroPedido = GenerarNumPedido.GenerarNumeroPedido(),
                         FechaPedido = DateTime.UtcNow,
                         EstadoPedido = EstadoPedido.Carrito.ToString(),
-                        EsCarrito = true
+                        EsCarrito = true,
+                        Currency =  "EUR"
                     };
                     await _pedidoRepository.AgregarPedidoAsync(carrito);
 
@@ -230,7 +231,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                 var producto = await _productoRepository.ObtenerProductoPorIdAsync((int)detalle.ProductoId);
                 if (producto != null)
                 {
-                    producto.Cantidad += detalle.Cantidad ?? 0;
+                    producto.Cantidad += detalle.Cantidad;
                     await _productoRepository.ActualizarProductoAsync(producto);
                 }
 
