@@ -125,7 +125,7 @@ services:
       - '8081:8081'
     environment:
       - DB_HOST=${DB_HOST}
-      - APP_BASE_URL=https://localhost:8081
+      - APP_DOCKER_URL=https://localhost:8081
       - DB_NAME=${DB_NAME}
       - DB_SA_USERNAME=${DB_SA_USERNAME}
       - DB_SA_PASSWORD=${DB_SA_PASSWORD}

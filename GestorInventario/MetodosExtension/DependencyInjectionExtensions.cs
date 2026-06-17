@@ -67,7 +67,7 @@ namespace GestorInventario.MetodosExtension
             services.AddScoped<ITokenGenerator, TokenGenerator>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<ITokenStrategyFactory, TokenStrategyFactory>();
-            services.AddScoped<IUrlService, UrlService>();
+           
             services.AddScoped<IRefreshTokenGenerator, RefreshTokenGenerator>();
             services.AddScoped<IRefreshTokenStrategyFactory, RefreshTokenStrategyFactory>();
             services.AddScoped<ILoginStrategyFactory, LoginStrategyFactory>();
@@ -127,7 +127,7 @@ namespace GestorInventario.MetodosExtension
             services.AddSingleton<IConversionUtils, ConversionUtils>();
             services.AddSingleton<ICurrentUserAccessor, CurrentUserAccessor>();
             services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
-
+            services.AddSingleton<IUrlService, UrlService>();
             return services;
         }
 

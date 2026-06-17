@@ -15,7 +15,7 @@ namespace GestorInventario.Application.Services.Common
 
         public string GetBaseUrl()
         {
-            // 1) Prioridad: variable de entorno explícita
+            // 1) Prioridad: variable de entorno explícita (override absoluto)
             var envOverride = Environment.GetEnvironmentVariable("APP_BASE_URL");
             if (!string.IsNullOrWhiteSpace(envOverride))
                 return envOverride.TrimEnd('/');
@@ -23,11 +23,19 @@ namespace GestorInventario.Application.Services.Common
             // 2) Detección automática de Docker
             if (IsRunningInDocker())
             {
-               
-                return FirstNonEmpty(_appSettings.DockerUrl, _appSettings.DockerUrl2, _appSettings.BaseUrl);
+                // Override específico de Docker (case-insensitive por si acaso)
+                var dockerOverride = Environment.GetEnvironmentVariable("APP_DOCKER_URL");
+                if (!string.IsNullOrWhiteSpace(dockerOverride))
+                    return dockerOverride.TrimEnd('/');
+
+                return FirstNonEmpty(_appSettings.DockerUrl, _appSettings.BaseUrl);
             }
 
             // 3) Fallback al base local
+            var baseOverride = Environment.GetEnvironmentVariable("APP_BASE_URL_LOCAL");
+            if (!string.IsNullOrWhiteSpace(baseOverride))
+                return baseOverride.TrimEnd('/');
+
             return FirstNonEmpty(_appSettings.BaseUrl, _appSettings.DockerUrl);
         }
 
@@ -50,7 +58,7 @@ namespace GestorInventario.Application.Services.Common
                 return true;
 
          
-            return File.Exists("/.dockerenv");
+            return File.Exists("/.env");
         }
 
         private static string FirstNonEmpty(params string[] values)

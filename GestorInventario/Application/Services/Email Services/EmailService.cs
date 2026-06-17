@@ -37,7 +37,6 @@ namespace GestorInventario.Application.Services
             _urlService = url;
            
         }
-
         public async Task<OperationResult<string>> SendEmailAsyncRegister(EmailDto userDataRegister, int usuarioId)
         {
             try
