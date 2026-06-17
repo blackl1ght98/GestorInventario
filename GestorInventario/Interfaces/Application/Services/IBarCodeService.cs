@@ -1,5 +1,5 @@
 ﻿using GestorInventario.Application.DTOs.Barcode;
-using GestorInventario.enums;
+using GestorInventario.enums.Productos;
 
 namespace GestorInventario.Interfaces.Application.Services
 {

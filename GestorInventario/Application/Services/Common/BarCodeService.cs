@@ -1,6 +1,6 @@
 ﻿using GestorInventario.Application.DTOs.Barcode;
 using GestorInventario.Domain.Models;
-using GestorInventario.enums;
+using GestorInventario.enums.Productos;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Repositories;

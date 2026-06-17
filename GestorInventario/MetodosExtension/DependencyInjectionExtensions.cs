@@ -5,6 +5,7 @@ using GestorInventario.Application.Services.Authentication.Strategies;
 using GestorInventario.Application.Services.Authentication.Strategies.Login;
 using GestorInventario.Application.Services.Authentication.Token_generation;
 using GestorInventario.Application.Services.Common;
+using GestorInventario.Application.Services.Email_Services;
 using GestorInventario.Application.Services.External_Sevices;
 using GestorInventario.Application.Services.External_Sevices.Refunds;
 using GestorInventario.Application.Services.Generic_Services;
@@ -52,6 +53,7 @@ namespace GestorInventario.MetodosExtension
             services.AddScoped<IPaypalRepository, PaypalRepository>();
             services.AddScoped<IPaymentRepository, PaymentRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IBaseEmail, BaseEmail>();
             return services;
         }
 
@@ -69,7 +71,7 @@ namespace GestorInventario.MetodosExtension
             services.AddScoped<IRefreshTokenStrategyFactory, RefreshTokenStrategyFactory>();
             services.AddScoped<ILoginStrategyFactory, LoginStrategyFactory>();
             services.AddScoped<ILoginGenerator, LoginGenerator>();
-            
+           services.AddHttpClient<INotificationService, CallMeBotService>();
 
             // Servicios de Notificaciones y Documentos
             services.AddScoped<IEmailService, EmailService>();
@@ -105,7 +107,7 @@ namespace GestorInventario.MetodosExtension
             services.AddSingleton<IPaypalOrderTrackingService, PaypalOrderTrackingService>();
             services.AddSingleton<IPaypalSubscriptionService, PaypalSubscriptionService>();
             services.AddSingleton<IPaypalRefundService, PaypalRefundService>();
-
+         
             // --- Resiliencia y Manejo de Fallos (Políticas) ---
             services.AddSingleton<IPolicyExecutor, PolicyExecutor>();
             services.AddSingleton<IPolicyHandler, PolicyHandler>();

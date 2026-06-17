@@ -1,6 +1,6 @@
 ﻿
 using GestorInventario.Domain.Models;
-using GestorInventario.enums;
+using GestorInventario.enums.Pedido;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.Services;

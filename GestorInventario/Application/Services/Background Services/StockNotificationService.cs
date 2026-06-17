@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Application.DTOs;
 using GestorInventario.Application.DTOs.Email;
+using GestorInventario.Application.Services.Notifications;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 
@@ -11,24 +12,31 @@ namespace GestorInventario.Application.Services.Generic_Services
         private readonly IEmailService _emailService;
         private readonly IAdminRepository _adminNotifierRepository;
         private readonly ILogger<StockNotificationService> _logger;
+        private readonly INotificationService _notificationService;
+
 
         public StockNotificationService(
             IProductoRepository productoRepository,
             IEmailService emailService,
             IAdminRepository adminNotifierRepository,
-            ILogger<StockNotificationService> logger)
+            ILogger<StockNotificationService> logger,
+            INotificationService no
+            
+          )
         {
             _productoRepository = productoRepository;
             _emailService = emailService;
             _adminNotifierRepository = adminNotifierRepository;
             _logger = logger;
+           _notificationService = no;
+           
         }
 
         public async Task VerificarYNotificarStockBajoAsync(CancellationToken stoppingToken = default)
         {
             try
             {
-             
+            
                 var adminEmails = await _adminNotifierRepository
                     .ObtenerEmailsAdministradoresAsync(stoppingToken);
 
@@ -49,6 +57,7 @@ namespace GestorInventario.Application.Services.Generic_Services
 
                 if (!productosBajoStock.Any())
                 {
+                    await _notificationService.SendWhatsAppNotificationAsync("No hay productos con el stock bajo");
                     _logger.LogInformation("No hay productos con stock bajo.");
                     return;
                 }
@@ -56,8 +65,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                 _logger.LogInformation(
                     "Detectados {Count} productos con stock bajo.",
                     productosBajoStock.Count);
-
-                
+               
                 foreach (var producto in productosBajoStock)
                 {
                     stoppingToken.ThrowIfCancellationRequested();

@@ -4,7 +4,7 @@ using GestorInventario.Application.DTOS.Paypal.Responses.GET.Subscription;
 using GestorInventario.Application.DTOS.Paypal.Responses.POST.Subscription;
 using GestorInventario.Application.Mappers;
 using GestorInventario.Domain.Models;
-using GestorInventario.enums;
+using GestorInventario.enums.Pedido;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;

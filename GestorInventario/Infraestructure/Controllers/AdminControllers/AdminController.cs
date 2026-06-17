@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using GestorInventario.Application.DTOs;
 using GestorInventario.Application.DTOs.User;
+using GestorInventario.Application.Services.Notifications;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Common;
@@ -316,8 +317,13 @@ namespace GestorInventario.Infraestructure.Controllers.AdminControllers
                 return Json(new { success = false, errorMessage = result.Message });
             }
         }
-       
-       
+
+        //[HttpPost("alert")]
+        //public async Task<IActionResult> SendAlert([FromBody] string msg)
+        //{
+        //    var success = await _notificationService.SendWhatsAppNotificationAsync(msg);
+        //    return success ? Ok("Enviado") : BadRequest("Error al enviar");
+        //}
         private void CargarRolesEnViewData()
         {
             var roles = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles());

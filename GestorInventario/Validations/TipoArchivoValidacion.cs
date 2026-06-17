@@ -1,4 +1,4 @@
-﻿using GestorInventario.enums;
+﻿using GestorInventario.enums.Archivos;
 using System.ComponentModel.DataAnnotations;
 
 namespace GestorInventario.Validations

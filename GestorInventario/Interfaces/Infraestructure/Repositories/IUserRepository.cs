@@ -12,7 +12,7 @@ namespace GestorInventario.Interfaces.Infraestructure.Repositories
         Task<List<Usuario>> ObtenerUsuariosAsync();
         Task<Usuario> ObtenerUsuarioConProveedoresYPedidosAsync(int id);
         Task<bool> ExisteEmailAsync(string email);
-        Task<List<string>> ObtenerEmailsEmpleadosAsync();
+        Task<List<string>> ObtenerEmailsAdministradoresAsync();
         //Operaciones
         Task ConfirmEmail(ConfirmRegistrationDto confirm);
         Task<OperationResult<string>> ActualizarEmailVerificationTokenAsync(int userId, string token); 

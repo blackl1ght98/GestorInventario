@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Application.DTOs.User;
 using GestorInventario.Domain.Models;
+using GestorInventario.enums.Usuario;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.MetodosExtension;
@@ -38,10 +39,10 @@ namespace GestorInventario.Infraestructure.Repositories.UserRepository
             return listaUsuarios;
 
         }
-        public async Task<List<string>> ObtenerEmailsEmpleadosAsync()
+        public async Task<List<string>> ObtenerEmailsAdministradoresAsync()
         {
             return await _context.Usuarios
-                .Where(u => u.IdRolNavigation.Nombre == "Empleado")
+                .Where(u => u.IdRolNavigation.Nombre == Rol.Administrador.ToString())
                 .Select(u => u.Email)
                 .ToListAsync();
         }

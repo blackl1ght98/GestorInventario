@@ -1,5 +1,6 @@
-﻿using GestorInventario.Domain.Models;
-using GestorInventario.enums;
+﻿using GestorInventario.Application.Services.Notifications;
+using GestorInventario.Domain.Models;
+using GestorInventario.enums.Pedido;
 using GestorInventario.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,14 +13,17 @@ namespace GestorInventario.Infraestructure.Controllers.HomeController
     {
         private readonly ILogger<HomeController> _logger;
         private readonly GestorInventarioContext _context;
+        
         public HomeController(ILogger<HomeController> logger, GestorInventarioContext g)
         {
             _logger = logger;
             _context = g;
+        
         }
 
         public IActionResult Index()
         {
+           
            
             return View();
         }

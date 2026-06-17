@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.enums
+﻿namespace GestorInventario.enums.Archivos
 {
     public enum GrupoTipoArchivo
     {

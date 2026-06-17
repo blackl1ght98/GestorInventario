@@ -1,7 +1,7 @@
 ﻿
 using GestorInventario.Application.Services.Common;
 using GestorInventario.Domain.Models;
-using GestorInventario.enums;
+using GestorInventario.enums.Pedido;
 using GestorInventario.Infraestructure.Repositories.PaypalRepository;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.Common;
@@ -238,7 +238,7 @@ namespace GestorInventario.Application.Services.Generic_Services
                     AmountItemTotal=0,
                     AmountShipping=0,
                     PayeeMerchantId="no establecido",
-                   PayerEmail="no establecido",   
+                    PayerEmail="no establecido",   
                     Description = "Pedido pagado",
                     CreateTime = DateTime.UtcNow,
                     UpdateTime = DateTime.UtcNow

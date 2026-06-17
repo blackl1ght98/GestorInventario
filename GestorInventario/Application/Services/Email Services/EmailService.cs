@@ -1,108 +1,79 @@
-﻿using MailKit.Security;
-using Microsoft.AspNetCore.Mvc.Abstractions;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Mvc.ViewEngines;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using Microsoft.AspNetCore.Mvc;
-using MimeKit.Text;
-using MimeKit;
-using MailKit.Net.Smtp;
+﻿using GestorInventario.Application.DTOs;
 using GestorInventario.Application.DTOs.Email;
+using GestorInventario.enums.Email;
 using GestorInventario.Infraestructure.Utils;
-using GestorInventario.ViewModels.Email;
-using GestorInventario.ViewModels.Pedidos;
-using GestorInventario.ViewModels.Paypal;
-using GestorInventario.Application.DTOs;
-using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Application.Authentication;
-using GestorInventario.ViewModels.Productos;
+using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.ViewModels;
+using GestorInventario.ViewModels.Email;
+using GestorInventario.ViewModels.Paypal;
+using GestorInventario.ViewModels.Pedidos;
+using GestorInventario.ViewModels.Productos;
+using System.Security.Cryptography;
 
 namespace GestorInventario.Application.Services
 {
     public class EmailService:IEmailService
     {
-        private readonly IConfiguration _config;
+        
         private readonly IHttpContextAccessor _httpContextAccessor;     
-        private readonly IServiceProvider _serviceProvider;
-        private readonly ICompositeViewEngine _viewEngine;
-        private readonly ITempDataProvider _tempDataProvider;
+       
         private readonly IUserRepository _userRepository;
         private readonly ILogger<EmailService> _logger;
         private readonly IPasswordResetService _password;
-
-        public EmailService(IConfiguration config, IHttpContextAccessor httpContextAccessor, IUserRepository user,
-            ITempDataProvider tempDataProvider, ILogger<EmailService> logger,
-            ICompositeViewEngine viewEngine, IServiceProvider serviceProvider, IPasswordResetService pass)
+        private readonly IBaseEmail _baseemail;
+        private readonly IConfiguration _configuration;
+        public EmailService( IHttpContextAccessor httpContextAccessor, IUserRepository user,
+            ILogger<EmailService> logger, IBaseEmail baseEmail,
+           IPasswordResetService pass, IConfiguration configuration)
         {
-            _config = config;
-            _httpContextAccessor = httpContextAccessor;      
-            _tempDataProvider = tempDataProvider;
-            _viewEngine = viewEngine;
-            _serviceProvider = serviceProvider;   
+            
+            _httpContextAccessor = httpContextAccessor;       
             _logger = logger;
             _userRepository = user;
             _password = pass;   
+            _baseemail = baseEmail;
+            _configuration = configuration;
         }
 
         public async Task<OperationResult<string>> SendEmailAsyncRegister(EmailDto userDataRegister, int usuarioId)
         {
             try
-            {
-                
+            {   
                 // Generar token
-                string textoEnlace = Convert.ToBase64String(Guid.NewGuid().ToByteArray())
-                    .Replace("=", "").Replace("+", "").Replace("/", "")
-                    .Replace("?", "").Replace("&", "").Replace("!", "").Replace("¡", "");
-
-              
+                string textoEnlace = GenerateSecureToken();    
                 var resultadoToken = await _userRepository.ActualizarEmailVerificationTokenAsync(usuarioId, textoEnlace);
-
                 if (!resultadoToken.Success)
                 {
                     return OperationResult<string>.Fail("Error al actualizar el token de verificación");
                 }
-
                 // Construir el enlace de recuperación
                 var model = new RegisterEmailViewmodel
                 {
                     RecoveryLink = $"{_httpContextAccessor?.HttpContext?.Request.Scheme}://{_httpContextAccessor?.HttpContext?.Request.Host}/admin/confirm-registration/{usuarioId}/{textoEnlace}?redirect=true",
                 };
-
-                // Configurar y enviar el correo (esto sí le corresponde al servicio de email)
-                var email = new MimeMessage();
-                email.From.Add(MailboxAddress.Parse(_config.GetSection("Email:UserName").Value));
-                email.To.Add(MailboxAddress.Parse(userDataRegister.ToEmail));
-                email.Subject = "Confirmar Email";
-                email.Body = new TextPart(TextFormat.Html)
+                var enviado=   await _baseemail.BuildEmail(userDataRegister.ToEmail, "Confirmar Email", EmailView.RegisterConfirmation, model);
+                if (!enviado)
                 {
-                    Text = await RenderViewToStringAsync("ViewsEmailService/ViewRegisterEmail", model)
-                };
-
-                using var smtp = new SmtpClient();
-                var emailHost = Environment.GetEnvironmentVariable("Email__Host") ?? _config.GetSection("Email:Host").Value;
-                var emailPortString = Environment.GetEnvironmentVariable("Email__Port") ?? _config.GetSection("Email:Port").Value;
-                int emailPort = int.Parse(emailPortString ?? "587");
-
-                await smtp.ConnectAsync(emailHost, emailPort, SecureSocketOptions.StartTls);
-
-                var emailUserName = Environment.GetEnvironmentVariable("Email__Username") ?? _config.GetSection("Email:UserName").Value;
-                var emailPassWord = Environment.GetEnvironmentVariable("Email__Password") ?? _config.GetSection("Email:PassWord").Value;
-
-                await smtp.AuthenticateAsync(emailUserName, emailPassWord);
-                await smtp.SendAsync(email);
-                await smtp.DisconnectAsync(true);
-
-                return OperationResult<string>.Ok("Operacion realizada con exito");
+                    return OperationResult<string>.Fail("Error al enviar el email");
+                }
+               return OperationResult<string>.Ok("Operacion realizada con exito");
             }
             catch (Exception ex)
             {
                 return OperationResult<string>.Fail($"Ocurrio un error al enviar el email: {ex.Message}");
             }
         }
-
+        private static string GenerateSecureToken(int byteLength = 32)
+        {
+            var bytes = new byte[byteLength];
+            RandomNumberGenerator.Fill(bytes);
+            return Convert.ToBase64String(bytes)
+                .TrimEnd('=')
+                .Replace('+', '-')
+                .Replace('/', '_');
+        }
         public async Task<OperationResult<string>> SendEmailAsyncResetPassword(EmailDto userDataResetPassword, int usuarioId)
         {
             try
@@ -123,31 +94,11 @@ namespace GestorInventario.Application.Services
                     RecoveryLink = $"{_httpContextAccessor?.HttpContext?.Request.Scheme}://{_httpContextAccessor?.HttpContext?.Request.Host}/auth/restore-password/{usuarioId}/{token}?redirect=true",
                     TemporaryPassword = contrasenaTemporal
                 };
-
-                // Configurar y enviar el correo
-                var email = new MimeMessage();
-                email.From.Add(MailboxAddress.Parse(_config.GetSection("Email:UserName").Value));
-                email.To.Add(MailboxAddress.Parse(userDataResetPassword.ToEmail));
-                email.Subject = "Recuperar Contraseña";
-                email.Body = new TextPart(TextFormat.Html)
+                var enviado = await _baseemail.BuildEmail(userDataResetPassword.ToEmail, "Recuperar Contraseña", EmailView.PasswordReset, model);
+                if (!enviado)
                 {
-                    Text = await RenderViewToStringAsync("ViewsEmailService/ViewResetPasswordEmail", model)
-                };
-
-                using var smtp = new SmtpClient();
-                await smtp.ConnectAsync(
-                    _config.GetSection("Email:Host").Value,
-                    Convert.ToInt32(_config.GetSection("Email:Port").Value),
-                    SecureSocketOptions.StartTls
-                );
-
-                await smtp.AuthenticateAsync(
-                    _config.GetSection("Email:UserName").Value, 
-                    _config.GetSection("Email:PassWord").Value
-                );
-
-                await smtp.SendAsync(email);
-                await smtp.DisconnectAsync(true);
+                    return OperationResult<string>.Fail("Error al enviar el email");
+                }
 
                 return OperationResult<string>.Ok("Envio de correo exitoso", userDataResetPassword.ToEmail);
             }
@@ -158,7 +109,7 @@ namespace GestorInventario.Application.Services
             }
         }
       
-        public async Task SendEmailAsyncLowStock(EmailDto correo, LowStockEmailData  producto)
+        public async Task<OperationResult<string>> SendEmailAsyncLowStock(EmailDto correo, LowStockEmailData  producto)
         {
 
             // Crear el modelo para la vista del correo electrónico
@@ -168,26 +119,14 @@ namespace GestorInventario.Application.Services
                 Cantidad=producto.Cantidad,
                 
             };
-            // Crear el correo electrónico
-            var email = new MimeMessage();
-            email.From.Add(MailboxAddress.Parse(_config.GetSection("Email:UserName").Value));
-            email.To.Add(MailboxAddress.Parse(correo.ToEmail));
-            email.Subject = "Alerta: Bajo stock de producto";
-            email.Body = new TextPart(TextFormat.Html)
+            var enviado = await _baseemail.BuildEmail(correo.ToEmail, "Alerta: Bajo stock de producto", EmailView.LowStock, model);
+            if (!enviado)
             {
-                Text = await RenderViewToStringAsync("ViewsEmailService/ViewLowStock", model)
-            };          
-            using var smtp = new SmtpClient();
-            await smtp.ConnectAsync(
-                _config.GetSection("Email:Host").Value,
-                Convert.ToInt32(_config.GetSection("Email:Port").Value),
-                SecureSocketOptions.StartTls
-            );
-            await smtp.AuthenticateAsync(_config.GetSection("Email:UserName").Value, _config.GetSection("Email:PassWord").Value);
-            await smtp.SendAsync(email);
-            await smtp.DisconnectAsync(true);
+                return OperationResult<string>.Fail("Error al enviar el email");
+            }
+            return OperationResult<string>.Ok("Envio realizado con exito");
         }
-        public async Task SendEmailAsyncFactura(EmailDto correo, string id)
+        public async Task<OperationResult<string>> SendEmailAsyncFactura(EmailDto correo, string id)
         {
             // Crear el modelo para la vista del correo electrónico
             var model = new FacturaViewmodel
@@ -196,76 +135,86 @@ namespace GestorInventario.Application.Services
                 EnlaceDescarga = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/Pedidos/DownloadInvoice?id={id}",
 
             };
-            // Crear el correo electrónico
-            var email = new MimeMessage();
-            email.From.Add(MailboxAddress.Parse(_config.GetSection("Email:UserName").Value));
-            email.To.Add(MailboxAddress.Parse(correo.ToEmail));
-            email.Subject = "Descargar factura";
-            email.Body = new TextPart(TextFormat.Html)
+            var enviado = await _baseemail.BuildEmail(correo.ToEmail, "Descargar factura", EmailView.Invoice, model);
+            if (!enviado)
             {
-                Text = await RenderViewToStringAsync("ViewsEmailService/ViewDownloadFactura", model)
-            };
-            using var smtp = new SmtpClient();
-            await smtp.ConnectAsync(
-                _config.GetSection("Email:Host").Value,
-                Convert.ToInt32(_config.GetSection("Email:Port").Value),
-                SecureSocketOptions.StartTls
-            );
-            await smtp.AuthenticateAsync(_config.GetSection("Email:UserName").Value, _config.GetSection("Email:PassWord").Value);
-            await smtp.SendAsync(email);
-            await smtp.DisconnectAsync(true);
-        }
-
-        public async Task EnviarEmailSolicitudRembolso(EmailReembolsoAprobadoDto correo)
-        {
-
-            var empleados = await _userRepository.ObtenerEmailsEmpleadosAsync();
-            if (empleados != null) {
-                var model = new EmailRembolsoViewmodel
-                {
-                    NumeroPedido = correo.NumeroPedido,
-                    NombreCliente = correo.NombreCliente,
-                    EmailCliente = correo.EmailCliente,
-                    FechaRembolso = correo.FechaRembolso,
-                    CantidadADevolver = correo.CantidadADevolver,
-                    MotivoRembolso = correo.MotivoRembolso,
-                    Productos = correo.Productos
-                };
-                var email = new MimeMessage();
-                email.From.Add(MailboxAddress.Parse(_config.GetSection("Email:UserName").Value));
-                // Agregar cada empleado como destinatario
-                foreach (var empleadoEmail in empleados)
-                {
-                    email.To.Add(MailboxAddress.Parse(empleadoEmail));
-                }
-
-                email.Subject = "Notificación de Reembolso Realizado";
-                email.Body = new TextPart(TextFormat.Html)
-                {
-                    Text = await RenderViewToStringAsync("ViewsEmailService/ViewRembolso", model)
-                };
-                using var smtp = new SmtpClient();
-                await smtp.ConnectAsync(
-                    _config.GetSection("Email:Host").Value,
-                    Convert.ToInt32(_config.GetSection("Email:Port").Value),
-                    SecureSocketOptions.StartTls
-                );
-                await smtp.AuthenticateAsync(_config.GetSection("Email:UserName").Value, _config.GetSection("Email:PassWord").Value);
-                await smtp.SendAsync(email);
-                await smtp.DisconnectAsync(true);
-
+                return OperationResult<string>.Fail("Error al enviar el correo");
             }
-           
+            return OperationResult<string>.Ok("Envio exitoso");
         }
 
-        public async Task EnviarNotificacionReembolsoAsync(EmailReembolsoAprobadoDto correo)
+        public async Task<OperationResult<string>> EnviarEmailSolicitudRembolso(EmailReembolsoAprobadoDto correo)
+        {
+            var administradores = await _userRepository.ObtenerEmailsAdministradoresAsync();
+
+            // Validar contenido, no solo null
+            if (administradores is null || administradores.Count == 0)
+                return OperationResult<string>.Fail("No hay administradores para notificar.");
+
+            // Limpiar: nulls, vacíos, duplicados
+            var destinatarios = administradores
+                .Where(e => !string.IsNullOrWhiteSpace(e))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            if (destinatarios.Count == 0)
+                return OperationResult<string>.Fail("No hay emails válidos de administradores.");
+
+            var model = new EmailRembolsoViewmodel
+            {
+                NumeroPedido = correo.NumeroPedido,
+                NombreCliente = correo.NombreCliente,
+                EmailCliente = correo.EmailCliente,
+                FechaRembolso = correo.FechaRembolso,
+                CantidadADevolver = correo.CantidadADevolver,
+                MotivoRembolso = correo.MotivoRembolso,
+                Productos = correo.Productos
+            };
+
+           
+            var enviados = 0;
+            var fallidos = new List<string>();
+
+            foreach (var adminEmail in destinatarios)
+            {
+                try
+                {
+                    var ok = await _baseemail.BuildEmail(
+                        adminEmail,
+                        "Solicitud de rembolso",
+                      EmailView.RefundRequest,
+                        model);
+
+                    if (ok) enviados++;
+                    else fallidos.Add(adminEmail);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error enviando email de rembolso a {Email}", adminEmail);
+                    fallidos.Add(adminEmail);
+                   
+                }
+            }
+
+            if (enviados == 0)
+                return OperationResult<string>.Fail("No se pudo enviar el email a ningún administrador.");
+
+            if (fallidos.Count > 0)
+            {
+                _logger.LogWarning("Email de rembolso enviado a {Enviados} de {Total}. Fallidos: {Fallidos}",
+                    enviados, destinatarios.Count, string.Join(", ", fallidos));
+
+                return OperationResult<string>.Ok(
+                    $"Email enviado a {enviados} de {destinatarios.Count} administradores.");
+            }
+
+            return OperationResult<string>.Ok("Email enviado con éxito.");
+        }
+        public async Task<OperationResult<string>> EnviarNotificacionReembolsoAsync(EmailReembolsoAprobadoDto correo)
         {
             try
             {
-                var email = new MimeMessage();
-                email.From.Add(MailboxAddress.Parse(_config.GetSection("Email:UserName").Value));
-                email.To.Add(MailboxAddress.Parse(correo.EmailCliente)); 
-                email.Subject = $"Tu reembolso para el pedido #{correo.NumeroPedido} ha sido aprobado";
+               
                 var viewmodel = new RembolsoAprobadoViewmodel
                 {
                     NumeroPedido = correo.NumeroPedido,
@@ -276,25 +225,12 @@ namespace GestorInventario.Application.Services
                     MotivoRembolso = correo.MotivoRembolso,
                     Productos = correo.Productos,
                 };
-
-                email.Body = new TextPart(TextFormat.Html)
+                var enviado = await _baseemail.BuildEmail(correo.EmailCliente, $"Tu reembolso para el pedido #{correo.NumeroPedido} ha sido aprobado", EmailView.RefundApproved, viewmodel);
+                if (!enviado)
                 {
-                    Text = await RenderViewToStringAsync("ViewsEmailService/ViewRembolsoAprobado", viewmodel)
-                };
-
-                using var smtp = new SmtpClient();
-                await smtp.ConnectAsync(
-                    _config.GetSection("Email:Host").Value,
-                    Convert.ToInt32(_config.GetSection("Email:Port").Value),
-                    SecureSocketOptions.StartTls
-                );
-                await smtp.AuthenticateAsync(
-                    _config.GetSection("Email:UserName").Value,
-                    _config.GetSection("Email:PassWord").Value
-                );
-                await smtp.SendAsync(email);
-                await smtp.DisconnectAsync(true);
-
+                    return OperationResult<string>.Fail("Error al enviar el correo");
+                }
+                return OperationResult<string>.Ok("Envio exitoso");
             }
             catch (Exception ex)
             {
@@ -302,38 +238,22 @@ namespace GestorInventario.Application.Services
                 throw;
             }
         }
-        public async Task SendMfaCodeEmail(string correo, string codigo)
+        public async Task<OperationResult<string>> SendMfaCodeEmail(string correo, string codigo)
         {
             try
             {
-                var email = new MimeMessage();
-                email.From.Add(MailboxAddress.Parse(_config.GetSection("Email:UserName").Value));
-                email.To.Add(MailboxAddress.Parse(correo));
-                email.Subject = $"Codigo OTP";
+                
                 var viewmodel = new OTPCode
                 {
                     Email=correo,
                     OTP=codigo
                 };
-
-                email.Body = new TextPart(TextFormat.Html)
+                var enviado = await _baseemail.BuildEmail(correo, "Codigo OTP", EmailView.OtpCode, viewmodel);
+                if (!enviado)
                 {
-                    Text = await RenderViewToStringAsync("ViewsEmailService/ViewOtpCode", viewmodel)
-                };
-
-                using var smtp = new SmtpClient();
-                await smtp.ConnectAsync(
-                    _config.GetSection("Email:Host").Value,
-                    Convert.ToInt32(_config.GetSection("Email:Port").Value),
-                    SecureSocketOptions.StartTls
-                );
-                await smtp.AuthenticateAsync(
-                    _config.GetSection("Email:UserName").Value,
-                    _config.GetSection("Email:PassWord").Value
-                );
-                await smtp.SendAsync(email);
-                await smtp.DisconnectAsync(true);
-
+                    return OperationResult<string>.Fail("Error al enviar el correo");
+                }
+                return OperationResult<string>.Ok("Correo enviado con exito");
             }
             catch (Exception ex)
             {
@@ -341,40 +261,9 @@ namespace GestorInventario.Application.Services
                 throw;
             }
         }
-        private async Task<string> RenderViewToStringAsync(string viewName, object model)
-        {
-            var httpContext = new DefaultHttpContext { RequestServices = _serviceProvider };
-            var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
-
-            using (var sw = new StringWriter())
-            {
-                var viewResult = _viewEngine.FindView(actionContext, viewName, false);
-
-                if (viewResult.View == null)
-                {
-                    throw new ArgumentNullException($"{viewName} does not match any available view");
-                }
-
-                var viewDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary())
-                {
-                    Model = model
-                };
-
-                var viewContext = new ViewContext(
-                    actionContext,
-                    viewResult.View,
-                    viewDictionary,
-                    new TempDataDictionary(actionContext.HttpContext, _tempDataProvider),
-                    sw,
-                    new HtmlHelperOptions()
-                );
-
-                await viewResult.View.RenderAsync(viewContext);
-
-                return sw.ToString();
-            }
+       
 
 
-        }
     }
-}
+ }
+

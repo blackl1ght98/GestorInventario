@@ -1,4 +1,5 @@
-﻿using GestorInventario.enums;
+﻿using GestorInventario.enums.Pedido;
+using GestorInventario.enums.Productos;
 using Newtonsoft.Json;
 using System.Text.Json.Serialization;
 
