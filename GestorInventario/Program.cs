@@ -1,6 +1,7 @@
 ﻿
 using Azure.Core;
 using Azure.Identity;
+using GestorInventario.Configuracion;
 using GestorInventario.MetodosExtension;
 using GestorInventario.Middlewares;
 using Microsoft.AspNetCore.DataProtection;
@@ -50,6 +51,8 @@ builder.Services.AddRepositories();
 builder.Services.AddApplicationServices();
 builder.Services.AddSingletonServices();
 builder.Services.AddBackgroundServices();
+builder.Services.Configure<AppSettings>(
+builder.Configuration.GetSection("App"));
 QuestPDF.Settings.License = LicenseType.Community;
 
 builder.Services.AddHttpClientPayPal();

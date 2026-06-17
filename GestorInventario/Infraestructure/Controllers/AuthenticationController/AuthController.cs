@@ -269,7 +269,7 @@ namespace GestorInventario.Infraestructure.Controllers.AuthenticationController
             }
         }
 
-        [Authorize]
+       
         [HttpGet("auth/restore-password/{UserId}/{Token}")]
         public async Task<IActionResult> RestorePassword(int UserId, string Token)
         {
@@ -291,7 +291,7 @@ namespace GestorInventario.Infraestructure.Controllers.AuthenticationController
             return View(viewModel);
         }
 
-        [Authorize]
+    
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RestorePasswordUser(RestorePasswordViewModel model)
@@ -343,12 +343,12 @@ namespace GestorInventario.Infraestructure.Controllers.AuthenticationController
 
 
         [HttpGet]
-        [Authorize]
+    
         public  IActionResult ResetPasswordOlvidada()
         {
             return View();
         }
-        [Authorize]
+    
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ResetPasswordOlvidada(string email)

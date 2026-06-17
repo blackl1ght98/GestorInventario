@@ -12,6 +12,7 @@ using GestorInventario.Application.Services.Generic_Services;
 using GestorInventario.Application.Services.Notifications;
 using GestorInventario.Application.Services.Products;
 using GestorInventario.Application.Services.User;
+using GestorInventario.Configuracion;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Repositories.AdminRepository;
 using GestorInventario.Infraestructure.Repositories.CarritoRepository;
@@ -66,7 +67,7 @@ namespace GestorInventario.MetodosExtension
             services.AddScoped<ITokenGenerator, TokenGenerator>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<ITokenStrategyFactory, TokenStrategyFactory>();
-           
+            services.AddScoped<IUrlService, UrlService>();
             services.AddScoped<IRefreshTokenGenerator, RefreshTokenGenerator>();
             services.AddScoped<IRefreshTokenStrategyFactory, RefreshTokenStrategyFactory>();
             services.AddScoped<ILoginStrategyFactory, LoginStrategyFactory>();

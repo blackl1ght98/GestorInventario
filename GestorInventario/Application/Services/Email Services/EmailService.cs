@@ -3,6 +3,7 @@ using GestorInventario.Application.DTOs.Email;
 using GestorInventario.enums.Email;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.Authentication;
+using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.ViewModels;
@@ -17,24 +18,24 @@ namespace GestorInventario.Application.Services
     public class EmailService:IEmailService
     {
         
-        private readonly IHttpContextAccessor _httpContextAccessor;     
+          
        
         private readonly IUserRepository _userRepository;
         private readonly ILogger<EmailService> _logger;
         private readonly IPasswordResetService _password;
         private readonly IBaseEmail _baseemail;
-        private readonly IConfiguration _configuration;
-        public EmailService( IHttpContextAccessor httpContextAccessor, IUserRepository user,
+        private readonly IUrlService _urlService;
+        public EmailService(IUserRepository user,
             ILogger<EmailService> logger, IBaseEmail baseEmail,
-           IPasswordResetService pass, IConfiguration configuration)
+           IPasswordResetService pass, IUrlService url)
         {
-            
-            _httpContextAccessor = httpContextAccessor;       
+                 
             _logger = logger;
             _userRepository = user;
             _password = pass;   
             _baseemail = baseEmail;
-            _configuration = configuration;
+            _urlService = url;
+           
         }
 
         public async Task<OperationResult<string>> SendEmailAsyncRegister(EmailDto userDataRegister, int usuarioId)
@@ -51,7 +52,8 @@ namespace GestorInventario.Application.Services
                 // Construir el enlace de recuperación
                 var model = new RegisterEmailViewmodel
                 {
-                    RecoveryLink = $"{_httpContextAccessor?.HttpContext?.Request.Scheme}://{_httpContextAccessor?.HttpContext?.Request.Host}/admin/confirm-registration/{usuarioId}/{textoEnlace}?redirect=true",
+                    RecoveryLink = _urlService.BuildUrl(
+                    $"/admin/confirm-registration/{usuarioId}/{textoEnlace}?redirect=true"),
                 };
                 var enviado=   await _baseemail.BuildEmail(userDataRegister.ToEmail, "Confirmar Email", EmailView.RegisterConfirmation, model);
                 if (!enviado)
@@ -90,8 +92,8 @@ namespace GestorInventario.Application.Services
 
                 // 2. Solo preparar el modelo y enviar el correo
                 var model = new ResetPasswordEmailViewmodel
-                {
-                    RecoveryLink = $"{_httpContextAccessor?.HttpContext?.Request.Scheme}://{_httpContextAccessor?.HttpContext?.Request.Host}/auth/restore-password/{usuarioId}/{token}?redirect=true",
+                { 
+                    RecoveryLink = _urlService.BuildUrl($"/auth/restore-password/{usuarioId}/{token}?redirect=true"),
                     TemporaryPassword = contrasenaTemporal
                 };
                 var enviado = await _baseemail.BuildEmail(userDataResetPassword.ToEmail, "Recuperar Contraseña", EmailView.PasswordReset, model);
@@ -132,7 +134,7 @@ namespace GestorInventario.Application.Services
             var model = new FacturaViewmodel
             {
                 IdPago = id,
-                EnlaceDescarga = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/Pedidos/DownloadInvoice?id={id}",
+                EnlaceDescarga = _urlService.BuildUrl($"/Facturas/DownloadInvoice?id={id}"),
 
             };
             var enviado = await _baseemail.BuildEmail(correo.ToEmail, "Descargar factura", EmailView.Invoice, model);

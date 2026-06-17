@@ -80,7 +80,7 @@ services:
         -- Extraemos del .back los archivos .mdf y .ldf y lo dejamos en el directorio /var/opt/mssql/data
         MOVE 'GestorInventario' TO '/var/opt/mssql/data/GestorInventario.mdf',  
         MOVE 'GestorInventario_log' TO '/var/opt/mssql/data/GestorInventario_log.ldf',
-        FILE = 8, REPLACE, RECOVERY;" || echo "RESTORE FALLÓ - revisa logs arriba";
+        FILE = 10, REPLACE, RECOVERY;" || echo "RESTORE FALLÓ - revisa logs arriba";
      
         echo "AQUI EMPIEZA CREACION";
         echo "SQLUSER=${DB_SQLUSER}";
@@ -125,6 +125,7 @@ services:
       - '8081:8081'
     environment:
       - DB_HOST=${DB_HOST}
+      - APP_BASE_URL=https://localhost:8081
       - DB_NAME=${DB_NAME}
       - DB_SA_USERNAME=${DB_SA_USERNAME}
       - DB_SA_PASSWORD=${DB_SA_PASSWORD}
@@ -133,6 +134,7 @@ services:
       - IS_DOCKER=true # Flag para que la app sepa que está en Docker
       - USE_REDIS=true # Flag para que la app sepa que use redis
       - IsMfaEnabled=true
+      - CallMeBotUser=@guigamer98
       - ASPNETCORE_Kestrel__Certificates__Default__Password=${CertificatePassword}
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/certificado.pfx
       - ClaveJWT=${ClaveJWT}

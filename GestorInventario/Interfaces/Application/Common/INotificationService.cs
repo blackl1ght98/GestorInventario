@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.Application.Services.Notifications
+﻿namespace GestorInventario.Interfaces.Application.Common
 {
     public interface INotificationService
     {

@@ -1,4 +1,6 @@
-﻿namespace GestorInventario.Application.Services.Notifications
+﻿using GestorInventario.Interfaces.Application.Common;
+
+namespace GestorInventario.Application.Services.Notifications
 {
     public class CallMeBotService : INotificationService
     {
@@ -9,7 +11,7 @@
         {
             _httpClient = httpClient;
             // Obtenemos el usuario desde el appsettings.json
-            _username = configuration["CallMeBot:user"];
+            _username = configuration["CallMeBot:user"] ?? Environment.GetEnvironmentVariable("CallMeBotUser");
         }
 
         public async Task<bool> SendWhatsAppNotificationAsync(string message)
