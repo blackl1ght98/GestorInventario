@@ -39,6 +39,10 @@ public partial class Usuario
 
     public string? EmailVerificationToken { get; set; }
 
+    public byte[]? ResetTokenSalt { get; set; }
+
+    public bool? ResetTokenUsed { get; set; }
+
     public virtual Role IdRolNavigation { get; set; } = null!;
 
     public virtual ICollection<Pedido> Pedidos { get; set; } = new List<Pedido>();

@@ -73,7 +73,7 @@ namespace GestorInventario.Application.Services.Authentication
             if (string.IsNullOrEmpty(cambio.Password))
                 return OperationResult<string>.Fail("La contraseña no puede estar vacía");
 
-            var resultadoHashTemp = _hashService.Hash(cambio.TemporaryPassword, usuarioDB.Salt);
+            var resultadoHashTemp = _hashService.Hash(cambio.TemporaryPassword, usuarioDB.ResetTokenSalt);
             if (usuarioDB.TemporaryPassword != resultadoHashTemp.Hash)
                 return OperationResult<string>.Fail("La contraseña temporal no es válida");
 
@@ -84,8 +84,9 @@ namespace GestorInventario.Application.Services.Authentication
             //  Invalidar todo tras un cambio exitoso
             usuarioDB.EmailVerificationToken = null;
             usuarioDB.TemporaryPassword = null;
-       
+            usuarioDB.ResetTokenSalt = null;
             usuarioDB.FechaExpiracionContrasenaTemporal = null;
+            usuarioDB.ResetTokenUsed = true;
 
             await _userRepository.ActualizarUsuarioAsync(usuarioDB);
             return OperationResult<string>.Ok("Contraseña cambiada con exito");
@@ -113,8 +114,10 @@ namespace GestorInventario.Application.Services.Authentication
                     Encoding.UTF8.GetBytes(usuario.EmailVerificationToken),
                     Encoding.UTF8.GetBytes(cambio.Token)))
             {
-                return OperationResult<Usuario>.Fail("El token no es valido");
+                
+                    return OperationResult<Usuario>.Fail("El token no es valido");
             }
+           
 
             // 5) Validar expiración
             if (usuario.FechaExpiracionContrasenaTemporal < DateTime.UtcNow)

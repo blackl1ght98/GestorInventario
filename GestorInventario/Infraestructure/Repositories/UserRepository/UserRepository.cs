@@ -91,8 +91,9 @@ namespace GestorInventario.Infraestructure.Repositories.UserRepository
                 if (usuario == null)
                     return OperationResult<Usuario>.Fail("Usuario no encontrado");
                 usuario.TemporaryPassword = hash;
-                usuario.Salt = salt;       
-                usuario.FechaExpiracionContrasenaTemporal = fechaExpiracion;        
+                usuario.ResetTokenSalt = salt;       
+                usuario.FechaExpiracionContrasenaTemporal = fechaExpiracion;
+                usuario.ResetTokenUsed = false;
                 await _context.UpdateEntityAsync(usuario);
                 return OperationResult<Usuario>.Ok("Password temporal guardada", usuario);
             });
