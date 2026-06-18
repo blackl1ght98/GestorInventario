@@ -19,7 +19,6 @@
 
 # ⚠️ Requisitos para ejecutarlo con docker
 Antes de comenzar asegúrate de tener instalado lo siguiente:
--  [SDK .NET](https://dotnet.microsoft.com/es-es/download/visual-studio-sdks)
 -  [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 -  [Git](https://git-scm.com/)
 
@@ -27,7 +26,6 @@ Antes de comenzar asegúrate de tener instalado lo siguiente:
 Antes de comenzar asegúrate de tener instalado lo siguiente:
 Tener instalado lo siguiente:
   - [Visual Studio 2022](https://visualstudio.microsoft.com/) 
-  - [.NET 10.0 SDK](https://dotnet.microsoft.com/es-es/download/visual-studio-sdks)
   - [Git](https://git-scm.com/)  
   - [SQL Server](https://www.microsoft.com/es-es/download/details.aspx?id=104781)
   - [SQL Server Management Studio (SSMS)](https://aka.ms/ssmsfullsetup)  para gestionar la BD
@@ -144,7 +142,7 @@ Luego, agrega los siguientes valores en formato JSON:
     "ConnectionString": "redis:6379",
     "ConnectionStringLocal": "127.0.0.1:6379"
   },
-  "AuthMode": "Symmetric",
+  "AuthMode": "AsymmetricDynamic",
   "JwtIssuer": "GestorInvetarioEmisor",
   "JwtAudience": "GestorInventarioCliente",
   "JWT": {
@@ -153,6 +151,9 @@ Luego, agrega los siguientes valores en formato JSON:
   },
   "ClaveJWT": "IntroduceClaveLarga",
   "IsMfaEnabled": true,
+ "CallMeBot": {
+   "user": ""
+ },
   "DataBaseConection": {
     "DBHost": "",
     "DockerDbHost": "SQL-Server-Local",
@@ -177,32 +178,33 @@ Luego, agrega los siguientes valores en formato JSON:
 }
 ````
 **DBHost**: esto ya lo mencionamos en el comando scaffold pero esto nos lo dice el motor de base de datos a la hora de loguearnos tiene este aspecto: `DESKTOP-XXXX\SQLEXPRESS`
-
+**CallMeBot: user**: Este valor sera tu usuario de telegram 
+**AuthMode**: Admite estos valores: Symmetric, AsymmetricFixed, AsymmetricDynamic. De estos tres modos el mas aconsejado es **AsymmetricDynamic** por su seguridad
 ## Modificación del archivo GestorInventarioContext.cs 
-Una vez que hemos ejecutado el comando que realiza el scaffold tenemos  que poner esto y sobrescribir el valor que haya en el metodo **OnConfiguring**
+Una vez que hemos ejecutado el comando que realiza el scaffold tenemos  que borrar el metodo **OnConfiguring**
 ```csharp
-   protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
- {
-     var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER") == "true";
-
-     if (isDocker)
-     {
-         var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
-         var dbName = Environment.GetEnvironmentVariable("DB_NAME");
-         var dbUserUsername = Environment.GetEnvironmentVariable("DB_SQLUSER");
-         var dbUserPassword = Environment.GetEnvironmentVariable("DB_SQLUSER_PASSWORD");
-         var connectionString = $"Data Source={dbHost};Initial Catalog={dbName};User ID={dbUserUsername};Password={dbUserPassword};TrustServerCertificate=True";
-         optionsBuilder.UseSqlServer(connectionString);
-     }
-     else
-     {
-         // Cadena de conexión en duro para entorno local
-         var connectionString = "Data Source=DESKTOP-GN4VRAH\\SQLEXPRESS;Initial Catalog=GestorInventario;User ID=sqluser;Password=12345678SQL#1234;TrustServerCertificate=True";
-         optionsBuilder.UseSqlServer(connectionString);
-     }
- }
+   protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {}
 ````
-
+## Configuración de launchSettings.json
+En este archivo ajustaremos las variables de entorno con los valores:
+```json
+ "https": {
+   "commandName": "Project",
+   "launchBrowser": true,
+   "environmentVariables": {
+     "ASPNETCORE_ENVIRONMENT": "Development",
+     "DB_HOST": "DESKTOP-GN4VRAH\\SQLEXPRESS",
+     "DB_NAME": "GestorInventario",
+     "USE_REDIS": "false",
+     "DB_USERNAME": "sqluser",
+     "DB_SA_PASSWORD": "12345678SQL#1234",
+     "IS_DOCKER": "false"
+   },
+   "dotnetRunMessages": true,
+   "applicationUrl": "https://localhost:7056;http://localhost:5000;https://localhost:7057"
+ },
+````
+Aqui el unico valor ha ajustar seria **DB_HOST** este valor lo obtenemos abriendo el programa **SQL Server Management Studio** al abrirlo y tenerlo previamente configurado en **Nombre de servidor** veremos dicho valor tambien podemos ajustar el usuario y contraseña de la BD en caso de querer usar otros valores.
 # 🐳 Problemas comunes (Docker / Visual Studio / WSL)
 ## Visual Studio y Docker
 Si **no tienes instalado Docker Desktop**, Visual Studio puede mostrar un error de compilación al intentar interpretar el archivo `docker-compose`.
@@ -263,6 +265,8 @@ El proyecto **Gestor Inventario** ofrece una amplia gama de características par
 -  **Suspender subscripcion**: El usuario puede suspender su propia subscripcion, y el administrador puede suspender las de todos
 -  **Cancelar subscripcion**: El usuario puede cancelar su propia subscripcion, y el administrador puede cancelar cualquier susbscripcion
 -  **Agregar informacion de seguimiento a pedidos**: El administrador puede agregar informacion de seguimiento a los pedidos
+-  **MFA Implementado**: Autenticacion de doble factor implementado a nivel global
+-  **Notificaciones via telegram**: Notifica al usuario de eventos importantes
  
   # 🧠 Notas importantes
 
