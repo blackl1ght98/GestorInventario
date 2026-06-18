@@ -86,14 +86,14 @@ namespace GestorInventario.Application.Services
                 {
                     return OperationResult<string>.Fail(resultado.Message);
                 }
-
-                var (contrasenaTemporal, token) = resultado.Data;   // desestructuramos
-
+                string textoEnlace = GenerateSecureToken();
+                var resultadoToken = await _userRepository.ActualizarEmailVerificationTokenAsync(usuarioId, textoEnlace);
+         
                 // 2. Solo preparar el modelo y enviar el correo
                 var model = new ResetPasswordEmailViewmodel
                 { 
-                    RecoveryLink = _urlService.BuildUrl($"/auth/restore-password/{usuarioId}/{token}?redirect=true"),
-                    TemporaryPassword = contrasenaTemporal
+                    RecoveryLink = _urlService.BuildUrl($"/auth/restore-password/{usuarioId}/{textoEnlace}?redirect=true"),
+                    TemporaryPassword = resultado.Data
                 };
                 var enviado = await _baseemail.BuildEmail(userDataResetPassword.ToEmail, "Recuperar Contraseña", EmailView.PasswordReset, model);
                 if (!enviado)

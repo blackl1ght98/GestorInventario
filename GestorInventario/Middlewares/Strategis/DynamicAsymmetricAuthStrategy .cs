@@ -132,7 +132,6 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
 
     private static async Task<RSAParameters?> RetrievePublicKey(string kid, ICacheService cache)
     {
-       
         string? publicKeyJson = await cache.GetStringAsync($"{kid}PublicKey");
 
         if (string.IsNullOrEmpty(publicKeyJson))
@@ -142,25 +141,27 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
         {
             return JsonConvert.DeserializeObject<RSAParameters>(publicKeyJson);
         }
-        catch(Exception ex) 
+        catch (Exception ex)
         {
-            Console.WriteLine(ex);
+            var logger = log4net.LogManager.GetLogger(typeof(DynamicAsymmetricAuthStrategy));
+            logger.Error($"Error deserializando clave pública {kid}", ex);
             return null;
         }
     }
 
 
-private static async Task HandleExpiredToken(
-        HttpContext context,
-        string refreshToken,
-        IConfiguration configuration,
-        ITokenGenerator tokenService,
-        IUserRepository utility,
-        ICacheService cache) 
+    private static async Task HandleExpiredToken(
+     HttpContext context,
+     string refreshToken,
+     IConfiguration configuration,
+     ITokenGenerator tokenService,
+     IUserRepository utility,
+     ICacheService cache)
     {
+        var logger = log4net.LogManager.GetLogger(typeof(DynamicAsymmetricAuthStrategy));
+
         try
         {
-            var logger = log4net.LogManager.GetLogger(typeof(DynamicAsymmetricAuthStrategy));
             var refreshTokenValid = await ValidateRefreshToken(refreshToken, configuration, cache);
 
             if (!refreshTokenValid)
@@ -181,7 +182,15 @@ private static async Task HandleExpiredToken(
                 return;
             }
 
-            var user = await utility.ObtenerUsuarioPorId(int.Parse(userId));
+            
+            if (!int.TryParse(userId, out var userIdParsed))
+            {
+                logger.Warn($"userId en refresh token no es numérico: {userId}");
+                RedirectToLogin(context, context.Request.Cookies);
+                return;
+            }
+
+            var user = await utility.ObtenerUsuarioPorId(userIdParsed);
             if (user == null)
             {
                 logger.Warn($"Usuario con ID {userId} no encontrado en BD.");
@@ -200,11 +209,11 @@ private static async Task HandleExpiredToken(
             });
 
             logger.Info($"Access token regenerado para el usuario {userId}.");
-        }catch(Exception ex) { 
-        
-        Console.WriteLine(ex.ToString());
         }
-
+        catch (Exception ex)
+        {
+            logger.Error("Error en HandleExpiredToken", ex);
+        }
     }
 
 
@@ -255,8 +264,9 @@ private static async Task HandleExpiredToken(
         }
         catch (Exception ex)
         {
-           
-            Console.WriteLine($"Error de validación de RefreshToken: {ex.Message}");
+
+            var logger = log4net.LogManager.GetLogger(typeof(DynamicAsymmetricAuthStrategy));
+            logger.Error("Error de validación de RefreshToken", ex);
             return false;
         }
     }

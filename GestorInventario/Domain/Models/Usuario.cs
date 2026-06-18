@@ -19,8 +19,6 @@ public partial class Usuario
 
     public bool BajaUsuario { get; set; }
 
-    public DateTime? FechaEnlaceCambioPass { get; set; }
-
     public DateTime? FechaExpiracionContrasenaTemporal { get; set; }
 
     public string NombreCompleto { get; set; } = null!;

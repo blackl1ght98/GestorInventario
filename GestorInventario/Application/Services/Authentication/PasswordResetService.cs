@@ -16,7 +16,7 @@ namespace GestorInventario.Application.Services.Authentication
             _userRepository = userRepository;
         }
 
-        public async Task<OperationResult<(string temporaryPassword, string token)>> GenerarPasswordTemporalAsync(string email)
+        public async Task<OperationResult<string > >GenerarPasswordTemporalAsync(string email)
         {
             // Lógica de generación y hash aquí
             var contrasenaTemporal = GenerarContrasenaTemporal();
@@ -28,10 +28,10 @@ namespace GestorInventario.Application.Services.Authentication
                 email, resultadoHash.Hash, resultadoHash.Salt, fechaExpiracion);
 
             if (!resultado.Success)
-                return OperationResult<(string, string)>.Fail(resultado.Message);
+                return OperationResult<string>.Fail(resultado.Message);
 
-            return OperationResult<(string, string)>.Ok("Password temporal generada",
-                (contrasenaTemporal, resultado.Data?.EmailVerificationToken ?? ""));
+            return OperationResult<string>.Ok("Password temporal generada",
+                contrasenaTemporal);
         }
 
         private string GenerarContrasenaTemporal()

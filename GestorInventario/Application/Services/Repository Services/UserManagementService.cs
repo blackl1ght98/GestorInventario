@@ -137,6 +137,8 @@ namespace GestorInventario.Application.Services.User
             {
                 UserId = confirmar.UserId
             });
+            usuarioDB.EmailVerificationToken = null;
+            await _usuarioRepository.ActualizarUsuarioAsync(usuarioDB);
             return OperationResult<string>.Ok("Validacion exitosa");
         }
     }

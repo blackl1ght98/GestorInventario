@@ -30,7 +30,6 @@ builder.Services.AddControllersWithViews().AddJsonOptions(options => options.Jso
 builder.Services.AddDatabaseContext(builder.Configuration);
 
 
-
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(builder =>

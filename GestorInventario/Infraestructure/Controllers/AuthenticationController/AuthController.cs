@@ -243,9 +243,9 @@ namespace GestorInventario.Infraestructure.Controllers.AuthenticationController
                 return RedirectToAction("Error", "Home");
             }
         }
-       
 
-        [Authorize(Roles = "Administrador")]
+
+        [Authorize(Roles ="Administrador")]
         [HttpGet("reset-password/{email}")]
         public async Task<IActionResult> ResetPassword(string email)
         {

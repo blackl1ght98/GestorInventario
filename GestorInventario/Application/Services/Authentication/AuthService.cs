@@ -8,6 +8,8 @@ using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.ViewModels.Usuarios;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace GestorInventario.Application.Services.Authentication
 {
@@ -57,56 +59,77 @@ namespace GestorInventario.Application.Services.Authentication
             }
             return OperationResult<Usuario>.Ok("", login);
         }
+      
         public async Task<OperationResult<string>> SetNewPasswordAsync(RestoresPasswordDto cambio)
         {
-            
+            var resultadoValidacion = await ValidarTokenAsync(cambio);
+            if (!resultadoValidacion.Success)
+                return OperationResult<string>.Fail(resultadoValidacion.Message);
 
-                var resultadoValidacion = await ValidarTokenAsync(cambio);
+            var usuarioDB = resultadoValidacion.Data;
+            if (usuarioDB == null)
+                return OperationResult<string>.Fail("Usuario no encontrado");
 
-                if (!resultadoValidacion.Success)
-                    return OperationResult<string>.Fail(resultadoValidacion.Message);
+            if (string.IsNullOrEmpty(cambio.Password))
+                return OperationResult<string>.Fail("La contraseña no puede estar vacía");
 
-                var usuarioDB = resultadoValidacion.Data;
+            var resultadoHashTemp = _hashService.Hash(cambio.TemporaryPassword, usuarioDB.Salt);
+            if (usuarioDB.TemporaryPassword != resultadoHashTemp.Hash)
+                return OperationResult<string>.Fail("La contraseña temporal no es válida");
 
-                if (usuarioDB == null)
-                    return OperationResult<string>.Fail("Usuario no encontrado");
+            var resultadoHash = _hashService.Hash(cambio.Password);
+            usuarioDB.Password = resultadoHash.Hash;
+            usuarioDB.Salt = resultadoHash.Salt;
 
-                if (string.IsNullOrEmpty(cambio.Password))
-                    return OperationResult<string>.Fail("La contraseña no puede estar vacía");
+            //  Invalidar todo tras un cambio exitoso
+            usuarioDB.EmailVerificationToken = null;
+            usuarioDB.TemporaryPassword = null;
+       
+            usuarioDB.FechaExpiracionContrasenaTemporal = null;
 
-                var resultadoHashTemp = _hashService.Hash(cambio.TemporaryPassword, usuarioDB.Salt);
-                if (usuarioDB.TemporaryPassword != resultadoHashTemp.Hash)
-                    return OperationResult<string>.Fail("La contraseña temporal no es válida");
-
-                var resultadoHash = _hashService.Hash(cambio.Password);
-                usuarioDB.Password = resultadoHash.Hash;
-                usuarioDB.Salt = resultadoHash.Salt;
-
-                await _userRepository.ActualizarUsuarioAsync(usuarioDB);
-                return OperationResult<string>.Ok("Contraseña cambiada con exito");
-           
-
+            await _userRepository.ActualizarUsuarioAsync(usuarioDB);
+            return OperationResult<string>.Ok("Contraseña cambiada con exito");
         }
+       
         private async Task<OperationResult<Usuario>> ValidarTokenAsync(RestoresPasswordDto cambio)
         {
+            // 1) Validar formato del token ANTES de tocar la BD
+            if (string.IsNullOrWhiteSpace(cambio.Token))
+                return OperationResult<Usuario>.Fail("El token no es valido");
+
+            // 2) Validar UserId
+            if (cambio.UserId <= 0)
+                return OperationResult<Usuario>.Fail("El usuario no es valido");
+
+            // 3) Recuperar usuario
             var usuario = await _userRepository.ObtenerUsuarioPorId(cambio.UserId);
             if (usuario == null)
                 return OperationResult<Usuario>.Fail("El usuario no existe");
 
-            if (usuario.EmailVerificationToken != cambio.Token)
-                return OperationResult<Usuario>.Fail("El token no es valido");
+            // 4) Validar token 
+            if (string.IsNullOrEmpty(usuario.EmailVerificationToken) ||
 
-            if (usuario.FechaEnlaceCambioPass < DateTime.UtcNow || usuario.FechaExpiracionContrasenaTemporal < DateTime.UtcNow)
+                !CryptographicOperations.FixedTimeEquals(
+                    Encoding.UTF8.GetBytes(usuario.EmailVerificationToken),
+                    Encoding.UTF8.GetBytes(cambio.Token)))
             {
-                usuario.FechaEnlaceCambioPass = null;
+                return OperationResult<Usuario>.Fail("El token no es valido");
+            }
+
+            // 5) Validar expiración
+            if (usuario.FechaExpiracionContrasenaTemporal < DateTime.UtcNow)
+            {
+                // Limpiar datos sensibles al expirar
+               
                 usuario.FechaExpiracionContrasenaTemporal = null;
                 usuario.TemporaryPassword = null;
+                usuario.EmailVerificationToken = null;
                 await _userRepository.ActualizarUsuarioAsync(usuario);
 
                 return OperationResult<Usuario>.Fail("El enlace y contraseña temporal han expirado. Solicite una nueva");
-            }    
-            return OperationResult<Usuario>.Ok("Token valido", usuario);
+            }
 
+            return OperationResult<Usuario>.Ok("Token valido", usuario);
         }
         public async Task<OperationResult<string>> ChangePassword(string passwordAnterior, string passwordActual)
         {

@@ -4,6 +4,6 @@ namespace GestorInventario.Interfaces.Application.Authentication
 {
     public interface IPasswordResetService
     {
-        Task<OperationResult<(string temporaryPassword, string token)>> GenerarPasswordTemporalAsync(string email);
+        Task<OperationResult<string>> GenerarPasswordTemporalAsync(string email);
     }
 }
