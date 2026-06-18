@@ -192,12 +192,8 @@ En este archivo ajustaremos las variables de entorno con los valores:
    "commandName": "Project",
    "launchBrowser": true,
    "environmentVariables": {
-     "ASPNETCORE_ENVIRONMENT": "Development",
-     "DB_HOST": "DESKTOP-GN4VRAH\\SQLEXPRESS",
-     "DB_NAME": "GestorInventario",
+     "ASPNETCORE_ENVIRONMENT": "Development",   
      "USE_REDIS": "false",
-     "DB_USERNAME": "sqluser",
-     "DB_SA_PASSWORD": "12345678SQL#1234",
      "IS_DOCKER": "false"
    },
    "dotnetRunMessages": true,
