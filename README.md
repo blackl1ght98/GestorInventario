@@ -151,6 +151,9 @@ Luego, agrega los siguientes valores en formato JSON:
   },
   "ClaveJWT": "IntroduceClaveLarga",
   "IsMfaEnabled": true,
+ "CallMeBot": {
+   "user": ""
+ },
   "DataBaseConection": {
     "DBHost": "",
     "DockerDbHost": "SQL-Server-Local",
@@ -175,7 +178,7 @@ Luego, agrega los siguientes valores en formato JSON:
 }
 ````
 **DBHost**: esto ya lo mencionamos en el comando scaffold pero esto nos lo dice el motor de base de datos a la hora de loguearnos tiene este aspecto: `DESKTOP-XXXX\SQLEXPRESS`
-
+**CallMeBot: user**: Este valor sera tu usuario de telegram 
 ## Modificación del archivo GestorInventarioContext.cs 
 Una vez que hemos ejecutado el comando que realiza el scaffold tenemos  que borrar el metodo **OnConfiguring**
 ```csharp
@@ -261,6 +264,8 @@ El proyecto **Gestor Inventario** ofrece una amplia gama de características par
 -  **Suspender subscripcion**: El usuario puede suspender su propia subscripcion, y el administrador puede suspender las de todos
 -  **Cancelar subscripcion**: El usuario puede cancelar su propia subscripcion, y el administrador puede cancelar cualquier susbscripcion
 -  **Agregar informacion de seguimiento a pedidos**: El administrador puede agregar informacion de seguimiento a los pedidos
+-  **MFA Implementado**: Autenticacion de doble factor implementado a nivel global
+-  **Notificaciones via telegram**: Notifica al usuario de eventos importantes
  
   # 🧠 Notas importantes
 
