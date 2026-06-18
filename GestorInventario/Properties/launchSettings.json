@@ -1,42 +1,21 @@
 {
-  "profiles": {
-    "http": {
-      "commandName": "Project",
-      "launchBrowser": true,
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "DB_HOST": "GUILLERMO\\SQLEXPRESS",
-        "DB_NAME": "GestorInventario",
-        "DB_SA_PASSWORD": "your_password",
-        "IS_DOCKER": "false"
-      },
-      "dotnetRunMessages": true,
-      "applicationUrl": "http://localhost:5000"
-    },
+  "profiles": {   
     "https": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "DB_HOST": "DESKTOP-GN4VRAH\\SQLEXPRESS",
-        "DB_NAME": "GestorInventario",
         "USE_REDIS": "false",
-        "DB_USERNAME": "sqluser",
-        "DB_SA_PASSWORD": "12345678SQL#1234",
         "IS_DOCKER": "false"
       },
       "dotnetRunMessages": true,
-      "applicationUrl": "https://localhost:7056;http://localhost:5000;https://localhost:7057"
+      "applicationUrl": "https://localhost:7056;https://localhost:7057"
     },
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "DB_HOST": "DESKTOP-2TL9C3O\\SQLEXPRESS",
-        "DB_NAME": "GestorInventario",
-        "DB_USERNAME": "sa",
-        "DB_SA_PASSWORD": "SQL#1234",
         "IS_DOCKER": "false"
       },
       "ancmHostingModel": "OutOfProcess"
@@ -48,10 +27,7 @@
       "environmentVariables": {
         "ASPNETCORE_HTTPS_PORTS": "8081",
         "ASPNETCORE_HTTP_PORTS": "8080",
-        "DB_HOST": "sql-server-local",
-        "DB_NAME": "GestorInventario",
-        "DB_USERNAME": "sa",
-        "DB_SA_PASSWORD": "SQL#1234",
+
         "IS_DOCKER": "true"
       },
       "publishAllPorts": true,

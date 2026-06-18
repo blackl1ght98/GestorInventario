@@ -10,10 +10,10 @@ namespace GestorInventario.MetodosExtension
         {
             var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER") == "true";
             string connectionString;
-            var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
-            var dbName = Environment.GetEnvironmentVariable("DB_NAME");
-            var dbUserUsername = Environment.GetEnvironmentVariable("DB_SQLUSER");
-            var dbUserPassword = Environment.GetEnvironmentVariable("DB_SQLUSER_PASSWORD");
+            var dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? configuration["DataBaseConection:DBHost"];
+            var dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? configuration["DataBaseConection:DBName"];
+            var dbUserUsername = Environment.GetEnvironmentVariable("DB_SQLUSER") ?? configuration["DataBaseConection:DBUserName"];
+            var dbUserPassword = Environment.GetEnvironmentVariable("DB_SQLUSER_PASSWORD") ?? configuration["DataBaseConection:DBPassword"];
             if (isDocker)
             {
               
