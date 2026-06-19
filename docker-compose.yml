@@ -2,7 +2,7 @@
 networks:
   gestor:
     driver: bridge # modo bridge: red local aislada, el más común para desarrollo
-
+  
 services:
   sql-server:
     # Imagen oficial de SQL Server 2025 de Microsoft para Linux
@@ -121,8 +121,11 @@ services:
     ports:
       # 8080: HTTP, 8081: HTTPS
       # Formato: puertoMáquinaLocal:puertoContenedor
-      - '8080:8080'
       - '8081:8081'
+      - '8080:8080'
+     
+     
+      
     environment:
       - DB_HOST=${DB_HOST}
       - APP_DOCKER_URL=https://localhost:8081
@@ -137,6 +140,8 @@ services:
       - CallMeBotUser=@guigamer98
       - ASPNETCORE_Kestrel__Certificates__Default__Password=${CertificatePassword}
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/certificado.pfx
+      - ASPNETCORE_HTTPS_PORTS=8081
+     
       - ClaveJWT=${ClaveJWT}
       - REDIS_CONNECTION_STRING=${REDIS_CONNECTION_STRING}
       - AuthMode=${AuthMode}

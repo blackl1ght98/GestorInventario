@@ -1,5 +1,5 @@
 {
-  "profiles": {   
+  "profiles": {
     "https": {
       "commandName": "Project",
       "launchBrowser": true,
@@ -27,11 +27,22 @@
       "environmentVariables": {
         "ASPNETCORE_HTTPS_PORTS": "8081",
         "ASPNETCORE_HTTP_PORTS": "8080",
-
         "IS_DOCKER": "true"
       },
       "publishAllPorts": true,
       "useSSL": true
+    },
+    "WSL": {
+      "commandName": "WSL2",
+      "launchBrowser": true,
+      "launchUrl": "https://localhost:7056",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "https://localhost:7056;https://localhost:7057",
+        "IS_DOCKER": "false",
+        "USE_REDIS": "false"
+      },
+      "distributionName": ""
     }
   },
   "iisSettings": {

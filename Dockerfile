@@ -38,11 +38,13 @@ WORKDIR /app
 # Descartamos el SDK, herramientas de compilación y código fuente
 COPY --from=publish /app/publish .
 
+# Documentamos los puertos que usa la aplicación
+# Nota: esto no abre los puertos, eso lo hace el docker-compose con 'ports'
+EXPOSE 8081 8080
+
 # Comando que se ejecuta cuando arranca el contenedor
 ENTRYPOINT ["dotnet", "GestorInventario.dll"]
 
-# Documentamos los puertos que usa la aplicación
-# Nota: esto no abre los puertos, eso lo hace el docker-compose con 'ports'
-EXPOSE 8080 8081
+
 
 
