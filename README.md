@@ -192,19 +192,15 @@ En este archivo ajustaremos las variables de entorno con los valores:
    "commandName": "Project",
    "launchBrowser": true,
    "environmentVariables": {
-     "ASPNETCORE_ENVIRONMENT": "Development",
-     "DB_HOST": "DESKTOP-GN4VRAH\\SQLEXPRESS",
-     "DB_NAME": "GestorInventario",
+     "ASPNETCORE_ENVIRONMENT": "Development",   
      "USE_REDIS": "false",
-     "DB_USERNAME": "sqluser",
-     "DB_SA_PASSWORD": "12345678SQL#1234",
      "IS_DOCKER": "false"
    },
    "dotnetRunMessages": true,
    "applicationUrl": "https://localhost:7056;http://localhost:5000;https://localhost:7057"
  },
 ````
-Aqui el unico valor ha ajustar seria **DB_HOST** este valor lo obtenemos abriendo el programa **SQL Server Management Studio** al abrirlo y tenerlo previamente configurado en **Nombre de servidor** veremos dicho valor tambien podemos ajustar el usuario y contraseña de la BD en caso de querer usar otros valores.
+
 # 🐳 Problemas comunes (Docker / Visual Studio / WSL)
 ## Visual Studio y Docker
 Si **no tienes instalado Docker Desktop**, Visual Studio puede mostrar un error de compilación al intentar interpretar el archivo `docker-compose`.
