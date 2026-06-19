@@ -137,7 +137,7 @@ services:
       - IS_DOCKER=true # Flag para que la app sepa que está en Docker
       - USE_REDIS=true # Flag para que la app sepa que use redis
       - IsMfaEnabled=true
-      - CallMeBotUser=@guigamer98
+      - CallMeBotUser=${CallMeBotUser}
       - ASPNETCORE_Kestrel__Certificates__Default__Password=${CertificatePassword}
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/certificado.pfx
       - ASPNETCORE_HTTPS_PORTS=8081
