@@ -9,10 +9,14 @@ services:
     image: mcr.microsoft.com/mssql/server:2025-latest
     container_name: SQL-Server-Local
     user: root # Forzamos ejecución como root para evitar problemas de permisos con archivos
+    
     environment:
       - ACCEPT_EULA=Y # Aceptar licencia de SQL Server (obligatorio)
       - MSSQL_SA_PASSWORD=${DB_SA_PASSWORD} # Contraseña del usuario administrador 'sa'
       - MSSQL_PID=Developer # Edición Developer, gratuita para desarrollo
+      - DB_SA_USERNAME=${DB_SA_USERNAME}
+      - DB_SA_PASSWORD=${DB_SA_PASSWORD}
+    
     volumes:
       # Volumen nombrado que persiste los datos de SQL Server entre reinicios
       # /var/opt/mssql es la ruta estándar de SQL Server en Linux (definida por Microsoft)
@@ -77,7 +81,7 @@ services:
         MOVE 'GestorInventario' TO '/var/opt/mssql/data/GestorInventario.mdf',  
         MOVE 'GestorInventario_log' TO '/var/opt/mssql/data/GestorInventario_log.ldf',
         FILE = 12, REPLACE, RECOVERY;" || echo "RESTORE FALLÓ - revisa logs arriba";
-     
+        # ============================= CREACIÓN DE USUARIOS =================================================================
         echo "AQUI EMPIEZA CREACION";
         echo "SQLUSER=${DB_SQLUSER}";
         echo "SQLUSER_PASSWORD_LENGTH=${DB_SQLUSER_PASSWORD}";
@@ -119,39 +123,40 @@ services:
       # Formato: puertoMáquinaLocal:puertoContenedor
       - '8081:8081'
       - '8080:8080'
-     
-     
-      
+       
     environment:
+      # Base de datos
       - DB_HOST=${DB_HOST}
       - APP_DOCKER_URL=https://localhost:8081
       - DB_NAME=${DB_NAME}
-      - DB_SA_USERNAME=${DB_SA_USERNAME}
-      - DB_SA_PASSWORD=${DB_SA_PASSWORD}
       - DB_SQLUSER=${DB_SQLUSER}
       - DB_SQLUSER_PASSWORD=${DB_SQLUSER_PASSWORD}
-      - IS_DOCKER=true # Flag para que la app sepa que está en Docker
-      - USE_REDIS=true # Flag para que la app sepa que use redis
-      - IsMfaEnabled=true
-      - CallMeBotUser=${CallMeBotUser}
+      # Flags de control
+      - IS_DOCKER=true 
+      - USE_REDIS=true 
+      - IsMfaEnabled=true  
+      # Certificado
       - ASPNETCORE_Kestrel__Certificates__Default__Password=${CertificatePassword}
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/certificado.pfx
+      # Puerto HTTPS
       - ASPNETCORE_HTTPS_PORTS=8081
-     
-      - ClaveJWT=${ClaveJWT}
-      - REDIS_CONNECTION_STRING=${REDIS_CONNECTION_STRING}
+      # Autenticacion
+      - ClaveJWT=${ClaveJWT}     
       - AuthMode=${AuthMode}
       - JwtIssuer=${JwtIssuer}
-      - JwtAudience=${JwtAudience}
-      - LicenseKeyAutoMapper=${LicenseKeyAutoMapper}
+      - JwtAudience=${JwtAudience}  
       - PublicKey=${PublicKey}
       - PrivateKey=${PrivateKey}
-      
-      # Credenciales de PayPal
+      # Utilidades
+      - REDIS_CONNECTION_STRING=${REDIS_CONNECTION_STRING}
+      - LicenseKeyAutoMapper=${LicenseKeyAutoMapper}
+      - CallMeBotUser=${CallMeBotUser}
+      # Credenciales de PayPal y configuracion
       - Paypal_ClientId=${Paypal_ClientId}
       - Paypal_ClientSecret=${Paypal_ClientSecret}
       - Paypal_Mode=${Paypal_Mode} # sandbox o live
-      - Paypal_returnUrlConDocker=${Paypal_returnUrlConDocker} # URL de retorno en Docker
+      - Paypal_returnUrlConDocker=${Paypal_returnUrlConDocker} 
+      # Credenciales de email y configuracion
       - Email__Host=${Email__Host}
       - Email__Port=${Email__Port}
       - Email__Username=${Email__Username}
