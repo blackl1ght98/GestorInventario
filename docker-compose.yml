@@ -13,10 +13,6 @@ services:
       - ACCEPT_EULA=Y # Aceptar licencia de SQL Server (obligatorio)
       - MSSQL_SA_PASSWORD=${DB_SA_PASSWORD} # Contraseña del usuario administrador 'sa'
       - MSSQL_PID=Developer # Edición Developer, gratuita para desarrollo
-    ports:
-      # Puerto 1433 es el estándar de SQL Server
-      # Formato: puertoMáquinaLocal:puertoContenedor
-      - '1433:1433'
     volumes:
       # Volumen nombrado que persiste los datos de SQL Server entre reinicios
       # /var/opt/mssql es la ruta estándar de SQL Server en Linux (definida por Microsoft)
@@ -179,8 +175,6 @@ services:
   redis:
     image: redis:latest # Imagen oficial de Redis
     container_name: redis
-    ports:
-      - '6379:6379' # Puerto estándar de Redis
     volumes:
       # Persiste los datos de Redis entre reinicios del contenedor
       # redisdata → volumen de Docker en tu máquina
