@@ -45,8 +45,7 @@ public partial class GestorInventarioContext : DbContext
 
     public virtual DbSet<Usuario> Usuarios { get; set; }
 
-   
-
+  
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<DetallePedido>(entity =>
@@ -424,6 +423,9 @@ public partial class GestorInventarioContext : DbContext
 
             entity.HasIndex(e => e.UsuarioId, "IX_rembolso_UsuarioId");
 
+            entity.Property(e => e.Currency)
+                .HasMaxLength(5)
+                .IsUnicode(false);
             entity.Property(e => e.EmailCliente)
                 .HasMaxLength(100)
                 .IsUnicode(false);
@@ -431,6 +433,7 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false);
             entity.Property(e => e.FechaRembolso).HasColumnType("datetime");
+            entity.Property(e => e.MontoRembolsado).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.MotivoRembolso)
                 .HasMaxLength(255)
                 .IsUnicode(false);
@@ -439,6 +442,9 @@ public partial class GestorInventarioContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.NumeroPedido)
                 .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.RefundIdPayPal)
+                .HasMaxLength(20)
                 .IsUnicode(false);
 
             entity.HasOne(d => d.Pedido).WithMany(p => p.Rembolsos)

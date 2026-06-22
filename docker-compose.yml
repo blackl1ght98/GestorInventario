@@ -105,7 +105,7 @@ services:
         GRANT EXECUTE TO [${DB_SQLUSER}];" || echo "CREACIÓN DE USUARIO FALLÓ";
         
         echo "AQUI TERMINA CREACION, CODIGO=$?";
-
+        
         # Mantiene el contenedor en ejecución esperando al proceso de SQL Server en segundo plano
         wait
     networks:

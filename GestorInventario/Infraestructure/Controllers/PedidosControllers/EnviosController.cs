@@ -3,6 +3,7 @@ using GestorInventario.Application.DTOS.Paypal;
 using GestorInventario.Application.DTOS.Paypal.Responses.POST.Order;
 using GestorInventario.enums.Pedido;
 using GestorInventario.Interfaces.Application.ExternalServices;
+using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,12 +16,14 @@ namespace GestorInventario.Infraestructure.Controllers.PedidosControllers
         private readonly IPaypalOrderTrackingService _paypalOrderService;
         private readonly ILogger<EnviosController> _logger;
         private readonly IPaypalService _paypalService;
-        public EnviosController(IPedidoRepository pedidoRepository, IPaypalOrderTrackingService paypalOrderService, IPaypalService paypalService, ILogger<EnviosController> logger)
+        private readonly IPedidoManagementService _pedidoService;
+        public EnviosController(IPedidoRepository pedidoRepository, IPaypalOrderTrackingService paypalOrderService, IPaypalService paypalService, ILogger<EnviosController> logger, IPedidoManagementService pedido)
         {
             _pedidoRepository = pedidoRepository;
             _paypalOrderService = paypalOrderService;
             _logger = logger;
             _paypalService=paypalService;
+            _pedidoService = pedido;
         }  
         [Authorize]
         [HttpPost]
@@ -77,7 +80,7 @@ namespace GestorInventario.Infraestructure.Controllers.PedidosControllers
                 }
 
                 // 4. Guardar resultado en base de datos
-                await _paypalService.AddInfoTrackingOrder(
+                await _pedidoService.AddInfoTrackingOrder(
                     envio.PedidoId,
                     result.Data.TrackingNumber,
                     result.Data.TrackingUrl,

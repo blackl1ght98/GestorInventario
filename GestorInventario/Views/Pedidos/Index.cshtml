@@ -114,6 +114,12 @@
                                             @(pedido.EstadoPedido == "Cancelado" ? "disabled" : "")>
                                             Cancelar
                                         </button>
+                                        <button type="button"
+                                                class="btn btn-outline-warning flex-fill entrega-btn"
+                                                data-pedido-id="@pedido.Id"
+                                            @(pedido.EstadoPedido == "Entregado" ? "disabled" : "")>
+                                            Confirmar entrega
+                                        </button>
                                     </div>
 
                                     <button class="btn btn-success activate-action-button mt-2 envio-btn"
@@ -272,8 +278,28 @@
         </div>
     </div>
 </div>
+<!-- Modal Confirmar Entrega -->
+<div class="modal fade" id="confirmEntregaModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">Cancelar Pedido</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="entregaText" class="mb-3">¿Esta seguro que desea cancelar el pedido?</p>
+                <div id="entregaResult" class="alert d-none" role="alert"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-danger" id="confirmEntregaBtn">Sí, Confirmar entrega</button>
+            </div>
+        </div>
+    </div>
+</div>
 @section Scripts {
     <script src="~/js/agregar-info-envio.js" asp-append-version="true"></script>
     <script src="~/js/rembolso.js" asp-append-version="true"></script>
     <script src="~/js/cancelarPedido.js" asp-append-version="true"></script>
+    <script src="~/js/confirmarEntrega.js" asp-append-version="true"></script>
 }

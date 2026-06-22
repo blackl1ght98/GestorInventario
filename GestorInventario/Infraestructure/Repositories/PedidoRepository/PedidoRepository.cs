@@ -71,6 +71,7 @@ namespace GestorInventario.Infraestructure.Repositories.PedidoRepository
                     .Include(dp => dp.Producto)
                     .Include(dp => dp.Pedido)
                     .ThenInclude(x => x.PayPalPaymentCaptures)
+                    
                     .FirstOrDefaultAsync(dp => dp.Id == detallePedidoId);
                 return detalle;
          

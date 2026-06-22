@@ -47,65 +47,8 @@ namespace GestorInventario.Application.Services.Common
       
   
      
-        public async Task RegistrarReembolsoParcialAsync(int pedidoId, int detalleId, string refundId, decimal montoReembolsado, string motivo, string estadoVenta)
-        {
-
-            // Obtener el pedido con los datos relacionados
-            var pedido = await _pedidoRepository.ObtenerPedidoConDetallesAsync(pedidoId);
-
-                if (pedido == null)
-                    throw new ArgumentException($"Pedido con ID {pedidoId} no encontrado.");
-
-                // Obtener el detalle específico por ID
-                var detalleReembolsado = pedido.DetallePedidos.FirstOrDefault(d => d.Id == detalleId);
-                if (detalleReembolsado == null)
-                    throw new ArgumentException($"Detalle con ID {detalleId} no encontrado.");
-
-                // Evitar reembolsos duplicados
-                if (detalleReembolsado.Rembolsado ?? false)
-                    throw new InvalidOperationException($"El detalle con ID {detalleId} ya ha sido reembolsado.");
-
-                var usuarioActual = _currentUserAccessor.GetCurrentUserId();
-
-                // Crear registro de reembolso
-                var rembolso = new Rembolso
-                {
-                    PedidoId = pedido.Id,
-                    NumeroPedido = pedido.NumeroPedido,
-                    NombreCliente = pedido.IdUsuarioNavigation?.NombreCompleto,
-                    EmailCliente = pedido.IdUsuarioNavigation?.Email,
-                    FechaRembolso = DateTime.UtcNow,
-                    MotivoRembolso = motivo,
-                    EstadoRembolso = "REMBOLSO PARACIAL APROVADO",
-                    RembosoRealizado = true,
-                    UsuarioId = usuarioActual,
-                   
-
-                };
-
-                await _paypalRepository.AgregarRembolsoAsync(rembolso);
-
-                // Marcar el detalle correcto como reembolsado
-                detalleReembolsado.Rembolsado = true;
-                await _pedidoRepository.ActualizarDetallePedidoAsync(detalleReembolsado);
-
-                _logger.LogInformation($"Reembolso registrado para pedido {pedidoId}, detalle {detalleId}.");
-           
-        }
-        public async Task AddInfoTrackingOrder(int pedidoId, string tracking, string url, string carrier)
-        {
-           
-                var pedido = await _pedidoRepository.ObtenerPedidoPorIdAsync(pedidoId);
-                if (pedido == null)
-                    throw new ArgumentException($"Pedido con ID {pedidoId} no encontrado.");
-                pedido.EstadoPedido= EstadoPedido.Enviado.ToString();
-                pedido.TrackingNumber = tracking;
-                pedido.UrlTracking = url;
-                pedido.Transportista = carrier;
-                await _pedidoRepository.ActualizarPedidoAsync(pedido);
-           
-
-        }
+       
+       
         public async Task UpdatePlanStatusAsync(string planId, string status)
         {
             var planDetails = await _paypalRepository.ObtenerPlanPorIdAsync(planId);

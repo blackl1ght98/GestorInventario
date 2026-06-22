@@ -19,11 +19,17 @@ public partial class Rembolso
 
     public string? EstadoRembolso { get; set; }
 
-    public bool? RembosoRealizado { get; set; }
+    public bool? ReembolsoCompletado { get; set; }
 
     public int UsuarioId { get; set; }
 
     public int PedidoId { get; set; }
+
+    public decimal MontoRembolsado { get; set; }
+
+    public string? Currency { get; set; }
+
+    public string? RefundIdPayPal { get; set; }
 
     public virtual Pedido Pedido { get; set; } = null!;
 

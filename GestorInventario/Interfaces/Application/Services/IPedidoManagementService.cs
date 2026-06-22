@@ -13,6 +13,7 @@ namespace GestorInventario.Interfaces.Application.Services
         Task<OperationResult<Pedido>> ConfirmarPagoDelPedidoAsync(int usuarioActual, string captureId, decimal total, string? currency, string orderId);
         Task ProcesarRembolsoAsync(int pedidoId, string status, string refundId);
 
-
+        Task RegistrarReembolsoParcialAsync(int pedidoId, int detalleId, string motivo, decimal montoRembolsado, string currency, string refundId);
+        Task AddInfoTrackingOrder(int pedidoId, string tracking, string url, string carrier);
     }
 }

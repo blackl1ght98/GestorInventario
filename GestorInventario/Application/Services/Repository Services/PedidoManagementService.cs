@@ -310,9 +310,12 @@ namespace GestorInventario.Application.Services.Generic_Services
                     FechaRembolso = DateTime.UtcNow,
                     MotivoRembolso = "Rembolso solicitado por el usuario",
                     EstadoRembolso = "REMBOLSO APROVADO",
-                    RembosoRealizado = true,
+                    ReembolsoCompletado = true,
                     UsuarioId = usuarioActual,
                     PedidoId = pedido.Id,
+                    RefundIdPayPal=refundId,
+                    MontoRembolsado=pedido.Total,
+                    Currency=pedido.Currency,
                  
                 };
                 await _paypalRepository.AgregarRembolsoAsync(rembolso);
@@ -320,7 +323,7 @@ namespace GestorInventario.Application.Services.Generic_Services
             else
             {
                 obtenerRembolso.EstadoRembolso = "REMBOLSO APROVADO";
-                obtenerRembolso.RembosoRealizado = true;
+                obtenerRembolso.ReembolsoCompletado = true;
                
                 obtenerRembolso.FechaRembolso = DateTime.UtcNow;
                 
@@ -330,6 +333,67 @@ namespace GestorInventario.Application.Services.Generic_Services
 
 
             _logger.LogInformation($"Estado del pedido {pedidoId} actualizado a {status}");
+
+
+        }
+        public async Task RegistrarReembolsoParcialAsync(int pedidoId, int detalleId, string motivo, decimal montoRembolsado, string currency, string refundId)
+        {
+
+            // Obtener el pedido con los datos relacionados
+            var pedido = await _pedidoRepository.ObtenerPedidoConDetallesAsync(pedidoId);
+
+            if (pedido == null)
+                throw new ArgumentException($"Pedido con ID {pedidoId} no encontrado.");
+
+            // Obtener el detalle específico por ID
+            var detalleReembolsado = pedido.DetallePedidos.FirstOrDefault(d => d.Id == detalleId);
+            if (detalleReembolsado == null)
+                throw new ArgumentException($"Detalle con ID {detalleId} no encontrado.");
+
+            // Evitar reembolsos duplicados
+            if (detalleReembolsado.Rembolsado ?? false)
+                throw new InvalidOperationException($"El detalle con ID {detalleId} ya ha sido reembolsado.");
+
+            var usuarioActual = _currentUserAccesor.GetCurrentUserId();
+
+            // Crear registro de reembolso
+            var rembolso = new Rembolso
+            {
+                PedidoId = pedido.Id,
+                NumeroPedido = pedido.NumeroPedido,
+                NombreCliente = pedido.IdUsuarioNavigation?.NombreCompleto,
+                EmailCliente = pedido.IdUsuarioNavigation?.Email,
+                FechaRembolso = DateTime.UtcNow,
+                MotivoRembolso = motivo,
+                EstadoRembolso = "REMBOLSO PARACIAL APROVADO",
+                ReembolsoCompletado = true,
+                UsuarioId = usuarioActual,
+                MontoRembolsado=montoRembolsado,
+                Currency=currency,
+                RefundIdPayPal=refundId
+               
+            };
+
+            await _paypalRepository.AgregarRembolsoAsync(rembolso);
+
+            // Marcar el detalle correcto como reembolsado
+            detalleReembolsado.Rembolsado = true;
+            await _pedidoRepository.ActualizarDetallePedidoAsync(detalleReembolsado);
+
+            _logger.LogInformation($"Reembolso registrado para pedido {pedidoId}, detalle {detalleId}.");
+
+        }
+        public async Task AddInfoTrackingOrder(int pedidoId, string tracking, string url, string carrier)
+        {
+
+            var pedido = await _pedidoRepository.ObtenerPedidoPorIdAsync(pedidoId);
+            if (pedido == null)
+                throw new ArgumentException($"Pedido con ID {pedidoId} no encontrado.");
+            pedido.EstadoPedido = EstadoPedido.Enviado.ToString();
+            pedido.TrackingNumber = tracking;
+            pedido.UrlTracking = url;
+            pedido.Transportista = carrier;
+            await _pedidoRepository.ActualizarPedidoAsync(pedido);
 
 
         }

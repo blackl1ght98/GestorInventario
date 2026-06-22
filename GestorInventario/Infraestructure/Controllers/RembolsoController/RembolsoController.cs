@@ -135,6 +135,23 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
                 
                 if (pedido == null)
                     return NotFound("Pedido no encontrado");
+                // 2. Idempotencia: si ya hay un reembolso exitoso, no procesamos otro
+                var reembolsoPrevio = pedido.Rembolsos?
+                    .FirstOrDefault(r => r.ReembolsoCompletado == true);
+
+                if (reembolsoPrevio != null)
+                {
+                    _logger.LogWarning(
+                        "Reembolso duplicado rechazado - pedido {PedidoId} refundIdPrevio={RefundId}",
+                        pedido.Id, reembolsoPrevio.NumeroPedido);
+
+                    return Ok(new
+                    {
+                        success = true,
+                        alreadyProcessed = true,
+                        refundId = reembolsoPrevio.NumeroPedido
+                    });
+                }
                 var captureId = pedido.PayPalPaymentCaptures.FirstOrDefault().CaptureId;
                 if (string.IsNullOrEmpty(captureId))
                     return BadRequest("El pedido no tiene pago capturado para reembolsar");
@@ -147,33 +164,36 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
                     "Reembolso total pedido {PedidoId} -> Subtotal:{Subtotal} IVA:{Iva} Total:{Total}",
                     request.PedidoId, pedido.Subtotal, pedido.Iva, totalReembolso);
 
-                // 2. Llamar al servicio de PayPal con datos planos (sin BD)
-                var refundResult = await _refundService.RefundCaptureAsync(
-                    captureId: captureId,
-                    amount: totalReembolso,
-                    currency: request.Currency,
-                    nota: $"Reembolso pedido #{pedido.NumeroPedido}");
+               
+                    // 2. Llamar al servicio de PayPal con datos planos (sin BD)
+                    var refundResult = await _refundService.RefundCaptureAsync(
+                        captureId: captureId,
+                        amount: totalReembolso,
+                        currency: request.Currency,
+                        nota: $"Reembolso pedido #{pedido.NumeroPedido}");
 
-                if (!refundResult.Success)
-                    return BadRequest(new { success = false, message = refundResult.Message });
+                    if (!refundResult.Success)
+                        return BadRequest(new { success = false, message = refundResult.Message });
 
-                // 3. TU dominio: actualizar estado del pedido
-                await _pedidoService.ProcesarRembolsoAsync(
-                    pedido.Id,
-                    EstadoPedido.Rembolsado.ToString(),
-                    refundResult.Data.RefundId);
-
-                // 4. Notificación asíncrona
-                _background.Enqueue(async (sp, ct) =>
-                {
-                    var emailService = sp.GetRequiredService<IReembolsoNotificationService>();
-                    await emailService.EnviarEmailNotificacionRembolso(
+                    // 3. Agregamos la informacion a la tabla rembolso
+                    await _pedidoService.ProcesarRembolsoAsync(
                         pedido.Id,
-                        refundResult.Data.AmountRefunded,
-                        "Reembolso Aprobado");
-                });
+                        EstadoPedido.Rembolsado.ToString(),
+                        refundResult.Data.RefundId);
 
-                return Ok(new { success = true, refundId = refundResult.Data.RefundId });
+                    // 4. Notificación asíncrona
+                    _background.Enqueue(async (sp, ct) =>
+                    {
+                        var emailService = sp.GetRequiredService<IReembolsoNotificationService>();
+                        await emailService.EnviarEmailNotificacionRembolso(
+                            pedido.Id,
+                            refundResult.Data.AmountRefunded,
+                            "Reembolso Aprobado");
+                    });
+
+                    return Ok(new { success = true, refundId = refundResult.Data.RefundId });
+               
+               
             }
             catch (Exception ex)
             {
@@ -196,14 +216,14 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
                 // ============================================
                 // 1. OBTENER DATOS DEL PEDIDO (tu BD)
                 // ============================================
-                var pedido = await _pedidoRepository.ObtenerDetalleParaReembolsoAsync(request.DetalleId);
-                if (pedido == null)
+                var detallePedido = await _pedidoRepository.ObtenerDetalleParaReembolsoAsync(request.DetalleId);
+                if (detallePedido == null)
                     return Json(new { success = false, message = "Pedido no encontrado." });
 
                 // ============================================
-                // 2. CALCULAR MONTO CON IVA (tu lógica de negocio)
+                // 2. CALCULAR MONTO CON IVA 
                 // ============================================
-                var precioSinIva = pedido.Producto.Precio;
+                var precioSinIva = detallePedido.Producto.Precio;
                 var ivaUnitario = CalculadoraFiscal.CalcularIvaUnitario(precioSinIva);
                 var montoSolicitadoConIva = precioSinIva + ivaUnitario;
 
@@ -214,28 +234,28 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
                 // ============================================
                 // 3. VERIFICAR ESTADO ACTUAL EN PAYPAL
                 // ============================================
-                var captureDetails = await _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(pedido.Pedido.PayPalPaymentCaptures.First().PaymentId);
+                var captureDetails = await _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(detallePedido.Pedido.PayPalPaymentCaptures.First().PaymentId);
                 var (montoReembolso, montoDisponible, estadoVenta) = CalcularMontoDisponibleYEstado(
                     captureDetails, montoSolicitadoConIva, request.Currency);
 
                 // ============================================
-                // 4. EJECUTAR REEMBOLSO EN PAYPAL (servicio puro)
+                // 4. EJECUTAR REEMBOLSO EN PAYPAL 
                 // ============================================
                 var refundResult = await _refundService.RefundCaptureAsync(
-                    captureId: pedido.Pedido.PayPalPaymentCaptures.First().CaptureId,
+                    captureId: detallePedido.Pedido.PayPalPaymentCaptures.First().CaptureId,
                     amount: montoReembolso,
-                    currency: pedido.Pedido.Currency,
-                    nota: $"Reembolso parcial pedido #{pedido.Pedido.Id} - {request.Motivo}");
+                    currency: detallePedido.Pedido.Currency,
+                    nota: $"Reembolso parcial pedido #{detallePedido.Pedido.Id} - {request.Motivo}");
 
                 if (!refundResult.Success)
                 {
                     // ============================================
-                    // 5. MANEJO DE FALSO POSITIVO (tu lógica de negocio)
+                    // 5. MANEJO DE FALSO POSITIVO 
                     // ============================================
                     if (refundResult.Message.Contains("REFUND_AMOUNT_EXCEEDED") ||
                         refundResult.Message.Contains("UnprocessableEntity"))
                     {
-                        var updatedCapture = await _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(pedido.Pedido.PayPalPaymentCaptures.First().PaymentId);
+                        var updatedCapture = await _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(detallePedido.Pedido.PayPalPaymentCaptures.First().PaymentId);
                         var montoFormateado = CalculadoraFiscal.FormatearPayPal(montoSolicitadoConIva);
 
                         var recentRefund = updatedCapture?.PurchaseUnits[0].Payments.Refunds?
@@ -266,25 +286,26 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
                 }
 
                 // ============================================
-                // 6. REGISTRAR EN TU BASE DE DATOS (tu dominio)
+                // 6. REGISTRAR EN TU BASE DE DATOS 
                 // ============================================
-                await _paypalService.RegistrarReembolsoParcialAsync(
-                    pedido.Pedido.Id,
-                    pedido.Id,
-                    refundResult.Data.RefundId,
-                    refundResult.Data.AmountRefunded,
+                await _pedidoService.RegistrarReembolsoParcialAsync(
+                    detallePedido.Pedido.Id,
+                    detallePedido.Id,            
                     request.Motivo,
-                    estadoVenta);
+                    montoReembolso,
+                    detallePedido.Pedido.Currency,
+                    refundResult.Data.RefundId
+                    );
 
                 // ============================================
-                // 7. NOTIFICACIÓN ASÍNCRONA (tu dominio)
+                // 7. NOTIFICACIÓN ASÍNCRONA 
                 // ============================================
                 _background.Enqueue(async (sp, ct) =>
                 {
                     var emailService = sp.GetRequiredService<IReembolsoNotificationService>();
                     await emailService.EnviarEmailNotificacionRembolso(
-                        pedido.Pedido.Id,
-                        pedido.Producto.Precio,
+                        detallePedido.Pedido.Id,
+                        detallePedido.Producto.Precio,
                         request.Motivo);
                 });
 

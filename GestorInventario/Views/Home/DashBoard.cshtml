@@ -60,4 +60,43 @@
         <div class="card-value">@Model.PedidosDevueltos</div>
         <div class="card-label">Pedidos devueltos</div>
     </div>
+    <div class="card card-success">
+        <div class="card-icon">💰</div>
+        <div class="card-value">@Model.PedidosEntregados</div>
+        <div class="card-label">Pedidos entregados</div>
+    </div>
+    <div class="card card-success">
+        <div class="card-icon">💰</div>
+        <div class="card-value">@Model.PedidosCancelados</div>
+        <div class="card-label">Pedidos cancelados</div>
+    </div>
+    <div class="card card-info">
+        <div class="card-icon">📦</div>
+        <div class="card-value">@Model.PedidosHoy</div>
+        <div class="card-label">Pedidos hoy</div>
+    </div>
+
+    <div class="card card-info">
+        <div class="card-icon">📅</div>
+        <div class="card-value">@Model.PedidosEsteMes</div>
+        <div class="card-label">Pedidos este mes</div>
+    </div>
+
+    <div class="card card-success">
+        <div class="card-icon">💵</div>
+        <div class="card-value is-money">@Model.IngresosTotales.ToString("C")</div>
+        <div class="card-label">Ingresos totales</div>
+    </div>
+
+    <div class="card card-success">
+        <div class="card-icon">💵</div>
+        <div class="card-value is-money">@Model.IngresosMesActual.ToString("C")</div>
+        <div class="card-label">Ingresos del mes</div>
+    </div>
+
+    <div class="card card-info">
+        <div class="card-icon">🧾</div>
+        <div class="card-value is-money">@Model.TicketPromedio.ToString("C")</div>
+        <div class="card-label">Ticket promedio</div>
+    </div> 
 </div>

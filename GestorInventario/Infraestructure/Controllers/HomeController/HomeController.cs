@@ -27,15 +27,29 @@ namespace GestorInventario.Infraestructure.Controllers.HomeController
            
             return View();
         }
+        /**    
+         DASHBOARD EN PROCESO DE CONTRUCCION
+         */
         [Authorize]
         public async Task<IActionResult> DashBoard()
         {
+            var inicioMes = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+            var hoy = DateTime.Today;
+
+            var pedidosPagadosQuery = _context.Pedidos.Where(p => p.EstadoPedido == EstadoPedido.Pagado.ToString());
+            var pedidosEntregadosQuery = _context.Pedidos.Where(p => p.EstadoPedido == EstadoPedido.Entregado.ToString());
             var vm = new DashboardViewModel
             {
-                PedidosPagados = await _context.Pedidos
-                    .CountAsync(p => p.EstadoPedido == "Pagado"),
-                PedidosDevueltos = await _context.Pedidos.CountAsync(p => p.EstadoPedido == EstadoPedido.Rembolsado.ToString())
-
+                PedidosPagados = await pedidosPagadosQuery.CountAsync(),
+                PedidosDevueltos = await _context.Pedidos.CountAsync(p => p.EstadoPedido == EstadoPedido.Rembolsado.ToString()),
+                PedidosEntregados = await pedidosEntregadosQuery.CountAsync(),
+                PedidosCancelados = await _context.Pedidos.CountAsync(p => p.EstadoPedido == EstadoPedido.Cancelado.ToString()),
+                PedidosHoy = await _context.Pedidos.CountAsync(p => p.FechaPedido >= hoy),
+                PedidosEsteMes = await _context.Pedidos.CountAsync(p => p.FechaPedido >= inicioMes),
+                IngresosTotales = await pedidosEntregadosQuery.SumAsync(p => (decimal?)p.Total) ?? 0,
+                IngresosMesActual = await pedidosEntregadosQuery.Where(p => p.FechaPedido >= inicioMes).SumAsync(p => (decimal?)p.Total) ?? 0,
+                TicketPromedio = await pedidosEntregadosQuery.AverageAsync(p => (decimal?)p.Total) ?? 0,
+                        
             };
 
             return View(vm);
