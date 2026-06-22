@@ -184,7 +184,7 @@ namespace GestorInventario.Infraestructure.Controllers.AdminControllers
         }
         [Authorize]
         [HttpPost]
-        [ValidateAntiForgeryToken]
+     
         public async Task<ActionResult> Edit(UsuarioEditViewModel userVM)
         {
             try
@@ -201,8 +201,15 @@ namespace GestorInventario.Infraestructure.Controllers.AdminControllers
                     TempData["ErrorMessage"] = result.Message;
                     return View(userVM);
                 }
-
-                return RedirectToAction(nameof(Index));
+                if (User.IsAdministrador())
+                {
+                    return RedirectToAction(nameof(Index));
+                }
+                else
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+               
             }
             catch (Exception ex)
             {

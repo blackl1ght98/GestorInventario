@@ -161,6 +161,54 @@
                                         
                                     </div>
                                 }
+                                else
+                                {
+                                    <div class="btn-group" role="group">
+
+                                       
+                                        <button type="button"
+                                                class="btn btn-outline-warning flex-fill cancel-btn"
+                                                data-pedido-id="@pedido.Id"
+                                            @(pedido.EstadoPedido == "Cancelado" ? "disabled" : "")>
+                                            Cancelar
+                                        </button>
+                                        <button type="button"
+                                                class="btn btn-outline-warning flex-fill entrega-btn"
+                                                data-pedido-id="@pedido.Id"
+                                            @(pedido.EstadoPedido == "Entregado" ? "disabled" : "")>
+                                            Confirmar entrega
+                                        </button>
+                                    </div>
+                                    <div class="d-grid gap-2 mt-2">                              
+                                        @{
+                                            // Buscar el capture asociado
+                                            var capture = pedido.PayPalPaymentCaptures?.FirstOrDefault();
+                                            var orderId = capture?.PaymentId;
+                                        }
+                                      
+                                        @if (!string.IsNullOrEmpty(orderId))
+                                        {
+                                            <a asp-action="DetallesPagoEjecutado"
+                                               asp-controller="Payment"
+                                               asp-route-id="@orderId"
+                                               asp-route-pedidoId="@pedido.Id"
+                                               class="btn btn-outline-info">
+                                                Detalles del Pago
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <a asp-action="ReintentarPago"
+                                               asp-controller="Payment"
+                                               asp-route-pedidoId="@pedido.Id"
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-credit-card me-1"></i> Completar pago
+                                            </a>
+                                        }
+
+                                          
+                                    </div>
+                                }
                             </div>
                         </div>
                     </div>

@@ -78,23 +78,27 @@
                         }
                         @if (User.IsInRole("Administrador") || User.IsInRole("Usuario"))
                         {
+
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="gestionInventarioDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip" title="Gestión de inventario">
                                     <i class="bi bi-boxes nav-icon"></i> Inventario
                                 </a>
+
                                 <ul class="dropdown-menu" aria-labelledby="gestionInventarioDropdown">
                                     @if (User.IsInRole("Administrador"))
                                     {
                                         <li>
                                             <a asp-area="" asp-controller="Proveedor" asp-action="Index" class="dropdown-item" data-bs-toggle="tooltip" title="Gestionar proveedores"><i class="bi bi-truck nav-icon"></i> Proveedores</a>
                                         </li>
+                                        <li>
+                                            <a asp-area="" asp-controller="Rembolso" asp-action="Index" class="dropdown-item" data-bs-toggle="tooltip" title="Ver pedidos"><i class="bi bi-cart nav-icon"></i> Rembolsos</a>
+                                        </li>
+                                       
                                     }
                                     <li>
                                         <a asp-area="" asp-controller="Pedidos" asp-action="Index" class="dropdown-item" data-bs-toggle="tooltip" title="Ver pedidos"><i class="bi bi-cart nav-icon"></i> Pedidos</a>
                                     </li>
-                                    <li>
-                                        <a asp-area="" asp-controller="Rembolso" asp-action="Index" class="dropdown-item" data-bs-toggle="tooltip" title="Ver pedidos"><i class="bi bi-cart nav-icon"></i> Rembolsos</a>
-                                    </li>
+                                   
                                    
                                 </ul>
                             </li>

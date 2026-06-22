@@ -47,7 +47,7 @@ namespace GestorInventario.Infraestructure.Repositories.PedidoRepository
             from p in _context.Pedidos.Include(dp => dp.DetallePedidos).ThenInclude(p => p.Producto).Include(u => u.IdUsuarioNavigation).Include(x=>x.PayPalPaymentCaptures)
             select p;
       
-        public IQueryable<Pedido> ObtenerPedidoUsuario(int userId)=>_context.Pedidos.Where(p => p.IdUsuario == userId).Include(dp => dp.DetallePedidos).ThenInclude(p => p.Producto).Include(u => u.IdUsuarioNavigation);
+        public IQueryable<Pedido> ObtenerPedidoUsuario(int userId)=>_context.Pedidos.Where(p => p.IdUsuario == userId).Include(dp => dp.DetallePedidos).ThenInclude(p => p.Producto).Include(u => u.IdUsuarioNavigation).Include(x=>x.PayPalPaymentCaptures);
 
         public async Task<DetallePedido> ObtenerDetallePorIdAsync(int id)
         {
