@@ -22,12 +22,11 @@ namespace GestorInventario.Infraestructure.Controllers.ProductosController
         private readonly IPaginationHelper _paginationHelper;
         private readonly ICurrentUserAccessor _current;
         private readonly IProductManagementService _productoService;
-        private readonly ICarritoService _carritoService;
+        
         public ProductosController(
             IPolicyExecutor policyExecutor,
             IPaginationHelper pagination,
             ICurrentUserAccessor currentUserAccessor, 
-            ICarritoService carritoService,
             ILogger<ProductosController> logger, 
             IProductoRepository productoRepository,    
             IProductManagementService productoService)
@@ -38,7 +37,7 @@ namespace GestorInventario.Infraestructure.Controllers.ProductosController
             _paginationHelper = pagination;
             _current = currentUserAccessor;
             _productoService = productoService;
-            _carritoService= carritoService;
+         
         }
         //Metodo para obtener los productos
         [HttpGet]

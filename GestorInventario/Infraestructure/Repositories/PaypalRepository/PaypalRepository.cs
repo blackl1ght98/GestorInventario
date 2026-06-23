@@ -21,7 +21,11 @@ namespace GestorInventario.Infraestructure.Repositories.PaypalRepository
             _logger = logger;          
          
         }
-
+        public async Task<PayPalPaymentDetail> ObtenerDetallePagoPorId(string paymentId)
+        {
+            var paypal = await _context.PayPalPaymentDetails.Include(x => x.PayPalPaymentCaptures).Include(x => x.PayPalPaymentItems).Include(x => x.PayPalPaymentShippings).FirstOrDefaultAsync(x => x.Id == paymentId);
+            return paypal;
+        }
         public async Task<List<SubscriptionDetail>> ObtenerSuscriptcionesActivas(string planId)
         {
             return await _context.SubscriptionDetails

@@ -80,7 +80,7 @@ services:
         -- Extraemos del .back los archivos .mdf y .ldf y lo dejamos en el directorio /var/opt/mssql/data
         MOVE 'GestorInventario' TO '/var/opt/mssql/data/GestorInventario.mdf',  
         MOVE 'GestorInventario_log' TO '/var/opt/mssql/data/GestorInventario_log.ldf',
-        FILE = 12, REPLACE, RECOVERY;" || echo "RESTORE FALLÓ - revisa logs arriba";
+        FILE = 13, REPLACE, RECOVERY;" || echo "RESTORE FALLÓ - revisa logs arriba";
         # ============================= CREACIÓN DE USUARIOS =================================================================
         echo "AQUI EMPIEZA CREACION";
         echo "SQLUSER=${DB_SQLUSER}";

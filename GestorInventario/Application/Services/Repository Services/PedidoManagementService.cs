@@ -1,6 +1,7 @@
 ﻿
 using GestorInventario.Application.Services.Common;
 using GestorInventario.Domain.Models;
+using GestorInventario.enums;
 using GestorInventario.enums.Pedido;
 using GestorInventario.Infraestructure.Repositories.PaypalRepository;
 using GestorInventario.Infraestructure.Utils;
@@ -202,81 +203,69 @@ namespace GestorInventario.Application.Services.Generic_Services
            string? currency,
            string orderId)
         {
-            // 1. Validar parámetros
+           
             if (string.IsNullOrWhiteSpace(captureId) ||
                 string.IsNullOrWhiteSpace(currency) ||
                 string.IsNullOrWhiteSpace(orderId))
             {
-                _logger.LogWarning("Parámetros inválidos...");
+                _logger.LogWarning("Parámetros inválidos al confirmar pago: captureId, currency u orderId vacíos");
                 return OperationResult<Pedido>.Fail("Datos no validos");
             }
 
-            // 2. Buscar pedido
+          
             var pedido = await _pedidoRepository.ObtenerPedidoPendienteUsuarioAsync(usuarioActual);
             if (pedido == null)
             {
-                _logger.LogWarning("No se encontró pedido...");
+                _logger.LogWarning("No se encontró pedido pendiente para el usuario {UsuarioId}", usuarioActual);
                 return OperationResult<Pedido>.Fail("Pedido no encontrado");
             }
 
-            
+           
             var paymentDetail = await _payment.ObtenerDetallesPago(orderId);
 
             if (paymentDetail == null)
             {
                 paymentDetail = new PayPalPaymentDetail
                 {
-                    Id = orderId,           
-                    Intent = "CAPTURE",
-                    OrderStatus = "COMPLETED",
-                    PayeeEmail="email no establecido",
-                    PayerFirstName="no establecido",
-                    PayerLastName="no establecido",
-                    PayerId="no establecido",
+                    Id = orderId,
+                    Intent = "CAPTURE",          
                     AmountTotal = total,
                     AmountCurrency = currency,
-                    AmountItemTotal=0,
-                    AmountShipping=0,
-                    PayeeMerchantId="no establecido",
-                    PayerEmail="no establecido",   
-                    Description = "Pedido pagado",
+                    AmountItemTotal = total,
+                    AmountShipping = 0,
+                    Description = $"Pedido #{pedido.NumeroPedido} - pendiente de sincronización con PayPal",
                     CreateTime = DateTime.UtcNow,
                     UpdateTime = DateTime.UtcNow
                 };
                 await _payment.AgregarDetallePagoAsync(paymentDetail);
             }
 
-            
+
             var capturePayment = new PayPalPaymentCapture
             {
-                PaymentId = orderId,      
+                PaymentId = orderId,
                 CaptureId = captureId,
                 PedidoId = pedido.Id,
                 Amount = total,
-                Currency = currency,
-                Status = "COMPLETED",
-                ProtectionEligibility="no",
-                TransactionFeeAmount=0,
-                TransactionFeeCurrency="no",
-                ReceivableAmount=0,
-                ReceivableCurrency="no",
-                ExchangeRate=0,
-                FinalCapture=false,
-                DisputeCategories="no",
+                Currency = currency,   
+                TransactionFeeAmount = 0, 
+                ReceivableAmount = 0,     
+                ExchangeRate = 0,
+                FinalCapture = false,
                 CreateTime = DateTime.UtcNow,
                 UpdateTime = DateTime.UtcNow
             };
 
             await _payment.AgregarCaptureAsync(capturePayment);
 
-            // 5. Actualizar pedido 
+            // 5. Actualizar pedido
             pedido.Total = total;
             pedido.Currency = currency;
             pedido.EstadoPedido = EstadoPedido.Pagado.ToString();
 
             await _pedidoRepository.ActualizarPedidoAsync(pedido);
 
-            return OperationResult<Pedido>.Ok("", pedido);
+            return OperationResult<Pedido>.Ok("Pago confirmado. Pendiente de sincronización con PayPal.", pedido);
         }
         public async Task ProcesarRembolsoAsync(int pedidoId, string status, string refundId)
         {
@@ -309,21 +298,23 @@ namespace GestorInventario.Application.Services.Generic_Services
                     EmailCliente = pedido.IdUsuarioNavigation?.Email,
                     FechaRembolso = DateTime.UtcNow,
                     MotivoRembolso = "Rembolso solicitado por el usuario",
-                    EstadoRembolso = "REMBOLSO APROVADO",
+                    EstadoRembolso = EstadoRembolso.Aprobado.ToString(),
                     ReembolsoCompletado = true,
                     UsuarioId = usuarioActual,
                     PedidoId = pedido.Id,
                     RefundIdPayPal=refundId,
                     MontoRembolsado=pedido.Total,
                     Currency=pedido.Currency,
+                    TipoRembolso = TipoRembolso.Total.ToString(),
                  
                 };
                 await _paypalRepository.AgregarRembolsoAsync(rembolso);
             }
             else
             {
-                obtenerRembolso.EstadoRembolso = "REMBOLSO APROVADO";
+                obtenerRembolso.EstadoRembolso = EstadoRembolso.Aprobado.ToString();
                 obtenerRembolso.ReembolsoCompletado = true;
+                obtenerRembolso.TipoRembolso = TipoRembolso.Total.ToString();
                
                 obtenerRembolso.FechaRembolso = DateTime.UtcNow;
                 
@@ -365,12 +356,13 @@ namespace GestorInventario.Application.Services.Generic_Services
                 EmailCliente = pedido.IdUsuarioNavigation?.Email,
                 FechaRembolso = DateTime.UtcNow,
                 MotivoRembolso = motivo,
-                EstadoRembolso = "REMBOLSO PARACIAL APROVADO",
+                EstadoRembolso = EstadoRembolso.Aprobado.ToString(),
                 ReembolsoCompletado = true,
                 UsuarioId = usuarioActual,
                 MontoRembolsado=montoRembolsado,
                 Currency=currency,
-                RefundIdPayPal=refundId
+                RefundIdPayPal=refundId,
+                TipoRembolso = TipoRembolso.Parcial.ToString()
                
             };
 

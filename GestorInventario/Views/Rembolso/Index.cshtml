@@ -1,5 +1,6 @@
 ﻿@model RembolsosViewModel
 
+@using GestorInventario.enums
 @using GestorInventario.ViewModels.Rembolsos
 
 
@@ -93,7 +94,13 @@
                                 </p>
                                 <p class="mb-2">
                                     <strong>Estado Rembolso:</strong>
-                                    <span class="badge @(rembolso.EstadoRembolso == "Completado" ? "bg-success" : "bg-warning")">
+                                    @{
+                                        var estadoTexto = rembolso.EstadoRembolso;
+                                        var estadoClass = estadoTexto == EstadoRembolso.Aprobado.ToString() ? "bg-success"
+                                                        : estadoTexto == EstadoRembolso.Rechazado.ToString() ? "bg-danger"
+                                                        : "bg-warning";
+                                    }
+                                    <span class="badge @estadoClass">
                                         @rembolso.EstadoRembolso
                                     </span>
                                 </p>

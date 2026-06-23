@@ -26,6 +26,8 @@ namespace GestorInventario.Interfaces.Infraestructure.Repositories
         Task<OperationResult<PlanDetail>> ActualizarPlanAsync(PlanDetail plan);
         Task<OperationResult<UserSubscription>> AgregarSubscripcionUsuarioAsync(UserSubscription subscripcion);
         List<string> GetCategoriesFromEnum();
-
+        Task<PayPalPaymentDetail> ObtenerDetallePagoPorId(string paymentId);
+        
+            
     }
 }

@@ -26,12 +26,11 @@ namespace GestorInventario.Infraestructure.Controllers.PedidosControllers
         private readonly IPaginationHelper _paginationHelper;       
         private readonly ICurrentUserAccessor _currentUserAccessor;     
         private readonly IPedidoManagementService _pedidoService;
-        private readonly IPaymentService _paymentService;
+        
         public PedidosController( 
             ILogger<PedidosController> logger, 
             IPaginationHelper pagination,  
             ICurrentUserAccessor currentUser,  
-            IPaymentService paymentService,
             IPedidoRepository pedidoRepository,        
             IPolicyExecutor policyExecutor,         
             IPedidoManagementService pedidoService)
@@ -42,7 +41,7 @@ namespace GestorInventario.Infraestructure.Controllers.PedidosControllers
             _paginationHelper = pagination;          
             _currentUserAccessor = currentUser;      
             _pedidoService = pedidoService;
-            _paymentService = paymentService;
+       
         }
 
         [Authorize]

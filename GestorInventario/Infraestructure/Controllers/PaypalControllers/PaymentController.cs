@@ -7,8 +7,7 @@ using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.ViewModels.Paypal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
+
 
 
 
@@ -22,17 +21,17 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
         private readonly ICurrentUserAccessor _currentUserAccessor;     
         private readonly IPedidoManagementService _pedidoService;
         private readonly IPaymentService _paymentService;
-      
-     
+        private readonly IPaypalRepository _paypalRepository;
+        private readonly IBackgroundTaskQueue _background;
         public PaymentController(
             ILogger<PaymentController> logger,   
             ICurrentUserAccessor currentUser,       
             IPolicyExecutor policyExecutor, 
             IPaypalOrderService paypalOrderService,     
             IPedidoManagementService pedidoService, 
-            IPaymentService paymentService
-          
-           )
+            IPaymentService paymentService,
+            IPaypalRepository repo,
+            IBackgroundTaskQueue background)
         {
             _logger = logger;           
             _policyExecutor = policyExecutor;
@@ -40,7 +39,8 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
             _currentUserAccessor = currentUser;  
             _pedidoService = pedidoService;
             _paymentService = paymentService;
-            
+            _paypalRepository = repo;
+            _background = background;
            
            
         }
@@ -49,27 +49,25 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
         {
             try
             {
-                
-                var orderId = token ?? string.Empty;
-                //CaptureId->representa el id del pago en paypal
-                //total-> lo que has pagado
-                //currency-> la moneda
-                
-               var (captureId, total, currency) = await _paypalOrderService.CapturarPagoAsync(orderId);
-                
+                var paymentId = token ?? string.Empty;
 
-               var usuarioActual = _currentUserAccessor.GetCurrentUserId();
- 
-               var result = await _pedidoService.ConfirmarPagoDelPedidoAsync(usuarioActual,captureId,total,currency,orderId);
+                // Capturamos el pago en PayPal y guardamos el resultado en BD
+                // (pedido Pagado, payment detail y capture con PENDING_SYNC).
+                var (captureId, total, currency) = await _paypalOrderService.CapturarPagoAsync(paymentId);
+
+                var usuarioActual = _currentUserAccessor.GetCurrentUserId();
+                var result = await _pedidoService.ConfirmarPagoDelPedidoAsync(usuarioActual, captureId, total, currency, paymentId);
+
                 if (result.Success)
                 {
-                    return RedirectToAction("Index", "Pedidos");
+                    // Tras confirmar, sincronizamos los datos reales con PayPal y
+                    // llevamos al usuario directamente al detalle de su pago.
+                    return RedirectToAction(nameof(Sincronizar), new { id = paymentId, pedidoId = result.Data?.Id ?? 0 });
                 }
                 else
                 {
                     return RedirectToAction("Error", "Home");
                 }
-                    
             }
             catch (Exception ex)
             {
@@ -84,7 +82,8 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
             CultureHelper.SetInvariantCulture();
             try
             {
-                var resultado = await _policyExecutor.ExecutePolicyAsync(() => _paymentService.ReintentarPago(pedidoId));          
+
+                var resultado = await _policyExecutor.ExecutePolicyAsync(() => _paymentService.ReintentarPago(pedidoId));
                 if (resultado.Success)
                 {
                     return Redirect(resultado.Data);
@@ -106,27 +105,67 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
         }
         [Authorize]
         public async Task<IActionResult> Cancel()
-        {        
+        {
             return RedirectToAction("Index", "Productos");
         }
+
+        // Sobrescribe los datos de la BD con los reales de PayPal.
+        // Pensado para llamarse tras un pago (Success lo encadena) o manualmente
+        // desde un botón "Sincronizar" en la vista de detalle.
+        // Termina redirigiendo a DetallesPagoEjecutado para mostrar la factura ya actualizada.
         [Authorize]
-        public async Task<IActionResult> DetallesPagoEjecutado(string id, int pedidoId)
+        public async Task<IActionResult> Sincronizar(string id, int pedidoId)
         {
-            var result = await _policyExecutor.ExecutePolicyAsync(() => _pedidoService.SincronizarDetallePagoAsync(id, pedidoId));
-
-            if (!result.Success || result.Data == null)
+            // Encolamos la sincronización para no hacer esperar al usuario.
+            // El callback se ejecuta dentro de un scope nuevo de DI, por lo que las
+            // dependencias (DbContext, IPedidoManagementService, etc.) se resuelven ahí.
+            _background.Enqueue(async (sp, ct) =>
             {
-                _logger.LogError(result.Message);
-                return RedirectToAction(nameof(Index));
-            }
+                // Resolvemos IPedidoManagementService desde el scope del worker, no del controller.
+                var pedidoService = sp.GetRequiredService<IPedidoManagementService>();
+                var logger = sp.GetRequiredService<ILogger<PaymentController>>();
 
-            var paypalDetail = result.Data;
+                try
+                {
+                    var result = await pedidoService.SincronizarDetallePagoAsync(id, pedidoId);
+                    if (!result.Success || result.Data == null)
+                    {
+                        logger.LogError("Sincronización en background fallida para pago {PaymentId}: {Message}",
+                            id, result.Message);
+                    }
+                    else
+                    {
+                        logger.LogInformation("Sincronización en background completada para pago {PaymentId}", id);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Excepción al sincronizar en background el pago {PaymentId}", id);
+                }
+            });
+
+            // Volvemos al Index de pedidos inmediatamente, sin esperar a PayPal.
+            return RedirectToAction("Index", "Pedidos");
+        }
+
+
+        [Authorize]
+        public async Task<IActionResult> DetallesPagoEjecutado(string paymentId)
+        {
+            // Lee los datos directamente de la BD (sin tocar PayPal).
+            // Si necesitas datos frescos de PayPal, llama antes a Sincronizar.
+            var paypalDetail = await _paypalRepository.ObtenerDetallePagoPorId(paymentId);
+
+            if (paypalDetail == null)
+            {
+                _logger.LogError("No se encontró el detalle de pago {PaymentId} en BD", paymentId);
+                return RedirectToAction("Error", "Home");
+            }
 
             var ultimoCapture = paypalDetail.PayPalPaymentCaptures?
                 .OrderByDescending(c => c.Id)
                 .FirstOrDefault();
 
-            // ✅ Proteger contra null
             var ultimaInfoEnvio = paypalDetail.PayPalPaymentShippings
                 .OrderByDescending(c => c.Id)
                 .FirstOrDefault();
@@ -153,7 +192,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                 ShippingPostalCode = ultimaInfoEnvio?.PostalCode,
                 ShippingCountryCode = ultimaInfoEnvio?.CountryCode,
 
-                // Importe 
+                // Importe
                 AmountTotal = paypalDetail.AmountTotal,
                 AmountCurrency = paypalDetail.AmountCurrency,
                 AmountItemTotal = paypalDetail.AmountItemTotal,
@@ -164,7 +203,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                 PayeeEmail = paypalDetail.PayeeEmail,
                 Description = paypalDetail.Description,
 
-                // Datos del pago 
+                // Datos del pago
                 SaleId = ultimoCapture?.CaptureId,
                 CaptureStatus = ultimoCapture?.Status,
                 CaptureAmount = ultimoCapture?.Amount,
@@ -177,8 +216,6 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                 ExchangeRate = ultimoCapture?.ExchangeRate,
                 FinalCapture = ultimoCapture?.FinalCapture,
                 DisputeCategories = ultimoCapture?.DisputeCategories,
-
-              
 
                 PayPalPaymentItems = paypalDetail.PayPalPaymentItems?.Select(item => new PayPalPaymentItemViewModel
                 {

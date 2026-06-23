@@ -36,7 +36,7 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
         private readonly IPayPalOrderMappingService _mappingService;   
         private readonly IPedidoManagementService _pedidoService;
         private readonly IBackgroundTaskQueue _background;
-        private readonly IPaypalService _paypalService;
+      
         private readonly IPaypalRefundService _refundService;
         public RembolsoController(
             IPolicyExecutor policyExecutor, 
@@ -49,8 +49,7 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
              IPaymentService paymentService,
              IPayPalOrderMappingService mappingService,
              IPedidoManagementService pedido,
-             IBackgroundTaskQueue provider,
-             IPaypalService paypalService,
+             IBackgroundTaskQueue provider,   
              IPaypalRefundService refund
             )
         {
@@ -65,7 +64,6 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
             _mappingService = mappingService;      
             _pedidoService = pedido;
             _background = provider;
-            _paypalService = paypalService;
             _refundService = refund;
 
 

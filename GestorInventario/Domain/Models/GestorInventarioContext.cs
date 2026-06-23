@@ -45,7 +45,8 @@ public partial class GestorInventarioContext : DbContext
 
     public virtual DbSet<Usuario> Usuarios { get; set; }
 
-  
+
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<DetallePedido>(entity =>
@@ -99,26 +100,31 @@ public partial class GestorInventarioContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.DisputeCategories)
                 .HasMaxLength(255)
-                .IsUnicode(false);
+                .IsUnicode(false)
+                .HasDefaultValue("PENDING_SYNC");
             entity.Property(e => e.ExchangeRate).HasColumnType("decimal(20, 10)");
             entity.Property(e => e.PaymentId)
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.ProtectionEligibility)
-                .HasMaxLength(50)
-                .IsUnicode(false);
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasDefaultValue("PENDING_SYNC");
             entity.Property(e => e.ReceivableAmount).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.ReceivableCurrency)
-                .HasMaxLength(10)
-                .IsUnicode(false);
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasDefaultValue("PENDING_SYNC");
             entity.Property(e => e.Status)
                 .HasMaxLength(20)
                 .IsUnicode(false)
+                .HasDefaultValue("PENDING_SYNC")
                 .HasColumnName("Status ");
             entity.Property(e => e.TransactionFeeAmount).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.TransactionFeeCurrency)
-                .HasMaxLength(10)
-                .IsUnicode(false);
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasDefaultValue("PENDING_SYNC");
             entity.Property(e => e.UpdateTime)
                 .HasDefaultValueSql("(getutcdate())")
                 .HasColumnType("datetime");
@@ -143,7 +149,7 @@ public partial class GestorInventarioContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("id");
             entity.Property(e => e.AmountCurrency)
-                .HasMaxLength(10)
+                .HasMaxLength(20)
                 .IsUnicode(false)
                 .HasColumnName("amount_currency");
             entity.Property(e => e.AmountItemTotal)
@@ -164,35 +170,43 @@ public partial class GestorInventarioContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("description");
             entity.Property(e => e.Intent)
-                .HasMaxLength(20)
+                .HasMaxLength(50)
                 .IsUnicode(false)
+                .HasDefaultValue("PENDING_SYNC")
                 .HasColumnName("intent");
             entity.Property(e => e.OrderStatus)
-                .HasMaxLength(25)
-                .IsUnicode(false);
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasDefaultValue("PENDING_SYNC");
             entity.Property(e => e.PayeeEmail)
                 .HasMaxLength(100)
                 .IsUnicode(false)
+                .HasDefaultValue("PENDING_SYNC")
                 .HasColumnName("payee_email");
             entity.Property(e => e.PayeeMerchantId)
-                .HasMaxLength(50)
+                .HasMaxLength(100)
                 .IsUnicode(false)
+                .HasDefaultValue("PENDING_SYNC")
                 .HasColumnName("payee_merchant_id");
             entity.Property(e => e.PayerEmail)
                 .HasMaxLength(100)
                 .IsUnicode(false)
+                .HasDefaultValue("PENDING_SYNC")
                 .HasColumnName("payer_email");
             entity.Property(e => e.PayerFirstName)
                 .HasMaxLength(50)
                 .IsUnicode(false)
+                .HasDefaultValue("PENDING_SYNC")
                 .HasColumnName("payer_first_name");
             entity.Property(e => e.PayerId)
                 .HasMaxLength(50)
                 .IsUnicode(false)
+                .HasDefaultValue("PENDING_SYNC")
                 .HasColumnName("payer_id");
             entity.Property(e => e.PayerLastName)
                 .HasMaxLength(50)
                 .IsUnicode(false)
+                .HasDefaultValue("PENDING_SYNC")
                 .HasColumnName("payer_last_name");
             entity.Property(e => e.UpdateTime)
                 .HasDefaultValueSql("(getutcdate())")
@@ -444,6 +458,9 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false);
             entity.Property(e => e.RefundIdPayPal)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.TipoRembolso)
                 .HasMaxLength(20)
                 .IsUnicode(false);
 

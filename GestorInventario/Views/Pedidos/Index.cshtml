@@ -135,14 +135,14 @@
                                         @{
                                             // Buscar el capture asociado 
                                             var capture = pedido.PayPalPaymentCaptures?.FirstOrDefault();
-                                            var orderId = capture?.PaymentId; 
+                                            var paymentId = capture?.PaymentId; 
                                         }
 
-                                        @if (!string.IsNullOrEmpty(orderId))
+                                        @if (!string.IsNullOrEmpty(paymentId))
                                         {
                                             <a asp-action="DetallesPagoEjecutado"
                                                asp-controller="Payment"
-                                               asp-route-id="@orderId"
+                                               asp-route-paymentId="@paymentId"
                                                asp-route-pedidoId="@pedido.Id"
                                                class="btn btn-outline-info">
                                                 Detalles del Pago
@@ -183,18 +183,26 @@
                                         @{
                                             // Buscar el capture asociado
                                             var capture = pedido.PayPalPaymentCaptures?.FirstOrDefault();
-                                            var orderId = capture?.PaymentId;
+                                            var paymentId = capture?.PaymentId;
                                         }
                                       
-                                        @if (!string.IsNullOrEmpty(orderId))
+                                        @if (!string.IsNullOrEmpty(paymentId))
                                         {
                                             <a asp-action="DetallesPagoEjecutado"
                                                asp-controller="Payment"
-                                               asp-route-id="@orderId"
-                                               asp-route-pedidoId="@pedido.Id"
+                                               asp-route-paymentId="@paymentId"      
                                                class="btn btn-outline-info">
                                                 Detalles del Pago
                                             </a>
+                                           
+                                              
+                                            <button type="button"
+                                                    class="btn btn-outline-warning flex-fill sincronizar-btn"
+                                                    data-pedido-id="@pedido.Id"
+                                                    data-payment-id="@paymentId" disabled>
+                                                Sincronizar
+                                            </button>
+                                            
                                         }
                                         else
                                         {
@@ -350,4 +358,5 @@
     <script src="~/js/rembolso.js" asp-append-version="true"></script>
     <script src="~/js/cancelarPedido.js" asp-append-version="true"></script>
     <script src="~/js/confirmarEntrega.js" asp-append-version="true"></script>
+    <script src="~/js/sincronizar.js" asp-append-version="true"></script>
 }

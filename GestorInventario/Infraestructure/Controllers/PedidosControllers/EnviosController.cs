@@ -14,15 +14,13 @@ namespace GestorInventario.Infraestructure.Controllers.PedidosControllers
     {
         private readonly IPedidoRepository _pedidoRepository;
         private readonly IPaypalOrderTrackingService _paypalOrderService;
-        private readonly ILogger<EnviosController> _logger;
-        private readonly IPaypalService _paypalService;
+        private readonly ILogger<EnviosController> _logger;     
         private readonly IPedidoManagementService _pedidoService;
-        public EnviosController(IPedidoRepository pedidoRepository, IPaypalOrderTrackingService paypalOrderService, IPaypalService paypalService, ILogger<EnviosController> logger, IPedidoManagementService pedido)
+        public EnviosController(IPedidoRepository pedidoRepository, IPaypalOrderTrackingService paypalOrderService,  ILogger<EnviosController> logger, IPedidoManagementService pedido)
         {
             _pedidoRepository = pedidoRepository;
             _paypalOrderService = paypalOrderService;
             _logger = logger;
-            _paypalService=paypalService;
             _pedidoService = pedido;
         }  
         [Authorize]

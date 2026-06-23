@@ -6,6 +6,7 @@ using GestorInventario.Application.DTOs.User;
 using GestorInventario.Application.DTOS.Paypal.Responses.POST.Order;
 using GestorInventario.Application.Services.Common;
 using GestorInventario.Domain.Models;
+using GestorInventario.enums;
 using GestorInventario.enums.Pedido;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.Common;
@@ -335,8 +336,9 @@ namespace GestorInventario.Application.Services.Generic_Services
                 NombreCliente = form.NombreCliente,
                 EmailCliente = emailCliente,
                 FechaRembolso = form.FechaRembolso,
-                EstadoRembolso = "EN REVISION PARA APROBACION",
+                EstadoRembolso = EstadoRembolso.EnRevision.ToString(),
                 MotivoRembolso = form.MotivoRembolso,
+                TipoRembolso = TipoRembolso.Total.ToString(),
                 PedidoId = obtenerNumeroPedido.Id,
             };
 

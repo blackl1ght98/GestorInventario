@@ -31,6 +31,8 @@ public partial class Rembolso
 
     public string? RefundIdPayPal { get; set; }
 
+    public string? TipoRembolso { get; set; }
+
     public virtual Pedido Pedido { get; set; } = null!;
 
     public virtual Usuario Usuario { get; set; } = null!;

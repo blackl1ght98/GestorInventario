@@ -22,11 +22,10 @@ namespace GestorInventario.Infraestructure.Controllers.ProveedorController
         private readonly IPolicyExecutor _policyExecutor;
         private readonly IPaginationHelper _paginationHelper;
         private readonly IUserRepository _userRepository;
-        private readonly ICurrentUserAccessor _current;
+       
         public ProveedorController( 
             ILogger<ProveedorController> logger, 
             IUserRepository userRepository, 
-            ICurrentUserAccessor currentUserAccessor,
             IProveedorRepository proveedorRepository,  
             IPolicyExecutor policyExecutor, 
             IPaginationHelper pagination)
@@ -35,8 +34,7 @@ namespace GestorInventario.Infraestructure.Controllers.ProveedorController
             _proveedorRepository= proveedorRepository;           
             _policyExecutor = policyExecutor;
             _paginationHelper = pagination;
-            _userRepository = userRepository;
-            _current = currentUserAccessor;
+            _userRepository = userRepository;  
         }
       
      
