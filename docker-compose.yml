@@ -28,7 +28,7 @@ services:
       # Es importante que donde pongamos el .bak dentro del contenedor sea una ruta que SQL Server pueda leer, por eso lo ponemos dentro de /var/opt/mssql/data, aunque ponemos aqui el .bak solo para poder
       # restaurar la base de datos, luego el .bak no es necesario y se puede eliminar o mover a otra carpeta dentro del contenedor para mantener el contenedor más limpio, aqui solo van archivos .mdf y .ldf
       #que son los archivos de datos y log de SQL Server, el .bak es solo para la restauración inicial
-      - ./GestorInventario-2026-06-22.bak:/var/opt/mssql/data/GestorInventario-2026-06-22.bak
+      - ./GestorInventario-2026-06-23.bak:/var/opt/mssql/data/GestorInventario-2026-06-23.bak
 
     healthcheck:
       # Comprueba si SQL Server está listo ejecutando SELECT 1
@@ -75,12 +75,12 @@ services:
         /opt/mssql-tools18/bin/sqlcmd -S localhost -U ${DB_SA_USERNAME} -P ${DB_SA_PASSWORD} -C -Q "
         RESTORE DATABASE GestorInventario 
         -- Ruta donde pusimos el .back (mirar volumes ya que en esa seccion es donde decimos que va a estar ahi)
-        FROM DISK = '/var/opt/mssql/data/GestorInventario-2026-06-22.bak'
+        FROM DISK = '/var/opt/mssql/data/GestorInventario-2026-06-23.bak'
         WITH  
         -- Extraemos del .back los archivos .mdf y .ldf y lo dejamos en el directorio /var/opt/mssql/data
         MOVE 'GestorInventario' TO '/var/opt/mssql/data/GestorInventario.mdf',  
         MOVE 'GestorInventario_log' TO '/var/opt/mssql/data/GestorInventario_log.ldf',
-        FILE = 13, REPLACE, RECOVERY;" || echo "RESTORE FALLÓ - revisa logs arriba";
+        FILE = 14, REPLACE, RECOVERY;" || echo "RESTORE FALLÓ - revisa logs arriba";
         # ============================= CREACIÓN DE USUARIOS =================================================================
         echo "AQUI EMPIEZA CREACION";
         echo "SQLUSER=${DB_SQLUSER}";

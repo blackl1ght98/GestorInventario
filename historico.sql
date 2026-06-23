@@ -1,2 +1,2 @@
 RESTORE HEADERONLY
-FROM DISK = 'C:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\Backup\GestorInventario-2025629-10-14-552.bak';
+FROM DISK = 'C:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\Backup\GestorInventario.bak';

@@ -96,7 +96,7 @@
                                    class="btn btn-outline-primary">
                                     <i class="bi bi-eye me-2"></i>Ver Detalles
                                 </a>
-
+                              
                                 @if (User.IsAdministrador())
                                 {
                                     <div class="btn-group" role="group">
@@ -120,6 +120,7 @@
                                             @(pedido.EstadoPedido == "Entregado" ? "disabled" : "")>
                                             Confirmar entrega
                                         </button>
+                                      
                                     </div>
 
                                     <button class="btn btn-success activate-action-button mt-2 envio-btn"
@@ -147,6 +148,12 @@
                                                class="btn btn-outline-info">
                                                 Detalles del Pago
                                             </a>
+                                            <button type="button"
+                                                    class="btn btn-outline-info"
+                                                    data-pedido-id="@pedido.Id"
+                                                    data-payment-id"="@paymentId" disabled>
+                                                Sincronizar (En construccion)
+                                            </button>
                                         }
                                         else
                                         {
@@ -178,6 +185,8 @@
                                             @(pedido.EstadoPedido == "Entregado" ? "disabled" : "")>
                                             Confirmar entrega
                                         </button>
+                                        
+                                      
                                     </div>
                                     <div class="d-grid gap-2 mt-2">                              
                                         @{
@@ -196,12 +205,7 @@
                                             </a>
                                            
                                               
-                                            <button type="button"
-                                                    class="btn btn-outline-warning flex-fill sincronizar-btn"
-                                                    data-pedido-id="@pedido.Id"
-                                                    data-payment-id="@paymentId" disabled>
-                                                Sincronizar
-                                            </button>
+                                           
                                             
                                         }
                                         else
@@ -214,7 +218,6 @@
                                             </a>
                                         }
 
-                                          
                                     </div>
                                 }
                             </div>
