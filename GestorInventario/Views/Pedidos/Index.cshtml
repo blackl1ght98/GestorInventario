@@ -148,12 +148,14 @@
                                                class="btn btn-outline-info">
                                                 Detalles del Pago
                                             </a>
-                                            <button type="button"
-                                                    class="btn btn-outline-info"
-                                                    data-pedido-id="@pedido.Id"
-                                                    data-payment-id"="@paymentId" disabled>
-                                                Sincronizar (En construccion)
-                                            </button>
+                                            <a asp-action="Sincronizar"
+                                               asp-controller="Payment"
+                                               asp-route-paymentId="@paymentId"
+                                               asp-route-pedidoId="@pedido.Id"
+                                               class="btn btn-outline-info">
+                                               Sincronizar
+                                            </a>
+                                          
                                         }
                                         else
                                         {

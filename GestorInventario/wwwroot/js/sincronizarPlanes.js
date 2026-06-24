@@ -1,7 +1,9 @@
-﻿document.getElementById('btnSincronizar')?.addEventListener('click', async function () {
-    // Valores de Razor
-    const totalPaginas = @Model.TotalPaginas;
-    const paginaActual = @Model.PaginaActual;
+﻿
+let btn = document.getElementById('btnSincronizar');
+btn.addEventListener('click', async function () {
+  
+    const totalPaginas = btn.dataset.totalPaginas;
+    const paginaActual = btn.dataset.paginaActual
     const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
 
     const modalEl = document.getElementById('syncModal');
@@ -45,8 +47,7 @@
             } else {
                 errores++;
                 detalle.textContent = `Error en página ${pagina}: ${data.message}`;
-                // Opcional: detener o continuar
-                // break;
+               
             }
 
         } catch (error) {

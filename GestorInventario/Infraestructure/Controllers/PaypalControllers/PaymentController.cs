@@ -114,8 +114,10 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
         // desde un botón "Sincronizar" en la vista de detalle.
         // Termina redirigiendo a DetallesPagoEjecutado para mostrar la factura ya actualizada.
         [Authorize]
-        public async Task<IActionResult> Sincronizar(string id, int pedidoId)
+        public async Task<IActionResult> Sincronizar(string paymentId, int pedidoId)
         {
+
+           
             // Encolamos la sincronización para no hacer esperar al usuario.
             // El callback se ejecuta dentro de un scope nuevo de DI, por lo que las
             // dependencias (DbContext, IPedidoManagementService, etc.) se resuelven ahí.
@@ -127,20 +129,20 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
 
                 try
                 {
-                    var result = await pedidoService.SincronizarDetallePagoAsync(id, pedidoId);
+                    var result = await pedidoService.SincronizarDetallePagoAsync(paymentId, pedidoId);
                     if (!result.Success || result.Data == null)
                     {
                         logger.LogError("Sincronización en background fallida para pago {PaymentId}: {Message}",
-                            id, result.Message);
+                            paymentId, result.Message);
                     }
                     else
                     {
-                        logger.LogInformation("Sincronización en background completada para pago {PaymentId}", id);
+                        logger.LogInformation("Sincronización en background completada para pago {PaymentId}", paymentId);
                     }
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Excepción al sincronizar en background el pago {PaymentId}", id);
+                    logger.LogError(ex, "Excepción al sincronizar en background el pago {PaymentId}", paymentId);
                 }
             });
 
