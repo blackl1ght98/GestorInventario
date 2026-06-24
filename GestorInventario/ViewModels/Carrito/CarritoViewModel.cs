@@ -12,7 +12,7 @@ namespace GestorInventario.ViewModels.Carrito
         public int TotalPaginas { get; set; }
         public int PaginaActual { get; set; }
         public decimal Subtotal { get; set; }
-        public decimal Impuestos { get; set; }   // ← Nuevo
+        public decimal Impuestos { get; set; }  
         public decimal Shipping { get; set; } = 0.00m; // Costo de envío fijo
         public decimal Total { get; set; }
     }

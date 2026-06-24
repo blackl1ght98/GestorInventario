@@ -9,12 +9,12 @@ namespace GestorInventario.Infraestructure.Repositories.RembolsoRepository
     public class RembolsoRepository:IRembolsoRepository
     {
         private readonly GestorInventarioContext _context;
-        private readonly ILogger<RembolsoRepository> _logger;
+       
 
-        public RembolsoRepository(GestorInventarioContext context, ILogger<RembolsoRepository> logger)
+        public RembolsoRepository(GestorInventarioContext context)
         {
             _context = context;
-            _logger = logger;
+           
         }
 
         public Task<IQueryable<Rembolso>> ObtenerRembolsos()

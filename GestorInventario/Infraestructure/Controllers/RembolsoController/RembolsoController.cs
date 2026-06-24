@@ -182,8 +182,8 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
                     // 4. Notificación asíncrona
                     _background.Enqueue(async (sp, ct) =>
                     {
-                        var emailService = sp.GetRequiredService<IReembolsoNotificationService>();
-                        await emailService.EnviarEmailNotificacionRembolso(
+                        var notificar = sp.GetRequiredService<IPaypalService>();
+                        await notificar.EnviarEmailNotificacionRembolso(
                             pedido.Id,
                             refundResult.Data.AmountRefunded,
                             "Reembolso Aprobado");
@@ -300,8 +300,8 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
                 // ============================================
                 _background.Enqueue(async (sp, ct) =>
                 {
-                    var emailService = sp.GetRequiredService<IReembolsoNotificationService>();
-                    await emailService.EnviarEmailNotificacionRembolso(
+                    var notificar = sp.GetRequiredService<IPaypalService>();
+                    await notificar.EnviarEmailNotificacionRembolso(
                         detallePedido.Pedido.Id,
                         detallePedido.Producto.Precio,
                         request.Motivo);

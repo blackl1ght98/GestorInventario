@@ -10,12 +10,12 @@ namespace GestorInventario.Infraestructure.Repositories.ProveedorRepository
     public class ProveedorRepository : IProveedorRepository
     {
         private readonly GestorInventarioContext _context;
-        private readonly ILogger<ProveedorRepository> _logger;
+       
      
-        public ProveedorRepository(GestorInventarioContext context, ILogger<ProveedorRepository> logger)
+        public ProveedorRepository(GestorInventarioContext context)
         {
             _context = context;
-            _logger = logger;
+           
            
         }
 

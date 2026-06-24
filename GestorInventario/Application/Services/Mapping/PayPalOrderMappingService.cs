@@ -6,7 +6,7 @@ using GestorInventario.Interfaces.Application.ExternalServices;
 using Newtonsoft.Json;
 using System.Globalization;
 
-namespace GestorInventario.Application.Services
+namespace GestorInventario.Application.Services.Mapping
 {
     public class PayPalOrderMappingService: IPayPalOrderMappingService
     {

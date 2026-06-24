@@ -36,8 +36,7 @@
         public decimal? ExchangeRate { get; set; }
         public bool? FinalCapture { get; set; }
         public string DisputeCategories { get; set; }
-        public string TrackingId { get; set; }
-        public string TrackingStatus { get; set; }
+
         public List<PayPalPaymentItemViewModel>? PayPalPaymentItems { get; set; }
     }
 }

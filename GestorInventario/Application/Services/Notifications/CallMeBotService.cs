@@ -2,7 +2,7 @@
 
 namespace GestorInventario.Application.Services.Notifications
 {
-    public class CallMeBotService : INotificationService
+    public class CallMeBotService : ICallMeBotService
     {
         private readonly HttpClient _httpClient;
         private readonly string _username;

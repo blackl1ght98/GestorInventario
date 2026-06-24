@@ -21,9 +21,9 @@ namespace GestorInventario.Configuracion.Strategies
                 options.Cookie.HttpOnly = true;            
                 options.Cookie.SecurePolicy = CookieSecurePolicy.Always; 
                 options.Cookie.SameSite = SameSiteMode.Lax;  
-                options.Cookie.IsEssential = true;           // Necesario para GDPR/funcionalidad básica
+                options.Cookie.IsEssential = true;           
 
-                // Rutas de login/logout (consistente con tu proyecto)
+                // Rutas de login/logout 
                 options.LoginPath = "/Auth/Login";
                 options.LogoutPath = "/Auth/Logout";
                 options.AccessDeniedPath = "/Auth/AccessDenied"; 

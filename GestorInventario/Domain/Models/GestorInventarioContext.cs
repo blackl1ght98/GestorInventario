@@ -19,6 +19,8 @@ public partial class GestorInventarioContext : DbContext
 
     public virtual DbSet<Monedum> Moneda { get; set; }
 
+    public virtual DbSet<Notificacion> Notificacions { get; set; }
+
     public virtual DbSet<PayPalPaymentCapture> PayPalPaymentCaptures { get; set; }
 
     public virtual DbSet<PayPalPaymentDetail> PayPalPaymentDetails { get; set; }
@@ -45,7 +47,7 @@ public partial class GestorInventarioContext : DbContext
 
     public virtual DbSet<Usuario> Usuarios { get; set; }
 
-
+   
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -80,6 +82,29 @@ public partial class GestorInventarioContext : DbContext
             entity.Property(e => e.Nombre)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<Notificacion>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC077EE9AF45");
+
+            entity.ToTable("Notificacion");
+
+            entity.Property(e => e.FechaCreacion).HasColumnType("datetime");
+            entity.Property(e => e.Mensaje)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.Tipo)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.Titulo)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.Usuario).WithMany(p => p.Notificacions)
+                .HasForeignKey(d => d.UsuarioId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_UsuarioId");
         });
 
         modelBuilder.Entity<PayPalPaymentCapture>(entity =>

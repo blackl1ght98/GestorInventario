@@ -69,60 +69,7 @@ namespace GestorInventario.Application.Politicas_Resilencia
             return combinedPolicy;
         }
 
-        public IAsyncPolicy GetCombinedPolicyAsync()
-        {
-            var retryPolicy = Policy
-                .Handle<SqlException>()
-                .Or<DbUpdateException>()
-                .Or<TimeoutException>()
-                .Or<HttpRequestException>()
-                .WaitAndRetryAsync(
-                    retryCount: 5,
-                    sleepDurationProvider: attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt)),
-                    onRetry: (exception, calculatedWaitDuration, attempt, context) =>
-                    {
-                        _logger.LogWarning($"Error: {exception.Message}. Waiting {calculatedWaitDuration} before next retry. Retry attempt {attempt}");
-                    });
-
-            var circuitBreakerPolicy = Policy
-                .Handle<SqlException>()
-                .Or<DbUpdateException>()
-                .Or<TimeoutException>()
-                .Or<HttpRequestException>()
-                .CircuitBreakerAsync(
-                    exceptionsAllowedBeforeBreaking: 5,
-                    durationOfBreak: TimeSpan.FromSeconds(30),
-                    onBreak: (exception, timespan, context) =>
-                    {
-                        _logger.LogError(exception, $"Circuito abierto debido a una excepción: {exception.Message}. Duración: {timespan}", exception.Message, timespan);
-                    },
-                    onReset: (context) =>
-                    {
-                        _logger.LogInformation("Circuito cerrado. Operaciones normalizadas.");
-                    },
-                    onHalfOpen: () =>
-                    {
-                        _logger.LogInformation("Circuito en estado Half-Open: La siguiente llamada será de prueba.");
-                    });
-
-            var fallbackPolicy = Policy
-                .Handle<Exception>()
-                .FallbackAsync(
-                    fallbackAction: async (context, cancellationToken) =>
-                    {
-                        _logger.LogError("Se ha producido un error. Se está ejecutando la acción de fallback para operación sin retorno.");
-                        await Task.CompletedTask;
-                    },
-                    onFallbackAsync: async (delegateResult, context) =>
-                    {
-                        _logger.LogError($"Error: {delegateResult.Message}. Se ha ejecutado la acción de fallback.");
-                        await Task.CompletedTask;
-                    });
-
-            var combinedNonGenericPolicy = Policy.WrapAsync(retryPolicy, circuitBreakerPolicy);
-            var combinedPolicy = fallbackPolicy.WrapAsync(combinedNonGenericPolicy);
-            return combinedPolicy;
-        }
+     
 
         public Policy<T> GetCombinedPolicy<T>()
         {

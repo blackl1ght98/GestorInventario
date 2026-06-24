@@ -6,7 +6,7 @@ using GestorInventario.Application.DTOs.User;
 using GestorInventario.Application.DTOS.Paypal.Responses.POST.Order;
 using GestorInventario.Application.Services.Common;
 using GestorInventario.Domain.Models;
-using GestorInventario.enums;
+using GestorInventario.enums.Paypal;
 using GestorInventario.enums.Pedido;
 using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.Common;

@@ -1,6 +1,6 @@
 ﻿namespace GestorInventario.Interfaces.Application.Common
 {
-    public interface INotificationService
+    public interface ICallMeBotService
     {
         Task<bool> SendWhatsAppNotificationAsync(string message);
     }

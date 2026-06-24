@@ -66,7 +66,7 @@ namespace GestorInventario.Application.Services.Generic_Services
 
                     // Resolvemos el servicio dentro del scope creado
                     var stockService = scope.ServiceProvider
-                        .GetRequiredService<IStockNotificationService>();
+                        .GetRequiredService<IStockCheckService>();
 
                     /*
                      * PROPAGACIÓN DEL CANCELLATION TOKEN:

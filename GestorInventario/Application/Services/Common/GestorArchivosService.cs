@@ -4,14 +4,13 @@ namespace GestorInventario.Application.Services.Common
 {
     public class GestorArchivosService : IGestorArchivos
     {
-        private readonly IWebHostEnvironment env; // Para poder localizar wwwroot
-        private readonly IHttpContextAccessor httpContextAccessor; // Para conocer la configuración del servidor para construir la url de la imagen
+        private readonly IWebHostEnvironment _env; // Para poder localizar wwwroot
+       
 
-        public GestorArchivosService(IWebHostEnvironment env,
-            IHttpContextAccessor httpContextAccessor)
+        public GestorArchivosService(IWebHostEnvironment env)
         {
-            this.env = env;
-            this.httpContextAccessor = httpContextAccessor;
+            _env = env;
+          
         }
 
         public Task BorrarArchivo(string ruta, string carpeta)
@@ -19,7 +18,7 @@ namespace GestorInventario.Application.Services.Common
             if (ruta != null)
             {
                 var nombreArchivo = Path.GetFileName(ruta);
-                string directorioArchivo = Path.Combine(env.WebRootPath, carpeta, nombreArchivo);
+                string directorioArchivo = Path.Combine(_env.WebRootPath, carpeta, nombreArchivo);
 
                 if (File.Exists(directorioArchivo))
                 {
@@ -30,18 +29,13 @@ namespace GestorInventario.Application.Services.Common
             return Task.FromResult(0);
         }
 
-        public async Task<string> EditarArchivo(byte[] contenido, string extension, string carpeta, string ruta
-            )
-        {
-            await BorrarArchivo(ruta, carpeta);
-            return await GuardarArchivo(contenido, extension, carpeta);
-        }
+
 
         public async Task<string> GuardarArchivo(byte[] contenido, string extension, string carpeta)
         {
             var nombreArchivo = $"{Guid.NewGuid()}{extension}";
 
-            string folder = Path.Combine(env.WebRootPath, carpeta);
+            string folder = Path.Combine(_env.WebRootPath, carpeta);
 
             if (!Directory.Exists(folder))
             {

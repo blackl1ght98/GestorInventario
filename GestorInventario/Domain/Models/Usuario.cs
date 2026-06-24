@@ -45,6 +45,8 @@ public partial class Usuario
 
     public virtual Role IdRolNavigation { get; set; } = null!;
 
+    public virtual ICollection<Notificacion> Notificacions { get; set; } = new List<Notificacion>();
+
     public virtual ICollection<Pedido> Pedidos { get; set; } = new List<Pedido>();
 
     public virtual ICollection<Proveedore> Proveedores { get; set; } = new List<Proveedore>();

@@ -23,6 +23,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
         private readonly IPaymentService _paymentService;
         private readonly IPaypalRepository _paypalRepository;
         private readonly IBackgroundTaskQueue _background;
+        
         public PaymentController(
             ILogger<PaymentController> logger,   
             ICurrentUserAccessor currentUser,       
@@ -117,7 +118,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
         public async Task<IActionResult> Sincronizar(string paymentId, int pedidoId)
         {
 
-           
+            var currentUser = _currentUserAccessor.GetCurrentUserId();
             // Encolamos la sincronización para no hacer esperar al usuario.
             // El callback se ejecuta dentro de un scope nuevo de DI, por lo que las
             // dependencias (DbContext, IPedidoManagementService, etc.) se resuelven ahí.
@@ -125,8 +126,11 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
             {
                 // Resolvemos IPedidoManagementService desde el scope del worker, no del controller.
                 var pedidoService = sp.GetRequiredService<IPedidoManagementService>();
+                var notificationService = sp.GetRequiredService<INotificationService>();
+               
                 var logger = sp.GetRequiredService<ILogger<PaymentController>>();
-
+          
+            
                 try
                 {
                     var result = await pedidoService.SincronizarDetallePagoAsync(paymentId, pedidoId);
@@ -137,7 +141,8 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                     }
                     else
                     {
-                        logger.LogInformation("Sincronización en background completada para pago {PaymentId}", paymentId);
+                     logger.LogInformation("Sincronización en background completada para pago {PaymentId}", paymentId);
+                     await  notificationService.CrearNotificacion(currentUser,"Sincronizacion completada", "Sicronizacion completada con exito", "INFO");
                     }
                 }
                 catch (Exception ex)

@@ -9,13 +9,15 @@ using GestorInventario.Application.Services.Email_Services;
 using GestorInventario.Application.Services.External_Sevices;
 using GestorInventario.Application.Services.External_Sevices.Refunds;
 using GestorInventario.Application.Services.Generic_Services;
+using GestorInventario.Application.Services.Mapping;
 using GestorInventario.Application.Services.Notifications;
 using GestorInventario.Application.Services.Products;
+using GestorInventario.Application.Services.Repository_Services;
+using GestorInventario.Application.Services.Syncs;
 using GestorInventario.Application.Services.User;
-using GestorInventario.Configuracion;
-using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Repositories.AdminRepository;
 using GestorInventario.Infraestructure.Repositories.CarritoRepository;
+using GestorInventario.Infraestructure.Repositories.NotificacionRepository;
 using GestorInventario.Infraestructure.Repositories.PaymentRepository;
 using GestorInventario.Infraestructure.Repositories.PaypalRepository;
 using GestorInventario.Infraestructure.Repositories.PedidoRepository;
@@ -53,6 +55,7 @@ namespace GestorInventario.MetodosExtension
             services.AddScoped<IProveedorRepository, ProveedorRepository>();
             services.AddScoped<IPaypalRepository, PaypalRepository>();
             services.AddScoped<IPaymentRepository, PaymentRepository>();
+            services.AddScoped<INotificationRepository, NotificationRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IBaseEmail, BaseEmail>();
             return services;
@@ -72,14 +75,14 @@ namespace GestorInventario.MetodosExtension
             services.AddScoped<IRefreshTokenStrategyFactory, RefreshTokenStrategyFactory>();
             services.AddScoped<ILoginStrategyFactory, LoginStrategyFactory>();
             services.AddScoped<ILoginGenerator, LoginGenerator>();
-           services.AddHttpClient<INotificationService, CallMeBotService>();
+           services.AddHttpClient<ICallMeBotService, CallMeBotService>();
 
             // Servicios de Notificaciones y Documentos
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IPdfService, PdfService>();
             services.AddScoped<IBarCodeService, BarCodeService>();
-            services.AddScoped<IStockNotificationService, StockNotificationService>();
-            services.AddScoped<IReembolsoNotificationService, ReembolsoNotificationService>();
+            services.AddScoped<IStockCheckService, StockCheckService>();
+           
 
             // Servicios de Gestión (Core Business)
             services.AddScoped<IUserManagementService, UserManagementService>();
@@ -88,7 +91,7 @@ namespace GestorInventario.MetodosExtension
             services.AddScoped<IPedidoManagementService, PedidoManagementService>();
             services.AddScoped<IPaymentService, PaymentService>();
             services.AddScoped<ICarritoService, CarritoService>();
-
+            services.AddScoped<INotificationService, NotificacionService>();
             // Otros servicios de aplicación
             services.AddScoped<IPaypalService, PaypalService>();
             services.AddScoped<ICreateSunscription, CreateSunscription>();

@@ -18,7 +18,5 @@
         }
 
         public int Radio { get; set; } = 3;
-
-        public int TotalPaginas { get; set; }
     }
 }

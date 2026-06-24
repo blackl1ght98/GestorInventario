@@ -5,7 +5,7 @@ using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using System.Globalization;
 
-namespace GestorInventario.Application.Services
+namespace GestorInventario.Application.Services.Syncs
 {
     public class SyncService: ISyncService
     {

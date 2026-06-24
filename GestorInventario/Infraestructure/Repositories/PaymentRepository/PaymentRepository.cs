@@ -10,12 +10,12 @@ namespace GestorInventario.Infraestructure.Repositories.PaymentRepository
     public class PaymentRepository:IPaymentRepository
     {
         public readonly GestorInventarioContext _context;
-        private readonly ILogger<PaymentRepository> _logger;
+     
    
-        public PaymentRepository(GestorInventarioContext context, ILogger<PaymentRepository> logger)
+        public PaymentRepository(GestorInventarioContext context)
         {
             _context = context;
-            _logger = logger;
+          
          
         }
     

@@ -1,4 +1,4 @@
-﻿using GestorInventario.Configuracion;
+﻿using GestorInventario.Application.DTOS;
 using GestorInventario.Interfaces.Application.Common;
 using Microsoft.Extensions.Options;
 

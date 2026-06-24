@@ -16,11 +16,7 @@ namespace GestorInventario.Infraestructure.Utils
             var policy = _policyHandler.GetCombinedPolicyAsync<T>();
             return await policy.ExecuteAsync(operation);
         }
-        public async Task ExecutePolicyAsync(Func<Task> operation)
-        {
-            var policy = _policyHandler.GetCombinedPolicyAsync();
-            await policy.ExecuteAsync(operation);
-        }
+       
         public T ExecutePolicy<T>(Func<T> operation)
         {
             var policy = _policyHandler.GetCombinedPolicy<T>();

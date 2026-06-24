@@ -12,13 +12,13 @@ namespace GestorInventario.Infraestructure.Repositories.PaypalRepository
     public class PaypalRepository : IPaypalRepository
     {
         public readonly GestorInventarioContext _context;    
-        private readonly ILogger<PaypalRepository> _logger;     
+          
        
   
-        public PaypalRepository(GestorInventarioContext context, ILogger<PaypalRepository> logger)
+        public PaypalRepository(GestorInventarioContext context)
         {
             _context = context;          
-            _logger = logger;          
+                   
          
         }
         public async Task<PayPalPaymentDetail> ObtenerDetallePagoPorId(string paymentId)

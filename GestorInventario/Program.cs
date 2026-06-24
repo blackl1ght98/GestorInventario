@@ -1,7 +1,7 @@
 ﻿
 using Azure.Core;
 using Azure.Identity;
-using GestorInventario.Configuracion;
+using GestorInventario.Application.DTOS;
 using GestorInventario.MetodosExtension;
 using GestorInventario.Middlewares;
 using Microsoft.AspNetCore.DataProtection;

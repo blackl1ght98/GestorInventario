@@ -7,21 +7,21 @@ using GestorInventario.Interfaces.Infraestructure.Repositories;
 
 namespace GestorInventario.Application.Services.Generic_Services
 {
-    public class StockNotificationService : IStockNotificationService
+    public class StockCheckService : IStockCheckService
     {
         private readonly IProductoRepository _productoRepository;
         private readonly IEmailService _emailService;
         private readonly IAdminRepository _adminNotifierRepository;
-        private readonly ILogger<StockNotificationService> _logger;
-        private readonly INotificationService _notificationService;
+        private readonly ILogger<StockCheckService> _logger;
+        private readonly ICallMeBotService _notificationService;
 
 
-        public StockNotificationService(
+        public StockCheckService(
             IProductoRepository productoRepository,
             IEmailService emailService,
             IAdminRepository adminNotifierRepository,
-            ILogger<StockNotificationService> logger,
-            INotificationService no
+            ILogger<StockCheckService> logger,
+            ICallMeBotService no
             
           )
         {

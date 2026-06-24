@@ -12,13 +12,13 @@ namespace GestorInventario.Infraestructure.Repositories.UserRepository
     {
        
         private readonly GestorInventarioContext _context;
-        private readonly ILogger<UserRepository> _logger;  
+        
        
-        public UserRepository(GestorInventarioContext context, ILogger<UserRepository> logger)
+        public UserRepository(GestorInventarioContext context)
         {
          
             _context = context;
-            _logger = logger;   
+            
         }
         public async Task<Usuario> ObtenerUsuarioPorId(int id)
         {

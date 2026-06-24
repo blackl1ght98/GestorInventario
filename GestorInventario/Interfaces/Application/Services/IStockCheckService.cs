@@ -1,6 +1,6 @@
 ﻿namespace GestorInventario.Interfaces.Application.Services
 {
-    public interface IStockNotificationService
+    public interface IStockCheckService
     {
         Task VerificarYNotificarStockBajoAsync(CancellationToken stoppingToken = default);
     }

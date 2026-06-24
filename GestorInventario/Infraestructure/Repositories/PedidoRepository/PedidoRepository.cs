@@ -13,13 +13,12 @@ namespace GestorInventario.Infraestructure.Repositories.PedidoRepository
     public class PedidoRepository : IPedidoRepository
     {
         private readonly GestorInventarioContext _context;                   
-        private readonly ILogger<PedidoRepository> _logger;        
+              
      
-        public PedidoRepository(GestorInventarioContext context, 
-         ILogger<PedidoRepository> logger )
+        public PedidoRepository(GestorInventarioContext context)
         {
             _context = context;      
-            _logger = logger;            
+                  
          
         }
         public async Task<Pedido> ObtenerNumeroPedido(RefundFormViewModel form)
