@@ -63,7 +63,7 @@ namespace GestorInventario.Infraestructure.Controllers.PaypalControllers
                 {
                     // Tras confirmar, sincronizamos los datos reales con PayPal y
                     // llevamos al usuario directamente al detalle de su pago.
-                    return RedirectToAction(nameof(Sincronizar), new { id = paymentId, pedidoId = result.Data?.Id ?? 0 });
+                    return RedirectToAction(nameof(Sincronizar), new { paymentId = paymentId, pedidoId = result.Data?.Id ?? 0 });
                 }
                 else
                 {
