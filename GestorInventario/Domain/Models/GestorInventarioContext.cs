@@ -47,7 +47,7 @@ public partial class GestorInventarioContext : DbContext
 
     public virtual DbSet<Usuario> Usuarios { get; set; }
 
-   
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

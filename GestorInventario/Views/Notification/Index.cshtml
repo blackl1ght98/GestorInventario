@@ -1,0 +1,119 @@
+﻿@using GestorInventario.ViewModels
+@model NotificacionViewmodel
+
+@{
+    ViewData["Title"] = "Notificaciones";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="m-0">
+        <i class="bi bi-bell"></i> Notificaciones
+    </h2>
+    @if (Model.Notificaciones != null && Model.Notificaciones.Any(n => !n.Leida))
+    {
+        <form asp-action="MarcarTodasLeidas" method="post" class="d-inline">
+            <button type="submit" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-check2-all"></i> Marcar todas como leídas
+            </button>
+        </form>
+    }
+</div>
+<div class="alert alert-info d-flex align-items-center" role="alert">
+    <i class="bi bi-info-circle me-2"></i>
+    <div>
+        Las notificaciones se eliminan automáticamente pasados
+        <strong>90 días</strong> desde su creación.
+    </div>
+</div>
+
+@if (Model.Notificaciones == null || !Model.Notificaciones.Any())
+{
+    <div class="alert alert-info text-center" role="alert">
+        <i class="bi bi-bell-slash"></i> No tienes notificaciones todavía.
+    </div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        @foreach (var notificacion in Model.Notificaciones)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm @(notificacion.Leida ? "" : "border-primary")">
+
+                    <div class="card-header d-flex justify-content-between align-items-center
+                        @(notificacion.Leida ? "bg-light text-muted" : "bg-primary text-white")">
+                        <span class="badge
+                            @(notificacion.Tipo == "INFO" ? "bg-info" :
+                                  notificacion.Tipo == "WARNING" ? "bg-warning text-dark" :
+                                  notificacion.Tipo == "PAGO" ? "bg-success" :
+                                  notificacion.Tipo == "STOCK" ? "bg-warning text-dark" :
+                                  notificacion.Tipo == "REEMBOLSO" ? "bg-secondary" :
+                                  "bg-secondary")">
+                            @notificacion.Tipo
+                        </span>
+                        @if (!notificacion.Leida)
+                        {
+                            <span class="badge bg-danger">Nueva</span>
+                        }
+                    </div>
+
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title mb-2">@notificacion.Titulo</h5>
+                        <p class="card-text text-muted mb-3">@notificacion.Mensaje</p>
+                    </div>
+
+                    <div class="card-footer bg-transparent d-flex
+                        justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="bi bi-clock"></i>
+                            @notificacion.FechaCreacion.ToString("dd/MM/yyyy HH:mm")
+                        </small>
+
+                        
+                        @if (!notificacion.Leida)
+                        {
+                            <form asp-action="MarcarLeida" asp-route-id="@notificacion.Id"
+                                  method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-success">
+                                    <i class="bi bi-check2"></i> Marcar leída
+                                </button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+     <!-- Paginación -->
+    @if (Model.Paginas != null && Model.Paginas.Any())
+    {
+        <nav aria-label="Navegación de páginas" class="mt-5">
+            <ul class="pagination justify-content-center pagination-lg">
+                @foreach (var pagina in Model.Paginas)
+                {
+                    <li class="page-item @(pagina.Habilitada ? "" : "disabled") @(pagina.Activa ? "active" : "")">
+                        <a class="page-link"
+                           href="@Url.Action("Index", new { pagina = pagina.Pagina })">
+                            @if (pagina.Texto == "Anterior")
+                            {
+                                <span>« Anterior</span>
+                            }
+                            else if (pagina.Texto == "Siguiente")
+                            {
+
+                                <span>Siguiente »</span>
+                            }
+                            else
+                            {
+
+                                @pagina.Texto
+                            }
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+
+   
+}

@@ -246,6 +246,60 @@
                                         }
                                     </ul>
                                 </li>
+
+
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link position-relative" href="#" id="notificacionesDropdown"
+                                       role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                       data-bs-toggle="tooltip" title="Notificaciones">
+                                        <i class="bi bi-bell nav-icon"></i>
+                                        <span id="notificacionesBadge"
+                                              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                              style="display:none;">
+                                            0
+                                        </span>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-end p-0"
+                                         aria-labelledby="notificacionesDropdown"
+                                         style="min-width: 340px; max-width: 380px;">
+                                        <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                                            <h6 class="m-0">Notificaciones</h6>
+                                            <button type="button" id="markAllReadBtn"
+                                                    class="btn btn-link btn-sm p-0 text-decoration-none">
+                                                Marcar todas como leídas
+                                            </button>
+                                        </div>
+                                        <div id="notificacionesList" style="max-height: 380px; overflow-y: auto;">
+                                            <div class="text-center text-muted py-3">
+                                                <span class="spinner-border spinner-border-sm"></span> Cargando…
+                                            </div>
+                                        </div>
+                                        <div class="border-top text-center py-2">
+                                            <a asp-controller="Notification" asp-action="Index" class="text-decoration-none">
+                                                Ver todas
+                                            </a>
+                                        </div>
+                                    </div>
+                                </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                             }
                             else if (userItems.Count == 1)
                             {

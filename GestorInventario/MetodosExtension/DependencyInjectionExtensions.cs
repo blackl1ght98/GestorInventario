@@ -4,6 +4,7 @@ using GestorInventario.Application.Services.Authentication;
 using GestorInventario.Application.Services.Authentication.Strategies;
 using GestorInventario.Application.Services.Authentication.Strategies.Login;
 using GestorInventario.Application.Services.Authentication.Token_generation;
+using GestorInventario.Application.Services.Background_Services;
 using GestorInventario.Application.Services.Common;
 using GestorInventario.Application.Services.Email_Services;
 using GestorInventario.Application.Services.External_Sevices;
@@ -138,6 +139,7 @@ namespace GestorInventario.MetodosExtension
         public static IServiceCollection AddBackgroundServices(this IServiceCollection services)
         {
             services.AddHostedService<StockCheckBackgroundService>();
+            services.AddHostedService<NotificacionCleanupService>();
             return services;
         }
         //5. SERVICIOS QUE REQUIEREN CONFIGURACION MANUAL
