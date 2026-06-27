@@ -1,31 +1,27 @@
 ﻿using GestorInventario.Application.DTOs.User;
 using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Infraestructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 public class TokenGenerator : ITokenGenerator
 {
-    private readonly GestorInventarioContext _context;
-    private readonly ITokenStrategy _tokenStrategy;   
+    private readonly IUserRepository _userRepository;
+    private readonly ITokenStrategy _tokenStrategy;
 
-    public TokenGenerator(GestorInventarioContext context, ITokenStrategyFactory factory)
+    public TokenGenerator(IUserRepository userRepository, ITokenStrategy tokenStrategy)
     {
-        _context = context;
-        _tokenStrategy = factory.CreateStrategy();   // -> Aqui se guarda la estrategia elegida la estrategia se determina en el archivo de secretos
+        _userRepository = userRepository;
+        _tokenStrategy = tokenStrategy;
     }
 
     public async Task<LoginResponseDto> GenerateTokenAsync(Usuario credencialesUsuario)
     {
-        // 1. Busco el usuario completo en la base de datos (con su Rol)
-        var usuarioDB = await _context.Usuarios
-            .Include(u => u.IdRolNavigation)
-            .FirstOrDefaultAsync(x => x.Id == credencialesUsuario.Id);
+        var usuarioDB = await _userRepository.ObtenerUsuarioPorId(credencialesUsuario.Id);
 
-        if (usuarioDB == null)
+        if (usuarioDB is null)
             throw new ArgumentException("El usuario no existe en la base de datos.");
 
-        // 2. Le entrego el usuario a la estrategia que corresponde
-        //    (Symmetric, AsymmetricFixed o AsymmetricDynamic)
         return await _tokenStrategy.GenerateTokenAsync(usuarioDB);
     }
 }

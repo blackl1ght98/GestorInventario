@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Application.DTOs.User;
 using GestorInventario.Domain.Models;
+using GestorInventario.Interfaces.Infraestructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -9,66 +10,40 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
 {
     public class AsymmetricFixedTokenStrategy : BaseTokenStrategy
     {
-        public AsymmetricFixedTokenStrategy(
-            GestorInventarioContext context,
-            IConfiguration configuration)
-            : base(configuration, context)
+        public AsymmetricFixedTokenStrategy(IConfiguration configuration, TokenClaimsBuilder claimsBuilder)
+            : base(configuration, claimsBuilder) { }
+
+        public override Task<LoginResponseDto> GenerateTokenAsync(Usuario usuario)
         {
-        }
-
-        public override async Task<LoginResponseDto> GenerateTokenAsync(Usuario credencialesUsuario)
-        {
-            // Obtener usuario completo de la base de datos
-            var usuarioDB = await _context.Usuarios
-                .Include(u => u.IdRolNavigation)
-                .FirstOrDefaultAsync(u => u.Id == credencialesUsuario.Id);
-
-            if (usuarioDB == null)
-            {
-                throw new ArgumentException("El usuario no existe en la base de datos.");
-            }
-
-            // Usamos los métodos de la clase base (evitamos duplicar código)
-            var claims = CrearClaims(credencialesUsuario);
-
-            // Obtener clave privada fija
             var privateKeyXml = Environment.GetEnvironmentVariable("PrivateKey")
                              ?? _configuration["JWT:PrivateKey"];
 
             if (string.IsNullOrEmpty(privateKeyXml))
-            {
                 throw new InvalidOperationException("La clave privada no está configurada.");
-            }
 
-            // Cargar clave privada en RSA
             using var rsa = RSA.Create();
             rsa.FromXmlString(privateKeyXml);
 
+            var credentials = new SigningCredentials(
+                new RsaSecurityKey(rsa.ExportParameters(true))
+                {
+                    KeyId = usuario.Id.ToString()
+                },
+                SecurityAlgorithms.RsaSha256);
 
-            // Crear la clave de seguridad con la clave PRIVADA completa
-            var rsaSecurityKey = new RsaSecurityKey(rsa.ExportParameters(true))
+            var token = new JwtSecurityToken(
+                issuer: _claimsBuilder.ObtenerIssuer(),
+                audience: _claimsBuilder.ObtenerAudience(),
+                claims: _claimsBuilder.CrearClaims(usuario),
+                expires: DateTime.UtcNow.AddMinutes(_claimsBuilder.ObtenerDuracionAccessTokenMinutos()),
+                signingCredentials: credentials);
+
+            return Task.FromResult(new LoginResponseDto
             {
-                KeyId = credencialesUsuario.Id.ToString()
-            };
-
-            var signingCredentials = new SigningCredentials(rsaSecurityKey, SecurityAlgorithms.RsaSha256);
-
-            // Crear el token
-            var securityToken = new JwtSecurityToken(
-                issuer: ObtenerIssuer(),
-                audience: ObtenerAudience(),
-                claims: claims,
-                expires: DateTime.UtcNow.AddDays(1),
-                signingCredentials: signingCredentials);
-
-            var tokenString = new JwtSecurityTokenHandler().WriteToken(securityToken);
-
-            return new LoginResponseDto()
-            {
-                Id = credencialesUsuario.Id,
-                Token = tokenString,
-                Rol = usuarioDB.IdRolNavigation?.Nombre ?? "Usuario"
-            };
+                Id = usuario.Id,
+                Token = new JwtSecurityTokenHandler().WriteToken(token),
+                Rol = usuario.IdRolNavigation?.Nombre ?? "Usuario"
+            });
         }
     }
 }

@@ -70,11 +70,8 @@ namespace GestorInventario.MetodosExtension
             // Servicios de Auth y Seguridad
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<ITokenGenerator, TokenGenerator>();
-            services.AddScoped<IAuthService, AuthService>();
-            services.AddScoped<ITokenStrategyFactory, TokenStrategyFactory>();
-           
+            services.AddScoped<IAuthService, AuthService>();           
             services.AddScoped<IRefreshTokenGenerator, RefreshTokenGenerator>();
-            services.AddScoped<IRefreshTokenStrategyFactory, RefreshTokenStrategyFactory>();
             services.AddScoped<ILoginStrategyFactory, LoginStrategyFactory>();
             services.AddScoped<ILoginGenerator, LoginGenerator>();
            services.AddHttpClient<ICallMeBotService, CallMeBotService>();

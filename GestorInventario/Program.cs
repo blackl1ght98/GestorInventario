@@ -2,6 +2,7 @@
 using Azure.Core;
 using Azure.Identity;
 using GestorInventario.Application.DTOS;
+using GestorInventario.Application.Services.Authentication;
 using GestorInventario.Configuracion;
 using GestorInventario.MetodosExtension;
 using GestorInventario.Middlewares;
@@ -67,6 +68,7 @@ if (useRedis)
 
 builder.Services.AddCacheServices(useRedis);
 builder.Services.AddJwtAuthentication(builder.Configuration);
+builder.Services.AddTokenStrategies(builder.Configuration);
 builder.Services.ConfigureAntiforgery();
 
 builder.Services.AddHsts(options =>

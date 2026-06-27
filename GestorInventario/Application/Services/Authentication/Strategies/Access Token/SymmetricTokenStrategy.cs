@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Application.DTOs.User;
 using GestorInventario.Domain.Models;
+using GestorInventario.Interfaces.Infraestructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -9,54 +10,37 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
 {
     public class SymmetricTokenStrategy : BaseTokenStrategy
     {
-        public SymmetricTokenStrategy(IConfiguration configuration, GestorInventarioContext context)
-            : base(configuration, context)
+        public SymmetricTokenStrategy(IConfiguration configuration, TokenClaimsBuilder claimsBuilder)
+            : base(configuration, claimsBuilder) { }
+
+        public override Task<LoginResponseDto> GenerateTokenAsync(Usuario usuario)
         {
-        }
-
-        public override async Task<LoginResponseDto> GenerateTokenAsync(Usuario credencialesUsuario)
-        {
-            // Obtener usuario completo de la base de datos
-            var usuarioDB = await _context.Usuarios
-                .Include(u => u.IdRolNavigation)
-                .FirstOrDefaultAsync(u => u.Id == credencialesUsuario.Id);
-
-            if (usuarioDB == null)
-            {
-                throw new ArgumentException("El usuario no existe en la base de datos.");
-            }
-
-            // Usamos el método de la clase base para crear los claims
-            var claims = CrearClaims(credencialesUsuario);
-
-            // Obtener clave secreta
             var clave = Environment.GetEnvironmentVariable("ClaveJWT")
                      ?? _configuration["ClaveJWT"];
 
             if (string.IsNullOrEmpty(clave))
-            {
                 throw new InvalidOperationException("La clave JWT no está configurada.");
-            }
 
-            var claveKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(clave));
+            if (Encoding.UTF8.GetByteCount(clave) < 32)
+                throw new InvalidOperationException("La clave JWT debe tener al menos 32 bytes.");
 
-            var signingCredentials = new SigningCredentials(claveKey, SecurityAlgorithms.HmacSha256);
+            var credentials = new SigningCredentials(
+                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(clave)),
+                SecurityAlgorithms.HmacSha256);
 
-            var securityToken = new JwtSecurityToken(
-                issuer: ObtenerIssuer(),
-                audience: ObtenerAudience(),
-                claims: claims,
-                expires: DateTime.UtcNow.AddDays(30),
-                signingCredentials: signingCredentials);
+            var token = new JwtSecurityToken(
+                issuer: _claimsBuilder.ObtenerIssuer(),
+                audience: _claimsBuilder.ObtenerAudience(),
+                claims: _claimsBuilder.CrearClaims(usuario),
+                expires: DateTime.UtcNow.AddMinutes(_claimsBuilder.ObtenerDuracionAccessTokenMinutos()),
+                signingCredentials: credentials);
 
-            var tokenString = new JwtSecurityTokenHandler().WriteToken(securityToken);
-
-            return new LoginResponseDto()
+            return Task.FromResult(new LoginResponseDto
             {
-                Id = credencialesUsuario.Id,
-                Token = tokenString,
-                Rol = usuarioDB.IdRolNavigation?.Nombre ?? "Usuario"
-            };
+                Id = usuario.Id,
+                Token = new JwtSecurityTokenHandler().WriteToken(token),
+                Rol = usuario.IdRolNavigation?.Nombre ?? "Usuario"
+            });
         }
     }
 }

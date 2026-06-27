@@ -2,32 +2,30 @@
 using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Application.Authentication;
+using GestorInventario.Interfaces.Infraestructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace GestorInventario.Application.Services.Authentication.Token_generation
 {
-    public class RefreshTokenGenerator: IRefreshTokenGenerator
+    public class RefreshTokenGenerator : IRefreshTokenGenerator
     {
-        private readonly GestorInventarioContext _context;
-        private readonly IRefreshTokenStrategy _refreshTokenMethod;
-        public RefreshTokenGenerator(GestorInventarioContext context, IRefreshTokenStrategyFactory factory)
+        private readonly IUserRepository _userRepository;
+        private readonly IRefreshTokenStrategy _refreshStrategy;
+
+        public RefreshTokenGenerator(IUserRepository userRepository, IRefreshTokenStrategy refreshStrategy)
         {
-            _context = context;
-            _refreshTokenMethod = factory.CreateStrategy();   
+            _userRepository = userRepository;
+            _refreshStrategy = refreshStrategy;
         }
+
         public async Task<string> GenerateTokenAsync(Usuario credencialesUsuario)
         {
-            // 1. Busco el usuario completo en la base de datos (con su Rol)
-            var usuarioDB = await _context.Usuarios
-                .Include(u => u.IdRolNavigation)
-                .FirstOrDefaultAsync(x => x.Id == credencialesUsuario.Id);
+            var usuarioDB = await _userRepository.ObtenerUsuarioPorId(credencialesUsuario.Id);
 
-            if (usuarioDB == null)
+            if (usuarioDB is null)
                 throw new ArgumentException("El usuario no existe en la base de datos.");
 
-            // 2. Le entrego el usuario a la estrategia que corresponde
-            //    (Symmetric, AsymmetricFixed o AsymmetricDynamic)
-            return await _refreshTokenMethod.GenerarTokenRefresco(usuarioDB);
+            return await _refreshStrategy.GenerarTokenRefresco(usuarioDB);
         }
     }
 }

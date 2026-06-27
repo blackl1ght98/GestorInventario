@@ -1,6 +1,7 @@
 ﻿using GestorInventario.Application.DTOs.User;
 using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Infraestructure.Repositories;
 using System.Security.Claims;
 
 namespace GestorInventario.Application.Services.Authentication.Strategies
@@ -8,31 +9,19 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
     public abstract class BaseTokenStrategy : ITokenStrategy
     {
         protected readonly IConfiguration _configuration;
-        protected readonly GestorInventarioContext _context;
+        protected readonly TokenClaimsBuilder _claimsBuilder;
 
-        protected BaseTokenStrategy(IConfiguration configuration, GestorInventarioContext context)
+        protected BaseTokenStrategy(IConfiguration configuration, TokenClaimsBuilder claimsBuilder)
         {
             _configuration = configuration;
-            _context = context;
+            _claimsBuilder = claimsBuilder;
         }
 
-        public abstract Task<LoginResponseDto> GenerateTokenAsync(Usuario credencialesUsuario);
+        public abstract Task<LoginResponseDto> GenerateTokenAsync(Usuario usuarioCompleto);
 
-        // Método protegido reutilizable
-        protected internal List<Claim> CrearClaims(Usuario usuario)
-        {
-            return new List<Claim>
-        {
-            new Claim(ClaimTypes.Email, usuario.Email),
-            new Claim(ClaimTypes.Role, usuario.IdRolNavigation?.Nombre ?? "Usuario"),
-            new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString())
-        };
-        }
-
-        protected internal string ObtenerIssuer() =>
-            Environment.GetEnvironmentVariable("JwtIssuer") ?? _configuration["JwtIssuer"];
-
-        protected internal string ObtenerAudience() =>
-            _configuration["JwtAudience"] ?? Environment.GetEnvironmentVariable("JwtAudience");
+        // Mantener por compatibilidad (lo usan los Refresh* actuales)
+        protected List<Claim> CrearClaims(Usuario u) => _claimsBuilder.CrearClaims(u);
+        protected string ObtenerIssuer() => _claimsBuilder.ObtenerIssuer();
+        protected string ObtenerAudience() => _claimsBuilder.ObtenerAudience();
     }
 }

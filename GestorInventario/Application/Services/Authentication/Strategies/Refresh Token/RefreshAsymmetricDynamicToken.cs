@@ -1,6 +1,7 @@
 ﻿using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Application.Common;
+using GestorInventario.Interfaces.Infraestructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
@@ -11,66 +12,40 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
 {
     public class RefreshAsymmetricDynamicToken : IRefreshTokenStrategy
     {
-        private readonly GestorInventarioContext _context;
-        private readonly ITokenStrategyFactory _tokenStrategyFactory;
+        private readonly TokenClaimsBuilder _claimsBuilder;
         private readonly ICacheService _cache;
 
-        public RefreshAsymmetricDynamicToken(GestorInventarioContext context, ITokenStrategyFactory tokenStrategyFactory, ICacheService cache)
+        public RefreshAsymmetricDynamicToken(
+            TokenClaimsBuilder claimsBuilder,
+            ICacheService cache)
         {
-            _context = context;
-            _tokenStrategyFactory = tokenStrategyFactory;
+            _claimsBuilder = claimsBuilder;
             _cache = cache;
         }
 
-        public async Task<string> GenerarTokenRefresco(Usuario credencialesUsuario)
+        public async Task<string> GenerarTokenRefresco(Usuario usuario)
         {
-            var usuarioDB = await _context.Usuarios
-               .Include(u => u.IdRolNavigation)
-               .FirstOrDefaultAsync(x => x.Id == credencialesUsuario.Id);
+            using var rsa = RSA.Create(2048);
+            var privateKey = rsa.ExportParameters(true);
+            var publicKey = rsa.ExportParameters(false);
 
-            if (usuarioDB == null)
-            {
-                throw new ArgumentException("El usuario no existe en la base de datos.");
-            }
+            await _cache.SetStringAsync(
+                $"{usuario.Id}PublicKeyRefresco",
+                JsonConvert.SerializeObject(publicKey),
+                TimeSpan.FromDays(30));
 
-            var strategy = (BaseTokenStrategy)_tokenStrategyFactory.CreateStrategy();
-            var claims = strategy.CrearClaims(credencialesUsuario);
-            string cacheKey = credencialesUsuario.Id.ToString() + "PublicKeyRefresco";
+            var credentials = new SigningCredentials(
+                new RsaSecurityKey(privateKey) { KeyId = usuario.Id.ToString() },
+                SecurityAlgorithms.RsaSha256);
 
-            // 1. Recuperar la pública
-            string? publicKeyJson = await _cache.GetStringAsync(cacheKey);
+            var token = new JwtSecurityToken(
+                issuer: _claimsBuilder.ObtenerIssuer(),
+                audience: _claimsBuilder.ObtenerAudience(),
+                claims: _claimsBuilder.CrearClaims(usuario),
+                expires: DateTime.UtcNow.AddHours(_claimsBuilder.ObtenerDuracionRefreshTokenHoras()),
+                signingCredentials: credentials);
 
-            // 2. Generamos la nueva pareja de claves
-            RSAParameters privateKey;
-            RSAParameters publicKey;
-
-
-            using (var rsa = RSA.Create(2048))
-            {
-                privateKey = rsa.ExportParameters(true);
-                publicKey = rsa.ExportParameters(false);
-
-                // 3. Guardamos la pública
-                var publicKeyJsonToSave = JsonConvert.SerializeObject(publicKey);
-
-                // Usamos un tiempo de expiración de 30 días
-                await _cache.SetStringAsync(cacheKey, publicKeyJsonToSave, TimeSpan.FromDays(30));
-            }
-
-            var rsaSecurityKeyDynamic = new RsaSecurityKey(privateKey)
-            {
-                KeyId = credencialesUsuario.Id.ToString()
-            };
-            SigningCredentials signingCredentials = new SigningCredentials(rsaSecurityKeyDynamic, SecurityAlgorithms.RsaSha256);
-            var refreshToken = new JwtSecurityToken(
-               issuer: strategy.ObtenerIssuer(),
-               audience: strategy.ObtenerAudience(),
-               claims: claims,
-               expires: DateTime.UtcNow.AddHours(24),
-               signingCredentials: signingCredentials
-           );
-
-            return new JwtSecurityTokenHandler().WriteToken(refreshToken);
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }
