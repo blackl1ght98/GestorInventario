@@ -31,7 +31,8 @@ namespace GestorInventario.Application.Services.Products
 
         public async Task<OperationResult<Producto>> CrearProducto(ProductoDto model)
         {
-            var barcodeResult = await _barCodeService.GenerateUniqueBarCodeAsync(BarcodeType.EAN_13, "", true);
+            var barcodeResult = await _barCodeService.GenerateUniqueBarCodeAsync(
+                BarcodeType.EAN_13, "", true);
 
             var producto = new Producto
             {
@@ -46,26 +47,35 @@ namespace GestorInventario.Application.Services.Products
                 CodigoBarras = barcodeResult.Code,
                 CodigoBarrasImagen = barcodeResult.ImagePath,
             };
-            if (model.ArchivoImagen != null && model.ArchivoImagen.Length > 0)
+
+            if (model.ArchivoImagenBytes is { Length: > 0 } &&
+                !string.IsNullOrEmpty(model.ArchivoImagenNombre))
             {
                 try
                 {
-                    producto.Imagen = await _imageOptimizerService.OptimizeAndSaveImage(
-                        model.ArchivoImagen, "imagenes");
+                    producto.Imagen = await _imageOptimizerService.OptimizeAndSaveImageAsync(
+                        model.ArchivoImagenBytes,
+                        model.ArchivoImagenNombre);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error al procesar la imagen: {FileName}", model.ArchivoImagen.FileName);
-                    throw new InvalidOperationException("Error al procesar la imagen.", ex);
+                    _logger.LogError(ex,
+                        "Error al procesar la imagen: {FileName}",
+                        model.ArchivoImagenNombre);
+                    throw new InvalidOperationException(
+                        "Error al procesar la imagen.", ex);
                 }
             }
 
-            var existeProducto = await _productoRepository.ExisteNombreProductoAsync(producto.NombreProducto);
+            var existeProducto = await _productoRepository
+                .ExisteNombreProductoAsync(producto.NombreProducto);
             if (existeProducto)
-                return OperationResult<Producto>.Fail("Ya hay un producto con ese nombre, proporcione otro nombre");
+                return OperationResult<Producto>.Fail(
+                    "Ya hay un producto con ese nombre, proporcione otro nombre");
 
             await _productoRepository.AgregarProductoAsync(producto);
-            _logger.LogInformation("Producto creado exitosamente: {NombreProducto}, UpcCode: {UpcCode}",
+            _logger.LogInformation(
+                "Producto creado exitosamente: {NombreProducto}, UpcCode: {UpcCode}",
                 producto.NombreProducto, producto.CodigoBarras);
 
             return OperationResult<Producto>.Ok("", producto);
@@ -73,7 +83,7 @@ namespace GestorInventario.Application.Services.Products
         public async Task<OperationResult<string>> EditarProducto(EditarProductoDto model, int usuarioId)
         {
             var producto = await _productoRepository.ObtenerProductoPorIdAsync(model.Id);
-            if (producto == null)
+            if (producto is null)
                 return OperationResult<string>.Fail("Producto no encontrado");
 
             producto.NombreProducto = model.NombreProducto;
@@ -83,23 +93,32 @@ namespace GestorInventario.Application.Services.Products
             producto.Precio = model.Precio;
             producto.IdProveedor = model.IdProveedor;
 
-            string imagenAnterior = producto.Imagen;
+            string? imagenAnterior = producto.Imagen;
 
-            if (model.ArchivoImagen != null && model.ArchivoImagen.Length > 0)
+            if (model.ArchivoImagenBytes is { Length: > 0 } &&
+                !string.IsNullOrEmpty(model.ArchivoImagenNombre))
             {
-                _logger.LogDebug("Procesando imagen: {FileName}", model.ArchivoImagen.FileName);
+                _logger.LogDebug(
+                    "Procesando imagen: {FileName}", model.ArchivoImagenNombre);
+
                 try
                 {
                     // 1. Primero guarda la nueva imagen
-                    producto.Imagen = await _imageOptimizerService.OptimizeAndSaveImage(
-                        model.ArchivoImagen, "imagenes");
+                    producto.Imagen = await _imageOptimizerService.OptimizeAndSaveImageAsync(
+                        model.ArchivoImagenBytes,
+                        model.ArchivoImagenNombre,
+                        "imagenes");
 
-                    _logger.LogInformation("Imagen guardada: {ImagenPath}", producto.Imagen);
+                    _logger.LogInformation(
+                        "Imagen guardada: {ImagenPath}", producto.Imagen);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error al procesar la imagen: {FileName}", model.ArchivoImagen.FileName);
-                    throw new InvalidOperationException("Error al procesar la imagen.", ex);
+                    _logger.LogError(ex,
+                        "Error al procesar la imagen: {FileName}",
+                        model.ArchivoImagenNombre);
+                    throw new InvalidOperationException(
+                        "Error al procesar la imagen.", ex);
                 }
             }
 
@@ -113,11 +132,13 @@ namespace GestorInventario.Application.Services.Products
                 await _gestorArchivos.BorrarArchivo(fileName, "imagenes");
             }
 
-            _logger.LogInformation("Producto con ID {Id} actualizado por usuario {UsuarioId}",
+            _logger.LogInformation(
+                "Producto con ID {Id} actualizado por usuario {UsuarioId}",
                 model.Id, usuarioId);
-            return OperationResult<string>.Ok("Producto editado con exito");
+
+            return OperationResult<string>.Ok("Producto editado con éxito");
         }
-      
+
         public async Task<OperationResult<string>> EliminarProducto(int Id)
         {
             var producto = await _productoRepository.ObtenerProductoCompletoAsync(Id);

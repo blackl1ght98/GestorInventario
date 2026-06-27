@@ -166,9 +166,9 @@ namespace GestorInventario.Infraestructure.Controllers.ProductosController
                     Cantidad = model.Cantidad,
                     Precio = model.Precio,
                     IdProveedor = model.IdProveedor,
-                    Imagen = model.Imagen,
-                    ArchivoImagen = model.ArchivoImagen,
-
+                    ArchivoImagenBytes = await ToBytesAsync(model.ArchivoImagen),
+                    ArchivoImagenNombre = model.ArchivoImagen?.FileName,
+                    ArchivoImagenContentType = model.ArchivoImagen?.ContentType,
                 };
                 var resultado = await _policyExecutor.ExecutePolicyAsync(() =>
                     _productoService.CrearProducto(dto));
@@ -190,6 +190,20 @@ namespace GestorInventario.Infraestructure.Controllers.ProductosController
                 TempData["ConectionError"] = "El servidor ha tardado mucho en responder, inténtelo de nuevo más tarde.";
                 return View(model);  
             }
+        }
+        private static async Task<byte[]?> ToBytesAsync(IFormFile? file)
+        {
+            // 1. CASO BORDE: si no hay archivo, devolvemos null
+            if (file is null || file.Length == 0) return null;
+
+            // 2. CREAMOS un MemoryStream vacío (un buffer en memoria que se puede escribir)
+            using var ms = new MemoryStream();
+
+            // 3. COPIAMOS los bytes del archivo subido al MemoryStream
+            await file.CopyToAsync(ms);
+
+            // 4. CONVERTIMOS el MemoryStream en un byte[]
+            return ms.ToArray();
         }
         //Metodo que obtiene la información necesaria para eliminar el producto
         [Authorize(Roles = "Administrador")]
@@ -316,10 +330,11 @@ namespace GestorInventario.Infraestructure.Controllers.ProductosController
                         Descripcion = model.Descripcion,
                         Cantidad = model.Cantidad,
                         Imagen = model.Imagen,
-                        ArchivoImagen = model.ArchivoImagen,
                         Precio = model.Precio,
-                        IdProveedor = model.IdProveedor
-
+                        IdProveedor = model.IdProveedor,    
+                        ArchivoImagenBytes = await ToBytesAsync(model.ArchivoImagen),
+                        ArchivoImagenNombre = model.ArchivoImagen?.FileName,
+                        ArchivoImagenContentType = model.ArchivoImagen?.ContentType,
                     };
                     int usuarioId = _current.GetCurrentUserId();
                     var success = await _policyExecutor.ExecutePolicyAsync(() => _productoService.EditarProducto(dto, usuarioId));
