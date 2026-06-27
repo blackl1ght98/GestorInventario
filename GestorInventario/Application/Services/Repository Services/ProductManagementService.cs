@@ -1,4 +1,5 @@
-﻿using GestorInventario.Domain.Models;
+﻿using GestorInventario.Application.DTOS.User;
+using GestorInventario.Domain.Models;
 using GestorInventario.enums.Productos;
 
 using GestorInventario.Interfaces.Application.Common;
@@ -28,7 +29,7 @@ namespace GestorInventario.Application.Services.Products
             _imageOptimizerService = image;
         }
 
-        public async Task<OperationResult<Producto>> CrearProducto(ProductosViewModel model)
+        public async Task<OperationResult<Producto>> CrearProducto(ProductoDto model)
         {
             var barcodeResult = await _barCodeService.GenerateUniqueBarCodeAsync(BarcodeType.EAN_13, "", true);
 

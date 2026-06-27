@@ -1,4 +1,5 @@
-﻿using GestorInventario.Interfaces.Application.Common;
+﻿using GestorInventario.Application.DTOS.User;
+using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
@@ -158,8 +159,18 @@ namespace GestorInventario.Infraestructure.Controllers.ProductosController
 
             try
             {
+                var dto = new ProductoDto
+                {
+                    NombreProducto = model.NombreProducto,
+                    Descripcion = model.Descripcion,
+                    Cantidad = model.Cantidad,
+                    Precio = model.Precio,
+                    IdProveedor = model.IdProveedor,
+                    ArchivoImagen = model.ArchivoImagen, 
+
+                };
                 var resultado = await _policyExecutor.ExecutePolicyAsync(() =>
-                    _productoService.CrearProducto(model));
+                    _productoService.CrearProducto(dto));
 
                 if (resultado.Success)
                 {
