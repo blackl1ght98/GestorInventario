@@ -166,7 +166,8 @@ namespace GestorInventario.Infraestructure.Controllers.ProductosController
                     Cantidad = model.Cantidad,
                     Precio = model.Precio,
                     IdProveedor = model.IdProveedor,
-                    ArchivoImagen = model.ArchivoImagen, 
+                    Imagen = model.Imagen,
+                    ArchivoImagen = model.ArchivoImagen,
 
                 };
                 var resultado = await _policyExecutor.ExecutePolicyAsync(() =>
@@ -299,8 +300,8 @@ namespace GestorInventario.Infraestructure.Controllers.ProductosController
 
        
         [HttpPost]
-        [Authorize(Roles = "Administrador")]
-        [ValidateAntiForgeryToken]
+     
+      
         public async Task<ActionResult> Edit(ProductosViewModel model)
         {
             try
@@ -308,8 +309,20 @@ namespace GestorInventario.Infraestructure.Controllers.ProductosController
                 
                 if (ModelState.IsValid)
                 {
+                    var dto = new EditarProductoDto
+                    {
+                        Id = model.Id,
+                        NombreProducto = model.NombreProducto,
+                        Descripcion = model.Descripcion,
+                        Cantidad = model.Cantidad,
+                        Imagen = model.Imagen,
+                        ArchivoImagen = model.ArchivoImagen,
+                        Precio = model.Precio,
+                        IdProveedor = model.IdProveedor
+
+                    };
                     int usuarioId = _current.GetCurrentUserId();
-                    var success = await _policyExecutor.ExecutePolicyAsync(() => _productoService.EditarProducto(model, usuarioId));
+                    var success = await _policyExecutor.ExecutePolicyAsync(() => _productoService.EditarProducto(dto, usuarioId));
                     if (success.Success)
                     {
                         return RedirectToAction(nameof(Index));

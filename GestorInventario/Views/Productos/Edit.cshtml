@@ -24,7 +24,9 @@
     <div class="form-group">
         <label asp-for="ArchivoImagen" class="control-label"></label>
         <input asp-for="ArchivoImagen" type="file" class="form-control" id="ArchivoImagen" />
-        <img src="@Model.Imagen" alt="Imagen del producto" style="width: 100px; height: 100px;" />
+        <img src="@Url.Content("~/" + Model.Imagen)"
+             alt="Imagen actual del producto"
+             style="width: 100px; height: 100px; margin-top: 8px;" />
     </div>
     <div class="form-group">
 

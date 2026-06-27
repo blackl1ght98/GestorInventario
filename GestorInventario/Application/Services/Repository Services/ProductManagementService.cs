@@ -70,7 +70,7 @@ namespace GestorInventario.Application.Services.Products
 
             return OperationResult<Producto>.Ok("", producto);
         }
-        public async Task<OperationResult<string>> EditarProducto(ProductosViewModel model, int usuarioId)
+        public async Task<OperationResult<string>> EditarProducto(EditarProductoDto model, int usuarioId)
         {
             var producto = await _productoRepository.ObtenerProductoPorIdAsync(model.Id);
             if (producto == null)
