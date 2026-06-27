@@ -2,6 +2,6 @@
 {
     public interface IConfigurationAuthenticationStrategy
     {
-        IServiceCollection ConfigureAuthentication(IServiceCollection services, IConfiguration configuration);
+       void  Configure(IServiceCollection services, IConfiguration configuration);
     }
 }

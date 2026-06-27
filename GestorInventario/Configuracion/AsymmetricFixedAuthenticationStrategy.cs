@@ -8,15 +8,19 @@ namespace GestorInventario.Configuracion.Strategies
 {
     public class AsymmetricFixedAuthenticationStrategy : IConfigurationAuthenticationStrategy
     {
-        public IServiceCollection ConfigureAuthentication(IServiceCollection services, IConfiguration configuration)
-        {
-            var loggerFactory = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
-            var logger = loggerFactory.CreateLogger<AsymmetricFixedAuthenticationStrategy>();
+        private readonly ILogger _logger;
 
+        public AsymmetricFixedAuthenticationStrategy(ILogger logger)
+        {
+            _logger = logger;
+        }
+
+        public void Configure(IServiceCollection services, IConfiguration configuration)
+        {
             var publicKey = configuration["Jwt:PublicKey"] ?? Environment.GetEnvironmentVariable("PublicKey");
             if (string.IsNullOrEmpty(publicKey))
             {
-                logger.LogError("La clave pública JWT no está configurada en Jwt:PublicKey.");
+                _logger.LogError("La clave pública JWT no está configurada en Jwt:PublicKey.");
                 throw new InvalidOperationException("La clave pública JWT es requerida.");
             }
 
@@ -27,7 +31,7 @@ namespace GestorInventario.Configuracion.Strategies
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error al cargar la clave pública RSA desde la configuración.");
+                _logger.LogError(ex, "Error al cargar la clave pública RSA desde la configuración.");
                 throw new InvalidOperationException("La clave pública RSA es inválida.", ex);
             }
 
@@ -47,11 +51,13 @@ namespace GestorInventario.Configuracion.Strategies
                 options.SlidingExpiration = true;
                 options.LoginPath = "/Auth/Login";
                 options.LogoutPath = "/Auth/Logout";
+
                 options.Events = new CookieAuthenticationEvents
                 {
                     OnRedirectToLogin = context =>
                     {
-                        logger.LogInformation("Redirigiendo al login desde AddCookie para la ruta {Path}", context.Request.Path);
+                        _logger.LogInformation("Redirigiendo al login desde AddCookie para {Path}",
+                            context.Request.Path);
                         context.Response.Redirect(context.RedirectUri);
                         return Task.CompletedTask;
                     }
@@ -75,18 +81,17 @@ namespace GestorInventario.Configuracion.Strategies
                     OnMessageReceived = context =>
                     {
                         context.Token = context.Request.Cookies["auth"];
-                        logger.LogInformation("Token extraído de la cookie 'auth' para la ruta {Path}", context.Request.Path);
+                        _logger.LogInformation("Token extraído de cookie 'auth' para {Path}",
+                            context.Request.Path);
                         return Task.CompletedTask;
                     },
                     OnAuthenticationFailed = context =>
                     {
-                        logger.LogWarning(context.Exception, "Fallo en la autenticación JWT para la ruta {Path}", context.Request.Path);
+                        _logger.LogWarning(context.Exception, "Fallo JWT en {Path}", context.Request.Path);
                         return Task.CompletedTask;
                     }
                 };
             });
-
-            return services;
         }
     }
 }

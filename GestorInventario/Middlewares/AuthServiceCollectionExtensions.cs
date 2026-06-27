@@ -8,7 +8,7 @@ namespace GestorInventario.Middlewares
 {
     public static class AuthServiceCollectionExtensions
     {
-        public const string AuthModeConfigKey = "Auth:Mode";
+        public const string AuthModeConfigKey = "AuthMode";
 
         /// <summary>
         /// Registra la estrategia de autenticación y sus dependencias.

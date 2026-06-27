@@ -8,21 +8,25 @@ namespace GestorInventario.Configuracion.Strategies
 {
     public class SymmetricAuthenticationStrategy : IConfigurationAuthenticationStrategy
     {
-        public IServiceCollection ConfigureAuthentication(IServiceCollection services, IConfiguration configuration)
-        {
-            var loggerFactory = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
-            var logger = loggerFactory.CreateLogger<SymmetricAuthenticationStrategy>();
+        private readonly ILogger _logger;
 
+        public SymmetricAuthenticationStrategy(ILogger logger)
+        {
+            _logger = logger;
+        }
+
+        public void Configure(IServiceCollection services, IConfiguration configuration)
+        {
             var secret = configuration["ClaveJWT"] ?? Environment.GetEnvironmentVariable("ClaveJWT");
             if (string.IsNullOrEmpty(secret))
             {
-                logger.LogError("La clave JWT no está configurada en ClaveJWT.");
+                _logger.LogError("La clave JWT no está configurada en ClaveJWT.");
                 throw new InvalidOperationException("La clave JWT es requerida.");
             }
 
             if (secret.Length < 32)
             {
-                logger.LogError("La clave JWT es demasiado corta. Debe tener al menos 32 caracteres.");
+                _logger.LogError("La clave JWT es demasiado corta. Debe tener al menos 32 caracteres.");
                 throw new InvalidOperationException("La clave JWT es demasiado corta.");
             }
 
@@ -34,19 +38,21 @@ namespace GestorInventario.Configuracion.Strategies
             })
             .AddCookie(options =>
             {
-              
+                options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
                 options.Cookie.SameSite = SameSiteMode.Lax;
-                options.Cookie.SecurePolicy = CookieSecurePolicy.None;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
                 options.SlidingExpiration = true;
                 options.LoginPath = "/Auth/Login";
-                options.LogoutPath = "/Auth/Logout"; 
+                options.LogoutPath = "/Auth/Logout";
+
                 options.Events = new CookieAuthenticationEvents
                 {
                     OnRedirectToLogin = context =>
                     {
-                        logger.LogInformation("Redirigiendo al login desde AddCookie para la ruta {Path}", context.Request.Path);
+                        _logger.LogInformation("Redirigiendo al login desde AddCookie para {Path}",
+                            context.Request.Path);
                         context.Response.Redirect(context.RedirectUri);
                         return Task.CompletedTask;
                     }
@@ -70,18 +76,17 @@ namespace GestorInventario.Configuracion.Strategies
                     OnMessageReceived = context =>
                     {
                         context.Token = context.Request.Cookies["auth"];
-                        logger.LogInformation("Token extraído de la cookie 'auth' para la ruta {Path}", context.Request.Path);
+                        _logger.LogInformation("Token extraído de cookie 'auth' para {Path}",
+                            context.Request.Path);
                         return Task.CompletedTask;
                     },
                     OnAuthenticationFailed = context =>
                     {
-                        logger.LogWarning(context.Exception, "Fallo en la autenticación JWT para la ruta {Path}", context.Request.Path);
+                        _logger.LogWarning(context.Exception, "Fallo JWT en {Path}", context.Request.Path);
                         return Task.CompletedTask;
                     }
                 };
             });
-
-            return services;
         }
     }
 }
