@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Application.DTOs.User;
+using GestorInventario.Application.DTOS.User;
 using GestorInventario.Application.Services.Authentication;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Repositories;
@@ -40,7 +41,7 @@ namespace GestorInventario.Application.Services.User
            
         }
 
-        public async Task<OperationResult<string>> CrearUsuarioAsync(UserViewModel model)
+        public async Task<OperationResult<string>> CrearUsuarioAsync(RegisterUserDto model)
         {
             var existing = await _usuarioRepository.ExisteEmailAsync(model.Email);
             if (existing)
@@ -63,7 +64,7 @@ namespace GestorInventario.Application.Services.User
             _logger.LogInformation("Usuario {Email} creado correctamente", model.Email);
             return OperationResult<string>.Ok("Usuario creado y correo de confirmación enviado");
         }
-        public async Task<OperationResult<string>> EditarUsuarioAsync(UsuarioEditViewModel userVM)
+        public async Task<OperationResult<string>> EditarUsuarioAsync(EditUserDto userVM)
         {
             var resultado = await _usuarioRepository.ObtenerUsuarioPorId(userVM.Id);
             if (resultado is null)

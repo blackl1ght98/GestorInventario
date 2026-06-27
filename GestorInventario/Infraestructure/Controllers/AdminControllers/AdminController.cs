@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using GestorInventario.Application.DTOs;
 using GestorInventario.Application.DTOs.User;
+using GestorInventario.Application.DTOS.User;
 using GestorInventario.Application.Services.Notifications;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.Services;
@@ -104,8 +105,19 @@ namespace GestorInventario.Infraestructure.Controllers.AdminControllers
                      CargarRolesEnViewData();
                     return View(model);
                 }
-
-                var result = await _policyExecutor.ExecutePolicyAsync(() => _userManagementService.CrearUsuarioAsync(model));
+                var dto = new RegisterUserDto
+                {
+                    Email = model.Email,
+                    Password = model.Password,
+                    IdRol = model.IdRol,
+                    NombreCompleto = model.NombreCompleto,
+                    FechaNacimiento = model.FechaNacimiento,
+                    Telefono = model.Telefono,
+                    Direccion = model.Direccion,
+                    Ciudad = model.Ciudad,
+                    CodigoPostal = model.CodigoPostal,
+                };
+                var result = await _policyExecutor.ExecutePolicyAsync(() => _userManagementService.CrearUsuarioAsync(dto));
 
                 if (!result.Success)
                 {
@@ -194,7 +206,20 @@ namespace GestorInventario.Infraestructure.Controllers.AdminControllers
                 {
                     return View(userVM);
                 }
-                var result= await _userManagementService.EditarUsuarioAsync(userVM);
+                var dto = new EditUserDto
+                {
+                    Id = userVM.Id,
+                    Email = userVM.Email,
+                    NombreCompleto = userVM.NombreCompleto,
+                    FechaNacimiento = userVM.FechaNacimiento,
+                    Telefono = userVM.Telefono,
+                    Direccion = userVM.Direccion,
+                    Ciudad = userVM.Ciudad,
+                    CodigoPostal = userVM.CodigoPostal,
+
+
+                };
+                var result= await _userManagementService.EditarUsuarioAsync(dto);
                
                 if (!result.Success)
                 {

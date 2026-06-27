@@ -67,7 +67,7 @@ namespace GestorInventario.Infraestructure.Controllers.AuthenticationController
        
         [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> Login(LoginDto model)
+        public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid) return View(model);
 
@@ -75,8 +75,9 @@ namespace GestorInventario.Infraestructure.Controllers.AuthenticationController
             {
                 foreach (var cookie in Request.Cookies) { Response.Cookies.Delete(cookie.Key); }
             
+                var dto= new LoginDto { Email = model.Email, Password=model.Password };
                 // 1. Obtenemos la estrategia según la configuración
-                var result = await _loginGenerator.AuthenticateAsync(model);
+                var result = await _loginGenerator.AuthenticateAsync(dto);
 
                 if (!result.Success)
                 {

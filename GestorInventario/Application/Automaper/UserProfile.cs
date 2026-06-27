@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-
+using GestorInventario.Application.DTOS.User;
 using GestorInventario.Domain.Models;
 using GestorInventario.ViewModels.Usuarios;
 
@@ -11,7 +11,7 @@ namespace GestorInventario.Application.Classes
         {
            
             // Mapeo para formulario de edicion
-            CreateMap<UsuarioEditViewModel, Usuario>()
+            CreateMap<EditUserDto, Usuario>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.Password, opt => opt.Ignore())
                 .ForMember(dest => dest.Salt, opt => opt.Ignore())
@@ -37,7 +37,7 @@ namespace GestorInventario.Application.Classes
         
 
             //Mapeo para el formulario de creacion
-          CreateMap<UserViewModel, Usuario>()
+          CreateMap<RegisterUserDto, Usuario>()
           .ForMember(dest => dest.Id, opt => opt.Ignore())
           .ForMember(dest => dest.Password, opt => opt.Ignore())
           .ForMember(dest => dest.Salt, opt => opt.Ignore())
