@@ -7,6 +7,6 @@ namespace GestorInventario.Interfaces.Application.Authentication
 {
     public interface ILoginStrategy
     {
-        Task<OperationResult<AuthSessionDetails>> AuthenticateAsync(LoginViewModel model);
+        Task<OperationResult<AuthSessionDetails>> AuthenticateAsync(LoginDto model);
     }
 }

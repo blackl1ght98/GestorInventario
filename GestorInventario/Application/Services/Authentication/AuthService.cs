@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Application.DTOs.User;
+using GestorInventario.Application.DTOS.User;
 using GestorInventario.Domain.Models;
 
 using GestorInventario.Interfaces.Application.Authentication;
@@ -32,7 +33,7 @@ namespace GestorInventario.Application.Services.Authentication
             _emailService = emailService;
         }
 
-        public async Task<OperationResult<Usuario>> Login(string email, LoginViewModel model)
+        public async Task<OperationResult<Usuario>> Login(string email, LoginDto model)
         {
             var login = await _userRepository.ObtenerEmail(email);
             if (login == null)

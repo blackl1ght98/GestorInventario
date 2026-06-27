@@ -23,7 +23,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Login
             _emailService = emailService;
         }
 
-        public async Task<OperationResult<AuthSessionDetails>> AuthenticateAsync(LoginViewModel model)
+        public async Task<OperationResult<AuthSessionDetails>> AuthenticateAsync(LoginDto model)
         {
             var user = await _policyExecutor.ExecutePolicyAsync(() => _authService.Login(model.Email, model));
 

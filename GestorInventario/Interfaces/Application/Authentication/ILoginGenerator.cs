@@ -7,6 +7,6 @@ namespace GestorInventario.Interfaces.Application.Authentication
 {
     public interface ILoginGenerator
     {
-        Task<OperationResult<AuthSessionDetails>> AuthenticateAsync(LoginViewModel credencialesUsuario);
+        Task<OperationResult<AuthSessionDetails>> AuthenticateAsync(LoginDto credencialesUsuario);
     }
 }

@@ -15,7 +15,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Login
          
             _strategy = factory.GetStrategy();
         }
-        public async Task<OperationResult<AuthSessionDetails>> AuthenticateAsync(LoginViewModel credencialesUsuario)
+        public async Task<OperationResult<AuthSessionDetails>> AuthenticateAsync(LoginDto credencialesUsuario)
         {
           
         

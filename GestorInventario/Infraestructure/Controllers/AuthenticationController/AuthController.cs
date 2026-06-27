@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Application.DTOs.User;
+using GestorInventario.Application.DTOS.User;
 using GestorInventario.Application.Services.Authentication.Strategies.Login;
 using GestorInventario.Interfaces.Application.Authentication;
 using GestorInventario.Interfaces.Application.Common;
@@ -66,7 +67,7 @@ namespace GestorInventario.Infraestructure.Controllers.AuthenticationController
        
         [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> Login(LoginViewModel model)
+        public async Task<IActionResult> Login(LoginDto model)
         {
             if (!ModelState.IsValid) return View(model);
 
@@ -155,10 +156,10 @@ namespace GestorInventario.Infraestructure.Controllers.AuthenticationController
 
             // Recuperamos el modelo de TempData para la vista en caso de error
             var modelJson = TempData["LoginModel"] as string;
-            LoginViewModel model = null;
+            LoginDto model = null;
             if (!string.IsNullOrEmpty(modelJson))
             {
-                model = JsonConvert.DeserializeObject<LoginViewModel>(modelJson);
+                model = JsonConvert.DeserializeObject<LoginDto>(modelJson);
             }
 
             // 2. Validar código de la caché
@@ -176,7 +177,9 @@ namespace GestorInventario.Infraestructure.Controllers.AuthenticationController
                 TempData["LoginModel"] = modelJson;
 
                 if (model == null) return RedirectToAction(nameof(Login));
-                return View(model);
+
+                var viewmodel = new LoginViewModel { Email = model.Email, Password = model.Password };
+                return View(viewmodel);
             }
 
             // 3. CÓDIGO CORRECTO: Generamos los tokens 
