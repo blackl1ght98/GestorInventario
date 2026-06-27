@@ -3,6 +3,7 @@ using Azure.Core;
 using Azure.Identity;
 using GestorInventario.Application.DTOS;
 using GestorInventario.Application.Services.Authentication;
+using GestorInventario.Application.Services.Authentication.Strategies.Login;
 using GestorInventario.Configuracion;
 using GestorInventario.MetodosExtension;
 using GestorInventario.Middlewares;
@@ -67,8 +68,13 @@ if (useRedis)
 }
 
 builder.Services.AddCacheServices(useRedis);
+//Servicios personalizados de autenticacion
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddTokenStrategies(builder.Configuration);
+builder.Services.AddLogin(builder.Configuration);
+builder.Services.AddJwtAuth(builder.Configuration);
+//Fin de los servicios personalizados de autenticacion 
+
 builder.Services.ConfigureAntiforgery();
 
 builder.Services.AddHsts(options =>
@@ -102,7 +108,7 @@ builder.Services.AddDataProtection()
         ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
     });
 
-builder.Services.AddJwtAuth(builder.Configuration); //REGISTRA TODOS LOS SERVICIOS NECESARIOS PARA LA AUTENTICACION 
+
 
 var app = builder.Build();
 app.UseWebOptimizer();

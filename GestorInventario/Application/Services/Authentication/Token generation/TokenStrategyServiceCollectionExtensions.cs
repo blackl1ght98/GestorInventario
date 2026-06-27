@@ -10,7 +10,7 @@ namespace GestorInventario.Application.Services.Authentication
 {
     public static class TokenStrategyServiceCollectionExtensions
     {
-        public const string AuthModeConfigKey = "Auth:Mode";
+        public const string AuthModeConfigKey = "AuthMode";
 
         public static IServiceCollection AddTokenStrategies(
             this IServiceCollection services,

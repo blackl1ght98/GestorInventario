@@ -72,7 +72,7 @@ namespace GestorInventario.MetodosExtension
             services.AddScoped<ITokenGenerator, TokenGenerator>();
             services.AddScoped<IAuthService, AuthService>();           
             services.AddScoped<IRefreshTokenGenerator, RefreshTokenGenerator>();
-            services.AddScoped<ILoginStrategyFactory, LoginStrategyFactory>();
+         
             services.AddScoped<ILoginGenerator, LoginGenerator>();
            services.AddHttpClient<ICallMeBotService, CallMeBotService>();
 
