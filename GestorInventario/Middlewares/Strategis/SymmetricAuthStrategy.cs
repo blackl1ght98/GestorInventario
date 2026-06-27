@@ -9,7 +9,18 @@ namespace GestorInventario.Middlewares.Strategis
 {
     public class SymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
     {
-      
+        private readonly IConfiguration _configuration;
+        private readonly ITokenGenerator _tokenGenerator;
+        private readonly IUserRepository _userRepository;
+        private readonly IRefreshTokenStrategy _refreshTokenStrategy;
+
+        public SymmetricAuthStrategy(IConfiguration configuration, ITokenGenerator tokenGenerator, IUserRepository userRepository, IRefreshTokenStrategy refreshTokenStrategy)
+        {
+            _configuration = configuration;
+            _tokenGenerator = tokenGenerator;
+            _userRepository = userRepository;
+            _refreshTokenStrategy = refreshTokenStrategy;
+        }
 
         public async Task ProcessAuthentication(HttpContext context,  Func<Task> next)
         {
@@ -27,9 +38,7 @@ namespace GestorInventario.Middlewares.Strategis
                 // Recuperar cookies y servicios necesarios
                 var token = context.Request.Cookies["auth"];
                 var refreshToken = context.Request.Cookies["refreshToken"];
-                var tokenService = context.RequestServices.GetRequiredService<ITokenGenerator>();
-                var utility = context.RequestServices.GetRequiredService<IUserRepository>();
-                var refreshTokenMethod = context.RequestServices.GetRequiredService<IRefreshTokenStrategy>();
+
 
                 // Validar el token principal
                 if (!string.IsNullOrEmpty(token))
@@ -43,12 +52,12 @@ namespace GestorInventario.Middlewares.Strategis
                     }
                     else if (!string.IsNullOrEmpty(refreshToken))
                     {
-                        await HandleExpiredToken(context, refreshToken, secret,configuration,  tokenService, utility, refreshTokenMethod);
+                        await HandleExpiredToken(context, refreshToken, secret,configuration,  _tokenGenerator, _userRepository, _refreshTokenStrategy);
                     }
                 }
                 else if (!string.IsNullOrEmpty(refreshToken))
                 {
-                    await HandleExpiredToken(context, refreshToken, secret,configuration,tokenService, utility, refreshTokenMethod);
+                    await HandleExpiredToken(context, refreshToken, secret,configuration,_tokenGenerator, _userRepository, _refreshTokenStrategy);
                 }
                
             }

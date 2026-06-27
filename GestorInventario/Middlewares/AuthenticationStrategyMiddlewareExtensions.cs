@@ -6,28 +6,17 @@ namespace GestorInventario.Middlewares
 
 
 
-    /// <summary>
-    /// Extensiones para configurar el middleware de procesamiento de autenticación.
-    /// 
-    /// Permite inyectar diferentes estrategias de autenticación (dinámica, fija, simétrica, etc.)
-    /// de forma centralizada en la pipeline de ASP.NET Core.
-    /// </summary>
+  
     public static  class AuthenticationStrategyMiddlewareExtensions
     {
         // Metodo que recibe el modo de autenticacion elegido.
-        public static IApplicationBuilder UseAuthProcessing(this IApplicationBuilder app, string authStrategy)
+        /// <summary>
+        /// Inserta el middleware de autenticación en el pipeline.
+        /// La estrategia concreta se elige en DI según "Auth:Mode" del appsettings.
+        /// </summary>
+        public static IApplicationBuilder UseJwtAuthStrategy(this IApplicationBuilder app)
         {
-            // 1º Llama a la clase fabrica y le pasa el metodo de autenticacion elegido
-            IAuthenticationMiddlewareStrategy strategy = AuthenticationStrategyFactory.Create(authStrategy);
-            // 2º Segun el metodo de autenticacion escogido el orquestador ejecutara la configuracion correspondiente
-            var middleware = new AuthenticationStrategyMiddleware(strategy);
-
-            app.Use(async (httpContext, next) =>
-            {
-                await middleware.ExecuteAuthentication(httpContext, next);
-            });
-
-            return app;
+            return app.UseMiddleware<AuthenticationStrategyMiddleware>();
         }
     }
 }

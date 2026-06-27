@@ -13,16 +13,18 @@ namespace GestorInventario.Middlewares
      */
     public class AuthenticationStrategyMiddleware
     {
-        private IAuthenticationMiddlewareStrategy _strategy;
+        private readonly RequestDelegate _next;
 
-        public AuthenticationStrategyMiddleware(IAuthenticationMiddlewareStrategy strategy)
+        public AuthenticationStrategyMiddleware(RequestDelegate next)
         {
-            _strategy = strategy;
+            _next = next;
         }
-        public async Task ExecuteAuthentication(HttpContext context, Func<Task> next)
+
+        public async Task InvokeAsync(
+            HttpContext context,
+            IAuthenticationMiddlewareStrategy strategy)
         {
-            
-            await _strategy.ProcessAuthentication(context, next);
+            await strategy.ProcessAuthentication(context, () => _next(context));
         }
     }
 }

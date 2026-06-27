@@ -99,7 +99,7 @@ builder.Services.AddDataProtection()
         ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
     });
 
-
+builder.Services.AddJwtAuth(builder.Configuration); //REGISTRA TODOS LOS SERVICIOS NECESARIOS PARA LA AUTENTICACION 
 
 var app = builder.Build();
 app.UseWebOptimizer();
@@ -160,11 +160,11 @@ app.Use(async (context, next) =>
 });
 app.UseImageProcessing();
 app.UseCors();
-//app.UseHttpMethodOverride(); //middleware para alterar la forma en la que se envian los formularios su uso es asi <input type="hidden" name="_method" value="PUT" />
+
 app.UseRouting();
 app.UseAuthentication(); // Identifica al usuario
 app.UseSession();
-app.UseAuthProcessing( authStrategy); 
+app.UseJwtAuthStrategy(); // PONE EN USO LA ESTRATEGIA ELEGIDA CON ESOS SERVICIOS CARGADOS (builder.Services.AddJwtAuth(builder.Configuration);)
 app.UseAuthorization(); // Evalúa políticas y roles
 
 app.MapControllerRoute(

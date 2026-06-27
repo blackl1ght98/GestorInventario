@@ -9,7 +9,19 @@ namespace GestorInventario.Middlewares.Strategis
 {
     public class FixedAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
     {
-      
+        private readonly IConfiguration _configuration;
+        private readonly ITokenGenerator _tokenGenerator;
+        private readonly IUserRepository _userRepository;
+        private readonly IRefreshTokenStrategy _refreshTokenStrategy;
+       
+
+        public FixedAsymmetricAuthStrategy(IConfiguration configuration, ITokenGenerator tokenGenerator, IUserRepository userRepository, IRefreshTokenStrategy refreshTokenStrategy )
+        {
+            _tokenGenerator = tokenGenerator;
+            _userRepository = userRepository;
+            _refreshTokenStrategy = refreshTokenStrategy;
+            _configuration = configuration;
+        }
 
         public async Task ProcessAuthentication(HttpContext context,  Func<Task> next)
         {
@@ -18,14 +30,11 @@ namespace GestorInventario.Middlewares.Strategis
                 // Recuperar cookies y servicios necesarios
                 var token = context.Request.Cookies["auth"];
                 var refreshToken = context.Request.Cookies["refreshToken"];
-                var tokenService = context.RequestServices.GetRequiredService<ITokenGenerator>();
-                var utility = context.RequestServices.GetRequiredService<IUserRepository>();
-                var refreshTokenMethod = context.RequestServices.GetRequiredService<IRefreshTokenStrategy>();
-                var configuration = context.RequestServices.GetService<IConfiguration>();
+               
                 // Validar el token principal
                 if (!string.IsNullOrEmpty(token))
                 {
-                    var (jwtToken, principal) = await ValidateToken(token, configuration);
+                    var (jwtToken, principal) = await ValidateToken(token, _configuration);
                     if (jwtToken != null && principal != null)
                     {
                         context.User = principal;
@@ -33,12 +42,12 @@ namespace GestorInventario.Middlewares.Strategis
                     }
                     else if (!string.IsNullOrEmpty(refreshToken))
                     {
-                        await HandleExpiredToken(context, refreshToken,configuration,  tokenService, utility, refreshTokenMethod);
+                        await HandleExpiredToken(context, refreshToken,_configuration,  _tokenGenerator, _userRepository, _refreshTokenStrategy);
                     }
                 }
                 else if (!string.IsNullOrEmpty(refreshToken))
                 {
-                    await HandleExpiredToken(context, refreshToken,configuration, tokenService, utility, refreshTokenMethod);
+                    await HandleExpiredToken(context, refreshToken,_configuration, _tokenGenerator, _userRepository, _refreshTokenStrategy);
                 }
                 else
                 {
