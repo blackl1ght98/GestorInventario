@@ -1,4 +1,5 @@
-﻿using GestorInventario.Domain.Models;
+﻿using GestorInventario.Application.DTOS.User;
+using GestorInventario.Domain.Models;
 
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.MetodosExtension;
@@ -31,7 +32,7 @@ namespace GestorInventario.Infraestructure.Repositories.ProveedorRepository
             return  proveedor;
         }
 
-        public async Task<OperationResult<string>> CrearProveedor(ProveedorViewModel model)
+        public async Task<OperationResult<string>> CrearProveedor(CrearProveedorDto model)
         {
 
             return await _context.ExecuteInTransactionAsync(async () =>
@@ -75,7 +76,7 @@ namespace GestorInventario.Infraestructure.Repositories.ProveedorRepository
 
             });                   
         }
-        public async Task<OperationResult<string>> EditarProveedor(ProveedorViewModel model, int Id)
+        public async Task<OperationResult<string>> EditarProveedor(EditarProveedorDto model, int Id)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
             {
@@ -90,7 +91,7 @@ namespace GestorInventario.Infraestructure.Repositories.ProveedorRepository
             });
           
         }
-        private async Task ActualizarProveedor(Proveedore proveedor, ProveedorViewModel model)
+        private async Task ActualizarProveedor(Proveedore proveedor, EditarProveedorDto model)
         {
             proveedor.NombreProveedor = model.NombreProveedor;
             proveedor.Contacto = model.Contacto;

@@ -1,4 +1,5 @@
-﻿using GestorInventario.Interfaces.Application.Common;
+﻿using GestorInventario.Application.DTOS.User;
+using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.MetodosExtension;
@@ -113,8 +114,14 @@ namespace GestorInventario.Infraestructure.Controllers.ProveedorController
                     );
                     return View(model);  
                 }
-
-                var proveedor = await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.CrearProveedor(model));
+                var dto = new CrearProveedorDto
+                {
+                    NombreProveedor = model.NombreProveedor,
+                    Contacto = model.Contacto,
+                    Direccion = model.Direccion,
+                    IdUsuario = model.IdUsuario,
+                };
+                var proveedor = await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.CrearProveedor(dto));
                 if (!proveedor.IsSuccess)
                 {
                     TempData["ErrorMessage"] = proveedor.Message;
@@ -251,8 +258,16 @@ namespace GestorInventario.Infraestructure.Controllers.ProveedorController
 
                     return View(model);  
                 }
+                var dto = new EditarProveedorDto
+                {
+                    Id = Id,
+                    NombreProveedor = model.NombreProveedor,
+                    Direccion = model.Direccion,
+                    Contacto = model.Contacto,
+                    IdUsuario = model.IdUsuario
 
-                var success = await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.EditarProveedor(model, Id));
+                };
+                var success = await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.EditarProveedor(dto, Id));
 
                 if (success.Success)
                 {
