@@ -1,5 +1,6 @@
-﻿using GestorInventario.Infraestructure.Utils;
+﻿
 using GestorInventario.Interfaces.Application.ExternalServices;
+using GestorInventario.Utilities;
 using System.Globalization;
 
 namespace GestorInventario.Application.Services.External_Sevices.Refunds

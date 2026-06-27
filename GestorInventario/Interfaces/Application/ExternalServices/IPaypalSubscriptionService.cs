@@ -2,7 +2,8 @@
 
 using GestorInventario.Application.DTOS.Paypal.Responses.GET.Subscription;
 using GestorInventario.Application.DTOS.Paypal.Responses.POST.Subscription;
-using GestorInventario.Infraestructure.Utils;
+
+using GestorInventario.Utilities;
 
 namespace GestorInventario.Interfaces.Application.ExternalServices
 {

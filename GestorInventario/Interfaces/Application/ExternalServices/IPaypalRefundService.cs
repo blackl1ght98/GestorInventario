@@ -1,4 +1,5 @@
-﻿using GestorInventario.Infraestructure.Utils;
+﻿
+using GestorInventario.Utilities;
 
 namespace GestorInventario.Interfaces.Application.ExternalServices
 {

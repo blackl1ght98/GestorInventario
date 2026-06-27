@@ -2,7 +2,7 @@
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 
-namespace GestorInventario.Infraestructure.Utils
+namespace GestorInventario.Utilities
 {
     public class UnitOfWork : IUnitOfWork
     {

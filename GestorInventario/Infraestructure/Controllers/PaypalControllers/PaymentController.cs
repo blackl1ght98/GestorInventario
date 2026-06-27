@@ -1,9 +1,9 @@
 ﻿using GestorInventario.Domain.Models;
-using GestorInventario.Infraestructure.Utils;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
+using GestorInventario.Utilities;
 using GestorInventario.ViewModels.Paypal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

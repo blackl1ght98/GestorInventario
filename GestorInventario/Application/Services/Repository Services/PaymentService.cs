@@ -8,12 +8,13 @@ using GestorInventario.Application.Services.Common;
 using GestorInventario.Domain.Models;
 using GestorInventario.enums.Paypal;
 using GestorInventario.enums.Pedido;
-using GestorInventario.Infraestructure.Utils;
+
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
+using GestorInventario.Utilities;
 using GestorInventario.ViewModels.Paypal;
 using Newtonsoft.Json;
 

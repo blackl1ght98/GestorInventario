@@ -1,7 +1,7 @@
 ﻿using GestorInventario.Interfaces.Application.Common;
 using System.Threading.Channels;
 
-namespace GestorInventario.Infraestructure.Utils
+namespace GestorInventario.Utilities
 {
     public class BackgroundTaskQueue : IBackgroundTaskQueue
     {

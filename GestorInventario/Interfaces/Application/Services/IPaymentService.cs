@@ -1,7 +1,8 @@
 ﻿
 using GestorInventario.Application.DTOs.Paypal.Responses.GET.Order;
 using GestorInventario.Domain.Models;
-using GestorInventario.Infraestructure.Utils;
+
+using GestorInventario.Utilities;
 using GestorInventario.ViewModels.Paypal;
 
 namespace GestorInventario.Interfaces.Application.Services

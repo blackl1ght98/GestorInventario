@@ -4,8 +4,9 @@ using GestorInventario.Application.DTOS.Paypal.Responses.Error;
 using GestorInventario.Application.DTOS.Paypal.Responses.GET.Subscription;
 using GestorInventario.Application.DTOS.Paypal.Responses.POST.Subscription;
 using GestorInventario.Application.Exceptions;
-using GestorInventario.Infraestructure.Utils;
+
 using GestorInventario.Interfaces.Application.ExternalServices;
+using GestorInventario.Utilities;
 using Newtonsoft.Json;
 using System.Globalization;
 

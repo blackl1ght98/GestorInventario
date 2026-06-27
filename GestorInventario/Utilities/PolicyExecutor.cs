@@ -1,6 +1,6 @@
 ﻿using GestorInventario.Interfaces.Application.Common;
 
-namespace GestorInventario.Infraestructure.Utils
+namespace GestorInventario.Utilities
 {
     public class PolicyExecutor: IPolicyExecutor
     {

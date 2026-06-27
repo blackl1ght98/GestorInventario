@@ -1,8 +1,9 @@
 ﻿
 using GestorInventario.Application.Services.Generic_Services;
-using GestorInventario.Infraestructure.Utils;
+
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
+using GestorInventario.Utilities;
 using QuestPDF.Fluent;
 
 namespace GestorInventario.Application.Services

@@ -26,7 +26,7 @@ using GestorInventario.Infraestructure.Repositories.ProductoRepository;
 using GestorInventario.Infraestructure.Repositories.ProveedorRepository;
 using GestorInventario.Infraestructure.Repositories.RembolsoRepository;
 using GestorInventario.Infraestructure.Repositories.UserRepository;
-using GestorInventario.Infraestructure.Utils;
+
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Application.Authentication;
 using GestorInventario.Interfaces.Application.Common;
@@ -35,6 +35,7 @@ using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.PaginacionLogica;
+using GestorInventario.Utilities;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using StackExchange.Redis;

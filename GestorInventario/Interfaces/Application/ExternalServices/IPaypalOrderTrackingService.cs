@@ -1,7 +1,7 @@
 ﻿using GestorInventario.Application.DTOS.Paypal.Responses.POST.Order;
 using GestorInventario.enums.Pedido;
 using GestorInventario.enums.Productos;
-using GestorInventario.Infraestructure.Utils;
+using GestorInventario.Utilities;
 
 namespace GestorInventario.Interfaces.Application.ExternalServices
 {

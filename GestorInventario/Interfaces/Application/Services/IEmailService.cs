@@ -1,7 +1,8 @@
 ﻿using GestorInventario.Application.DTOs;
 using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Domain.Models;
-using GestorInventario.Infraestructure.Utils;
+
+using GestorInventario.Utilities;
 
 namespace GestorInventario.Interfaces.Application.Services
 {

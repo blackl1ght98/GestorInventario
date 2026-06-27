@@ -1,8 +1,9 @@
 ﻿using GestorInventario.Domain.Models;
 using GestorInventario.enums.Pedido;
-using GestorInventario.Infraestructure.Utils;
+
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.MetodosExtension;
+using GestorInventario.Utilities;
 using GestorInventario.ViewModels.Paypal;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;

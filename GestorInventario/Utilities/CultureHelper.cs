@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace GestorInventario.Infraestructure.Utils
+namespace GestorInventario.Utilities
 {
     public class CultureHelper
     {

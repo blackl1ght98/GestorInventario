@@ -4,10 +4,11 @@ using GestorInventario.Application.DTOs.User;
 using GestorInventario.Application.Services.Authentication;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infraestructure.Repositories;
-using GestorInventario.Infraestructure.Utils;
+
 using GestorInventario.Interfaces.Application.Authentication;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
+using GestorInventario.Utilities;
 using GestorInventario.ViewModels.Usuarios;
 
 namespace GestorInventario.Application.Services.User

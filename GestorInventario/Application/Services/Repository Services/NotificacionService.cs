@@ -1,9 +1,10 @@
 ﻿using GestorInventario.Application.DTOS.User;
 using GestorInventario.Domain.Models;
-using GestorInventario.Infraestructure.Utils;
+
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
+using GestorInventario.Utilities;
 using System.ClientModel.Primitives;
 
 namespace GestorInventario.Application.Services.Repository_Services
@@ -18,7 +19,7 @@ namespace GestorInventario.Application.Services.Repository_Services
             _notificacion = notificacion;
             _current = current;
         }
-        public async Task<OperationResult<string>> CrearNotificacion(int usuarioId, string titulo,string mensaje,string tipo)
+        public async Task<OperationResult<string>> CrearNotificacion(int usuarioId, string titulo, string mensaje, string tipo)
         {
             var notificacion = new Notificacion
             {

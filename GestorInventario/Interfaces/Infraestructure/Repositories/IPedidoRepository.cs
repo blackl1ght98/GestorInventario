@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Domain.Models;
-using GestorInventario.Infraestructure.Utils;
+
+using GestorInventario.Utilities;
 using GestorInventario.ViewModels.Paypal;
 
 namespace GestorInventario.Interfaces.Infraestructure.Repositories

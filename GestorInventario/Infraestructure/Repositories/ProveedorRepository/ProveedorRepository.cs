@@ -1,7 +1,8 @@
 ﻿using GestorInventario.Domain.Models;
-using GestorInventario.Infraestructure.Utils;
+
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.MetodosExtension;
+using GestorInventario.Utilities;
 using GestorInventario.ViewModels.Proveedor;
 using Microsoft.EntityFrameworkCore;
 

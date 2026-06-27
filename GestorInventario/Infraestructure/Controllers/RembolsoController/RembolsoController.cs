@@ -4,7 +4,7 @@ using GestorInventario.Application.DTOS.Rembolso;
 using GestorInventario.Application.Services.Common;
 using GestorInventario.Domain.Models;
 using GestorInventario.enums.Pedido;
-using GestorInventario.Infraestructure.Utils;
+
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Application.Services;
@@ -12,6 +12,7 @@ using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.MetodosExtension;
 using GestorInventario.PaginacionLogica;
+using GestorInventario.Utilities;
 using GestorInventario.ViewModels.Paypal;
 using GestorInventario.ViewModels.Rembolsos;
 using Microsoft.AspNetCore.Authorization;

@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.Infraestructure.Utils
+﻿namespace GestorInventario.Utilities
 {
     /// <summary>
     /// Clase central de resultados de operación. 292 referencias en el proyecto.

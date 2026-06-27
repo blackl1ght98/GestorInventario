@@ -1,8 +1,9 @@
 ﻿using GestorInventario.Application.DTOS.User;
-using GestorInventario.Infraestructure.Utils;
+
 using GestorInventario.Interfaces.Application.Authentication;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.Services;
+using GestorInventario.Utilities;
 using GestorInventario.ViewModels.Usuarios;
 
 namespace GestorInventario.Application.Services.Authentication.Strategies.Login
