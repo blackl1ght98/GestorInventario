@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GestorInventario.Domain\GestorInventario.Domain.csproj" />
+    <ProjectReference Include="..\GestorInventario.Interfaces\GestorInventario.Interfaces.csproj" />
+    <ProjectReference Include="..\GestorInventario.Shared\GestorInventario.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

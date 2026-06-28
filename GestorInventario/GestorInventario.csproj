@@ -46,6 +46,7 @@
   <ItemGroup>
     <ProjectReference Include="..\GestorInventario.Application\GestorInventario.Application.csproj" />
     <ProjectReference Include="..\GestorInventario.Domain\GestorInventario.Domain.csproj" />
+    <ProjectReference Include="..\GestorInventario.Infrestructura\GestorInventario.Infrestructura.csproj" />
     <ProjectReference Include="..\GestorInventario.Interfaces\GestorInventario.Interfaces.csproj" />
     <ProjectReference Include="..\GestorInventario.Shared\GestorInventario.Shared.csproj" />
   </ItemGroup>
