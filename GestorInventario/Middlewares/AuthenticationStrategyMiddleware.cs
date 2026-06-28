@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Application.Authentication;
 
 namespace GestorInventario.Middlewares
 {

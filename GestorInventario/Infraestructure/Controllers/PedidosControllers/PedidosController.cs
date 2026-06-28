@@ -5,7 +5,7 @@ using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.MetodosExtension;
-using GestorInventario.PaginacionLogica;
+using GestorInventario.Shared.Utilities;
 using GestorInventario.ViewModels.Pedidos;
 
 using Microsoft.AspNetCore.Authorization;

@@ -3,7 +3,8 @@ using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
-using GestorInventario.PaginacionLogica;
+
+using GestorInventario.Shared.Utilities;
 using GestorInventario.Utilities;
 using GestorInventario.ViewModels.Carrito;
 using Microsoft.AspNetCore.Authorization;

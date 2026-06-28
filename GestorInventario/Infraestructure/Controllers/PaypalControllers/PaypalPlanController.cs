@@ -1,16 +1,14 @@
-﻿using GestorInventario.Application.DTOS.Paypal.Projections;
-using GestorInventario.Application.DTOS.Paypal.Requests.POST;
-using GestorInventario.Application.DTOS.Paypal.Responses.POST.Subscription;
+﻿
 using GestorInventario.Application.Exceptions;
 using GestorInventario.Application.Mappers;
 using GestorInventario.Application.Services;
 using GestorInventario.Domain.Models;
-
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Common;
-using GestorInventario.PaginacionLogica;
+using GestorInventario.Shared.DTOS.Paypal.Requests.POST;
+using GestorInventario.Shared.Utilities;
 using GestorInventario.Utilities;
 using GestorInventario.ViewModels.Paypal;
 using GestorInventario.ViewModels.Productos;

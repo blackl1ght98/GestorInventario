@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Application.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;

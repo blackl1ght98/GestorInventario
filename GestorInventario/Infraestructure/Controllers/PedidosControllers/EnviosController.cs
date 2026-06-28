@@ -1,10 +1,10 @@
-﻿using GestorInventario.Application.DTOS;
-using GestorInventario.Application.DTOS.Paypal;
-using GestorInventario.Application.DTOS.Paypal.Responses.POST.Order;
+﻿
 using GestorInventario.enums.Pedido;
 using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
+using GestorInventario.Shared.DTOS;
+using GestorInventario.Shared.DTOS.Paypal.Responses.POST.Order;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

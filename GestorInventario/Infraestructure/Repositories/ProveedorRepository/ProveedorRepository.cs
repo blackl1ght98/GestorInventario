@@ -1,9 +1,10 @@
-﻿using GestorInventario.Application.DTOS.User;
+﻿
 using GestorInventario.Domain.Models;
 
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.MetodosExtension;
-using GestorInventario.Utilities;
+using GestorInventario.Shared.DTOS.User;
+using GestorInventario.Shared.Utilities;
 using GestorInventario.ViewModels.Proveedor;
 using Microsoft.EntityFrameworkCore;
 

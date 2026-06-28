@@ -1,12 +1,10 @@
 ﻿
 using Azure.Core;
-using Azure.Identity;
-using GestorInventario.Application.DTOS;
-using GestorInventario.Application.Services.Authentication;
-using GestorInventario.Application.Services.Authentication.Strategies.Login;
+using GestorInventario.Composition;
 using GestorInventario.Configuracion;
 using GestorInventario.MetodosExtension;
 using GestorInventario.Middlewares;
+using GestorInventario.Shared.DTOS;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;

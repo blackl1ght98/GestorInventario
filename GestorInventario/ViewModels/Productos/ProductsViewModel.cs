@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Domain.Models;
-using GestorInventario.PaginacionLogica;
+
+using GestorInventario.Shared.Utilities;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace GestorInventario.ViewModels.Productos

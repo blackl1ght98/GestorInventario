@@ -1,13 +1,13 @@
 ﻿using AutoMapper;
 using GestorInventario.Application.DTOs;
-using GestorInventario.Application.DTOs.User;
-using GestorInventario.Application.DTOS.User;
+
 using GestorInventario.Application.Services.Notifications;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.MetodosExtension;
-using GestorInventario.PaginacionLogica;
+using GestorInventario.Shared.DTOS.User;
+using GestorInventario.Shared.Utilities;
 using GestorInventario.ViewModels.Usuarios;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -179,7 +179,7 @@ namespace GestorInventario.Infraestructure.Controllers.AdminControllers
                     _logger.LogWarning("Intento de editar usuario inexistente con ID {UserId}", id);
                     return RedirectToAction(nameof(Index));
                 }
-
+              
                
             
                 var viewModel = _mapper.Map<UsuarioEditViewModel>(usuario);

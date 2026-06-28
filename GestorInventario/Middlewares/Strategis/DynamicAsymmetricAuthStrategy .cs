@@ -1,5 +1,6 @@
 ﻿
 using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Application.Authentication;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using Microsoft.AspNetCore.Http;

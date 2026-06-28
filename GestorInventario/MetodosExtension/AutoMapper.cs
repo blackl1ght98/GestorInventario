@@ -1,4 +1,6 @@
-﻿using GestorInventario.MetodosExtension;
+﻿using GestorInventario.Application.Automaper;
+using GestorInventario.Automaper;
+using GestorInventario.MetodosExtension;
 using System.Reflection;
 
 namespace GestorInventario.MetodosExtension
@@ -11,8 +13,12 @@ namespace GestorInventario.MetodosExtension
             {
                 cfg.LicenseKey = Environment.GetEnvironmentVariable("LicenseKeyAutoMapper") ?? configuration["LicenseKeyAutoMapper"]; ;
 
-                cfg.AddMaps(Assembly.GetExecutingAssembly());
+                //  cfg.AddMaps(Assembly.GetExecutingAssembly());
+                cfg.AddMaps(
+                    typeof(UserViewModelProfile).Assembly,
+                    typeof(UserProfile).Assembly);
             });
+      
             return services;
         }
     }

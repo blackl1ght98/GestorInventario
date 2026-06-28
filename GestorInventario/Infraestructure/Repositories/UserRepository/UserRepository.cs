@@ -1,10 +1,12 @@
-﻿using GestorInventario.Application.DTOs.User;
+﻿
 using GestorInventario.Domain.Models;
 using GestorInventario.enums.Usuario;
 
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.MetodosExtension;
-using GestorInventario.Utilities;
+using GestorInventario.Shared.DTOS.User;
+using GestorInventario.Shared.Utilities;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace GestorInventario.Infraestructure.Repositories.UserRepository

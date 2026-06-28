@@ -1,5 +1,6 @@
-﻿using GestorInventario.Application.DTOS.Paypal.Projections;
-using GestorInventario.PaginacionLogica;
+﻿
+using GestorInventario.Shared.DTOS.Paypal.Projections;
+using GestorInventario.Shared.Utilities;
 
 
 

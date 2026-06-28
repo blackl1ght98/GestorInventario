@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Application.Authentication;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;

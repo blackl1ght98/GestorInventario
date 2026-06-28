@@ -1,4 +1,5 @@
-﻿using GestorInventario.Application.Politicas_Resilencia;
+﻿using GestorInventario.Application.PaginacionLogica;
+using GestorInventario.Application.Politicas_Resilencia;
 using GestorInventario.Application.Services;
 using GestorInventario.Application.Services.Authentication;
 using GestorInventario.Application.Services.Authentication.Strategies;
@@ -16,6 +17,9 @@ using GestorInventario.Application.Services.Products;
 using GestorInventario.Application.Services.Repository_Services;
 using GestorInventario.Application.Services.Syncs;
 using GestorInventario.Application.Services.User;
+using GestorInventario.Context;
+using GestorInventario.Files;
+using GestorInventario.Images;
 using GestorInventario.Infraestructure;
 using GestorInventario.Infraestructure.Repositories.AdminRepository;
 using GestorInventario.Infraestructure.Repositories.CarritoRepository;
@@ -35,7 +39,8 @@ using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
-using GestorInventario.PaginacionLogica;
+using GestorInventario.Renderer;
+using GestorInventario.Shared.Utilities;
 using GestorInventario.Utilities;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
@@ -131,6 +136,8 @@ namespace GestorInventario.MetodosExtension
             services.AddSingleton<ICurrentUserAccessor, CurrentUserAccessor>();
             services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
             services.AddSingleton<IUrlService, UrlService>();
+            services.AddSingleton<IBarCodeImageRenderer, BarCodeImageRenderer>();
+            services.AddSingleton<IBarCodeImageStorage, BarCodeImageStorage>();
             return services;
         }
 

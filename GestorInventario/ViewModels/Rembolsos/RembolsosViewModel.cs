@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Domain.Models;
-using GestorInventario.PaginacionLogica;
+
+using GestorInventario.Shared.Utilities;
 using System.Collections.Generic;
 
 namespace GestorInventario.ViewModels.Rembolsos

@@ -1,5 +1,5 @@
 ﻿using GestorInventario.Domain.Models;
-using GestorInventario.PaginacionLogica;
+using GestorInventario.Shared.Utilities;
 
 namespace GestorInventario.ViewModels.Paypal
 {

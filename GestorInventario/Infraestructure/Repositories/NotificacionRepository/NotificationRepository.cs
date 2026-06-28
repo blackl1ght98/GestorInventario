@@ -1,9 +1,10 @@
-﻿using GestorInventario.Application.DTOS.User;
+﻿
 using GestorInventario.Domain.Models;
 
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.MetodosExtension;
-using GestorInventario.Utilities;
+using GestorInventario.Shared.Utilities;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace GestorInventario.Infraestructure.Repositories.NotificacionRepository

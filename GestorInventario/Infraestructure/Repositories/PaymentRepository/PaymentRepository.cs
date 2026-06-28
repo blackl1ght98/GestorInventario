@@ -3,7 +3,7 @@ using GestorInventario.enums;
 
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.MetodosExtension;
-using GestorInventario.Utilities;
+using GestorInventario.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 
 namespace GestorInventario.Infraestructure.Repositories.PaymentRepository

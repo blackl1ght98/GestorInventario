@@ -1,8 +1,10 @@
-﻿using GestorInventario.Application.DTOS.Paypal.Projections;
+﻿
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Infraestructure.Common;
-using GestorInventario.PaginacionLogica;
+
+using GestorInventario.Shared.DTOS.Paypal.Projections;
+using GestorInventario.Shared.Utilities;
 using GestorInventario.ViewModels.Paypal;
 
 using Microsoft.AspNetCore.Authorization;

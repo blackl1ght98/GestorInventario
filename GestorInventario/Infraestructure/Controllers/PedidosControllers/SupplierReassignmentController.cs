@@ -1,6 +1,7 @@
-﻿using GestorInventario.Application.DTOs.User;
+﻿
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Infraestructure.Common;
+using GestorInventario.Shared.DTOS.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

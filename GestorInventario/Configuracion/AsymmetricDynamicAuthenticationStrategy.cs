@@ -1,7 +1,8 @@
 ﻿using GestorInventario.Interfaces.Application;
+using GestorInventario.Interfaces.Application.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
-namespace GestorInventario.Configuracion.Strategies
+namespace GestorInventario.Configuracion
 {
     public class AsymmetricDynamicAuthenticationStrategy : IConfigurationAuthenticationStrategy
     {
