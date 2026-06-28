@@ -3,6 +3,7 @@ using GestorInventario.Application.DTOs.Checkout;
 using GestorInventario.Application.DTOs.Email;
 using GestorInventario.Application.DTOs.Paypal.Responses.GET.Order;
 using GestorInventario.Application.DTOs.User;
+using GestorInventario.Application.DTOS;
 using GestorInventario.Application.DTOS.Paypal.Responses.POST.Order;
 using GestorInventario.Application.Services.Common;
 using GestorInventario.Domain.Models;
@@ -304,7 +305,7 @@ namespace GestorInventario.Application.Services.Generic_Services
             
         }
        
-        public async Task<OperationResult<PayPalPaymentItem>> ProcesarRembolso(PurchaseUnitDetails firstPurchaseUnit, PayPalPaymentDetail detallesSuscripcion, int usuarioActual, RefundFormViewModel form, Pedido obtenerNumeroPedido, string emailCliente)
+        public async Task<OperationResult<PayPalPaymentItem>> ProcesarRembolso(PurchaseUnitDetails firstPurchaseUnit, PayPalPaymentDetail detallesSuscripcion, int usuarioActual, RefundDto form, Pedido obtenerNumeroPedido, string emailCliente)
         {
             // Lista para almacenar los ítems de PayPal
             var paypalItems = new List<PayPalPaymentItem>();

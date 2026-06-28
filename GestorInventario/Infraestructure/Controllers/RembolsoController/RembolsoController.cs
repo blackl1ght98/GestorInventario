@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Application.DTOs.Paypal.Responses.GET.Order;
 using GestorInventario.Application.DTOs.Rembolso;
+using GestorInventario.Application.DTOS;
 using GestorInventario.Application.DTOS.Rembolso;
 using GestorInventario.Application.Services.Common;
 using GestorInventario.Domain.Models;
@@ -448,9 +449,16 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
                 var firstPurchaseUnit = detallespago.PurchaseUnits.First();
 
                 var paymentDetail = _mappingService.MapearOrdenADetallePago(detallespago);
-
+                var dto = new RefundDto
+                {
+                    NumeroPedido = form.NumeroPedido,
+                    NombreCliente = form.NombreCliente,
+                    EmailCliente = form.EmailCliente,
+                    FechaRembolso = form.FechaRembolso,
+                    MotivoRembolso = form.MotivoRembolso,
+                };
                 // Lista para almacenar los ítems de PayPal
-                var paypalItems = await _paymentService.ProcesarRembolso(firstPurchaseUnit, paymentDetail, usuarioActual, form, obtenerNumeroPedido, emailCliente);
+                var paypalItems = await _paymentService.ProcesarRembolso(firstPurchaseUnit, paymentDetail, usuarioActual, dto, obtenerNumeroPedido, emailCliente);
                 if (User.IsAdministrador())
                 {
                     return RedirectToAction("Index", "Admin");

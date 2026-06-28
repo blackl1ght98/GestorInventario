@@ -1,5 +1,6 @@
 ﻿
 using GestorInventario.Application.DTOs.Paypal.Responses.GET.Order;
+using GestorInventario.Application.DTOS;
 using GestorInventario.Domain.Models;
 
 using GestorInventario.Utilities;
@@ -11,7 +12,7 @@ namespace GestorInventario.Interfaces.Application.Services
     {
         Task<OperationResult<string>> Pagar(string moneda, int userId);
 
-        Task<OperationResult<PayPalPaymentItem>> ProcesarRembolso(PurchaseUnitDetails firstPurchaseUnit, PayPalPaymentDetail detallesSuscripcion, int usuarioActual, RefundFormViewModel form, Pedido obtenerNumeroPedido, string emailCliente);
+        Task<OperationResult<PayPalPaymentItem>> ProcesarRembolso(PurchaseUnitDetails firstPurchaseUnit, PayPalPaymentDetail detallesSuscripcion, int usuarioActual, RefundDto form, Pedido obtenerNumeroPedido, string emailCliente);
         Task<OperationResult<string>> ReintentarPago(int pedidoId);
     }
 }
