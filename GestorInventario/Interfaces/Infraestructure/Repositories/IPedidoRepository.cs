@@ -1,4 +1,5 @@
-﻿using GestorInventario.Domain.Models;
+﻿using GestorInventario.Application.DTOS;
+using GestorInventario.Domain.Models;
 
 using GestorInventario.Utilities;
 using GestorInventario.ViewModels.Paypal;
@@ -13,7 +14,7 @@ namespace GestorInventario.Interfaces.Infraestructure.Repositories
         Task<Pedido> ObtenerPedidoConDetallesAsync(int id);
         Task<Pedido> ObtenerPedidoPorIdAsync(int id);
         Task<Pedido?> ObtenerPedidoPendienteUsuarioAsync(int usuarioId);
-        Task<Pedido> ObtenerNumeroPedido(RefundFormViewModel form);
+        Task<Pedido> ObtenerNumeroPedido(RefundDto form);
         Task<List<DetallePedido>> ObtenerDetallesPedidoAsync(int pedidoId);
         Task<DetallePedido> ObtenerDetalleParaReembolsoAsync(int detallePedidoId);
         Task<DetallePedido> ObtenerDetallePorIdAsync(int id);

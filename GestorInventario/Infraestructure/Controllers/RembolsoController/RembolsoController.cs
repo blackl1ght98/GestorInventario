@@ -403,8 +403,18 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
         public async Task<IActionResult> FormularioRembolso(RefundFormViewModel form)
         {
             try
+
             {
-                var obtenerNumeroPedido = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.ObtenerNumeroPedido(form));
+                var dto = new RefundDto
+                {
+                    NumeroPedido = form.NumeroPedido,
+                    NombreCliente = form.NombreCliente,
+                    EmailCliente = form.EmailCliente,
+                    FechaRembolso = form.FechaRembolso,
+                    MotivoRembolso = form.MotivoRembolso,
+                };
+
+                var obtenerNumeroPedido = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.ObtenerNumeroPedido(dto));
 
                 if (obtenerNumeroPedido == null)
                 {
@@ -421,7 +431,7 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
                 }
 
 
-                var pedido = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.ObtenerNumeroPedido(form));
+                var pedido = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.ObtenerNumeroPedido(dto));
 
                 if (pedido == null)
                 {
@@ -449,14 +459,7 @@ namespace GestorInventario.Infraestructure.Controllers.RembolsoController
                 var firstPurchaseUnit = detallespago.PurchaseUnits.First();
 
                 var paymentDetail = _mappingService.MapearOrdenADetallePago(detallespago);
-                var dto = new RefundDto
-                {
-                    NumeroPedido = form.NumeroPedido,
-                    NombreCliente = form.NombreCliente,
-                    EmailCliente = form.EmailCliente,
-                    FechaRembolso = form.FechaRembolso,
-                    MotivoRembolso = form.MotivoRembolso,
-                };
+              
                 // Lista para almacenar los ítems de PayPal
                 var paypalItems = await _paymentService.ProcesarRembolso(firstPurchaseUnit, paymentDetail, usuarioActual, dto, obtenerNumeroPedido, emailCliente);
                 if (User.IsAdministrador())
