@@ -13,14 +13,14 @@ namespace GestorInventario.Application.Politicas_Resilencia
         {
             _logger = logger;
         }
-
+        private static PolicyBuilder BuildSqlAndHttpExceptions() =>
+        Policy.Handle<SqlException>()
+          .Or<DbUpdateException>()
+          .Or<TimeoutException>()
+          .Or<HttpRequestException>();
         public IAsyncPolicy<T> GetCombinedPolicyAsync<T>()
         {
-            var retryPolicy = Policy
-                .Handle<SqlException>()
-                .Or<DbUpdateException>()
-                .Or<TimeoutException>()
-                .Or<HttpRequestException>()
+            var retryPolicy = BuildSqlAndHttpExceptions()
                 .WaitAndRetryAsync(
                     retryCount: 5,
                     sleepDurationProvider: attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt)),
@@ -29,11 +29,7 @@ namespace GestorInventario.Application.Politicas_Resilencia
                         _logger.LogWarning($"Error: {exception.Message}. Waiting {calculatedWaitDuration} before next retry. Retry attempt {attempt}");
                     });
 
-            var circuitBreakerPolicy = Policy
-                .Handle<SqlException>()
-                .Or<DbUpdateException>()
-                .Or<TimeoutException>()
-                .Or<HttpRequestException>()
+            var circuitBreakerPolicy = BuildSqlAndHttpExceptions()
                 .CircuitBreakerAsync(
                     exceptionsAllowedBeforeBreaking: 5,
                     durationOfBreak: TimeSpan.FromSeconds(30),
@@ -73,11 +69,7 @@ namespace GestorInventario.Application.Politicas_Resilencia
 
         public Policy<T> GetCombinedPolicy<T>()
         {
-            var retryPolicy = Policy
-                .Handle<SqlException>()
-                .Or<DbUpdateException>()
-                .Or<TimeoutException>()
-                .Or<HttpRequestException>()
+            var retryPolicy = BuildSqlAndHttpExceptions()
                 .WaitAndRetry(
                     retryCount: 5,
                     sleepDurationProvider: attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt)),
@@ -86,11 +78,7 @@ namespace GestorInventario.Application.Politicas_Resilencia
                         _logger.LogWarning($"Error: {exception.Message}. Waiting {calculatedWaitDuration} before next retry. Retry attempt {attempt}");
                     });
 
-            var circuitBreakerPolicy = Policy
-                .Handle<SqlException>()
-                .Or<DbUpdateException>()
-                .Or<TimeoutException>()
-                .Or<HttpRequestException>()
+            var circuitBreakerPolicy = BuildSqlAndHttpExceptions()
                 .CircuitBreaker(
                     exceptionsAllowedBeforeBreaking: 5,
                     durationOfBreak: TimeSpan.FromSeconds(30),

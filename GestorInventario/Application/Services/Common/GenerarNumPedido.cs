@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.Utilities
+﻿namespace GestorInventario.Application.Services.Common
 {
     public static class GenerarNumPedido
     {

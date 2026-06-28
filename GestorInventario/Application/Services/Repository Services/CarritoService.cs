@@ -1,4 +1,5 @@
 ﻿
+using GestorInventario.Application.Services.Common;
 using GestorInventario.Domain.Models;
 using GestorInventario.enums.Pedido;
 
@@ -108,6 +109,7 @@ namespace GestorInventario.Application.Services.Generic_Services
             }
 
         }
+
         public async Task<OperationResult<string>> Incremento(int id)
         {
             

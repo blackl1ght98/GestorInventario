@@ -1,7 +1,7 @@
 ﻿using GestorInventario.Interfaces.Application.Common;
 using System.Globalization;
 
-namespace GestorInventario.Utilities
+namespace GestorInventario.Application.Services.Common
 {
     public  class ConversionUtils: IConversionUtils
     {
