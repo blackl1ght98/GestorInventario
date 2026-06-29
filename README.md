@@ -31,18 +31,12 @@ Tener instalado lo siguiente:
   - [SQL Server Management Studio (SSMS)](https://aka.ms/ssmsfullsetup)  para gestionar la BD
     
 # 🔑 Configuración común (Docker y entorno local)
-  Archivo de variables de entorno:
-  - **Paypal_ClientId y Paypal_ClientSecret**: el valor para estas variables lo obtenemos creando una cuenta en [Paypal Developer](https://developer.paypal.com/home/) y una vez logueados le damos a **Apps & Credentials** en este apartado veremos esos datos.
-  - **PublicKey y PrivateKey**: pronto pondre aqui un repositorio para generar dichas claves
-  - **Email__Password**: Aqui usaremos contraseña de aplicación esto nos permite usar nuestra cuenta de gmail sin hacer login para ello vamos a [Contraseña de aplicacion](https://myaccount.google.com/apppasswords)
-  - **LicenseKeyAutoMapper**: Para obtenerla nos registramos en: [AutoMapper](https://automapper.io/) aqui elegimos la licencia community.
-
-Archivo de secretos de usuario:
-  - **ClientId y ClientSecret**
-  - **PublicKey y PrivateKey**
-  - **LicenseKeyAutoMapper**
-
-Para el archivo de secretos se usara los mismos valores empleados que para las variables de entorno el unico cambio es el nombre
+ Ejecutar el archivo **setup_env.ps1** en powershell con el siguiente comando:
+ ```powershell
+./setup_env.ps1
+````
+Al ejecutarlo nos pedira  que pongamos ciertos valores lo cual los pondremos, el proceso de poner los valores es guiado asi que no habra perdida en donde conseguir cada valor.
+NOTA: si no quieres usar doker y quieres desplegarlo en visual studio generaremos este archivo para rellenar el archivo de secretos.
 # 🐳 Puesta en marcha para ejecutacion con docker
 1. Clonar el repositorio con el comando:
 ```sh
@@ -52,13 +46,7 @@ git clone https://github.com/blackl1ght98/GestorInventario
 Para crear el certificado autofirmado hay que ejecutar este script con **privilegios de administrador** este script creara una carpeta en cuyo interior estara el certificado.
   
 
-
-
-5. Crear el archivo **.env** basandose en **.env.example** este archivo contendra las variables de entorno, para obtener ciertas variables como las siguientes:  
-  - **CertificatePassword**: Importante tener aqui la misma contraseña que pusimos al momento de generar el certificado https si no tenemos aqui la misma contraseña fallara.
-6. Eliminar .env.example
-
-7. Una vez tenemos todo esto echo ejecutar:
+3. Una vez tenemos todo esto echo ejecutar:
 ```sh
 docker-compose up -d --build
 ````
