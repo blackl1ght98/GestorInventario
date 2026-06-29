@@ -48,40 +48,16 @@ Para el archivo de secretos se usara los mismos valores empleados que para las v
 ```sh
 git clone https://github.com/blackl1ght98/GestorInventario
 ````
-3. Generar el certificado para https y ponerlo en la carpeta anteriormente creada:
-   - Para ello la sintaxis del comando a usar es:
-   ```powershell
-   New-Item -ItemType Directory -Path C:\certs
-   ````
-   ```powershell
-   $cert = New-SelfSignedCertificate `
-   -DnsName "localhost" `
-   -CertStoreLocation "cert:\LocalMachine\My"
-   ````
-   ```powershell
-   $password = ConvertTo-SecureString "0000" -AsPlainText -Force
-   ````
-    ```powershell
-   Export-PfxCertificate `
-   -Cert $cert `
-   -FilePath ".\certificado.pfx" `
-   -Password $password
-   ````
-Al terminar de ejecutar estos comandos veremos una carpeta en la unidad C llamada certs y esta la copiaremos en la carpeta raiz de nuestro proyecto.
+2. Ejecutar el script **generate_certificate.ps1**
+Para crear el certificado autofirmado hay que ejecutar este script con **privilegios de administrador** este script creara una carpeta en cuyo interior estara el certificado.
+  
+
 
 
 5. Crear el archivo **.env** basandose en **.env.example** este archivo contendra las variables de entorno, para obtener ciertas variables como las siguientes:  
   - **CertificatePassword**: Importante tener aqui la misma contraseña que pusimos al momento de generar el certificado https si no tenemos aqui la misma contraseña fallara.
 6. Eliminar .env.example
-7. Revisar el archivo **docker-compose** para asegurarnos que el nombre del certificado es el mismo que pusimos a la hora de generar el certificado autofirmado, en el ejemplo de uso del comando de generar el certificado ese certicado se llamara: **aspnetapp** pues en el docker compose tendremos que asegurarnos que este en dos sitios exactamente el mismo nombre y esos dos sitios son:
-```sh
-  volumes:
-      - ./certs/certificado.pfx:/https/certificado.pfx:ro
-```
-Aqui solo ajustamos el valor de la variable de entorno (en caso de poner un nombre distinto al certificado)
-````sh
- - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/certificado.pfx
-````
+
 7. Una vez tenemos todo esto echo ejecutar:
 ```sh
 docker-compose up -d --build
