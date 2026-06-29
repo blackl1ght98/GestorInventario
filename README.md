@@ -31,10 +31,12 @@ Tener instalado lo siguiente:
   - [SQL Server Management Studio (SSMS)](https://aka.ms/ssmsfullsetup)  para gestionar la BD
     
 # 🔑 Configuración común (Docker y entorno local)
- Ejecutar el archivo **setup_env.ps1** en powershell con el siguiente comando:
- ```powershell
-./setup_env.ps1
+Para que todo quede configurado ejecutar el script **install.ps1** este script es un instalador guiado que te indicara que valores poner.
+```powershell
+./install.ps1
 ````
+Una vez termine script se generara un archivo **.env** con las variables de entorno el cual nos ayudara a la hora del despliegue sin el uso de docker en lo que ayuda es a rellenar los valores del archivo de secretos.
+PROXIMAMENTE PONDRE SCRIPT SEPARADOS PARA CERTIFICADO Y VARIABLES DE ENTORNO
 Al ejecutarlo nos pedira  que pongamos ciertos valores lo cual los pondremos, el proceso de poner los valores es guiado asi que no habra perdida en donde conseguir cada valor.
 NOTA: si no quieres usar doker y quieres desplegarlo en visual studio generaremos este archivo para rellenar el archivo de secretos.
 # 🐳 Puesta en marcha para ejecutacion con docker
@@ -42,14 +44,13 @@ NOTA: si no quieres usar doker y quieres desplegarlo en visual studio generaremo
 ```sh
 git clone https://github.com/blackl1ght98/GestorInventario
 ````
-2. Ejecutar el script **generate_certificate.ps1**
-Para crear el certificado autofirmado hay que ejecutar este script con **privilegios de administrador** este script creara una carpeta en cuyo interior estara el certificado.
-  
-
-3. Una vez tenemos todo esto echo ejecutar:
-```sh
-docker-compose up -d --build
+2. Ejecutar el Instalador
+Para que todo quede configurado ejecutar el script **install.ps1** este script es un instalador guiado que te indicara que valores poner.
+```powershell
+./install.ps1
 ````
+
+
 # Credenciales para probar
 - **Email**: keupa@yopmail.com
 - **Contraseña**: 1a2a3a4a5
