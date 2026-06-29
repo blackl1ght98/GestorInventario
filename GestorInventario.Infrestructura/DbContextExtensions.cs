@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using System.Text;
 
-namespace GestorInventario.Infrestructura
+namespace GestorInventario.Infrestructure
 {
     public static class DbContextExtensions
     {

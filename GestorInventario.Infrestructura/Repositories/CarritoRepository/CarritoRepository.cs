@@ -3,7 +3,7 @@ using GestorInventario.Interfaces.Infraestructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace GestorInventario.Infrestructura.Repositories.CarritoRepository
+namespace GestorInventario.Infrestructure.Repositories.CarritoRepository
 {
     public class CarritoRepository : ICarritoRepository
     {

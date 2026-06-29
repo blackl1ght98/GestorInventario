@@ -6,7 +6,7 @@ using GestorInventario.Shared.Utilities;
 
 using Microsoft.EntityFrameworkCore;
 
-namespace GestorInventario.Infrestructura.Repositories.UserRepository
+namespace GestorInventario.Infrestructure.Repositories.UserRepository
 {
     public class UserRepository: IUserRepository
     {

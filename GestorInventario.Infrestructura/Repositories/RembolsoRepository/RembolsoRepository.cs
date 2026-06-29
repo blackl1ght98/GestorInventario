@@ -4,7 +4,7 @@ using GestorInventario.Shared.Utilities;
 
 using Microsoft.EntityFrameworkCore;
 
-namespace GestorInventario.Infrestructura.Repositories.RembolsoRepository
+namespace GestorInventario.Infrestructure.Repositories.RembolsoRepository
 {
     public class RembolsoRepository:IRembolsoRepository
     {

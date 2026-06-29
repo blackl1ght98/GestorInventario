@@ -4,7 +4,7 @@ using GestorInventario.Shared.Utilities;
 
 using Microsoft.EntityFrameworkCore;
 
-namespace GestorInventario.Infrestructura.Repositories.NotificacionRepository
+namespace GestorInventario.Infrestructure.Repositories.NotificacionRepository
 {
     public class NotificationRepository : INotificationRepository
     {

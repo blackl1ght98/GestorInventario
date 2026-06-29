@@ -4,7 +4,7 @@ using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 
-namespace GestorInventario.Infrestructura.Repositories.PaymentRepository
+namespace GestorInventario.Infrestructure.Repositories.PaymentRepository
 {
     public class PaymentRepository:IPaymentRepository
     {

@@ -4,7 +4,7 @@ using GestorInventario.Shared.Utilities;
 
 using Microsoft.EntityFrameworkCore;
 
-namespace GestorInventario.Infrestructura.Repositories.ProductoRepository
+namespace GestorInventario.Infrestructure.Repositories.ProductoRepository
 {
     public class ProductoRepository : IProductoRepository
     {

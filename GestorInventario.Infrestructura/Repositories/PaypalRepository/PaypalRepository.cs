@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 
 
-namespace GestorInventario.Infrestructura.Repositories.PaypalRepository
+namespace GestorInventario.Infrestructure.Repositories.PaypalRepository
 {
     public class PaypalRepository : IPaypalRepository
     {
