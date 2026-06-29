@@ -1,6 +1,6 @@
 ﻿namespace GestorInventario.Shared.Utilities
 {
-    //NOTA: Si tienen dudas sobre constructores encadenados mirar explicacion logica paginacion.md
+    
     public class PaginasModel
     {
         public string Texto { get; set; }

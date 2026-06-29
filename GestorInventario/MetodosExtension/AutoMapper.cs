@@ -1,5 +1,5 @@
-﻿using GestorInventario.Application.Automaper;
-using GestorInventario.Automaper;
+﻿using GestorInventario.Application.AutoMapper;
+using GestorInventario.AutoMapper;
 using GestorInventario.MetodosExtension;
 using System.Reflection;
 

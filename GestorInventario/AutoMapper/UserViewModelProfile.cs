@@ -2,7 +2,7 @@
 using GestorInventario.Domain.Models;
 using GestorInventario.ViewModels.Usuarios;
 
-namespace GestorInventario.Automaper
+namespace GestorInventario.AutoMapper
 {
     public class UserViewModelProfile : Profile
     {

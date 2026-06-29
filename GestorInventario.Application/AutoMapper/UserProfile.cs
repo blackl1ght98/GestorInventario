@@ -3,7 +3,7 @@ using GestorInventario.Domain.Models;
 using GestorInventario.Shared.DTOS.User;
 
 
-namespace GestorInventario.Application.Automaper
+namespace GestorInventario.Application.AutoMapper
 {
     public class UserProfile : Profile
     {
