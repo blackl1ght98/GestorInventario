@@ -1,6 +1,6 @@
-﻿namespace GestorInventario.MetodosExtension
+﻿namespace GestorInventario.Composition
 {
-    public static class Antiforgery
+    public static class AntiforgeryExtensions
     {
         public static IServiceCollection ConfigureAntiforgery(this IServiceCollection services)
         {

@@ -1,8 +1,8 @@
-﻿using GestorInventario.MetodosExtension;
+﻿using GestorInventario.Composition;
 
-namespace GestorInventario.MetodosExtension
+namespace GestorInventario.Composition
 {
-    public static class WebOptimizer
+    public static class WebOptimizerSetupExtensions
     {
         public static IServiceCollection AddWebOptimizer(this IServiceCollection services)
         {

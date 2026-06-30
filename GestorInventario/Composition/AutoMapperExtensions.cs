@@ -1,11 +1,11 @@
 ﻿using GestorInventario.Application.AutoMapper;
 using GestorInventario.AutoMapper;
-using GestorInventario.MetodosExtension;
+using GestorInventario.Composition;
 using System.Reflection;
 
-namespace GestorInventario.MetodosExtension
+namespace GestorInventario.Composition
 {
-    public static class AutoMapper
+    public static class AutoMapperExtensions
     {
         public static IServiceCollection AddAutoMapper(this IServiceCollection services,IConfiguration configuration)
         {

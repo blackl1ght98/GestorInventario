@@ -5,7 +5,7 @@ namespace GestorInventario.Configuracion
     public static  class AuthenticationConfigurationExtensions
     {
         public const string AuthModeConfigKey = "AuthMode";
-        public static IServiceCollection AddJwtAuthentication(
+        public static IServiceCollection AddConfigureAuthentication(
       this IServiceCollection services,
       IConfiguration configuration)
         {

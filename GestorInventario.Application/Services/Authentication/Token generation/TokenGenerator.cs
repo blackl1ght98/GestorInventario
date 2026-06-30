@@ -1,4 +1,5 @@
 ﻿
+using GestorInventario.Application.Services.Authentication.Token_generation;
 using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Application.Authentication;
@@ -9,12 +10,12 @@ using Microsoft.EntityFrameworkCore;
 public class TokenGenerator : ITokenGenerator
 {
     private readonly IUserRepository _userRepository;
-    private readonly ITokenStrategy _tokenStrategy;
+    private readonly TokenStrategyResolver _resolver;
 
-    public TokenGenerator(IUserRepository userRepository, ITokenStrategy tokenStrategy)
+    public TokenGenerator(IUserRepository userRepository, TokenStrategyResolver resolver)
     {
         _userRepository = userRepository;
-        _tokenStrategy = tokenStrategy;
+        _resolver = resolver;
     }
 
     public async Task<LoginResponseDto> GenerateTokenAsync(Usuario credencialesUsuario)
@@ -24,6 +25,6 @@ public class TokenGenerator : ITokenGenerator
         if (usuarioDB is null)
             throw new ArgumentException("El usuario no existe en la base de datos.");
 
-        return await _tokenStrategy.GenerateTokenAsync(usuarioDB);
+        return await _resolver.ResolveToken().GenerateTokenAsync(usuarioDB);
     }
 }

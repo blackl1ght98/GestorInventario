@@ -11,17 +11,16 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Login
 {
     public class LoginGenerator : ILoginGenerator
     {
-        private readonly ILoginStrategy _loginStrategy;
-        public LoginGenerator(ILoginStrategy login)
+        private readonly LoginStrategyResolver _resolver;
+
+        public LoginGenerator(LoginStrategyResolver resolver)
         {
-         
-          _loginStrategy = login;
+            _resolver = resolver;
         }
+
         public async Task<OperationResult<AuthSessionDetails>> AuthenticateAsync(LoginDto credencialesUsuario)
         {
-          
-        
-            return await _loginStrategy.AuthenticateAsync(credencialesUsuario);
+            return await _resolver.Resolve().AuthenticateAsync(credencialesUsuario);
         }
     }
 }

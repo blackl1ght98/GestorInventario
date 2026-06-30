@@ -46,7 +46,7 @@ using Microsoft.Extensions.Caching.Memory;
 using StackExchange.Redis;
 
 
-namespace GestorInventario.MetodosExtension
+namespace GestorInventario.Composition
 {
     public static class DependencyInjectionExtensions
     {
@@ -79,8 +79,11 @@ namespace GestorInventario.MetodosExtension
             services.AddScoped<IRefreshTokenGenerator, RefreshTokenGenerator>();
          
             services.AddScoped<ILoginGenerator, LoginGenerator>();
-           services.AddHttpClient<ICallMeBotService, CallMeBotService>();
-
+            services.AddScoped<TokenStrategyResolver>();
+            services.AddScoped<LoginStrategyResolver>();
+           
+            services.AddHttpClient<ICallMeBotService, CallMeBotService>();
+            
             // Servicios de Notificaciones y Documentos
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IPdfService, PdfService>();
@@ -137,6 +140,10 @@ namespace GestorInventario.MetodosExtension
             services.AddSingleton<IUrlService, UrlService>();
             services.AddSingleton<IBarCodeImageRenderer, BarCodeImageRenderer>();
             services.AddSingleton<IBarCodeImageStorage, BarCodeImageStorage>();
+
+
+            //-- Tokens --
+            services.AddSingleton<TokenClaimsBuilder>();
             return services;
         }
 

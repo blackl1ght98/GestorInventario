@@ -55,7 +55,7 @@ builder.Services.Configure<AppSettings>(
 builder.Configuration.GetSection("App"));
 QuestPDF.Settings.License = LicenseType.Community;
 
-builder.Services.AddHttpClientPayPal();
+builder.Services.AddPayPalHttpClient(builder.Configuration);
 builder.Services.AddAutoMapper(builder.Configuration);
 builder.Services.AddWebOptimizer();
 
@@ -67,9 +67,8 @@ if (useRedis)
 
 builder.Services.AddCacheServices(useRedis);
 //Servicios personalizados de autenticacion
-builder.Services.AddJwtAuthentication(builder.Configuration);
-builder.Services.AddTokenStrategies(builder.Configuration);
-builder.Services.AddLogin(builder.Configuration);
+builder.Services.AddConfigureAuthentication(builder.Configuration);
+
 builder.Services.AddJwtAuth(builder.Configuration);
 //Fin de los servicios personalizados de autenticacion 
 

@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 
 namespace GestorInventario.MetodosExtension
 {
-    public static  class DatabaseContext
+    public static  class DbContextExtensions
     {
         public static IServiceCollection AddDatabaseContext(this IServiceCollection services, IConfiguration configuration)
         {
