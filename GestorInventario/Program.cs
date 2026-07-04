@@ -69,7 +69,6 @@ builder.Services.AddCacheServices(useRedis);
 //Servicios personalizados de autenticacion
 builder.Services.AddConfigureAuthentication(builder.Configuration);
 
-builder.Services.AddJwtAuth(builder.Configuration);
 //Fin de los servicios personalizados de autenticacion 
 
 builder.Services.ConfigureAntiforgery();
@@ -170,7 +169,7 @@ app.UseCors();
 app.UseRouting();
 app.UseAuthentication(); // Identifica al usuario
 app.UseSession();
-app.UseJwtAuthStrategy(); // PONE EN USO LA ESTRATEGIA ELEGIDA CON ESOS SERVICIOS CARGADOS (builder.Services.AddJwtAuth(builder.Configuration);)
+app.UseJwtAuthStrategy(); // pone en uso el middleware de autenticacion
 app.UseAuthorization(); // Evalúa políticas y roles
 
 app.MapControllerRoute(

@@ -23,8 +23,9 @@ namespace GestorInventario.Middlewares
 
         public async Task InvokeAsync(
             HttpContext context,
-            IAuthenticationMiddlewareStrategy strategy)
+            MidlewareResolver resolver)  
         {
+            var strategy = resolver.ResolveMiddleware();
             await strategy.ProcessAuthentication(context, () => _next(context));
         }
     }

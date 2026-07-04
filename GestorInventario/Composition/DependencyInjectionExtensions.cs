@@ -38,6 +38,7 @@ using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
+using GestorInventario.Middlewares;
 using GestorInventario.Renderer;
 using GestorInventario.Shared.Utilities;
 using GestorInventario.Utilities;
@@ -81,6 +82,7 @@ namespace GestorInventario.Composition
             services.AddScoped<ILoginGenerator, LoginGenerator>();
             services.AddScoped<TokenStrategyResolver>();
             services.AddScoped<LoginStrategyResolver>();
+            services.AddScoped<MidlewareResolver>();
            
             services.AddHttpClient<ICallMeBotService, CallMeBotService>();
             
