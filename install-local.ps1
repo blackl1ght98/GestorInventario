@@ -70,7 +70,14 @@ function Ask {
         return $Default
     }
     if ($AsSecure) {
-        $secure = Read-Host "$Prompt" -AsSecureString
+        # Read-Host -AsSecureString falla con "No se puede convertir '' a SecureString"
+        # cuando el usuario pulsa ENTER sin escribir nada. Capturamos y devolvemos ''.
+        try {
+            $secure = Read-Host "$Prompt" -AsSecureString
+        } catch {
+            return ''
+        }
+        if ($null -eq $secure -or $secure.Length -eq 0) { return '' }
         $bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
         try { return [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr) }
         finally { [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr) | Out-Null }
@@ -230,7 +237,7 @@ function Test-SsmsInstalled {
 $script:RecommendedVSYear = '2022'
 
 function Invoke-Prerequisites {
-    Write-Host "`n[1/4] Comprobando prerrequisitos..." -ForegroundColor Cyan
+    Write-Host "`n[1/3] Comprobando prerrequisitos..." -ForegroundColor Cyan
 
     $vs       = Get-VisualStudioInstallation
     $hasSQL   = Test-SqlServerInstalled
@@ -501,12 +508,45 @@ function Get-DefaultDataPath {
 function Invoke-RestoreBak {
     param([string]$BakPath, [string]$Instance, [string]$DataPath)
 
-    # Listar nombres lógicos de los ficheros del .bak.
-    $filelistQuery = "RESTORE FILELISTONLY FROM DISK = N'$BakPath'"
-    $filelist = Invoke-SqlDb -Instance $Instance -Query $filelistQuery -ErrorAction Stop
+    # El servicio SQL Server corre como NT Service\MSSQL$SQLEXPRESS y por
+    # defecto NO puede leer ficheros bajo C:\Users\* (restriccion de Windows).
+    # El script (tu shell) si puede, pero el servicio que ejecuta el RESTORE
+    # NO. Cualquier intento de leer el .bak desde SQL falla con
+    # "Cannot open backup device ... Operating system error 5".
+    #
+    # Solucion: copiar el .bak a la propia carpeta DATA del servicio, que
+    # SI es legible. Hacemos la copia con tu shell (admin) y luego el RESTORE
+    # opera sobre la copia. La copia se elimina al final (exito o error).
+    $stageBak = Join-Path $DataPath ("GestorInventario_stage_{0}.bak" -f [guid]::NewGuid().ToString('N').Substring(0,8))
+    Write-Host "  -> Copiando .bak a una ruta accesible para el servicio SQL..." -ForegroundColor DarkCyan
+    Write-Host "     origen:   $BakPath" -ForegroundColor DarkGray
+    Write-Host "     destino:  $stageBak" -ForegroundColor DarkGray
+    try {
+        Copy-Item -Path $BakPath -Destination $stageBak -Force -ErrorAction Stop
+    } catch {
+        Abort-WithMessage ("No se pudo copiar el .bak a la carpeta del servicio SQL. " +
+                           "Detalle: $($_.Exception.Message)")
+    }
+    $cleanupStage = {
+        if ($stageBak -and (Test-Path $stageBak)) {
+            try { Remove-Item $stageBak -Force -ErrorAction SilentlyContinue } catch { }
+        }
+    }
+
+    # Listar nombres lógicos desde la COPIA (el servicio SQL ya puede leerla).
+    $filelistQuery = "RESTORE FILELISTONLY FROM DISK = N'$stageBak'"
+    try {
+        $filelist = Invoke-SqlDb -Instance $Instance -Query $filelistQuery -ErrorAction Stop
+    } catch {
+        & $cleanupStage
+        Abort-WithMessage ("RESTORE FILELISTONLY fallo sobre la copia staged. " +
+                           "El servicio SQL no puede leer su propia carpeta DATA. " +
+                           "Detalle: $($_.Exception.Message)")
+    }
     $dataLogical = ($filelist | Where-Object { $_.Type -eq 'D' } | Select-Object -First 1).LogicalName
     $logLogical  = ($filelist | Where-Object { $_.Type -eq 'L' } | Select-Object -First 1).LogicalName
     if (-not $dataLogical -or -not $logLogical) {
+        & $cleanupStage
         Abort-WithMessage "No se pudieron identificar los ficheros Data/Log dentro de '$BakPath'."
     }
     Write-Host "  -> Logical Data: $dataLogical" -ForegroundColor DarkGray
@@ -514,22 +554,57 @@ function Invoke-RestoreBak {
 
     $mdf = Join-Path $DataPath 'GestorInventario.mdf'
     $ldf = Join-Path $DataPath 'GestorInventario_log.ldf'
+
+    # Comprobacion previa de permisos de escritura en $DataPath: el servicio
+    # SQL (no la shell) necesita poder escribir el .mdf/.ldf ahi.
+    if (-not (Test-Path $DataPath)) {
+        & $cleanupStage
+        Abort-WithMessage "El data path '$DataPath' no existe. El servicio SQL no podra restaurar ahi."
+    }
+    $testFile = Join-Path $DataPath "_gestor_permtest_$([guid]::NewGuid().ToString('N').Substring(0,8)).tmp"
+    try {
+        [System.IO.File]::WriteAllText($testFile, 'ok')
+        Remove-Item $testFile -Force -ErrorAction SilentlyContinue
+    } catch {
+        & $cleanupStage
+        Abort-WithMessage ("No se puede escribir en el data path '{0}'. " -f $DataPath) +
+                           "Detalle: $($_.Exception.Message)"
+    }
+
     $restore = @"
 IF DB_ID('GestorInventario') IS NOT NULL
     ALTER DATABASE [GestorInventario] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
 RESTORE DATABASE [GestorInventario]
-    FROM DISK = N'$BakPath'
+    FROM DISK = N'$stageBak'
     WITH REPLACE, RECOVERY,
          MOVE N'$dataLogical' TO N'$mdf',
          MOVE N'$logLogical'  TO N'$ldf';
 ALTER DATABASE [GestorInventario] SET MULTI_USER;
 "@
-    Invoke-SqlDb -Instance $Instance -Query $restore -ErrorAction Stop | Out-Null
+    try {
+        Invoke-SqlDb -Instance $Instance -Query $restore -ErrorAction Stop | Out-Null
+        & $cleanupStage
+    } catch {
+        & $cleanupStage
+        $msg = $_.Exception.Message
+        if ($msg -match 'Operating system error 5|Access is denied|Cannot open backup device') {
+            Abort-WithMessage ("Acceso denegado al restaurar. Aunque hayas copiado el .bak a la " +
+                               "carpeta del servicio, este aun no puede escribir el .mdf/.ldf ahi. " +
+                               "Soluciones: " +
+                               "(1) Otorgar manualmente: icacls `"$DataPath`" /grant `"NT Service\MSSQL`$SQLEXPRESS`":(OI)(CI)F /T " +
+                               "y vuelve a ejecutar este script. " +
+                               "Data path: $DataPath. Detalle original: $msg")
+        }
+        Abort-WithMessage "La restauracion fallo. Detalle: $msg"
+    }
 }
 
 function Invoke-BakRestoreStep {
-    param([string]$Instance)
-    Write-Host "`n[2/4] Comprobando base de datos 'GestorInventario'..." -ForegroundColor Cyan
+    param(
+        [string]$Instance,
+        [switch]$AlwaysAsk
+    )
+    Write-Host "`n[2/3] Comprobando base de datos 'GestorInventario'..." -ForegroundColor Cyan
 
     # Asegurar que el módulo SqlServer está disponible (necesario para Invoke-Sqlcmd).
     if (-not (Get-Module -ListAvailable -Name SqlServer)) {
@@ -577,15 +652,25 @@ function Invoke-BakRestoreStep {
                 Write-Host "     El esquema actual NO encaja con el .bak (faltan: $($cmp.OnlyInBak -join ', '))." -ForegroundColor DarkYellow
             }
         }
+    } else {
+        Write-Host "  -> La base 'GestorInventario' no existe en $Instance." -ForegroundColor Yellow
+    }
+
+    # Preguntar SIEMPRE (con -AlwaysAsk) o solo si la BD existe (comportamiento legacy).
+    if ($exists -or $AlwaysAsk) {
         Write-Host ""
-        Write-Host "  Opciones:" -ForegroundColor Cyan
-        Write-Host "    [1] Mantener la base actual y continuar sin restaurar" -ForegroundColor DarkCyan
-        Write-Host "    [2] Restaurar el .bak encima (SOBREESCRIBE la base actual)" -ForegroundColor DarkCyan
+        Write-Host "  ¿Deseas restaurar la base desde el .bak?" -ForegroundColor Cyan
+        Write-Host "    [1] NO restaurar. Mantener la base actual (o dejarla como esta si no existe) y continuar" -ForegroundColor DarkCyan
+        Write-Host "    [2] SI restaurar. SOBREESCRIBIR la base actual con el .bak" -ForegroundColor DarkCyan
         Write-Host "    [3] Cancelar" -ForegroundColor DarkCyan
         $sel = Read-Host "  Elige una opcion (1-3)"
         switch ($sel) {
             '1' {
-                Write-Host "  -> Manteniendo la base actual. Saltando restauracion." -ForegroundColor Green
+                if ($exists) {
+                    Write-Host "  -> Manteniendo la base actual. Saltando restauracion." -ForegroundColor Green
+                } else {
+                    Write-Host "  -> No se restauro. La base 'GestorInventario' sigue sin existir." -ForegroundColor Yellow
+                }
                 return
             }
             '2' { Write-Host "  -> Se restaurara el .bak sobre la base actual." -ForegroundColor Yellow }
@@ -816,72 +901,223 @@ function Write-SecretsWithConfirmation {
     Write-Host "  -> Archivo de secretos escrito." -ForegroundColor Green
 }
 
+# Devuelve $true si el valor (string o PSCustomObject) esta "relleno":
+# no es null, no es vacio, y (si es PSCustomObject) tiene al menos una
+# propiedad no vacia. Lo usamos para decidir si un secreto YA esta
+# configurado y por tanto debe respetarse.
+function Test-HasValue {
+    param($Value)
+    if ($null -eq $Value) { return $false }
+    if ($Value -is [string]) { return -not [string]::IsNullOrWhiteSpace($Value) }
+    if ($Value -is [pscustomobject]) {
+        foreach ($p in $Value.PSObject.Properties) {
+            if (Test-HasValue $p.Value) { return $true }
+        }
+        return $false
+    }
+    if ($Value -is [hashtable]) {
+        foreach ($k in $Value.Keys) { if (Test-HasValue $Value[$k]) { return $true } }
+        return $false
+    }
+    return $true
+}
+
+# Lee un valor del JSON existente recorriendo un path de claves separadas
+# por punto: "JWT.PrivateKey", "DataBaseConection.DBHost", etc.
+# Devuelve $null si alguna clave intermedia no existe.
+function Get-NestedValue {
+    param($Obj, [string]$Path)
+    if ($null -eq $Obj -or [string]::IsNullOrEmpty($Path)) { return $null }
+    $parts = $Path.Split('.')
+    $cur = $Obj
+    foreach ($p in $parts) {
+        if ($null -eq $cur) { return $null }
+        if ($cur -is [pscustomobject]) {
+            $prop = $cur.PSObject.Properties[$p]
+            if ($null -eq $prop) { return $null }
+            $cur = $prop.Value
+        } elseif ($cur -is [hashtable]) {
+            if (-not $cur.ContainsKey($p)) { return $null }
+            $cur = $cur[$p]
+        } else {
+            return $null
+        }
+    }
+    return $cur
+}
+
 function Invoke-SecretsStep {
     param([string]$Instance)
-    Write-Host "`n[4/4] Rellenando archivo de secretos administrados..." -ForegroundColor Cyan
+    Write-Host "`n[3/3] Auditando archivo de secretos administrados..." -ForegroundColor Cyan
     Write-Host "  Ruta: $script:SecretsPath" -ForegroundColor DarkGray
 
-    # Preguntar valores al usuario (igual que en install.ps1, pero con la jerarquía de la app).
-    $dbPassword     = Ask 'Contrasena SA de SQL Server' '' -AsSecure
-    $callMeBotUser  = Ask 'Usuario CallMeBot (Telegram)' ''
-    $paypalClient   = Ask 'PayPal ClientId' ''
-    $paypalSecret   = Ask 'PayPal ClientSecret' '' -AsSecure
-    $emailUser      = Ask 'Email (remitente)' ''
-    $emailPass      = if (-not [string]::IsNullOrWhiteSpace($emailUser)) {
-                          Ask 'Contrasena de aplicacion de Google' '' -AsSecure
-                      } else { '' }
-    $autoMapperKey  = Ask 'Licencia AutoMapper (LuckyPennySoftware)' ''
-
-    # Clave JWT: si no se proporciona, generar una aleatoria de 79 chars (mismo patron que install.ps1).
-    $jwtLen = 79
-    $jwtKey = Ask "Clave JWT (ENTER para generar automaticamente de $jwtLen chars)" ''
-    if ([string]::IsNullOrWhiteSpace($jwtKey)) {
-        $jwtKey = New-RandomString -Length $jwtLen
-        Write-Host "  -> Clave JWT generada automaticamente." -ForegroundColor Green
-    }
-
-    # Generar par RSA.
-    Write-Host "  -> Generando par de claves RSA (2048 bits)..." -ForegroundColor DarkCyan
-    $keys = New-RsaKeyPair -Bits 2048
-
-    $desired = @{
-        DataBaseConection = @{
-            DBHost     = $Instance
-            DBName     = 'GestorInventario'
-            DBUserName = 'sa'
-            DBPassword = $dbPassword
-        }
-        Paypal = @{
-            ClientId             = $paypalClient
-            ClientSecret         = $paypalSecret
-            Mode                 = 'sandbox'
-            returnUrlSinDocker   = 'https://localhost:7056/Payment/Success'
-            returnUrlConDocker   = 'https://localhost:8081/Payment/Success'
-        }
-        CallMeBot = @{ user = $callMeBotUser }
-        Email = @{
-            Host     = 'smtp.gmail.com'
-            Port     = '587'
-            UserName = $emailUser
-            PassWord = $emailPass
-        }
-        LicenseKeyAutoMapper = $autoMapperKey
-        App = @{
-            JwtIssuer    = 'GestorInvetarioEmisor'
-            JwtAudience  = 'GestorInventarioCliente'
-            AuthMode     = 'AsymmetricDynamic'
-            ClaveJWT     = $jwtKey
-            PublicKey    = $keys.Public
-            PrivateKey   = $keys.Private
-            IsMfaEnabled = $true
-        }
-    }
-
     $existing = Read-ExistingSecrets
-    $merged   = Get-MergedSecrets -Existing $existing -Desired $desired
-    $hasChanges = ($merged | ConvertTo-Json -Depth 10) -ne ($existing | ConvertTo-Json -Depth 10)
+    if (-not (Test-HasValue $existing)) {
+        Write-Host "  -> No hay archivo de secretos (o esta vacio). Se creara desde cero." -ForegroundColor Yellow
+    } else {
+        Write-Host ""
+        Write-Host "  Valores actuales:" -ForegroundColor Yellow
+        $existingJson = $existing | ConvertTo-Json -Depth 10
+        Write-Host $existingJson -ForegroundColor DarkGray
+        Write-Host ""
+    }
 
-    Write-SecretsWithConfirmation -Merged $merged -HasChanges $hasChanges
+    # Catalogo de claves que el script sabe manejar. Para cada una indicamos
+    # la ruta en el JSON y si es "secreto" (no debe imprimirse en pantalla).
+    $keys = @(
+        @{ Path = 'DataBaseConection.DBHost';       Secret = $false; AskIfEmpty = $true  }
+        @{ Path = 'DataBaseConection.DBName';       Secret = $false; AskIfEmpty = $true  }
+        @{ Path = 'DataBaseConection.DBUserName';   Secret = $false; AskIfEmpty = $false }
+        @{ Path = 'DataBaseConection.DBPassword';   Secret = $true;  AskIfEmpty = $true  }
+        @{ Path = 'DataBaseConection.DockerDbHost'; Secret = $false; AskIfEmpty = $false }
+        @{ Path = 'CallMeBot.user';                 Secret = $false; AskIfEmpty = $false }
+        @{ Path = 'Paypal.ClientId';                Secret = $false; AskIfEmpty = $false }
+        @{ Path = 'Paypal.ClientSecret';            Secret = $true;  AskIfEmpty = $false }
+        @{ Path = 'Paypal.BaseUrl';                 Secret = $false; AskIfEmpty = $false }
+        @{ Path = 'Email.UserName';                 Secret = $false; AskIfEmpty = $false }
+        @{ Path = 'Email.PassWord';                 Secret = $true;  AskIfEmpty = $false }
+        @{ Path = 'Email.Host';                     Secret = $false; AskIfEmpty = $false }
+        @{ Path = 'Email.Port';                     Secret = $false; AskIfEmpty = $false }
+        @{ Path = 'LicenseKeyAutoMapper';           Secret = $false; AskIfEmpty = $false }
+        @{ Path = 'App.BaseUrl';                    Secret = $false; AskIfEmpty = $false }
+        @{ Path = 'App.DockerUrl';                  Secret = $false; AskIfEmpty = $false }
+        @{ Path = 'App.JwtIssuer';                  Secret = $false; AskIfEmpty = $false }
+        @{ Path = 'App.JwtAudience';                Secret = $false; AskIfEmpty = $false }
+        @{ Path = 'AuthMode';                       Secret = $false; AskIfEmpty = $false }
+        @{ Path = 'LoginMode';                      Secret = $false; AskIfEmpty = $false }
+        @{ Path = 'IsMfaEnabled';                   Secret = $false; AskIfEmpty = $false }
+        # IMPORTANTE: en este secrets.json las claves viven en la RAIZ y bajo "JWT",
+        # no bajo "App". Apuntamos a las rutas reales para que se detecten como
+        # existentes y no se pidan de nuevo en cada ejecucion.
+        @{ Path = 'ClaveJWT';                       Secret = $true;  AskIfEmpty = $false }
+        @{ Path = 'JWT.PublicKey';                  Secret = $true;  AskIfEmpty = $false }
+        @{ Path = 'JWT.PrivateKey';                 Secret = $true;  AskIfEmpty = $false }
+        @{ Path = 'Redis.ConnectionString';         Secret = $false; AskIfEmpty = $false }
+        @{ Path = 'Redis.ConnectionStringLocal';    Secret = $false; AskIfEmpty = $false }
+    )
+
+    # Defaults sensibles a $Instance (solo se usan si la clave esta vacia).
+    $dbHostDefault = if ($Instance -match '[\\\/]') { $Instance } else { "localhost\$Instance" }
+
+    $changes = @{}
+    $askedCount = 0
+    foreach ($k in $keys) {
+        $current    = Get-NestedValue $existing $k.Path
+        $hasCurrent = Test-HasValue $current
+
+        # Reglas:
+        #   - Si la clave YA tiene valor y NO es secreta: la respetamos sin preguntar.
+        #   - Si es secreta: la pedimos siempre que exista (para que el usuario
+        #     pueda cambiarla ENTER-a-ENTER), salvo que el flag de arriba lo desactive.
+        #     Pero para que coincida con lo que pides ("ENTER = mantener, escribir = cambiar"),
+        #     pedimos siempre con -AsSecure y solo actualizamos si el usuario escribio algo.
+        #   - Si esta vacia y AskIfEmpty: preguntamos.
+        $mustAsk = $false
+        if ($k.Secret -and $hasCurrent) { $mustAsk = $true }
+        elseif (-not $hasCurrent -and $k.AskIfEmpty) { $mustAsk = $true }
+
+        if (-not $mustAsk) { continue }
+
+        $label = $k.Path
+        if ($k.Secret) { $label = "$($k.Path)  (secreto, ENTER para mantener)" }
+
+        # Para secretos, Ask con ExistingValue mostrara "[actual: <valor>]" pero el valor
+        # NO debe aparecer real. Usamos un marcador para que la rama "tiene existing" del
+        # Ask funcione, pero sin pasar el valor real.
+        $existingForAsk = $(if ($k.Secret -and $hasCurrent) { '[OCULTO]' } elseif ($hasCurrent) { [string]$current } else { '' })
+        $defaultForAsk  = ''
+        if (-not $hasCurrent) {
+            if ($k.Path -eq 'DataBaseConection.DBHost') { $defaultForAsk = $dbHostDefault }
+            elseif ($k.Path -eq 'DataBaseConection.DBName') { $defaultForAsk = 'GestorInventario' }
+        }
+        $value = Ask $label $defaultForAsk -AsSecure:($k.Secret) -ExistingValue $existingForAsk
+
+        if ($hasCurrent) {
+            # Mantener valor: si el usuario pulso ENTER, Ask devuelve el existing (string o '[OCULTO]'
+            # si era secreto). Si era secreto, NO escribimos nada en $changes (mantenemos el valor
+            # original del JSON tal cual).
+            if ($k.Secret) {
+                if ($value -ne '' -and $value -ne '[OCULTO]') {
+                    Set-NestedValue -Obj $changes -Path $k.Path -Value $value
+                    $askedCount++
+                }
+            } else {
+                if ($value -ne ([string]$current)) {
+                    Set-NestedValue -Obj $changes -Path $k.Path -Value $value
+                    $askedCount++
+                }
+            }
+        } else {
+            if (-not [string]::IsNullOrEmpty($value)) {
+                Set-NestedValue -Obj $changes -Path $k.Path -Value $value
+                $askedCount++
+            }
+        }
+    }
+
+    if ($askedCount -eq 0) {
+        Write-Host "  -> No hay huecos que rellenar y ningun secreto presente. Nada que escribir." -ForegroundColor Green
+        return
+    }
+
+    if ($changes.Keys.Count -eq 0 -and $changes.PSObject.Properties.Count -eq 0) {
+        Write-Host "  -> No se introdujeron valores nuevos. No se modifica el archivo." -ForegroundColor DarkGray
+        return
+    }
+
+    # Mostrar vista previa con secretos como [OCULTO].
+    $redactedPreview = [pscustomobject]@{}
+    foreach ($k in $keys) {
+        if ($k.Secret) {
+            $cur = Get-NestedValue $changes $k.Path
+            if ($null -ne $cur) { Set-NestedValue -Obj $redactedPreview -Path $k.Path -Value '[OCULTO]' }
+        }
+    }
+    $merged = Get-MergedSecrets -Existing $existing -Desired $changes
+    Write-Host ""
+    Write-Host "  Cambios a aplicar (vista previa, secretos como [OCULTO]):" -ForegroundColor Yellow
+    $previewJson = $redactedPreview | ConvertTo-Json -Depth 10
+    if ($previewJson.Trim() -ne '{}' -and $previewJson.Trim() -ne 'null') {
+        Write-Host $previewJson -ForegroundColor DarkGray
+    } else {
+        Write-Host "  (sin cambios que mostrar)" -ForegroundColor DarkGray
+    }
+    Write-Host ""
+    $null = Read-Host "  Pulsa ENTER para escribir el archivo (Ctrl+C para abortar)"
+    $dir = Split-Path $script:SecretsPath -Parent
+    if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
+    $json = $merged | ConvertTo-Json -Depth 10
+    Set-Content -Path $script:SecretsPath -Value $json -Encoding UTF8
+    Write-Host "  -> Archivo de secretos escrito." -ForegroundColor Green
+}
+
+# Helper: escribe un valor en un path anidado de un objeto/hashtable
+# ("App.ClaveJWT" -> $obj.App.ClaveJWT), creando los niveles intermedios.
+# Se usa desde Invoke-SecretsStep para que las claves nuevas se
+# fusionen con la estructura existente del secrets.json.
+function Set-NestedValue {
+    param($Obj, [string]$Path, $Value)
+    $parts = $Path.Split('.')
+    $cur = $Obj
+    for ($i = 0; $i -lt $parts.Count - 1; $i++) {
+        $p = $parts[$i]
+        $next = $parts[$i + 1]
+        $prop = $cur.PSObject.Properties[$p]
+        if ($null -eq $prop) {
+            $child = [pscustomobject]@{}
+            $cur | Add-Member -NotePropertyName $p -NotePropertyValue $child -Force
+            $cur = $child
+        } else {
+            $cur = $prop.Value
+        }
+    }
+    $leaf = $parts[-1]
+    $leafProp = $cur.PSObject.Properties[$leaf]
+    if ($null -eq $leafProp) {
+        $cur | Add-Member -NotePropertyName $leaf -NotePropertyValue $Value -Force
+    } else {
+        $leafProp.Value = $Value
+    }
 }
 
 # ─────────────────────────────────────────────────────────────────
@@ -928,9 +1164,8 @@ if (-not (Test-Path $script:DomainCsproj)) {
 Initialize-PowerShellGet
 
 $instance = Invoke-Prerequisites
-Invoke-BakRestoreStep    -Instance $instance
-Invoke-ScaffoldStep      -Instance $instance
-Invoke-SecretsStep       -Instance $instance
+Invoke-BakRestoreStep     -Instance $instance -AlwaysAsk
+Invoke-SecretsStep        -Instance $instance
 
 Write-Host ""
 Write-Host "=== Instalador LOCAL finalizado ===" -ForegroundColor Cyan
