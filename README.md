@@ -71,27 +71,7 @@ El primer paso que tendremos que realizar es la restauración de la base de dato
       -  Confirma con **Aceptar**.
       -  Hacer nuevamente en **Aceptar** para completar la restauración
 
-## ⚙️ Scaffold-DbContext
-Una vez restaurada la base de datos, necesitamos regenerar los modelos con el comando `Scaffold-DbContext`, el motivo por el cual se necesita regenera los modelos es para que la conexión con base de datos apunte a tu maquina.
-Para ejecutar este comando hacemos lo siguiente:
 
-
-1. Abrimos **Visual Studio**
-2. Activa la consola desde: `Ver > Otras ventanas > Consola del Administrador de paquetes`.  
-3. Ejecutar el comando:
-
-```sh
-Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=GestorInventario;Integrated Security=True;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -Force -Project GestorInventario
-````
-## Explicación de los parametros importantes del comando
-**NOMBRESERVIDORBASEDATOS**: Este parametro suele variar dependiendo de como se llame nuestro PC pero tiene un aspecto similar a este: `DESKTOP-XXXX\SQLEXPRESS`
-
-## 🔑 Scaffold-DbContext con usuario y contraseña (recomendado)
-```sh
-Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=GestorInventario;User ID=sa;Password=SQL#1234;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -Force -Project GestorInventario
-````
-**ID**: este parametro hace referencia al nombre de usuario de la base de datos
-**Password**: hace referencia a la contraseña de base de datos
 
 
 ## 🔐 Configurar Secretos de usuario
@@ -165,7 +145,27 @@ En este archivo ajustaremos las variables de entorno con los valores:
    "applicationUrl": "https://localhost:7056;http://localhost:5000;https://localhost:7057"
  },
 ````
+## ⚙️ Scaffold-DbContext
+El scaffold solo se ejecutara si la base de datos cambia mientras que no cambie la base de datos no se ejecutara el scaffold
+Para ejecutar este comando hacemos lo siguiente:
 
+
+1. Abrimos **Visual Studio**
+2. Activa la consola desde: `Ver > Otras ventanas > Consola del Administrador de paquetes`.  
+3. Ejecutar el comando:
+
+```sh
+Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=GestorInventario;Integrated Security=True;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -Force -Project GestorInventario
+````
+## Explicación de los parametros importantes del comando
+**NOMBRESERVIDORBASEDATOS**: Este parametro suele variar dependiendo de como se llame nuestro PC pero tiene un aspecto similar a este: `DESKTOP-XXXX\SQLEXPRESS`
+
+## 🔑 Scaffold-DbContext con usuario y contraseña (recomendado)
+```sh
+Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=GestorInventario;User ID=sa;Password=SQL#1234;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -Force -Project GestorInventario
+````
+**ID**: este parametro hace referencia al nombre de usuario de la base de datos
+**Password**: hace referencia a la contraseña de base de datos
 # 🐳 Problemas comunes (Docker / Visual Studio / WSL)
 ## Visual Studio y Docker
 Si **no tienes instalado Docker Desktop**, Visual Studio puede mostrar un error de compilación al intentar interpretar el archivo `docker-compose`.
