@@ -1,17 +1,15 @@
 ﻿
 using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application.Authentication;
+
 using GestorInventario.Interfaces.Application.Common;
-using GestorInventario.Interfaces.Infraestructure.Repositories;
+
 using GestorInventario.Shared.DTOS.User;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Caching.Memory;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
-using StackExchange.Redis;
+
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
 

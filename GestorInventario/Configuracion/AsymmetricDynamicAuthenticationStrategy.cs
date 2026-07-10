@@ -1,4 +1,4 @@
-﻿using GestorInventario.Interfaces.Application;
+﻿
 using GestorInventario.Interfaces.Application.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 

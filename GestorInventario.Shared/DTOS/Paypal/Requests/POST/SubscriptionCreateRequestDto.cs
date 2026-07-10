@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;
-using System.Collections.Generic;
+
 
 namespace GestorInventario.Shared.DTOS.Paypal.Requests.POST
 {

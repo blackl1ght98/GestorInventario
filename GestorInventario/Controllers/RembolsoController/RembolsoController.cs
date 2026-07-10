@@ -1,5 +1,5 @@
 ﻿using GestorInventario.Application.Services.Common;
-using GestorInventario.Domain.Models;
+
 using GestorInventario.enums.Pedido;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
@@ -11,13 +11,12 @@ using GestorInventario.Shared.DTOS;
 using GestorInventario.Shared.DTOS.Paypal.Responses.GET.Order;
 using GestorInventario.Shared.DTOS.Rembolso;
 using GestorInventario.Shared.Utilities;
-using GestorInventario.Utilities;
+
 using GestorInventario.ViewModels.Paypal;
 using GestorInventario.ViewModels.Rembolsos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
-using System.Diagnostics;
+
 using System.Globalization;
 
 namespace GestorInventario.Controllers.RembolsoController

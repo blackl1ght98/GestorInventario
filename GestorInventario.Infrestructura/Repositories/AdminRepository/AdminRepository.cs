@@ -3,7 +3,7 @@ using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-namespace GestorInventario.Infrestructure.Repositories.AdminRepository
+namespace GestorInventario.Infrastructure.Repositories.AdminRepository
 {
     public class AdminRepository : IAdminRepository
     {

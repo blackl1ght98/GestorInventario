@@ -1,4 +1,4 @@
-﻿using GestorInventario.Application.DTOs;
+﻿
 using GestorInventario.Shared.DTOS.Paypal.Responses.GET.Subscription;
 
 namespace GestorInventario.Shared.DTOS.Paypal.Projections

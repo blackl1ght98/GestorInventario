@@ -1,10 +1,10 @@
 ﻿using GestorInventario.Domain.Models;
-using GestorInventario.enums;
+
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 
-namespace GestorInventario.Infrestructure.Repositories.PaymentRepository
+namespace GestorInventario.Infrastructure.Repositories.PaymentRepository
 {
     public class PaymentRepository:IPaymentRepository
     {

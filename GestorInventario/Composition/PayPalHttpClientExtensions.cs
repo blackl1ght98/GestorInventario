@@ -1,4 +1,4 @@
-﻿using GestorInventario.Application.Services.External_Sevices;
+﻿using GestorInventario.Application.Services.ExternalServices;
 using GestorInventario.Interfaces.Application.ExternalServices;
 using System.Net.Http.Headers;
 

@@ -1,10 +1,11 @@
 ﻿using GestorInventario.Domain.Models;
+
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.Utilities;
 
 using Microsoft.EntityFrameworkCore;
 
-namespace GestorInventario.Infrestructure.Repositories.RembolsoRepository
+namespace GestorInventario.Infrastructure.Repositories.RembolsoRepository
 {
     public class RembolsoRepository:IRembolsoRepository
     {

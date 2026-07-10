@@ -2,7 +2,7 @@
 using GestorInventario.Domain.Models;
 
 using GestorInventario.Shared.DTOS.User;
-using Microsoft.EntityFrameworkCore;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;

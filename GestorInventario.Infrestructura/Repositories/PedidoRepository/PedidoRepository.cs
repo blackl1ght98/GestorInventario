@@ -1,12 +1,13 @@
 ﻿using GestorInventario.Domain.Models;
 using GestorInventario.enums.Pedido;
+
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.DTOS;
 using GestorInventario.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
 
-namespace GestorInventario.Infrestructure.Repositories.PedidoRepository
+
+namespace GestorInventario.Infrastructure.Repositories.PedidoRepository
 {
     public class PedidoRepository : IPedidoRepository
     {

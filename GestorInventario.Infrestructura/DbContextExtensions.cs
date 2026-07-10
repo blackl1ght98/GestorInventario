@@ -1,8 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using System.Text;
 
-namespace GestorInventario.Infrestructure
+
+namespace GestorInventario.Infrastructure
 {
     public static class DbContextExtensions
     {

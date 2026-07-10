@@ -1,15 +1,10 @@
-﻿using GestorInventario.Domain.Models;
-using GestorInventario.enums.Productos;
-using GestorInventario.Interfaces.Application.Common;
+﻿using GestorInventario.enums.Productos;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.DTOS.Barcode;
-using Microsoft.EntityFrameworkCore;
+
 using Microsoft.Extensions.Logging;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
-using ZXing;
+
 
 namespace GestorInventario.Application.Services.Common
 {

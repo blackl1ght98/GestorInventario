@@ -1,6 +1,6 @@
 ﻿using GestorInventario.Domain.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
+
 
 namespace GestorInventario.MetodosExtension
 {

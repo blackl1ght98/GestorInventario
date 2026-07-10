@@ -1,11 +1,11 @@
-﻿using GestorInventario.Interfaces.Application;
+﻿
 using GestorInventario.Interfaces.Application.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-namespace GestorInventario.Configuracion.Strategies
+namespace GestorInventario.Configuracion
 {
     public class SymmetricAuthenticationStrategy : IConfigurationAuthenticationStrategy
     {

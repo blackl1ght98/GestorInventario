@@ -4,6 +4,7 @@ using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Shared.DTOS.Paypal.Responses.GET.Order;
+using GestorInventario.Shared.Utilities;
 using Newtonsoft.Json;
 using System.Globalization;
 
@@ -11,12 +12,7 @@ namespace GestorInventario.Application.Services.Mapping
 {
     public class PayPalOrderMappingService: IPayPalOrderMappingService
     {
-        private readonly IConversionUtils _conversion;
-
-        public PayPalOrderMappingService(IConversionUtils conversion)
-        {
-            _conversion = conversion;
-        }
+       
         public PayPalPaymentDetail MapearOrdenADetallePago(OrderDetailsResponse detallespago)
         {
             if (detallespago.PurchaseUnits == null || !detallespago.PurchaseUnits.Any())
@@ -64,7 +60,7 @@ namespace GestorInventario.Application.Services.Mapping
             if (firstPurchaseUnit.Amount != null)
             {
                 detallesPagoRembolso.AmountTotal =
-                    (decimal)_conversion.ConvertToDecimal(firstPurchaseUnit.Amount.Value ?? "0");
+                   ConversionExtensions.ToDecimalSafe(firstPurchaseUnit.Amount.Value ?? "0");
 
                 detallesPagoRembolso.AmountCurrency =
                     firstPurchaseUnit.Amount.CurrencyCode;
@@ -72,11 +68,11 @@ namespace GestorInventario.Application.Services.Mapping
                 if (firstPurchaseUnit.Amount.Breakdown != null)
                 {
                     detallesPagoRembolso.AmountItemTotal =
-                       (decimal) _conversion.ConvertToDecimal(
+                        ConversionExtensions.ToDecimalSafe(
                             firstPurchaseUnit.Amount.Breakdown.ItemTotal.Value);
 
                     detallesPagoRembolso.AmountShipping =
-                       (decimal) _conversion.ConvertToDecimal(
+                        ConversionExtensions.ToDecimalSafe(
                             firstPurchaseUnit.Amount.Breakdown.Shipping.Value?? "0");
                 }
             }
@@ -115,7 +111,7 @@ namespace GestorInventario.Application.Services.Mapping
                         Status = capture.Status,
 
                         Amount = (capture.Amount != null
-                            ? _conversion.ConvertToDecimal(capture.Amount.Value)
+                            ? ConversionExtensions.ToDecimalSafe(capture.Amount.Value)
                             : 0),
 
                         Currency = capture.Amount?.CurrencyCode,
@@ -125,7 +121,7 @@ namespace GestorInventario.Application.Services.Mapping
 
                         TransactionFeeAmount =
                             (capture.SellerReceivableBreakdown?.PaypalFee != null
-                                ? _conversion.ConvertToDecimal(
+                                ? ConversionExtensions.ToDecimalSafe(
                                     capture.SellerReceivableBreakdown.PaypalFee.Value)
                                 : 0),
 
@@ -134,7 +130,7 @@ namespace GestorInventario.Application.Services.Mapping
 
                         ReceivableAmount =
                             (capture.SellerReceivableBreakdown?.NetAmount != null
-                                ? _conversion.ConvertToDecimal(
+                                ? ConversionExtensions.ToDecimalSafe(
                                     capture.SellerReceivableBreakdown.NetAmount.Value)
                                 : 0),
 
@@ -144,10 +140,10 @@ namespace GestorInventario.Application.Services.Mapping
                         FinalCapture = capture.FinalCapture,
 
                         CreateTime =
-                            _conversion.ConvertToDateTime(capture.CreateTime),
+                             ConversionExtensions.ToDateTimeSafe(capture.CreateTime),
 
                         UpdateTime =
-                            _conversion.ConvertToDateTime(capture.UpdateTime)
+                             ConversionExtensions.ToDateTimeSafe(capture.UpdateTime)
                     };
 
                     // ExchangeRate

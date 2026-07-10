@@ -1,10 +1,11 @@
 ﻿using GestorInventario.Domain.Models;
+
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.Utilities;
 
 using Microsoft.EntityFrameworkCore;
 
-namespace GestorInventario.Infrestructure.Repositories.ProductoRepository
+namespace GestorInventario.Infrastructure.Repositories.ProductoRepository
 {
     public class ProductoRepository : IProductoRepository
     {

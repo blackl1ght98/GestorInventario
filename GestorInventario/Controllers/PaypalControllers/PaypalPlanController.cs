@@ -1,21 +1,19 @@
 ﻿using GestorInventario.Application.Exceptions;
 using GestorInventario.Application.Mappers;
-using GestorInventario.Application.Services;
-using GestorInventario.Domain.Models;
+
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Shared.DTOS.Paypal.Requests.POST;
 using GestorInventario.Shared.Utilities;
-using GestorInventario.Utilities;
+
 using GestorInventario.ViewModels.Paypal;
 using GestorInventario.ViewModels.Productos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Globalization;
-using System.Numerics;
+
 
 namespace GestorInventario.Controllers.PaypalControllers
 {

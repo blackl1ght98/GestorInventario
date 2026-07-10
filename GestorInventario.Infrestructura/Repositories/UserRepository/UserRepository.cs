@@ -1,12 +1,13 @@
 ﻿using GestorInventario.Domain.Models;
 using GestorInventario.enums.Usuario;
+
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.DTOS.User;
 using GestorInventario.Shared.Utilities;
 
 using Microsoft.EntityFrameworkCore;
 
-namespace GestorInventario.Infrestructure.Repositories.UserRepository
+namespace GestorInventario.Infrastructure.Repositories.UserRepository
 {
     public class UserRepository: IUserRepository
     {

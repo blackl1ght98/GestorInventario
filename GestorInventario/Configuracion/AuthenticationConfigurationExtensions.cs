@@ -1,4 +1,4 @@
-﻿using GestorInventario.Configuracion.Strategies;
+﻿
 
 namespace GestorInventario.Configuracion
 {

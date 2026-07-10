@@ -1,11 +1,12 @@
 ﻿
-using GestorInventario.Application.Services.Authentication.Token_generation;
+
+using GestorInventario.Application.Services.Authentication.Resolvers;
 using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application;
+
 using GestorInventario.Interfaces.Application.Authentication;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.DTOS.User;
-using Microsoft.EntityFrameworkCore;
+
 
 public class TokenGenerator : ITokenGenerator
 {

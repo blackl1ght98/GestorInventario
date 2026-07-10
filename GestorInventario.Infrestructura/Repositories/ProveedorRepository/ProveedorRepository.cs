@@ -1,11 +1,12 @@
 ﻿using GestorInventario.Domain.Models;
+
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.DTOS.User;
 using GestorInventario.Shared.Utilities;
 
 using Microsoft.EntityFrameworkCore;
 
-namespace GestorInventario.Infrestructure.Repositories.ProveedorRepository
+namespace GestorInventario.Infrastructure.Repositories.ProveedorRepository
 {
     public class ProveedorRepository : IProveedorRepository
     {

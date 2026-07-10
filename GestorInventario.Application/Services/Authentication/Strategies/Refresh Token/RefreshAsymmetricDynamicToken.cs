@@ -1,9 +1,8 @@
 ﻿using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application;
+
 using GestorInventario.Interfaces.Application.Authentication;
 using GestorInventario.Interfaces.Application.Common;
-using GestorInventario.Interfaces.Infraestructure.Repositories;
-using Microsoft.EntityFrameworkCore;
+
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
@@ -38,12 +37,12 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
             var credentials = new SigningCredentials(
                 new RsaSecurityKey(privateKey) { KeyId = usuario.Id.ToString() },
                 SecurityAlgorithms.RsaSha256);
-            var minutos = _claimsBuilder.ObtenerDuracionAccessTokenMinutos();
+            var horas = _claimsBuilder.ObtenerDuracionRefreshTokenHoras();
             var token = new JwtSecurityToken(
                 issuer: _claimsBuilder.ObtenerIssuer(),
                 audience: _claimsBuilder.ObtenerAudience(),
                 claims: _claimsBuilder.CrearClaims(usuario),
-                expires: DateTime.UtcNow.AddHours(int.Parse(minutos)),
+                expires: DateTime.UtcNow.AddHours(int.Parse(horas)),
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);

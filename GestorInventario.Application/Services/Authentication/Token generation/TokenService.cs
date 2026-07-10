@@ -1,6 +1,5 @@
 ﻿
 using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application;
 using GestorInventario.Interfaces.Application.Authentication;
 using GestorInventario.Shared.DTOS.User;
 

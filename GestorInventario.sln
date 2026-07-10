@@ -17,7 +17,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GestorInventario.Interfaces
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GestorInventario.Application", "GestorInventario.Application\GestorInventario.Application.csproj", "{BA869B5B-0691-433A-BFE3-7E2581DCBE31}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GestorInventario.Infrestructure", "GestorInventario.Infrestructura\GestorInventario.Infrestructure.csproj", "{5C357437-226E-4DAB-9622-A23F4881B70E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GestorInventario.Infrastructure", "GestorInventario.Infrestructura\GestorInventario.Infrastructure.csproj", "{5C357437-226E-4DAB-9622-A23F4881B70E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

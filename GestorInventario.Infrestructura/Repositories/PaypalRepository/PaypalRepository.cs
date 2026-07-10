@@ -1,12 +1,13 @@
 ﻿using GestorInventario.Domain.Models;
 using GestorInventario.enums.Paypal;
+
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 
 
 
-namespace GestorInventario.Infrestructure.Repositories.PaypalRepository
+namespace GestorInventario.Infrastructure.Repositories.PaypalRepository
 {
     public class PaypalRepository : IPaypalRepository
     {

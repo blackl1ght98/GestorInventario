@@ -1,4 +1,4 @@
-﻿using GestorInventario.Application.DTOs;
+﻿
 using GestorInventario.Shared.DTOS.Paypal.Responses.GET.Subscription;
 using GestorInventario.Shared.DTOS.Paypal.Responses.POST.Subscription;
 using GestorInventario.Shared.Utilities;

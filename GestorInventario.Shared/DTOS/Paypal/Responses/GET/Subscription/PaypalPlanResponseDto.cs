@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
+
 
 namespace GestorInventario.Shared.DTOS.Paypal.Responses.GET.Subscription
 {
