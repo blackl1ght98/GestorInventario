@@ -3,9 +3,9 @@ using StackExchange.Redis;
 
 namespace GestorInventario.MetodosExtension
 {
-    public static class RedisCache
+    public static class AddRedisInfrastructure
     {
-        public static IServiceCollection AddRedisCache(this IServiceCollection services,IConfiguration configuration)
+        public static IServiceCollection ConfigureRedis(this IServiceCollection services,IConfiguration configuration)
         {
             // Guardamos en una variable las cadenas de conexión
             string redisConnectionString = Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING")

@@ -6,9 +6,9 @@ namespace GestorInventario.Configuracion
 {
     public class AsymmetricDynamicAuthenticationStrategy : IConfigurationAuthenticationStrategy
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<AsymmetricDynamicAuthenticationStrategy> _logger;
 
-        public AsymmetricDynamicAuthenticationStrategy(ILogger logger)
+        public AsymmetricDynamicAuthenticationStrategy(ILogger<AsymmetricDynamicAuthenticationStrategy> logger)
         {
             _logger = logger;
         }

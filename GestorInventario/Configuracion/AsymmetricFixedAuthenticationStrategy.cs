@@ -8,9 +8,9 @@ namespace GestorInventario.Configuracion
 {
     public class AsymmetricFixedAuthenticationStrategy : IConfigurationAuthenticationStrategy
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<AsymmetricFixedAuthenticationStrategy> _logger;
 
-        public AsymmetricFixedAuthenticationStrategy(ILogger logger)
+        public AsymmetricFixedAuthenticationStrategy(ILogger<AsymmetricFixedAuthenticationStrategy> logger)
         {
             _logger = logger;
         }

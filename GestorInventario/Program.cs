@@ -1,5 +1,4 @@
 ﻿
-using Azure.Core;
 using GestorInventario.Composition;
 using GestorInventario.Configuracion;
 using GestorInventario.MetodosExtension;
@@ -8,7 +7,6 @@ using GestorInventario.Shared.DTOS;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
-using Microsoft.Identity.Client.Platforms.Features.DesktopOs.Kerberos;
 using Microsoft.Net.Http.Headers;
 using QuestPDF.Infrastructure;
 using System.Text.Json.Serialization;
@@ -22,15 +20,13 @@ builder.Configuration.AddEnvironmentVariables();
 
 //Variables compartidas
 bool useRedis = bool.Parse(Environment.GetEnvironmentVariable("USE_REDIS") ?? "false");
-string authStrategy = builder.Configuration["AuthMode"] ?? "Symmetric";
 
 //Para que no salte una excepcion en consultas que son recursivas
 builder.Services.AddControllersWithViews().AddJsonOptions(options => options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
 //Configuracion DB
 builder.Services.AddDatabaseContext(builder.Configuration);
-
-
+//CORS
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(builder =>
@@ -42,7 +38,11 @@ builder.Services.AddCors(options =>
 //Servicios generales
 builder.Services.AddMemoryCache();
 builder.Services.AddMvc();
-builder.Logging.AddLog4Net();
+builder.Services.AddLogging(b =>
+{
+    b.AddConsole();
+    b.AddLog4Net();
+});
 builder.Services.AddAntiforgery();
 builder.Services.AddHttpContextAccessor();
 
@@ -51,21 +51,23 @@ builder.Services.AddRepositories();
 builder.Services.AddApplicationServices();
 builder.Services.AddSingletonServices();
 builder.Services.AddBackgroundServices();
+//Construccion de la URL para el email
 builder.Services.Configure<AppSettings>(
 builder.Configuration.GetSection("App"));
+//Configuracion de licencia para automapper
 QuestPDF.Settings.License = LicenseType.Community;
 
 builder.Services.AddPayPalHttpClient(builder.Configuration);
 builder.Services.AddAutoMapper(builder.Configuration);
 builder.Services.AddWebOptimizer();
 
-// Si estamos usando Redis
+// Si estamos usando Redis lo configuramos
 if (useRedis)
 {
-   builder.Services.AddRedisCache(builder.Configuration);
+   builder.Services.ConfigureRedis(builder.Configuration);
 }
 
-builder.Services.AddCacheServices(useRedis);
+builder.Services.AddHybridCacheService(useRedis);
 //Servicios personalizados de autenticacion
 builder.Services.AddConfigureAuthentication(builder.Configuration);
 
@@ -94,7 +96,7 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
     //Cuando el usuario rechaza las cookies esto no se vera afectado
     // Cambios para túnel
-    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // permite HTTP y HTTPS no confiable
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; 
     options.Cookie.SameSite = SameSiteMode.None; // permite envío cross-site
 });
 builder.Services.AddDataProtection()
@@ -107,6 +109,7 @@ builder.Services.AddDataProtection()
 
 
 var app = builder.Build();
+
 app.UseWebOptimizer();
 if (!app.Environment.IsDevelopment())
 {

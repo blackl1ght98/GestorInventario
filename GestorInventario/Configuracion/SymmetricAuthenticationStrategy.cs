@@ -9,9 +9,9 @@ namespace GestorInventario.Configuracion
 {
     public class SymmetricAuthenticationStrategy : IConfigurationAuthenticationStrategy
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<SymmetricAuthenticationStrategy> _logger;
 
-        public SymmetricAuthenticationStrategy(ILogger logger)
+        public SymmetricAuthenticationStrategy(ILogger<SymmetricAuthenticationStrategy> logger)
         {
             _logger = logger;
         }

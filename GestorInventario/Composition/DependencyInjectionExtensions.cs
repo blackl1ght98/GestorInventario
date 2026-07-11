@@ -152,7 +152,7 @@ namespace GestorInventario.Composition
             return services;
         }
         //5. SERVICIOS QUE REQUIEREN CONFIGURACION MANUAL
-        public static IServiceCollection AddCacheServices(this IServiceCollection services, bool useRedis)
+        public static IServiceCollection AddHybridCacheService(this IServiceCollection services, bool useRedis)
         {
            
             services.AddSingleton<ICacheService, HybridCacheService>(provider =>
