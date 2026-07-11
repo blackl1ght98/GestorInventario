@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Domain.Models;
+using GestorInventario.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 

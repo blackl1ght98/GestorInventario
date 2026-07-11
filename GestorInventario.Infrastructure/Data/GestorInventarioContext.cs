@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using GestorInventario.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace GestorInventario.Domain.Models;
+namespace GestorInventario.Infrastructure.Data;
 
 public partial class GestorInventarioContext : DbContext
 {
@@ -47,7 +48,7 @@ public partial class GestorInventarioContext : DbContext
 
     public virtual DbSet<Usuario> Usuarios { get; set; }
 
-
+   
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

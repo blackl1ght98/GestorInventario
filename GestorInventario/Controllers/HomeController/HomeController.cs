@@ -1,6 +1,7 @@
 ﻿
 using GestorInventario.Domain.Models;
 using GestorInventario.enums.Pedido;
+using GestorInventario.Infrastructure.Data;
 using GestorInventario.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+﻿
 using System.Globalization;
 
 namespace GestorInventario.Shared.Utilities

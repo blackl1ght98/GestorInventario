@@ -1,6 +1,6 @@
 ﻿using GestorInventario.Domain.Models;
 using GestorInventario.enums.Usuario;
-
+using GestorInventario.Infrastructure.Data;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.DTOS.User;
 using GestorInventario.Shared.Utilities;

@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Domain.Models;
+using GestorInventario.Infrastructure.Data;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
