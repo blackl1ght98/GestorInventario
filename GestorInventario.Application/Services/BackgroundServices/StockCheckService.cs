@@ -3,6 +3,7 @@ using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.DTOS;
 using GestorInventario.Shared.DTOS.Email;
+using GestorInventario.Shared.DTOS.Products;
 using Microsoft.Extensions.Logging;
 
 namespace GestorInventario.Application.Services.BackgroundServices

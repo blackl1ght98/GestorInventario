@@ -1,6 +1,6 @@
 ﻿using GestorInventario.enums.Productos;
 
-namespace GestorInventario.Shared.DTOS.Paypal.Responses.POST.Order
+namespace GestorInventario.Shared.DTOS.Paypal.BD
 {
     public record TrackingItemDto
     {

@@ -1,7 +1,8 @@
-﻿using GestorInventario.Interfaces.Application.Common;
+﻿using GestorInventario.Extensions;
+using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
-using GestorInventario.MetodosExtension;
+using GestorInventario.Shared.DTOS.Supplier;
 using GestorInventario.Shared.DTOS.User;
 using GestorInventario.Shared.Utilities;
 using GestorInventario.ViewModels.Supplier;

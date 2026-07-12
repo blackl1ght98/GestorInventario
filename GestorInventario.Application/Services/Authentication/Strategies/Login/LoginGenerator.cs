@@ -4,7 +4,7 @@ using GestorInventario.Application.Services.Authentication.Resolvers;
 
 
 using GestorInventario.Interfaces.Application.Authentication;
-using GestorInventario.Shared.DTOS.User;
+using GestorInventario.Shared.DTOS.Auth;
 using GestorInventario.Shared.Utilities;
 
 

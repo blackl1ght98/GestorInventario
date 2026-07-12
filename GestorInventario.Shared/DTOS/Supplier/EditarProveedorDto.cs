@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace GestorInventario.Shared.DTOS.User
+﻿namespace GestorInventario.Shared.DTOS.Supplier
 {
     public class EditarProveedorDto
     {

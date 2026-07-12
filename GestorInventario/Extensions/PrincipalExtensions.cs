@@ -1,7 +1,7 @@
 ﻿using System.Security.Claims;
 
 
-namespace GestorInventario.MetodosExtension
+namespace GestorInventario.Extensions
 {
     public static class PrincipalExtensions
     {

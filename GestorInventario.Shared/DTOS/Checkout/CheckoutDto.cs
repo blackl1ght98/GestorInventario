@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿
 
 namespace GestorInventario.Shared.DTOS.Checkout
 {

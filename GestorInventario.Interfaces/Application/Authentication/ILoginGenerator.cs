@@ -1,4 +1,4 @@
-﻿using GestorInventario.Shared.DTOS.User;
+﻿using GestorInventario.Shared.DTOS.Auth;
 using GestorInventario.Shared.Utilities;
 
 

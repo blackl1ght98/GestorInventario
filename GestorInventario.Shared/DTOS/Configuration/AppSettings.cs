@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.Shared.DTOS
+﻿namespace GestorInventario.Shared.DTOS.Configuration
 {
     public class AppSettings
     {

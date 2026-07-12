@@ -1,7 +1,6 @@
 ﻿
 using GestorInventario.Domain.Models;
-
-using GestorInventario.Shared.DTOS.User;
+using GestorInventario.Shared.DTOS.Auth;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;

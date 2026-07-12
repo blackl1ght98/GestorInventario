@@ -1,6 +1,5 @@
-﻿
-using GestorInventario.Shared.DTOS;
-using GestorInventario.Shared.DTOS.Email;
+﻿using GestorInventario.Shared.DTOS.Email;
+using GestorInventario.Shared.DTOS.Products;
 using GestorInventario.Shared.Utilities;
 
 namespace GestorInventario.Interfaces.Application.Services

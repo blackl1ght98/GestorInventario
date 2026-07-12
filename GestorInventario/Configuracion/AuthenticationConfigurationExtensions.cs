@@ -1,5 +1,6 @@
 ﻿
 
+using GestorInventario.Application.Services.Authentication.Strategies.Configuration;
 using GestorInventario.Interfaces.Application.Authentication;
 
 namespace GestorInventario.Configuracion

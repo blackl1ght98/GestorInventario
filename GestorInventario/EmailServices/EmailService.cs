@@ -4,7 +4,6 @@ using GestorInventario.Interfaces.Application.Authentication;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
-using GestorInventario.Shared.DTOS;
 using GestorInventario.Shared.DTOS.Email;
 using GestorInventario.Shared.Utilities;
 
@@ -14,6 +13,7 @@ using GestorInventario.ViewModels.Paypal;
 using GestorInventario.ViewModels.Orders;
 using GestorInventario.ViewModels.Products;
 using System.Security.Cryptography;
+using GestorInventario.Shared.DTOS.Products;
 
 namespace GestorInventario.EmailServices
 {

@@ -1,9 +1,8 @@
 ﻿using AutoMapper;
-
+using GestorInventario.Extensions;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Common;
-using GestorInventario.MetodosExtension;
 using GestorInventario.Shared.DTOS.User;
 using GestorInventario.Shared.Utilities;
 using GestorInventario.ViewModels.Users;

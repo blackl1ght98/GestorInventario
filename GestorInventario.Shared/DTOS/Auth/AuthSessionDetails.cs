@@ -1,6 +1,6 @@
 ﻿using GestorInventario.Domain.Models;
 
-namespace GestorInventario.Shared.DTOS.User
+namespace GestorInventario.Shared.DTOS.Auth
 {
     public record AuthSessionDetails(
      Usuario User,

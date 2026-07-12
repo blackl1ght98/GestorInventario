@@ -1,9 +1,9 @@
 ﻿
 using GestorInventario.Composition;
 using GestorInventario.Configuracion;
-using GestorInventario.MetodosExtension;
+using GestorInventario.Extensions;
 using GestorInventario.Middlewares;
-using GestorInventario.Shared.DTOS;
+using GestorInventario.Shared.DTOS.Configuration;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
@@ -38,7 +38,7 @@ builder.Services.AddCors(options =>
 //Servicios generales
 builder.Services.AddMemoryCache();
 builder.Services.AddMvc();
-builder.Services.AddLogging(b =>
+using var bootstrapLoggerFactory = LoggerFactory.Create(b =>
 {
     b.AddConsole();
     b.AddLog4Net();
@@ -64,7 +64,7 @@ builder.Services.AddWebOptimizer();
 // Si estamos usando Redis lo configuramos
 if (useRedis)
 {
-   builder.Services.ConfigureRedis(builder.Configuration);
+   builder.Services.ConfigureRedis(builder.Configuration, bootstrapLoggerFactory.CreateLogger("Redis"));
 }
 
 builder.Services.AddHybridCacheService(useRedis);

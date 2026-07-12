@@ -1,4 +1,6 @@
-﻿namespace GestorInventario.ViewModels.Paypal
+﻿using GestorInventario.Shared.DTOS.Paypal.BD;
+
+namespace GestorInventario.ViewModels.Paypal
 {
     public class PayPalPaymentDetailViewModel
     {

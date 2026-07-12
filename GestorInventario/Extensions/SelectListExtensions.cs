@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Linq.Expressions;
 
-namespace GestorInventario.MetodosExtension
+namespace GestorInventario.Extensions
 {
     public static class SelectListExtensions
     {

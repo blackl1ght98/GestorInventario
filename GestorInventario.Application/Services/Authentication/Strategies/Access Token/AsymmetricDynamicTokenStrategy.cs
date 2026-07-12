@@ -2,8 +2,7 @@
 using GestorInventario.Domain.Models;
 
 using GestorInventario.Interfaces.Application.Common;
-
-using GestorInventario.Shared.DTOS.User;
+using GestorInventario.Shared.DTOS.Auth;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

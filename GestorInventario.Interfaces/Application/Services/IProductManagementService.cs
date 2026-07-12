@@ -1,5 +1,5 @@
 ﻿using GestorInventario.Domain.Models;
-using GestorInventario.Shared.DTOS.User;
+using GestorInventario.Shared.DTOS.Products;
 using GestorInventario.Shared.Utilities;
 
 

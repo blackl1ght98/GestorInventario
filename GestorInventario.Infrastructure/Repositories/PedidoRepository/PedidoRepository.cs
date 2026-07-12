@@ -2,7 +2,7 @@
 using GestorInventario.enums.Pedido;
 using GestorInventario.Infrastructure.Data;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
-using GestorInventario.Shared.DTOS;
+using GestorInventario.Shared.DTOS.Paypal.BD;
 using GestorInventario.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 

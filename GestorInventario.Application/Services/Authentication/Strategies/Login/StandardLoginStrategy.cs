@@ -2,7 +2,7 @@
 
 using GestorInventario.Interfaces.Application.Authentication;
 using GestorInventario.Interfaces.Application.Common;
-using GestorInventario.Shared.DTOS.User;
+using GestorInventario.Shared.DTOS.Auth;
 using GestorInventario.Shared.Utilities;
 
 

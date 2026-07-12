@@ -2,8 +2,8 @@
 using GestorInventario.enums.Productos;
 
 using GestorInventario.Interfaces.Application.ExternalServices;
+using GestorInventario.Shared.DTOS.Paypal.BD;
 using GestorInventario.Shared.DTOS.Paypal.Requests.POST;
-using GestorInventario.Shared.DTOS.Paypal.Responses.POST.Order;
 using GestorInventario.Shared.Utilities;
 
 using Microsoft.Extensions.Logging;

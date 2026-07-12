@@ -4,7 +4,7 @@ using GestorInventario.enums.Productos;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
-using GestorInventario.Shared.DTOS.User;
+using GestorInventario.Shared.DTOS.Products;
 using GestorInventario.Shared.Utilities;
 
 using Microsoft.Extensions.Logging;

@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace GestorInventario.Shared.DTOS
+﻿namespace GestorInventario.Shared.DTOS.Paypal.BD
 {
     public class RefundDto
     {

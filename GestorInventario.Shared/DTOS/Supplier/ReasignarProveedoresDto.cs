@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.Shared.DTOS.User
+﻿namespace GestorInventario.Shared.DTOS.Supplier
 {
     public class ReasignarProveedoresDto
     {

@@ -2,7 +2,7 @@
 using GestorInventario.enums.Productos;
 using System.Text.Json.Serialization;
 
-namespace GestorInventario.Shared.DTOS
+namespace GestorInventario.Shared.DTOS.Paypal.BD
 {
     public class InfoEnvioDTO
     {

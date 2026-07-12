@@ -1,34 +1,42 @@
-﻿
-using GestorInventario.Interfaces.Application.Authentication;
+﻿using GestorInventario.Interfaces.Application.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using System.Security.Cryptography;
 
-namespace GestorInventario.Configuracion
+namespace GestorInventario.Application.Services.Authentication.Strategies.Configuration
 {
-    public class SymmetricAuthenticationStrategy : IConfigurationAuthenticationStrategy
+    public class AsymmetricFixedAuthenticationStrategy : IConfigurationAuthenticationStrategy
     {
-        private readonly ILogger<SymmetricAuthenticationStrategy> _logger;
+        private readonly ILogger<AsymmetricFixedAuthenticationStrategy> _logger;
 
-        public SymmetricAuthenticationStrategy(ILogger<SymmetricAuthenticationStrategy> logger)
+        public AsymmetricFixedAuthenticationStrategy(ILogger<AsymmetricFixedAuthenticationStrategy> logger)
         {
             _logger = logger;
         }
 
         public void Configure(IServiceCollection services, IConfiguration configuration)
         {
-            var secret = configuration["ClaveJWT"] ?? Environment.GetEnvironmentVariable("ClaveJWT");
-            if (string.IsNullOrEmpty(secret))
+            var publicKey = configuration["Jwt:PublicKey"] ?? Environment.GetEnvironmentVariable("PublicKey");
+            if (string.IsNullOrEmpty(publicKey))
             {
-                _logger.LogError("La clave JWT no está configurada en ClaveJWT.");
-                throw new InvalidOperationException("La clave JWT es requerida.");
+                _logger.LogError("La clave pública JWT no está configurada en Jwt:PublicKey.");
+                throw new InvalidOperationException("La clave pública JWT es requerida.");
             }
 
-            if (secret.Length < 32)
+            var rsa = new RSACryptoServiceProvider();
+            try
             {
-                _logger.LogError("La clave JWT es demasiado corta. Debe tener al menos 32 caracteres.");
-                throw new InvalidOperationException("La clave JWT es demasiado corta.");
+                rsa.FromXmlString(publicKey);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al cargar la clave pública RSA desde la configuración.");
+                throw new InvalidOperationException("La clave pública RSA es inválida.", ex);
             }
 
             services.AddAuthentication(options =>
@@ -42,7 +50,7 @@ namespace GestorInventario.Configuracion
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
                 options.Cookie.SameSite = SameSiteMode.Lax;
-                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
                 options.SlidingExpiration = true;
                 options.LoginPath = "/Auth/Login";
@@ -69,7 +77,7 @@ namespace GestorInventario.Configuracion
                     ValidAudience = configuration["JwtAudience"] ?? Environment.GetEnvironmentVariable("JwtAudience"),
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret))
+                    IssuerSigningKey = new RsaSecurityKey(rsa)
                 };
 
                 options.Events = new JwtBearerEvents

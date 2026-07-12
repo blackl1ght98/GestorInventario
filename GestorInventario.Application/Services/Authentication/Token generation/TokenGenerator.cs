@@ -5,8 +5,7 @@ using GestorInventario.Domain.Models;
 
 using GestorInventario.Interfaces.Application.Authentication;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
-using GestorInventario.Shared.DTOS.User;
-
+using GestorInventario.Shared.DTOS.Auth;
 
 public class TokenGenerator : ITokenGenerator
 {

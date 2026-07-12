@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace GestorInventario.Shared.DTOS.User
+namespace GestorInventario.Shared.DTOS.Auth
 {
     public class RestoresPasswordDto
     {

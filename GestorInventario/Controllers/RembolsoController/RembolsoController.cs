@@ -1,13 +1,14 @@
 ﻿using GestorInventario.Application.Services.Common;
 
 using GestorInventario.enums.Pedido;
+using GestorInventario.Extensions;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
-using GestorInventario.MetodosExtension;
 using GestorInventario.Shared.DTOS;
+using GestorInventario.Shared.DTOS.Paypal.BD;
 using GestorInventario.Shared.DTOS.Paypal.Responses.GET.Order;
 using GestorInventario.Shared.DTOS.Rembolso;
 using GestorInventario.Shared.Utilities;
