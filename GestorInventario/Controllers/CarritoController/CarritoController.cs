@@ -4,7 +4,7 @@ using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 
 using GestorInventario.Shared.Utilities;
-using GestorInventario.ViewModels.Carrito;
+using GestorInventario.ViewModels.ShoppingCart;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;

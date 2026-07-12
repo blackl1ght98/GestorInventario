@@ -4,7 +4,7 @@ using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.MetodosExtension;
 using GestorInventario.Shared.DTOS.User;
 using GestorInventario.Shared.Utilities;
-using GestorInventario.ViewModels.Proveedor;
+using GestorInventario.ViewModels.Supplier;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -57,7 +57,7 @@ namespace GestorInventario.Controllers.ProveedorController
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
                     _paginationHelper.PaginarAsync(proveedores, paginacion)
                 );
-                var viewModel = new ProviderViewModel
+                var viewModel = new SupplierIndexViewModel
                 {
                     Proveedores = paginationResult.Items,
                     Paginas = paginationResult.Paginas.ToList(),
@@ -83,7 +83,7 @@ namespace GestorInventario.Controllers.ProveedorController
             // Cargar los usuarios desde la base de datos
             var usuarios = await _policyExecutor.ExecutePolicyAsync(() => _userRepository.ObtenerUsuariosAsync());
 
-            var model = new ProveedorViewModel
+            var model = new SupplierFormViewModel
             {
                 
                 Usuarios = usuarios.ToSelectList(
@@ -98,7 +98,7 @@ namespace GestorInventario.Controllers.ProveedorController
         [HttpPost]
         [Authorize(Roles = "Administrador")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(ProveedorViewModel model)
+        public async Task<IActionResult> Create(SupplierFormViewModel model)
         {
             try
             {
@@ -154,7 +154,7 @@ namespace GestorInventario.Controllers.ProveedorController
                     _logger.LogInformation("Proveedor no encontrado");
                     return RedirectToAction(nameof(Index));
                 }
-                var viewmodel = new DeleteProvedorViewmodel 
+                var viewmodel = new DeleteSupplierViewmodel 
                 {
                     Id = id,
                     NombreProveedor=proveedor.NombreProveedor,
@@ -218,7 +218,7 @@ namespace GestorInventario.Controllers.ProveedorController
                     _logger.LogInformation("Proveedor no encontrado");
                     return RedirectToAction(nameof(Index));
                 }
-                var model = new ProveedorViewModel
+                var model = new SupplierFormViewModel
                 {
                     NombreProveedor= proveedor.NombreProveedor,
                     Contacto = proveedor.Contacto,
@@ -239,7 +239,7 @@ namespace GestorInventario.Controllers.ProveedorController
         //Metodo encargado de editar el proveedor
         [HttpPost] 
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(ProveedorViewModel model, int Id)
+        public async Task<ActionResult> Edit(SupplierFormViewModel model, int Id)
         {
             try
             {

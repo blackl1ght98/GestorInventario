@@ -5,7 +5,7 @@ using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.MetodosExtension;
 using GestorInventario.Shared.Utilities;
-using GestorInventario.ViewModels.Pedidos;
+using GestorInventario.ViewModels.Orders;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,22 +24,22 @@ namespace GestorInventario.Controllers.PedidosControllers
         private readonly IPolicyExecutor _policyExecutor;      
         private readonly IPaginationHelper _paginationHelper;       
         private readonly ICurrentUserAccessor _currentUserAccessor;     
-        private readonly IPedidoManagementService _pedidoService;
+       
         
         public PedidosController( 
             ILogger<PedidosController> logger, 
             IPaginationHelper pagination,  
             ICurrentUserAccessor currentUser,  
             IPedidoRepository pedidoRepository,        
-            IPolicyExecutor policyExecutor,         
-            IPedidoManagementService pedidoService)
+            IPolicyExecutor policyExecutor       
+          )
         {          
             _logger = logger;
             _pedidoRepository = pedidoRepository;               
             _policyExecutor = policyExecutor;        
             _paginationHelper = pagination;          
             _currentUserAccessor = currentUser;      
-            _pedidoService = pedidoService;
+           
        
         }
 
@@ -75,7 +75,7 @@ namespace GestorInventario.Controllers.PedidosControllers
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
               _paginationHelper.PaginarAsync(pedidos, paginacion)
                 );
-                var viewModel = new PedidoViewModel
+                var viewModel = new OrderViewModel
                 {
                     Pedidos = paginationResult.Items,
                     Paginas = paginationResult.Paginas.ToList(),
@@ -109,7 +109,7 @@ namespace GestorInventario.Controllers.PedidosControllers
                     _logger.LogCritical("Pedido no encontrado: no se puede mostrar los detalles de un pedido inexistente");
                     return RedirectToAction(nameof(Index));
                 }
-                var viewmodel = new DetallePedidoViewmodel
+                var viewmodel = new OrderDetailsViewmodel
                 {
                     FechaPedido= pedido.FechaPedido,
                     NombreCompleto=pedido.IdUsuarioNavigation.NombreCompleto,

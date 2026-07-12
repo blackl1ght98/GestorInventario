@@ -2,41 +2,65 @@
 {
     public class PayPalPaymentDetailViewModel
     {
-        public string Id { get; set; }
-        public string Intent { get; set; }
-        public string Status { get; set; }
-        public DateTime? CreateTime { get; set; }
-        public DateTime? UpdateTime { get; set; }
-        public string PayerEmail { get; set; }
-        public string PayerFirstName { get; set; }
-        public string PayerLastName { get; set; }
-        public string PayerId { get; set; }
-        public string ShippingRecipientName { get; set; }
-        public string ShippingLine1 { get; set; }
-        public string ShippingCity { get; set; }
-        public string ShippingState { get; set; }
-        public string ShippingPostalCode { get; set; }
-        public string ShippingCountryCode { get; set; }
-        public decimal? AmountTotal { get; set; }
-        public string AmountCurrency { get; set; }
-        public decimal? AmountItemTotal { get; set; }
-        public decimal? AmountShipping { get; set; }
-        public string PayeeMerchantId { get; set; }
-        public string PayeeEmail { get; set; }
-        public string Description { get; set; }
-        public string SaleId { get; set; }
-        public string CaptureStatus { get; set; }
-        public decimal? CaptureAmount { get; set; }
-        public string CaptureCurrency { get; set; }
-        public string ProtectionEligibility { get; set; }
-        public decimal? TransactionFeeAmount { get; set; }
-        public string TransactionFeeCurrency { get; set; }
-        public decimal? ReceivableAmount { get; set; }
-        public string ReceivableCurrency { get; set; }
-        public decimal? ExchangeRate { get; set; }
-        public bool? FinalCapture { get; set; }
-        public string DisputeCategories { get; set; }
+        public string Id { get; init; } = string.Empty;
+        public string Intent { get; init; } = string.Empty;
+        public string Status { get; init; } = string.Empty;
+        public DateTime? CreateTime { get; init; }
+        public DateTime? UpdateTime { get; init; }
+        public PayerInfo Payer { get; init; } = new();
+        public ShippingInfo Shipping { get; init; } = new();
+        public AmountInfo Amount { get; init; } = new();
+        public PayeeInfo Payee { get; init; } = new();
+        public CaptureInfo Capture { get; init; } = new();
+        public List<PayPalPaymentItemDto> Items { get; init; } = new();
+    }
 
-        public List<PayPalPaymentItemViewModel>? PayPalPaymentItems { get; set; }
+    public class PayerInfo
+    {
+        public string Email { get; init; } = string.Empty;
+        public string FirstName { get; init; } = string.Empty;
+        public string LastName { get; init; } = string.Empty;
+        public string PayerId { get; init; } = string.Empty;
+    }
+
+    public class ShippingInfo
+    {
+        public string RecipientName { get; init; } = string.Empty;
+        public string Line1 { get; init; } = string.Empty;
+        public string City { get; init; } = string.Empty;
+        public string State { get; init; } = string.Empty;
+        public string PostalCode { get; init; } = string.Empty;
+        public string CountryCode { get; init; } = string.Empty;
+    }
+
+    public class AmountInfo
+    {
+        public decimal Total { get; init; }
+        public string Currency { get; init; } = string.Empty;
+        public decimal ItemTotal { get; init; }
+        public decimal Shipping { get; init; }
+    }
+
+    public class PayeeInfo
+    {
+        public string MerchantId { get; init; } = string.Empty;
+        public string Email { get; init; } = string.Empty;
+        public string Description { get; init; } = string.Empty;
+    }
+
+    public class CaptureInfo
+    {
+        public string SaleId { get; init; } = string.Empty;
+        public string Status { get; init; } = string.Empty;
+        public decimal Amount { get; init; }
+        public string Currency { get; init; } = string.Empty;
+        public string ProtectionEligibility { get; init; } = string.Empty;
+        public decimal TransactionFeeAmount { get; init; }
+        public string TransactionFeeCurrency { get; init; } = string.Empty;
+        public decimal ReceivableAmount { get; init; }
+        public string ReceivableCurrency { get; init; } = string.Empty;
+        public decimal ExchangeRate { get; init; }
+        public bool FinalCapture { get; init; }
+        public string DisputeCategories { get; init; } = string.Empty;
     }
 }

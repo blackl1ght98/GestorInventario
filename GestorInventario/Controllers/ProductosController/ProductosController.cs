@@ -5,8 +5,7 @@ using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.MetodosExtension;
 using GestorInventario.Shared.DTOS.User;
 using GestorInventario.Shared.Utilities;
-using GestorInventario.ViewModels.Productos;
-
+using GestorInventario.ViewModels.Products;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -85,7 +84,7 @@ namespace GestorInventario.Controllers.ProductosController
            
 
                 // Crear el ViewModel
-                var viewModel = new ProductsViewModel
+                var viewModel = new ProductsIndexViewModel
                 {
                     Productos = paginationResult.Items,
                     Paginas = paginationResult.Paginas.ToList(),
@@ -116,7 +115,7 @@ namespace GestorInventario.Controllers.ProductosController
                
                 ViewData["Productos"] = new SelectList(await _productoRepository.ObtenerProveedores(), "Id", "NombreProveedor");
                 var proveedores = await _productoRepository.ObtenerProveedores();
-                var model = new ProductosViewModel
+                var model = new ProductFormViewModel
                 {
                     NombreProducto="",
                     Descripcion="",
@@ -141,7 +140,7 @@ namespace GestorInventario.Controllers.ProductosController
         [HttpPost]
         [Authorize(Roles = "Administrador")]
         [ValidateAntiForgeryToken]  
-        public async Task<IActionResult> Create(ProductosViewModel model)
+        public async Task<IActionResult> Create(ProductFormViewModel model)
         {
             // Recargamos siempre la lista de proveedores para que no se pierda el dropdown
             var proveedores = await _productoRepository.ObtenerProveedores();
@@ -291,7 +290,7 @@ namespace GestorInventario.Controllers.ProductosController
                 }
                 
                 ViewData["Productos"] = new SelectList(await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProveedores()), "Id", "NombreProveedor");
-                ProductosViewModel viewModel = new ProductosViewModel()
+                ProductFormViewModel viewModel = new ProductFormViewModel()
                 {
                     Id = producto.Id,
                     NombreProducto = producto.NombreProducto,
@@ -316,7 +315,7 @@ namespace GestorInventario.Controllers.ProductosController
         [HttpPost]
      
       
-        public async Task<ActionResult> Edit(ProductosViewModel model)
+        public async Task<ActionResult> Edit(ProductFormViewModel model)
         {
             try
             {

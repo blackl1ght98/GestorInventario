@@ -37,18 +37,18 @@
                     <table class="table table-borderless">
                         <tr>
                             <th class="ps-0" style="width: 35%;">Nombre:</th>
-                            <td>@Model.PayerFirstName @Model.PayerLastName</td>
+                            <td>@Model.Payer.FirstName @Model.Payer.LastName</td>
                         </tr>
                         <tr>
                             <th class="ps-0">Email:</th>
-                            <td>@Model.PayerEmail</td>
+                            <td>@Model.Payer.Email</td>
                         </tr>
                         <tr>
                             <th class="ps-0">Dirección de envío:</th>
                             <td>
-                                @Model.ShippingLine1<br />
-                                @Model.ShippingCity, @Model.ShippingState @Model.ShippingPostalCode<br />
-                                @Model.ShippingCountryCode
+                                @Model.Shipping.Line1<br />
+                                @Model.Shipping.City, @Model.Shipping.State @Model.Shipping.PostalCode<br />
+                                @Model.Shipping.CountryCode
                             </td>
                         </tr>
                     </table>
@@ -69,7 +69,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in Model.PayPalPaymentItems)
+                        @foreach (var item in Model.Items)
                         {
                             var totalItem = (item.ItemPrice * item.ItemQuantity) + item.ItemTax;
 
@@ -94,23 +94,23 @@
 
                             <div class="d-flex justify-content-between mb-2">
                                 <span>Subtotal</span>
-                                <span>@Model.AmountItemTotal</span>
+                                <span>@Model.Amount.ItemTotal</span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span>Envío</span>
-                                <span>@Model.AmountShipping</span>
+                                <span>@Model.Amount.Shipping</span>
                             </div>
-                            @if (Model.TransactionFeeAmount > 0)
+                            @if (Model.Capture.TransactionFeeAmount > 0)
                             {
                                 <div class="d-flex justify-content-between mb-2">
                                     <span>Comisión PayPal</span>
-                                    <span class="text-danger">@Model.TransactionFeeAmount</span>
+                                    <span class="text-danger">@Model.Capture.TransactionFeeAmount</span>
                                 </div>
                             }
                             <hr>
                             <div class="d-flex justify-content-between fs-5 fw-bold">
                                 <span>Total Pagado</span>
-                                <span>@Model.AmountTotal</span>
+                                <span>@Model.Amount.Total</span>
                             </div>
                         </div>
                     </div>
@@ -122,18 +122,17 @@
                 <h5 class="text-primary mb-3">Detalles Adicionales</h5>
                 <div class="row">
                     <div class="col-md-6">
-                        <p><strong>ID de Venta:</strong> @Model.SaleId</p>
-                        <p><strong>Estado de Captura:</strong> @Model.CaptureStatus</p>
-                    
+                        <p><strong>ID de Venta:</strong> @Model.Capture.SaleId</p>
+                        <p><strong>Estado de Captura:</strong> @Model.Capture.Status</p>
                     </div>
                     <div class="col-md-6">
-                        @if (Model.ExchangeRate != null)
+                        @if (Model.Capture.ExchangeRate > 0)
                         {
-                            <p><strong>Tipo de Cambio:</strong> @Model.ExchangeRate</p>
+                            <p><strong>Tipo de Cambio:</strong> @Model.Capture.ExchangeRate</p>
                         }
-                        @if (Model.ReceivableAmount != null)
+                        @if (Model.Capture.ReceivableAmount > 0)
                         {
-                            <p><strong>Monto Recibible:</strong> @Model.ReceivableAmount @Model.ReceivableCurrency</p>
+                            <p><strong>Monto Recibible:</strong> @Model.Capture.ReceivableAmount @Model.Capture.ReceivableCurrency</p>
                         }
                     </div>
                 </div>
@@ -149,7 +148,6 @@
                    class="btn btn-outline-primary btn-lg px-4">
                     <i class="bi bi-download me-2"></i> Descargar PDF
                 </a>
-               
             </div>
 
         </div>

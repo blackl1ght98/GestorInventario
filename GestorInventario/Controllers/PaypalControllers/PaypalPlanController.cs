@@ -9,7 +9,6 @@ using GestorInventario.Shared.DTOS.Paypal.Requests.POST;
 using GestorInventario.Shared.Utilities;
 
 using GestorInventario.ViewModels.Paypal;
-using GestorInventario.ViewModels.Productos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -130,7 +129,7 @@ namespace GestorInventario.Controllers.PaypalControllers
                 var monedas = await _policyExecutor.ExecutePolicyAsync(() =>
                     _unitOfWork.CarritoRepository.ObtenerMoneda());
               
-                var model = new PlanesPaginadosViewModel
+                var model = new PayPalPlansIndexViewModel
                 {
                     Planes = paginationResult.Items,
                     Paginas = paginationResult.Paginas.ToList(),
@@ -179,7 +178,7 @@ namespace GestorInventario.Controllers.PaypalControllers
             var monedas = await _policyExecutor.ExecutePolicyAsync(
             () => _unitOfWork.CarritoRepository.ObtenerMoneda());
 
-            var model = new ProductViewModelPaypal();
+            var model = new PayPalProductPlanViewModel();
             ViewData["Moneda"] = new SelectList(monedas, "Codigo", "Codigo");
             // Obtener las categorías desde la enumeración y asignarlas al modelo
             model.Categories = _unitOfWork.PaypalRepository.GetCategoriesFromEnum();
@@ -190,7 +189,7 @@ namespace GestorInventario.Controllers.PaypalControllers
         //Metodo que crea el producto  y plan al que se suscribira el usuario
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> CrearProductoYPlan(ProductViewModelPaypal model, string monedaSeleccionada)
+        public async Task<IActionResult> CrearProductoYPlan(PayPalProductPlanViewModel model, string monedaSeleccionada)
         {
             CultureHelper.SetInvariantCulture();
 
@@ -228,7 +227,7 @@ namespace GestorInventario.Controllers.PaypalControllers
                     model.PlanDescription,
                     model.Amount,
                     monedaSeleccionada,
-                    model.IntervaUnit,
+                    model.IntervalUnit,
                     model.HasTrialPeriod ? model.TrialPeriodDays : 0,
                     model.HasTrialPeriod ? model.TrialAmount : 0.00m
                 );

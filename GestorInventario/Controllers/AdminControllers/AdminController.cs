@@ -6,7 +6,8 @@ using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.MetodosExtension;
 using GestorInventario.Shared.DTOS.User;
 using GestorInventario.Shared.Utilities;
-using GestorInventario.ViewModels.Usuarios;
+using GestorInventario.ViewModels.Users;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -60,7 +61,7 @@ namespace GestorInventario.Controllers.AdminControllers
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
                     _paginationHelper.PaginarAsync(queryable, paginacion));
 
-                var viewModel = new UsuariosViewModel
+                var viewModel = new UserIndexViewModel
                 {
                     Usuarios = paginationResult.Items,
                     Paginas = paginationResult.Paginas.ToList(),
@@ -94,7 +95,7 @@ namespace GestorInventario.Controllers.AdminControllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(UserViewModel model)
+        public async Task<IActionResult> Create(CreateUserFormViewModel model)
         {
             try
             {
@@ -180,7 +181,7 @@ namespace GestorInventario.Controllers.AdminControllers
               
                
             
-                var viewModel = _mapper.Map<UsuarioEditViewModel>(usuario);
+                var viewModel = _mapper.Map<EditUserFormViewModel>(usuario);
                 // Marcamos si es edición propia
                 viewModel.EsEdicionPropia = usuarioAEditarId == userIdClaim;            
                 return View(viewModel);
@@ -195,7 +196,7 @@ namespace GestorInventario.Controllers.AdminControllers
         [Authorize]
         [HttpPost]
      
-        public async Task<ActionResult> Edit(UsuarioEditViewModel userVM)
+        public async Task<ActionResult> Edit(EditUserFormViewModel userVM)
         {
             try
             {             
@@ -253,7 +254,7 @@ namespace GestorInventario.Controllers.AdminControllers
                     _logger.LogCritical("Se intento manipular la url por el usuario: " + _currentUserAccessor.GetCurrentUserId());
                     return RedirectToAction(nameof(Index));
                 }
-                var viewModel = new EliminarUsuarioViewModel
+                var viewModel = new DeleteUserViewModel
                 {
                     Id = usuario.Id,
                     NombreCompleto = usuario.NombreCompleto,

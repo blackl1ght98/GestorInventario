@@ -4,7 +4,7 @@ using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.MetodosExtension;
 using GestorInventario.Shared.DTOS.User;
-using GestorInventario.ViewModels.Usuarios;
+using GestorInventario.ViewModels.Users;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

@@ -71,7 +71,7 @@ namespace GestorInventario.Controllers.PaypalControllers
                     radio: paginacion.Radio
                 );
 
-                var model = new ProductosPaypalViewModel
+                var model = new PayPalProductsIndexViewModel
                 {
                     Productos = paginationResult.Items,
                     Paginas = paginationResult.Paginas.ToList(),

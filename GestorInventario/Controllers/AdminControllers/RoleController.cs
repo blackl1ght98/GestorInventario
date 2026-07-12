@@ -4,7 +4,7 @@ using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Shared.Utilities;
-using GestorInventario.ViewModels.Usuarios;
+using GestorInventario.ViewModels.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -69,7 +69,7 @@ namespace GestorInventario.Controllers.AdminControllers
 
                 var todosLosRoles = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles());
 
-                var viewModel = new UsuariosPorRolViewModel
+                var viewModel = new UserByRolViewModel
                 {
                     Usuarios = paginationResult.Items,
                     Paginas = paginationResult.Paginas.ToList(),

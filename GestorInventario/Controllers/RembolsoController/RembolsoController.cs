@@ -13,7 +13,7 @@ using GestorInventario.Shared.DTOS.Rembolso;
 using GestorInventario.Shared.Utilities;
 
 using GestorInventario.ViewModels.Paypal;
-using GestorInventario.ViewModels.Rembolsos;
+using GestorInventario.ViewModels.Refunds;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -84,7 +84,7 @@ namespace GestorInventario.Controllers.RembolsoController
                     _paginationHelper.PaginarAsync(queryable, paginacion)
                 );
 
-                var viewModel = new RembolsosViewModel
+                var viewModel = new RefundsViewModel
                 {
                     Rembolsos = paginationResult.Items, 
                     Paginas = paginationResult.Paginas.ToList(),

@@ -160,8 +160,6 @@ namespace GestorInventario.Controllers.PaypalControllers
         [Authorize]
         public async Task<IActionResult> DetallesPagoEjecutado(string paymentId)
         {
-            // Lee los datos directamente de la BD (sin tocar PayPal).
-            // Si necesitas datos frescos de PayPal, llama antes a Sincronizar.
             var paypalDetail = await _paypalRepository.ObtenerDetallePagoPorId(paymentId);
 
             if (paypalDetail == null)
@@ -180,60 +178,70 @@ namespace GestorInventario.Controllers.PaypalControllers
 
             var viewModel = new PayPalPaymentDetailViewModel
             {
-                // Datos del pagador
                 Id = paypalDetail.Id,
                 Intent = paypalDetail.Intent,
                 Status = paypalDetail.OrderStatus,
                 CreateTime = paypalDetail.CreateTime,
                 UpdateTime = paypalDetail.UpdateTime,
 
-                PayerEmail = paypalDetail.PayerEmail,
-                PayerFirstName = paypalDetail.PayerFirstName,
-                PayerLastName = paypalDetail.PayerLastName,
-                PayerId = paypalDetail.PayerId,
+                Payer = new PayerInfo
+                {
+                    Email = paypalDetail.PayerEmail,
+                    FirstName = paypalDetail.PayerFirstName,
+                    LastName = paypalDetail.PayerLastName,
+                    PayerId = paypalDetail.PayerId,
+                },
 
-                // Datos de envío
-                ShippingRecipientName = ultimaInfoEnvio?.RecipientName,
-                ShippingLine1 = ultimaInfoEnvio?.AddressLine1,
-                ShippingCity = ultimaInfoEnvio?.City,
-                ShippingState = ultimaInfoEnvio?.State,
-                ShippingPostalCode = ultimaInfoEnvio?.PostalCode,
-                ShippingCountryCode = ultimaInfoEnvio?.CountryCode,
+                Shipping = new ShippingInfo
+                {
+                    RecipientName = ultimaInfoEnvio?.RecipientName ?? string.Empty,
+                    Line1 = ultimaInfoEnvio?.AddressLine1 ?? string.Empty,
+                    City = ultimaInfoEnvio?.City ?? string.Empty,
+                    State = ultimaInfoEnvio?.State ?? string.Empty,
+                    PostalCode = ultimaInfoEnvio?.PostalCode ?? string.Empty,
+                    CountryCode = ultimaInfoEnvio?.CountryCode ?? string.Empty,
+                },
 
-                // Importe
-                AmountTotal = paypalDetail.AmountTotal,
-                AmountCurrency = paypalDetail.AmountCurrency,
-                AmountItemTotal = paypalDetail.AmountItemTotal,
-                AmountShipping = paypalDetail.AmountShipping,
+                Amount = new AmountInfo
+                {
+                    Total = paypalDetail.AmountTotal,
+                    Currency = paypalDetail.AmountCurrency ?? string.Empty,
+                    ItemTotal = paypalDetail.AmountItemTotal ,
+                    Shipping = paypalDetail.AmountShipping ,
+                },
 
-                // Datos vendedor
-                PayeeMerchantId = paypalDetail.PayeeMerchantId,
-                PayeeEmail = paypalDetail.PayeeEmail,
-                Description = paypalDetail.Description,
+                Payee = new PayeeInfo
+                {
+                    MerchantId = paypalDetail.PayeeMerchantId ?? string.Empty,
+                    Email = paypalDetail.PayeeEmail ?? string.Empty,
+                    Description = paypalDetail.Description ?? string.Empty,
+                },
 
-                // Datos del pago
-                SaleId = ultimoCapture?.CaptureId,
-                CaptureStatus = ultimoCapture?.Status,
-                CaptureAmount = ultimoCapture?.Amount,
-                CaptureCurrency = ultimoCapture?.Currency,
-                ProtectionEligibility = ultimoCapture?.ProtectionEligibility,
-                TransactionFeeAmount = ultimoCapture?.TransactionFeeAmount,
-                TransactionFeeCurrency = ultimoCapture?.TransactionFeeCurrency,
-                ReceivableAmount = ultimoCapture?.ReceivableAmount,
-                ReceivableCurrency = ultimoCapture?.ReceivableCurrency,
-                ExchangeRate = ultimoCapture?.ExchangeRate,
-                FinalCapture = ultimoCapture?.FinalCapture,
-                DisputeCategories = ultimoCapture?.DisputeCategories,
+                Capture = new CaptureInfo
+                {
+                    SaleId = ultimoCapture?.CaptureId ?? string.Empty,
+                    Status = ultimoCapture?.Status ?? string.Empty,
+                    Amount = ultimoCapture?.Amount ?? 0m,
+                    Currency = ultimoCapture?.Currency ?? string.Empty,
+                    ProtectionEligibility = ultimoCapture?.ProtectionEligibility ?? string.Empty,
+                    TransactionFeeAmount = ultimoCapture?.TransactionFeeAmount ?? 0m,
+                    TransactionFeeCurrency = ultimoCapture?.TransactionFeeCurrency ?? string.Empty,
+                    ReceivableAmount = ultimoCapture?.ReceivableAmount ?? 0m,
+                    ReceivableCurrency = ultimoCapture?.ReceivableCurrency ?? string.Empty,
+                    ExchangeRate = ultimoCapture?.ExchangeRate ?? 0m,
+                    FinalCapture = ultimoCapture?.FinalCapture ?? false,
+                    DisputeCategories = ultimoCapture?.DisputeCategories ?? string.Empty,
+                },
 
-                PayPalPaymentItems = paypalDetail.PayPalPaymentItems?.Select(item => new PayPalPaymentItemViewModel
+                Items = paypalDetail.PayPalPaymentItems?.Select(item => new PayPalPaymentItemDto
                 {
                     ItemName = item.ItemName,
                     ItemSku = item.ItemSku,
                     ItemPrice = item.ItemPrice,
                     ItemCurrency = item.ItemCurrency,
                     ItemTax = item.ItemTax,
-                    ItemQuantity = item.ItemQuantity
-                }).ToList() ?? new List<PayPalPaymentItemViewModel>()
+                    ItemQuantity = item.ItemQuantity,
+                }).ToList() ?? new List<PayPalPaymentItemDto>(),
             };
 
             return View(viewModel);

@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using GestorInventario.Domain.Models;
-using GestorInventario.ViewModels.Usuarios;
+using GestorInventario.ViewModels.Users;
 
 namespace GestorInventario.AutoMapper
 {
@@ -8,7 +8,7 @@ namespace GestorInventario.AutoMapper
     {
         public UserViewModelProfile()
         {
-            CreateMap<Usuario, UsuarioEditViewModel>()
+            CreateMap<Usuario, EditUserFormViewModel>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(x => x.Id))
                 .ForMember(dest => dest.NombreCompleto, opt => opt.MapFrom(x => x.NombreCompleto))
                 .ForMember(dest => dest.Telefono, opt => opt.MapFrom(x => x.Telefono))

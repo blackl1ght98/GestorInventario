@@ -11,8 +11,7 @@ namespace GestorInventario.Shared.DTOS.User
         public int Cantidad { get; set; }
         public string? Imagen { get; set; }
 
-        // Antes: public IFormFile? ArchivoImagen { get; set; }
-        // Ahora: solo datos
+       
         public byte[]? ArchivoImagenBytes { get; set; }
         public string? ArchivoImagenNombre { get; set; }
         public string? ArchivoImagenContentType { get; set; }

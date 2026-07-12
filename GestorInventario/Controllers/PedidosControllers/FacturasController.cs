@@ -1,7 +1,7 @@
 ﻿using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Shared.DTOS.Email;
-using GestorInventario.ViewModels.Pedidos;
+using GestorInventario.ViewModels.Orders;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -66,7 +66,7 @@ namespace GestorInventario.Controllers.PedidosControllers
             }
 
             // Preparar modelo para la plantilla del email
-            var emailModel = new FacturaViewmodel
+            var emailModel = new InvoiceViewmodel
             {
                 IdPago = id,
                 EnlaceDescarga = Url.Action(nameof(DownloadInvoice), "Pedidos", new { id }, Request.Scheme)

@@ -8,11 +8,11 @@ using GestorInventario.Shared.DTOS;
 using GestorInventario.Shared.DTOS.Email;
 using GestorInventario.Shared.Utilities;
 
-using GestorInventario.ViewModels;
 using GestorInventario.ViewModels.Email;
+using GestorInventario.ViewModels.Notification;
 using GestorInventario.ViewModels.Paypal;
-using GestorInventario.ViewModels.Pedidos;
-using GestorInventario.ViewModels.Productos;
+using GestorInventario.ViewModels.Orders;
+using GestorInventario.ViewModels.Products;
 using System.Security.Cryptography;
 
 namespace GestorInventario.EmailServices
@@ -132,7 +132,7 @@ namespace GestorInventario.EmailServices
         public async Task<OperationResult<string>> SendEmailAsyncFactura(EmailDto correo, string id)
         {
             // Crear el modelo para la vista del correo electrónico
-            var model = new FacturaViewmodel
+            var model = new InvoiceViewmodel
             {
                 IdPago = id,
                 EnlaceDescarga = _urlService.BuildUrl($"/Facturas/DownloadInvoice?id={id}"),
@@ -163,7 +163,7 @@ namespace GestorInventario.EmailServices
             if (destinatarios.Count == 0)
                 return OperationResult<string>.Fail("No hay emails válidos de administradores.");
 
-            var model = new EmailRembolsoViewmodel
+            var model = new EmailRefundViewmodel
             {
                 NumeroPedido = correo.NumeroPedido,
                 NombreCliente = correo.NombreCliente,
@@ -218,7 +218,7 @@ namespace GestorInventario.EmailServices
             try
             {
                
-                var viewmodel = new RembolsoAprobadoViewmodel
+                var viewmodel = new RefundApprovedViewmodel
                 {
                     NumeroPedido = correo.NumeroPedido,
                     NombreCliente = correo.NombreCliente,

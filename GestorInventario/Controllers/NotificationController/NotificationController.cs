@@ -3,6 +3,7 @@ using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.Utilities;
 using GestorInventario.ViewModels;
+using GestorInventario.ViewModels.Notification;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GestorInventario.Controllers.NotificationController
@@ -30,7 +31,7 @@ namespace GestorInventario.Controllers.NotificationController
                    _notificationRepository.ObtenerNotificaciones(usuarioId));
             var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
                      _paginationHelper.PaginarAsync(queryable, paginacion));
-            var viewmodel = new NotificacionViewmodel
+            var viewmodel = new NotificationViewmodel
             {
                 Notificaciones = paginationResult.Items,
                 Paginas = paginationResult.Paginas.ToList(),
@@ -46,7 +47,7 @@ namespace GestorInventario.Controllers.NotificationController
                    _notificationRepository.ObtenerNotificaciones(usuarioId));
             var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
                      _paginationHelper.PaginarAsync(queryable, paginacion));
-            var viewmodel = new NotificacionViewmodel
+            var viewmodel = new NotificationViewmodel
             {
                 Notificaciones = paginationResult.Items,
                 Paginas = paginationResult.Paginas.ToList(),

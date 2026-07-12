@@ -253,7 +253,7 @@ namespace GestorInventario.Controllers.PaypalControllers
                  DateTime.UtcNow < detallesSuscripcion.NextBillingTime.Value &&
                  detallesSuscripcion.LastPaymentTime <= new DateTime(1900, 1, 1);
 
-                var viewModel = new SuscripcionDetalleViewModel
+                var viewModel = new SubcriptionDetailViewModel
                 {
                     SubscriptionId = detallesSuscripcion.SubscriptionId,
                     PlanId = detallesSuscripcion.PlanId,
@@ -312,7 +312,7 @@ namespace GestorInventario.Controllers.PaypalControllers
                     paginacion: paginacion
                 );
 
-                var model = new SuscripcionesPaginadosViewModel
+                var model = new SubcriptionsIndexViewModel
                 {
                     Suscripciones = paginationResult.Items ?? new List<SubscriptionDetail>(),
                     Paginas = paginationResult.Paginas.ToList(),
@@ -360,7 +360,7 @@ namespace GestorInventario.Controllers.PaypalControllers
                 );
 
                 // Construimos el modelo usando directamente el resultado del helper
-                var model = new SuscripcionesUsuarioPaginadosViewModel
+                var model = new UserSubscriptionsIndexViewModel
                 {
                     Suscripciones = paginationResult.Items ?? new List<UserSubscription>(),
                     Paginas = paginationResult.Paginas.ToList(),
