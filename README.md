@@ -155,17 +155,11 @@ Para ejecutar este comando hacemos lo siguiente:
 3. Ejecutar el comando:
 
 ```sh
-Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=GestorInventario;Integrated Security=True;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -Force -Project GestorInventario
+Scaffold-DbContext "Data Source=localhost\SQLEXPRESS;Initial Catalog=GestorInventario;User ID=sa;Password=SQL#1234;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -ContextDir ../GestorInventario.Infrastructure/Data -ContextNamespace "GestorInventario.Infrastructure.Data" -Namespace "GestorInventario.Domain.Models" -force -Project GestorInventario.Domain 
 ````
-## Explicación de los parametros importantes del comando
-**NOMBRESERVIDORBASEDATOS**: Este parametro suele variar dependiendo de como se llame nuestro PC pero tiene un aspecto similar a este: `DESKTOP-XXXX\SQLEXPRESS`
 
-## 🔑 Scaffold-DbContext con usuario y contraseña (recomendado)
-```sh
-Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=GestorInventario;User ID=sa;Password=SQL#1234;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -Force -Project GestorInventario
-````
-**ID**: este parametro hace referencia al nombre de usuario de la base de datos
-**Password**: hace referencia a la contraseña de base de datos
+
+
 # 🐳 Problemas comunes (Docker / Visual Studio / WSL)
 ## Visual Studio y Docker
 Si **no tienes instalado Docker Desktop**, Visual Studio puede mostrar un error de compilación al intentar interpretar el archivo `docker-compose`.
