@@ -7,10 +7,6 @@ namespace GestorInventario.Infrastructure.Data;
 
 public partial class GestorInventarioContext : DbContext
 {
-    public GestorInventarioContext()
-    {
-    }
-
     public GestorInventarioContext(DbContextOptions<GestorInventarioContext> options)
         : base(options)
     {
@@ -47,8 +43,6 @@ public partial class GestorInventarioContext : DbContext
     public virtual DbSet<UserSubscription> UserSubscriptions { get; set; }
 
     public virtual DbSet<Usuario> Usuarios { get; set; }
-
-   
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
