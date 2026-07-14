@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.ViewModels.Products
+﻿namespace GestorInventario.ViewModels.Email
 {
     public class LowStockViewmodel
     {

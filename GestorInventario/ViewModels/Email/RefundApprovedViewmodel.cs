@@ -1,6 +1,6 @@
 ﻿using GestorInventario.Domain.Models;
 
-namespace GestorInventario.ViewModels.Paypal
+namespace GestorInventario.ViewModels.Email
 {
     public class RefundApprovedViewmodel
     {

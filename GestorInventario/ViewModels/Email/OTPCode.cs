@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.ViewModels.Notification
+﻿namespace GestorInventario.ViewModels.Email
 {
     public class OTPCode
     {

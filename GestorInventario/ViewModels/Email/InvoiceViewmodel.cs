@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.ViewModels.Orders
+﻿namespace GestorInventario.ViewModels.Email
 {
     public class InvoiceViewmodel
     {
