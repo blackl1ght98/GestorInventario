@@ -25,6 +25,8 @@ public partial class Producto
 
     public string CodigoBarras { get; set; } = null!;
 
+    public string? TipoCodigoBarras { get; set; }
+
     public string CodigoBarrasImagen { get; set; } = null!;
 
     public virtual ICollection<DetallePedido> DetallePedidos { get; set; } = new List<DetallePedido>();

@@ -28,7 +28,7 @@ public class PaypalOrderTrackingService : IPaypalOrderTrackingService
             string payPalOrderId,
             string captureId,
             Carrier carrier,
-            BarcodeType barcode,
+           
             List<TrackingItemDto> items)
     {
         try
@@ -48,7 +48,7 @@ public class PaypalOrderTrackingService : IPaypalOrderTrackingService
                     Quantity = i.Quantity,
                     Upc = new Upc
                     {
-                        Type = barcode,
+                        Type = i.BarcodeType,
                         Code = i.BarcodeCode
                     },
                     ImageUrl = i.ImageUrl,

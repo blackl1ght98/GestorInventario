@@ -11,7 +11,6 @@ namespace GestorInventario.Shared.DTOS.Paypal.BD
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public Carrier Carrier { get; set; }
 
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public BarcodeType Barcode { get; set; }
+      
     }
 }

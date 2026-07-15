@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GestorInventario.Infrastruc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GestorInventario.Notifications", "GestorInventario.Notifications\GestorInventario.Notifications.csproj", "{7B6D0336-D982-400E-84F7-D199E88F14EA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GestorInventario.Renderer", "GestorInventario.Renderer\GestorInventario.Renderer.csproj", "{027749D4-B378-4AA6-82E9-005A949645CF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{7B6D0336-D982-400E-84F7-D199E88F14EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7B6D0336-D982-400E-84F7-D199E88F14EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7B6D0336-D982-400E-84F7-D199E88F14EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{027749D4-B378-4AA6-82E9-005A949645CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{027749D4-B378-4AA6-82E9-005A949645CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{027749D4-B378-4AA6-82E9-005A949645CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{027749D4-B378-4AA6-82E9-005A949645CF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

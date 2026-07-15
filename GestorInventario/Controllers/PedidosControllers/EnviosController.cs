@@ -1,4 +1,5 @@
 ﻿using GestorInventario.enums.Pedido;
+using GestorInventario.enums.Productos;
 using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
@@ -51,24 +52,24 @@ namespace GestorInventario.Controllers.PedidosControllers
                 }
 
                 // 2. Mapear items del pedido a DTOs planos (tu dominio → datos planos)
+              
                 var items = pedido.DetallePedidos.Select(d => new TrackingItemDto
                 {
                     Name = d.Producto?.NombreProducto ?? "Producto no disponible",
                     Sku = d.Producto?.Descripcion ?? "N/A",
                     Quantity = d.Cantidad,
-                    BarcodeType = envio.Barcode,
-                    BarcodeCode = d.Producto?.CodigoBarras ?? "N/A",
+                    BarcodeType = d.Producto?.TipoCodigoBarras ?? BarcodeType.CODE_128.ToString(),  // por producto
+                    BarcodeCode = d.Producto?.CodigoBarras ?? string.Empty,             // por producto
                     ImageUrl = d.Producto?.Imagen ?? string.Empty,
                     Url = string.Empty
                 }).ToList();
-
+                //pedido.DetallePedidos.First().Producto.CodigoBarras
                 // 3. Llamar al servicio de PayPal 
                 var result = await _paypalOrderService.AddTrackingAsync(
-                    payPalOrderId: capture.PaymentId,   // El OrderId de PayPal para la URL
-                    captureId: capture.CaptureId,       // El CaptureId para el body
-                    carrier: envio.Carrier,
-                    barcode: envio.Barcode,
-                    items: items);
+                  payPalOrderId: capture.PaymentId,
+                  captureId: capture.CaptureId,
+                  carrier: envio.Carrier,
+                  items: items);
 
                 if (!result.Success)
                 {

@@ -12,7 +12,7 @@ namespace GestorInventario.Interfaces.Application.ExternalServices
             string payPalOrderId,
             string captureId,
             Carrier carrier,
-            BarcodeType barcode,
+        
             List<TrackingItemDto> items);
     }
 }

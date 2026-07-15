@@ -17,7 +17,6 @@ using GestorInventario.Application.Services.Syncs;
 using GestorInventario.Context;
 
 using GestorInventario.Files;
-using GestorInventario.Images;
 using GestorInventario.Infrastructure;
 using GestorInventario.Infrastructure.Repositories.AdminRepository;
 using GestorInventario.Infrastructure.Repositories.CarritoRepository;
@@ -36,7 +35,9 @@ using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Notifications.EmailServices;
-using GestorInventario.Renderer;
+
+using GestorInventario.Renderer.Barcode;
+using GestorInventario.Renderer.Images;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;

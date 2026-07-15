@@ -418,6 +418,9 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false);
             entity.Property(e => e.Precio).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.TipoCodigoBarras)
+                .HasMaxLength(100)
+                .IsUnicode(false);
 
             entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.Productos)
                 .HasForeignKey(d => d.IdProveedor)

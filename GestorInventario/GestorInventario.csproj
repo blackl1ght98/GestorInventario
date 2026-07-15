@@ -24,10 +24,9 @@
     <PackageReference Include="NuGet.Packaging" Version="7.6.0" />
     <PackageReference Include="NuGet.Protocol" Version="7.6.0" />
     <PackageReference Include="QuestPDF" Version="2026.7.1" />
-    <PackageReference Include="SkiaSharp" Version="4.150.1" />
-    <PackageReference Include="System.Drawing.Common" Version="10.0.10" />
-    <PackageReference Include="ZXing.Net" Version="0.16.11" />
-    <PackageReference Include="ZXing.Net.Bindings.ImageSharp" Version="0.16.16" />
+
+ 
+
   
 	  
   </ItemGroup>
@@ -45,6 +44,8 @@
     <ProjectReference Include="..\GestorInventario.Interfaces\GestorInventario.Interfaces.csproj" />
 
     <ProjectReference Include="..\GestorInventario.Notifications\GestorInventario.Notifications.csproj" />
+
+    <ProjectReference Include="..\GestorInventario.Renderer\GestorInventario.Renderer.csproj" />
     <ProjectReference Include="..\GestorInventario.Shared\GestorInventario.Shared.csproj" />
   </ItemGroup>
 

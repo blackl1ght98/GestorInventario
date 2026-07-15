@@ -47,6 +47,7 @@ namespace GestorInventario.Application.Services.RepositoryServices
                 FechaModificacion = DateTime.UtcNow,
                 IdProveedor = model.IdProveedor,
                 CodigoBarras = barcodeResult.Code,
+                TipoCodigoBarras = BarcodeType.EAN_13.ToString(),
                 CodigoBarrasImagen = barcodeResult.ImagePath,
             };
 

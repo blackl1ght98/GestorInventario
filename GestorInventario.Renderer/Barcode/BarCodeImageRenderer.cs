@@ -5,16 +5,11 @@ using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using ZXing;
 
-namespace GestorInventario.Renderer
+namespace GestorInventario.Renderer.Barcode
 {
     public class BarCodeImageRenderer : IBarCodeImageRenderer
     {
-        private ILogger<BarCodeImageRenderer> _logger;
-
-        public BarCodeImageRenderer(ILogger<BarCodeImageRenderer> logger)
-        {
-            _logger = logger;
-        }
+        
         public Task<byte[]> RenderAsync(string barcode, BarcodeType type)
         {
             if (string.IsNullOrEmpty(barcode))

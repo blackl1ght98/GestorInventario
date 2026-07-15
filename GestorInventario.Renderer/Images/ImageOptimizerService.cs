@@ -1,7 +1,9 @@
 ﻿using GestorInventario.Interfaces.Application.Services;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using SkiaSharp;
 
-namespace GestorInventario.Images
+namespace GestorInventario.Renderer.Images
 {
     public class ImageOptimizerService : IImageOptimizerService
     {
