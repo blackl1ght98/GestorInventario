@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
+  </PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="MailKit" Version="4.17.0" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.10" />
+		<PackageReference Include="RazorLight" Version="2.3.1" />
+	</ItemGroup>
+  <ItemGroup>
+    <Content Include="ViewsEmailService\*.cshtml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GestorInventario.Domain\GestorInventario.Domain.csproj" />
+    <ProjectReference Include="..\GestorInventario.Interfaces\GestorInventario.Interfaces.csproj" />
+  </ItemGroup>
+
+</Project>

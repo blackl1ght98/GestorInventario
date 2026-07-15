@@ -1,6 +1,6 @@
 ﻿using GestorInventario.Domain.Models;
 
-namespace GestorInventario.ViewModels.Email
+namespace GestorInventario.Notifications.Email
 {
     public class EmailRefundViewmodel
     {

@@ -1,6 +1,6 @@
 ﻿using GestorInventario.enums.Email;
 
-namespace GestorInventario.EmailServices
+namespace GestorInventario.Notifications.EmailServices
 {
     public static  class EmailViewExtensions
     {

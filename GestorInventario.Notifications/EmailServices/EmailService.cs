@@ -7,15 +7,13 @@ using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.DTOS.Email;
 using GestorInventario.Shared.Utilities;
 
-using GestorInventario.ViewModels.Email;
-using GestorInventario.ViewModels.Notification;
-using GestorInventario.ViewModels.Paypal;
-using GestorInventario.ViewModels.Orders;
-using GestorInventario.ViewModels.Products;
+
 using System.Security.Cryptography;
 using GestorInventario.Shared.DTOS.Products;
+using Microsoft.Extensions.Logging;
+using GestorInventario.Notifications.Email;
 
-namespace GestorInventario.EmailServices
+namespace GestorInventario.Notifications.EmailServices
 {
     public class EmailService:IEmailService
     {
