@@ -10,8 +10,7 @@ namespace GestorInventario.Composition
         this IServiceCollection services,
         IConfiguration configuration)
         {
-            var baseUrl = configuration["PayPal:BaseUrl"]
-                ?? throw new InvalidOperationException("PayPal:BaseUrl no configurado");
+            var baseUrl = configuration["PayPal:BaseUrl"] ?? Environment.GetEnvironmentVariable("BaseUrl");
 
             services.AddHttpClient<IPayPalHttpClient, PayPalHttpClient>(client =>
             {
