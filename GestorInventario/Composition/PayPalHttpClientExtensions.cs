@@ -10,7 +10,7 @@ namespace GestorInventario.Composition
         this IServiceCollection services,
         IConfiguration configuration)
         {
-            var baseUrl = configuration["PayPal:BaseUrl"] ?? Environment.GetEnvironmentVariable("BaseUrl");
+            var baseUrl = configuration["PayPal:BaseUrl"] ?? Environment.GetEnvironmentVariable("PAYPAL_BASEURL");
 
             services.AddHttpClient<IPayPalHttpClient, PayPalHttpClient>(client =>
             {

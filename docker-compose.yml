@@ -135,6 +135,9 @@ services:
       - IS_DOCKER=true 
       - USE_REDIS=true 
       - IsMfaEnabled=true  
+      # URL
+      - APP_DOCKER_URL=${APP_DOCKER_URL}
+      - PAYPAL_CANCEL_URL=${PAYPAL_CANCEL_URL}
       # Certificado
       - ASPNETCORE_Kestrel__Certificates__Default__Password=${CertificatePassword}
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/certificado.pfx
@@ -155,8 +158,8 @@ services:
       - Paypal_ClientId=${Paypal_ClientId}
       - Paypal_ClientSecret=${Paypal_ClientSecret}
       - Paypal_Mode=${Paypal_Mode} # sandbox o live
-      - Paypal_returnUrlConDocker=${Paypal_returnUrlConDocker} 
-      - BaseUrl=${BaseUrl}
+      - PAYPAL_RETURN_URL=${PAYPAL_RETURN_URL} 
+      - PAYPAL_BASEURL=${PAYPAL_BASEURL}
       # Credenciales de email y configuracion
       - Email__Host=${Email__Host}
       - Email__Port=${Email__Port}

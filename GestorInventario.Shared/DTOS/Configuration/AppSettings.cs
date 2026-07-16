@@ -1,9 +1,16 @@
-﻿namespace GestorInventario.Shared.DTOS.Configuration
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace GestorInventario.Shared.DTOS.Configuration
 {
     public class AppSettings
     {
-        public string BaseUrl { get; set; } = string.Empty;
-        public string DockerUrl { get; set; } = string.Empty;
+        public const string SectionName = "App";
+
         
+        public string BaseUrl { get; set; } = string.Empty;
+
+     
+        public string DockerUrl { get; set; } = string.Empty;
+
     }
 }

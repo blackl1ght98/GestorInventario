@@ -12,10 +12,10 @@ using GestorInventario.Application.Services.ExternalServices;
 using GestorInventario.Application.Services.ExternalServices.Refunds;
 using GestorInventario.Application.Services.Mapping;
 using GestorInventario.Application.Services.Notifications;
+using GestorInventario.Application.Services.PDFService;
 using GestorInventario.Application.Services.RepositoryServices;
 using GestorInventario.Application.Services.Syncs;
 using GestorInventario.Context;
-
 using GestorInventario.Files;
 using GestorInventario.Infrastructure;
 using GestorInventario.Infrastructure.Repositories.AdminRepository;
@@ -34,10 +34,11 @@ using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
+using GestorInventario.Interfaces.Renderer;
 using GestorInventario.Notifications.EmailServices;
-
 using GestorInventario.Renderer.Barcode;
 using GestorInventario.Renderer.Images;
+using GestorInventario.Renderer.PDF;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
@@ -117,7 +118,7 @@ namespace GestorInventario.Composition
             services.AddSingleton<IPaypalOrderTrackingService, PaypalOrderTrackingService>();
             services.AddSingleton<IPaypalSubscriptionService, PaypalSubscriptionService>();
             services.AddSingleton<IPaypalRefundService, PaypalRefundService>();
-         
+            services.AddSingleton<IPayPalInvoiceRenderer, PayPalInvoicePdfRenderer>();
             // --- Resiliencia y Manejo de Fallos (Políticas) ---
             services.AddSingleton<IPolicyExecutor, PolicyExecutor>();
             services.AddSingleton<IPolicyHandler, PolicyHandler>();

@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.Interfaces.Application.Services
+﻿namespace GestorInventario.Interfaces.Renderer
 {
     public interface IImageOptimizerService
     {

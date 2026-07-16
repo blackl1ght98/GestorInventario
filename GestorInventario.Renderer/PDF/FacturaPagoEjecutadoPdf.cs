@@ -3,7 +3,7 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 
-namespace GestorInventario.Application.Services.Generic_Services
+namespace GestorInventario.Renderer.PDF
 {
     public class FacturaPagoEjecutadoPdf : IDocument
     {

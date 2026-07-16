@@ -3,12 +3,12 @@ using GestorInventario.Composition;
 using GestorInventario.Configuracion;
 using GestorInventario.Extensions;
 using GestorInventario.Middlewares;
+using GestorInventario.Renderer.PDF;
 using GestorInventario.Shared.DTOS.Configuration;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 using Microsoft.Net.Http.Headers;
-using QuestPDF.Infrastructure;
 using System.Text.Json.Serialization;
 using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 
@@ -51,11 +51,12 @@ builder.Services.AddRepositories();
 builder.Services.AddApplicationServices();
 builder.Services.AddSingletonServices();
 builder.Services.AddBackgroundServices();
-//Construccion de la URL para el email
-builder.Services.Configure<AppSettings>(
-builder.Configuration.GetSection("App"));
-//Configuracion de licencia para automapper
-QuestPDF.Settings.License = LicenseType.Community;
+//Construccion de la URL 
+
+builder.Services.Configure<AppSettings>(builder.Configuration.GetSection(AppSettings.SectionName));
+builder.Services.Configure<PaypalSettings>(builder.Configuration.GetSection(PaypalSettings.SectionName));
+PayPalInvoiceRendererBootstrap.Initialize();
+
 
 builder.Services.AddPayPalHttpClient(builder.Configuration);
 builder.Services.AddAutoMapper(builder.Configuration);

@@ -2,7 +2,9 @@
 {
     public interface IUrlService
     {
-        string GetBaseUrl();
+       
         string BuildUrl(string path);
+        string GetPaypalReturnUrl();
+        string GetPaypalCancelUrl();
     }
 }

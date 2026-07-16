@@ -29,23 +29,23 @@ namespace GestorInventario.Application.Services.RepositoryServices
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IUnitOfWork _unitOfWork;    
         private readonly ILogger<PaymentService> _logger;      
-        private readonly IConfiguration _configuration;
+       
         private readonly IPaypalOrderService _paypalOrder;
        
         private readonly IEmailService _emailService;
         private readonly IPaypalRepository _paypalRepository;
-       
+        private readonly IUrlService _urlService;
        
         public PaymentService( ICurrentUserAccessor currentUserAccessor, ILogger<PaymentService> logger, IUnitOfWork unit,
-        IConfiguration configuration, IPaypalOrderService paypalOrder,  IEmailService email, IPaypalRepository paypal)
+        IPaypalOrderService paypalOrder,  IEmailService email, IPaypalRepository paypal, IUrlService url)
         {
             
             _currentUserAccessor = currentUserAccessor;
             _unitOfWork= unit;
             _logger = logger;      
-            _configuration = configuration;
+          
             _paypalOrder = paypalOrder;
-        
+            _urlService = url;
             _emailService = email;
             _paypalRepository= paypal;
           
@@ -247,8 +247,8 @@ namespace GestorInventario.Application.Services.RepositoryServices
 
             var (subtotal, iva, total) = CalculadoraFiscal.CalcularTotales(lineasParaCalculo);
 
-            string returnUrl = ObtenerReturnUrl();
-            string cancelUrl = "https://localhost:7056/Payment/Cancel";
+            string returnUrl = _urlService.GetPaypalReturnUrl();
+            string cancelUrl = _urlService.GetPaypalCancelUrl();
 
             return new CheckoutDto
             {
@@ -267,16 +267,7 @@ namespace GestorInventario.Application.Services.RepositoryServices
                 Line2 = infoUsuario.Line2
             };
         }
-        private string ObtenerReturnUrl()
-        {
-            var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER") == "true";
-            var configKey = isDocker ? "Paypal:returnUrlConDocker" : "Paypal:returnUrlSinDocker";
-            var envVarKey = isDocker ? "Paypal_returnUrlConDocker" : "Paypal_returnUrlSinDocker";
-
-            return _configuration[configKey]
-                ?? Environment.GetEnvironmentVariable(envVarKey)
-                ?? throw new InvalidOperationException("URL de retorno no configurada.");
-        }
+    
         private async Task<OperationResult<string>> ProcesarPagoPayPal(CheckoutDto checkout)
         {
             var createdPaymentJson = await _paypalOrder.CreateOrderWithPaypalAsync(checkout);

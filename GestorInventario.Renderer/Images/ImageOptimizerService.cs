@@ -1,4 +1,4 @@
-﻿using GestorInventario.Interfaces.Application.Services;
+﻿using GestorInventario.Interfaces.Renderer;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SkiaSharp;

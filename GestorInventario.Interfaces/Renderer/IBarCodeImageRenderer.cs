@@ -1,7 +1,7 @@
 ﻿using GestorInventario.enums.Productos;
 
 
-namespace GestorInventario.Interfaces.Application.Services
+namespace GestorInventario.Interfaces.Renderer
 {
     public interface IBarCodeImageRenderer
     {
