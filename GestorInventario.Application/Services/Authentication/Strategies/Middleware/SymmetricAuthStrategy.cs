@@ -17,13 +17,14 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
         private readonly ITokenGenerator _tokenGenerator;
         private readonly IUserRepository _userRepository;
         private readonly IRefreshTokenGenerator _refreshTokenStrategy;
-
-        public SymmetricAuthStrategy(IConfiguration configuration, ITokenGenerator tokenGenerator, IUserRepository userRepository, IRefreshTokenGenerator refreshTokenStrategy)
+        private readonly TokenClaimsBuilder _tokenClaimsBuilder;
+        public SymmetricAuthStrategy(IConfiguration configuration, ITokenGenerator tokenGenerator, IUserRepository userRepository, IRefreshTokenGenerator refreshTokenStrategy, TokenClaimsBuilder tokenClaimsBuilder)
         {
             _configuration = configuration;
             _tokenGenerator = tokenGenerator;
             _userRepository = userRepository;
             _refreshTokenStrategy = refreshTokenStrategy;
+            _tokenClaimsBuilder = tokenClaimsBuilder;
         }
 
         public async Task ProcessAuthentication(HttpContext context,  Func<Task> next)
@@ -31,8 +32,8 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
             
             try
             {
-                var configuration = context.RequestServices.GetService<IConfiguration>();
-                var secret = Environment.GetEnvironmentVariable("ClaveJWT") ?? configuration["ClaveJWT"];
+               
+                var secret = Environment.GetEnvironmentVariable("ClaveJWT") ?? _configuration["ClaveJWT"];
                 if (string.IsNullOrEmpty(secret))
                 {
                    
@@ -47,7 +48,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
                 // Validar el token principal
                 if (!string.IsNullOrEmpty(token))
                 {
-                    var (jwtToken, principal) = await ValidateToken(token, secret, configuration);
+                    var (jwtToken, principal) = await ValidateToken(token, secret, _configuration);
                     if (jwtToken != null && principal != null)
                     {
                         // Establecer el ClaimsPrincipal en HttpContext.User
@@ -56,12 +57,12 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
                     }
                     else if (!string.IsNullOrEmpty(refreshToken))
                     {
-                        await HandleExpiredToken(context, refreshToken, secret,configuration,  _tokenGenerator, _userRepository, _refreshTokenStrategy);
+                        await HandleExpiredToken(context, refreshToken, secret,_configuration,  _tokenGenerator, _userRepository, _refreshTokenStrategy);
                     }
                 }
                 else if (!string.IsNullOrEmpty(refreshToken))
                 {
-                    await HandleExpiredToken(context, refreshToken, secret,configuration,_tokenGenerator, _userRepository, _refreshTokenStrategy);
+                    await HandleExpiredToken(context, refreshToken, secret,_configuration,_tokenGenerator, _userRepository, _refreshTokenStrategy);
                 }
                
             }
@@ -90,9 +91,9 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
                     ValidateIssuer = true,
-                    ValidIssuer = configuration["JwtIssuer"] ?? Environment.GetEnvironmentVariable("JWT_ISSUER"),
+                    ValidIssuer = _tokenClaimsBuilder.ObtenerIssuer(),
                     ValidateAudience = true,
-                    ValidAudience = configuration["JwtAudience"] ?? Environment.GetEnvironmentVariable("JWT_AUDIENCE"),
+                    ValidAudience = _tokenClaimsBuilder.ObtenerAudience(),
                     ValidateLifetime = true
                 };
 
@@ -148,13 +149,14 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
 
             var newAccessToken = await tokenService.GenerateTokenAsync(user);
             var newRefreshToken = await refreshTokenMethod.GenerateTokenAsync(user);
-
+            var minutos = _tokenClaimsBuilder.ObtenerDuracionAccessTokenMinutos();
+            var horas = _tokenClaimsBuilder.ObtenerDuracionRefreshTokenHoras();
             context.Response.Cookies.Append("auth", newAccessToken.Token, new CookieOptions
             {
                 HttpOnly = true,
                 SameSite = SameSiteMode.Lax,              
                 Secure = true,
-                Expires = DateTime.UtcNow.AddMinutes(10)
+                Expires = DateTime.UtcNow.AddMinutes(minutos)
             });
 
             context.Response.Cookies.Append("refreshToken", newRefreshToken, new CookieOptions
@@ -163,7 +165,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
                 SameSite = SameSiteMode.Lax,
                
                 Secure = true,
-                Expires = DateTime.UtcNow.AddDays(7)
+                Expires = DateTime.UtcNow.AddHours(horas)
             });
 
            
@@ -186,9 +188,9 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
                     ValidateIssuer = true,
-                    ValidIssuer = configuration["JwtIssuer"] ?? Environment.GetEnvironmentVariable("JWT_ISSUER"),
+                    ValidIssuer = _tokenClaimsBuilder.ObtenerIssuer(),
                     ValidateAudience = true,
-                    ValidAudience = configuration["JwtAudience"] ?? Environment.GetEnvironmentVariable("JWT_AUDIENCE"),
+                    ValidAudience = _tokenClaimsBuilder.ObtenerAudience(),
                     ValidateLifetime = true
                 };
 

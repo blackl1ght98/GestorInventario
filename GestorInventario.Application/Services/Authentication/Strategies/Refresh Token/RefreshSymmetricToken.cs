@@ -51,7 +51,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
                 issuer: _claimsBuilder.ObtenerIssuer(),
                 audience: _claimsBuilder.ObtenerAudience(),
                 claims: _claimsBuilder.CrearClaims(usuario),
-                expires: DateTime.UtcNow.AddHours(int.Parse(horas)),
+                expires: DateTime.UtcNow.AddHours(horas),
                 signingCredentials: credentials);
 
             return Task.FromResult(new JwtSecurityTokenHandler().WriteToken(token));

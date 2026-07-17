@@ -54,7 +54,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
                 issuer: _claimsBuilder.ObtenerIssuer(),
                 audience: _claimsBuilder.ObtenerAudience(),
                 claims: _claimsBuilder.CrearClaims(usuario),
-                expires: DateTime.UtcNow.AddMinutes(int.Parse(minutos)),
+                expires: DateTime.UtcNow.AddMinutes(minutos),
                 signingCredentials: credentials);
 
             return new LoginResponseDto
@@ -64,5 +64,6 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
                 Rol = usuario.IdRolNavigation.Nombre
             };
         }
+
     }
 }

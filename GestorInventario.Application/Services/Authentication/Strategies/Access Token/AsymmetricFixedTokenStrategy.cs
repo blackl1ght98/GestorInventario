@@ -36,7 +36,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
                 issuer: _claimsBuilder.ObtenerIssuer(),
                 audience: _claimsBuilder.ObtenerAudience(),
                 claims: _claimsBuilder.CrearClaims(usuario),
-                expires: DateTime.UtcNow.AddMinutes(int.Parse(minutos)),
+                expires: DateTime.UtcNow.AddMinutes(minutos),
                 signingCredentials: credentials);
 
             return Task.FromResult(new LoginResponseDto

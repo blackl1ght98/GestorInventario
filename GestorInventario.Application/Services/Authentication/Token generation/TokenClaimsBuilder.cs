@@ -17,23 +17,49 @@ namespace GestorInventario.Application.Services.Authentication
             _configuration = configuration;
         }
 
-        public List<Claim> CrearClaims(Usuario usuario) => new()
-    {
-        new Claim(ClaimTypes.Email, usuario.Email),
-        new Claim(ClaimTypes.Role, usuario.IdRolNavigation?.Nombre ?? "Usuario"),
-        new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString())
-    };
+        public IReadOnlyList<Claim> CrearClaims(Usuario usuario)
+        {
+            if (usuario.IdRolNavigation is null)
+            {
+                throw new InvalidOperationException(
+                    $"El usuario {usuario.Id} no tiene un rol asignado. No se puede generar token.");
+            }
+
+            return new[]
+            {
+          new Claim(ClaimTypes.Email, usuario.Email),
+          new Claim(ClaimTypes.Role, usuario.IdRolNavigation.Nombre),
+          new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString())
+      };
+        }
 
         public string ObtenerIssuer() =>
-            Environment.GetEnvironmentVariable("JWT_ISSUER") ?? _configuration["JwtIssuer"];
+            Environment.GetEnvironmentVariable("JWT_ISSUER") ?? _configuration["Jwt:Issuer"];
 
         public string ObtenerAudience() =>
-            _configuration["JwtAudience"] ?? Environment.GetEnvironmentVariable("JWT_AUDIENCE");
+            _configuration["Jwt:Audience"] ?? Environment.GetEnvironmentVariable("JWT_AUDIENCE");
 
-        public string ObtenerDuracionAccessTokenMinutos() =>
-            _configuration["Jwt:AccessTokenMinutes"] ?? "10";
+        public int ObtenerDuracionAccessTokenMinutos() =>
+        ResolveInt("Jwt:AccessTokenMinutes", "ACCESS_TOKEN_MINUTES", defaultValue: 10);
 
-        public string ObtenerDuracionRefreshTokenHoras() =>
-            _configuration["Jwt:RefreshTokenHours"] ?? "24";
+        public int ObtenerDuracionRefreshTokenHoras() =>
+         ResolveInt("Jwt:RefreshTokenHours", "REFRESH_TOKEN_HOURS", defaultValue: 24);
+        public string ObtenerPublicKeyFixed()=> _configuration["Jwt:PublicKey"] ?? Environment.GetEnvironmentVariable("PUBLIC_KEY");
+        private int ResolveInt(string configKey, string envKey, int defaultValue)
+        {
+            var raw = Environment.GetEnvironmentVariable(envKey) ?? _configuration[configKey];
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                return defaultValue;
+            }
+
+            if (!int.TryParse(raw, out var value) || value <= 0)
+            {
+                throw new InvalidOperationException(
+                    $"El valor de {configKey} (o {envKey}) debe ser un entero positivo. Recibido: '{raw}'.");
+            }
+
+            return value;
+        }
     }
 }

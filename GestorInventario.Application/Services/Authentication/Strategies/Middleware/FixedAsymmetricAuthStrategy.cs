@@ -16,14 +16,16 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
         private readonly ITokenGenerator _tokenGenerator;
         private readonly IUserRepository _userRepository;
         private readonly IRefreshTokenGenerator _refreshTokenStrategy;
-       
+        private readonly TokenClaimsBuilder _tokenClaimsBuilder;
 
-        public FixedAsymmetricAuthStrategy(IConfiguration configuration, ITokenGenerator tokenGenerator, IUserRepository userRepository, IRefreshTokenGenerator refreshTokenStrategy )
+
+        public FixedAsymmetricAuthStrategy(IConfiguration configuration, ITokenGenerator tokenGenerator, IUserRepository userRepository, IRefreshTokenGenerator refreshTokenStrategy, TokenClaimsBuilder builder )
         {
             _tokenGenerator = tokenGenerator;
             _userRepository = userRepository;
             _refreshTokenStrategy = refreshTokenStrategy;
             _configuration = configuration;
+            _tokenClaimsBuilder = builder;
         }
 
         public async Task ProcessAuthentication(HttpContext context,  Func<Task> next)
@@ -78,7 +80,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
                     return (null, null);
                 }
 
-                var publicKey = configuration["Jwt:PublicKey"] ?? Environment.GetEnvironmentVariable("PUBLIC_KEY");
+                var publicKey = _tokenClaimsBuilder.ObtenerPublicKeyFixed();
                 if (string.IsNullOrEmpty(publicKey))
                 {
                    logger.Error("La clave pública JWT no es valida");
@@ -101,9 +103,9 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new RsaSecurityKey(rsa),
                     ValidateIssuer = true,
-                    ValidIssuer = configuration["JwtIssuer"] ?? Environment.GetEnvironmentVariable("JWT_ISSUER"),
+                    ValidIssuer = _tokenClaimsBuilder.ObtenerIssuer(),
                     ValidateAudience = true,
-                    ValidAudience = configuration["JwtAudience"] ?? Environment.GetEnvironmentVariable("JWT_AUDIENCE"),
+                    ValidAudience = _tokenClaimsBuilder.ObtenerAudience(),
                     ValidateLifetime = true
                 };
 
@@ -161,14 +163,15 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
 
             var newAccessToken = await tokenService.GenerateTokenAsync(user);
             var newRefreshToken = await refreshTokenMethod.GenerateTokenAsync(user);
-
+            var minutos = _tokenClaimsBuilder.ObtenerDuracionAccessTokenMinutos();
+         
             context.Response.Cookies.Append("auth", newAccessToken.Token, new CookieOptions
             {
                 HttpOnly = true,
                 SameSite = SameSiteMode.Lax,
                
                 Secure = true,
-                Expires = DateTime.UtcNow.AddMinutes(10)
+                Expires = DateTime.UtcNow.AddMinutes(minutos)
             });
 
         
@@ -189,7 +192,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
                     return false;
                 }
 
-                var publicKey = configuration["Jwt:PublicKey"] ?? Environment.GetEnvironmentVariable("PUBLIC_KEY");
+                var publicKey = _tokenClaimsBuilder.ObtenerPublicKeyFixed();
                 if (string.IsNullOrEmpty(publicKey))
                 {
                    logger.Error("La clave pública JWT no está configurada ");
@@ -212,9 +215,9 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new RsaSecurityKey(rsa),
                     ValidateIssuer = true,
-                    ValidIssuer = configuration["JwtIssuer"] ?? Environment.GetEnvironmentVariable("JWT_ISSUER"),
+                    ValidIssuer = _tokenClaimsBuilder.ObtenerIssuer(),
                     ValidateAudience = true,
-                    ValidAudience = configuration["JwtAudience"]?? Environment.GetEnvironmentVariable("JWT_AUDIENCE"),
+                    ValidAudience = _tokenClaimsBuilder.ObtenerAudience(),
                     ValidateLifetime = true
                 };
 

@@ -3,7 +3,7 @@ using GestorInventario.Interfaces.Application.Authentication;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
+
 using Microsoft.Extensions.Logging;
 
 using Microsoft.IdentityModel.Tokens;
@@ -20,24 +20,30 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
 /// </summary>
 public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
 {
-    private readonly IConfiguration _options;
+   
     private readonly ITokenGenerator _tokenService;
     private readonly IUserRepository _userRepository;
     private readonly ICacheService _cache;
+    private readonly IRefreshTokenGenerator _refreshTokenGenerator;
+    private readonly TokenClaimsBuilder _tokenClaimsBuilder;
     private readonly ILogger<DynamicAsymmetricAuthStrategy> _logger;
 
     public DynamicAsymmetricAuthStrategy(
-        IConfiguration options,
+     
         ITokenGenerator tokenService,
         IUserRepository userRepository,
         ICacheService cache,
+        IRefreshTokenGenerator refres,
+        TokenClaimsBuilder builder,
         ILogger<DynamicAsymmetricAuthStrategy> logger)
     {
-        _options = options;
+       
         _tokenService = tokenService;
         _userRepository = userRepository;
         _cache = cache;
         _logger = logger;
+        _refreshTokenGenerator = refres;
+        _tokenClaimsBuilder = builder;
     }
 
     public async Task ProcessAuthentication(HttpContext context, Func<Task> next)
@@ -105,9 +111,9 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
                 IssuerSigningKey = new RsaSecurityKey(publicKeyParams.Value) { KeyId = kid },
                 ValidateIssuer = true,
                 ClockSkew = TimeSpan.FromMinutes(5),
-                ValidIssuer = _options["JwtIssuer"] ?? Environment.GetEnvironmentVariable("JWT_ISSUER"),
+                ValidIssuer = _tokenClaimsBuilder.ObtenerIssuer(),
                 ValidateAudience = true,
-                ValidAudience = _options["JwtAudience"]?? Environment.GetEnvironmentVariable("JWT_AUDIENCE"),
+                ValidAudience = _tokenClaimsBuilder.ObtenerAudience(),
                 ValidateLifetime = true
             };
 
@@ -165,13 +171,22 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
             }
 
             var newAccessToken = await _tokenService.GenerateTokenAsync(user);
-
+            var newRefresToken = await _refreshTokenGenerator.GenerateTokenAsync(user);
+            var minutos = _tokenClaimsBuilder.ObtenerDuracionAccessTokenMinutos();
+            var horas = _tokenClaimsBuilder.ObtenerDuracionRefreshTokenHoras();
             context.Response.Cookies.Append("auth", newAccessToken.Token, new CookieOptions
             {
                 HttpOnly = true,
-                SameSite = SameSiteMode.None,
+                SameSite = SameSiteMode.Lax,
                 Secure = true,
-                Expires = DateTime.UtcNow.AddMinutes(10)
+                Expires = DateTime.UtcNow.AddMinutes(minutos)
+            });
+            context.Response.Cookies.Append("refreshToken", newRefresToken, new CookieOptions
+            {
+                HttpOnly = true,
+                SameSite = SameSiteMode.Lax,
+                Secure = true,
+                Expires = DateTime.UtcNow.AddHours(horas)
             });
 
             _logger.LogInformation("Access token regenerado para usuario {UserId}", userId);
@@ -205,9 +220,9 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new RsaSecurityKey(publicKeyParams) { KeyId = kid },
                 ValidateIssuer = true,
-                ValidIssuer = _options["JwtIssuer"] ?? Environment.GetEnvironmentVariable("JWT_ISSUER"),
+                ValidIssuer = _tokenClaimsBuilder.ObtenerIssuer(),
                 ValidateAudience = true,
-                ValidAudience = _options["JwtAudience"] ?? Environment.GetEnvironmentVariable("JWT_AUDIENCE"),
+                ValidAudience = _tokenClaimsBuilder.ObtenerAudience(),
                 ValidateLifetime = true
             };
 
