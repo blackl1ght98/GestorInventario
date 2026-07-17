@@ -45,8 +45,8 @@ namespace GestorInventario.Application.Services.ExternalServices
         }
         private (string clientId, string clientSecret) GetPaypalCredentials()
         {
-            var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("Paypal_ClientId");
-            var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("Paypal_ClientSecret");
+            var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("PAYPAL_CLIENTID");
+            var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("PAYPAL_CLIENTSECRET");
             if (clientId == null || clientSecret == null)
             {
                 throw new InvalidOperationException("No se puede obtener el cliente id o secreto de cliente");

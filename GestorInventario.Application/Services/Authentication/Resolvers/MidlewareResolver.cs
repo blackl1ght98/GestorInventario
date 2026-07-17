@@ -19,7 +19,7 @@ namespace GestorInventario.Application.Services.Authentication.Resolvers
         
         public IAuthenticationMiddlewareStrategy ResolveMiddleware()
         {
-            var mode = _configuration["AuthMode"] ?? "AsymmetricDynamic";
+            var mode = _configuration["AuthMode"] ?? Environment.GetEnvironmentVariable("AUTH_MODE");
 
 
             return mode switch

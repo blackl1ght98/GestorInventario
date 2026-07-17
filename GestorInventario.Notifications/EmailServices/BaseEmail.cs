@@ -35,7 +35,9 @@ namespace GestorInventario.Notifications.EmailServices
         public async Task<bool> BuildEmail(string correo, string subject, EmailView view, object model)
         {
             var email = new MimeMessage();
-            email.From.Add(MailboxAddress.Parse(_configuration["Email:UserName"]));
+            var username = _configuration["Email:UserName"] ?? Environment.GetEnvironmentVariable("EMAIL_USERNAME");
+            var password = _configuration["Email:PassWord"] ?? Environment.GetEnvironmentVariable("EMAIL_PASSWORD");
+            email.From.Add(MailboxAddress.Parse(username));
             email.To.Add(MailboxAddress.Parse(correo));
             email.Subject = subject;
 
@@ -47,11 +49,11 @@ namespace GestorInventario.Notifications.EmailServices
             email.Body = new TextPart(TextFormat.Html) { Text = html };
 
             using var smtp = new SmtpClient();
-            var emailHost = Environment.GetEnvironmentVariable("Email__Host") ?? _configuration["Email:Host"];
-            var emailPort = int.Parse(Environment.GetEnvironmentVariable("Email__Port") ?? _configuration["Email:Port"] ?? "587");
+            var emailHost = Environment.GetEnvironmentVariable("EMAIL_HOST") ?? _configuration["Email:Host"];
+            var emailPort = int.Parse(Environment.GetEnvironmentVariable("EMAIL_PORT") ?? _configuration["Email:Port"] ?? "587");
 
             await smtp.ConnectAsync(emailHost, emailPort, SecureSocketOptions.StartTls);
-            await smtp.AuthenticateAsync(_configuration["Email:UserName"], _configuration["Email:PassWord"]);
+            await smtp.AuthenticateAsync(username, password);
             await smtp.SendAsync(email);
             await smtp.DisconnectAsync(true);
 

@@ -21,7 +21,7 @@ namespace GestorInventario.Application.Services.Authentication.Resolvers
        
         public IRefreshTokenStrategy ResolveRefreshToken()
         {
-            var mode = _configuration["AuthMode"] ?? "AsymmetricDynamic";
+            var mode = _configuration["AuthMode"] ?? Environment.GetEnvironmentVariable("AUTH_MODE");
           
 
             return mode switch
@@ -38,7 +38,7 @@ namespace GestorInventario.Application.Services.Authentication.Resolvers
 
         public ITokenStrategy ResolveToken()
         {
-            var mode = _configuration["AuthMode"] ?? "AsymmetricDynamic";
+            var mode = _configuration["AuthMode"] ?? Environment.GetEnvironmentVariable("AUTH_MODE");
     
 
             return mode switch

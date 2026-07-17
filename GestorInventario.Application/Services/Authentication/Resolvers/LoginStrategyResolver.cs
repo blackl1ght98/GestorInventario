@@ -21,7 +21,7 @@ namespace GestorInventario.Application.Services.Authentication.Resolvers
        
         public ILoginStrategy Resolve()
         {
-            var mode = _configuration["LoginMode"] ?? "MfaLogin";
+            var mode = _configuration["LoginMode"] ?? Environment.GetEnvironmentVariable("LOGIN_MODE");
 
             return mode switch
             {

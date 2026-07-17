@@ -16,7 +16,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
 
         public override Task<LoginResponseDto> GenerateTokenAsync(Usuario usuario)
         {
-            var clave = Environment.GetEnvironmentVariable("ClaveJWT")
+            var clave = Environment.GetEnvironmentVariable("CLAVE_JWT")
                      ?? _configuration["ClaveJWT"];
 
             if (string.IsNullOrEmpty(clave))

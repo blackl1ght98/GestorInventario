@@ -16,7 +16,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
 
         public override Task<LoginResponseDto> GenerateTokenAsync(Usuario usuario)
         {
-            var privateKeyXml = Environment.GetEnvironmentVariable("PrivateKey")
+            var privateKeyXml = Environment.GetEnvironmentVariable("PRIVATE_KEY")
                              ?? _configuration["JWT:PrivateKey"];
 
             if (string.IsNullOrEmpty(privateKeyXml))

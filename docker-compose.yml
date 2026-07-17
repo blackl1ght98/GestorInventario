@@ -127,14 +127,12 @@ services:
     environment:
       # Base de datos
       - DB_HOST=${DB_HOST}
-      - APP_DOCKER_URL=https://localhost:8081
       - DB_NAME=${DB_NAME}
       - DB_SQLUSER=${DB_SQLUSER}
       - DB_SQLUSER_PASSWORD=${DB_SQLUSER_PASSWORD}
       # Flags de control
       - IS_DOCKER=true 
       - USE_REDIS=true 
-      - IsMfaEnabled=true  
       # URL
       - APP_DOCKER_URL=${APP_DOCKER_URL}
       - PAYPAL_CANCEL_URL=${PAYPAL_CANCEL_URL}
@@ -144,27 +142,27 @@ services:
       # Puerto HTTPS
       - ASPNETCORE_HTTPS_PORTS=8081
       # Autenticacion
-      - ClaveJWT=${ClaveJWT}     
-      - AuthMode=${AuthMode}
-      - JwtIssuer=${JwtIssuer}
-      - JwtAudience=${JwtAudience}  
-      - PublicKey=${PublicKey}
-      - PrivateKey=${PrivateKey}
+      - CLAVE_JWT=${CLAVE_JWT}     
+      - AUTH_MODE=${AUTH_MODE}
+      - JWT_ISSUER=${JWT_ISSUER}
+      - JWT_AUDIENCE=${JWT_AUDIENCE}  
+      - PUBLIC_KEY=${PUBLIC_KEY}
+      - PRIVATE_KEY=${PRIVATE_KEY}
+      - LOGIN_MODE=${LOGIN_MODE}
       # Utilidades
       - REDIS_CONNECTION_STRING=${REDIS_CONNECTION_STRING}
-      - LicenseKeyAutoMapper=${LicenseKeyAutoMapper}
-      - CallMeBotUser=${CallMeBotUser}
+      - LICENSE_AUTOMAPPER=${LICENSE_AUTOMAPPER}
+      - TELEGRAM_USER=${TELEGRAM_USER}
       # Credenciales de PayPal y configuracion
-      - Paypal_ClientId=${Paypal_ClientId}
-      - Paypal_ClientSecret=${Paypal_ClientSecret}
-      - Paypal_Mode=${Paypal_Mode} # sandbox o live
+      - PAYPAL_CLIENTID=${PAYPAL_CLIENTID}
+      - PAYPAL_CLIENTSECRET=${PAYPAL_CLIENTSECRET}
       - PAYPAL_RETURN_URL=${PAYPAL_RETURN_URL} 
       - PAYPAL_BASEURL=${PAYPAL_BASEURL}
       # Credenciales de email y configuracion
-      - Email__Host=${Email__Host}
-      - Email__Port=${Email__Port}
-      - Email__Username=${Email__Username}
-      - Email__Password=${Email__Password}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_USERNAME=${EMAIL_USERNAME}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
     volumes:
       # Monta el certificado SSL desde tu máquina al contenedor
       # ./certs/certificado.pfx → ruta en tu máquina

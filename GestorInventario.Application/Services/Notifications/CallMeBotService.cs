@@ -12,7 +12,7 @@ namespace GestorInventario.Application.Services.Notifications
         {
             _httpClient = httpClient;
             // Obtenemos el usuario desde el appsettings.json
-            _username = configuration["CallMeBot:user"] ?? Environment.GetEnvironmentVariable("CallMeBotUser");
+            _username = configuration["CallMeBot:user"] ?? Environment.GetEnvironmentVariable("TELEGRAM_USER");
         }
 
         public async Task<bool> SendWhatsAppNotificationAsync(string message)

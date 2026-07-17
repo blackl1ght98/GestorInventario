@@ -16,9 +16,9 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
         private readonly IConfiguration _configuration;
         private readonly ITokenGenerator _tokenGenerator;
         private readonly IUserRepository _userRepository;
-        private readonly IRefreshTokenStrategy _refreshTokenStrategy;
+        private readonly IRefreshTokenGenerator _refreshTokenStrategy;
 
-        public SymmetricAuthStrategy(IConfiguration configuration, ITokenGenerator tokenGenerator, IUserRepository userRepository, IRefreshTokenStrategy refreshTokenStrategy)
+        public SymmetricAuthStrategy(IConfiguration configuration, ITokenGenerator tokenGenerator, IUserRepository userRepository, IRefreshTokenGenerator refreshTokenStrategy)
         {
             _configuration = configuration;
             _tokenGenerator = tokenGenerator;
@@ -90,9 +90,9 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
                     ValidateIssuer = true,
-                    ValidIssuer = configuration["JwtIssuer"],
+                    ValidIssuer = configuration["JwtIssuer"] ?? Environment.GetEnvironmentVariable("JWT_ISSUER"),
                     ValidateAudience = true,
-                    ValidAudience = configuration["JwtAudience"],
+                    ValidAudience = configuration["JwtAudience"] ?? Environment.GetEnvironmentVariable("JWT_AUDIENCE"),
                     ValidateLifetime = true
                 };
 
@@ -110,7 +110,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
         }
 
         private async Task HandleExpiredToken(HttpContext context, string refreshToken, string secret, IConfiguration configuration,
-            ITokenGenerator tokenService, IUserRepository utility, IRefreshTokenStrategy refreshTokenMethod)
+            ITokenGenerator tokenService, IUserRepository utility, IRefreshTokenGenerator refreshTokenMethod)
         {
             var refreshTokenValid = await ValidateRefreshToken(refreshToken, secret,configuration);
             if (!refreshTokenValid)
@@ -147,7 +147,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
             }
 
             var newAccessToken = await tokenService.GenerateTokenAsync(user);
-            var newRefreshToken = await refreshTokenMethod.GenerarTokenRefresco(user);
+            var newRefreshToken = await refreshTokenMethod.GenerateTokenAsync(user);
 
             context.Response.Cookies.Append("auth", newAccessToken.Token, new CookieOptions
             {
@@ -186,9 +186,9 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
                     ValidateIssuer = true,
-                    ValidIssuer = configuration["JwtIssuer"],
+                    ValidIssuer = configuration["JwtIssuer"] ?? Environment.GetEnvironmentVariable("JWT_ISSUER"),
                     ValidateAudience = true,
-                    ValidAudience = configuration["JwtAudience"],
+                    ValidAudience = configuration["JwtAudience"] ?? Environment.GetEnvironmentVariable("JWT_AUDIENCE"),
                     ValidateLifetime = true
                 };
 

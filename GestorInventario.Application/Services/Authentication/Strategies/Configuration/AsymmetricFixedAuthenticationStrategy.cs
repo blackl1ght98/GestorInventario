@@ -21,22 +21,30 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Config
 
         public void Configure(IServiceCollection services, IConfiguration configuration)
         {
-            var publicKey = configuration["Jwt:PublicKey"] ?? Environment.GetEnvironmentVariable("PublicKey");
+            var publicKey = configuration["Jwt:PublicKey"] ?? Environment.GetEnvironmentVariable("PUBLIC_KEY");
             if (string.IsNullOrEmpty(publicKey))
             {
                 _logger.LogError("La clave pública JWT no está configurada en Jwt:PublicKey.");
                 throw new InvalidOperationException("La clave pública JWT es requerida.");
             }
 
-            var rsa = new RSACryptoServiceProvider();
+            RSA rsa;
             try
             {
+                rsa = RSA.Create();   
                 rsa.FromXmlString(publicKey);
+            }
+            catch (FormatException ex)
+            {
+                _logger.LogError(ex,
+                    "La clave pública no es XML RSA válido. Contenido recibido: {Key}",
+                    publicKey);
+                throw new InvalidOperationException("La clave pública RSA es inválida.", ex);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al cargar la clave pública RSA desde la configuración.");
-                throw new InvalidOperationException("La clave pública RSA es inválida.", ex);
+                _logger.LogError(ex, "Error inesperado al cargar la clave pública RSA.");
+                throw;
             }
 
             services.AddAuthentication(options =>
@@ -72,9 +80,9 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Config
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
-                    ValidIssuer = configuration["JwtIssuer"] ?? Environment.GetEnvironmentVariable("JwtIssuer"),
+                    ValidIssuer = configuration["JwtIssuer"] ?? Environment.GetEnvironmentVariable("JWT_ISSUER"),
                     ValidateAudience = true,
-                    ValidAudience = configuration["JwtAudience"] ?? Environment.GetEnvironmentVariable("JwtAudience"),
+                    ValidAudience = configuration["JwtAudience"] ?? Environment.GetEnvironmentVariable("JWT_AUDIENCE"),
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new RsaSecurityKey(rsa)

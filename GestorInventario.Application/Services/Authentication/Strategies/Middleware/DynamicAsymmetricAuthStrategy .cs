@@ -105,9 +105,9 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
                 IssuerSigningKey = new RsaSecurityKey(publicKeyParams.Value) { KeyId = kid },
                 ValidateIssuer = true,
                 ClockSkew = TimeSpan.FromMinutes(5),
-                ValidIssuer = _options["JwtIssuer"],
+                ValidIssuer = _options["JwtIssuer"] ?? Environment.GetEnvironmentVariable("JWT_ISSUER"),
                 ValidateAudience = true,
-                ValidAudience = _options["JwtAudience"],
+                ValidAudience = _options["JwtAudience"]?? Environment.GetEnvironmentVariable("JWT_AUDIENCE"),
                 ValidateLifetime = true
             };
 
@@ -205,9 +205,9 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new RsaSecurityKey(publicKeyParams) { KeyId = kid },
                 ValidateIssuer = true,
-                ValidIssuer = _options["JwtIssuer"],
+                ValidIssuer = _options["JwtIssuer"] ?? Environment.GetEnvironmentVariable("JWT_ISSUER"),
                 ValidateAudience = true,
-                ValidAudience = _options["JwtAudience"],
+                ValidAudience = _options["JwtAudience"] ?? Environment.GetEnvironmentVariable("JWT_AUDIENCE"),
                 ValidateLifetime = true
             };
 

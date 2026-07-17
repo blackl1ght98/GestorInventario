@@ -11,7 +11,7 @@ namespace GestorInventario.Composition
         {
             services.AddAutoMapper(cfg =>
             {
-                cfg.LicenseKey = Environment.GetEnvironmentVariable("LicenseKeyAutoMapper") ?? configuration["LicenseKeyAutoMapper"]; ;
+                cfg.LicenseKey = Environment.GetEnvironmentVariable("LICENSE_AUTOMAPPER") ?? configuration["LicenseKeyAutoMapper"]; ;
 
                 //  cfg.AddMaps(Assembly.GetExecutingAssembly());
                 cfg.AddMaps(

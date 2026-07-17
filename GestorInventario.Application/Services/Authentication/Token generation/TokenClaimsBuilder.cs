@@ -25,10 +25,10 @@ namespace GestorInventario.Application.Services.Authentication
     };
 
         public string ObtenerIssuer() =>
-            Environment.GetEnvironmentVariable("JwtIssuer") ?? _configuration["JwtIssuer"];
+            Environment.GetEnvironmentVariable("JWT_ISSUER") ?? _configuration["JwtIssuer"];
 
         public string ObtenerAudience() =>
-            _configuration["JwtAudience"] ?? Environment.GetEnvironmentVariable("JwtAudience");
+            _configuration["JwtAudience"] ?? Environment.GetEnvironmentVariable("JWT_AUDIENCE");
 
         public string ObtenerDuracionAccessTokenMinutos() =>
             _configuration["Jwt:AccessTokenMinutes"] ?? "10";
