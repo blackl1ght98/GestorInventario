@@ -86,6 +86,14 @@ $jwtLength = $jwtReference.Length   # 79
 # Orden EXACTO en que apareceran las variables en .env.
 # Coincide con las variables que docker-compose.yml consume
 # y con las que el codigo C# lee de Environment.GetEnvironmentVariable.
+# Orden EXACTO en que apareceran las variables en .env.
+# Coincide con las variables que docker-compose.yml consume
+# y con las que el codigo C# lee de Environment.GetEnvironmentVariable.
+#
+# IS_MFA_ENABLED se elimino: el codigo C# ya no la consulta.
+# LOGIN_MODE y AUTH_MODE no se piden al usuario: van con default fijo.
+#   - LOGIN_MODE admite: StandardLogin | MfaLogin
+#   - AUTH_MODE  admite: Symmetric | AsymmetricFixed | AsymmetricDynamic
 $order = @(
     'DB_HOST'
     'DB_NAME'
@@ -93,7 +101,6 @@ $order = @(
     'DB_SA_USERNAME'
     'DB_SQLUSER'
     'DB_SQLUSER_PASSWORD'
-    'IS_MFA_ENABLED'
     'CLAVE_JWT'
     'REDIS_CONNECTION_STRING'
     'JWT_ISSUER'
@@ -119,6 +126,8 @@ $order = @(
 
 # Defaults en MAYUSCULAS. Los vacios ("") se pediran al usuario.
 # Los que tienen valor fijo se imprimen como "(fijo, no editable)".
+# LOGIN_MODE y AUTH_MODE se preguntan con opciones validas; si se
+# pulsa ENTER, toman el default.
 $defaults = @{
     DB_HOST                  = 'SQL-Server-Local'
     DB_NAME                  = 'GestorInventario'
@@ -126,7 +135,6 @@ $defaults = @{
     DB_SA_USERNAME           = 'sa'
     DB_SQLUSER               = 'sqluser'
     DB_SQLUSER_PASSWORD      = '12345678SQL#1234'
-    IS_MFA_ENABLED           = 'true'
     CLAVE_JWT                = ''
     REDIS_CONNECTION_STRING  = 'redis:6379'
     JWT_ISSUER               = 'GestorInvetarioEmisor'
@@ -144,7 +152,7 @@ $defaults = @{
     EMAIL_PASSWORD           = ''
     CertificatePassword      = '0000'
     LOGIN_MODE               = 'MfaLogin'
-    AUTH_MODE                = 'AsymmetricFixed'
+    AUTH_MODE                = 'AsymmetricDynamic'
     LICENSE_AUTOMAPPER       = ''
     TELEGRAM_USER            = ''
     APP_DOCKER_URL           = 'https://localhost:8081'
@@ -253,6 +261,40 @@ Ask 'LICENSE_AUTOMAPPER' 'Licencia AutoMapper (pega aqui la clave)' ''
 Write-Host "`n   [2.6] Otros" -ForegroundColor Yellow
 Ask 'CertificatePassword'  'Contrasena del certificado'        $values['CertificatePassword']
 Ask 'TELEGRAM_USER'        'Usuario CallMeBot (Telegram)'      ''
+
+# [2.7] Modo de aplicacion (login y autenticacion JWT)
+# Estos dos los lee el codigo C# desde .env, asi que se preguntan
+# aqui para que el usuario elija y se vuelquen en el archivo.
+#   - LOGIN_MODE: StandardLogin | MfaLogin
+#   - AUTH_MODE : Symmetric | AsymmetricFixed | AsymmetricDynamic
+Write-Host "`n   [2.7] Modo de aplicacion" -ForegroundColor Yellow
+
+function Ask-Choice {
+    param(
+        [string]$Key,
+        [string]$Prompt,
+        [string[]]$Options,
+        [string]$Default
+    )
+    $display = ($Options -join ' | ')
+    while ($true) {
+        $raw = Read-Host "$Prompt  [$display]  (por defecto: $Default)"
+        if ([string]::IsNullOrWhiteSpace($raw)) {
+            $value = $Default
+        } else {
+            $value = $raw.Trim()
+        }
+        if ($Options -contains $value) {
+            $script:values[$Key] = $value
+            Write-Host "   -> $Key = $value" -ForegroundColor Green
+            return $value
+        }
+        Write-Host "   -> '$value' no es valido. Opciones: $display" -ForegroundColor Yellow
+    }
+}
+
+Ask-Choice 'LOGIN_MODE' 'Modo de login'                @('StandardLogin', 'MfaLogin')                   $values['LOGIN_MODE']
+Ask-Choice 'AUTH_MODE'  'Modo de autenticacion JWT'    @('Symmetric', 'AsymmetricFixed', 'AsymmetricDynamic') $values['AUTH_MODE']
 
 # Generar claves RSA en XML (.NET legacy: <Modulus><Exponent>...</Exponent></Modulus>
 # para la publica y +P, Q, DP, DQ, InverseQ, D para la privada)
