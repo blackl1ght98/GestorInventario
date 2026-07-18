@@ -1,7 +1,7 @@
 ﻿using GestorInventario.Interfaces.Application.Common;
 using Microsoft.Extensions.Configuration;
 
-namespace GestorInventario.Application.Services.Notifications
+namespace GestorInventario.Notifications.Mensajes.Telegram
 {
     public class CallMeBotService : ICallMeBotService
     {
@@ -12,7 +12,7 @@ namespace GestorInventario.Application.Services.Notifications
         {
             _httpClient = httpClient;
             // Obtenemos el usuario desde el appsettings.json
-            _username = configuration["CallMeBot:user"] ?? Environment.GetEnvironmentVariable("TELEGRAM_USER");
+            _username = configuration["CallMeBot:TelegramUser"] ?? Environment.GetEnvironmentVariable("TELEGRAM_USER");
         }
 
         public async Task<bool> SendWhatsAppNotificationAsync(string message)

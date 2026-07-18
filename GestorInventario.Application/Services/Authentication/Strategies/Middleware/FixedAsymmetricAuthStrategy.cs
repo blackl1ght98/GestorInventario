@@ -1,31 +1,32 @@
-﻿
-using GestorInventario.Interfaces.Application.Authentication;
+﻿using GestorInventario.Interfaces.Application.Authentication;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
+
 
 namespace GestorInventario.Application.Services.Authentication.Strategies.Middleware
 {
     public class FixedAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
     {
-        private readonly IConfiguration _configuration;
+        
         private readonly ITokenGenerator _tokenGenerator;
         private readonly IUserRepository _userRepository;
         private readonly IRefreshTokenGenerator _refreshTokenStrategy;
-        private readonly TokenClaimsBuilder _tokenClaimsBuilder;
+        private readonly ITokenClaimsBuilder _tokenClaimsBuilder;
+        private readonly ILogger<FixedAsymmetricAuthStrategy> _logger;
 
-
-        public FixedAsymmetricAuthStrategy(IConfiguration configuration, ITokenGenerator tokenGenerator, IUserRepository userRepository, IRefreshTokenGenerator refreshTokenStrategy, TokenClaimsBuilder builder )
+        public FixedAsymmetricAuthStrategy( ITokenGenerator tokenGenerator, IUserRepository userRepository, 
+            IRefreshTokenGenerator refreshTokenStrategy, ITokenClaimsBuilder builder , ILogger<FixedAsymmetricAuthStrategy> logger)
         {
             _tokenGenerator = tokenGenerator;
             _userRepository = userRepository;
             _refreshTokenStrategy = refreshTokenStrategy;
-            _configuration = configuration;
+          
             _tokenClaimsBuilder = builder;
+            _logger = logger;
         }
 
         public async Task ProcessAuthentication(HttpContext context,  Func<Task> next)
@@ -39,7 +40,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
                 // Validar el token principal
                 if (!string.IsNullOrEmpty(token))
                 {
-                    var (jwtToken, principal) = await ValidateToken(token, _configuration);
+                    var (jwtToken, principal) = await ValidateToken(token);
                     if (jwtToken != null && principal != null)
                     {
                         context.User = principal;
@@ -47,61 +48,44 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
                     }
                     else if (!string.IsNullOrEmpty(refreshToken))
                     {
-                        await HandleExpiredToken(context, refreshToken,_configuration,  _tokenGenerator, _userRepository, _refreshTokenStrategy);
+                        await HandleExpiredToken(context, refreshToken,  _tokenGenerator, _userRepository, _refreshTokenStrategy);
                     }
                 }
                 else if (!string.IsNullOrEmpty(refreshToken))
                 {
-                    await HandleExpiredToken(context, refreshToken,_configuration, _tokenGenerator, _userRepository, _refreshTokenStrategy);
+                    await HandleExpiredToken(context, refreshToken, _tokenGenerator, _userRepository, _refreshTokenStrategy);
                 }
                 else
                 {
-                   // _logger.LogInformation("No se encontraron tokens en las cookies para la ruta {Path}", context.Request.Path);
+                    _logger.LogInformation("No se encontraron tokens en las cookies para la ruta {Path}", context.Request.Path);
                 }
             }
             catch (Exception ex)
             {
-               // _logger.LogError(ex, "Error en el middleware de autenticación para la ruta {Path}", context.Request.Path);
+                _logger.LogError(ex, "Error en el middleware de autenticación para la ruta {Path}", context.Request.Path);
             }
 
             await next();
         }
 
-        private async Task<(JwtSecurityToken?, ClaimsPrincipal?)> ValidateToken(string token,IConfiguration configuration)
+        private async Task<(JwtSecurityToken?, ClaimsPrincipal?)> ValidateToken(string token)
         {
-            var handler = new JwtSecurityTokenHandler();
-            var logger = log4net.LogManager.GetLogger(typeof(FixedAsymmetricAuthStrategy));
             try
             {
-                var jwtToken = handler.ReadJwtToken(token);
+                var jwtToken = new JwtSecurityTokenHandler().ReadJwtToken(token);
                 if (jwtToken.ValidTo < DateTime.UtcNow)
                 {
-                  logger.Error("El token ha expirado");
+                    _logger.LogWarning("El token ha expirado");
                     return (null, null);
                 }
 
-                var publicKey = _tokenClaimsBuilder.ObtenerPublicKeyFixed();
-                if (string.IsNullOrEmpty(publicKey))
-                {
-                   logger.Error("La clave pública JWT no es valida");
-                    return (null, null);
-                }
-
-                var rsa = new RSACryptoServiceProvider();
-                try
-                {
-                    rsa.FromXmlString(publicKey);
-                }
-                catch (Exception ex)
-                {
-                   logger.Error("Error al cargar la clave pública RSA desde la configuración.",ex);
-                    return (null, null);
-                }
+                // El builder ya validó el XML y cachea el RSA. Si falla, lanza InvalidOperationException.
+                var rsa = _tokenClaimsBuilder.ObtenerPublicKeyFixed();
 
                 var validationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new RsaSecurityKey(rsa),
+                    IssuerSigningKey = new RsaSecurityKey(rsa.ExportParameters(false)),
                     ValidateIssuer = true,
                     ValidIssuer = _tokenClaimsBuilder.ObtenerIssuer(),
                     ValidateAudience = true,
@@ -109,24 +93,34 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
                     ValidateLifetime = true
                 };
 
-                var principal = handler.ValidateToken(token, validationParameters, out _);
-                var tokenPayload = jwtToken.Claims.Select(c => $"{c.Type}: {c.Value}");
-              logger.Info("Claims validos");
+                var principal = new JwtSecurityTokenHandler().ValidateToken(token, validationParameters, out _);
+                _logger.LogInformation("Claims válidos para {Claims}",
+                    string.Join(", ", jwtToken.Claims.Select(c => $"{c.Type}={c.Value}")));
 
                 return (jwtToken, principal);
             }
+            catch (InvalidOperationException ex)
+            {
+                // El builder lanzó: clave no configurada o XML inválido
+                _logger.LogError(ex, "Error de configuración de clave pública");
+                return (null, null);
+            }
+            catch (SecurityTokenException ex)
+            {
+                _logger.LogWarning(ex, "Token inválido");
+                return (null, null);
+            }
             catch (Exception ex)
             {
-              
-                logger.Error("Error al validar el token",ex);
+                _logger.LogError(ex, "Error inesperado al validar el token");
                 return (null, null);
             }
         }
 
-        private async Task HandleExpiredToken(HttpContext context, string refreshToken,IConfiguration configuration,
-            ITokenGenerator tokenService, IUserRepository utility, IRefreshTokenGenerator refreshTokenMethod)
+        private async Task HandleExpiredToken(HttpContext context, string refreshToken,
+            ITokenGenerator tokenService, IUserRepository repository, IRefreshTokenGenerator refreshTokenMethod)
         {
-            var refreshTokenValid = await ValidateRefreshToken(refreshToken,configuration);
+            var refreshTokenValid = await ValidateRefreshToken(refreshToken);
             var logger = log4net.LogManager.GetLogger(typeof(FixedAsymmetricAuthStrategy));
             if (!refreshTokenValid)
             {
@@ -153,7 +147,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
                 return;
             }
 
-            var user = await utility.ObtenerUsuarioPorId(userIdParsed);
+            var user = await repository.ObtenerUsuarioPorId(userIdParsed);
             if (user == null)
             {
                logger.Error("Usuario no encontrado");
@@ -179,41 +173,23 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
            logger.Info("Tokens generados con exito");
         }
 
-        private async Task<bool> ValidateRefreshToken(string refreshToken,IConfiguration configuration)
+        private async Task<bool> ValidateRefreshToken(string refreshToken)
         {
             try
             {
-                var handler = new JwtSecurityTokenHandler();
-                var token = handler.ReadJwtToken(refreshToken);
-                var logger = log4net.LogManager.GetLogger(typeof(FixedAsymmetricAuthStrategy));
-                if (token.ValidTo < DateTime.UtcNow)
+                var jwtToken = new JwtSecurityTokenHandler().ReadJwtToken(refreshToken);
+                if (jwtToken.ValidTo < DateTime.UtcNow)
                 {
-                  logger.Error("Refresh token expirado ");
+                    _logger.LogWarning("Refresh token expirado");
                     return false;
                 }
 
-                var publicKey = _tokenClaimsBuilder.ObtenerPublicKeyFixed();
-                if (string.IsNullOrEmpty(publicKey))
-                {
-                   logger.Error("La clave pública JWT no está configurada ");
-                    return false;
-                }
-
-                var rsa = new RSACryptoServiceProvider();
-                try
-                {
-                    rsa.FromXmlString(publicKey);
-                }
-                catch (Exception ex)
-                {
-                  logger.Error( "Error al cargar la clave pública RSA desde la configuración.",ex);
-                    return false;
-                }
+                var rsa = _tokenClaimsBuilder.ObtenerPublicKeyFixed();
 
                 var validationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new RsaSecurityKey(rsa),
+                    IssuerSigningKey = new RsaSecurityKey(rsa.ExportParameters(false)),
                     ValidateIssuer = true,
                     ValidIssuer = _tokenClaimsBuilder.ObtenerIssuer(),
                     ValidateAudience = true,
@@ -221,14 +197,22 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
                     ValidateLifetime = true
                 };
 
-                handler.ValidateToken(refreshToken, validationParameters, out _);
-               logger.Info("Refresh token validado correctamente ");
+                new JwtSecurityTokenHandler().ValidateToken(refreshToken, validationParameters, out _);
                 return true;
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogError(ex, "Error de configuración de clave pública al validar refresh");
+                return false;
+            }
+            catch (SecurityTokenException ex)
+            {
+                _logger.LogWarning(ex, "Refresh token inválido");
+                return false;
             }
             catch (Exception ex)
             {
-                var logger = log4net.LogManager.GetLogger(typeof(FixedAsymmetricAuthStrategy));
-                logger.Error("Error al validar el token", ex);
+                _logger.LogError(ex, "Error inesperado al validar refresh");
                 return false;
             }
         }

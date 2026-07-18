@@ -1,6 +1,6 @@
 ﻿
 using GestorInventario.Domain.Models;
-
+using GestorInventario.Interfaces.Application.Authentication;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Shared.DTOS.Auth;
 
@@ -21,7 +21,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
 
         public AsymmetricDynamicTokenStrategy(
             IConfiguration configuration,
-            TokenClaimsBuilder claimsBuilder,
+            ITokenClaimsBuilder claimsBuilder,
             ICacheService cache,
             ILogger<AsymmetricDynamicTokenStrategy> logger)
             : base(configuration, claimsBuilder)

@@ -11,9 +11,9 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
     public abstract class BaseTokenStrategy : ITokenStrategy
     {
         protected readonly IConfiguration _configuration;
-        protected readonly TokenClaimsBuilder _claimsBuilder;
+        protected readonly ITokenClaimsBuilder _claimsBuilder;
 
-        protected BaseTokenStrategy(IConfiguration configuration, TokenClaimsBuilder claimsBuilder)
+        protected BaseTokenStrategy(IConfiguration configuration, ITokenClaimsBuilder claimsBuilder)
         {
             _configuration = configuration;
             _claimsBuilder = claimsBuilder;

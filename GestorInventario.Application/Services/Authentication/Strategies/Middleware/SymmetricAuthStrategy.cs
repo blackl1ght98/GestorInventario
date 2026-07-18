@@ -2,8 +2,6 @@
 using GestorInventario.Interfaces.Application.Authentication;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -13,14 +11,14 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
 {
     public class SymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
     {
-        private readonly IConfiguration _configuration;
+      
         private readonly ITokenGenerator _tokenGenerator;
         private readonly IUserRepository _userRepository;
         private readonly IRefreshTokenGenerator _refreshTokenStrategy;
-        private readonly TokenClaimsBuilder _tokenClaimsBuilder;
-        public SymmetricAuthStrategy(IConfiguration configuration, ITokenGenerator tokenGenerator, IUserRepository userRepository, IRefreshTokenGenerator refreshTokenStrategy, TokenClaimsBuilder tokenClaimsBuilder)
+        private readonly ITokenClaimsBuilder _tokenClaimsBuilder;
+        public SymmetricAuthStrategy( ITokenGenerator tokenGenerator, IUserRepository userRepository, IRefreshTokenGenerator refreshTokenStrategy, ITokenClaimsBuilder tokenClaimsBuilder)
         {
-            _configuration = configuration;
+          
             _tokenGenerator = tokenGenerator;
             _userRepository = userRepository;
             _refreshTokenStrategy = refreshTokenStrategy;
@@ -32,8 +30,8 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
             
             try
             {
-               
-                var secret = Environment.GetEnvironmentVariable("ClaveJWT") ?? _configuration["ClaveJWT"];
+
+                var secret = _tokenClaimsBuilder.ObtenerClaveJWT();
                 if (string.IsNullOrEmpty(secret))
                 {
                    
@@ -48,7 +46,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
                 // Validar el token principal
                 if (!string.IsNullOrEmpty(token))
                 {
-                    var (jwtToken, principal) = await ValidateToken(token, secret, _configuration);
+                    var (jwtToken, principal) = await ValidateToken(token, secret);
                     if (jwtToken != null && principal != null)
                     {
                         // Establecer el ClaimsPrincipal en HttpContext.User
@@ -57,12 +55,12 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
                     }
                     else if (!string.IsNullOrEmpty(refreshToken))
                     {
-                        await HandleExpiredToken(context, refreshToken, secret,_configuration,  _tokenGenerator, _userRepository, _refreshTokenStrategy);
+                        await HandleExpiredToken(context, refreshToken, secret,  _tokenGenerator, _userRepository, _refreshTokenStrategy);
                     }
                 }
                 else if (!string.IsNullOrEmpty(refreshToken))
                 {
-                    await HandleExpiredToken(context, refreshToken, secret,_configuration,_tokenGenerator, _userRepository, _refreshTokenStrategy);
+                    await HandleExpiredToken(context, refreshToken, secret,_tokenGenerator, _userRepository, _refreshTokenStrategy);
                 }
                
             }
@@ -74,7 +72,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
             await next();
         }
 
-        private async Task<(JwtSecurityToken?, ClaimsPrincipal?)> ValidateToken(string token, string secret,IConfiguration configuration)
+        private async Task<(JwtSecurityToken?, ClaimsPrincipal?)> ValidateToken(string token, string secret)
         {
             var handler = new JwtSecurityTokenHandler();
             try
@@ -110,10 +108,10 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
             }
         }
 
-        private async Task HandleExpiredToken(HttpContext context, string refreshToken, string secret, IConfiguration configuration,
-            ITokenGenerator tokenService, IUserRepository utility, IRefreshTokenGenerator refreshTokenMethod)
+        private async Task HandleExpiredToken(HttpContext context, string refreshToken, string secret, 
+            ITokenGenerator tokenService, IUserRepository repository, IRefreshTokenGenerator refreshTokenMethod)
         {
-            var refreshTokenValid = await ValidateRefreshToken(refreshToken, secret,configuration);
+            var refreshTokenValid = await ValidateRefreshToken(refreshToken, secret);
             if (!refreshTokenValid)
             {
               
@@ -139,7 +137,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
                 return;
             }
 
-            var user = await utility.ObtenerUsuarioPorId(userIdParsed);
+            var user = await repository.ObtenerUsuarioPorId(userIdParsed);
             if (user == null)
             {
                 
@@ -171,7 +169,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
            
         }
 
-        private async Task<bool> ValidateRefreshToken(string refreshToken, string secret, IConfiguration configuration)
+        private async Task<bool> ValidateRefreshToken(string refreshToken, string secret)
         {
             try
             {

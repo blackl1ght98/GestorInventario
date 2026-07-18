@@ -1,6 +1,8 @@
 ﻿using GestorInventario.Domain.Models;
+using GestorInventario.Interfaces.Application.Authentication;
 using Microsoft.Extensions.Configuration;
 using System.Security.Claims;
+using System.Security.Cryptography;
 
 namespace GestorInventario.Application.Services.Authentication
 {
@@ -8,10 +10,11 @@ namespace GestorInventario.Application.Services.Authentication
     /// Helper para construir claims, issuer, audience y duraciones.
     /// Evita que las estrategias de access y refresh se acoplen entre sí.
     /// </summary>
-    public class TokenClaimsBuilder
+    public class TokenClaimsBuilder: ITokenClaimsBuilder
     {
         private readonly IConfiguration _configuration;
-
+        private RSA? _publicKeyFixedCache;
+        private readonly object _publicKeyLock = new();
         public TokenClaimsBuilder(IConfiguration configuration)
         {
             _configuration = configuration;
@@ -27,10 +30,10 @@ namespace GestorInventario.Application.Services.Authentication
 
             return new[]
             {
-          new Claim(ClaimTypes.Email, usuario.Email),
-          new Claim(ClaimTypes.Role, usuario.IdRolNavigation.Nombre),
-          new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString())
-      };
+              new Claim(ClaimTypes.Email, usuario.Email),
+              new Claim(ClaimTypes.Role, usuario.IdRolNavigation.Nombre),
+              new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString())
+            };
         }
 
         public string ObtenerIssuer() =>
@@ -44,7 +47,39 @@ namespace GestorInventario.Application.Services.Authentication
 
         public int ObtenerDuracionRefreshTokenHoras() =>
          ResolveInt("Jwt:RefreshTokenHours", "REFRESH_TOKEN_HOURS", defaultValue: 24);
-        public string ObtenerPublicKeyFixed()=> _configuration["Jwt:PublicKey"] ?? Environment.GetEnvironmentVariable("PUBLIC_KEY");
+        public RSA ObtenerPublicKeyFixed()
+        {
+            if (_publicKeyFixedCache is not null) return _publicKeyFixedCache;
+
+            lock (_publicKeyLock)
+            {
+                if (_publicKeyFixedCache is not null) return _publicKeyFixedCache;
+
+                var raw = _configuration["Jwt:PublicKey"]
+                          ?? Environment.GetEnvironmentVariable("PUBLIC_KEY");
+
+                if (string.IsNullOrWhiteSpace(raw))
+                {
+                    throw new InvalidOperationException(
+                        "La clave pública JWT fija no está configurada. " +
+                        "Solo se requiere cuando el modo de autenticación es AsymmetricFixed.");
+                }
+
+                try
+                {
+                    var rsa = RSA.Create();
+                    rsa.FromXmlString(raw);
+                    _publicKeyFixedCache = rsa;
+                    return rsa;
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException(
+                        "La clave pública JWT fija no es un XML RSA válido.", ex);
+                }
+            }
+        }
+        public string ObtenerClaveJWT()=> Environment.GetEnvironmentVariable("ClaveJWT") ?? _configuration["JWT:ClaveJWT"];
         private int ResolveInt(string configKey, string envKey, int defaultValue)
         {
             var raw = Environment.GetEnvironmentVariable(envKey) ?? _configuration[configKey];

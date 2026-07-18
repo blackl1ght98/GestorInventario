@@ -12,11 +12,11 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
 {
     public class RefreshAsymmetricDynamicToken : IRefreshTokenStrategy
     {
-        private readonly TokenClaimsBuilder _claimsBuilder;
+        private readonly ITokenClaimsBuilder _claimsBuilder;
         private readonly ICacheService _cache;
 
         public RefreshAsymmetricDynamicToken(
-            TokenClaimsBuilder claimsBuilder,
+            ITokenClaimsBuilder claimsBuilder,
             ICacheService cache)
         {
             _claimsBuilder = claimsBuilder;

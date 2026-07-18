@@ -12,12 +12,12 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
 {
     public class RefreshSymmetricToken : IRefreshTokenStrategy
     {
-        private readonly TokenClaimsBuilder _claimsBuilder;
+        private readonly ITokenClaimsBuilder _claimsBuilder;
         private readonly IConfiguration _configuration;
         private readonly ILogger<RefreshSymmetricToken> _logger;
 
         public RefreshSymmetricToken(
-            TokenClaimsBuilder claimsBuilder,
+            ITokenClaimsBuilder claimsBuilder,
             IConfiguration configuration,
             ILogger<RefreshSymmetricToken> logger)
         {
@@ -28,8 +28,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
 
         public Task<string> GenerarTokenRefresco(Usuario usuario)
         {
-            var clave = Environment.GetEnvironmentVariable("ClaveJWT")
-                     ?? _configuration["ClaveJWT"];
+            var clave = _claimsBuilder.ObtenerClaveJWT();
 
             if (string.IsNullOrEmpty(clave))
             {

@@ -25,7 +25,7 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
     private readonly IUserRepository _userRepository;
     private readonly ICacheService _cache;
     private readonly IRefreshTokenGenerator _refreshTokenGenerator;
-    private readonly TokenClaimsBuilder _tokenClaimsBuilder;
+    private readonly ITokenClaimsBuilder _tokenClaimsBuilder;
     private readonly ILogger<DynamicAsymmetricAuthStrategy> _logger;
 
     public DynamicAsymmetricAuthStrategy(
@@ -34,7 +34,7 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
         IUserRepository userRepository,
         ICacheService cache,
         IRefreshTokenGenerator refres,
-        TokenClaimsBuilder builder,
+        ITokenClaimsBuilder builder,
         ILogger<DynamicAsymmetricAuthStrategy> logger)
     {
        

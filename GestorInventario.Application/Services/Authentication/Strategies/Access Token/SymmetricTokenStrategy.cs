@@ -1,5 +1,6 @@
 ﻿
 using GestorInventario.Domain.Models;
+using GestorInventario.Interfaces.Application.Authentication;
 using GestorInventario.Shared.DTOS.Auth;
 
 using Microsoft.Extensions.Configuration;
@@ -11,13 +12,12 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
 {
     public class SymmetricTokenStrategy : BaseTokenStrategy
     {
-        public SymmetricTokenStrategy(IConfiguration configuration, TokenClaimsBuilder claimsBuilder)
+        public SymmetricTokenStrategy(IConfiguration configuration, ITokenClaimsBuilder claimsBuilder)
             : base(configuration, claimsBuilder) { }
 
         public override Task<LoginResponseDto> GenerateTokenAsync(Usuario usuario)
         {
-            var clave = Environment.GetEnvironmentVariable("CLAVE_JWT")
-                     ?? _configuration["ClaveJWT"];
+            var clave = _claimsBuilder.ObtenerClaveJWT();
 
             if (string.IsNullOrEmpty(clave))
                 throw new InvalidOperationException("La clave JWT no está configurada.");

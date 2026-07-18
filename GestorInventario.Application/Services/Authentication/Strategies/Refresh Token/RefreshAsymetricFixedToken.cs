@@ -10,11 +10,11 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
 {
     public class RefreshAsymetricFixedToken : IRefreshTokenStrategy
     {
-        private readonly TokenClaimsBuilder _claimsBuilder;
+        private readonly ITokenClaimsBuilder _claimsBuilder;
         private readonly IConfiguration _configuration;
 
         public RefreshAsymetricFixedToken(
-            TokenClaimsBuilder claimsBuilder,
+            ITokenClaimsBuilder claimsBuilder,
             IConfiguration configuration)
         {
             _claimsBuilder = claimsBuilder;

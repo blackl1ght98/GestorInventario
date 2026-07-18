@@ -11,7 +11,6 @@ using GestorInventario.Application.Services.Common;
 using GestorInventario.Application.Services.ExternalServices;
 using GestorInventario.Application.Services.ExternalServices.Refunds;
 using GestorInventario.Application.Services.Mapping;
-using GestorInventario.Application.Services.Notifications;
 using GestorInventario.Application.Services.PDFService;
 using GestorInventario.Application.Services.RepositoryServices;
 using GestorInventario.Application.Services.Syncs;
@@ -36,6 +35,7 @@ using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Interfaces.Renderer;
 using GestorInventario.Notifications.EmailServices;
+using GestorInventario.Notifications.Mensajes.Telegram;
 using GestorInventario.Renderer.Barcode;
 using GestorInventario.Renderer.Images;
 using GestorInventario.Renderer.PDF;
@@ -143,7 +143,7 @@ namespace GestorInventario.Composition
 
 
             //-- Tokens --
-            services.AddSingleton<TokenClaimsBuilder>();
+            services.AddSingleton<ITokenClaimsBuilder,TokenClaimsBuilder>();
             return services;
         }
 

@@ -1,5 +1,4 @@
 ﻿
-
 using GestorInventario.Application.Services.Authentication.Strategies.Configuration;
 using GestorInventario.Interfaces.Application.Authentication;
 
@@ -18,20 +17,22 @@ namespace GestorInventario.Configuracion
         public const string AuthModeConfigKey = "AuthMode";
 
         public static IServiceCollection AddConfigureAuthentication(
-            this IServiceCollection services,
-            IConfiguration configuration)
+       this IServiceCollection services,
+       IConfiguration configuration)
         {
             var mode = configuration[AuthModeConfigKey] ?? "AsymmetricDynamic";
+           
 
-       
-            var loggerFactory = LoggerFactory.Create(b => b.AddConsole());
-
+           
           
-            IConfigurationAuthenticationStrategy Build<TStrategy>(
-                Func<ILoggerFactory, TStrategy> factory)
+
+            
+            using var compositionProvider = services.BuildServiceProvider();
+
+            IConfigurationAuthenticationStrategy Build<TStrategy>()
                 where TStrategy : IConfigurationAuthenticationStrategy
             {
-                var instance = factory(loggerFactory);
+                var instance = ActivatorUtilities.CreateInstance<TStrategy>(compositionProvider);
                 instance.Configure(services, configuration);
                 return instance;
             }
@@ -39,18 +40,15 @@ namespace GestorInventario.Configuracion
             switch (mode)
             {
                 case "Symmetric":
-                    Build(logger => new SymmetricAuthenticationStrategy(
-                        logger.CreateLogger<SymmetricAuthenticationStrategy>()));
+                    Build<SymmetricAuthenticationStrategy>();
                     break;
 
                 case "AsymmetricFixed":
-                    Build(logger => new AsymmetricFixedAuthenticationStrategy(
-                        logger.CreateLogger<AsymmetricFixedAuthenticationStrategy>()));
+                    Build<AsymmetricFixedAuthenticationStrategy>();
                     break;
 
                 case "AsymmetricDynamic":
-                    Build(logger => new AsymmetricDynamicAuthenticationStrategy(
-                        logger.CreateLogger<AsymmetricDynamicAuthenticationStrategy>()));
+                    Build<AsymmetricDynamicAuthenticationStrategy>();
                     break;
 
                 default:
