@@ -7,6 +7,14 @@
 #    3. Verificar si Docker esta disponible.
 #    4. Arrancar Docker Desktop si esta instalado pero apagado.
 #    5. Ejecutar "docker compose up -d --build".
+#
+#  NOTA SOBRE VARIABLES DE ENTORNO:
+#  El docker-compose.yml lee las variables en MAYUSCULAS (DB_HOST,
+#  CLAVE_JWT, JWT_ISSUER, PUBLIC_KEY, etc.), que es como el codigo
+#  C# las busca via Environment.GetEnvironmentVariable(...). Por eso
+#  el .env generado aqui esta en MAYUSCULAS tambien. El bloque
+#  AuthenticationConfigurationExtensions ya no depende de la casing
+#  porque consulta directamente las variables, no appsettings.json.
 # =================================================================
 
 $ErrorActionPreference = 'Stop'
@@ -75,6 +83,9 @@ $envPath = Join-Path $PSScriptRoot '.env'
 $jwtReference = 'IntroduceClaveLargaergoherofiygkeuidgrf7ieurygf97836trf98egfiuytrf'
 $jwtLength = $jwtReference.Length   # 79
 
+# Orden EXACTO en que apareceran las variables en .env.
+# Coincide con las variables que docker-compose.yml consume
+# y con las que el codigo C# lee de Environment.GetEnvironmentVariable.
 $order = @(
     'DB_HOST'
     'DB_NAME'
@@ -82,53 +93,61 @@ $order = @(
     'DB_SA_USERNAME'
     'DB_SQLUSER'
     'DB_SQLUSER_PASSWORD'
-    'IsMfaEnabled'
-    'ClaveJWT'
+    'IS_MFA_ENABLED'
+    'CLAVE_JWT'
     'REDIS_CONNECTION_STRING'
-    'JwtIssuer'
-    'JwtAudience'
-    'PublicKey'
-    'PrivateKey'
-    'Paypal_ClientId'
-    'Paypal_ClientSecret'
-    'Paypal_Mode'
-    'Paypal_returnUrlConDocker'
-    'Email__Host'
-    'Email__Port'
-    'Email__Username'
-    'Email__Password'
+    'JWT_ISSUER'
+    'JWT_AUDIENCE'
+    'PUBLIC_KEY'
+    'PRIVATE_KEY'
+    'PAYPAL_BASEURL'
+    'PAYPAL_CLIENTID'
+    'PAYPAL_CLIENTSECRET'
+    'PAYPAL_RETURN_URL'
+    'PAYPAL_CANCEL_URL'
+    'EMAIL_HOST'
+    'EMAIL_PORT'
+    'EMAIL_USERNAME'
+    'EMAIL_PASSWORD'
     'CertificatePassword'
-    'AuthMode'
-    'LicenseKeyAutoMapper'
-    'CallMeBotUser'
+    'LOGIN_MODE'
+    'AUTH_MODE'
+    'LICENSE_AUTOMAPPER'
+    'TELEGRAM_USER'
+    'APP_DOCKER_URL'
 )
 
+# Defaults en MAYUSCULAS. Los vacios ("") se pediran al usuario.
+# Los que tienen valor fijo se imprimen como "(fijo, no editable)".
 $defaults = @{
-    DB_HOST                    = 'SQL-Server-Local'
-    DB_NAME                    = 'GestorInventario'
-    DB_SA_PASSWORD             = 'SQL#1234'
-    DB_SA_USERNAME             = 'sa'
-    DB_SQLUSER                 = 'sqluser'
-    DB_SQLUSER_PASSWORD        = '12345678SQL#1234'
-    IsMfaEnabled               = 'true'
-    ClaveJWT                   = ''
-    REDIS_CONNECTION_STRING    = 'redis:6379'
-    JwtIssuer                  = 'GestorInvetarioEmisor'
-    JwtAudience                = 'GestorInventarioCliente'
-    PublicKey                  = ''
-    PrivateKey                 = ''
-    Paypal_ClientId            = ''
-    Paypal_ClientSecret        = ''
-    Paypal_Mode                = 'sandbox'
-    Paypal_returnUrlConDocker  = 'https://localhost:8081/Payment/Success'
-    Email__Host                = 'smtp.gmail.com'
-    Email__Port                = '587'
-    Email__Username            = ''
-    Email__Password            = ''
-    CertificatePassword        = '0000'
-    AuthMode                   = 'AsymmetricDynamic'
-    LicenseKeyAutoMapper       = ''
-    CallMeBotUser              = ''
+    DB_HOST                  = 'SQL-Server-Local'
+    DB_NAME                  = 'GestorInventario'
+    DB_SA_PASSWORD           = 'SQL#1234'
+    DB_SA_USERNAME           = 'sa'
+    DB_SQLUSER               = 'sqluser'
+    DB_SQLUSER_PASSWORD      = '12345678SQL#1234'
+    IS_MFA_ENABLED           = 'true'
+    CLAVE_JWT                = ''
+    REDIS_CONNECTION_STRING  = 'redis:6379'
+    JWT_ISSUER               = 'GestorInvetarioEmisor'
+    JWT_AUDIENCE             = 'GestorInventarioCliente'
+    PUBLIC_KEY               = ''
+    PRIVATE_KEY              = ''
+    PAYPAL_BASEURL           = 'https://api-m.sandbox.paypal.com/'
+    PAYPAL_CLIENTID          = ''
+    PAYPAL_CLIENTSECRET      = ''
+    PAYPAL_RETURN_URL        = 'https://localhost:8081/Payment/Success'
+    PAYPAL_CANCEL_URL        = 'https://localhost:8081/Payment/Cancel'
+    EMAIL_HOST               = 'smtp.gmail.com'
+    EMAIL_PORT               = '587'
+    EMAIL_USERNAME           = ''
+    EMAIL_PASSWORD           = ''
+    CertificatePassword      = '0000'
+    LOGIN_MODE               = 'MfaLogin'
+    AUTH_MODE                = 'AsymmetricFixed'
+    LICENSE_AUTOMAPPER       = ''
+    TELEGRAM_USER            = ''
+    APP_DOCKER_URL           = 'https://localhost:8081'
 }
 
 function Open-Browser {
@@ -151,6 +170,10 @@ function New-RandomString {
     return $sb.ToString()
 }
 
+# Genera un par RSA en el MISMO formato XML que rsa.FromXmlString() espera
+# en C# (.NET XML legacy, no PEM). Por eso usamos ToXmlString:
+#   - $false => solo Modulus + Exponent         (clave publica)
+#   - $true  => + P, Q, DP, DQ, InverseQ, D    (clave privada con CRT)
 function New-RsaKeyPair {
     param([int]$Bits = 2048)
     $rsa = [System.Security.Cryptography.RSA]::Create($Bits)
@@ -190,12 +213,12 @@ Ask 'DB_SQLUSER_PASSWORD'  'Contrasena del usuario SQL'     $values['DB_SQLUSER_
 
 # [2.2] Seguridad
 Write-Host "`n   [2.2] Seguridad y autenticacion" -ForegroundColor Yellow
-$jwtInput = Ask 'ClaveJWT' "Clave JWT (secreto). Si la dejas vacia se generara una automatica de $jwtLength caracteres" ''
+$jwtInput = Ask 'CLAVE_JWT' "Clave JWT (secreto). Si la dejas vacia se generara una automatica de $jwtLength caracteres" ''
 if ([string]::IsNullOrWhiteSpace($jwtInput)) {
-    $values['ClaveJWT'] = New-RandomString -Length $jwtLength
+    $values['CLAVE_JWT'] = New-RandomString -Length $jwtLength
     Write-Host "   -> Clave JWT generada automaticamente." -ForegroundColor Green
 } else {
-    $values['ClaveJWT'] = $jwtInput
+    $values['CLAVE_JWT'] = $jwtInput
 }
 
 # [2.3] PayPal
@@ -204,19 +227,19 @@ Write-Host "   A continuacion se abrira el portal de PayPal Developers en tu nav
 Write-Host "   Inicia sesion, crea una app en sandbox y copia aqui ClientId y ClientSecret." -ForegroundColor DarkCyan
 $null = Read-Host "   Pulsa ENTER para abrir la pagina de PayPal"
 Open-Browser 'https://developer.paypal.com/home/'
-Ask 'Paypal_ClientId'     'PayPal ClientId'     ''
-Ask 'Paypal_ClientSecret' 'PayPal ClientSecret' ''
+Ask 'PAYPAL_CLIENTID'     'PayPal ClientId'     ''
+Ask 'PAYPAL_CLIENTSECRET' 'PayPal ClientSecret' ''
 
 # [2.4] Email
 Write-Host "`n   [2.4] Correo electronico (contrasena de aplicacion)" -ForegroundColor Yellow
-Ask 'Email__Username'     'Email (remitente)'   ''
-if (-not [string]::IsNullOrWhiteSpace($values['Email__Username'])) {
+Ask 'EMAIL_USERNAME'     'Email (remitente)'   ''
+if (-not [string]::IsNullOrWhiteSpace($values['EMAIL_USERNAME'])) {
     Write-Host "   A continuacion se abrira la pagina de contrasenas de aplicacion de Google." -ForegroundColor DarkCyan
     Write-Host "   Genera una contrasena para 'Correo' (o 'Mail') y pegala aqui." -ForegroundColor DarkCyan
     $null = Read-Host "   Pulsa ENTER para abrir la pagina de Google"
     Open-Browser 'https://myaccount.google.com/apppasswords'
 }
-Ask 'Email__Password'     'Contrasena de aplicacion de Google' ''
+Ask 'EMAIL_PASSWORD'     'Contrasena de aplicacion de Google' ''
 
 # [2.5] Licencia AutoMapper
 Write-Host "`n   [2.5] Licencia de AutoMapper (LuckyPennySoftware)" -ForegroundColor Yellow
@@ -224,21 +247,22 @@ Write-Host "   A continuacion se abrira la pagina de LuckyPennySoftware." -Foreg
 Write-Host "   Elige el plan GRATUITO, genera tu clave de licencia y pegala aqui abajo." -ForegroundColor DarkCyan
 $null = Read-Host "   Pulsa ENTER para abrir la pagina de LuckyPennySoftware"
 Open-Browser 'https://luckypennysoftware.com/'
-Ask 'LicenseKeyAutoMapper' 'Licencia AutoMapper (pega aqui la clave)' ''
+Ask 'LICENSE_AUTOMAPPER' 'Licencia AutoMapper (pega aqui la clave)' ''
 
 # [2.6] Otros
 Write-Host "`n   [2.6] Otros" -ForegroundColor Yellow
 Ask 'CertificatePassword'  'Contrasena del certificado'        $values['CertificatePassword']
-Ask 'CallMeBotUser'        'Usuario CallMeBot (Telegram)'      ''
+Ask 'TELEGRAM_USER'        'Usuario CallMeBot (Telegram)'      ''
 
-# Generar claves RSA en XML
+# Generar claves RSA en XML (.NET legacy: <Modulus><Exponent>...</Exponent></Modulus>
+# para la publica y +P, Q, DP, DQ, InverseQ, D para la privada)
 Write-Host "`n   Generando par de claves RSA (2048 bits)..." -ForegroundColor Yellow
 $keys = New-RsaKeyPair -Bits 2048
-$values['PublicKey']  = $keys.Public
-$values['PrivateKey'] = $keys.Private
+$values['PUBLIC_KEY']  = $keys.Public
+$values['PRIVATE_KEY'] = $keys.Private
 Write-Host "   Claves RSA generadas correctamente." -ForegroundColor Green
 
-# Volcar .env
+# Volcar .env. Si un valor contiene saltos de linea, lo entrecomillamos.
 $lines = foreach ($k in $order) {
     $v = $values[$k]
     if ($v -match "`r?`n") { "$k=`"$v`"" } else { "$k=$v" }

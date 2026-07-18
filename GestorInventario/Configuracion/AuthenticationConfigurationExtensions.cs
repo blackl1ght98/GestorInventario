@@ -21,11 +21,6 @@ namespace GestorInventario.Configuracion
        IConfiguration configuration)
         {
             var mode = configuration[AuthModeConfigKey] ?? "AsymmetricDynamic";
-           
-
-           
-          
-
             
             using var compositionProvider = services.BuildServiceProvider();
 

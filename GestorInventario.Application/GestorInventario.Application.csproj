@@ -24,8 +24,4 @@
     <ProjectReference Include="..\GestorInventario.Shared\GestorInventario.Shared.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Services\Notifications\" />
-  </ItemGroup>
-
 </Project>
