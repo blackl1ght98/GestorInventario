@@ -20,8 +20,8 @@ namespace GestorInventario.Interfaces.Infraestructure.Repositories
         Task<OperationResult<string>> EliminarDetallesPagoAsync(PayPalPaymentDetail pago);
         Task<OperationResult<PayPalPaymentShipping>> AgregarInfoEnvioAsync(PayPalPaymentShipping detalle);
         Task<OperationResult<PayPalPaymentCapture>> AgregarCaptureAsync(PayPalPaymentCapture detalle);
-      
-        
+
+        Task<OperationResult<PayPalPaymentRefund>> AgregarRefundAsync(PayPalPaymentRefund refund);
 
     }
 }

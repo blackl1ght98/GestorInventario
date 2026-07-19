@@ -26,8 +26,7 @@ namespace GestorInventario.Shared.DTOS.Paypal.Responses.GET.Order
         [JsonProperty("update_time")]
         public required string UpdateTime { get; init; }
 
-        [JsonProperty("links")]
-        public required List<Link> Links { get; init; }
+       
     }
 
     public record PaymentSourceDetails
@@ -108,14 +107,11 @@ namespace GestorInventario.Shared.DTOS.Paypal.Responses.GET.Order
         [JsonProperty("shipping")]
         public required MoneyDetails Shipping { get; init; }
 
-        [JsonProperty("handling")]
-        public required MoneyDetails Handling { get; init; }
+        
         [JsonProperty("tax_total")]
         public required MoneyDetails TaxTotal { get; init; }
-        [JsonProperty("insurance")]
-        public required MoneyDetails Insurance { get; init; }
-        [JsonProperty("shipping_discount")]
-        public required MoneyDetails ShippingDiscount { get; init; }
+
+       
     }
 
     public record MoneyDetails
@@ -183,8 +179,7 @@ namespace GestorInventario.Shared.DTOS.Paypal.Responses.GET.Order
         [JsonProperty("invoice_id")]
         public required string InvoiceId { get; init; }
 
-        [JsonProperty("links")]
-        public required List<Link> Links { get; init; }
+       
 
         [JsonProperty("create_time")]
         public required string CreateTime { get; init; }
@@ -244,8 +239,6 @@ namespace GestorInventario.Shared.DTOS.Paypal.Responses.GET.Order
         [JsonProperty("status")]
         public required string Status { get; init; }
 
-        [JsonProperty("links")]
-        public required List<Link> Links { get; init; }
 
         [JsonProperty("create_time")]
         public required string CreateTime { get; init; }
@@ -324,8 +317,7 @@ namespace GestorInventario.Shared.DTOS.Paypal.Responses.GET.Order
         [JsonProperty("items")]
         public required List<TrackerItem> Items { get; init; }
 
-        [JsonProperty("links")]
-        public required List<Link> Links { get; init; }
+       
 
         [JsonProperty("status")]
         public required string Status { get; init; }
@@ -378,15 +370,5 @@ namespace GestorInventario.Shared.DTOS.Paypal.Responses.GET.Order
 
      
 
-    public record Link
-    {
-        [JsonProperty("href")]
-        public required string Href { get; init; }
-
-        [JsonProperty("rel")]
-        public required string Rel { get; init; }
-
-        [JsonProperty("method")]
-        public required string Method { get; init; }
-    }
+  
 }

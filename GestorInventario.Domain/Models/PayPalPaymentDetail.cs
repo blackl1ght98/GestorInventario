@@ -37,9 +37,13 @@ public partial class PayPalPaymentDetail
 
     public DateTime UpdateTime { get; set; }
 
+    public decimal AmountTax { get; set; }
+
     public virtual ICollection<PayPalPaymentCapture> PayPalPaymentCaptures { get; set; } = new List<PayPalPaymentCapture>();
 
     public virtual ICollection<PayPalPaymentItem> PayPalPaymentItems { get; set; } = new List<PayPalPaymentItem>();
+
+    public virtual ICollection<PayPalPaymentRefund> PayPalPaymentRefunds { get; set; } = new List<PayPalPaymentRefund>();
 
     public virtual ICollection<PayPalPaymentShipping> PayPalPaymentShippings { get; set; } = new List<PayPalPaymentShipping>();
 }

@@ -23,7 +23,7 @@ namespace GestorInventario.Infrastructure.Repositories.PaypalRepository
         }
         public async Task<PayPalPaymentDetail> ObtenerDetallePagoPorId(string paymentId)
         {
-            var paypal = await _context.PayPalPaymentDetails.Include(x => x.PayPalPaymentCaptures).Include(x => x.PayPalPaymentItems).Include(x => x.PayPalPaymentShippings).FirstOrDefaultAsync(x => x.Id == paymentId);
+            var paypal = await _context.PayPalPaymentDetails.Include(x => x.PayPalPaymentCaptures).Include(x => x.PayPalPaymentItems).Include(x => x.PayPalPaymentShippings).Include(x=>x.PayPalPaymentRefunds).FirstOrDefaultAsync(x => x.Id == paymentId);
             return paypal;
         }
         public async Task<List<SubscriptionDetail>> ObtenerSuscriptcionesActivas(string planId)
@@ -122,7 +122,7 @@ namespace GestorInventario.Infrastructure.Repositories.PaypalRepository
                 return OperationResult<UserSubscription>.Ok("Detalles de subscripcion creada", subscripcion);
             });
         }
-      
+       
         
         // Método para crear la lista de categorías a partir de la enumeración
         public List<string> GetCategoriesFromEnum()

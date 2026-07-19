@@ -39,5 +39,7 @@ public partial class Pedido
 
     public virtual ICollection<PayPalPaymentCapture> PayPalPaymentCaptures { get; set; } = new List<PayPalPaymentCapture>();
 
+    public virtual ICollection<PayPalPaymentRefund> PayPalPaymentRefunds { get; set; } = new List<PayPalPaymentRefund>();
+
     public virtual ICollection<Rembolso> Rembolsos { get; set; } = new List<Rembolso>();
 }

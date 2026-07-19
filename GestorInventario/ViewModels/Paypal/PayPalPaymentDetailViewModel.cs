@@ -14,6 +14,7 @@ namespace GestorInventario.ViewModels.Paypal
         public AmountInfo Amount { get; init; } = new();
         public PayeeInfo Payee { get; init; } = new();
         public CaptureInfo Capture { get; init; } = new();
+        public RefundInfo? Refund { get; init; }
         public List<PayPalPaymentItemDto> Items { get; init; } = new();
     }
 
@@ -41,6 +42,7 @@ namespace GestorInventario.ViewModels.Paypal
         public string Currency { get; init; } = string.Empty;
         public decimal ItemTotal { get; init; }
         public decimal Shipping { get; init; }
+        public decimal Tax { get; init; }
     }
 
     public class PayeeInfo
@@ -64,5 +66,15 @@ namespace GestorInventario.ViewModels.Paypal
         public decimal ExchangeRate { get; init; }
         public bool FinalCapture { get; init; }
         public string DisputeCategories { get; init; } = string.Empty;
+    }
+    public class RefundInfo
+    {
+        public string RefundId { get; init; } = string.Empty;
+        public string Status { get; init; } = string.Empty;
+        public decimal Amount { get; init; }
+        public string Currency { get; init; } = string.Empty;
+        public string? NoteToPayer { get; init; }
+        public DateTime CreateTime { get; init; }
+        public DateTime UpdateTime { get; init; }
     }
 }

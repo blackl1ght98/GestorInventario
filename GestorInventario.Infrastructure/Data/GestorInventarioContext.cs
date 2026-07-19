@@ -7,6 +7,10 @@ namespace GestorInventario.Infrastructure.Data;
 
 public partial class GestorInventarioContext : DbContext
 {
+    public GestorInventarioContext()
+    {
+    }
+
     public GestorInventarioContext(DbContextOptions<GestorInventarioContext> options)
         : base(options)
     {
@@ -23,6 +27,8 @@ public partial class GestorInventarioContext : DbContext
     public virtual DbSet<PayPalPaymentDetail> PayPalPaymentDetails { get; set; }
 
     public virtual DbSet<PayPalPaymentItem> PayPalPaymentItems { get; set; }
+
+    public virtual DbSet<PayPalPaymentRefund> PayPalPaymentRefunds { get; set; }
 
     public virtual DbSet<PayPalPaymentShipping> PayPalPaymentShippings { get; set; }
 
@@ -43,6 +49,8 @@ public partial class GestorInventarioContext : DbContext
     public virtual DbSet<UserSubscription> UserSubscriptions { get; set; }
 
     public virtual DbSet<Usuario> Usuarios { get; set; }
+
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -178,6 +186,9 @@ public partial class GestorInventarioContext : DbContext
             entity.Property(e => e.AmountShipping)
                 .HasColumnType("decimal(10, 2)")
                 .HasColumnName("amount_shipping");
+            entity.Property(e => e.AmountTax)
+                .HasColumnType("decimal(10, 2)")
+                .HasColumnName("amount_tax");
             entity.Property(e => e.AmountTotal)
                 .HasColumnType("decimal(10, 2)")
                 .HasColumnName("amount_total");
@@ -269,6 +280,44 @@ public partial class GestorInventarioContext : DbContext
                 .HasForeignKey(d => d.PayPalId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__PayPalPay__payPa__6BCEF5F8");
+        });
+
+        modelBuilder.Entity<PayPalPaymentRefund>(entity =>
+        {
+            entity.HasIndex(e => e.PaymentId, "IX_PayPalPaymentRefunds_PaymentId");
+
+            entity.HasIndex(e => e.PedidoId, "IX_PayPalPaymentRefunds_PedidoId");
+
+            entity.HasIndex(e => e.RefundId, "UX_PayPalPaymentRefunds_RefundId").IsUnique();
+
+            entity.Property(e => e.Amount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.CreateTime).HasColumnType("datetime");
+            entity.Property(e => e.Currency)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.NetAmount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.NoteToPayer).HasMaxLength(500);
+            entity.Property(e => e.PaymentId)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.PaypalFee).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.RefundId)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.TotalRefundedAmount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.UpdateTime).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Payment).WithMany(p => p.PayPalPaymentRefunds)
+                .HasForeignKey(d => d.PaymentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PayPalPaymentRefunds_Payment");
+
+            entity.HasOne(d => d.Pedido).WithMany(p => p.PayPalPaymentRefunds)
+                .HasForeignKey(d => d.PedidoId)
+                .HasConstraintName("FK_PayPalPaymentRefunds_Pedido");
         });
 
         modelBuilder.Entity<PayPalPaymentShipping>(entity =>

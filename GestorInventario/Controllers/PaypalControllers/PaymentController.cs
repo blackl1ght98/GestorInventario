@@ -176,6 +176,9 @@ namespace GestorInventario.Controllers.PaypalControllers
             var ultimaInfoEnvio = paypalDetail.PayPalPaymentShippings
                 .OrderByDescending(c => c.Id)
                 .FirstOrDefault();
+            var ultimoRefund = paypalDetail.PayPalPaymentRefunds?
+            .OrderByDescending(r => r.CreateTime)
+            .FirstOrDefault();
 
             var viewModel = new PayPalPaymentDetailViewModel
             {
@@ -209,6 +212,7 @@ namespace GestorInventario.Controllers.PaypalControllers
                     Currency = paypalDetail.AmountCurrency ?? string.Empty,
                     ItemTotal = paypalDetail.AmountItemTotal ,
                     Shipping = paypalDetail.AmountShipping ,
+                    Tax = paypalDetail.AmountTax,
                 },
 
                 Payee = new PayeeInfo
@@ -233,7 +237,18 @@ namespace GestorInventario.Controllers.PaypalControllers
                     FinalCapture = ultimoCapture?.FinalCapture ?? false,
                     DisputeCategories = ultimoCapture?.DisputeCategories ?? string.Empty,
                 },
-
+                Refund = ultimoRefund != null
+                  ? new RefundInfo
+                  {
+                      RefundId = ultimoRefund.RefundId,
+                      Status = ultimoRefund.Status,
+                      Amount = ultimoRefund.Amount,
+                      Currency = ultimoRefund.Currency,
+                      NoteToPayer = ultimoRefund.NoteToPayer,
+                      CreateTime = ultimoRefund.CreateTime,
+                      UpdateTime = ultimoRefund.UpdateTime,
+                  }
+                  : null,
                 Items = paypalDetail.PayPalPaymentItems?.Select(item => new PayPalPaymentItemDto
                 {
                     ItemName = item.ItemName,

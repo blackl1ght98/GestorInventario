@@ -4,6 +4,13 @@
 @model PayPalPaymentDetailViewModel
 @{
     ViewData["Title"] = "Factura de Pago - GestorInventario";
+
+    var isRefunded = Model.Refund != null;
+    var isPartialRefund = Model.Capture?.Status == "PARTIALLY_REFUNDED";
+    var refundDate = Model.Refund?.CreateTime.ToString("dd/MM/yyyy HH:mm");
+    var saldoPendiente = isRefunded
+        ? Model.Amount.Total - Model.Refund!.Amount
+        : (decimal?)null;
 }
 
 <div class="container my-5">
@@ -19,12 +26,23 @@
                 <div class="col-md-6 text-md-end">
                     <p class="mb-1"><strong>Fecha:</strong> @Model.CreateTime?.ToString("dd/MM/yyyy HH:mm")</p>
                     <p class="mb-1"><strong>ID del Pago:</strong> <span class="text-muted">@Model.Id</span></p>
-                    <p>
-                        <strong>Estado:</strong>
+
+                    <p class="mb-1">
+                        <strong>Estado del pago:</strong>
                         <span class="badge bg-@(Model.Status == "COMPLETED" ? "success" : "warning") fs-6">
                             @Model.Status
                         </span>
                     </p>
+
+                    @if (isRefunded)
+                    {
+                        <p class="mb-0">
+                            <strong>Reembolso:</strong>
+                            <span class="badge bg-warning text-dark fs-6">
+                                @(isPartialRefund ? "Parcial" : "Total")
+                            </span>
+                        </p>
+                    }
                 </div>
             </div>
 
@@ -37,20 +55,23 @@
                     <table class="table table-borderless">
                         <tr>
                             <th class="ps-0" style="width: 35%;">Nombre:</th>
-                            <td>@Model.Payer.FirstName @Model.Payer.LastName</td>
+                            <td>@(Model.Payer?.FirstName) @(Model.Payer?.LastName)</td>
                         </tr>
                         <tr>
                             <th class="ps-0">Email:</th>
-                            <td>@Model.Payer.Email</td>
+                            <td>@Model.Payer?.Email</td>
                         </tr>
-                        <tr>
-                            <th class="ps-0">Dirección de envío:</th>
-                            <td>
-                                @Model.Shipping.Line1<br />
-                                @Model.Shipping.City, @Model.Shipping.State @Model.Shipping.PostalCode<br />
-                                @Model.Shipping.CountryCode
-                            </td>
-                        </tr>
+                        @if (Model.Shipping != null)
+                        {
+                            <tr>
+                                <th class="ps-0">Dirección de envío:</th>
+                                <td>
+                                    @Model.Shipping.Line1<br />
+                                    @Model.Shipping.City, @Model.Shipping.State @Model.Shipping.PostalCode<br />
+                                    @Model.Shipping.CountryCode
+                                </td>
+                            </tr>
+                        }
                     </table>
                 </div>
             </div>
@@ -69,17 +90,19 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in Model.Items)
+                        @if (Model.Items != null)
                         {
-                            var totalItem = (item.ItemPrice * item.ItemQuantity) + item.ItemTax;
-
-                            <tr>
-                                <td><strong>@item.ItemName</strong></td>
-                                <td class="text-center">@item.ItemQuantity</td>
-                                <td class="text-end">@item.ItemPrice</td>
-                                <td class="text-end text-success">@item.ItemTax</td>
-                                <td class="text-end fw-bold">@totalItem</td>
-                            </tr>
+                            foreach (var item in Model.Items)
+                            {
+                                var totalItem = (item.ItemPrice * item.ItemQuantity) + item.ItemTax;
+                                <tr>
+                                    <td><strong>@item.ItemName</strong></td>
+                                    <td class="text-center">@item.ItemQuantity</td>
+                                    <td class="text-end">@item.ItemPrice</td>
+                                    <td class="text-end text-success">@item.ItemTax</td>
+                                    <td class="text-end fw-bold">@totalItem</td>
+                                </tr>
+                            }
                         }
                     </tbody>
                 </table>
@@ -94,46 +117,50 @@
 
                             <div class="d-flex justify-content-between mb-2">
                                 <span>Subtotal</span>
-                                <span>@Model.Amount.ItemTotal</span>
+                                <span>@Model.Amount.ItemTotal.ToString("0.00") @Model.Amount.Currency</span>
                             </div>
+
                             <div class="d-flex justify-content-between mb-2">
                                 <span>Envío</span>
-                                <span>@Model.Amount.Shipping</span>
+                                <span>@Model.Amount.Shipping.ToString("0.00") @Model.Amount.Currency</span>
                             </div>
-                            @if (Model.Capture.TransactionFeeAmount > 0)
+                            <span>Impuestos</span>
+                            <span>@Model.Amount.Tax.ToString("0.00") @Model.Amount.Currency</span>
+                            @if (isRefunded)
                             {
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Comisión PayPal</span>
-                                    <span class="text-danger">@Model.Capture.TransactionFeeAmount</span>
+                                <div class="d-flex justify-content-between mb-2 text-warning">
+                                    <span>Reembolso del @refundDate</span>
+                                    <span>-@Model.Refund!.Amount.ToString("0.00") @Model.Refund.Currency</span>
                                 </div>
                             }
-                            <hr>
-                            <div class="d-flex justify-content-between fs-5 fw-bold">
-                                <span>Total Pagado</span>
-                                <span>@Model.Amount.Total</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Información Adicional -->
-            <div class="mt-5 pt-4 border-top">
-                <h5 class="text-primary mb-3">Detalles Adicionales</h5>
-                <div class="row">
-                    <div class="col-md-6">
-                        <p><strong>ID de Venta:</strong> @Model.Capture.SaleId</p>
-                        <p><strong>Estado de Captura:</strong> @Model.Capture.Status</p>
-                    </div>
-                    <div class="col-md-6">
-                        @if (Model.Capture.ExchangeRate > 0)
-                        {
-                            <p><strong>Tipo de Cambio:</strong> @Model.Capture.ExchangeRate</p>
-                        }
-                        @if (Model.Capture.ReceivableAmount > 0)
-                        {
-                            <p><strong>Monto Recibible:</strong> @Model.Capture.ReceivableAmount @Model.Capture.ReceivableCurrency</p>
-                        }
+                            <hr>
+
+                            @if (isRefunded)
+                            {
+                                @if (isPartialRefund)
+                                {
+                                    <div class="d-flex justify-content-between fs-5 fw-bold">
+                                        <span>Total neto</span>
+                                        <span>@saldoPendiente?.ToString("0.00") @Model.Amount.Currency</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="d-flex justify-content-between fs-5 fw-bold text-muted">
+                                        <span>Saldo pendiente</span>
+                                        <span>0,00 @Model.Amount.Currency</span>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="d-flex justify-content-between fs-5 fw-bold">
+                                    <span>Total Pagado</span>
+                                    <span>@Model.Amount.Total.ToString("0.00") @Model.Amount.Currency</span>
+                                </div>
+                            }
+                        </div>
                     </div>
                 </div>
             </div>

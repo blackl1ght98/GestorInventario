@@ -24,7 +24,7 @@ namespace GestorInventario.Infrastructure.Repositories.PaymentRepository
                 .Include(d => d.PayPalPaymentShippings)
                 .FirstOrDefaultAsync(d => d.Id == pagoId);
       
-        public async Task<PayPalPaymentDetail> ObtenerDetallesPago(string id) => await _context.PayPalPaymentDetails.Include(d => d.PayPalPaymentItems).Include(x => x.PayPalPaymentShippings).Include(x => x.PayPalPaymentCaptures).FirstOrDefaultAsync(x => x.Id == id);
+        public async Task<PayPalPaymentDetail> ObtenerDetallesPago(string id) => await _context.PayPalPaymentDetails.Include(d => d.PayPalPaymentItems).Include(x => x.PayPalPaymentShippings).Include(x => x.PayPalPaymentCaptures).Include(x=>x.PayPalPaymentRefunds).FirstOrDefaultAsync(x => x.Id == id);
        
         public async Task<OperationResult<PayPalPaymentDetail>> AgregarDetallePagoAsync(PayPalPaymentDetail detalle)
         {
@@ -69,12 +69,20 @@ namespace GestorInventario.Infrastructure.Repositories.PaymentRepository
                 await _context.DeleteRangeEntityAsync(pago.PayPalPaymentItems);
                 await _context.DeleteRangeEntityAsync(pago.PayPalPaymentCaptures);
                 await _context.DeleteRangeEntityAsync(pago.PayPalPaymentShippings);
+                await _context.DeleteRangeEntityAsync(pago.PayPalPaymentRefunds);
 
 
                 return OperationResult<string>.Ok("Pedido eliminado con exito");
             });
         }
-     
 
+        public async Task<OperationResult<PayPalPaymentRefund>> AgregarRefundAsync(PayPalPaymentRefund refund)
+        {
+            return await _context.ExecuteInTransactionAsync(async () =>
+            {
+                await _context.AddEntityAsync(refund);
+                return OperationResult<PayPalPaymentRefund>.Ok("Rembolso creada", refund);
+            });
+        }
     }
 }
