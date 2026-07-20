@@ -83,9 +83,7 @@ $envPath = Join-Path $PSScriptRoot '.env'
 $jwtReference = 'IntroduceClaveLargaergoherofiygkeuidgrf7ieurygf97836trf98egfiuytrf'
 $jwtLength = $jwtReference.Length   # 79
 
-# Orden EXACTO en que apareceran las variables en .env.
-# Coincide con las variables que docker-compose.yml consume
-# y con las que el codigo C# lee de Environment.GetEnvironmentVariable.
+
 # Orden EXACTO en que apareceran las variables en .env.
 # Coincide con las variables que docker-compose.yml consume
 # y con las que el codigo C# lee de Environment.GetEnvironmentVariable.
@@ -199,10 +197,10 @@ function Ask {
         $script:values[$Key] = $Default
         return $Default
     }
-    $input = Read-Host "$Prompt (sin valor por defecto)"
-    if ([string]::IsNullOrWhiteSpace($input)) { $input = '' }
-    $script:values[$Key] = $input
-    return $input
+    $response = Read-Host "$Prompt (sin valor por defecto)"
+    if ([string]::IsNullOrWhiteSpace($response)) { $response = '' }
+    $script:values[$Key] = $response
+    return $response
 }
 
 Write-Host '   Los valores con texto por defecto NO se pueden editar; los vacios se piden.' -ForegroundColor DarkGray
@@ -269,7 +267,7 @@ Ask 'TELEGRAM_USER'        'Usuario CallMeBot (Telegram)'      ''
 #   - AUTH_MODE : Symmetric | AsymmetricFixed | AsymmetricDynamic
 Write-Host "`n   [2.7] Modo de aplicacion" -ForegroundColor Yellow
 
-function Ask-Choice {
+function Read-Choice {
     param(
         [string]$Key,
         [string]$Prompt,
@@ -293,8 +291,8 @@ function Ask-Choice {
     }
 }
 
-Ask-Choice 'LOGIN_MODE' 'Modo de login'                @('StandardLogin', 'MfaLogin')                   $values['LOGIN_MODE']
-Ask-Choice 'AUTH_MODE'  'Modo de autenticacion JWT'    @('Symmetric', 'AsymmetricFixed', 'AsymmetricDynamic') $values['AUTH_MODE']
+Read-Choice 'LOGIN_MODE' 'Modo de login'                @('StandardLogin', 'MfaLogin')                   $values['LOGIN_MODE']
+Read-Choice 'AUTH_MODE'  'Modo de autenticacion JWT'    @('Symmetric', 'AsymmetricFixed', 'AsymmetricDynamic') $values['AUTH_MODE']
 
 # Generar claves RSA en XML (.NET legacy: <Modulus><Exponent>...</Exponent></Modulus>
 # para la publica y +P, Q, DP, DQ, InverseQ, D para la privada)
@@ -325,7 +323,7 @@ function Test-DockerInstalled {
 
 function Test-DockerRunning {
     try {
-        $info = docker info 2>$null
+         docker info 2>$null
         return ($LASTEXITCODE -eq 0)
     } catch {
         return $false

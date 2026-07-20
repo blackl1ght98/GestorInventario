@@ -124,8 +124,11 @@
                                 <span>Envío</span>
                                 <span>@Model.Amount.Shipping.ToString("0.00") @Model.Amount.Currency</span>
                             </div>
-                            <span>Impuestos</span>
-                            <span>@Model.Amount.Tax.ToString("0.00") @Model.Amount.Currency</span>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Impuestos</span>
+                                <span>@Model.Amount.Tax.ToString("0.00") @Model.Amount.Currency</span>
+                            </div>
+                          
                             @if (isRefunded)
                             {
                                 <div class="d-flex justify-content-between mb-2 text-warning">
