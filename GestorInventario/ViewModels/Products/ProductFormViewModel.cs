@@ -1,4 +1,4 @@
-﻿using GestorInventario.enums.Archivos;
+﻿using GestorInventario.Domain.enums.Archivos;
 using GestorInventario.Validations;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;

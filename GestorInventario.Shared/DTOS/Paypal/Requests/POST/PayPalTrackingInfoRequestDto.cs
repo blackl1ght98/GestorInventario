@@ -1,5 +1,4 @@
-﻿using GestorInventario.enums.Pedido;
-using GestorInventario.enums.Productos;
+﻿using GestorInventario.Domain.enums.Pedido;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 

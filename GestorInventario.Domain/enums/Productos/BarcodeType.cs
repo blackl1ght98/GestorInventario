@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.enums.Productos
+﻿namespace GestorInventario.Domain.enums.Productos
 {
     public enum BarcodeType
     {

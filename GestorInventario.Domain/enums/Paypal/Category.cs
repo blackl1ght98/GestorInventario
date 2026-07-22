@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.enums.Paypal
+﻿namespace GestorInventario.Domain.enums.Paypal
 {
     public enum Category
     {

@@ -1,5 +1,4 @@
-﻿using GestorInventario.enums.Productos;
-
+﻿using GestorInventario.Domain.enums.Productos;
 
 namespace GestorInventario.Interfaces.Renderer
 {

@@ -1,5 +1,5 @@
-﻿using GestorInventario.enums.Pedido;
-using GestorInventario.enums.Productos;
+﻿using GestorInventario.Domain.enums.Pedido;
+using GestorInventario.Domain.enums.Productos;
 using GestorInventario.Interfaces.Application.ExternalServices;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Repositories;

@@ -1,4 +1,4 @@
-﻿using GestorInventario.enums.Productos;
+﻿using GestorInventario.Domain.enums.Productos;
 using GestorInventario.Shared.DTOS.Barcode;
 
 namespace GestorInventario.Interfaces.Application.Services

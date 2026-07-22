@@ -1,4 +1,4 @@
-﻿using GestorInventario.enums.Productos;
+﻿using GestorInventario.Domain.enums.Productos;
 using GestorInventario.Interfaces.Application.Services;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Interfaces.Renderer;

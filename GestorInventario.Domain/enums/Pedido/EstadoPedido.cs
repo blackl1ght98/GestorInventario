@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace GestorInventario.enums.Pedido
+namespace GestorInventario.Domain.enums.Pedido
 {
     public enum EstadoPedido
     {

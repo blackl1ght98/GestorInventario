@@ -22,12 +22,14 @@
         <input type="text" class="form-control" id="Cantidad" asp-for="Cantidad" >
     </div>
     <div class="form-group">
-        <label asp-for="ArchivoImagen" class="control-label"></label>
-        <input asp-for="ArchivoImagen" type="file" class="form-control" id="ArchivoImagen" />
-        <img src="@Url.Content("~/" + Model.Imagen)"
+        <label asp-for="ArchivoImagen" class="control-label" for="ArchivoImagen">Imagen</label>
+        <input asp-for="ArchivoImagen" type="file" class="form-control" accept=".jpg,.jpeg,.png,.gif" id="ArchivoImagen" />
+        <span asp-validation-for="ArchivoImagen" class="text-danger"></span>
+         <img src="@Url.Content("~/" + Model.Imagen)"
              alt="Imagen actual del producto"
              style="width: 100px; height: 100px; margin-top: 8px;" />
     </div>
+
     <div class="form-group">
 
         <label for="Precio">Precio</label>

@@ -1,4 +1,4 @@
-﻿using GestorInventario.enums.Email;
+﻿using GestorInventario.Domain.enums.Email;
 
 namespace GestorInventario.Notifications.EmailServices
 {

@@ -1,5 +1,4 @@
-﻿using GestorInventario.enums.Pedido;
-using GestorInventario.enums.Productos;
+﻿using GestorInventario.Domain.enums.Pedido;
 using System.Text.Json.Serialization;
 
 namespace GestorInventario.Shared.DTOS.Paypal.BD

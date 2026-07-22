@@ -1,4 +1,4 @@
-﻿using GestorInventario.enums.Productos;
+﻿using GestorInventario.Domain.enums.Productos;
 using GestorInventario.Interfaces.Renderer;
 using System.Drawing;
 using System.Drawing.Imaging;

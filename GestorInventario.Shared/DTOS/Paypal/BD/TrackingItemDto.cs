@@ -1,5 +1,4 @@
-﻿using GestorInventario.enums.Productos;
-
+﻿
 namespace GestorInventario.Shared.DTOS.Paypal.BD
 {
     public record TrackingItemDto

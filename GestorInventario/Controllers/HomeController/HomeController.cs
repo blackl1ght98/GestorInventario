@@ -1,6 +1,6 @@
 ﻿
+using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Domain.Models;
-using GestorInventario.enums.Pedido;
 using GestorInventario.Infrastructure.Data;
 using GestorInventario.ViewModels;
 using GestorInventario.ViewModels.Dashboard;

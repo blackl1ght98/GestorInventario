@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.enums.Email
+﻿namespace GestorInventario.Domain.enums.Email
 {
     public enum EmailView
     {

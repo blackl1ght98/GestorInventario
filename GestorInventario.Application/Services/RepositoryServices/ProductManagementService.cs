@@ -1,5 +1,5 @@
-﻿using GestorInventario.Domain.Models;
-using GestorInventario.enums.Productos;
+﻿using GestorInventario.Domain.enums.Productos;
+using GestorInventario.Domain.Models;
 
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.Services;

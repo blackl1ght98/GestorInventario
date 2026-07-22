@@ -1,4 +1,4 @@
-﻿using GestorInventario.enums.Pedido;
+﻿using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Extensions;
 using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.Services;

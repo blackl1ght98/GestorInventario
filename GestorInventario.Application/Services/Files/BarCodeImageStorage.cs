@@ -1,7 +1,7 @@
 ﻿using GestorInventario.Interfaces.Application.Common;
 using GestorInventario.Interfaces.Application.Services;
 
-namespace GestorInventario.Files
+namespace GestorInventario.Application.Services.Files
 {
     public class BarCodeImageStorage : IBarCodeImageStorage
     {

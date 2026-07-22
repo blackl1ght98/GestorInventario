@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.enums.Usuario
+﻿namespace GestorInventario.Domain.enums.Usuario
 {
     public enum Rol
     {

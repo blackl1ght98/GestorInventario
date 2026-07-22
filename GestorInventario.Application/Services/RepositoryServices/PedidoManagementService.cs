@@ -1,6 +1,6 @@
-﻿using GestorInventario.Domain.Models;
-using GestorInventario.enums.Paypal;
-using GestorInventario.enums.Pedido;
+﻿using GestorInventario.Domain.enums.Paypal;
+using GestorInventario.Domain.enums.Pedido;
+using GestorInventario.Domain.Models;
 
 
 using GestorInventario.Interfaces.Application.Common;
