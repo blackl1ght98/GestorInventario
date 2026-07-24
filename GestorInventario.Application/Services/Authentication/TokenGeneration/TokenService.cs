@@ -1,9 +1,8 @@
-﻿
-using GestorInventario.Domain.Models;
+﻿using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application.Services.Authentication;
 using GestorInventario.Shared.DTOS.Auth;
 
-namespace GestorInventario.Application.Services
+namespace GestorInventario.Application.Services.Authentication.TokenGeneration
 {
     public class TokenService: ITokenService
     {

@@ -1,11 +1,10 @@
-﻿
-using GestorInventario.Domain.Models;
+﻿using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application.Services.Authentication;
 using GestorInventario.Shared.DTOS.Auth;
 using Microsoft.Extensions.Configuration;
 
 
-namespace GestorInventario.Application.Services.Authentication.Strategies
+namespace GestorInventario.Application.Services.Authentication.Strategies.AccessToken
 {
     public abstract class BaseTokenStrategy : ITokenStrategy
     {

@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 using System.Security.Claims;
 using System.Security.Cryptography;
 
-namespace GestorInventario.Application.Services.Authentication
+namespace GestorInventario.Application.Services.Authentication.TokenGeneration
 {
     /// <summary>
     /// Helper para construir claims, issuer, audience y duraciones.

@@ -1,5 +1,4 @@
-﻿
-using GestorInventario.Domain.Models;
+﻿using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application.Services.Authentication;
 using GestorInventario.Shared.DTOS.Auth;
 using Microsoft.Extensions.Configuration;
@@ -7,7 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 
-namespace GestorInventario.Application.Services.Authentication.Strategies
+namespace GestorInventario.Application.Services.Authentication.Strategies.AccessToken
 {
     public class SymmetricTokenStrategy : BaseTokenStrategy
     {

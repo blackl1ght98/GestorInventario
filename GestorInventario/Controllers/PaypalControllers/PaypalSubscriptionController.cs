@@ -3,7 +3,7 @@ using GestorInventario.Interfaces.Application.RetryPolicy;
 using GestorInventario.Interfaces.Application.Services.Common;
 using GestorInventario.Interfaces.Application.Services.ExternalServices;
 using GestorInventario.Interfaces.Application.Services.Notification;
-using GestorInventario.Interfaces.Application.Services.Paypal;
+using GestorInventario.Interfaces.Application.Services.Paypal.Subscriptions;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Shared.Utilities;
 

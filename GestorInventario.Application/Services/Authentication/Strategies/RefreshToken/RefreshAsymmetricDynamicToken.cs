@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
 
-namespace GestorInventario.Application.Services.Authentication.Strategies
+namespace GestorInventario.Application.Services.Authentication.Strategies.RefreshToken
 {
     public class RefreshAsymmetricDynamicToken : IRefreshTokenStrategy
     {

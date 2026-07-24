@@ -2,7 +2,7 @@
 using GestorInventario.Application.Mappers;
 using GestorInventario.Interfaces.Application.RetryPolicy;
 using GestorInventario.Interfaces.Application.Services.ExternalServices;
-using GestorInventario.Interfaces.Application.Services.Paypal;
+using GestorInventario.Interfaces.Application.Services.Paypal.Plans;
 using GestorInventario.Interfaces.Application.Services.Sync;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Shared.DTOS.Paypal.BD;

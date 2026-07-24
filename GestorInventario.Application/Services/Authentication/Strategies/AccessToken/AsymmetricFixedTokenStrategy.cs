@@ -1,26 +1,19 @@
 ﻿using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application.Services.Authentication;
+using GestorInventario.Shared.DTOS.Auth;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
 
-namespace GestorInventario.Application.Services.Authentication.Strategies
+namespace GestorInventario.Application.Services.Authentication.Strategies.AccessToken
 {
-    public class RefreshAsymetricFixedToken : IRefreshTokenStrategy
+    public class AsymmetricFixedTokenStrategy : BaseTokenStrategy
     {
-        private readonly ITokenClaimsBuilder _claimsBuilder;
-        private readonly IConfiguration _configuration;
+        public AsymmetricFixedTokenStrategy(IConfiguration configuration, ITokenClaimsBuilder claimsBuilder)
+            : base(configuration, claimsBuilder) { }
 
-        public RefreshAsymetricFixedToken(
-            ITokenClaimsBuilder claimsBuilder,
-            IConfiguration configuration)
-        {
-            _claimsBuilder = claimsBuilder;
-            _configuration = configuration;
-        }
-
-        public Task<string> GenerarTokenRefresco(Usuario usuario)
+        public override Task<LoginResponseDto> GenerateTokenAsync(Usuario usuario)
         {
             var privateKeyXml = Environment.GetEnvironmentVariable("PRIVATE_KEY")
                              ?? _configuration["JWT:PrivateKey"];
@@ -32,17 +25,25 @@ namespace GestorInventario.Application.Services.Authentication.Strategies
             rsa.FromXmlString(privateKeyXml);
 
             var credentials = new SigningCredentials(
-                new RsaSecurityKey(rsa.ExportParameters(true)),
+                new RsaSecurityKey(rsa.ExportParameters(true))
+                {
+                    KeyId = usuario.Id.ToString()
+                },
                 SecurityAlgorithms.RsaSha256);
-            var horas = _claimsBuilder.ObtenerDuracionRefreshTokenHoras();
+            var minutos = _claimsBuilder.ObtenerDuracionAccessTokenMinutos();
             var token = new JwtSecurityToken(
                 issuer: _claimsBuilder.ObtenerIssuer(),
                 audience: _claimsBuilder.ObtenerAudience(),
                 claims: _claimsBuilder.CrearClaims(usuario),
-                expires: DateTime.UtcNow.AddHours(horas),
+                expires: DateTime.UtcNow.AddMinutes(minutos),
                 signingCredentials: credentials);
 
-            return Task.FromResult(new JwtSecurityTokenHandler().WriteToken(token));
+            return Task.FromResult(new LoginResponseDto
+            {
+                Id = usuario.Id,
+                Token = new JwtSecurityTokenHandler().WriteToken(token),
+                Rol = usuario.IdRolNavigation?.Nombre ?? "Usuario"
+            });
         }
     }
 }

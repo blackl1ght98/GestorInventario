@@ -1,5 +1,4 @@
-﻿
-using GestorInventario.Domain.Models;
+﻿using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application.Services.Authentication;
 using GestorInventario.Interfaces.Application.Services.Common;
 using GestorInventario.Shared.DTOS.Auth;
@@ -10,7 +9,7 @@ using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
 
-namespace GestorInventario.Application.Services.Authentication.Strategies
+namespace GestorInventario.Application.Services.Authentication.Strategies.AccessToken
 {
     public class AsymmetricDynamicTokenStrategy : BaseTokenStrategy
     {

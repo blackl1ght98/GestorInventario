@@ -1,10 +1,8 @@
 ﻿using GestorInventario.Domain.Models;
 using GestorInventario.Shared.DTOS.Paypal.Responses.GET.Subscription;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace GestorInventario.Interfaces.Application.Services.Paypal
+
+namespace GestorInventario.Interfaces.Application.Services.Paypal.Subscriptions
 {
     public interface ISubscriptionService
     {

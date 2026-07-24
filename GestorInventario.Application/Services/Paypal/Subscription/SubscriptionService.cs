@@ -1,6 +1,6 @@
 ﻿using GestorInventario.Application.Mappers;
 using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application.Services.Paypal;
+using GestorInventario.Interfaces.Application.Services.Paypal.Subscriptions;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.DTOS.Paypal.Responses.GET.Subscription;
 using log4net.Core;

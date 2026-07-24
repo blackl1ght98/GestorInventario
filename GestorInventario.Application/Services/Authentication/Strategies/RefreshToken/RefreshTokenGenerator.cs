@@ -4,7 +4,7 @@ using GestorInventario.Interfaces.Application.Services.Authentication;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 
 
-namespace GestorInventario.Application.Services.Authentication.Token_generation
+namespace GestorInventario.Application.Services.Authentication.Strategies.RefreshToken
 {
 
     public class RefreshTokenGenerator : IRefreshTokenGenerator
