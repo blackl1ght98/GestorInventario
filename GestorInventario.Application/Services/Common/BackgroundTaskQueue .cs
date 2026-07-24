@@ -1,4 +1,4 @@
-﻿using GestorInventario.Interfaces.Application.Common;
+﻿using GestorInventario.Interfaces.Application.Services.Background;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Threading.Channels;

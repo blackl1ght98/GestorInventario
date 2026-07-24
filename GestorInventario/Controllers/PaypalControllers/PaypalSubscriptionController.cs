@@ -1,7 +1,9 @@
 ﻿using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application.Common;
-using GestorInventario.Interfaces.Application.ExternalServices;
-using GestorInventario.Interfaces.Application.Services;
+using GestorInventario.Interfaces.Application.RetryPolicy;
+using GestorInventario.Interfaces.Application.Services.Common;
+using GestorInventario.Interfaces.Application.Services.ExternalServices;
+using GestorInventario.Interfaces.Application.Services.Notification;
+using GestorInventario.Interfaces.Application.Services.Paypal;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Shared.Utilities;
 
@@ -16,31 +18,29 @@ namespace GestorInventario.Controllers.PaypalControllers
     {
         private readonly IPaypalSubscriptionService _paypalSubscriptionService;
         private readonly ILogger<PaypalSubscriptionController> _logger;
-        private readonly IPolicyExecutor _policyExecutor;
-        private readonly ICreateSunscription _paypalSubscriptionDetailService;
-        private readonly IPaypalService _paypalService;
+        private readonly IPolicyExecutor _policyExecutor;       
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPaginationHelper _paginationHelper;
         private readonly ICurrentUserAccessor _currentUserAccessor;
+        private readonly ISubscriptionService _subscriptionService;
 
         public PaypalSubscriptionController(
             IPaypalSubscriptionService paypalSubscriptionService, 
             ILogger<PaypalSubscriptionController> logger, 
-            IPolicyExecutor policyExecutor, 
-            ICreateSunscription paypalSubscriptionDetailService,
-            IPaypalService paypalService, 
+            IPolicyExecutor policyExecutor,
+           ISubscriptionService subscriptionService,
+           
             IUnitOfWork unitOfWork, 
             IPaginationHelper paginationHelper,
             ICurrentUserAccessor currentUserAccessor)
         {
             _paypalSubscriptionService = paypalSubscriptionService;
             _logger = logger;
-            _policyExecutor = policyExecutor;
-            _paypalSubscriptionDetailService = paypalSubscriptionDetailService;
-            _paypalService = paypalService;
+            _policyExecutor = policyExecutor;        
             _unitOfWork = unitOfWork;
             _paginationHelper = paginationHelper;
             _currentUserAccessor = currentUserAccessor;
+            _subscriptionService = subscriptionService;
         }
 
         //Metodo que inicia el proceso de suscripcion
@@ -94,9 +94,9 @@ namespace GestorInventario.Controllers.PaypalControllers
                 string planId = subscriptionDetails.Data.PlanId ?? string.Empty;
 
 
-                var detallesSuscripcion = await _paypalSubscriptionDetailService.CreateSubscriptionDetailAsync(subscriptionDetails.Data, planId);
+                var detallesSuscripcion = await _subscriptionService.CreateSubscriptionDetailAsync(subscriptionDetails.Data, planId);
 
-                await _paypalService.SaveUserSubscriptionAsync(usuarioId, subscription_id, detallesSuscripcion.SubscriberName, detallesSuscripcion.PlanId);
+                await _subscriptionService.SaveUserSubscriptionAsync(usuarioId, subscription_id, detallesSuscripcion.SubscriberName, detallesSuscripcion.PlanId);
 
                 TempData["SuccessMessage"] = "¡Suscripción confirmada con éxito!";
                 return RedirectToAction("DetallesSuscripcion", new { id = subscription_id });
@@ -124,7 +124,7 @@ namespace GestorInventario.Controllers.PaypalControllers
                 var result =   await _paypalSubscriptionService.CancelarSuscripcion(Id, Reason);
 
              
-                await _paypalService.UpdateSubscriptionStatusAsync(result.Data.subId, result.Data.subStatus);
+                await _subscriptionService.UpdateSubscriptionStatusAsync(result.Data.subId, result.Data.subStatus);
 
                 return RedirigirSegunRol();
             }
@@ -156,7 +156,7 @@ namespace GestorInventario.Controllers.PaypalControllers
                 var result = await _paypalSubscriptionService.SuspenderSuscripcion(Id, Reason);
 
                 // Update subscription status using the repository
-                await _paypalService.UpdateSubscriptionStatusAsync(result.Data.subId, result.Data.subStatus);
+                await _subscriptionService.UpdateSubscriptionStatusAsync(result.Data.subId, result.Data.subStatus);
 
                 return RedirigirSegunRol();
             }
@@ -187,7 +187,7 @@ namespace GestorInventario.Controllers.PaypalControllers
                     _logger.LogError("Error al realizar la peticion");
                     return RedirigirSegunRol();
                 }
-                await _paypalService.UpdateSubscriptionStatusAsync(result.Data.subId, result.Data.subStatus);
+                await _subscriptionService.UpdateSubscriptionStatusAsync(result.Data.subId, result.Data.subStatus);
                 TempData["SuccessMessage"] = "Suscripción activada correctamente.";
                 return RedirigirSegunRol();
 
@@ -235,7 +235,7 @@ namespace GestorInventario.Controllers.PaypalControllers
                 }
 
                 // 3. Crear/actualizar el SubscriptionDetail 
-                var detallesSuscripcion = await _paypalSubscriptionDetailService.CreateSubscriptionDetailAsync(subscriptionDetails.Data, planId);
+                var detallesSuscripcion = await _subscriptionService.CreateSubscriptionDetailAsync(subscriptionDetails.Data, planId);
 
 
 

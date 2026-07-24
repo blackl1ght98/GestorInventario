@@ -1,7 +1,7 @@
 ﻿using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Domain.enums.Productos;
-using GestorInventario.Interfaces.Application.ExternalServices;
-using GestorInventario.Interfaces.Application.Services;
+using GestorInventario.Interfaces.Application.Services.ExternalServices;
+using GestorInventario.Interfaces.Application.Services.Order;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.DTOS.Paypal.BD;
 

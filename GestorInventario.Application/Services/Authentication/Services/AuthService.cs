@@ -1,14 +1,11 @@
 ﻿using GestorInventario.Domain.Models;
-
-using GestorInventario.Interfaces.Application.Authentication;
-using GestorInventario.Interfaces.Application.Common;
-using GestorInventario.Interfaces.Application.Services;
+using GestorInventario.Interfaces.Application.Email;
+using GestorInventario.Interfaces.Application.Services.Authentication;
+using GestorInventario.Interfaces.Application.Services.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.DTOS.Auth;
 using GestorInventario.Shared.DTOS.Email;
 using GestorInventario.Shared.Utilities;
-
-
 using Microsoft.Extensions.Logging;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;

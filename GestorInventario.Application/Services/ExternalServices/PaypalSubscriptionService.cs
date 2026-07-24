@@ -1,12 +1,11 @@
 ﻿using GestorInventario.Application.Exceptions;
-using GestorInventario.Interfaces.Application.ExternalServices;
+using GestorInventario.Interfaces.Application.Services.ExternalServices;
 using GestorInventario.Shared.DTOS.Paypal.Requests.PATCH;
 using GestorInventario.Shared.DTOS.Paypal.Requests.POST;
 using GestorInventario.Shared.DTOS.Paypal.Responses.Error;
 using GestorInventario.Shared.DTOS.Paypal.Responses.GET.Subscription;
 using GestorInventario.Shared.DTOS.Paypal.Responses.POST.Subscription;
 using GestorInventario.Shared.Utilities;
-
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Globalization;

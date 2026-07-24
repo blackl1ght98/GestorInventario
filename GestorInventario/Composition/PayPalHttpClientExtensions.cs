@@ -1,5 +1,5 @@
 ﻿using GestorInventario.Application.Services.ExternalServices;
-using GestorInventario.Interfaces.Application.ExternalServices;
+using GestorInventario.Interfaces.Application.Services.ExternalServices;
 using System.Net.Http.Headers;
 
 namespace GestorInventario.Composition

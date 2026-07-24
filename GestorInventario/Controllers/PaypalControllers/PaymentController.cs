@@ -1,7 +1,10 @@
-﻿
-using GestorInventario.Interfaces.Application.Common;
-using GestorInventario.Interfaces.Application.ExternalServices;
-using GestorInventario.Interfaces.Application.Services;
+﻿using GestorInventario.Interfaces.Application.RetryPolicy;
+using GestorInventario.Interfaces.Application.Services.Background;
+using GestorInventario.Interfaces.Application.Services.Common;
+using GestorInventario.Interfaces.Application.Services.ExternalServices;
+using GestorInventario.Interfaces.Application.Services.Notification;
+using GestorInventario.Interfaces.Application.Services.Order;
+using GestorInventario.Interfaces.Application.Services.Payment;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.DTOS.Paypal.BD;
 using GestorInventario.Shared.Utilities;

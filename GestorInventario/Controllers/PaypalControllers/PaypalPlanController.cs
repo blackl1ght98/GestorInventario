@@ -1,9 +1,9 @@
 ﻿using GestorInventario.Application.Exceptions;
 using GestorInventario.Application.Mappers;
-
-using GestorInventario.Interfaces.Application.Common;
-using GestorInventario.Interfaces.Application.ExternalServices;
-using GestorInventario.Interfaces.Application.Services;
+using GestorInventario.Interfaces.Application.RetryPolicy;
+using GestorInventario.Interfaces.Application.Services.ExternalServices;
+using GestorInventario.Interfaces.Application.Services.Paypal;
+using GestorInventario.Interfaces.Application.Services.Sync;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Shared.DTOS.Paypal.BD;
 using GestorInventario.Shared.Utilities;
@@ -24,16 +24,15 @@ namespace GestorInventario.Controllers.PaypalControllers
         private readonly IPaypalSubscriptionService _paypalSubscriptionService;     
         private readonly IPaginationHelper _paginationHelper;
         private readonly ILogger<PaypalPlanController> _logger;
-        private readonly IPaypalService _paypalService;
         private readonly ISyncService _syncService;
+        public readonly IPlanService _planService;
         public PaypalPlanController(
             IUnitOfWork unitOfWork, 
             IPolicyExecutor policyExecutor, 
             IPaypalSubscriptionService paypalSubscriptionService,
-          
+          IPlanService planService,
             IPaginationHelper paginationHelper,
             ILogger<PaypalPlanController> logger,
-            IPaypalService paypalService,
             ISyncService sync
             )
         {
@@ -42,8 +41,9 @@ namespace GestorInventario.Controllers.PaypalControllers
             _paypalSubscriptionService = paypalSubscriptionService;
             _paginationHelper = paginationHelper;
             _logger = logger;
-            _paypalService = paypalService;
+          
             _syncService = sync;
+            _planService = planService;
            
         }
 
@@ -87,7 +87,7 @@ namespace GestorInventario.Controllers.PaypalControllers
                 {
                     return BadRequest(new { success = false, errorMessage = $"No se ha podido actualizar el plan en este momento, intentelo de nuevo mas tarde" });
                 }
-                await _paypalService.SavePlanPriceUpdateAsync(result.Data.Item1, result.Data.Item2);
+                await _planService.SavePlanPriceUpdateAsync(result.Data.Item1, result.Data.Item2);
                 TempData["SuccessMessage"] = "Precio del plan actualizado con éxito.";
                 return Ok(new { success = true, message = "Precio del plan actualizado con éxito." });
             }
@@ -238,7 +238,7 @@ namespace GestorInventario.Controllers.PaypalControllers
                 }
                 var detallesPlan = await _paypalSubscriptionService.ObtenerDetallesPlan(planResponse.Data);
                 if (detallesPlan.Success) {
-                    await _paypalService.SavePlanDetailsAsync(planResponse.Data, detallesPlan.Data);
+                    await _planService.SavePlanDetailsAsync(planResponse.Data, detallesPlan.Data);
 
                 }
 
@@ -267,7 +267,7 @@ namespace GestorInventario.Controllers.PaypalControllers
                     return RedirectToAction(nameof(MostrarPlanes));
                 }
                 var result = await _paypalSubscriptionService.DesactivarPlan(id);
-                await _paypalService.UpdatePlanStatusAsync(result.Data.planId, result.Data.planStatus);
+                await _planService.UpdatePlanStatusAsync(result.Data.planId, result.Data.planStatus);
 
                 return RedirectToAction(nameof(MostrarPlanes), new { mensaje = result.Message });
             }
@@ -286,7 +286,7 @@ namespace GestorInventario.Controllers.PaypalControllers
                 var activatePlan = await _paypalSubscriptionService.ActivarPlan(id);
                 if (activatePlan.Success)
                 {
-                    await _paypalService.UpdatePlanStatusAsync(activatePlan.Data.planId, activatePlan.Data.planStatus);
+                    await _planService.UpdatePlanStatusAsync(activatePlan.Data.planId, activatePlan.Data.planStatus);
                 }
                 return RedirectToAction(nameof(MostrarPlanes), new { mensaje = activatePlan.Message });
             }

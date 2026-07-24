@@ -1,7 +1,4 @@
-﻿using GestorInventario.Interfaces.Application.Authentication;
-using GestorInventario.Interfaces.Application.Common;
-using GestorInventario.Interfaces.Application.Services;
-using GestorInventario.Interfaces.Infraestructure.Repositories;
+﻿using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.DTOS.Email;
 using GestorInventario.Shared.Utilities;
 
@@ -11,6 +8,9 @@ using GestorInventario.Shared.DTOS.Products;
 using Microsoft.Extensions.Logging;
 using GestorInventario.Notifications.Email;
 using GestorInventario.Domain.enums.Email;
+using GestorInventario.Interfaces.Application.Email;
+using GestorInventario.Interfaces.Application.Services.Authentication;
+using GestorInventario.Interfaces.Application.Services.Common;
 
 namespace GestorInventario.Notifications.EmailServices
 {

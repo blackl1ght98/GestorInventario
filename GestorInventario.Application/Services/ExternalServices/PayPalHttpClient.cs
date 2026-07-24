@@ -1,4 +1,4 @@
-﻿using GestorInventario.Interfaces.Application.ExternalServices;
+﻿using GestorInventario.Interfaces.Application.Services.ExternalServices;
 using GestorInventario.Shared.DTOS.Paypal.Responses.GET.PaypalAuthentication;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;

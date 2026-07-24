@@ -1,4 +1,4 @@
-﻿using GestorInventario.Interfaces.Application.Common;
+﻿using GestorInventario.Interfaces.Application.Services.Common;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using StackExchange.Redis;

@@ -1,4 +1,4 @@
-﻿using GestorInventario.Interfaces.Application.Services;
+﻿using GestorInventario.Interfaces.Application.Services.Background;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

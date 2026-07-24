@@ -1,10 +1,8 @@
 ﻿using GestorInventario.Domain.Models;
-
-using GestorInventario.Interfaces.Application.ExternalServices;
-using GestorInventario.Interfaces.Application.Services;
+using GestorInventario.Interfaces.Application.Services.ExternalServices;
+using GestorInventario.Interfaces.Application.Services.Sync;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.Utilities;
-
 using System.Globalization;
 
 namespace GestorInventario.Application.Services.Syncs

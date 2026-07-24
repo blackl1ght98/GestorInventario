@@ -1,6 +1,5 @@
 ﻿using GestorInventario.Application.Services.Authentication.Resolvers;
 
-
 namespace GestorInventario.Middlewares
 {
 

@@ -1,4 +1,4 @@
-﻿using GestorInventario.Interfaces.Application.Authentication;
+﻿using GestorInventario.Interfaces.Application.Services.Authentication;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;

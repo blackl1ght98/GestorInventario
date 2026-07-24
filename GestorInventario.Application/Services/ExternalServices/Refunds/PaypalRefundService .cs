@@ -1,6 +1,5 @@
-﻿using GestorInventario.Interfaces.Application.ExternalServices;
+﻿using GestorInventario.Interfaces.Application.Services.ExternalServices;
 using GestorInventario.Shared.Utilities;
-
 using Microsoft.Extensions.Logging;
 using System.Globalization;
 

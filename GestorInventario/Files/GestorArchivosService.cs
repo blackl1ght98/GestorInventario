@@ -1,4 +1,4 @@
-﻿using GestorInventario.Interfaces.Application.Common;
+﻿using GestorInventario.Interfaces.Application.Services.Common;
 
 namespace GestorInventario.Files
 {

@@ -1,4 +1,4 @@
-﻿using GestorInventario.Application.AutoMapper;
+﻿using GestorInventario.Application.Services.AutoMapper;
 using GestorInventario.AutoMapper;
 using GestorInventario.Composition;
 

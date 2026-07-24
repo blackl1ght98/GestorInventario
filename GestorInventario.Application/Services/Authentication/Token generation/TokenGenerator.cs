@@ -1,9 +1,6 @@
-﻿
-
-using GestorInventario.Application.Services.Authentication.Resolvers;
+﻿using GestorInventario.Application.Services.Authentication.Resolvers;
 using GestorInventario.Domain.Models;
-
-using GestorInventario.Interfaces.Application.Authentication;
+using GestorInventario.Interfaces.Application.Services.Authentication;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.DTOS.Auth;
 

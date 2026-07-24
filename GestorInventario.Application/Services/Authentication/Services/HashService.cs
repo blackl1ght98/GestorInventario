@@ -1,4 +1,4 @@
-﻿using GestorInventario.Interfaces.Application.Authentication;
+﻿using GestorInventario.Interfaces.Application.Services.Authentication;
 using GestorInventario.Shared.DTOS.Auth;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using System.Security.Cryptography;

@@ -3,7 +3,6 @@ using GestorInventario.Infrastructure.Data;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.DTOS.Supplier;
 using GestorInventario.Shared.Utilities;
-
 using Microsoft.EntityFrameworkCore;
 
 namespace GestorInventario.Infrastructure.Repositories.ProveedorRepository

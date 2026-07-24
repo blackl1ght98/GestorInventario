@@ -1,8 +1,7 @@
-﻿
-
-using GestorInventario.Interfaces.Application.Authentication;
-using GestorInventario.Interfaces.Application.Common;
-using GestorInventario.Interfaces.Application.Services;
+﻿using GestorInventario.Interfaces.Application.Email;
+using GestorInventario.Interfaces.Application.RetryPolicy;
+using GestorInventario.Interfaces.Application.Services.Authentication;
+using GestorInventario.Interfaces.Application.Services.Common;
 using GestorInventario.Shared.DTOS.Auth;
 using GestorInventario.Shared.Utilities;
 

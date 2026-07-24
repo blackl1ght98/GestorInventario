@@ -1,5 +1,5 @@
-﻿using GestorInventario.Interfaces.Application.Common;
-using GestorInventario.Interfaces.Application.Services;
+﻿using GestorInventario.Interfaces.Application.Services.Common;
+using GestorInventario.Interfaces.Application.Services.Files;
 
 namespace GestorInventario.Application.Services.Files
 {

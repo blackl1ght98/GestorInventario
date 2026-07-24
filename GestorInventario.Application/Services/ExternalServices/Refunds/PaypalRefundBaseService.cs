@@ -1,5 +1,5 @@
 ﻿using GestorInventario.Application.Services.Common;
-using GestorInventario.Interfaces.Application.ExternalServices;
+using GestorInventario.Interfaces.Application.Services.ExternalServices;
 using GestorInventario.Shared.DTOS.Paypal.Requests.POST;
 using GestorInventario.Shared.DTOS.Paypal.Responses.POST.Refund;
 using Microsoft.Extensions.Logging;

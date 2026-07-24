@@ -1,8 +1,5 @@
-﻿
-using GestorInventario.Domain.Models;
-
-
-using GestorInventario.Interfaces.Application.ExternalServices;
+﻿using GestorInventario.Domain.Models;
+using GestorInventario.Interfaces.Application.Services.ExternalServices;
 using GestorInventario.Shared.DTOS.Paypal.Responses.GET.Order;
 using GestorInventario.Shared.Utilities;
 using Newtonsoft.Json;

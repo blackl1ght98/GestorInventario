@@ -1,4 +1,4 @@
-﻿using GestorInventario.Interfaces.Application.Services;
+﻿using GestorInventario.Interfaces.Application.Services.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Interfaces.Renderer;
 using GestorInventario.Shared.Utilities;

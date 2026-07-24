@@ -127,10 +127,10 @@ namespace GestorInventario.Shared.DTOS.Paypal.Requests.POST
     public record PaymentSource
     {
         [JsonProperty("paypal")]
-        public required Paypal Paypal { get; init; }
+        public required PayPalWallet Paypal { get; init; }
     }
 
-    public record Paypal
+    public record PayPalWallet
     {
         [JsonProperty("experience_context")]
         public required ExperienceContext ExperienceContext { get; init; }

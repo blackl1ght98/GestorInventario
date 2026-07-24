@@ -1,9 +1,13 @@
 ﻿using GestorInventario.Application.Services.Common;
 using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Extensions;
-using GestorInventario.Interfaces.Application.Common;
-using GestorInventario.Interfaces.Application.ExternalServices;
-using GestorInventario.Interfaces.Application.Services;
+using GestorInventario.Interfaces.Application.RetryPolicy;
+using GestorInventario.Interfaces.Application.Services.Background;
+using GestorInventario.Interfaces.Application.Services.Common;
+using GestorInventario.Interfaces.Application.Services.ExternalServices;
+using GestorInventario.Interfaces.Application.Services.Notification;
+using GestorInventario.Interfaces.Application.Services.Order;
+using GestorInventario.Interfaces.Application.Services.Payment;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.DTOS;
@@ -181,7 +185,7 @@ namespace GestorInventario.Controllers.RembolsoController
                     // 4. Notificación asíncrona
                     _background.Enqueue(async (sp, ct) =>
                     {
-                        var notificar = sp.GetRequiredService<IPaypalService>();
+                        var notificar = sp.GetRequiredService<IRembolsoNotification>();
                         await notificar.EnviarEmailNotificacionRembolso(
                             pedido.Id,
                             refundResult.Data.AmountRefunded,
@@ -299,7 +303,7 @@ namespace GestorInventario.Controllers.RembolsoController
                 // ============================================
                 _background.Enqueue(async (sp, ct) =>
                 {
-                    var notificar = sp.GetRequiredService<IPaypalService>();
+                    var notificar = sp.GetRequiredService<IRembolsoNotification>();
                     await notificar.EnviarEmailNotificacionRembolso(
                         detallePedido.Pedido.Id,
                         detallePedido.Producto.Precio,

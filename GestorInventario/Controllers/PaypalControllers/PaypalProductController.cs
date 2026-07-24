@@ -1,5 +1,5 @@
-﻿using GestorInventario.Interfaces.Application.Common;
-using GestorInventario.Interfaces.Application.ExternalServices;
+﻿using GestorInventario.Interfaces.Application.RetryPolicy;
+using GestorInventario.Interfaces.Application.Services.ExternalServices;
 using GestorInventario.Interfaces.Infraestructure.Common;
 
 using GestorInventario.Shared.DTOS.Paypal.Projections;
