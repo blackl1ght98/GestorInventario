@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Interfaces.Application.RetryPolicy;
-using GestorInventario.Interfaces.Application.Services.Authentication;
+using GestorInventario.Interfaces.Application.Services.Authentication.Services;
+using GestorInventario.Interfaces.Application.Services.Authentication.Strategies.Login;
 using GestorInventario.Shared.DTOS.Auth;
 using GestorInventario.Shared.Utilities;
 

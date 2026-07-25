@@ -1,6 +1,6 @@
-﻿using GestorInventario.Interfaces.Application.RetryPolicy;
-using GestorInventario.Interfaces.Application.Services.ExternalServices;
-using GestorInventario.Interfaces.Infraestructure.Common;
+﻿using GestorInventario.Interfaces.Application.MetodosPaginacion;
+using GestorInventario.Interfaces.Application.RetryPolicy;
+using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Subscription;
 
 using GestorInventario.Shared.DTOS.Paypal.Projections;
 using GestorInventario.Shared.Utilities;

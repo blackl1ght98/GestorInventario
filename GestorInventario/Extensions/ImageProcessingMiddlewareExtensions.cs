@@ -1,4 +1,4 @@
-﻿using GestorInventario.Interfaces.Renderer;
+﻿using GestorInventario.Interfaces.Renderer.Images;
 using Microsoft.AspNetCore.Http;
 
 namespace GestorInventario.Extensions

@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application.Services.Authentication;
+using GestorInventario.Interfaces.Application.Services.Authentication.Jwt;
+using GestorInventario.Interfaces.Application.Services.Authentication.Strategies.RefreshToken;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -9,11 +10,11 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Refres
 {
     public class RefreshAsymetricFixedToken : IRefreshTokenStrategy
     {
-        private readonly ITokenClaimsBuilder _claimsBuilder;
+        private readonly IJwtTokenSettings _claimsBuilder;
         private readonly IConfiguration _configuration;
 
         public RefreshAsymetricFixedToken(
-            ITokenClaimsBuilder claimsBuilder,
+            IJwtTokenSettings claimsBuilder,
             IConfiguration configuration)
         {
             _claimsBuilder = claimsBuilder;

@@ -1,9 +1,12 @@
 ﻿
 using GestorInventario.Extensions;
 using GestorInventario.Interfaces.Application.RetryPolicy;
-using GestorInventario.Interfaces.Application.Services.Authentication;
+using GestorInventario.Interfaces.Application.Services.Authentication.Services;
+using GestorInventario.Interfaces.Application.Services.Authentication.TokenGeneration;
+using GestorInventario.Interfaces.Application.Services.Authentication.TokenGeneration.Generators;
 using GestorInventario.Interfaces.Application.Services.Common;
 using GestorInventario.Interfaces.Application.Services.ShopCart;
+using GestorInventario.Interfaces.Web;
 using GestorInventario.Shared.DTOS.Auth;
 using GestorInventario.Shared.DTOS.User;
 using GestorInventario.ViewModels.Users;
@@ -23,19 +26,19 @@ namespace GestorInventario.Controllers.AuthenticationController
         private readonly ITokenService _tokenService;          
         private readonly ILogger<AuthController> _logger;       
         private readonly IPolicyExecutor _policyExecutor;
-        private readonly ICarritoService _carritoService;
+        private readonly IShopCartService _carritoService;
         private readonly ICurrentUserAccessor _current;
         private readonly IAuthService _authService;
-        private readonly ICacheService _cache;   
+        private readonly IHybridCacheService _cache;   
         private readonly ILoginGenerator _loginGenerator;
         public AuthController(
          ITokenService tokenService,  
          ICurrentUserAccessor currentUser,
          ILogger<AuthController> logger,   
          IPolicyExecutor policyExecutor,  
-         ICarritoService carritoService, 
+         IShopCartService carritoService, 
          IAuthService authService,
-         ICacheService cache,
+         IHybridCacheService cache,
     
          ILoginGenerator factory
         )

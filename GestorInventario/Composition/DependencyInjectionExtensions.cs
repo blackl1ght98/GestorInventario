@@ -1,20 +1,21 @@
 ﻿using GestorInventario.Application.MetodosPaginacion;
 using GestorInventario.Application.RetryPolicy;
+using GestorInventario.Application.Services.Authentication.Jwt;
 using GestorInventario.Application.Services.Authentication.Resolvers;
 using GestorInventario.Application.Services.Authentication.Services;
-using GestorInventario.Application.Services.Authentication.Strategies.Login;
-using GestorInventario.Application.Services.Authentication.Strategies.RefreshToken;
 using GestorInventario.Application.Services.Authentication.TokenGeneration;
+using GestorInventario.Application.Services.Authentication.TokenGeneration.Generators;
 using GestorInventario.Application.Services.BackgroundServices;
 using GestorInventario.Application.Services.Carrito;
 using GestorInventario.Application.Services.Common;
-using GestorInventario.Application.Services.ExternalServices;
-using GestorInventario.Application.Services.ExternalServices.Refunds;
 using GestorInventario.Application.Services.Files;
-using GestorInventario.Application.Services.Mapping;
-using GestorInventario.Application.Services.Notification;
 using GestorInventario.Application.Services.Orders;
 using GestorInventario.Application.Services.Payment;
+using GestorInventario.Application.Services.Paypal.Mapping;
+using GestorInventario.Application.Services.Paypal.PaypalApi;
+using GestorInventario.Application.Services.Paypal.PaypalApi.Order;
+using GestorInventario.Application.Services.Paypal.PaypalApi.Refunds;
+using GestorInventario.Application.Services.Paypal.PaypalApi.Subscriptions;
 using GestorInventario.Application.Services.Paypal.Plans;
 using GestorInventario.Application.Services.Paypal.Subscription;
 using GestorInventario.Application.Services.PDFService;
@@ -34,27 +35,43 @@ using GestorInventario.Infrastructure.Repositories.ProductoRepository;
 using GestorInventario.Infrastructure.Repositories.ProveedorRepository;
 using GestorInventario.Infrastructure.Repositories.RembolsoRepository;
 using GestorInventario.Infrastructure.Repositories.UserRepository;
-using GestorInventario.Interfaces.Application.Email;
+using GestorInventario.Interfaces.Application.MetodosPaginacion;
 using GestorInventario.Interfaces.Application.RetryPolicy;
-using GestorInventario.Interfaces.Application.Services.Authentication;
-using GestorInventario.Interfaces.Application.Services.Background;
+using GestorInventario.Interfaces.Application.Services.Authentication.Jwt;
+using GestorInventario.Interfaces.Application.Services.Authentication.Services;
+using GestorInventario.Interfaces.Application.Services.Authentication.TokenGeneration;
+using GestorInventario.Interfaces.Application.Services.Authentication.TokenGeneration.Generators;
+using GestorInventario.Interfaces.Application.Services.BackgroundServices;
 using GestorInventario.Interfaces.Application.Services.Common;
-using GestorInventario.Interfaces.Application.Services.ExternalServices;
 using GestorInventario.Interfaces.Application.Services.Files;
-using GestorInventario.Interfaces.Application.Services.Notification;
-using GestorInventario.Interfaces.Application.Services.Order;
+using GestorInventario.Interfaces.Application.Services.Orders;
 using GestorInventario.Interfaces.Application.Services.Payment;
+using GestorInventario.Interfaces.Application.Services.Paypal.Mapping;
+using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi;
+using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Order;
+using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Refunds;
+using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Subscription;
 using GestorInventario.Interfaces.Application.Services.Paypal.Plans;
-using GestorInventario.Interfaces.Application.Services.Paypal.Subscriptions;
+using GestorInventario.Interfaces.Application.Services.Paypal.Subscription;
+using GestorInventario.Interfaces.Application.Services.PDFService;
 using GestorInventario.Interfaces.Application.Services.Products;
 using GestorInventario.Interfaces.Application.Services.ShopCart;
-using GestorInventario.Interfaces.Application.Services.Sync;
+using GestorInventario.Interfaces.Application.Services.Syncs;
 using GestorInventario.Interfaces.Application.Services.User;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
-using GestorInventario.Interfaces.Renderer;
+using GestorInventario.Interfaces.Notifications.EmailServices;
+using GestorInventario.Interfaces.Notifications.InternalNotification;
+using GestorInventario.Interfaces.Notifications.SendNotification.Email;
+using GestorInventario.Interfaces.Notifications.SendNotification.Telegram;
+using GestorInventario.Interfaces.Renderer.Barcode;
+using GestorInventario.Interfaces.Renderer.Images;
+using GestorInventario.Interfaces.Renderer.PDF;
+using GestorInventario.Interfaces.Web;
 using GestorInventario.Notifications.EmailServices;
-using GestorInventario.Notifications.Mensajes.Telegram;
+using GestorInventario.Notifications.InternalNotification;
+using GestorInventario.Notifications.SendNotification.Email;
+using GestorInventario.Notifications.SendNotification.Telegram;
 using GestorInventario.Renderer.Barcode;
 using GestorInventario.Renderer.Images;
 using GestorInventario.Renderer.PDF;
@@ -111,15 +128,15 @@ namespace GestorInventario.Composition
            
 
             // Servicios de Gestión (Core Business)
-            services.AddScoped<IUserManagementService, UserManagementService>();
+            services.AddScoped<IUserService, UserService>();
             services.AddScoped<IPasswordResetService, PasswordResetService>();
-            services.AddScoped<IProductManagementService, ProductManagementService>();
-            services.AddScoped<IPedidoManagementService, PedidoManagementService>();
+            services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<IPaymentService, PaymentService>();
-            services.AddScoped<ICarritoService, CarritoService>();
-            services.AddScoped<INotificationService, NotificacionService>();
+            services.AddScoped<IShopCartService, ShopCartService>();
+            services.AddScoped<INotificationService, NotificationService>();
             // Otros servicios de aplicación
-            services.AddScoped<IRembolsoNotification, RembolsoNotification>();
+            services.AddScoped<IRefundNotification, RefundNotification>();
             services.AddScoped<IPlanService, PlanService>();
             services.AddScoped<ISubscriptionService, SubscriptionService>();
             services.AddScoped<ISyncService, SyncService>();
@@ -164,7 +181,7 @@ namespace GestorInventario.Composition
 
 
             //-- Tokens --
-            services.AddSingleton<ITokenClaimsBuilder,TokenClaimsBuilder>();
+            services.AddSingleton<IJwtTokenSettings,JwtTokenSettings>();
             return services;
         }
 
@@ -179,7 +196,7 @@ namespace GestorInventario.Composition
         public static IServiceCollection AddHybridCacheService(this IServiceCollection services, bool useRedis)
         {
            
-            services.AddSingleton<ICacheService, HybridCacheService>(provider =>
+            services.AddSingleton<IHybridCacheService, HybridCacheService>(provider =>
             {
                 var redis = provider.GetRequiredService<IDistributedCache>();
                 var memoryCache = provider.GetRequiredService<IMemoryCache>();

@@ -1,9 +1,10 @@
 ﻿using AutoMapper;
 using GestorInventario.Extensions;
+using GestorInventario.Interfaces.Application.MetodosPaginacion;
 using GestorInventario.Interfaces.Application.RetryPolicy;
-using GestorInventario.Interfaces.Application.Services.Common;
 using GestorInventario.Interfaces.Application.Services.User;
 using GestorInventario.Interfaces.Infraestructure.Common;
+using GestorInventario.Interfaces.Web;
 using GestorInventario.Shared.DTOS.User;
 using GestorInventario.Shared.Utilities;
 using GestorInventario.ViewModels.Users;
@@ -23,11 +24,11 @@ namespace GestorInventario.Controllers.AdminControllers
         private readonly IPolicyExecutor _policyExecutor;  
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IPaginationHelper _paginationHelper;
-        private readonly IUserManagementService _userManagementService;
+        private readonly IUserService _userManagementService;
         public AdminController(
             ILogger<AdminController> logger, 
             IUnitOfWork unitOfWork, 
-            IUserManagementService userManagement,
+            IUserService userManagement,
             IMapper map, 
             IPolicyExecutor policyExecutor, 
             IPaginationHelper paginationHelper, 

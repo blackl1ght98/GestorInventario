@@ -1,7 +1,7 @@
-﻿using GestorInventario.Interfaces.Application.Email;
-using GestorInventario.Interfaces.Application.Services.Background;
-using GestorInventario.Interfaces.Application.Services.Notification;
+﻿using GestorInventario.Interfaces.Application.Services.BackgroundServices;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
+using GestorInventario.Interfaces.Notifications.EmailServices;
+using GestorInventario.Interfaces.Notifications.SendNotification.Telegram;
 using GestorInventario.Shared.DTOS.Email;
 using GestorInventario.Shared.DTOS.Products;
 using Microsoft.Extensions.Logging;

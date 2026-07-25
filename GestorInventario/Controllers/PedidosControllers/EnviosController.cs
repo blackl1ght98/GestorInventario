@@ -1,7 +1,7 @@
 ﻿using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Domain.enums.Productos;
-using GestorInventario.Interfaces.Application.Services.ExternalServices;
-using GestorInventario.Interfaces.Application.Services.Order;
+using GestorInventario.Interfaces.Application.Services.Orders;
+using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Order;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.DTOS.Paypal.BD;
 
@@ -15,8 +15,8 @@ namespace GestorInventario.Controllers.PedidosControllers
         private readonly IPedidoRepository _pedidoRepository;
         private readonly IPaypalOrderTrackingService _paypalOrderService;
         private readonly ILogger<EnviosController> _logger;     
-        private readonly IPedidoManagementService _pedidoService;
-        public EnviosController(IPedidoRepository pedidoRepository, IPaypalOrderTrackingService paypalOrderService,  ILogger<EnviosController> logger, IPedidoManagementService pedido)
+        private readonly IOrderService _pedidoService;
+        public EnviosController(IPedidoRepository pedidoRepository, IPaypalOrderTrackingService paypalOrderService,  ILogger<EnviosController> logger, IOrderService pedido)
         {
             _pedidoRepository = pedidoRepository;
             _paypalOrderService = paypalOrderService;

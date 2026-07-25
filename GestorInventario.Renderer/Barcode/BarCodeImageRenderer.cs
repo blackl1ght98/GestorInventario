@@ -1,5 +1,5 @@
 ﻿using GestorInventario.Domain.enums.Productos;
-using GestorInventario.Interfaces.Renderer;
+using GestorInventario.Interfaces.Renderer.Barcode;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;

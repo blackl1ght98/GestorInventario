@@ -1,4 +1,6 @@
-﻿using GestorInventario.Interfaces.Application.Services.Authentication;
+﻿using GestorInventario.Interfaces.Application.Services.Authentication.Jwt;
+using GestorInventario.Interfaces.Application.Services.Authentication.Strategies.Middleware;
+using GestorInventario.Interfaces.Application.Services.Authentication.TokenGeneration.Generators;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -15,11 +17,11 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
         private readonly ITokenGenerator _tokenGenerator;
         private readonly IUserRepository _userRepository;
         private readonly IRefreshTokenGenerator _refreshTokenStrategy;
-        private readonly ITokenClaimsBuilder _tokenClaimsBuilder;
+        private readonly IJwtTokenSettings _tokenClaimsBuilder;
         private readonly ILogger<FixedAsymmetricAuthStrategy> _logger;
 
         public FixedAsymmetricAuthStrategy( ITokenGenerator tokenGenerator, IUserRepository userRepository, 
-            IRefreshTokenGenerator refreshTokenStrategy, ITokenClaimsBuilder builder , ILogger<FixedAsymmetricAuthStrategy> logger)
+            IRefreshTokenGenerator refreshTokenStrategy, IJwtTokenSettings builder , ILogger<FixedAsymmetricAuthStrategy> logger)
         {
             _tokenGenerator = tokenGenerator;
             _userRepository = userRepository;

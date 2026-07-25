@@ -1,5 +1,5 @@
 ﻿using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application.Services.Authentication;
+using GestorInventario.Interfaces.Application.Services.Authentication.Jwt;
 using GestorInventario.Interfaces.Application.Services.Common;
 using GestorInventario.Shared.DTOS.Auth;
 using Microsoft.Extensions.Configuration;
@@ -13,13 +13,13 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Access
 {
     public class AsymmetricDynamicTokenStrategy : BaseTokenStrategy
     {
-        private readonly ICacheService _cache;
+        private readonly IHybridCacheService _cache;
         private readonly ILogger<AsymmetricDynamicTokenStrategy> _logger;
 
         public AsymmetricDynamicTokenStrategy(
             IConfiguration configuration,
-            ITokenClaimsBuilder claimsBuilder,
-            ICacheService cache,
+            IJwtTokenSettings claimsBuilder,
+            IHybridCacheService cache,
             ILogger<AsymmetricDynamicTokenStrategy> logger)
             : base(configuration, claimsBuilder)
         {

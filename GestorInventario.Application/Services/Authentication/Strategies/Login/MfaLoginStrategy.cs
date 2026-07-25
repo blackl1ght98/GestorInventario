@@ -1,7 +1,8 @@
-﻿using GestorInventario.Interfaces.Application.Email;
-using GestorInventario.Interfaces.Application.RetryPolicy;
-using GestorInventario.Interfaces.Application.Services.Authentication;
+﻿using GestorInventario.Interfaces.Application.RetryPolicy;
+using GestorInventario.Interfaces.Application.Services.Authentication.Services;
+using GestorInventario.Interfaces.Application.Services.Authentication.Strategies.Login;
 using GestorInventario.Interfaces.Application.Services.Common;
+using GestorInventario.Interfaces.Notifications.EmailServices;
 using GestorInventario.Shared.DTOS.Auth;
 using GestorInventario.Shared.Utilities;
 
@@ -13,10 +14,10 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Login
     {
         private readonly IAuthService _authService;
         private readonly IPolicyExecutor _policyExecutor;
-        private readonly ICacheService _cache;
+        private readonly IHybridCacheService _cache;
         private readonly IEmailService _emailService;
 
-        public MfaLoginStrategy(IAuthService authService, IPolicyExecutor policyExecutor, ICacheService cache, IEmailService emailService)
+        public MfaLoginStrategy(IAuthService authService, IPolicyExecutor policyExecutor, IHybridCacheService cache, IEmailService emailService)
         {
             _authService = authService;
             _policyExecutor = policyExecutor;

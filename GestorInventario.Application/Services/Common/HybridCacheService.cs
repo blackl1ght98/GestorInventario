@@ -5,7 +5,7 @@ using StackExchange.Redis;
 
 namespace GestorInventario.Application.Services.Common
 {
-    public class HybridCacheService : ICacheService
+    public class HybridCacheService : IHybridCacheService
     {
         private readonly IDistributedCache _distributedCache;
         private readonly IMemoryCache _memoryCache;

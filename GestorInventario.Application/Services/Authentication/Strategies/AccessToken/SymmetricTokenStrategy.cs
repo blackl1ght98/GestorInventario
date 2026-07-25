@@ -1,5 +1,5 @@
 ﻿using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application.Services.Authentication;
+using GestorInventario.Interfaces.Application.Services.Authentication.Jwt;
 using GestorInventario.Shared.DTOS.Auth;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -10,7 +10,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Access
 {
     public class SymmetricTokenStrategy : BaseTokenStrategy
     {
-        public SymmetricTokenStrategy(IConfiguration configuration, ITokenClaimsBuilder claimsBuilder)
+        public SymmetricTokenStrategy(IConfiguration configuration, IJwtTokenSettings claimsBuilder)
             : base(configuration, claimsBuilder) { }
 
         public override Task<LoginResponseDto> GenerateTokenAsync(Usuario usuario)

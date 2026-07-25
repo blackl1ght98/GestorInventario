@@ -1,10 +1,10 @@
 ﻿using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Extensions;
+using GestorInventario.Interfaces.Application.MetodosPaginacion;
 using GestorInventario.Interfaces.Application.RetryPolicy;
 using GestorInventario.Interfaces.Application.Services;
-using GestorInventario.Interfaces.Application.Services.Common;
-using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
+using GestorInventario.Interfaces.Web;
 using GestorInventario.Shared.Utilities;
 using GestorInventario.ViewModels.Orders;
 

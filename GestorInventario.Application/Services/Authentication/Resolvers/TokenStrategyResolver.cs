@@ -1,6 +1,7 @@
 ﻿using GestorInventario.Application.Services.Authentication.Strategies.AccessToken;
 using GestorInventario.Application.Services.Authentication.Strategies.RefreshToken;
-using GestorInventario.Interfaces.Application.Services.Authentication;
+using GestorInventario.Interfaces.Application.Services.Authentication.Strategies.AccessToken;
+using GestorInventario.Interfaces.Application.Services.Authentication.Strategies.RefreshToken;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 

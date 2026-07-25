@@ -1,15 +1,17 @@
 ﻿using GestorInventario.Application.Services.Common;
 using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Extensions;
+using GestorInventario.Interfaces.Application.MetodosPaginacion;
 using GestorInventario.Interfaces.Application.RetryPolicy;
-using GestorInventario.Interfaces.Application.Services.Background;
-using GestorInventario.Interfaces.Application.Services.Common;
-using GestorInventario.Interfaces.Application.Services.ExternalServices;
-using GestorInventario.Interfaces.Application.Services.Notification;
-using GestorInventario.Interfaces.Application.Services.Order;
+using GestorInventario.Interfaces.Application.Services.BackgroundServices;
+using GestorInventario.Interfaces.Application.Services.Orders;
 using GestorInventario.Interfaces.Application.Services.Payment;
-using GestorInventario.Interfaces.Infraestructure.Common;
+using GestorInventario.Interfaces.Application.Services.Paypal.Mapping;
+using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Order;
+using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Refunds;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
+using GestorInventario.Interfaces.Notifications.SendNotification.Email;
+using GestorInventario.Interfaces.Web;
 using GestorInventario.Shared.DTOS;
 using GestorInventario.Shared.DTOS.Paypal.BD;
 using GestorInventario.Shared.DTOS.Paypal.Responses.GET.Order;
@@ -37,7 +39,7 @@ namespace GestorInventario.Controllers.RembolsoController
         private readonly IPaypalOrderService _paypalOrderService;
         private readonly IPaymentService _paymentService;
         private readonly IPayPalOrderMappingService _mappingService;   
-        private readonly IPedidoManagementService _pedidoService;
+        private readonly IOrderService _pedidoService;
         private readonly IBackgroundTaskQueue _background;
       
         private readonly IPaypalRefundService _refundService;
@@ -51,7 +53,7 @@ namespace GestorInventario.Controllers.RembolsoController
              IPaypalOrderService paypalOrderService,
              IPaymentService paymentService,
              IPayPalOrderMappingService mappingService,
-             IPedidoManagementService pedido,
+             IOrderService pedido,
              IBackgroundTaskQueue provider,   
              IPaypalRefundService refund
             )
@@ -185,7 +187,7 @@ namespace GestorInventario.Controllers.RembolsoController
                     // 4. Notificación asíncrona
                     _background.Enqueue(async (sp, ct) =>
                     {
-                        var notificar = sp.GetRequiredService<IRembolsoNotification>();
+                        var notificar = sp.GetRequiredService<IRefundNotification>();
                         await notificar.EnviarEmailNotificacionRembolso(
                             pedido.Id,
                             refundResult.Data.AmountRefunded,
@@ -303,7 +305,7 @@ namespace GestorInventario.Controllers.RembolsoController
                 // ============================================
                 _background.Enqueue(async (sp, ct) =>
                 {
-                    var notificar = sp.GetRequiredService<IRembolsoNotification>();
+                    var notificar = sp.GetRequiredService<IRefundNotification>();
                     await notificar.EnviarEmailNotificacionRembolso(
                         detallePedido.Pedido.Id,
                         detallePedido.Producto.Precio,

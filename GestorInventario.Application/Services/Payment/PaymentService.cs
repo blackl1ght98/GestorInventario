@@ -2,12 +2,13 @@
 using GestorInventario.Domain.enums.Paypal;
 using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application.Email;
 using GestorInventario.Interfaces.Application.Services.Common;
-using GestorInventario.Interfaces.Application.Services.ExternalServices;
 using GestorInventario.Interfaces.Application.Services.Payment;
+using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Order;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
+using GestorInventario.Interfaces.Notifications.EmailServices;
+using GestorInventario.Interfaces.Web;
 using GestorInventario.Shared.DTOS.Carrito;
 using GestorInventario.Shared.DTOS.Checkout;
 using GestorInventario.Shared.DTOS.Email;

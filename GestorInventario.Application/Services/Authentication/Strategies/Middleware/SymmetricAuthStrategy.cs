@@ -1,4 +1,6 @@
-﻿using GestorInventario.Interfaces.Application.Services.Authentication;
+﻿using GestorInventario.Interfaces.Application.Services.Authentication.Jwt;
+using GestorInventario.Interfaces.Application.Services.Authentication.Strategies.Middleware;
+using GestorInventario.Interfaces.Application.Services.Authentication.TokenGeneration.Generators;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
@@ -14,8 +16,8 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
         private readonly ITokenGenerator _tokenGenerator;
         private readonly IUserRepository _userRepository;
         private readonly IRefreshTokenGenerator _refreshTokenStrategy;
-        private readonly ITokenClaimsBuilder _tokenClaimsBuilder;
-        public SymmetricAuthStrategy( ITokenGenerator tokenGenerator, IUserRepository userRepository, IRefreshTokenGenerator refreshTokenStrategy, ITokenClaimsBuilder tokenClaimsBuilder)
+        private readonly IJwtTokenSettings _tokenClaimsBuilder;
+        public SymmetricAuthStrategy( ITokenGenerator tokenGenerator, IUserRepository userRepository, IRefreshTokenGenerator refreshTokenStrategy, IJwtTokenSettings tokenClaimsBuilder)
         {
           
             _tokenGenerator = tokenGenerator;

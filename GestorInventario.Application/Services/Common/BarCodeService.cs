@@ -2,7 +2,7 @@
 using GestorInventario.Interfaces.Application.Services.Common;
 using GestorInventario.Interfaces.Application.Services.Files;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
-using GestorInventario.Interfaces.Renderer;
+using GestorInventario.Interfaces.Renderer.Barcode;
 using GestorInventario.Shared.DTOS.Barcode;
 using Microsoft.Extensions.Logging;
 

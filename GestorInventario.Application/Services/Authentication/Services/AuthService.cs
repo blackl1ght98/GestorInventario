@@ -1,8 +1,8 @@
 ﻿using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application.Email;
-using GestorInventario.Interfaces.Application.Services.Authentication;
-using GestorInventario.Interfaces.Application.Services.Common;
+using GestorInventario.Interfaces.Application.Services.Authentication.Services;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
+using GestorInventario.Interfaces.Notifications.EmailServices;
+using GestorInventario.Interfaces.Web;
 using GestorInventario.Shared.DTOS.Auth;
 using GestorInventario.Shared.DTOS.Email;
 using GestorInventario.Shared.Utilities;

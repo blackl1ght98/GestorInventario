@@ -1,10 +1,9 @@
-﻿using GestorInventario.Interfaces.Application.RetryPolicy;
-using GestorInventario.Interfaces.Application.Services.Common;
+﻿using GestorInventario.Interfaces.Application.MetodosPaginacion;
+using GestorInventario.Interfaces.Application.RetryPolicy;
 using GestorInventario.Interfaces.Application.Services.Payment;
 using GestorInventario.Interfaces.Application.Services.ShopCart;
-using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
-
+using GestorInventario.Interfaces.Web;
 using GestorInventario.Shared.Utilities;
 using GestorInventario.ViewModels.ShoppingCart;
 using Microsoft.AspNetCore.Authorization;
@@ -21,11 +20,11 @@ namespace GestorInventario.Controllers.CarritoController
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IPaginationHelper _paginationHelper;
         private readonly IPaymentService _paymentService;
-        private readonly ICarritoService _carritoService;
+        private readonly IShopCartService _carritoService;
         public CarritoController(
          ICarritoRepository carritorepository,  
          ICurrentUserAccessor currentUser, 
-         ICarritoService carritoService,
+         IShopCartService carritoService,
          ILogger<CarritoController> logger,  
          IPolicyExecutor policyExecutor,  
          IPaginationHelper pagination, 

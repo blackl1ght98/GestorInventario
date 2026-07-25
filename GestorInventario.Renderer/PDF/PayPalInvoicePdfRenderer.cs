@@ -1,5 +1,5 @@
 ﻿using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Renderer;
+using GestorInventario.Interfaces.Renderer.PDF;
 using QuestPDF.Fluent;
 
 

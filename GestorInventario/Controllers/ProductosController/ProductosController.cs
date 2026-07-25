@@ -1,9 +1,9 @@
 ﻿using GestorInventario.Extensions;
+using GestorInventario.Interfaces.Application.MetodosPaginacion;
 using GestorInventario.Interfaces.Application.RetryPolicy;
-using GestorInventario.Interfaces.Application.Services.Common;
 using GestorInventario.Interfaces.Application.Services.Products;
-using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
+using GestorInventario.Interfaces.Web;
 using GestorInventario.Shared.DTOS.Products;
 using GestorInventario.Shared.DTOS.User;
 using GestorInventario.Shared.Utilities;
@@ -23,7 +23,7 @@ namespace GestorInventario.Controllers.ProductosController
         private readonly IPolicyExecutor _policyExecutor;
         private readonly IPaginationHelper _paginationHelper;
         private readonly ICurrentUserAccessor _current;
-        private readonly IProductManagementService _productoService;
+        private readonly IProductService _productoService;
         
         public ProductosController(
             IPolicyExecutor policyExecutor,
@@ -31,7 +31,7 @@ namespace GestorInventario.Controllers.ProductosController
             ICurrentUserAccessor currentUserAccessor, 
             ILogger<ProductosController> logger, 
             IProductoRepository productoRepository,    
-            IProductManagementService productoService)
+            IProductService productoService)
         {
             _logger = logger;                  
             _productoRepository = productoRepository;         

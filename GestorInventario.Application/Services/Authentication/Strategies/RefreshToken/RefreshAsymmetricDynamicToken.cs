@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application.Services.Authentication;
+using GestorInventario.Interfaces.Application.Services.Authentication.Jwt;
+using GestorInventario.Interfaces.Application.Services.Authentication.Strategies.RefreshToken;
 using GestorInventario.Interfaces.Application.Services.Common;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
@@ -10,12 +11,12 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Refres
 {
     public class RefreshAsymmetricDynamicToken : IRefreshTokenStrategy
     {
-        private readonly ITokenClaimsBuilder _claimsBuilder;
-        private readonly ICacheService _cache;
+        private readonly IJwtTokenSettings _claimsBuilder;
+        private readonly IHybridCacheService _cache;
 
         public RefreshAsymmetricDynamicToken(
-            ITokenClaimsBuilder claimsBuilder,
-            ICacheService cache)
+            IJwtTokenSettings claimsBuilder,
+            IHybridCacheService cache)
         {
             _claimsBuilder = claimsBuilder;
             _cache = cache;

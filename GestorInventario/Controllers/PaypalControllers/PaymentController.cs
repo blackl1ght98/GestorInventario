@@ -1,11 +1,11 @@
 ﻿using GestorInventario.Interfaces.Application.RetryPolicy;
-using GestorInventario.Interfaces.Application.Services.Background;
-using GestorInventario.Interfaces.Application.Services.Common;
-using GestorInventario.Interfaces.Application.Services.ExternalServices;
-using GestorInventario.Interfaces.Application.Services.Notification;
-using GestorInventario.Interfaces.Application.Services.Order;
+using GestorInventario.Interfaces.Application.Services.BackgroundServices;
+using GestorInventario.Interfaces.Application.Services.Orders;
 using GestorInventario.Interfaces.Application.Services.Payment;
+using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Order;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
+using GestorInventario.Interfaces.Notifications.InternalNotification;
+using GestorInventario.Interfaces.Web;
 using GestorInventario.Shared.DTOS.Paypal.BD;
 using GestorInventario.Shared.Utilities;
 
@@ -24,7 +24,7 @@ namespace GestorInventario.Controllers.PaypalControllers
         private readonly IPaypalOrderService _paypalOrderService;  
         private readonly IPolicyExecutor _policyExecutor;     
         private readonly ICurrentUserAccessor _currentUserAccessor;     
-        private readonly IPedidoManagementService _pedidoService;
+        private readonly IOrderService _pedidoService;
         private readonly IPaymentService _paymentService;
         private readonly IPaypalRepository _paypalRepository;
         private readonly IBackgroundTaskQueue _background;
@@ -34,7 +34,7 @@ namespace GestorInventario.Controllers.PaypalControllers
             ICurrentUserAccessor currentUser,       
             IPolicyExecutor policyExecutor, 
             IPaypalOrderService paypalOrderService,     
-            IPedidoManagementService pedidoService, 
+            IOrderService pedidoService, 
             IPaymentService paymentService,
             IPaypalRepository repo,
             IBackgroundTaskQueue background)
@@ -130,7 +130,7 @@ namespace GestorInventario.Controllers.PaypalControllers
             _background.Enqueue(async (sp, ct) =>
             {
                 // Resolvemos IPedidoManagementService desde el scope del worker, no del controller.
-                var pedidoService = sp.GetRequiredService<IPedidoManagementService>();
+                var pedidoService = sp.GetRequiredService<IOrderService>();
                 var notificationService = sp.GetRequiredService<INotificationService>();
                
                 var logger = sp.GetRequiredService<ILogger<PaymentController>>();

@@ -2,12 +2,11 @@
 using GestorInventario.Interfaces.Application.Services.Paypal.Plans;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.DTOS.Paypal.Responses.POST.Subscription;
-using log4net.Core;
+
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
+
 using System.Globalization;
-using System.Text;
+
 
 namespace GestorInventario.Application.Services.Paypal.Plans
 {

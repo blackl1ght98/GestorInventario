@@ -1,5 +1,6 @@
-﻿using GestorInventario.Interfaces.Application.Email;
-using GestorInventario.Interfaces.Application.Services.Common;
+﻿using GestorInventario.Interfaces.Application.Services.PDFService;
+using GestorInventario.Interfaces.Notifications.EmailServices;
+using GestorInventario.Interfaces.Web;
 using GestorInventario.Notifications.Email;
 using GestorInventario.Shared.DTOS.Email;
 

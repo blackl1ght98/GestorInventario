@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using GestorInventario.Application.DTOs;
 using GestorInventario.Domain.Models;
+using GestorInventario.Interfaces.Application.MetodosPaginacion;
 using GestorInventario.Interfaces.Application.RetryPolicy;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Shared.Utilities;
