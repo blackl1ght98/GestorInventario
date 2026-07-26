@@ -1,6 +1,5 @@
 ﻿using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application.Services.Authentication.Jwt;
-using GestorInventario.Interfaces.Application.Services.Authentication.Strategies.RefreshToken;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -8,20 +7,18 @@ using System.Security.Cryptography;
 
 namespace GestorInventario.Application.Services.Authentication.Strategies.RefreshToken
 {
-    public class RefreshAsymetricFixedToken : IRefreshTokenStrategy
+    public class RefreshAsymetricFixedToken : RefreshBaseStrategy
     {
-        private readonly IJwtTokenSettings _claimsBuilder;
-        private readonly IConfiguration _configuration;
-
+       private readonly IConfiguration _configuration;
         public RefreshAsymetricFixedToken(
             IJwtTokenSettings claimsBuilder,
             IConfiguration configuration)
+            :base(claimsBuilder)
         {
-            _claimsBuilder = claimsBuilder;
-            _configuration = configuration;
+        _configuration= configuration;
         }
 
-        public Task<string> GenerarTokenRefresco(Usuario usuario)
+        public override Task<string> GenerarTokenRefresco(Usuario usuario)
         {
             var privateKeyXml = Environment.GetEnvironmentVariable("PRIVATE_KEY")
                              ?? _configuration["JWT:PrivateKey"];

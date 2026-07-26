@@ -2,6 +2,7 @@
 using GestorInventario.Interfaces.Application.Services.Authentication.Jwt;
 using GestorInventario.Interfaces.Application.Services.Authentication.Strategies.RefreshToken;
 using GestorInventario.Interfaces.Application.Services.Common;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
@@ -9,20 +10,22 @@ using System.Security.Cryptography;
 
 namespace GestorInventario.Application.Services.Authentication.Strategies.RefreshToken
 {
-    public class RefreshAsymmetricDynamicToken : IRefreshTokenStrategy
+    public class RefreshAsymmetricDynamicToken : RefreshBaseStrategy
     {
-        private readonly IJwtTokenSettings _claimsBuilder;
+      
         private readonly IHybridCacheService _cache;
 
         public RefreshAsymmetricDynamicToken(
             IJwtTokenSettings claimsBuilder,
+         
             IHybridCacheService cache)
+            :base( claimsBuilder)
         {
-            _claimsBuilder = claimsBuilder;
+          
             _cache = cache;
         }
 
-        public async Task<string> GenerarTokenRefresco(Usuario usuario)
+        public override async Task<string> GenerarTokenRefresco(Usuario usuario)
         {
             using var rsa = RSA.Create(2048);
             var privateKey = rsa.ExportParameters(true);

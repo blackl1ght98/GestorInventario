@@ -1,6 +1,5 @@
 ﻿using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application.Services.Authentication.Jwt;
-using GestorInventario.Interfaces.Application.Services.Authentication.Strategies.RefreshToken;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
@@ -9,21 +8,21 @@ using System.Text;
 
 namespace GestorInventario.Application.Services.Authentication.Strategies.RefreshToken
 {
-    public class RefreshSymmetricToken : IRefreshTokenStrategy
+    public class RefreshSymmetricToken : RefreshBaseStrategy
     {
-        private readonly IJwtTokenSettings _claimsBuilder; 
+        
         private readonly ILogger<RefreshSymmetricToken> _logger;
 
         public RefreshSymmetricToken(
-            IJwtTokenSettings claimsBuilder,
-         
+            IJwtTokenSettings claimsBuilder,     
             ILogger<RefreshSymmetricToken> logger)
+            :base(claimsBuilder)
         {
-            _claimsBuilder = claimsBuilder;
+           
             _logger = logger;
         }
 
-        public Task<string> GenerarTokenRefresco(Usuario usuario)
+        public override Task<string> GenerarTokenRefresco(Usuario usuario)
         {
             var clave = _claimsBuilder.ObtenerClaveJWT();
 

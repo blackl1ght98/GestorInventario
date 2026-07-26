@@ -20,7 +20,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
 public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
 {
    
-    private readonly ITokenGenerator _tokenService;
+    private readonly ITokenGenerator _tokenGenerator;
     private readonly IUserRepository _userRepository;
     private readonly IHybridCacheService _cache;
     private readonly IRefreshTokenGenerator _refreshTokenGenerator;
@@ -36,8 +36,8 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
         IJwtTokenSettings builder,
         ILogger<DynamicAsymmetricAuthStrategy> logger)
     {
-       
-        _tokenService = tokenService;
+
+        _tokenGenerator = tokenService;
         _userRepository = userRepository;
         _cache = cache;
         _logger = logger;
@@ -169,7 +169,7 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
                 return;
             }
 
-            var newAccessToken = await _tokenService.GenerateTokenAsync(user);
+            var newAccessToken = await _tokenGenerator.GenerateTokenAsync(user);
             var newRefresToken = await _refreshTokenGenerator.GenerateTokenAsync(user);
             var minutos = _tokenClaimsBuilder.ObtenerDuracionAccessTokenMinutos();
             var horas = _tokenClaimsBuilder.ObtenerDuracionRefreshTokenHoras();
