@@ -30,11 +30,6 @@ Tener instalado lo siguiente:
   - [SQL Server](https://www.microsoft.com/es-es/download/details.aspx?id=104781)
   - [SQL Server Management Studio (SSMS)](https://aka.ms/ssmsfullsetup)  para gestionar la BD
     
-# 🔑 Configuración común (Docker y entorno local)
-Para que todo quede configurado ejecutar el script **install.ps1** este script es un instalador guiado que te indicara que valores poner, importante ejecutar con permisos de administrador solo para la generación del certificado autofirmado.
-```powershell
-./install.ps1
-````
 
 # 🐳 Puesta en marcha para ejecutacion con docker
 1. Clonar el repositorio con el comando:
@@ -46,7 +41,7 @@ Para que todo quede configurado ejecutar el script **install.ps1** este script e
 ```powershell
 ./install.ps1
 ````
-
+**NOTA**: Este script al finalizar crearar un archivo .env, este archivo contendra el valor de cada variable de entorno, si quisieramos tenerlo en local tambien a parte de docker este archivo .env sera de gran ayuda para rellenar el archivo de secretos.
 
 # Credenciales para probar
 - **Email**: keupa@yopmail.com
