@@ -30,15 +30,7 @@ Tener instalado lo siguiente:
   - [SQL Server](https://www.microsoft.com/es-es/download/details.aspx?id=104781)
   - [SQL Server Management Studio (SSMS)](https://aka.ms/ssmsfullsetup)  para gestionar la BD
     
-# 🔑 Configuración común (Docker y entorno local)
-Para que todo quede configurado ejecutar el script **install.ps1** este script es un instalador guiado que te indicara que valores poner.
-```powershell
-./install.ps1
-````
-Una vez termine script se generara un archivo **.env** con las variables de entorno el cual nos ayudara a la hora del despliegue sin el uso de docker en lo que ayuda es a rellenar los valores del archivo de secretos.
-PROXIMAMENTE PONDRE SCRIPT SEPARADOS PARA CERTIFICADO Y VARIABLES DE ENTORNO
-Al ejecutarlo nos pedira  que pongamos ciertos valores lo cual los pondremos, el proceso de poner los valores es guiado asi que no habra perdida en donde conseguir cada valor.
-NOTA: si no quieres usar doker y quieres desplegarlo en visual studio generaremos este archivo para rellenar el archivo de secretos.
+
 # 🐳 Puesta en marcha para ejecutacion con docker
 1. Clonar el repositorio con el comando:
 ```sh
@@ -49,7 +41,7 @@ Para que todo quede configurado ejecutar el script **install.ps1** este script e
 ```powershell
 ./install.ps1
 ````
-
+**NOTA**: Este script al finalizar crearar un archivo .env, este archivo contendra el valor de cada variable de entorno, si quisieramos tenerlo en local tambien a parte de docker este archivo .env sera de gran ayuda para rellenar el archivo de secretos.
 
 # Credenciales para probar
 - **Email**: keupa@yopmail.com
@@ -87,31 +79,48 @@ Luego, agrega los siguientes valores en formato JSON:
     "ConnectionString": "redis:6379",
     "ConnectionStringLocal": "127.0.0.1:6379"
   },
+
+
   "AuthMode": "AsymmetricDynamic",
-  "JwtIssuer": "GestorInvetarioEmisor",
-  "JwtAudience": "GestorInventarioCliente",
+  "LoginMode": "MfaLogin",
+
   "JWT": {
     "PublicKey": "",
-    "PrivateKey": ""
+    "PrivateKey": "",
+    "Issuer": "GestorInvetarioEmisor",
+    "Audience": "GestorInventarioCliente",
+    "ClaveJWT": "IntroduceClaveLargaergoherofiygkeuidgrf7ieurygf97836trf98egfiuytrf"
   },
-  "ClaveJWT": "IntroduceClaveLarga",
-  "IsMfaEnabled": true,
- "CallMeBot": {
-   "user": ""
- },
+
+
   "DataBaseConection": {
-    "DBHost": "",
+    "DBHost": "localhost\\SQLEXPRESS",
     "DockerDbHost": "SQL-Server-Local",
     "DBName": "GestorInventario",
     "DBUserName": "sa",
     "DBPassword": "SQL#1234"
   },
+  "App": {
+    "BaseUrl": "https://localhost:7056",
+    "DockerUrl": "https://localhost:8080"
+
+  },
+  "CallMeBot": {
+    "TelegramUser": ""
+  },
   "Paypal": {
     "ClientId": "",
     "ClientSecret": "",
-    "Mode": "sandbox",
-    "returnUrlSinDocker": "https://localhost:7056/Payment/Success",
-    "returnUrlConDocker": "https://localhost:8081/Payment/Success"
+    "BaseUrl": "https://api-m.sandbox.paypal.com/",
+    "ReturnUrls": {
+      "Development": "https://localhost:7056/Payment/Success",
+      "Docker": "https://localhost:8081/Payment/Success"
+    },
+    "CancelUrls": {
+      "Development": "https://localhost:7056/Payment/Cancel",
+      "Docker": "https://localhost:8081/Payment/Cancel"
+    }
+
   },
   "LicenseKeyAutoMapper": "",
   "Email": {
@@ -125,26 +134,8 @@ Luego, agrega los siguientes valores en formato JSON:
 **DBHost**: esto ya lo mencionamos en el comando scaffold pero esto nos lo dice el motor de base de datos a la hora de loguearnos tiene este aspecto: `DESKTOP-XXXX\SQLEXPRESS`
 **CallMeBot: user**: Este valor sera tu usuario de telegram 
 **AuthMode**: Admite estos valores: Symmetric, AsymmetricFixed, AsymmetricDynamic. De estos tres modos el mas aconsejado es **AsymmetricDynamic** por su seguridad
-## Modificación del archivo GestorInventarioContext.cs 
-Una vez que hemos ejecutado el comando que realiza el scaffold tenemos  que borrar el metodo **OnConfiguring**
-```csharp
-   protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {}
-````
-## Configuración de launchSettings.json
-En este archivo ajustaremos las variables de entorno con los valores:
-```json
- "https": {
-   "commandName": "Project",
-   "launchBrowser": true,
-   "environmentVariables": {
-     "ASPNETCORE_ENVIRONMENT": "Development",   
-     "USE_REDIS": "false",
-     "IS_DOCKER": "false"
-   },
-   "dotnetRunMessages": true,
-   "applicationUrl": "https://localhost:7056;http://localhost:5000;https://localhost:7057"
- },
-````
+
+
 ## ⚙️ Scaffold-DbContext
 El scaffold solo se ejecutara si la base de datos cambia mientras que no cambie la base de datos no se ejecutara el scaffold
 Para ejecutar este comando hacemos lo siguiente:
