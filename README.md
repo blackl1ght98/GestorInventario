@@ -79,31 +79,48 @@ Luego, agrega los siguientes valores en formato JSON:
     "ConnectionString": "redis:6379",
     "ConnectionStringLocal": "127.0.0.1:6379"
   },
+
+
   "AuthMode": "AsymmetricDynamic",
-  "JwtIssuer": "GestorInvetarioEmisor",
-  "JwtAudience": "GestorInventarioCliente",
+  "LoginMode": "MfaLogin",
+
   "JWT": {
     "PublicKey": "",
-    "PrivateKey": ""
+    "PrivateKey": "",
+    "Issuer": "GestorInvetarioEmisor",
+    "Audience": "GestorInventarioCliente",
+    "ClaveJWT": "IntroduceClaveLargaergoherofiygkeuidgrf7ieurygf97836trf98egfiuytrf"
   },
-  "ClaveJWT": "IntroduceClaveLarga",
-  "IsMfaEnabled": true,
- "CallMeBot": {
-   "user": ""
- },
+
+
   "DataBaseConection": {
-    "DBHost": "",
+    "DBHost": "localhost\\SQLEXPRESS",
     "DockerDbHost": "SQL-Server-Local",
     "DBName": "GestorInventario",
     "DBUserName": "sa",
     "DBPassword": "SQL#1234"
   },
+  "App": {
+    "BaseUrl": "https://localhost:7056",
+    "DockerUrl": "https://localhost:8080"
+
+  },
+  "CallMeBot": {
+    "TelegramUser": ""
+  },
   "Paypal": {
     "ClientId": "",
     "ClientSecret": "",
-    "Mode": "sandbox",
-    "returnUrlSinDocker": "https://localhost:7056/Payment/Success",
-    "returnUrlConDocker": "https://localhost:8081/Payment/Success"
+    "BaseUrl": "https://api-m.sandbox.paypal.com/",
+    "ReturnUrls": {
+      "Development": "https://localhost:7056/Payment/Success",
+      "Docker": "https://localhost:8081/Payment/Success"
+    },
+    "CancelUrls": {
+      "Development": "https://localhost:7056/Payment/Cancel",
+      "Docker": "https://localhost:8081/Payment/Cancel"
+    }
+
   },
   "LicenseKeyAutoMapper": "",
   "Email": {
