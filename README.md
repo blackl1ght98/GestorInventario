@@ -31,14 +31,11 @@ Tener instalado lo siguiente:
   - [SQL Server Management Studio (SSMS)](https://aka.ms/ssmsfullsetup)  para gestionar la BD
     
 # 🔑 Configuración común (Docker y entorno local)
-Para que todo quede configurado ejecutar el script **install.ps1** este script es un instalador guiado que te indicara que valores poner.
+Para que todo quede configurado ejecutar el script **install.ps1** este script es un instalador guiado que te indicara que valores poner, importante ejecutar con permisos de administrador solo para la generación del certificado autofirmado.
 ```powershell
 ./install.ps1
 ````
-Una vez termine script se generara un archivo **.env** con las variables de entorno el cual nos ayudara a la hora del despliegue sin el uso de docker en lo que ayuda es a rellenar los valores del archivo de secretos.
-PROXIMAMENTE PONDRE SCRIPT SEPARADOS PARA CERTIFICADO Y VARIABLES DE ENTORNO
-Al ejecutarlo nos pedira  que pongamos ciertos valores lo cual los pondremos, el proceso de poner los valores es guiado asi que no habra perdida en donde conseguir cada valor.
-NOTA: si no quieres usar doker y quieres desplegarlo en visual studio generaremos este archivo para rellenar el archivo de secretos.
+
 # 🐳 Puesta en marcha para ejecutacion con docker
 1. Clonar el repositorio con el comando:
 ```sh
