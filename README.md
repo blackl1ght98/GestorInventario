@@ -117,26 +117,8 @@ Luego, agrega los siguientes valores en formato JSON:
 **DBHost**: esto ya lo mencionamos en el comando scaffold pero esto nos lo dice el motor de base de datos a la hora de loguearnos tiene este aspecto: `DESKTOP-XXXX\SQLEXPRESS`
 **CallMeBot: user**: Este valor sera tu usuario de telegram 
 **AuthMode**: Admite estos valores: Symmetric, AsymmetricFixed, AsymmetricDynamic. De estos tres modos el mas aconsejado es **AsymmetricDynamic** por su seguridad
-## Modificación del archivo GestorInventarioContext.cs 
-Una vez que hemos ejecutado el comando que realiza el scaffold tenemos  que borrar el metodo **OnConfiguring**
-```csharp
-   protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {}
-````
-## Configuración de launchSettings.json
-En este archivo ajustaremos las variables de entorno con los valores:
-```json
- "https": {
-   "commandName": "Project",
-   "launchBrowser": true,
-   "environmentVariables": {
-     "ASPNETCORE_ENVIRONMENT": "Development",   
-     "USE_REDIS": "false",
-     "IS_DOCKER": "false"
-   },
-   "dotnetRunMessages": true,
-   "applicationUrl": "https://localhost:7056;http://localhost:5000;https://localhost:7057"
- },
-````
+
+
 ## ⚙️ Scaffold-DbContext
 El scaffold solo se ejecutara si la base de datos cambia mientras que no cambie la base de datos no se ejecutara el scaffold
 Para ejecutar este comando hacemos lo siguiente:
