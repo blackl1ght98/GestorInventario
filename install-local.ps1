@@ -16,7 +16,7 @@
 #  "la BD esta ahi o no lo esta". Una vez verde, encadenamos el
 #  resto de pasos (install-local.ps1) en el mismo flujo.
 # =================================================================
-
+ Write-Host "  SCRIPT EN CONSTRUCCION" -ForegroundColor DarkGray
 $ErrorActionPreference = 'Stop'
 
 # ─────────────────────────────────────────────────────────────────
