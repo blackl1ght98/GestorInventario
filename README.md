@@ -1,6 +1,6 @@
 # Guía de instalación para usar el proyecto Gestor Inventario
 
-# 📑 Índice
+# 📑 Índice (en construccion)
 - ⚠️ Requisitos para ejecutarlo con docker
 - ⚠️ Requisitos para ejecutarlo en local
 - 🔑 Generación de certificado HTTPS
