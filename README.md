@@ -41,6 +41,10 @@ Para que todo quede configurado ejecutar el script **install.ps1** este script e
 ```powershell
 ./install.ps1
 ````
+En caso de estar en linux ejecutar
+````sh
+sudo ./install-linux.sh
+````
 **NOTA**: Este script al finalizar crearar un archivo .env, este archivo contendra el valor de cada variable de entorno, si quisieramos tenerlo en local tambien a parte de docker este archivo .env sera de gran ayuda para rellenar el archivo de secretos.
 
 # Credenciales para probar
