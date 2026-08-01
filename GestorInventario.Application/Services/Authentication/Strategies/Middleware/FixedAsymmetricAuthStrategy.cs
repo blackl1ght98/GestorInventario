@@ -50,12 +50,12 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
                     }
                     else if (!string.IsNullOrEmpty(refreshToken))
                     {
-                        await HandleExpiredToken(context, refreshToken,  _tokenGenerator, _userRepository, _refreshTokenStrategy);
+                        await HandleExpiredToken(context, refreshToken);
                     }
                 }
                 else if (!string.IsNullOrEmpty(refreshToken))
                 {
-                    await HandleExpiredToken(context, refreshToken, _tokenGenerator, _userRepository, _refreshTokenStrategy);
+                    await HandleExpiredToken(context, refreshToken);
                 }
                 else
                 {
@@ -119,8 +119,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
             }
         }
 
-        private async Task HandleExpiredToken(HttpContext context, string refreshToken,
-            ITokenGenerator tokenService, IUserRepository repository, IRefreshTokenGenerator refreshTokenMethod)
+        private async Task HandleExpiredToken(HttpContext context, string refreshToken)
         {
             var refreshTokenValid = await ValidateRefreshToken(refreshToken);
             var logger = log4net.LogManager.GetLogger(typeof(FixedAsymmetricAuthStrategy));
@@ -149,7 +148,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
                 return;
             }
 
-            var user = await repository.ObtenerUsuarioPorId(userIdParsed);
+            var user = await _userRepository.ObtenerUsuarioPorId(userIdParsed);
             if (user == null)
             {
                logger.Error("Usuario no encontrado");
@@ -157,10 +156,10 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
                 return;
             }
 
-            var newAccessToken = await tokenService.GenerateTokenAsync(user);
-            var newRefreshToken = await refreshTokenMethod.GenerateTokenAsync(user);
+            var newAccessToken = await _tokenGenerator.GenerateTokenAsync(user);
+            var newRefreshToken = await _refreshTokenStrategy.GenerateTokenAsync(user);
             var minutos = _tokenClaimsBuilder.ObtenerDuracionAccessTokenMinutos();
-         
+            var horas = _tokenClaimsBuilder.ObtenerDuracionRefreshTokenHoras();
             context.Response.Cookies.Append("auth", newAccessToken.Token, new CookieOptions
             {
                 HttpOnly = true,
@@ -169,10 +168,17 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
                 Secure = true,
                 Expires = DateTime.UtcNow.AddMinutes(minutos)
             });
+            context.Response.Cookies.Append("refreshToken", newRefreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                SameSite = SameSiteMode.Lax,
 
-        
+                Secure = true,
+                Expires = DateTime.UtcNow.AddHours(horas)
+            });
 
-           logger.Info("Tokens generados con exito");
+
+            logger.Info("Tokens generados con exito");
         }
 
         private async Task<bool> ValidateRefreshToken(string refreshToken)

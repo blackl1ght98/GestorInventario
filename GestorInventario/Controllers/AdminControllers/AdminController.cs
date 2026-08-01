@@ -43,7 +43,7 @@ namespace GestorInventario.Controllers.AdminControllers
             _currentUserAccessor = currentUser;
             _userManagementService = userManagement;
         }
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Policy = "EsAdministrador")]
         public async Task<IActionResult> Index(string buscar, [FromQuery] Paginacion paginacion)
         {
             try

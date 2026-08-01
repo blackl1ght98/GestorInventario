@@ -1,7 +1,9 @@
 ﻿
 using GestorInventario.Composition;
 using GestorInventario.Configuracion;
+
 using GestorInventario.Extensions;
+
 using GestorInventario.Middlewares;
 using GestorInventario.Renderer.PDF;
 using GestorInventario.Shared.DTOS.Configuration;
@@ -26,6 +28,7 @@ builder.Services.AddControllersWithViews().AddJsonOptions(options => options.Jso
 
 //Configuracion DB
 builder.Services.AddDatabaseContext(builder.Configuration);
+
 //CORS
 builder.Services.AddCors(options =>
 {
@@ -84,7 +87,14 @@ builder.Services.AddHsts(options =>
 
 });
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("EsAdministrador", policy =>
+        policy.RequireAssertion(ctx => ctx.User.IsInRole("Administrador")));
 
+    options.AddPolicy("EsUsuario", policy =>
+        policy.RequireAssertion(ctx => ctx.User.IsInRole("Usuario")));
+});
 builder.Services.AddSession(options =>
 {
     //Si el usuario esta inactivo 20 minutos la sesion se cierra automaticamente
@@ -110,7 +120,7 @@ builder.Services.AddDataProtection()
 
 
 var app = builder.Build();
-
+await app.SeedInitialRolesAsync();
 app.UseWebOptimizer();
 if (!app.Environment.IsDevelopment())
 {
@@ -181,3 +191,4 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+

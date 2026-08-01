@@ -41,26 +41,66 @@ namespace GestorInventario.Application.Services.User
 
         public async Task<OperationResult<string>> CrearUsuarioAsync(RegisterUserDto model)
         {
+            // 1. Validar email duplicado (ya lo tienes)
             var existing = await _usuarioRepository.ExisteEmailAsync(model.Email);
             if (existing)
                 return OperationResult<string>.Fail("Ya existe un usuario con este correo electrónico.");
 
+            // 2. ⚠️ NUEVO: ¿es el primer usuario del sistema?
+            //    Si lo es, forzamos el rol "Administrador" ignorando lo que diga el DTO.
+            var esPrimerUsuario = !(await _usuarioRepository.AnyAsync());
+            if (esPrimerUsuario)
+            {
+                var rolAdmin = await _usuarioRepository.GetRolByNameAsync("Administrador")
+                    ?? throw new InvalidOperationException(
+                        "Rol 'Administrador' no existe. ¿Se ejecutó el seed?");
+
+                model.IdRol = rolAdmin.Id;
+                _logger.LogWarning(
+                    "BOOTSTRAP ADMIN: {Email} se registra como primer usuario del sistema. " +
+                    "Rol forzado a Administrador (Id={IdRol}).",
+                    model.Email, model.IdRol);
+            }
+
+            // 3. Validar que el rol del DTO realmente existe 
+            var rolSeleccionado = await _usuarioRepository.GetByIdRolAsync(model.IdRol);
+            if (rolSeleccionado is null)
+            {
+                return OperationResult<string>.Fail(
+                    $"El rol con Id {model.IdRol} no existe. Contacta al administrador.");
+            }
+
+            // 4. Tu lógica actual de creación
             var resultadoHash = _hashService.Hash(model.Password);
             var usuarioEf = _mapper.Map<Usuario>(model);
             usuarioEf.Password = resultadoHash.Hash;
             usuarioEf.Salt = resultadoHash.Salt;
             usuarioEf.FechaRegistro = DateTime.UtcNow;
+
+            // 5. Solo el primer usuario se confirma automáticamente
+            if (esPrimerUsuario)
+            {
+                usuarioEf.ConfirmacionEmail = true;  // Ya es admin, no necesita confirmar
+            }
+
             var resultadoGuardado = await _usuarioRepository.AgregarUsuarioAsync(usuarioEf);
             if (!resultadoGuardado.Success)
                 return OperationResult<string>.Fail(resultadoGuardado.Message);
-            var correo = await _emailService.SendEmailAsyncRegister(
-                new EmailDto { ToEmail = model.Email }, usuarioEf.Id);
 
-            if (!correo.IsSuccess)
-                _logger.LogWarning("No se pudo enviar el email de confirmación");
+            // 6. Email de confirmación solo si NO es el primer usuario
+            if (!esPrimerUsuario)
+            {
+                var correo = await _emailService.SendEmailAsyncRegister(
+                    new EmailDto { ToEmail = model.Email }, usuarioEf.Id);
 
-            _logger.LogInformation("Usuario {Email} creado correctamente", model.Email);
-            return OperationResult<string>.Ok("Usuario creado y correo de confirmación enviado");
+                if (!correo.IsSuccess)
+                    _logger.LogWarning("No se pudo enviar el email de confirmación");
+            }
+
+            _logger.LogInformation("Usuario {Email} creado correctamente con rol {Rol}",
+                model.Email, rolSeleccionado.Nombre);
+
+            return OperationResult<string>.Ok("Usuario creado correctamente");
         }
         public async Task<OperationResult<string>> EditarUsuarioAsync(EditUserDto userVM)
         {
@@ -141,5 +181,22 @@ namespace GestorInventario.Application.Services.User
             await _usuarioRepository.ActualizarUsuarioAsync(usuarioDB);
             return OperationResult<string>.Ok("Validacion exitosa");
         }
+        // AutoMapper hace esto por debajo
+        public void Mapear(object origen, object destino)
+        {
+            var propsOrigen = origen.GetType().GetProperties();
+            var propsDestino = destino.GetType().GetProperties()
+                .ToDictionary(p => p.Name);
+
+            foreach (var prop in propsOrigen)
+            {
+                if (propsDestino.TryGetValue(prop.Name, out var propDest))
+                {
+                    var valor = prop.GetValue(origen);
+                    propDest.SetValue(destino, valor);
+                }
+            }
+        }
     }
+
 }

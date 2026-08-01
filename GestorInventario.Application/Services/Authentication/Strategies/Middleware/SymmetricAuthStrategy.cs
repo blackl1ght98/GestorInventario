@@ -56,12 +56,12 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
                     }
                     else if (!string.IsNullOrEmpty(refreshToken))
                     {
-                        await HandleExpiredToken(context, refreshToken, secret,  _tokenGenerator, _userRepository, _refreshTokenStrategy);
+                        await HandleExpiredToken(context, refreshToken, secret);
                     }
                 }
                 else if (!string.IsNullOrEmpty(refreshToken))
                 {
-                    await HandleExpiredToken(context, refreshToken, secret,_tokenGenerator, _userRepository, _refreshTokenStrategy);
+                    await HandleExpiredToken(context, refreshToken, secret);
                 }
                
             }
@@ -109,8 +109,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
             }
         }
 
-        private async Task HandleExpiredToken(HttpContext context, string refreshToken, string secret, 
-            ITokenGenerator tokenService, IUserRepository repository, IRefreshTokenGenerator refreshTokenMethod)
+        private async Task HandleExpiredToken(HttpContext context, string refreshToken, string secret)
         {
             var refreshTokenValid = await ValidateRefreshToken(refreshToken, secret);
             if (!refreshTokenValid)
@@ -138,7 +137,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
                 return;
             }
 
-            var user = await repository.ObtenerUsuarioPorId(userIdParsed);
+            var user = await _userRepository.ObtenerUsuarioPorId(userIdParsed);
             if (user == null)
             {
                 
@@ -146,8 +145,8 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
                 return;
             }
 
-            var newAccessToken = await tokenService.GenerateTokenAsync(user);
-            var newRefreshToken = await refreshTokenMethod.GenerateTokenAsync(user);
+            var newAccessToken = await _tokenGenerator.GenerateTokenAsync(user);
+            var newRefreshToken = await _refreshTokenStrategy.GenerateTokenAsync(user);
             var minutos = _tokenClaimsBuilder.ObtenerDuracionAccessTokenMinutos();
             var horas = _tokenClaimsBuilder.ObtenerDuracionRefreshTokenHoras();
             context.Response.Cookies.Append("auth", newAccessToken.Token, new CookieOptions

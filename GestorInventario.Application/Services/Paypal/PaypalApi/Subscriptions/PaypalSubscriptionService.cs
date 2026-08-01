@@ -23,8 +23,7 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Subscriptions
         public PaypalSubscriptionService(ILogger<PaypalSubscriptionService> logger,
            IPayPalHttpClient paypal)
         {
-            _logger = logger;
-           
+            _logger = logger;     
             _paypal = paypal;
             
         }

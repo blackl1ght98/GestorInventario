@@ -20,6 +20,8 @@ namespace GestorInventario.Infrastructure.Repositories.UserRepository
             _context = context;
             
         }
+        public async Task<List<Role>> GetAllAsync() => await _context.Roles.ToListAsync();
+
         public async Task<Usuario> ObtenerUsuarioPorId(int id)
         {
             var usuario = await _context.Usuarios.AsTracking()
@@ -33,6 +35,14 @@ namespace GestorInventario.Infrastructure.Repositories.UserRepository
             return  correo;
 
         }
+        public async Task<bool> AnyAsync()
+    => await _context.Usuarios.AnyAsync();
+
+        public async Task<Role?> GetRolByNameAsync(string nombre)
+            => await _context.Roles.FirstOrDefaultAsync(r => r.Nombre == nombre);
+
+        public async Task<Role?> GetByIdRolAsync(int idRol)
+            => await _context.Roles.FirstOrDefaultAsync(r => r.Id == idRol);
         public async Task<List<Usuario>> ObtenerUsuariosAsync() 
         { 
             var listaUsuarios= await _context.Usuarios.Include(u => u.IdRolNavigation).ToListAsync();
@@ -105,7 +115,16 @@ namespace GestorInventario.Infrastructure.Repositories.UserRepository
                 await _context.AddEntityAsync(usuario);
                 return OperationResult<Usuario>.Ok("Usuario guardado", usuario);
             });
-        }      
+        }
+        public async Task<OperationResult<Role>> AddAsync(Role rol)
+        {
+            return await _context.ExecuteInTransactionAsync(async () =>
+            {
+                await _context.AddEntityAsync(rol);
+                return OperationResult<Role>.Ok("Usuario guardado", rol);
+            });
+        }
+        
         public async Task<OperationResult<string>> ActualizarUsuarioAsync(Usuario usuario)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
