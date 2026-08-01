@@ -175,7 +175,15 @@ wsl --update
 ```
 pero si esto no lo soluciona lo que haremos es descargar la ultima versión de wsl del repositorio de microsoft: [WSL](https://github.com/microsoft/WSL/releases) instalamos la ultima version del programa y el problema se soluciona
 
+## Solución al error de restauración de base de datos en linux (Arch)
+Para solucionar este problema ejecutar los comandos:
+```sh
+  sudo pacman -S git-lfs
+  git lfs install
+  git lfs pull
 
+```
+Esto lo que hara es agregarle los datos faltantes al .bak
 # ✨ Características
 
 El proyecto **Gestor Inventario** ofrece una amplia gama de características para gestionar eficientemente el inventario:
