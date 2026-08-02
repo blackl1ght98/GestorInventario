@@ -24,7 +24,7 @@ namespace GestorInventario.Controllers.AdminControllers
         private readonly IPolicyExecutor _policyExecutor;  
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IPaginationHelper _paginationHelper;
-        private readonly IUserService _userManagementService;
+        private readonly IUserService _userService;
         public AdminController(
             ILogger<AdminController> logger, 
             IUnitOfWork unitOfWork, 
@@ -41,7 +41,7 @@ namespace GestorInventario.Controllers.AdminControllers
             _unitOfWork = unitOfWork;
             _paginationHelper = paginationHelper;
             _currentUserAccessor = currentUser;
-            _userManagementService = userManagement;
+            _userService = userManagement;
         }
         [Authorize(Policy = "EsAdministrador")]
         public async Task<IActionResult> Index(string buscar, [FromQuery] Paginacion paginacion)
@@ -102,14 +102,15 @@ namespace GestorInventario.Controllers.AdminControllers
             {
                 if (!ModelState.IsValid)
                 {
-                     CargarRolesEnViewData();
+                    CargarRolesEnViewData();
                     return View(model);
                 }
+
                 var dto = new RegisterUserDto
                 {
                     Email = model.Email,
                     Password = model.Password,
-                    IdRol = model.IdRol,
+                  
                     NombreCompleto = model.NombreCompleto,
                     FechaNacimiento = model.FechaNacimiento,
                     Telefono = model.Telefono,
@@ -117,7 +118,15 @@ namespace GestorInventario.Controllers.AdminControllers
                     Ciudad = model.Ciudad,
                     CodigoPostal = model.CodigoPostal,
                 };
-                var result = await _policyExecutor.ExecutePolicyAsync(() => _userManagementService.CrearUsuarioAsync(dto));
+
+                // El admin puede elegir rol desde el dropdown (que es Id → Nombre).
+                // Si es auto-registro (sin rol solicitado), el servicio aplica Roles.DefaultRegistro.
+                var rolNombre = User.IsAdministrador()
+              ?  ObtenerNombreRolPorId(model.IdRol)
+              : null;
+
+                var result = await _policyExecutor.ExecutePolicyAsync(
+                    () => _userService.CrearUsuarioAsync(dto, rolNombre));
 
                 if (!result.Success)
                 {
@@ -127,9 +136,7 @@ namespace GestorInventario.Controllers.AdminControllers
                 }
 
                 if (User.IsAdministrador())
-                {
                     return RedirectToAction(nameof(Index));
-                }
 
                 return RedirectToAction("Login", "Auth");
             }
@@ -140,6 +147,11 @@ namespace GestorInventario.Controllers.AdminControllers
                 return RedirectToAction("Error", "Home");
             }
         }
+        private string? ObtenerNombreRolPorId(int idRol)
+        {
+            var roles = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles());
+            return roles.FirstOrDefault(r => r.Id == idRol)?.Nombre;
+        }
 
         [AllowAnonymous]
         [HttpGet("admin/confirm-registration/{UserId}/{Token}")]
@@ -147,7 +159,7 @@ namespace GestorInventario.Controllers.AdminControllers
         {
             try
             {               
-                var validar = await _userManagementService.ValidarRegistro(confirmar);
+                var validar = await _userService.ValidarRegistro(confirmar);
                 if (!validar.Success) {
                     TempData["ErrorMessageConfirm"] =validar.Message;
                 }
@@ -219,7 +231,7 @@ namespace GestorInventario.Controllers.AdminControllers
 
 
                 };
-                var result= await _userManagementService.EditarUsuarioAsync(dto);
+                var result= await _userService.EditarUsuarioAsync(dto);
                
                 if (!result.Success)
                 {
@@ -286,7 +298,7 @@ namespace GestorInventario.Controllers.AdminControllers
         {
             try
             {
-                var result = await _policyExecutor.ExecutePolicyAsync(() =>_userManagementService.EliminarUsuarioAsync(Id));
+                var result = await _policyExecutor.ExecutePolicyAsync(() =>_userService.EliminarUsuarioAsync(Id));
                 if (result.Success)
                     return RedirectToAction(nameof(Index));
 

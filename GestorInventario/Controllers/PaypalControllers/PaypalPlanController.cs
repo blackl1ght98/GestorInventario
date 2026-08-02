@@ -31,7 +31,7 @@ namespace GestorInventario.Controllers.PaypalControllers
             IUnitOfWork unitOfWork, 
             IPolicyExecutor policyExecutor, 
             IPaypalSubscriptionService paypalSubscriptionService,
-          IPlanService planService,
+            IPlanService planService,
             IPaginationHelper paginationHelper,
             ILogger<PaypalPlanController> logger,
             ISyncService sync

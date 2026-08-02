@@ -5,7 +5,7 @@ namespace GestorInventario.Interfaces.Application.Services.User
 {
     public interface IUserService
     {
-        Task<OperationResult<string>> CrearUsuarioAsync(RegisterUserDto model);
+        Task<OperationResult<string>> CrearUsuarioAsync(RegisterUserDto model, string? rolSolicitado = null);
         Task<OperationResult<string>> EditarUsuarioAsync(EditUserDto userVM);
         Task<OperationResult<string>> EliminarUsuarioAsync(int id);
         Task<OperationResult<string>> ValidarRegistro(ConfirmRegistrationDto confirmar);

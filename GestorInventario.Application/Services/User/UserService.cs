@@ -39,67 +39,43 @@ namespace GestorInventario.Application.Services.User
            
         }
 
-        public async Task<OperationResult<string>> CrearUsuarioAsync(RegisterUserDto model)
+        public async Task<OperationResult<string>> CrearUsuarioAsync(RegisterUserDto model, string? rolSolicitado = null)
         {
-            // 1. Validar email duplicado (ya lo tienes)
-            var existing = await _usuarioRepository.ExisteEmailAsync(model.Email);
-            if (existing)
+            if (await _usuarioRepository.ExisteEmailAsync(model.Email))
                 return OperationResult<string>.Fail("Ya existe un usuario con este correo electrónico.");
 
-            // 2. ⚠️ NUEVO: ¿es el primer usuario del sistema?
-            //    Si lo es, forzamos el rol "Administrador" ignorando lo que diga el DTO.
-            var esPrimerUsuario = !(await _usuarioRepository.AnyAsync());
-            if (esPrimerUsuario)
-            {
-                var rolAdmin = await _usuarioRepository.GetRolByNameAsync("Administrador")
-                    ?? throw new InvalidOperationException(
-                        "Rol 'Administrador' no existe. ¿Se ejecutó el seed?");
+            var esPrimerUsuario = !await _usuarioRepository.AnyAsync();
 
-                model.IdRol = rolAdmin.Id;
-                _logger.LogWarning(
-                    "BOOTSTRAP ADMIN: {Email} se registra como primer usuario del sistema. " +
-                    "Rol forzado a Administrador (Id={IdRol}).",
-                    model.Email, model.IdRol);
-            }
+            // Bootstrap siempre gana: el primer usuario del sistema es admin, sin importar lo que manden
+            var nombreRol = esPrimerUsuario
+                ? Roles.Administrador
+                : (rolSolicitado ?? Roles.DefaultRegistro);
 
-            // 3. Validar que el rol del DTO realmente existe 
-            var rolSeleccionado = await _usuarioRepository.GetByIdRolAsync(model.IdRol);
-            if (rolSeleccionado is null)
-            {
-                return OperationResult<string>.Fail(
-                    $"El rol con Id {model.IdRol} no existe. Contacta al administrador.");
-            }
+            var rol = await _usuarioRepository.GetRolByNameAsync(nombreRol)
+                ?? throw new InvalidOperationException(
+                    $"Rol '{nombreRol}' no existe. ¿Se ejecutó el seed?");
 
-            // 4. Tu lógica actual de creación
-            var resultadoHash = _hashService.Hash(model.Password);
+            var hash = _hashService.Hash(model.Password);
             var usuarioEf = _mapper.Map<Usuario>(model);
-            usuarioEf.Password = resultadoHash.Hash;
-            usuarioEf.Salt = resultadoHash.Salt;
+            usuarioEf.Password = hash.Hash;
+            usuarioEf.Salt = hash.Salt;
+            usuarioEf.IdRol = rol.Id;
             usuarioEf.FechaRegistro = DateTime.UtcNow;
-
-            // 5. Solo el primer usuario se confirma automáticamente
-            if (esPrimerUsuario)
-            {
-                usuarioEf.ConfirmacionEmail = true;  // Ya es admin, no necesita confirmar
-            }
+            usuarioEf.ConfirmacionEmail = esPrimerUsuario;
 
             var resultadoGuardado = await _usuarioRepository.AgregarUsuarioAsync(usuarioEf);
             if (!resultadoGuardado.Success)
                 return OperationResult<string>.Fail(resultadoGuardado.Message);
 
-            // 6. Email de confirmación solo si NO es el primer usuario
             if (!esPrimerUsuario)
             {
                 var correo = await _emailService.SendEmailAsyncRegister(
                     new EmailDto { ToEmail = model.Email }, usuarioEf.Id);
-
                 if (!correo.IsSuccess)
                     _logger.LogWarning("No se pudo enviar el email de confirmación");
             }
 
-            _logger.LogInformation("Usuario {Email} creado correctamente con rol {Rol}",
-                model.Email, rolSeleccionado.Nombre);
-
+            _logger.LogInformation("Usuario {Email} creado con rol {Rol}", model.Email, nombreRol);
             return OperationResult<string>.Ok("Usuario creado correctamente");
         }
         public async Task<OperationResult<string>> EditarUsuarioAsync(EditUserDto userVM)

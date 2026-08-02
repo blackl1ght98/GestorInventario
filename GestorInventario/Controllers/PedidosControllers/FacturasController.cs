@@ -3,8 +3,6 @@ using GestorInventario.Interfaces.Notifications.EmailServices;
 using GestorInventario.Interfaces.Web;
 using GestorInventario.Notifications.Email;
 using GestorInventario.Shared.DTOS.Email;
-
-using GestorInventario.ViewModels.Orders;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
