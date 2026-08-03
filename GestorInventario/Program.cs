@@ -1,15 +1,16 @@
 ﻿
-using Azure.Core;
-using Azure.Identity;
-using GestorInventario.Application.DTOS;
-using GestorInventario.MetodosExtension;
+using GestorInventario.Composition;
+using GestorInventario.Configuracion;
+
+using GestorInventario.Extensions;
+
 using GestorInventario.Middlewares;
+using GestorInventario.Renderer.PDF;
+using GestorInventario.Shared.DTOS.Configuration;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
-using Microsoft.Identity.Client.Platforms.Features.DesktopOs.Kerberos;
 using Microsoft.Net.Http.Headers;
-using QuestPDF.Infrastructure;
 using System.Text.Json.Serialization;
 using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 
@@ -21,7 +22,6 @@ builder.Configuration.AddEnvironmentVariables();
 
 //Variables compartidas
 bool useRedis = bool.Parse(Environment.GetEnvironmentVariable("USE_REDIS") ?? "false");
-string authStrategy = builder.Configuration["AuthMode"] ?? "Symmetric";
 
 //Para que no salte una excepcion en consultas que son recursivas
 builder.Services.AddControllersWithViews().AddJsonOptions(options => options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
@@ -29,7 +29,7 @@ builder.Services.AddControllersWithViews().AddJsonOptions(options => options.Jso
 //Configuracion DB
 builder.Services.AddDatabaseContext(builder.Configuration);
 
-
+//CORS
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(builder =>
@@ -41,7 +41,11 @@ builder.Services.AddCors(options =>
 //Servicios generales
 builder.Services.AddMemoryCache();
 builder.Services.AddMvc();
-builder.Logging.AddLog4Net();
+using var bootstrapLoggerFactory = LoggerFactory.Create(b =>
+{
+    b.AddConsole();
+    b.AddLog4Net();
+});
 builder.Services.AddAntiforgery();
 builder.Services.AddHttpContextAccessor();
 
@@ -50,22 +54,29 @@ builder.Services.AddRepositories();
 builder.Services.AddApplicationServices();
 builder.Services.AddSingletonServices();
 builder.Services.AddBackgroundServices();
-builder.Services.Configure<AppSettings>(
-builder.Configuration.GetSection("App"));
-QuestPDF.Settings.License = LicenseType.Community;
+//Construccion de la URL 
 
-builder.Services.AddHttpClientPayPal();
+builder.Services.Configure<AppSettings>(builder.Configuration.GetSection(AppSettings.SectionName));
+builder.Services.Configure<PaypalSettings>(builder.Configuration.GetSection(PaypalSettings.SectionName));
+PayPalInvoiceRendererBootstrap.Initialize();
+
+
+builder.Services.AddPayPalHttpClient(builder.Configuration);
 builder.Services.AddAutoMapper(builder.Configuration);
 builder.Services.AddWebOptimizer();
 
-// Si estamos usando Redis
+// Si estamos usando Redis lo configuramos
 if (useRedis)
 {
-   builder.Services.AddRedisCache(builder.Configuration);
+   builder.Services.ConfigureRedis(builder.Configuration, bootstrapLoggerFactory.CreateLogger("Redis"));
 }
 
-builder.Services.AddCacheServices(useRedis);
-builder.Services.ConfigureAuthentication(builder.Configuration, authStrategy);
+builder.Services.AddHybridCacheService(useRedis);
+//Servicios personalizados de autenticacion
+builder.Services.AddConfigureAuthentication(builder.Configuration);
+
+//Fin de los servicios personalizados de autenticacion 
+
 builder.Services.ConfigureAntiforgery();
 
 builder.Services.AddHsts(options =>
@@ -76,7 +87,14 @@ builder.Services.AddHsts(options =>
 
 });
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("EsAdministrador", policy =>
+        policy.RequireAssertion(ctx => ctx.User.IsInRole("Administrador")));
 
+    options.AddPolicy("EsUsuario", policy =>
+        policy.RequireAssertion(ctx => ctx.User.IsInRole("Usuario")));
+});
 builder.Services.AddSession(options =>
 {
     //Si el usuario esta inactivo 20 minutos la sesion se cierra automaticamente
@@ -89,7 +107,7 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
     //Cuando el usuario rechaza las cookies esto no se vera afectado
     // Cambios para túnel
-    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // permite HTTP y HTTPS no confiable
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; 
     options.Cookie.SameSite = SameSiteMode.None; // permite envío cross-site
 });
 builder.Services.AddDataProtection()
@@ -102,6 +120,7 @@ builder.Services.AddDataProtection()
 
 
 var app = builder.Build();
+await app.SeedInitialRolesAsync();
 app.UseWebOptimizer();
 if (!app.Environment.IsDevelopment())
 {
@@ -160,11 +179,11 @@ app.Use(async (context, next) =>
 });
 app.UseImageProcessing();
 app.UseCors();
-//app.UseHttpMethodOverride(); //middleware para alterar la forma en la que se envian los formularios su uso es asi <input type="hidden" name="_method" value="PUT" />
+
 app.UseRouting();
 app.UseAuthentication(); // Identifica al usuario
 app.UseSession();
-app.UseAuthProcessing( authStrategy); 
+app.UseJwtAuthStrategy(); // pone en uso el middleware de autenticacion
 app.UseAuthorization(); // Evalúa políticas y roles
 
 app.MapControllerRoute(
@@ -172,3 +191,4 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+

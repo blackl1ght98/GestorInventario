@@ -1,6 +1,6 @@
 # Guía de instalación para usar el proyecto Gestor Inventario
 
-# 📑 Índice
+# 📑 Índice (en construccion)
 - ⚠️ Requisitos para ejecutarlo con docker
 - ⚠️ Requisitos para ejecutarlo en local
 - 🔑 Generación de certificado HTTPS
@@ -30,62 +30,23 @@ Tener instalado lo siguiente:
   - [SQL Server](https://www.microsoft.com/es-es/download/details.aspx?id=104781)
   - [SQL Server Management Studio (SSMS)](https://aka.ms/ssmsfullsetup)  para gestionar la BD
     
-# 🔑 Configuración común (Docker y entorno local)
-  Archivo de variables de entorno:
-  - **Paypal_ClientId y Paypal_ClientSecret**: el valor para estas variables lo obtenemos creando una cuenta en [Paypal Developer](https://developer.paypal.com/home/) y una vez logueados le damos a **Apps & Credentials** en este apartado veremos esos datos.
-  - **PublicKey y PrivateKey**: pronto pondre aqui un repositorio para generar dichas claves
-  - **Email__Password**: Aqui usaremos contraseña de aplicación esto nos permite usar nuestra cuenta de gmail sin hacer login para ello vamos a [Contraseña de aplicacion](https://myaccount.google.com/apppasswords)
-  - **LicenseKeyAutoMapper**: Para obtenerla nos registramos en: [AutoMapper](https://automapper.io/) aqui elegimos la licencia community.
 
-Archivo de secretos de usuario:
-  - **ClientId y ClientSecret**
-  - **PublicKey y PrivateKey**
-  - **LicenseKeyAutoMapper**
-
-Para el archivo de secretos se usara los mismos valores empleados que para las variables de entorno el unico cambio es el nombre
 # 🐳 Puesta en marcha para ejecutacion con docker
 1. Clonar el repositorio con el comando:
 ```sh
 git clone https://github.com/blackl1ght98/GestorInventario
 ````
-3. Generar el certificado para https y ponerlo en la carpeta anteriormente creada:
-   - Para ello la sintaxis del comando a usar es:
-   ```powershell
-   New-Item -ItemType Directory -Path C:\certs
-   ````
-   ```powershell
-   $cert = New-SelfSignedCertificate `
-   -DnsName "localhost" `
-   -CertStoreLocation "cert:\LocalMachine\My"
-   ````
-   ```powershell
-   $password = ConvertTo-SecureString "0000" -AsPlainText -Force
-   ````
-    ```powershell
-   Export-PfxCertificate `
-   -Cert $cert `
-   -FilePath ".\certificado.pfx" `
-   -Password $password
-   ````
-Al terminar de ejecutar estos comandos veremos una carpeta en la unidad C llamada certs y esta la copiaremos en la carpeta raiz de nuestro proyecto.
-
-
-5. Crear el archivo **.env** basandose en **.env.example** este archivo contendra las variables de entorno, para obtener ciertas variables como las siguientes:  
-  - **CertificatePassword**: Importante tener aqui la misma contraseña que pusimos al momento de generar el certificado https si no tenemos aqui la misma contraseña fallara.
-6. Eliminar .env.example
-7. Revisar el archivo **docker-compose** para asegurarnos que el nombre del certificado es el mismo que pusimos a la hora de generar el certificado autofirmado, en el ejemplo de uso del comando de generar el certificado ese certicado se llamara: **aspnetapp** pues en el docker compose tendremos que asegurarnos que este en dos sitios exactamente el mismo nombre y esos dos sitios son:
-```sh
-  volumes:
-      - ./certs/certificado.pfx:/https/certificado.pfx:ro
-```
-Aqui solo ajustamos el valor de la variable de entorno (en caso de poner un nombre distinto al certificado)
+2. Ejecutar el Instalador
+Para que todo quede configurado ejecutar el script **install.ps1** este script es un instalador guiado que te indicara que valores poner.
+```powershell
+./install.ps1
+````
+En caso de estar en linux ejecutar
 ````sh
- - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/certificado.pfx
+sudo ./install-linux.sh
 ````
-7. Una vez tenemos todo esto echo ejecutar:
-```sh
-docker-compose up -d --build
-````
+**NOTA**: Este script al finalizar crearar un archivo .env, este archivo contendra el valor de cada variable de entorno, si quisieramos tenerlo en local tambien a parte de docker este archivo .env sera de gran ayuda para rellenar el archivo de secretos.
+
 # Credenciales para probar
 - **Email**: keupa@yopmail.com
 - **Contraseña**: 1a2a3a4a5
@@ -106,27 +67,7 @@ El primer paso que tendremos que realizar es la restauración de la base de dato
       -  Confirma con **Aceptar**.
       -  Hacer nuevamente en **Aceptar** para completar la restauración
 
-## ⚙️ Scaffold-DbContext
-Una vez restaurada la base de datos, necesitamos regenerar los modelos con el comando `Scaffold-DbContext`, el motivo por el cual se necesita regenera los modelos es para que la conexión con base de datos apunte a tu maquina.
-Para ejecutar este comando hacemos lo siguiente:
 
-
-1. Abrimos **Visual Studio**
-2. Activa la consola desde: `Ver > Otras ventanas > Consola del Administrador de paquetes`.  
-3. Ejecutar el comando:
-
-```sh
-Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=GestorInventario;Integrated Security=True;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -Force -Project GestorInventario
-````
-## Explicación de los parametros importantes del comando
-**NOMBRESERVIDORBASEDATOS**: Este parametro suele variar dependiendo de como se llame nuestro PC pero tiene un aspecto similar a este: `DESKTOP-XXXX\SQLEXPRESS`
-
-## 🔑 Scaffold-DbContext con usuario y contraseña (recomendado)
-```sh
-Scaffold-DbContext "Data Source=NOMBRESERVIDORBASEDATOS;Initial Catalog=GestorInventario;User ID=sa;Password=SQL#1234;TrustServerCertificate=True" -Provider Microsoft.EntityFrameworkCore.SqlServer -OutputDir Domain/Models -Force -Project GestorInventario
-````
-**ID**: este parametro hace referencia al nombre de usuario de la base de datos
-**Password**: hace referencia a la contraseña de base de datos
 
 
 ## 🔐 Configurar Secretos de usuario
@@ -142,31 +83,48 @@ Luego, agrega los siguientes valores en formato JSON:
     "ConnectionString": "redis:6379",
     "ConnectionStringLocal": "127.0.0.1:6379"
   },
+
+
   "AuthMode": "AsymmetricDynamic",
-  "JwtIssuer": "GestorInvetarioEmisor",
-  "JwtAudience": "GestorInventarioCliente",
+  "LoginMode": "MfaLogin",
+
   "JWT": {
     "PublicKey": "",
-    "PrivateKey": ""
+    "PrivateKey": "",
+    "Issuer": "GestorInvetarioEmisor",
+    "Audience": "GestorInventarioCliente",
+    "ClaveJWT": "IntroduceClaveLargaergoherofiygkeuidgrf7ieurygf97836trf98egfiuytrf"
   },
-  "ClaveJWT": "IntroduceClaveLarga",
-  "IsMfaEnabled": true,
- "CallMeBot": {
-   "user": ""
- },
+
+
   "DataBaseConection": {
-    "DBHost": "",
+    "DBHost": "localhost\\SQLEXPRESS",
     "DockerDbHost": "SQL-Server-Local",
     "DBName": "GestorInventario",
     "DBUserName": "sa",
     "DBPassword": "SQL#1234"
   },
+  "App": {
+    "BaseUrl": "https://localhost:7056",
+    "DockerUrl": "https://localhost:8080"
+
+  },
+  "CallMeBot": {
+    "TelegramUser": ""
+  },
   "Paypal": {
     "ClientId": "",
     "ClientSecret": "",
-    "Mode": "sandbox",
-    "returnUrlSinDocker": "https://localhost:7056/Payment/Success",
-    "returnUrlConDocker": "https://localhost:8081/Payment/Success"
+    "BaseUrl": "https://api-m.sandbox.paypal.com/",
+    "ReturnUrls": {
+      "Development": "https://localhost:7056/Payment/Success",
+      "Docker": "https://localhost:8081/Payment/Success"
+    },
+    "CancelUrls": {
+      "Development": "https://localhost:7056/Payment/Cancel",
+      "Docker": "https://localhost:8081/Payment/Cancel"
+    }
+
   },
   "LicenseKeyAutoMapper": "",
   "Email": {
@@ -177,29 +135,23 @@ Luego, agrega los siguientes valores en formato JSON:
   }
 }
 ````
-**DBHost**: esto ya lo mencionamos en el comando scaffold pero esto nos lo dice el motor de base de datos a la hora de loguearnos tiene este aspecto: `DESKTOP-XXXX\SQLEXPRESS`
-**CallMeBot: user**: Este valor sera tu usuario de telegram 
-**AuthMode**: Admite estos valores: Symmetric, AsymmetricFixed, AsymmetricDynamic. De estos tres modos el mas aconsejado es **AsymmetricDynamic** por su seguridad
-## Modificación del archivo GestorInventarioContext.cs 
-Una vez que hemos ejecutado el comando que realiza el scaffold tenemos  que borrar el metodo **OnConfiguring**
-```csharp
-   protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {}
+En caso de haber ejecutado el script **install.ps1** este script nos habra creado archivo de variables de entorno podemos usar dicho archivo para rellenar los valores faltantes del archivo de secretos
+
+
+## ⚙️ Scaffold-DbContext
+El scaffold solo se ejecutara si la base de datos cambia mientras que no cambie la base de datos no se ejecutara el scaffold
+Para ejecutar este comando hacemos lo siguiente:
+
+
+1. Abrimos **Visual Studio**
+2. Activa la consola desde: `Ver > Otras ventanas > Consola del Administrador de paquetes`.  
+3. Ejecutar el comando:
+
+```sh
+Scaffold-DbContext "Data Source=localhost\SQLEXPRESS;Initial Catalog=GestorInventario;User ID=sa;Password=SQL#1234;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -ContextDir ../GestorInventario.Infrastructure/Data -ContextNamespace "GestorInventario.Infrastructure.Data" -Namespace "GestorInventario.Domain.Models" -force -Project GestorInventario.Domain -NoOnConfiguring 
 ````
-## Configuración de launchSettings.json
-En este archivo ajustaremos las variables de entorno con los valores:
-```json
- "https": {
-   "commandName": "Project",
-   "launchBrowser": true,
-   "environmentVariables": {
-     "ASPNETCORE_ENVIRONMENT": "Development",   
-     "USE_REDIS": "false",
-     "IS_DOCKER": "false"
-   },
-   "dotnetRunMessages": true,
-   "applicationUrl": "https://localhost:7056;http://localhost:5000;https://localhost:7057"
- },
-````
+
+
 
 # 🐳 Problemas comunes (Docker / Visual Studio / WSL)
 ## Visual Studio y Docker
@@ -227,7 +179,15 @@ wsl --update
 ```
 pero si esto no lo soluciona lo que haremos es descargar la ultima versión de wsl del repositorio de microsoft: [WSL](https://github.com/microsoft/WSL/releases) instalamos la ultima version del programa y el problema se soluciona
 
+## Solución al error de restauración de base de datos en linux (Arch)
+Para solucionar este problema ejecutar los comandos:
+```sh
+  sudo pacman -S git-lfs
+  git lfs install
+  git lfs pull
 
+```
+Esto lo que hara es agregarle los datos faltantes al .bak
 # ✨ Características
 
 El proyecto **Gestor Inventario** ofrece una amplia gama de características para gestionar eficientemente el inventario:

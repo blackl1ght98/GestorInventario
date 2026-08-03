@@ -1,0 +1,13 @@
+﻿namespace GestorInventario.Shared.DTOS.Checkout
+{
+    public class ItemModelDto
+    {
+        public required string Name { get; set; }
+        public   string? Description { get; set; }
+        public required decimal Price { get; set; }
+        public required string Currency { get; set; }
+        public required string Quantity { get; set; }
+        public required string Sku { get; set; }
+              
+    }
+}

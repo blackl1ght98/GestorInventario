@@ -6,7 +6,7 @@
     const confirmBtn = document.getElementById('confirmAgregarEnvioBtn');
     const pedidoIdInput = document.getElementById('pedidoIdInput');
     const carrierSelect = document.getElementById('carrierSelect');
-    const barcodeSelect = document.getElementById('barcodeSelect');
+    
     const loadingMessage = document.getElementById('loadingMessageEnvio');
 
     let currentPedidoId = null;
@@ -46,17 +46,14 @@
     // 2. Confirmar envío
     confirmBtn.addEventListener('click', async function () {
         const carrier = carrierSelect ? carrierSelect.value : '';
-        const barcode = barcodeSelect ? barcodeSelect.value : '';
+      
 
         // Validaciones locales
         if (!carrier) {
             showMessage("Por favor selecciona un transportista.", "warning");
             return;
         }
-        if (!barcode) {
-            showMessage("Por favor selecciona un tipo de código de barras.", "warning");
-            return;
-        }
+     
         if (!currentPedidoId || isNaN(currentPedidoId)) {
             showMessage("Error: No se pudo identificar el pedido. Cierra el modal e inténtalo de nuevo.", "danger");
             return;
@@ -77,7 +74,7 @@
                 body: JSON.stringify({
                     PedidoId: currentPedidoId,
                     Carrier: carrier,
-                    Barcode: barcode
+                   
                 })
             });
 
