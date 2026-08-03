@@ -4,7 +4,7 @@ using GestorInventario.Shared.DTOS.Supplier;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace GestorInventario.Controllers.PedidosControllers
+namespace GestorInventario.Controllers.ProveedorController
 {
     [Authorize(Roles = "Administrador")]
     public class SupplierReassignmentController : Controller

@@ -7,10 +7,6 @@ namespace GestorInventario.Infrastructure.Data;
 
 public partial class GestorInventarioContext : DbContext
 {
-    public GestorInventarioContext()
-    {
-    }
-
     public GestorInventarioContext(DbContextOptions<GestorInventarioContext> options)
         : base(options)
     {
@@ -49,8 +45,6 @@ public partial class GestorInventarioContext : DbContext
     public virtual DbSet<UserSubscription> UserSubscriptions { get; set; }
 
     public virtual DbSet<Usuario> Usuarios { get; set; }
-
-
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -374,10 +368,6 @@ public partial class GestorInventarioContext : DbContext
             entity.Property(e => e.NumeroPedido)
                 .HasMaxLength(20)
                 .IsUnicode(false);
-            entity.Property(e => e.RefundId)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("refundId");
             entity.Property(e => e.Subtotal).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.Total).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.TrackingNumber)

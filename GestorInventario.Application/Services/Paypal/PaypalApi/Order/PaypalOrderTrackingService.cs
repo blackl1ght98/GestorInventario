@@ -21,9 +21,9 @@ public class PaypalOrderTrackingService : IPaypalOrderTrackingService
         _paypal = paypal;
     }
 
-    public async Task<OperationResult<(string TrackingNumber, string TrackingUrl)>> 
+    public async Task<OperationResult<string  >> 
         AddTrackingAsync(
-            string payPalOrderId,
+            string paymentId,
             string captureId,
             Carrier carrier,
            
@@ -56,7 +56,7 @@ public class PaypalOrderTrackingService : IPaypalOrderTrackingService
 
             await _paypal.ExecutePayPalRequestAsync<string>(
                 HttpMethod.Post,
-                $"v2/checkout/orders/{payPalOrderId}/track",
+                $"v2/checkout/orders/{paymentId}/track",
                 trackingInfo,
                 async resp =>
                 {
@@ -65,9 +65,8 @@ public class PaypalOrderTrackingService : IPaypalOrderTrackingService
                         $"Error al establecer el seguimiento: {resp.StatusCode} - {errBody}");
                 });
 
-            return OperationResult<(string, string)>.Ok(
-                "Seguimiento registrado en PayPal",
-                (trackingNumber, "URL NO ESPECIFICADA"));
+            return OperationResult<string>.Ok("Informacion de envio agregada con exito",trackingNumber);
+                
         }
         catch (Exception ex)
         {

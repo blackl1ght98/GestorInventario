@@ -25,8 +25,6 @@ public partial class Pedido
 
     public bool EsCarrito { get; set; }
 
-    public string? RefundId { get; set; }
-
     public string? TrackingNumber { get; set; }
 
     public string? UrlTracking { get; set; }

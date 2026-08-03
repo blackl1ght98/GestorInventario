@@ -6,12 +6,12 @@ namespace GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Orde
 {
     public interface IPaypalOrderTrackingService
     {
-        Task<OperationResult<(string TrackingNumber, string TrackingUrl)>>
-        AddTrackingAsync(
-            string payPalOrderId,
-            string captureId,
-            Carrier carrier,
-        
-            List<TrackingItemDto> items);
+        Task<OperationResult<string>>
+         AddTrackingAsync(
+             string paymentId,
+             string captureId,
+             Carrier carrier,
+
+             List<TrackingItemDto> items);
     }
 }

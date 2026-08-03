@@ -113,8 +113,6 @@ namespace GestorInventario.Controllers.PedidosControllers
                 {
                     FechaPedido= pedido.FechaPedido,
                     NombreCompleto=pedido.IdUsuarioNavigation.NombreCompleto,
-                    TrackingNumber=pedido.TrackingNumber,
-                    Transportista=pedido.Transportista,
                     NumeroPedido=pedido.NumeroPedido,
                     EstadoPedido=pedido.EstadoPedido,
                     Currency=pedido.Currency,

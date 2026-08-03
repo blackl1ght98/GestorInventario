@@ -66,10 +66,10 @@ namespace GestorInventario.Controllers.PedidosControllers
                 //pedido.DetallePedidos.First().Producto.CodigoBarras
                 // 3. Llamar al servicio de PayPal 
                 var result = await _paypalOrderService.AddTrackingAsync(
-                  payPalOrderId: capture.PaymentId,
-                  captureId: capture.CaptureId,
-                  carrier: envio.Carrier,
-                  items: items);
+                   capture.PaymentId,
+                   capture.CaptureId,
+                  envio.Carrier,
+                 items);
 
                 if (!result.Success)
                 {
@@ -80,8 +80,8 @@ namespace GestorInventario.Controllers.PedidosControllers
                 // 4. Guardar resultado en base de datos
                 await _pedidoService.AddInfoTrackingOrder(
                     envio.PedidoId,
-                    result.Data.TrackingNumber,
-                    result.Data.TrackingUrl,
+                    result.Data,//->  numero de seguimiento
+                 
                     envio.Carrier.ToString());
 
                 

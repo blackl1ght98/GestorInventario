@@ -296,7 +296,7 @@ namespace GestorInventario.Application.Services.Orders
                 throw new ArgumentException($"Pedido con ID {pedidoId} no encontrado.");
 
             pedido.EstadoPedido = status;
-            pedido.RefundId = refundId;
+          
             foreach (var detalle in pedido.DetallePedidos)
             {
                 detalle.Rembolsado = true;
@@ -395,7 +395,7 @@ namespace GestorInventario.Application.Services.Orders
             _logger.LogInformation($"Reembolso registrado para pedido {pedidoId}, detalle {detalleId}.");
 
         }
-        public async Task AddInfoTrackingOrder(int pedidoId, string tracking, string url, string carrier)
+        public async Task AddInfoTrackingOrder(int pedidoId, string tracking, string carrier)
         {
 
             var pedido = await _pedidoRepository.ObtenerPedidoPorIdAsync(pedidoId);
@@ -403,7 +403,7 @@ namespace GestorInventario.Application.Services.Orders
                 throw new ArgumentException($"Pedido con ID {pedidoId} no encontrado.");
             pedido.EstadoPedido = EstadoPedido.Enviado.ToString();
             pedido.TrackingNumber = tracking;
-            pedido.UrlTracking = url;
+            pedido.UrlTracking = "URL NO ESPECIFICADA";
             pedido.Transportista = carrier;
             await _pedidoRepository.ActualizarPedidoAsync(pedido);
 
