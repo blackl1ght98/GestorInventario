@@ -119,18 +119,15 @@ namespace GestorInventario.Infrastructure.Repositories.AdminRepository
         {
             return await _context.ExecuteInTransactionAsync(async () =>
             {
-                var proveedores = await _context.Proveedores
-                .Where(p => p.IdUsuario == usuarioOrigenId)
-                .ToListAsync();
+                // Una sola UPDATE en lugar de N round-trips por cada proveedor.
+                var filasAfectadas = await _context.Proveedores
+                    .Where(p => p.IdUsuario == usuarioOrigenId)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(p => p.IdUsuario, usuarioDestinoId));
 
-                foreach (var proveedor in proveedores)
-                {
-                    proveedor.IdUsuario = usuarioDestinoId;
-                    await _context.UpdateEntityAsync(proveedor);
-                }
-                return OperationResult<string>.Ok("Proveedores reasignados correctamente");
+                return OperationResult<string>.Ok(
+                    $"Proveedores reasignados correctamente ({filasAfectadas} actualizados)");
             });
-           
         }
         public async Task<Usuario> ObtenerUsuarioConProveedoresYPedidosAsync(int id)
         {

@@ -1,15 +1,14 @@
-﻿using GestorInventario.Domain.enums.Productos;
+using GestorInventario.Domain.enums.Productos;
 using GestorInventario.Interfaces.Renderer.Barcode;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
+using SkiaSharp;
 using ZXing;
 
 namespace GestorInventario.Renderer.Barcode
 {
     public class BarCodeImageRenderer : IBarCodeImageRenderer
     {
-        
+
         public Task<byte[]> RenderAsync(string barcode, BarcodeType type)
         {
             if (string.IsNullOrEmpty(barcode))
@@ -36,29 +35,40 @@ namespace GestorInventario.Renderer.Barcode
             int textAreaHeight = 25;
             int totalHeight = pixelData.Height + textAreaHeight;
 
-            using var bitmapFinal = new Bitmap(pixelData.Width, totalHeight, PixelFormat.Format32bppRgb);
-            using var graphics = Graphics.FromImage(bitmapFinal);
-            graphics.Clear(Color.White);
+            using var bitmapFinal = new SKBitmap(pixelData.Width, totalHeight, SKColorType.Rgba8888, SKAlphaType.Opaque);
+            using var canvas = new SKCanvas(bitmapFinal);
+            canvas.Clear(SKColors.White);
 
-            using var bitmapBarcode = new Bitmap(pixelData.Width, pixelData.Height, PixelFormat.Format32bppRgb);
-            var bitmapData = bitmapBarcode.LockBits(
-                new Rectangle(0, 0, pixelData.Width, pixelData.Height),
-                ImageLockMode.WriteOnly,
-                PixelFormat.Format32bppRgb);
-            Marshal.Copy(pixelData.Pixels, 0, bitmapData.Scan0, pixelData.Pixels.Length);
-            bitmapBarcode.UnlockBits(bitmapData);
-            graphics.DrawImage(bitmapBarcode, 0, 0);
+            // Copia directa de los pixeles generados por ZXing sobre la zona del código.
+            var bitmapInfo = bitmapFinal.Info;
+            int rowBytes = bitmapInfo.RowBytes;
+            // Solo necesitamos copiar la región del barcode, sin la franja de texto.
+            using var bitmapBarcode = new SKBitmap(pixelData.Width, pixelData.Height, SKColorType.Rgba8888, SKAlphaType.Opaque);
+            var src = bitmapBarcode.GetPixels(out var srcLength);
+            if (src == IntPtr.Zero || srcLength < pixelData.Pixels.Length)
+                throw new InvalidOperationException("No se pudo reservar el buffer para el código de barras.");
+            Marshal.Copy(pixelData.Pixels, 0, src, pixelData.Pixels.Length);
 
-            using var font = new Font("Arial", 10, FontStyle.Regular);
-            using var brush = new SolidBrush(Color.Black);
-            var textSize = graphics.MeasureString(barcode, font);
-            float textX = (pixelData.Width - textSize.Width) / 2;
-            float textY = pixelData.Height + (textAreaHeight - textSize.Height) / 2;
-            graphics.DrawString(barcode, font, brush, textX, textY);
+            canvas.DrawBitmap(bitmapBarcode, 0, 0);
 
-            using var ms = new MemoryStream();
-            bitmapFinal.Save(ms, ImageFormat.Png);
-            return Task.FromResult(ms.ToArray());
+            // Dibuja el texto bajo el código usando la tipografía por defecto del sistema (cross-platform).
+            using var typeface = SKTypeface.Default;
+            using var font = new SKFont(typeface, size: 14);
+            using var paint = new SKPaint
+            {
+                Color = SKColors.Black,
+                IsAntialias = true,
+                
+            };
+
+            float textX = pixelData.Width / 2f;
+            float textY = pixelData.Height + (textAreaHeight / 2f);
+
+            canvas.DrawText(barcode, textX, textY, font, paint);
+
+            using var image = SKImage.FromBitmap(bitmapFinal);
+            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+            return Task.FromResult(data.ToArray());
         }
     }
 }

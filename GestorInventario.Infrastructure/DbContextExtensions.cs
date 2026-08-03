@@ -22,18 +22,17 @@ namespace GestorInventario.Infrastructure
         }
 
       
-        public static async Task<int> AddEntityAsync<T>(this DbContext context, T entity, bool saveImmediately = true) where T : class
+        public static async Task AddEntityAsync<T>(this DbContext context, T entity) where T : class
         {
-            var entry = context.Set<T>().Add(entity);
-            if (saveImmediately)
-                return await context.SaveChangesAsync();
-            return 0; 
+              context.Set<T>().Add(entity);
+              await context.SaveChangesAsync();
+          
         }
 
-        public static async Task DeleteEntityAsync<T>(this DbContext context, T entity, bool saveImmediately = true) where T : class
+        public static async Task DeleteEntityAsync<T>(this DbContext context, T entity) where T : class
         {
             context.Set<T>().Remove(entity);
-            if (saveImmediately) await context.SaveChangesAsync();
+            await context.SaveChangesAsync();
         }
         public static async Task<TResult> ExecuteInTransactionAsync<TResult>(this DbContext context, Func<Task<TResult>> operation)
         {
