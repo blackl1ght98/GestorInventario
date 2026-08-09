@@ -15,7 +15,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace GestorInventario.Controllers.ProveedorController
 {
-    [Authorize(Roles = "Administrador,Empleado")]
+    [Authorize(Policy = "EsAdministrador")]
     public class ProveedorController : Controller
     {
         
@@ -76,7 +76,6 @@ namespace GestorInventario.Controllers.ProveedorController
                 return RedirectToAction("Error", "Home");
             }
         }
-        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Create()
         {
             
@@ -97,7 +96,6 @@ namespace GestorInventario.Controllers.ProveedorController
         }
         
         [HttpPost]
-        [Authorize(Roles = "Administrador")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(SupplierFormViewModel model)
         {
@@ -142,7 +140,6 @@ namespace GestorInventario.Controllers.ProveedorController
 
 
         }
-        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Delete(int id)
         {
             try
@@ -175,7 +172,7 @@ namespace GestorInventario.Controllers.ProveedorController
 
         //Metodo que elimina el proveedor
         [HttpPost, ActionName("DeleteConfirmed")]
-        [Authorize(Roles = "Administrador")]
+  
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int Id)
         {

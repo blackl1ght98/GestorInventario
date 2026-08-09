@@ -1,4 +1,4 @@
-﻿using GestorInventario.Application.MetodosPaginacion;
+﻿using GestorInventario.Application.PaginationMethods;
 using GestorInventario.Application.RetryPolicy;
 using GestorInventario.Application.Services.Authentication.Jwt;
 using GestorInventario.Application.Services.Authentication.Resolvers;

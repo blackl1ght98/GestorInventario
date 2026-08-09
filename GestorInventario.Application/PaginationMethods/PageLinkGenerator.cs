@@ -1,7 +1,7 @@
 ﻿using GestorInventario.Interfaces.Application.MetodosPaginacion;
 using GestorInventario.Shared.Utilities;
 
-namespace GestorInventario.Application.MetodosPaginacion
+namespace GestorInventario.Application.PaginationMethods
 {
     public class PageLinkGenerator: IPageLinkGenerator
     {

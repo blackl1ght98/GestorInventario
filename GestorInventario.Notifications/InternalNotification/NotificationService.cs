@@ -17,6 +17,7 @@ namespace GestorInventario.Notifications.InternalNotification
             _notificacion = notificacion;
             
         }
+        //PULIR SISTEMA DE NOTIFICACIONES INTERNAS
         public async Task<OperationResult<string>> CrearNotificacion(int usuarioId, string titulo, string mensaje, string tipo)
         {
             var notificacion = new Notificacion

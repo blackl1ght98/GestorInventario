@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GestorInventario.Controllers.ProveedorController
 {
-    [Authorize(Roles = "Administrador")]
+    [Authorize(Policy = "EsAdministrador")]
     public class SupplierReassignmentController : Controller
     {
         private readonly IPolicyExecutor _policyExecutor;

@@ -260,7 +260,7 @@ namespace GestorInventario.Controllers.AdminControllers
                 return RedirectToAction("Error", "Home");
             }
         }
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Policy = "EsAdministrador")]
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
@@ -297,7 +297,7 @@ namespace GestorInventario.Controllers.AdminControllers
 
 
         [HttpPost]
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Policy = "EsAdministrador")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int Id)
         {
@@ -320,8 +320,7 @@ namespace GestorInventario.Controllers.AdminControllers
         }
         // Este metodo se llaman desde el script alta-baja-usuario.js
         [HttpPost]
-        [Authorize(Roles ="Administrador")]
-      
+        [Authorize(Policy = "EsAdministrador")]
         public async Task<IActionResult> BajaUsuarioPost([FromBody] UsuarioRequestDto request)
         {
             var currentUserId = _currentUserAccessor.GetCurrentUserId();
@@ -344,7 +343,7 @@ namespace GestorInventario.Controllers.AdminControllers
         }
         // Este metodo se llaman desde el script alta-baja-usuario.js
         [HttpPost]
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Policy = "EsAdministrador")]
      
         public async Task<IActionResult> AltaUsuarioPost([FromBody] UsuarioRequestDto request)
         {
@@ -366,7 +365,7 @@ namespace GestorInventario.Controllers.AdminControllers
                 return Json(new { success = false, errorMessage = result.Message });
             }
         }
-
+        //PROTOTIPO DE IDEA DE PONER NOTIFICACIONES CON EL ADMINISTRADOR A USUARIOS
         //[HttpPost("alert")]
         //public async Task<IActionResult> SendAlert([FromBody] string msg)
         //{

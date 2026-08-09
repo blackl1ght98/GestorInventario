@@ -109,7 +109,7 @@ namespace GestorInventario.Controllers.ProductosController
             }
         }
 
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Policy = "EsAdministrador")]
         public async Task<IActionResult> Create()
         {
             try
@@ -140,7 +140,7 @@ namespace GestorInventario.Controllers.ProductosController
         }
         //Metodo que crea el producto
         [HttpPost]
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Policy = "EsAdministrador")]
         [ValidateAntiForgeryToken]  
         public async Task<IActionResult> Create(ProductFormViewModel model)
         {
@@ -207,7 +207,7 @@ namespace GestorInventario.Controllers.ProductosController
             return ms.ToArray();
         }
         //Metodo que obtiene la información necesaria para eliminar el producto
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Policy = "EsAdministrador")]
         public async Task<IActionResult> Delete(int id)
         {
             try
@@ -243,7 +243,7 @@ namespace GestorInventario.Controllers.ProductosController
         }
         //Metodo que elimina el producto
         [HttpPost]
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Policy = "EsAdministrador")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int Id)
         {
@@ -277,8 +277,7 @@ namespace GestorInventario.Controllers.ProductosController
                 return RedirectToAction("Error", "Home");
             }                    
         }
-       
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Policy = "EsAdministrador")]
         public async Task<ActionResult> Edit(int id)
         {
             try

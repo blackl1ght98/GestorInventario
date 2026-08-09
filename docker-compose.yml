@@ -163,7 +163,7 @@ services:
       - LOGIN_MODE=${LOGIN_MODE}
       # Utilidades
       - REDIS_CONNECTION_STRING=${REDIS_CONNECTION_STRING}
-      - LICENSE_AUTOMAPPER=${LICENSE_AUTOMAPPER}
+    
       - TELEGRAM_USER=${TELEGRAM_USER}
       # Credenciales de PayPal y configuracion
       - PAYPAL_CLIENTID=${PAYPAL_CLIENTID}

@@ -27,11 +27,8 @@ namespace GestorInventario.Controllers.PaypalControllers
             _policyExecutor= policyExecutor;
             _logger = logger;               
             _paginationHelper = paginationHelper;
-          
-            
+                     
         }
-
-
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> MostrarProductos([FromQuery] Paginacion paginacion)

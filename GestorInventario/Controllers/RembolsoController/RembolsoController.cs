@@ -12,12 +12,10 @@ using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Refunds;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Interfaces.Notifications.SendNotification.Email;
 using GestorInventario.Interfaces.Web;
-using GestorInventario.Shared.DTOS;
 using GestorInventario.Shared.DTOS.Paypal.BD;
 using GestorInventario.Shared.DTOS.Paypal.Responses.GET.Order;
 using GestorInventario.Shared.DTOS.Rembolso;
 using GestorInventario.Shared.Utilities;
-
 using GestorInventario.ViewModels.Paypal;
 using GestorInventario.ViewModels.Refunds;
 using Microsoft.AspNetCore.Authorization;
@@ -73,7 +71,7 @@ namespace GestorInventario.Controllers.RembolsoController
 
 
         }
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Policy = "EsAdministrador")]
         public async Task<IActionResult> Index(string buscar, [FromQuery] Paginacion paginacion)
         {
             try
@@ -108,7 +106,7 @@ namespace GestorInventario.Controllers.RembolsoController
             }
         }
         [HttpDelete("{id}")]   
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Policy = "EsAdministrador")]
         public async Task<IActionResult> EliminarRembolso(int id)
         {
             var success = await _policyExecutor.ExecutePolicyAsync(() => _rembolsoRepository.EliminarRembolso(id));
@@ -124,7 +122,7 @@ namespace GestorInventario.Controllers.RembolsoController
             }
         }
         [HttpPost]
-        [Authorize(Roles ="Administrador")]
+        [Authorize(Policy = "EsAdministrador")]
         public async Task<IActionResult> RefundSale([FromBody] RefundFullDto request)
         {
             if (request == null || request.PedidoId <= 0)
@@ -206,7 +204,7 @@ namespace GestorInventario.Controllers.RembolsoController
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles ="Administrador")]
+        [Authorize(Policy = "EsAdministrador")]
         public async Task<IActionResult> RefundPartial([FromBody] RefundPartialDto request)
         {
             if (request?.DetalleId <= 0)

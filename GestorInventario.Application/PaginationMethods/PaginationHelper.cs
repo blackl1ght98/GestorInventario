@@ -2,7 +2,7 @@
 using GestorInventario.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 
-namespace GestorInventario.Application.MetodosPaginacion
+namespace GestorInventario.Application.PaginationMethods
 {
     public class PaginationHelper: IPaginationHelper
     {
