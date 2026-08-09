@@ -126,7 +126,6 @@ Luego, agrega los siguientes valores en formato JSON:
     }
 
   },
-  "LicenseKeyAutoMapper": "",
   "Email": {
     "Host": "smtp.gmail.com",
     "Port": "587",

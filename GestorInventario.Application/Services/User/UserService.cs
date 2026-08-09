@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using GestorInventario.Domain.Models;
+﻿using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application.Services.Authentication.Services;
 using GestorInventario.Interfaces.Application.Services.User;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
@@ -17,26 +16,23 @@ namespace GestorInventario.Application.Services.User
         private readonly IUserRepository _usuarioRepository;
         private readonly IHashService _hashService;
         private readonly IEmailService _emailService;
-        private readonly IMapper _mapper;
         private readonly ILogger<UserService> _logger;
         private readonly IAdminRepository _adminRepository;
-   
+
         public UserService(
             IUserRepository usuarioRepository,
             IHashService hashService,
             IEmailService emailService,
-            IMapper mapper,
             IAdminRepository admin,
-          
+
             ILogger<UserService> logger)
         {
             _usuarioRepository = usuarioRepository;
             _hashService = hashService;
             _emailService = emailService;
-            _mapper = mapper;
             _logger = logger;
             _adminRepository = admin;
-           
+
         }
 
         public async Task<OperationResult<string>> CrearUsuarioAsync(RegisterUserDto model, string? rolSolicitado = null)
@@ -56,7 +52,7 @@ namespace GestorInventario.Application.Services.User
                     $"Rol '{nombreRol}' no existe. ¿Se ejecutó el seed?");
 
             var hash = _hashService.Hash(model.Password);
-            var usuarioEf = _mapper.Map<Usuario>(model);
+            var usuarioEf = CreateUsuarioFromDto(model);
             usuarioEf.Password = hash.Hash;
             usuarioEf.Salt = hash.Salt;
             usuarioEf.IdRol = rol.Id;
@@ -87,7 +83,7 @@ namespace GestorInventario.Application.Services.User
            
             string emailActual = resultado.Email;
 
-            _mapper.Map(userVM, resultado);
+            UpdateUsuarioFromDto(resultado, userVM);
 
             if (emailActual != userVM.Email)
             {
@@ -157,21 +153,41 @@ namespace GestorInventario.Application.Services.User
             await _usuarioRepository.ActualizarUsuarioAsync(usuarioDB);
             return OperationResult<string>.Ok("Validacion exitosa");
         }
-        // AutoMapper hace esto por debajo
-        public void Mapear(object origen, object destino)
+        // Crea un Usuario nuevo a partir de un RegisterUserDto.
+        // Los campos sensibles (Password, Salt, IdRol, FechaRegistro, ConfirmacionEmail)
+        // los asigna el caller porque dependen de hash/rol/estado de bootstrap.
+        private static Usuario CreateUsuarioFromDto(RegisterUserDto dto)
         {
-            var propsOrigen = origen.GetType().GetProperties();
-            var propsDestino = destino.GetType().GetProperties()
-                .ToDictionary(p => p.Name);
-
-            foreach (var prop in propsOrigen)
+            return new Usuario
             {
-                if (propsDestino.TryGetValue(prop.Name, out var propDest))
-                {
-                    var valor = prop.GetValue(origen);
-                    propDest.SetValue(destino, valor);
-                }
-            }
+                Email = dto.Email,
+                NombreCompleto = dto.NombreCompleto,
+                FechaNacimiento = dto.FechaNacimiento ?? default,
+                Telefono = dto.Telefono ?? string.Empty,
+                Direccion = dto.Direccion ?? "No especificada",
+                Ciudad = dto.Ciudad,
+                CodigoPostal = int.Parse(dto.CodigoPostal),
+                BajaUsuario = false,
+                ConfirmacionEmail = false,
+                EmailVerificationToken = null,
+                ResetTokenSalt = null,
+                ResetTokenUsed = null,
+                TemporaryPassword = null,
+                FechaExpiracionContrasenaTemporal = null,
+            };
+        }
+
+        // Copia los campos editables de EditUserDto sobre una entidad Usuario ya cargada.
+        // NO toca Password, Salt, IdRol, ConfirmacionEmail, FechaRegistro ni Id.
+        private static void UpdateUsuarioFromDto(Usuario usuario, EditUserDto dto)
+        {
+            usuario.Email = dto.Email;
+            usuario.NombreCompleto = dto.NombreCompleto;
+            usuario.FechaNacimiento = dto.FechaNacimiento ?? default;
+            usuario.Telefono = dto.Telefono ?? string.Empty;
+            usuario.Direccion = dto.Direccion;
+            usuario.Ciudad = dto.Ciudad;
+            usuario.CodigoPostal = int.Parse(dto.CodigoPostal);
         }
     }
 

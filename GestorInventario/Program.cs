@@ -62,7 +62,6 @@ PayPalInvoiceRendererBootstrap.Initialize();
 
 
 builder.Services.AddPayPalHttpClient(builder.Configuration);
-builder.Services.AddAutoMapper(builder.Configuration);
 builder.Services.AddWebOptimizer();
 
 // Si estamos usando Redis lo configuramos

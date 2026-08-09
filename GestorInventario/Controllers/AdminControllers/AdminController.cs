@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using GestorInventario.Extensions;
+﻿using GestorInventario.Extensions;
 using GestorInventario.Interfaces.Application.MetodosPaginacion;
 using GestorInventario.Interfaces.Application.RetryPolicy;
 using GestorInventario.Interfaces.Application.Services.User;
@@ -20,24 +19,21 @@ namespace GestorInventario.Controllers.AdminControllers
     {
         private readonly ILogger<AdminController> _logger;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        private readonly IPolicyExecutor _policyExecutor;  
+        private readonly IPolicyExecutor _policyExecutor;
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IPaginationHelper _paginationHelper;
         private readonly IUserService _userService;
         public AdminController(
-            ILogger<AdminController> logger, 
-            IUnitOfWork unitOfWork, 
+            ILogger<AdminController> logger,
+            IUnitOfWork unitOfWork,
             IUserService userManagement,
-            IMapper map, 
-            IPolicyExecutor policyExecutor, 
-            IPaginationHelper paginationHelper, 
+            IPolicyExecutor policyExecutor,
+            IPaginationHelper paginationHelper,
             ICurrentUserAccessor currentUser
          )
-        {                    
-            _logger = logger;         
-            _mapper= map;
-            _policyExecutor = policyExecutor;   
+        {
+            _logger = logger;
+            _policyExecutor = policyExecutor;
             _unitOfWork = unitOfWork;
             _paginationHelper = paginationHelper;
             _currentUserAccessor = currentUser;
@@ -194,9 +190,18 @@ namespace GestorInventario.Controllers.AdminControllers
               
                
             
-                var viewModel = _mapper.Map<EditUserFormViewModel>(usuario);
-                // Marcamos si es edición propia
-                viewModel.EsEdicionPropia = usuarioAEditarId == userIdClaim;            
+                var viewModel = new EditUserFormViewModel
+                {
+                    Id = usuario.Id,
+                    Email = usuario.Email,
+                    NombreCompleto = usuario.NombreCompleto,
+                    FechaNacimiento = usuario.FechaNacimiento,
+                    Telefono = usuario.Telefono,
+                    Direccion = usuario.Direccion ?? "No especificada",
+                    Ciudad = usuario.Ciudad,
+                    CodigoPostal = usuario.CodigoPostal.ToString(),
+                    EsEdicionPropia = usuarioAEditarId == userIdClaim,
+                };
                 return View(viewModel);
             }
             catch (Exception ex)

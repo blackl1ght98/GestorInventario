@@ -1,6 +1,4 @@
-﻿using AutoMapper;
-using GestorInventario.Application.DTOs;
-using GestorInventario.Domain.Models;
+﻿using GestorInventario.Application.DTOs;
 using GestorInventario.Interfaces.Application.MetodosPaginacion;
 using GestorInventario.Interfaces.Application.RetryPolicy;
 using GestorInventario.Interfaces.Infraestructure.Common;
@@ -17,15 +15,13 @@ namespace GestorInventario.Controllers.AdminControllers
         private readonly IPaginationHelper _paginationHelper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<RoleController> _logger;
-        private readonly IMapper _mapper;
 
-        public RoleController(IPolicyExecutor policyExecutor, IPaginationHelper paginationHelper, IUnitOfWork unitOfWork, ILogger<RoleController> logger, IMapper mapper)
+        public RoleController(IPolicyExecutor policyExecutor, IPaginationHelper paginationHelper, IUnitOfWork unitOfWork, ILogger<RoleController> logger)
         {
             _policyExecutor = policyExecutor;
             _paginationHelper = paginationHelper;
             _unitOfWork = unitOfWork;
             _logger = logger;
-            _mapper = mapper;
         }
 
         [Authorize(Roles = "Administrador")]
@@ -111,18 +107,15 @@ namespace GestorInventario.Controllers.AdminControllers
                 }
 
                 // Obtener todos los roles disponibles
-                var rolesDomainResult = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles()); ;
+                var rolesDomainResult = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles()).ToList();
 
                 if (rolesDomainResult == null || !rolesDomainResult.Any())
                 {
                     return Json(new { success = false, errorMessage = "No se encontraron roles disponibles." });
                 }
 
-                // Mapear correctamente la lista
-                var roles = _mapper.Map<List<Role>>(rolesDomainResult);
-
                 // Buscar el nuevo rol
-                var nuevoRol = roles.FirstOrDefault(r => r.Id == request.RolId);
+                var nuevoRol = rolesDomainResult.FirstOrDefault(r => r.Id == request.RolId);
                 if (nuevoRol == null)
                 {
                     return Json(new { success = false, errorMessage = "El rol seleccionado no existe." });
