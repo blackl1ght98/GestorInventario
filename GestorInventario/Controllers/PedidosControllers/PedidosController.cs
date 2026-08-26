@@ -1,4 +1,5 @@
-﻿using GestorInventario.Domain.enums.Pedido;
+﻿using GestorInventario.Domain.enums.Paypal;
+using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Extensions;
 using GestorInventario.Interfaces.Application.MetodosPaginacion;
 using GestorInventario.Interfaces.Application.RetryPolicy;
@@ -81,6 +82,7 @@ namespace GestorInventario.Controllers.PedidosControllers
                     Paginas = paginationResult.Paginas.ToList(),
                     TotalPaginas = paginationResult.TotalPaginas,
                     PaginaActual = paginacion.Pagina,
+                    Carrier= GetCarrierFromEnum(),
                     Buscar = buscar
                 };
 
@@ -162,6 +164,10 @@ namespace GestorInventario.Controllers.PedidosControllers
             await _pedidoRepository.ActualizarPedidoAsync(pedido);
 
             return Ok();
+        }
+        public List<string> GetCarrierFromEnum()
+        {
+            return Enum.GetNames(typeof(Carrier)).ToList();
         }
     }
 }

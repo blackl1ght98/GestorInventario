@@ -87,7 +87,7 @@
             // Éxito: mostrar mensaje verde, esperar 1.5s y recargar
             showMessage(result.message, "success");
             loadingMessage.classList.add('d-none');
-
+          
             setTimeout(() => {
                 location.reload();
             }, 1500);

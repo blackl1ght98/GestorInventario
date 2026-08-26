@@ -1,5 +1,6 @@
 ﻿@using GestorInventario.Extensions
 @using GestorInventario.ViewModels.Orders
+@using GestorInventario.Domain.enums.Pedido
 @model OrderViewModel
 
 
@@ -68,8 +69,8 @@
                     <div class="card-body d-flex flex-column">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <h5 class="card-title text-primary mb-0">Pedido #@pedido.NumeroPedido</h5>
-                            <span class="badge bg-@(pedido.EstadoPedido == "Rembolsado" ? "warning" :
-                                                                             pedido.EstadoPedido == "Completado" ? "success" : "primary") fs-6">
+                            <span class="badge bg-@(pedido.EstadoPedido == EstadoPedido.Rembolsado.ToString() ? "warning" :
+                                                                             pedido.EstadoPedido == EstadoPedido.Entregado.ToString() ? "success" : "primary") fs-6">
                             @pedido.EstadoPedido
                         </span>
                     </div>
@@ -97,7 +98,12 @@
                                    class="btn btn-outline-primary">
                                     <i class="bi bi-eye me-2"></i>Ver Detalles
                                 </a>
-                              
+                                @{
+                                    var estadoNoCancelable = pedido.EstadoPedido == "Cancelado"
+                                        || pedido.EstadoPedido == "Entregado"
+                                        || pedido.EstadoPedido == "Enviado"
+                                        || pedido.EstadoPedido == "Rembolsado";
+                                }
                                 @if (User.IsAdministrador())
                                 {
                                     <div class="btn-group" role="group">
@@ -106,19 +112,19 @@
                                                 class="btn btn-outline-warning flex-fill refund-total-btn"
                                                 data-pedido-id="@pedido.Id"
                                                 data-currency="@pedido.Currency"
-                                                @(pedido.EstadoPedido == "Rembolsado" ? "disabled" : "")>
+                                                @(pedido.EstadoPedido == EstadoPedido.Rembolsado.ToString()  ? "disabled" : "")>
                                             Rembolsar
                                         </button>
                                         <button type="button"
                                                 class="btn btn-outline-warning flex-fill cancel-btn"
                                                 data-pedido-id="@pedido.Id"                                        
-                                            @(pedido.EstadoPedido == "Cancelado" ? "disabled" : "")>
+                                            @(estadoNoCancelable ? "disabled" : "")>
                                             Cancelar
                                         </button>
                                         <button type="button"
                                                 class="btn btn-outline-warning flex-fill entrega-btn"
                                                 data-pedido-id="@pedido.Id"
-                                            @(pedido.EstadoPedido == "Entregado" ? "disabled" : "")>
+                                            @(pedido.EstadoPedido == EstadoPedido.Entregado.ToString() ? "disabled" : "")>
                                             Confirmar entrega
                                         </button>
                                       
@@ -174,12 +180,14 @@
                                 else
                                 {
                                     <div class="btn-group" role="group">
-
+ 
                                        
                                         <button type="button"
                                                 class="btn btn-outline-warning flex-fill cancel-btn"
                                                 data-pedido-id="@pedido.Id"
-                                            @(pedido.EstadoPedido == "Cancelado" ? "disabled" : "")>
+                                          
+                                            @(estadoNoCancelable ? "disabled":"")
+                                            >
                                             Cancelar
                                         </button>
                                         <button type="button"
@@ -271,11 +279,12 @@
                         <label class="form-label">Transportista</label>
                         <select class="form-select" name="carrier" id="carrierSelect" required>
                             <option value="">Seleccione transportista...</option>
-                            <option value="CORREOS_ES">Correos España</option>
-                            <option value="DHL">DHL</option>
-                            <option value="FEDEX">FedEx</option>
-                            <option value="UPS">UPS</option>
+                            @foreach (var carrier in Model.Carrier)
+                            {
+                                <option value="@carrier">@carrier</option>
+                            }
                         </select>
+                       
                     </div>
                    
                 </form>

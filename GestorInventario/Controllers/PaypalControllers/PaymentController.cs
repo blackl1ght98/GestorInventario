@@ -1,4 +1,5 @@
-﻿using GestorInventario.Interfaces.Application.RetryPolicy;
+﻿using GestorInventario.Domain.enums.Notification;
+using GestorInventario.Interfaces.Application.RetryPolicy;
 using GestorInventario.Interfaces.Application.Services.BackgroundServices;
 using GestorInventario.Interfaces.Application.Services.Orders;
 using GestorInventario.Interfaces.Application.Services.Payment;
@@ -147,7 +148,7 @@ namespace GestorInventario.Controllers.PaypalControllers
                     else
                     {
                      logger.LogInformation("Sincronización en background completada para pago {PaymentId}", paymentId);
-                     await  notificationService.CrearNotificacion(currentUser,"Sincronizacion completada", "Sicronizacion completada con exito", "INFO");
+                     await  notificationService.CrearNotificacion(currentUser,"Sincronizacion completada", "Sicronizacion completada con exito", TipoNotificacion.Info);
                     }
                 }
                 catch (Exception ex)

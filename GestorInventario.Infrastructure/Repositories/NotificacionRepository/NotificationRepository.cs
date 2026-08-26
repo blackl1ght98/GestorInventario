@@ -28,7 +28,7 @@ namespace GestorInventario.Infrastructure.Repositories.NotificacionRepository
        
         public IQueryable<Notificacion> ObtenerNotificaciones(int usuarioId)
         {
-            var notificaciones = _context.Notificacions.Include(x => x.Usuario).Where(u=>u.UsuarioId==usuarioId).AsQueryable();
+            var notificaciones = _context.Notificacions.Include(x => x.Usuario).Where(u=>u.UsuarioId==usuarioId).OrderByDescending(x=>x.FechaCreacion).AsQueryable();
             return notificaciones;
         }
         public async Task<OperationResult<string>> MarcarNotificacionComoLeida(int id)
