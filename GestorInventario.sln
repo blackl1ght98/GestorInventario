@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GestorInventario", "GestorI
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{DF1CEC75-5666-4E37-B7B8-C88D8C76DF86}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PruebasUnitarias", "tests\PruebasUnitarias\PruebasUnitarias.csproj", "{0B7E9750-C55B-19C9-A6FE-896CE083508A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PruebasE2E", "tests\PruebasUnitarias\PruebasE2E.csproj", "{0B7E9750-C55B-19C9-A6FE-896CE083508A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GestorInventario.Domain", "GestorInventario.Domain\GestorInventario.Domain.csproj", "{C9897438-6EDA-9F92-2C9B-EF77FA26980C}"
 EndProject
