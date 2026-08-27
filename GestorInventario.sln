@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GestorInventario", "GestorI
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{DF1CEC75-5666-4E37-B7B8-C88D8C76DF86}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PruebasE2E", "tests\PruebasUnitarias\PruebasE2E.csproj", "{0B7E9750-C55B-19C9-A6FE-896CE083508A}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GestorInventario.Domain", "GestorInventario.Domain\GestorInventario.Domain.csproj", "{C9897438-6EDA-9F92-2C9B-EF77FA26980C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GestorInventario.Shared", "GestorInventario.Shared\GestorInventario.Shared.csproj", "{7C6E510B-3F4F-413A-A1C0-81BE34F5B01E}"
@@ -22,6 +20,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GestorInventario.Notifications", "GestorInventario.Notifications\GestorInventario.Notifications.csproj", "{7B6D0336-D982-400E-84F7-D199E88F14EA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GestorInventario.Renderer", "GestorInventario.Renderer\GestorInventario.Renderer.csproj", "{027749D4-B378-4AA6-82E9-005A949645CF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PruebasE2E", "tests\PruebasE2E\PruebasE2E.csproj", "{BF3EE673-A454-1719-B305-B8653C7BDB38}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PruebasUnitarias", "tests\PruebasUnitarias\PruebasUnitarias\PruebasUnitarias.csproj", "{A6E1B151-A217-4207-9CDE-70EE02F4B7E8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,10 +39,6 @@ Global
 		{DF1CEC75-5666-4E37-B7B8-C88D8C76DF86}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DF1CEC75-5666-4E37-B7B8-C88D8C76DF86}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DF1CEC75-5666-4E37-B7B8-C88D8C76DF86}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0B7E9750-C55B-19C9-A6FE-896CE083508A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0B7E9750-C55B-19C9-A6FE-896CE083508A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0B7E9750-C55B-19C9-A6FE-896CE083508A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0B7E9750-C55B-19C9-A6FE-896CE083508A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C9897438-6EDA-9F92-2C9B-EF77FA26980C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C9897438-6EDA-9F92-2C9B-EF77FA26980C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C9897438-6EDA-9F92-2C9B-EF77FA26980C}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -69,6 +67,14 @@ Global
 		{027749D4-B378-4AA6-82E9-005A949645CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{027749D4-B378-4AA6-82E9-005A949645CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{027749D4-B378-4AA6-82E9-005A949645CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF3EE673-A454-1719-B305-B8653C7BDB38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF3EE673-A454-1719-B305-B8653C7BDB38}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF3EE673-A454-1719-B305-B8653C7BDB38}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF3EE673-A454-1719-B305-B8653C7BDB38}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6E1B151-A217-4207-9CDE-70EE02F4B7E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6E1B151-A217-4207-9CDE-70EE02F4B7E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6E1B151-A217-4207-9CDE-70EE02F4B7E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6E1B151-A217-4207-9CDE-70EE02F4B7E8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

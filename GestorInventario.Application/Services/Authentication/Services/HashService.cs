@@ -7,7 +7,7 @@ namespace GestorInventario.Application.Services.Authentication.Services
 {
     public class HashService: IHashService
     {
-        public ResultadoHash Hash(string password)
+        public HashResult Hash(string password)
         {
             //Generacion del salt
 
@@ -21,7 +21,7 @@ namespace GestorInventario.Application.Services.Authentication.Services
         }
 
        
-        public ResultadoHash Hash(string password, byte[] salt)
+        public HashResult Hash(string password, byte[] salt)
         {
           
 
@@ -32,7 +32,7 @@ namespace GestorInventario.Application.Services.Authentication.Services
 
             var hash = Convert.ToBase64String(claveDerivada);
 
-            return new ResultadoHash()
+            return new HashResult()
             {
                 Hash = hash,
                 Salt = salt

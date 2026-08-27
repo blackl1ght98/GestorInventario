@@ -4,7 +4,7 @@ namespace GestorInventario.Interfaces.Application.Services.Authentication.Servic
 {
     public interface IHashService
     {
-        ResultadoHash Hash(string password);
-        ResultadoHash Hash(string password, byte[] salt);
+        HashResult Hash(string password);
+        HashResult Hash(string password, byte[] salt);
     }
 }

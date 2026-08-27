@@ -6,8 +6,7 @@
         public required string Email { get; set; }
 
         public required string Password { get; set; }
-      
-      //  public int IdRol { get; set; } = 2;
+     
         
         public required string NombreCompleto { get; set; }
         
