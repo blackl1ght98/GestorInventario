@@ -7,11 +7,9 @@ using GestorInventario.Interfaces.Web;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace PruebasUnitarias.Application.Services.ShopCart
+
+namespace GestorInventario.PruebasUnitarias.Application.Services.ShopCart
 {
     public class ShopCartTest
     {

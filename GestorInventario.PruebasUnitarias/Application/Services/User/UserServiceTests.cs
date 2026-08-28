@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 
 
-namespace PruebasUnitarias.Application.Services.User
+namespace GestorInventario.PruebasUnitarias.Application.Services.User
 {
     // ============================================================
     // Tests para UserService

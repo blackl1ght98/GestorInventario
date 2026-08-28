@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Moq;
 using Xunit;
 
-namespace GestorInventario.Tests.Application.Services.Authentication
+namespace GestorInventario.PruebasUnitarias.Application.Services.Authentication.Jwt
 {
     /// <summary>
     /// Tests para JwtTokenSettings.

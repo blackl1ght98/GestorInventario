@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
-namespace PruebasUnitarias.Application.Services.Authentication.Services
+namespace GestorInventario.PruebasUnitarias.Application.Services.Authentication.Services
 {
     /// <summary>
     /// Tests para AuthService.

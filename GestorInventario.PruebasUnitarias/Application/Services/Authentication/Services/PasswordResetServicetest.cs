@@ -7,7 +7,7 @@ using GestorInventario.Shared.Utilities;
 using Moq;
 using Xunit;
 
-namespace PruebasUnitarias.Application.Services.Authentication.Services
+namespace GestorInventario.PruebasUnitarias.Application.Services.Authentication.Services
 {
     public class PasswordResetServiceTests
     {

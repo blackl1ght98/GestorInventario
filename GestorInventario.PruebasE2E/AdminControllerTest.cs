@@ -1,5 +1,4 @@
-﻿using GestorInventario.Domain.Models;
-using Microsoft.Playwright;
+﻿using Microsoft.Playwright;
 using System;
 using System.Buffers.Text;
 using System.Collections.Generic;

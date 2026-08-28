@@ -1,7 +1,7 @@
 ﻿using GestorInventario.Application.Services.Authentication.Services;
 using Xunit;
 
-namespace PruebasUnitarias.Application.Services.Authentication.Services
+namespace GestorInventario.PruebasUnitarias.Application.Services.Authentication.Services
 {
     // ============================================================
     // Tests para HashService

@@ -23,14 +23,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\GestorInventario.Application\GestorInventario.Application.csproj" />
-    <ProjectReference Include="..\..\..\GestorInventario.Domain\GestorInventario.Domain.csproj" />
-    <ProjectReference Include="..\..\..\GestorInventario.Infrastructure\GestorInventario.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\..\GestorInventario.Interfaces\GestorInventario.Interfaces.csproj" />
-    <ProjectReference Include="..\..\..\GestorInventario.Notifications\GestorInventario.Notifications.csproj" />
-    <ProjectReference Include="..\..\..\GestorInventario.Renderer\GestorInventario.Renderer.csproj" />
-    <ProjectReference Include="..\..\..\GestorInventario.Shared\GestorInventario.Shared.csproj" />
+    <ProjectReference Include="..\GestorInventario.Application\GestorInventario.Application.csproj" />
+    <ProjectReference Include="..\GestorInventario.Domain\GestorInventario.Domain.csproj" />
+    <ProjectReference Include="..\GestorInventario.Interfaces\GestorInventario.Interfaces.csproj" />
+    <ProjectReference Include="..\GestorInventario.Shared\GestorInventario.Shared.csproj" />
   </ItemGroup>
+
+ 
 
   <ItemGroup>
     <Using Include="Xunit" />
