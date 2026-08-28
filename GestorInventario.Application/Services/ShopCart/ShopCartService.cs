@@ -62,8 +62,8 @@ namespace GestorInventario.Application.Services.Carrito
                     return;
                 }
 
-                // 3. Eliminar (delegado al repositorio)
-                await EliminarCarritoAsync(carritoActivo.Id);
+                // 3. Eliminar 
+                await _pedidoService.EliminarPedido(carritoActivo.Id);
 
                 _logger.LogInformation("Carrito activo vacío eliminado para el usuario {UsuarioId}", usuarioId);
             }
@@ -73,10 +73,7 @@ namespace GestorInventario.Application.Services.Carrito
                 return;
             }
         }
-        private async Task EliminarCarritoAsync(int carritoId)
-        {
-            await _pedidoService.EliminarPedido(carritoId);
-        }
+      
         // Método para crear un carrito si no existe
         public async Task<OperationResult<Pedido>> CrearCarritoUsuario(int userId)
         {
@@ -118,9 +115,11 @@ namespace GestorInventario.Application.Services.Carrito
                 if (detalle == null)
                 {
                 _logger.LogError("Item no encontrado");
-                }
+                return OperationResult<string>.Fail("Item no encontrado");
 
-                detalle.Cantidad++;
+            }
+
+            detalle.Cantidad++;
                 await _pedidoRepository.ActualizarDetallePedidoAsync(detalle);
 
                 var producto = await _productoRepository.ObtenerProductoPorIdAsync((int)detalle.ProductoId);
@@ -196,9 +195,11 @@ namespace GestorInventario.Application.Services.Carrito
                 if (detalle == null)
                 {
                 _logger.LogError("Item no encontrado");
-                }
+                return OperationResult<string>.Fail("Item no encontrado");
 
-                detalle.Cantidad--;
+            }
+
+            detalle.Cantidad--;
                 if (detalle.Cantidad <= 0)
                 {
                     await _pedidoRepository.EliminarDetallePedidoAsync(detalle);

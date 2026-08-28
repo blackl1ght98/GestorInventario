@@ -18,6 +18,11 @@ namespace GestorInventario.Application.Services.Authentication.Services
 
         public async Task<OperationResult<string > >GenerarPasswordTemporalAsync(string email)
         {
+            var correo = await _userRepository.ExisteEmailAsync(email);
+            if (!correo)
+            {
+                return OperationResult<string>.Fail("El correo electronico no existe");
+            }
             // Lógica de generación y hash aquí
             var contrasenaTemporal = GenerarContrasenaTemporal();
             var resultadoHash = _hashService.Hash(contrasenaTemporal);
