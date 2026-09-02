@@ -97,6 +97,7 @@ namespace GestorInventario.Application.Services.Products
             producto.IdProveedor = model.IdProveedor;
 
             string? imagenAnterior = producto.Imagen;
+            bool seGeneroNuevaImagen = false;  // ← NUEVO
 
             if (model.ArchivoImagenBytes is { Length: > 0 } &&
                 !string.IsNullOrEmpty(model.ArchivoImagenNombre))
@@ -111,6 +112,8 @@ namespace GestorInventario.Application.Services.Products
                         model.ArchivoImagenBytes,
                         model.ArchivoImagenNombre,
                         "imagenes");
+
+                    seGeneroNuevaImagen = true;  // ← NUEVO
 
                     _logger.LogInformation(
                         "Imagen guardada: {ImagenPath}", producto.Imagen);
@@ -129,7 +132,8 @@ namespace GestorInventario.Application.Services.Products
             var resultado = await _productoRepository.ActualizarProductoAsync(producto);
 
             // 3. Solo borra la imagen antigua si la BD confirmó el cambio
-            if (resultado.Success && !string.IsNullOrEmpty(imagenAnterior))
+            //    Y se generó una imagen nueva
+            if (resultado.Success && seGeneroNuevaImagen && !string.IsNullOrEmpty(imagenAnterior))  // ← NUEVO
             {
                 string fileName = Path.GetFileName(imagenAnterior);
                 await _gestorArchivos.BorrarArchivo(fileName, "imagenes");
