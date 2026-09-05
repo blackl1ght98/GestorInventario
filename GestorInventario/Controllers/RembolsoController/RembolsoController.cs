@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Application.Services.Common;
 using GestorInventario.Domain.enums.Pedido;
+using GestorInventario.Domain.Models;
 using GestorInventario.Extensions;
 using GestorInventario.Interfaces.Application.MetodosPaginacion;
 using GestorInventario.Interfaces.Application.RetryPolicy;
@@ -9,6 +10,7 @@ using GestorInventario.Interfaces.Application.Services.Payment;
 using GestorInventario.Interfaces.Application.Services.Paypal.Mapping;
 using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Order;
 using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Refunds;
+using GestorInventario.Interfaces.Application.Services.Refunds;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Interfaces.Notifications.SendNotification.Email;
 using GestorInventario.Interfaces.Web;
@@ -37,10 +39,10 @@ namespace GestorInventario.Controllers.RembolsoController
         private readonly IPaypalOrderService _paypalOrderService;
         private readonly IPaymentService _paymentService;
         private readonly IPayPalOrderMappingService _mappingService;   
-        private readonly IOrderService _pedidoService;
+        private readonly IRefundService _refundService;
         private readonly IBackgroundTaskQueue _background;
       
-        private readonly IPaypalRefundService _refundService;
+        private readonly IPaypalRefundService _paypalRefundService;
         public RembolsoController(
             IPolicyExecutor policyExecutor, 
             IRembolsoRepository rembolsoRepository, 
@@ -51,7 +53,7 @@ namespace GestorInventario.Controllers.RembolsoController
              IPaypalOrderService paypalOrderService,
              IPaymentService paymentService,
              IPayPalOrderMappingService mappingService,
-             IOrderService pedido,
+             IRefundService refundService,
              IBackgroundTaskQueue provider,   
              IPaypalRefundService refund
             )
@@ -65,9 +67,9 @@ namespace GestorInventario.Controllers.RembolsoController
             _paypalOrderService = paypalOrderService;
             _paymentService = paymentService;
             _mappingService = mappingService;      
-            _pedidoService = pedido;
+            _refundService = refundService;
             _background = provider;
-            _refundService = refund;
+            _paypalRefundService = refund;
 
 
         }
@@ -130,13 +132,13 @@ namespace GestorInventario.Controllers.RembolsoController
 
             try
             {
-                // 1. TU dominio: leer pedido de TU base de datos
+                
                 var pedido = await _pedidoRepository
                     .ObtenerPedidoConDetallesAsync(request.PedidoId);
                 
                 if (pedido == null)
                     return NotFound("Pedido no encontrado");
-                // 2. Idempotencia: si ya hay un reembolso exitoso, no procesamos otro
+               
                 var reembolsoPrevio = pedido.Rembolsos?
                     .FirstOrDefault(r => r.ReembolsoCompletado == true);
 
@@ -166,8 +168,8 @@ namespace GestorInventario.Controllers.RembolsoController
                     request.PedidoId, pedido.Subtotal, pedido.Iva, totalReembolso);
 
                
-                    // 2. Llamar al servicio de PayPal con datos planos (sin BD)
-                    var refundResult = await _refundService.RefundCaptureAsync(
+                    
+                    var refundResult = await _paypalRefundService.RefundCaptureAsync(
                         captureId: captureId,
                         amount: totalReembolso,
                         currency: request.Currency,
@@ -176,13 +178,14 @@ namespace GestorInventario.Controllers.RembolsoController
                     if (!refundResult.Success)
                         return BadRequest(new { success = false, message = refundResult.Message });
 
-                    // 3. Agregamos la informacion a la tabla rembolso
-                    await _pedidoService.ProcesarRembolsoAsync(
+                   
+                  var procesar =  await _refundService.ProcesarRembolsoAsync(
                         pedido.Id,
                         EstadoPedido.Rembolsado.ToString(),
                         refundResult.Data.RefundId);
-
-                    // 4. Notificación asíncrona
+                if (procesar.Success)
+                {
+                  
                     _background.Enqueue(async (sp, ct) =>
                     {
                         var notificar = sp.GetRequiredService<IRefundNotification>();
@@ -191,9 +194,12 @@ namespace GestorInventario.Controllers.RembolsoController
                             refundResult.Data.AmountRefunded,
                             "Reembolso Aprobado");
                     });
-
                     return Ok(new { success = true, refundId = refundResult.Data.RefundId });
-               
+                }
+                else
+                {
+                    return BadRequest(new { success = false, message = procesar.Message });
+                }
                
             }
             catch (Exception ex)
@@ -214,103 +220,33 @@ namespace GestorInventario.Controllers.RembolsoController
 
             try
             {
-                // ============================================
-                // 1. OBTENER DATOS DEL PEDIDO (tu BD)
-                // ============================================
-                var detallePedido = await _pedidoRepository.ObtenerDetalleParaReembolsoAsync(request.DetalleId);
-                if (detallePedido == null)
-                    return Json(new { success = false, message = "Pedido no encontrado." });
 
-                // ============================================
-                // 2. CALCULAR MONTO CON IVA 
-                // ============================================
-                var precioSinIva = detallePedido.Producto.Precio;
-                var ivaUnitario = CalculadoraFiscal.CalcularIvaUnitario(precioSinIva);
-                var montoSolicitadoConIva = precioSinIva + ivaUnitario;
-
-                _logger.LogInformation(
-                    "Reembolso parcial pedido {PedidoId} -> Precio:{Precio} IVA:{Iva} Total:{Total}",
-                    request.DetalleId, precioSinIva, ivaUnitario, montoSolicitadoConIva);
-
-                // ============================================
-                // 3. VERIFICAR ESTADO ACTUAL EN PAYPAL
-                // ============================================
-                var captureDetails = await _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(detallePedido.Pedido.PayPalPaymentCaptures.First().PaymentId);
-                var (montoReembolso, montoDisponible, estadoVenta) = CalcularMontoDisponibleYEstado(
-                    captureDetails, montoSolicitadoConIva, request.Currency);
-
-                // ============================================
-                // 4. EJECUTAR REEMBOLSO EN PAYPAL 
-                // ============================================
-                var refundResult = await _refundService.RefundCaptureAsync(
-                    captureId: detallePedido.Pedido.PayPalPaymentCaptures.First().CaptureId,
-                    amount: montoReembolso,
-                    currency: detallePedido.Pedido.Currency,
-                    nota: $"Reembolso parcial pedido #{detallePedido.Pedido.Id} - {request.Motivo}");
-
-                if (!refundResult.Success)
+                var resultado = await _refundService.RealizarRembolsoParcial(request);
+                var total = CalculadoraFiscal.AplicarIva(resultado.Data.precioProducto);
+             
+               
+                if (resultado.Success)
                 {
                     // ============================================
-                    // 5. MANEJO DE FALSO POSITIVO 
+                    // 7. NOTIFICACIÓN ASÍNCRONA 
                     // ============================================
-                    if (refundResult.Message.Contains("REFUND_AMOUNT_EXCEEDED") ||
-                        refundResult.Message.Contains("UnprocessableEntity"))
+                    _background.Enqueue(async (sp, ct) =>
                     {
-                        var updatedCapture = await _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(detallePedido.Pedido.PayPalPaymentCaptures.First().PaymentId);
-                        var montoFormateado = CalculadoraFiscal.FormatearPayPal(montoSolicitadoConIva);
-
-                        var recentRefund = updatedCapture?.PurchaseUnits[0].Payments.Refunds?
-                            .FirstOrDefault(r => r.Amount.Value == montoFormateado);
-
-                        if (recentRefund != null)
-                        {
-                            _logger.LogWarning("Falso positivo: Reembolso ya procesado (ID {RefundId}).", recentRefund.Id);
-
-                            // Usar el refundId existente como si hubiera funcionado
-                            refundResult = OperationResult<(string, decimal)>.Ok(
-                                "Reembolso ya existente",
-                                (recentRefund.Id, montoReembolso));
-                        }
-                        else
-                        {
-                            return Json(new
-                            {
-                                success = false,
-                                message = $"El monto ({montoSolicitadoConIva} {request.Currency}) excede disponible ({montoDisponible} {request.Currency})."
-                            });
-                        }
-                    }
-                    else
-                    {
-                        return Json(new { success = false, message = refundResult.Message });
-                    }
+                        var notificar = sp.GetRequiredService<IRefundNotification>();
+                        await notificar.EnviarEmailNotificacionRembolso(
+                            resultado.Data.pedidoId,
+                           total,
+                           resultado.Data.motivo);
+                    });
+                    return Json(new { success = true, message = "rembolso realizado con exito" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Ocurrio un error al realizar el rembolso" });
                 }
 
-                // ============================================
-                // 6. REGISTRAR EN TU BASE DE DATOS 
-                // ============================================
-                await _pedidoService.RegistrarReembolsoParcialAsync(
-                    detallePedido.Pedido.Id,
-                    detallePedido.Id,            
-                    request.Motivo,
-                    montoReembolso,
-                    detallePedido.Pedido.Currency,
-                    refundResult.Data.RefundId
-                    );
+               
 
-                // ============================================
-                // 7. NOTIFICACIÓN ASÍNCRONA 
-                // ============================================
-                _background.Enqueue(async (sp, ct) =>
-                {
-                    var notificar = sp.GetRequiredService<IRefundNotification>();
-                    await notificar.EnviarEmailNotificacionRembolso(
-                        detallePedido.Pedido.Id,
-                        detallePedido.Producto.Precio,
-                        request.Motivo);
-                });
-
-                return Json(new { success = true, refundId = refundResult.Data.RefundId });
             }
             catch (ArgumentException ex)
             {
@@ -323,75 +259,7 @@ namespace GestorInventario.Controllers.RembolsoController
                 return Json(new { success = false, message = "No se pudo realizar el reembolso. Intenta de nuevo o contacta soporte." });
             }
         }
-        private (decimal montoReembolso, decimal montoDisponible, string estadoVenta)
-         CalcularMontoDisponibleYEstado(
-             OrderDetailsResponse captureDetails,
-             decimal montoSolicitado,
-             string currency)
-        {
-            var firstUnit = captureDetails.PurchaseUnits?.FirstOrDefault()
-                ?? throw new InvalidOperationException("La orden no contiene unidades de compra.");
-
-            var capture = firstUnit.Payments?.Captures?.FirstOrDefault()
-                ?? throw new InvalidOperationException("La orden no contiene capturas de pago.");
-
-            if (currency != capture.Amount?.CurrencyCode)
-            {
-                throw new InvalidOperationException(
-                    $"Moneda solicitada ({currency}) no coincide con la captura ({capture.Amount?.CurrencyCode}).");
-            }
-
-            // Parseo seguro del net amount
-            var netAmount = ParseDecimalSeguro(
-                capture.SellerReceivableBreakdown?.NetAmount?.Value,
-                "monto neto de la captura");
-
-            // Suma de reembolsos previos
-            var refundedAmount = firstUnit.Payments?.Refunds?
-                .Where(r => r.SellerPayableBreakdown?.NetAmount?.Value != null)
-                .Sum(r => ParseDecimalSeguro(r.SellerPayableBreakdown.NetAmount.Value, "monto de reembolso previo"))
-                ?? 0m;
-
-            var availableAmount = netAmount - refundedAmount;
-
-            if (availableAmount <= 0)
-            {
-                _logger.LogWarning("No hay fondos disponibles para reembolsar. Net: {Net}, Ya reembolsado: {Refunded}",
-                    netAmount, refundedAmount);
-                throw new InvalidOperationException("No hay monto disponible para reembolsar.");
-            }
-
-            // Ajustar monto solicitado al disponible
-            var finalRefundAmount = Math.Min(montoSolicitado, availableAmount);
-
-            if (finalRefundAmount < montoSolicitado)
-            {
-                _logger.LogWarning(
-                    "Monto solicitado ({Solicitado}) excede disponible ({Disponible}). Ajustando a {Ajustado}.",
-                    montoSolicitado, availableAmount, finalRefundAmount);
-            }
-
-            // Estado: si reembolsamos todo lo disponible, es refund completo. Si no, parcial.
-            var estadoVenta = finalRefundAmount >= availableAmount && refundedAmount == 0
-                ? "REFUNDED"
-                : "PARTIALLY_REFUNDED";
-
-            return (finalRefundAmount, availableAmount, estadoVenta);
-        }
-        private static decimal ParseDecimalSeguro(string? value, string campo)
-        {
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                throw new InvalidOperationException($"El campo '{campo}' no contiene un valor válido.");
-            }
-
-            if (!decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var result))
-            {
-                throw new InvalidOperationException($"No se pudo parsear el campo '{campo}': {value}");
-            }
-
-            return result;
-        }
+     
         [Authorize]
         public IActionResult FormularioRembolso()
         {

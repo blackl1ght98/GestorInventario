@@ -1,4 +1,5 @@
-﻿using GestorInventario.Domain.enums.Paypal;
+﻿using GestorInventario.Application.Services.Common;
+using GestorInventario.Domain.enums.Paypal;
 using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Extensions;
 using GestorInventario.Interfaces.Application.MetodosPaginacion;
@@ -97,29 +98,57 @@ namespace GestorInventario.Controllers.PedidosControllers
                 return RedirectToAction("Error", "Home");
             }
         }
-      
         [Authorize]
         public async Task<IActionResult> DetallesPedido(int id)
         {
             try
             {
-                
-            
-               var pedido= await _policyExecutor.ExecutePolicyAsync(()=> _pedidoRepository.ObtenerPedidoConDetallesAsync(id)) ;
+                var pedido = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.ObtenerPedidoConDetallesAsync(id));
                 if (pedido == null)
                 {
                     _logger.LogCritical("Pedido no encontrado: no se puede mostrar los detalles de un pedido inexistente");
                     return RedirectToAction(nameof(Index));
                 }
+
+                var detalles = pedido.DetallePedidos.ToList();
+
+                var lineas = detalles.Select(d =>
+                {
+                    var precioUnitario = d.Producto?.Precio ?? 0;
+                    var subtotalSinIva = precioUnitario * d.Cantidad;
+                    var ivaLinea = CalculadoraFiscal.CalcularIvaUnitario(subtotalSinIva);
+
+                    return new DetallePedidoLineaViewModel
+                    {
+                        DetalleId = d.Id,
+                        NombreProducto = d.Producto?.NombreProducto,
+                        Descripcion = d.Producto?.Descripcion,
+                        Cantidad = d.Cantidad,
+                        PrecioUnitario = precioUnitario,
+                        SubtotalSinIva = subtotalSinIva,
+                        Iva = ivaLinea,
+                        TotalConIva = subtotalSinIva + ivaLinea,
+                        Rembolsado = d.Rembolsado ?? false
+                    };
+                }).ToList();
+
+                var (totalSinIva, totalIva, granTotal) = CalculadoraFiscal.CalcularTotales(
+                    detalles.Select(d => (d.Producto?.Precio ?? 0, d.Cantidad))
+                );
+
                 var viewmodel = new OrderDetailsViewmodel
                 {
-                    FechaPedido= pedido.FechaPedido,
-                    NombreCompleto=pedido.IdUsuarioNavigation.NombreCompleto,
-                    NumeroPedido=pedido.NumeroPedido,
-                    EstadoPedido=pedido.EstadoPedido,
-                    Currency=pedido.Currency,
-                    DetallePedidos=pedido.DetallePedidos.ToList(),
+                    FechaPedido = pedido.FechaPedido,
+                    NombreCompleto = pedido.IdUsuarioNavigation.NombreCompleto,
+                    NumeroPedido = pedido.NumeroPedido,
+                    EstadoPedido = pedido.EstadoPedido,
+                    Currency = pedido.Currency,
+                    Lineas = lineas,
+                    TotalSinIva = totalSinIva,
+                    TotalIva = totalIva,
+                    GranTotal = granTotal
                 };
+
                 return View(viewmodel);
             }
             catch (Exception ex)
@@ -128,7 +157,6 @@ namespace GestorInventario.Controllers.PedidosControllers
                 _logger.LogError(ex, "Error al obtener los detalles del pedido");
                 return RedirectToAction("Error", "Home");
             }
-
         }
         // Usuario o Admin cancela antes de envío
         [HttpPost]

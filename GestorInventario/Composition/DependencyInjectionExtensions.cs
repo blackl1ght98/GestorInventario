@@ -20,6 +20,7 @@ using GestorInventario.Application.Services.Paypal.Plans;
 using GestorInventario.Application.Services.Paypal.Subscription;
 using GestorInventario.Application.Services.PDFService;
 using GestorInventario.Application.Services.Products;
+using GestorInventario.Application.Services.Refunds;
 using GestorInventario.Application.Services.Syncs;
 using GestorInventario.Application.Services.User;
 using GestorInventario.Context;
@@ -55,6 +56,7 @@ using GestorInventario.Interfaces.Application.Services.Paypal.Plans;
 using GestorInventario.Interfaces.Application.Services.Paypal.Subscription;
 using GestorInventario.Interfaces.Application.Services.PDFService;
 using GestorInventario.Interfaces.Application.Services.Products;
+using GestorInventario.Interfaces.Application.Services.Refunds;
 using GestorInventario.Interfaces.Application.Services.ShopCart;
 using GestorInventario.Interfaces.Application.Services.Syncs;
 using GestorInventario.Interfaces.Application.Services.User;
@@ -135,6 +137,7 @@ namespace GestorInventario.Composition
             services.AddScoped<IPaymentService, PaymentService>();
             services.AddScoped<IShopCartService, ShopCartService>();
             services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<IRefundService,RefundService>();
             // Otros servicios de aplicación
             services.AddScoped<IRefundNotification, RefundNotification>();
             services.AddScoped<IPlanService, PlanService>();

@@ -1,5 +1,4 @@
 ﻿using GestorInventario.Application.Mappers;
-using GestorInventario.Domain.enums.Paypal;
 using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application.Services.Orders;
@@ -18,22 +17,22 @@ namespace GestorInventario.Application.Services.Orders
     {
         private readonly IPedidoRepository _pedidoRepository;
         private readonly ILogger<OrderService> _logger;
-        private readonly ICurrentUserAccessor _currentUserAccesor;
        
-        private readonly IPaypalOrderService _paypalOrder;
-        private readonly IPaymentRepository _payment;
-        private readonly IPaypalRepository _paypalRepository;
-        public OrderService(ILogger<OrderService> logger,  IPedidoRepository pedido, ICurrentUserAccessor current,
-           IPaypalOrderService paypal, IPaymentRepository payment, IPaypalRepository paypalRepository)
+       
+        private readonly IPaypalOrderService _paypalOrderService;
+        private readonly IPaymentRepository _paymentRepository;
+      
+        public OrderService(ILogger<OrderService> logger,  IPedidoRepository pedido, 
+           IPaypalOrderService paypal, IPaymentRepository payment)
         {
             
             _logger = logger;
             _pedidoRepository = pedido;
-            _currentUserAccesor = current;
+           
        
-            _paypalOrder = paypal;
-            _payment = payment;
-            _paypalRepository=paypalRepository;
+            _paypalOrderService = paypal;
+            _paymentRepository = payment;
+           
         
         }
         public async Task<OperationResult<string>> EliminarPedido(int id)
@@ -56,7 +55,7 @@ namespace GestorInventario.Application.Services.Orders
         public async Task<OperationResult<PayPalPaymentDetail>> SincronizarDetallePagoAsync(
            string id, int pedidoId)
         {
-            var detallesPayPal = await _paypalOrder.ObtenerDetallesPagoEjecutadoAsync(id);
+            var detallesPayPal = await _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(id);
             if (detallesPayPal == null)
                 return OperationResult<PayPalPaymentDetail>.Fail(
                     "Detalles del pedido no encontrados para generar la factura");
@@ -81,17 +80,17 @@ namespace GestorInventario.Application.Services.Orders
         private async Task<PayPalPaymentDetail> ObtenerOCrearDetallePagoAsync(
             string id, OrderDetailsResponse detallesPayPal)
         {
-            var existente = await _payment.ObtenerDetallesPago(id);
+            var existente = await _paymentRepository.ObtenerDetallesPago(id);
 
             if (existente == null)
             {
                 var nuevo = new PayPalPaymentDetail { Id = detallesPayPal.Id };
-                await _payment.AgregarDetallePagoAsync(nuevo);
+                await _paymentRepository.AgregarDetallePagoAsync(nuevo);
                 _logger.LogInformation("Detalle de pago {Id} creado en BD", id);
                 return nuevo;
             }
 
-            await _payment.EliminarDetallesPagoAsync(existente);
+            await _paymentRepository.EliminarDetallesPagoAsync(existente);
             _logger.LogInformation("Detalle de pago {Id} actualizado en BD", id);
             return existente;
         }
@@ -131,7 +130,7 @@ namespace GestorInventario.Application.Services.Orders
                 CountryCode = shipping.Address.CountryCode
             };
 
-            await _payment.AgregarInfoEnvioAsync(envio);
+            await _paymentRepository.AgregarInfoEnvioAsync(envio);
         }
 
 
@@ -150,7 +149,7 @@ namespace GestorInventario.Application.Services.Orders
             foreach (var capture in unidad.Payments.Captures.Where(c => c != null))
             {
                 var paypalCapture = PayPalPaymentMapper.MapearCapture(capture, detallePago.Id, pedidoId);
-                await _payment.AgregarCaptureAsync(paypalCapture);
+                await _paymentRepository.AgregarCaptureAsync(paypalCapture);
             }
         }
 
@@ -170,7 +169,7 @@ namespace GestorInventario.Application.Services.Orders
             foreach (var refund in unidad.Payments.Refunds.Where(r => r != null))
             {
                 var paypalRefund = PayPalPaymentMapper.MapearRefund(refund, detallePago.Id, pedidoId);
-                await _payment.AgregarRefundAsync(paypalRefund);
+                await _paymentRepository.AgregarRefundAsync(paypalRefund);
             }
         }
 
@@ -198,7 +197,7 @@ namespace GestorInventario.Application.Services.Orders
                     ItemQuantity = ConversionExtensions.ToIntSafe(item.Quantity)
                 };
 
-                await _payment.AgregarPagoItemAsync(paymentItem);
+                await _paymentRepository.AgregarPagoItemAsync(paymentItem);
             }
         }
 
@@ -230,7 +229,7 @@ namespace GestorInventario.Application.Services.Orders
             }
 
            
-            var paymentDetail = await _payment.ObtenerDetallesPago(orderId);
+            var paymentDetail = await _paymentRepository.ObtenerDetallesPago(orderId);
 
             if (paymentDetail == null)
             {
@@ -246,7 +245,7 @@ namespace GestorInventario.Application.Services.Orders
                     CreateTime = DateTime.UtcNow,
                     UpdateTime = DateTime.UtcNow
                 };
-                await _payment.AgregarDetallePagoAsync(paymentDetail);
+                await _paymentRepository.AgregarDetallePagoAsync(paymentDetail);
             }
 
 
@@ -265,9 +264,9 @@ namespace GestorInventario.Application.Services.Orders
                 UpdateTime = DateTime.UtcNow
             };
 
-            await _payment.AgregarCaptureAsync(capturePayment);
+            await _paymentRepository.AgregarCaptureAsync(capturePayment);
 
-            // 5. Actualizar pedido
+           
             pedido.Total = total;
             pedido.Currency = currency;
             pedido.EstadoPedido = EstadoPedido.Pagado.ToString();
@@ -276,114 +275,7 @@ namespace GestorInventario.Application.Services.Orders
 
             return OperationResult<Pedido>.Ok("Pago confirmado. Pendiente de sincronización con PayPal.", pedido);
         }
-        public async Task ProcesarRembolsoAsync(int pedidoId, string status, string refundId)
-        {
-
-            var pedido = await _pedidoRepository.ObtenerPedidoConDetallesAsync(pedidoId);
-            
-            if (pedido == null)
-                throw new ArgumentException($"Pedido con ID {pedidoId} no encontrado.");
-
-            pedido.EstadoPedido = status;
-          
-            foreach (var detalle in pedido.DetallePedidos)
-            {
-                detalle.Rembolsado = true;
-            }
-            await _pedidoRepository.ActualizarPedidoAsync(pedido);
-
-            var usuarioActual = _currentUserAccesor.GetCurrentUserId();
-
-            // Crear o actualizar registro de reembolso
-            var obtenerRembolso = await _paypalRepository.ObtenRembolsoAsync(pedido.NumeroPedido);
-
-            if (obtenerRembolso == null)
-            {
-                var rembolso = new Rembolso
-                {
-
-                    NumeroPedido = pedido.NumeroPedido,
-                    NombreCliente = pedido.IdUsuarioNavigation?.NombreCompleto,
-                    EmailCliente = pedido.IdUsuarioNavigation?.Email,
-                    FechaRembolso = DateTime.UtcNow,
-                    MotivoRembolso = "Rembolso solicitado por el usuario",
-                    EstadoRembolso = EstadoRembolso.Aprobado.ToString(),
-                    ReembolsoCompletado = true,
-                    UsuarioId = usuarioActual,
-                    PedidoId = pedido.Id,
-                    RefundIdPayPal=refundId,
-                    MontoRembolsado=pedido.Total,
-                    Currency=pedido.Currency,
-                    TipoRembolso = TipoRembolso.Total.ToString(),
-                 
-                };
-                await _paypalRepository.AgregarRembolsoAsync(rembolso);
-            }
-            else
-            {
-                obtenerRembolso.EstadoRembolso = EstadoRembolso.Aprobado.ToString();
-                obtenerRembolso.ReembolsoCompletado = true;
-                obtenerRembolso.TipoRembolso = TipoRembolso.Total.ToString();
-               
-                obtenerRembolso.FechaRembolso = DateTime.UtcNow;
-                
-
-                await _paypalRepository.ActualizarRembolsoAsync(obtenerRembolso);
-            }
-
-
-            _logger.LogInformation($"Estado del pedido {pedidoId} actualizado a {status}");
-
-
-        }
-        public async Task RegistrarReembolsoParcialAsync(int pedidoId, int detalleId, string motivo, decimal montoRembolsado, string currency, string refundId)
-        {
-
-            // Obtener el pedido con los datos relacionados
-            var pedido = await _pedidoRepository.ObtenerPedidoConDetallesAsync(pedidoId);
-
-            if (pedido == null)
-                throw new ArgumentException($"Pedido con ID {pedidoId} no encontrado.");
-
-            // Obtener el detalle específico por ID
-            var detalleReembolsado = pedido.DetallePedidos.FirstOrDefault(d => d.Id == detalleId);
-            if (detalleReembolsado == null)
-                throw new ArgumentException($"Detalle con ID {detalleId} no encontrado.");
-
-            // Evitar reembolsos duplicados
-            if (detalleReembolsado.Rembolsado ?? false)
-                throw new InvalidOperationException($"El detalle con ID {detalleId} ya ha sido reembolsado.");
-
-            var usuarioActual = _currentUserAccesor.GetCurrentUserId();
-
-            // Crear registro de reembolso
-            var rembolso = new Rembolso
-            {
-                PedidoId = pedido.Id,
-                NumeroPedido = pedido.NumeroPedido,
-                NombreCliente = pedido.IdUsuarioNavigation?.NombreCompleto,
-                EmailCliente = pedido.IdUsuarioNavigation?.Email,
-                FechaRembolso = DateTime.UtcNow,
-                MotivoRembolso = motivo,
-                EstadoRembolso = EstadoRembolso.Aprobado.ToString(),
-                ReembolsoCompletado = true,
-                UsuarioId = usuarioActual,
-                MontoRembolsado=montoRembolsado,
-                Currency=currency,
-                RefundIdPayPal=refundId,
-                TipoRembolso = TipoRembolso.Parcial.ToString()
-               
-            };
-
-            await _paypalRepository.AgregarRembolsoAsync(rembolso);
-
-            // Marcar el detalle correcto como reembolsado
-            detalleReembolsado.Rembolsado = true;
-            await _pedidoRepository.ActualizarDetallePedidoAsync(detalleReembolsado);
-
-            _logger.LogInformation($"Reembolso registrado para pedido {pedidoId}, detalle {detalleId}.");
-
-        }
+      
         public async Task AddInfoTrackingOrder(int pedidoId, string tracking, string carrier)
         {
 

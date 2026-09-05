@@ -1,5 +1,4 @@
 ﻿@using GestorInventario.Extensions
-
 @using GestorInventario.ViewModels.Orders
 
 @model OrderDetailsViewmodel
@@ -45,25 +44,20 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var detalle in Model.DetallePedidos)
+                        @foreach (var linea in Model.Lineas)
                         {
-                            var precioUnitario = detalle.Producto?.Precio ?? 0;
-                            var subtotalSinIva = detalle.Cantidad * precioUnitario;
-                            var iva = subtotalSinIva * 0.21m;
-                            var totalConIva = subtotalSinIva + iva;
-
                             <tr>
                                 <td>
-                                    <strong>@detalle.Producto?.NombreProducto</strong>
-                                    <small class="text-muted d-block">@detalle.Producto?.Descripcion</small>
+                                    <strong>@linea.NombreProducto</strong>
+                                    <small class="text-muted d-block">@linea.Descripcion</small>
                                 </td>
-                                <td class="text-center fw-bold">@detalle.Cantidad</td>
-                                <td class="text-end">@precioUnitario.ToString("C")</td>
-                                <td class="text-end">@subtotalSinIva</td>
-                                <td class="text-end text-success">@iva</td>
-                                <td class="text-end fw-bold">@totalConIva</td>
+                                <td class="text-center fw-bold">@linea.Cantidad</td>
+                                <td class="text-end">@linea.PrecioUnitario.ToString("C")</td>
+                                <td class="text-end">@linea.SubtotalSinIva</td>
+                                <td class="text-end text-success">@linea.Iva</td>
+                                <td class="text-end fw-bold">@linea.TotalConIva</td>
                                 <td class="text-center">
-                                    @if (detalle.Rembolsado ?? false)
+                                    @if (linea.Rembolsado)
                                     {
                                         <span class="badge bg-secondary">Reembolsado</span>
                                     }
@@ -75,28 +69,22 @@
                                                     class="btn btn-outline-warning btn-sm refund-btn"
                                                     data-bs-toggle="modal"
                                                     data-bs-target="#confirmRefundModal"
-                                                    data-detalle-id="@detalle.Id"
+                                                    data-detalle-id="@linea.DetalleId"
                                                     data-currency="@Model.Currency">
                                                 <i class="bi bi-arrow-counterclockwise"></i> Reembolsar
                                             </button>
                                         }
-                                      
                                     }
                                 </td>
                             </tr>
                         }
                     </tbody>
                     <tfoot class="table-light fw-bold">
-                        @{
-                            var totalSinIva = Model.DetallePedidos.Sum(d => d.Cantidad * (d.Producto?.Precio ?? 0));
-                            var totalIva = totalSinIva * 0.21m;
-                            var granTotal = totalSinIva + totalIva;
-                        }
                         <tr>
                             <td colspan="3" class="text-end">Totales:</td>
-                            <td class="text-end">@totalSinIva</td>
-                            <td class="text-end text-success">@totalIva</td>
-                            <td class="text-end">@granTotal</td>
+                            <td class="text-end">@Model.TotalSinIva</td>
+                            <td class="text-end text-success">@Model.TotalIva</td>
+                            <td class="text-end">@Model.GranTotal</td>
                             <td></td>
                         </tr>
                     </tfoot>
