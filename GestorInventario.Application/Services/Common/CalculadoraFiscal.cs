@@ -7,32 +7,49 @@ namespace GestorInventario.Application.Services.Common
         public const decimal TASA_IVA = 0.21m;
 
         /// <summary>
-        /// Calcula subtotal, IVA y total a partir de líneas de pedido
+        ///  Calcula el total a pagar de un pedido completo (todas sus prductos juntos).
+
+        /// Ejemplo con dos productos: Monitor (50 x 2) y Smart TV (200 x 1)
+        /// 1º Se suman los subtotales sin IVA de cada línea: (50*2) + (200*1) = 100 + 200 = 300
+        /// 2º Se calcula el IVA UNA SOLA VEZ sobre ese total: 300 * 0.21 = 63
+        /// 3º Se suma para obtener el total con IVA: 300 + 63 = 363
+        
         /// </summary>
-        public static (decimal subtotal, decimal iva, decimal total) CalcularTotales(
-            IEnumerable<(decimal precioUnitario, int cantidad)> lineas)
+        public static (decimal subtotalSinIva, decimal iva, decimal totalConIva) CalcularTotales(
+            IEnumerable<(decimal precioUnitario, int cantidad)> productos)
         {
             
-            decimal subtotal = lineas.Sum(l => l.precioUnitario * l.cantidad);
-            decimal iva = Math.Round(subtotal * TASA_IVA, 2);
-            decimal total = subtotal + iva;
-            return (subtotal, iva, total);
+            decimal subtotalSinIva = productos.Sum(l => l.precioUnitario * l.cantidad);
+         
+            decimal iva = CalcularIvaUnitario(subtotalSinIva);
+            decimal totalConIva = subtotalSinIva + iva;
+            return (subtotalSinIva, iva, totalConIva);
         }
+        /// <summary>
+        /// Calcula cuánto cuesta un único producto dentro de un pedido.
+        /// </summary>
+        public static (decimal subtotalSinIva, decimal iva, decimal totalConIva) CalcularCosteProducto(
+            decimal precioUnitario, int cantidad)
+        {
+            decimal subtotalSinIva = precioUnitario * cantidad;
+            decimal iva = CalcularIvaUnitario(subtotalSinIva);
+            decimal totalConIva = subtotalSinIva + iva;
 
+            return (subtotalSinIva, iva, totalConIva);
+        }
         /// <summary>
         /// Calcula el IVA de un precio unitario
         /// </summary>
         public static decimal CalcularIvaUnitario(decimal precioSinIva) =>
             Math.Round(precioSinIva * TASA_IVA, 2);
-        ///<summary>
-        ///
-        /// Calcular y aplicar iva
-        /// 
+      
+        /// <summary>
+        /// Dado un precio sin IVA, devuelve el precio con IVA incluido
         /// </summary>
-       public static decimal AplicarIva(decimal cantidad)
+        public static decimal CalcularPrecioConIva(decimal precioSinIva)
         {
-            var resultado = CalcularIvaUnitario(cantidad)+ cantidad; 
-            return resultado;
+            decimal iva = CalcularIvaUnitario(precioSinIva);
+            return precioSinIva + iva;
         }
         /// <summary>
         /// Formatea un decimal para PayPal (siempre 2 decimales, punto como separador)

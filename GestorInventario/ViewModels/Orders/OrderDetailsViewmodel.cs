@@ -12,7 +12,7 @@ namespace GestorInventario.ViewModels.Orders
         public string EstadoPedido { get; set; }
         public string Currency { get; set; }
 
-        public List<DetallePedidoLineaViewModel> Lineas { get; set; }
+        public List<DetallePedidoLineaViewModel> DetallePedido { get; set; }
 
         public decimal TotalSinIva { get; set; }
         public decimal TotalIva { get; set; }

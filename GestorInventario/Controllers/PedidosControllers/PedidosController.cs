@@ -112,11 +112,10 @@ namespace GestorInventario.Controllers.PedidosControllers
 
                 var detalles = pedido.DetallePedidos.ToList();
 
-                var lineas = detalles.Select(d =>
+                var productos = detalles.Select(d =>
                 {
                     var precioUnitario = d.Producto?.Precio ?? 0;
-                    var subtotalSinIva = precioUnitario * d.Cantidad;
-                    var ivaLinea = CalculadoraFiscal.CalcularIvaUnitario(subtotalSinIva);
+                    var (subtotalSinIva, iva, totalConIva) = CalculadoraFiscal.CalcularCosteProducto(precioUnitario, d.Cantidad);
 
                     return new DetallePedidoLineaViewModel
                     {
@@ -126,8 +125,8 @@ namespace GestorInventario.Controllers.PedidosControllers
                         Cantidad = d.Cantidad,
                         PrecioUnitario = precioUnitario,
                         SubtotalSinIva = subtotalSinIva,
-                        Iva = ivaLinea,
-                        TotalConIva = subtotalSinIva + ivaLinea,
+                        Iva = iva,
+                        TotalConIva = totalConIva,
                         Rembolsado = d.Rembolsado ?? false
                     };
                 }).ToList();
@@ -143,7 +142,7 @@ namespace GestorInventario.Controllers.PedidosControllers
                     NumeroPedido = pedido.NumeroPedido,
                     EstadoPedido = pedido.EstadoPedido,
                     Currency = pedido.Currency,
-                    Lineas = lineas,
+                    DetallePedido = productos,
                     TotalSinIva = totalSinIva,
                     TotalIva = totalIva,
                     GranTotal = granTotal

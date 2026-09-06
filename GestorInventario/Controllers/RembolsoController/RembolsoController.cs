@@ -222,7 +222,7 @@ namespace GestorInventario.Controllers.RembolsoController
             {
 
                 var resultado = await _refundService.RealizarRembolsoParcial(request);
-                var total = CalculadoraFiscal.AplicarIva(resultado.Data.precioProducto);
+                var total = CalculadoraFiscal.CalcularPrecioConIva(resultado.Data.precioProducto);
              
                
                 if (resultado.Success)
