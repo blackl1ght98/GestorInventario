@@ -17,5 +17,7 @@ namespace GestorInventario.ViewModels.Orders
         public decimal TotalSinIva { get; set; }
         public decimal TotalIva { get; set; }
         public decimal GranTotal { get; set; }
+        public string PaymentId { get; set; }
+        public int PedidoId { get; set; }
     }
 }

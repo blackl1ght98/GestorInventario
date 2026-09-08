@@ -16,6 +16,7 @@ namespace GestorInventario.Domain.enums.Pedido
         Pendiente,
 
         [Display(Name = "Rembolsado")]
+        RembolsoParcial,
         Rembolsado,
         [Display(Name = "Carrito")]
         Carrito

@@ -224,6 +224,7 @@ namespace GestorInventario.Notifications.EmailServices
                     CantidadADevolver = correo.CantidadADevolver,
                     MotivoRembolso = correo.MotivoRembolso,
                     Productos = correo.Productos,
+                    EsReembolsoTotal=correo.EsReembolsoTotal
                 };
                 var enviado = await _baseemail.BuildEmail(correo.EmailCliente, $"Tu reembolso para el pedido #{correo.NumeroPedido} ha sido aprobado", EmailView.RefundApproved, viewmodel);
                 if (!enviado)

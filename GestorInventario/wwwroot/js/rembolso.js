@@ -9,12 +9,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultBox = document.getElementById('refundResult');
     const confirmBtn = document.getElementById('confirmRefundTotalBtn');
 
-    let pedidoId, currency, currentButton;
+    let pedidoId, currency, currentButton, paymentId;
 
     document.querySelectorAll('.refund-total-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             pedidoId = btn.dataset.pedidoId;
             currency = btn.dataset.currency;
+            paymentId = btn.dataset.paymentId;
             currentButton = btn;
 
             // Reset estado del modal
@@ -52,6 +53,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!response.ok) throw new Error();
+            // Reembolso OK -> ahora encadenamos la sincronización
+            const syncResponse = await fetch(`/Payment/SincronizarJs?paymentId=${paymentId}&pedidoId=${pedidoId}`, {
+                method: 'GET'
+            });
+
+            if (!syncResponse.ok) {
+                console.warn('El reembolso se realizó, pero la sincronización falló.');
+            }
 
             // ✅ ÉXITO
             resultBox.className = 'alert alert-success mt-3';

@@ -15,7 +15,6 @@ using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Interfaces.Notifications.SendNotification.Email;
 using GestorInventario.Interfaces.Web;
 using GestorInventario.Shared.DTOS.Paypal.BD;
-using GestorInventario.Shared.DTOS.Paypal.Responses.GET.Order;
 using GestorInventario.Shared.DTOS.Rembolso;
 using GestorInventario.Shared.Utilities;
 using GestorInventario.ViewModels.Paypal;
@@ -23,7 +22,6 @@ using GestorInventario.ViewModels.Refunds;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-using System.Globalization;
 
 namespace GestorInventario.Controllers.RembolsoController
 {
@@ -55,8 +53,7 @@ namespace GestorInventario.Controllers.RembolsoController
              IPayPalOrderMappingService mappingService,
              IRefundService refundService,
              IBackgroundTaskQueue provider,   
-             IPaypalRefundService refund
-            )
+             IPaypalRefundService refund)
         {
             _policyExecutor = policyExecutor;
             _rembolsoRepository = rembolsoRepository;  
@@ -132,13 +129,12 @@ namespace GestorInventario.Controllers.RembolsoController
 
             try
             {
-                
                 var pedido = await _pedidoRepository
                     .ObtenerPedidoConDetallesAsync(request.PedidoId);
-                
+
                 if (pedido == null)
                     return NotFound("Pedido no encontrado");
-               
+
                 var reembolsoPrevio = pedido.Rembolsos?
                     .FirstOrDefault(r => r.ReembolsoCompletado == true);
 
@@ -159,38 +155,58 @@ namespace GestorInventario.Controllers.RembolsoController
                 if (string.IsNullOrEmpty(captureId))
                     return BadRequest("El pedido no tiene pago capturado para reembolsar");
 
-                var totalReembolso = pedido.Total;
-                if (totalReembolso <= 0)
-                    return BadRequest("El total del pedido no es válido para reembolso");
+                // ============================================
+                // 2. CALCULAR MONTO A REEMBOLSAR (todas las líneas
+                //    aún no reembolsadas, según BD, con su cantidad real)
+                // ============================================
+
+                var detallesPendientes = pedido.DetallePedidos
+                    .Where(d => !(d.Rembolsado ?? false))
+                    .ToList();
+
+                if (!detallesPendientes.Any())
+                    return BadRequest("No quedan líneas pendientes de reembolso en este pedido");
+
+                var (_, _, montoSolicitadoConIva) = CalculadoraFiscal.CalcularTotales(
+                    detallesPendientes.Select(d => (d.Producto.Precio, d.Cantidad))
+                );
 
                 _logger.LogInformation(
-                    "Reembolso total pedido {PedidoId} -> Subtotal:{Subtotal} IVA:{Iva} Total:{Total}",
-                    request.PedidoId, pedido.Subtotal, pedido.Iva, totalReembolso);
+                    "Reembolso total pedido {PedidoId} -> Líneas pendientes:{Cantidad} Monto solicitado:{Monto}",
+                    request.PedidoId, detallesPendientes.Count, montoSolicitadoConIva);
 
-               
-                    
-                    var refundResult = await _paypalRefundService.RefundCaptureAsync(
+                // ============================================
+                // 3. VERIFICAR CONTRA PAYPAL (fuente de verdad real)
+                // ============================================
+
+                var captureDetails = await _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(
+                    pedido.PayPalPaymentCaptures.First().PaymentId);
+
+                var (montoReembolso, montoDisponible, estadoVenta) = PaypalRefundCalculator.CalcularMontoDisponibleYEstado(
+                    captureDetails, montoSolicitadoConIva, request.Currency,_logger);
+
+                var refundResult = await _paypalRefundService.RefundCaptureAsync(
                         captureId: captureId,
-                        amount: totalReembolso,
+                        amount: montoReembolso,
                         currency: request.Currency,
                         nota: $"Reembolso pedido #{pedido.NumeroPedido}");
 
-                    if (!refundResult.Success)
-                        return BadRequest(new { success = false, message = refundResult.Message });
+                if (!refundResult.Success)
+                    return BadRequest(new { success = false, message = refundResult.Message });
 
-                   
-                  var procesar =  await _refundService.ProcesarRembolsoAsync(
+                var procesar = await _refundService.ProcesarRembolsoTotalAsync(
                         pedido.Id,
-                        EstadoPedido.Rembolsado.ToString(),
                         refundResult.Data.RefundId);
+                //MODIFICAR
                 if (procesar.Success)
                 {
-                  
+                    var detalleIds = detallesPendientes.Select(d => d.Id).ToList();
                     _background.Enqueue(async (sp, ct) =>
                     {
                         var notificar = sp.GetRequiredService<IRefundNotification>();
                         await notificar.EnviarEmailNotificacionRembolso(
                             pedido.Id,
+                            detalleIds,
                             refundResult.Data.AmountRefunded,
                             "Reembolso Aprobado");
                     });
@@ -200,7 +216,6 @@ namespace GestorInventario.Controllers.RembolsoController
                 {
                     return BadRequest(new { success = false, message = procesar.Message });
                 }
-               
             }
             catch (Exception ex)
             {
@@ -208,6 +223,8 @@ namespace GestorInventario.Controllers.RembolsoController
                 return StatusCode(500, new { success = false, message = "Error procesando reembolso" });
             }
         }
+
+      
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Policy = "EsAdministrador")]
@@ -222,19 +239,19 @@ namespace GestorInventario.Controllers.RembolsoController
             {
 
                 var resultado = await _refundService.RealizarRembolsoParcial(request);
+                var red = resultado.Data.precioProducto;
                 var total = CalculadoraFiscal.CalcularPrecioConIva(resultado.Data.precioProducto);
              
                
                 if (resultado.Success)
                 {
-                    // ============================================
-                    // 7. NOTIFICACIÓN ASÍNCRONA 
-                    // ============================================
+                  
                     _background.Enqueue(async (sp, ct) =>
                     {
                         var notificar = sp.GetRequiredService<IRefundNotification>();
                         await notificar.EnviarEmailNotificacionRembolso(
                             resultado.Data.pedidoId,
+                            new[] { resultado.Data.detalleId },
                            total,
                            resultado.Data.motivo);
                     });

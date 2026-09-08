@@ -134,7 +134,8 @@ namespace GestorInventario.Controllers.PedidosControllers
                 var (totalSinIva, totalIva, granTotal) = CalculadoraFiscal.CalcularTotales(
                     detalles.Select(d => (d.Producto?.Precio ?? 0, d.Cantidad))
                 );
-
+          var paymentId = pedido.PayPalPaymentCaptures.FirstOrDefault().PaymentId;
+                var pedidoId = pedido.Id;
                 var viewmodel = new OrderDetailsViewmodel
                 {
                     FechaPedido = pedido.FechaPedido,
@@ -145,7 +146,10 @@ namespace GestorInventario.Controllers.PedidosControllers
                     DetallePedido = productos,
                     TotalSinIva = totalSinIva,
                     TotalIva = totalIva,
-                    GranTotal = granTotal
+                    GranTotal = granTotal,
+                  PaymentId = paymentId,
+                  PedidoId = pedidoId,
+                   
                 };
 
                 return View(viewmodel);

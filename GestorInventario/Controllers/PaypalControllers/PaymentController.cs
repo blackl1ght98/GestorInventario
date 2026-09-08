@@ -29,7 +29,7 @@ namespace GestorInventario.Controllers.PaypalControllers
         private readonly IPaymentService _paymentService;
         private readonly IPaypalRepository _paypalRepository;
         private readonly IBackgroundTaskQueue _background;
-        
+        private readonly INotificationService _notificationService;
         public PaymentController(
             ILogger<PaymentController> logger,   
             ICurrentUserAccessor currentUser,       
@@ -38,7 +38,8 @@ namespace GestorInventario.Controllers.PaypalControllers
             IOrderService pedidoService, 
             IPaymentService paymentService,
             IPaypalRepository repo,
-            IBackgroundTaskQueue background)
+            IBackgroundTaskQueue background,
+            INotificationService noti)
         {
             _logger = logger;           
             _policyExecutor = policyExecutor;
@@ -48,6 +49,7 @@ namespace GestorInventario.Controllers.PaypalControllers
             _paymentService = paymentService;
             _paypalRepository = repo;
             _background = background;
+            _notificationService = noti;
            
            
         }
@@ -116,50 +118,53 @@ namespace GestorInventario.Controllers.PaypalControllers
             return RedirectToAction("Index", "Productos");
         }
 
-        // Sobrescribe los datos de la BD con los reales de PayPal.
-        // Pensado para llamarse tras un pago (Success lo encadena) o manualmente
-        // desde un botón "Sincronizar" en la vista de detalle.
-        // Termina redirigiendo a DetallesPagoEjecutado para mostrar la factura ya actualizada.
         [Authorize]
         public async Task<IActionResult> Sincronizar(string paymentId, int pedidoId)
         {
-
-            var currentUser = _currentUserAccessor.GetCurrentUserId();
-            // Encolamos la sincronización para no hacer esperar al usuario.
-            // El callback se ejecuta dentro de un scope nuevo de DI, por lo que las
-            // dependencias (DbContext, IPedidoManagementService, etc.) se resuelven ahí.
-            _background.Enqueue(async (sp, ct) =>
-            {
-                // Resolvemos IPedidoManagementService desde el scope del worker, no del controller.
-                var pedidoService = sp.GetRequiredService<IOrderService>();
-                var notificationService = sp.GetRequiredService<INotificationService>();
-               
-                var logger = sp.GetRequiredService<ILogger<PaymentController>>();
-          
-            
-                try
-                {
-                    var result = await pedidoService.SincronizarDetallePagoAsync(paymentId, pedidoId);
-                    if (!result.Success || result.Data == null)
-                    {
-                        logger.LogError("Sincronización en background fallida para pago {PaymentId}: {Message}",
-                            paymentId, result.Message);
-                    }
-                    else
-                    {
-                     logger.LogInformation("Sincronización en background completada para pago {PaymentId}", paymentId);
-                     await  notificationService.CrearNotificacion(currentUser,"Sincronizacion completada", "Sicronizacion completada con exito", TipoNotificacion.Info);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Excepción al sincronizar en background el pago {PaymentId}", paymentId);
-                }
-            });
-
-            // Volvemos al Index de pedidos inmediatamente, sin esperar a PayPal.
+            await EjecutarSincronizacionAsync(paymentId, pedidoId);
             return RedirectToAction("Index", "Pedidos");
         }
+
+        [Authorize]
+        public async Task<IActionResult> SincronizarJs(string paymentId, int pedidoId)
+        {
+            var result = await EjecutarSincronizacionAsync(paymentId, pedidoId);
+
+            if (!result.Success || result.Data == null)
+                return BadRequest(new { success = false, message = result.Message });
+
+            return Ok(new { success = true, message = result.Message });
+        }
+
+        private async Task<OperationResult<string>> EjecutarSincronizacionAsync(string paymentId, int pedidoId)
+        {
+            var currentUser = _currentUserAccessor.GetCurrentUserId();
+
+            try
+            {
+                var result = await _pedidoService.SincronizarDetallePagoAsync(paymentId, pedidoId);
+
+                if (!result.Success || result.Data == null)
+                {
+                    _logger.LogError("Sincronización fallida para pago {PaymentId}: {Message}",
+                        paymentId, result.Message);
+                }
+                else
+                {
+                    _logger.LogInformation("Sincronización completada para pago {PaymentId}", paymentId);
+                    await _notificationService.CrearNotificacion(
+                        currentUser, "Sincronizacion completada", "Sincronizacion completada con exito", TipoNotificacion.Info);
+                }
+
+                return OperationResult<string>.Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Excepción al sincronizar el pago {PaymentId}", paymentId);
+                return OperationResult<string>.Fail("Error procesando la sincronización");
+            }
+        }
+
 
 
         [Authorize]

@@ -1,8 +1,10 @@
-﻿using GestorInventario.Domain.Models;
+﻿using GestorInventario.Application.Services.Common;
+using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Interfaces.Notifications.EmailServices;
 using GestorInventario.Interfaces.Notifications.SendNotification.Email;
 using GestorInventario.Shared.DTOS.Email;
+using GestorInventario.Shared.DTOS.Rembolso;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 
@@ -23,11 +25,12 @@ namespace GestorInventario.Notifications.SendNotification.Email
             _pedidoRepository = pedido;             
             _emailService = email;
         }
-       
-      
-      
-       
-        public async Task<OperationResult<string>> EnviarEmailNotificacionRembolso(int pedidoId, decimal montoReembolsado, string motivo)
+
+
+
+
+        public async Task<OperationResult<string>> EnviarEmailNotificacionRembolso(
+      int pedidoId, IEnumerable<int> detalleIdsReembolsados, decimal montoReembolsado, string motivo)
         {
             try
             {
@@ -42,16 +45,29 @@ namespace GestorInventario.Notifications.SendNotification.Email
                 var usuarioPedido = pedido.IdUsuarioNavigation?.Email ?? "Email no disponible";
                 var nombreCliente = pedido.IdUsuarioNavigation?.NombreCompleto ?? "Cliente";
 
-                var productosConDetalles = pedido.DetallePedidos?
-                    .Select(detalle => new PayPalPaymentItem
+                // Solo las líneas que realmente se reembolsaron en ESTA operación
+                var detallesReembolsados = pedido.DetallePedidos
+                    .Where(d => detalleIdsReembolsados.Contains(d.Id))
+                    .ToList();
+
+                var productos = detallesReembolsados.Select(d =>
+                {
+                    var precioUnitario = d.Producto?.Precio ?? 0;
+                    var (subtotalSinIva, iva, totalConIva) = CalculadoraFiscal.CalcularCosteProducto(precioUnitario, d.Cantidad);
+
+                    return new PaypalPaymentItemDto
                     {
-                        ItemName = detalle.Producto?.NombreProducto ?? "N/A",
-                        ItemQuantity = detalle.Cantidad,
-                        ItemPrice = detalle.Producto?.Precio ?? 0,
+                        ItemName = d.Producto?.NombreProducto ?? "N/A",
+                        ItemQuantity = d.Cantidad,
+                        ItemPrice = precioUnitario,
                         ItemCurrency = pedido.Currency,
-                        ItemSku = detalle.Producto?.Descripcion ?? "N/A"
-                    })
-                    .ToList() ?? new List<PayPalPaymentItem>();
+                        ItemSku = d.Producto?.Descripcion ?? "N/A",
+                        PrecioUnitario = precioUnitario,
+                        SubtotalSinIva = subtotalSinIva,
+                        Iva = iva,
+                        TotalConIva = totalConIva,
+                    };
+                }).ToList();
 
                 var correo = new EmailReembolsoAprobadoDto
                 {
@@ -61,7 +77,8 @@ namespace GestorInventario.Notifications.SendNotification.Email
                     FechaRembolso = DateTime.UtcNow,
                     CantidadADevolver = montoReembolsado,
                     MotivoRembolso = motivo,
-                    Productos = productosConDetalles
+                    Productos = productos,
+                    EsReembolsoTotal = detallesReembolsados.Count == pedido.DetallePedidos.Count
                 };
 
                 await _emailService.EnviarNotificacionReembolsoAsync(correo);
@@ -74,7 +91,7 @@ namespace GestorInventario.Notifications.SendNotification.Email
                 return OperationResult<string>.Fail("Error al enviar el correo");
             }
         }
-       
+
 
     }
 }

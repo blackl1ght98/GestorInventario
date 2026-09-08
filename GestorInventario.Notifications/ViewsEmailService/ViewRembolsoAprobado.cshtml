@@ -53,47 +53,55 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h2>Reembolso Aprobado</h2>
-        </div>
-        <div class="content">
-            <p>Estimado/a @Model.NombreCliente,</p>
-            <p>Nos complace informarte que tu solicitud de reembolso para el pedido #@Model.NumeroPedido ha sido aprobada.</p>
-            <p><strong>Detalles del reembolso:</strong></p>
-            <ul>
-                <li><strong>Fecha del reembolso:</strong> @Model.FechaRembolso.ToString()</li>
-                <li><strong>Monto reembolsado:</strong> @Model.CantidadADevolver.ToString()</li>
-                <li><strong>Motivo:</strong> @Model.MotivoRembolso</li>
-            </ul>
-            <h3>Productos reembolsados:</h3>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Producto</th>
-                        <th>Cantidad</th>
-                        <th>Precio Unitario</th>
-                        <th>Subtotal</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var producto in Model.Productos)
-                    {
-                        <tr>
-                            <td>@producto.ItemName</td>
-                            <td>@producto.ItemQuantity</td>
-                            <td>@producto.ItemPrice.ToString()</td>
-                            <td>@(producto.ItemPrice* producto.ItemQuantity)</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-            <p>El monto será acreditado en tu cuenta en un plazo de 3-5 días hábiles, dependiendo de tu método de pago.</p>
-            <p>Si tienes alguna pregunta, contáctanos en soporte@gestorinventario.com.</p>
-        </div>
-        <div class="footer">
-            <p>GestorInventario &copy; @DateTime.UtcNow.Year</p>
-        </div>
-    </div>
+  <div class="content">
+    <p>Estimado/a @Model.NombreCliente,</p>
+
+    @if (Model.EsReembolsoTotal)
+    {
+        <p>Nos complace informarte que tu solicitud de reembolso <strong>total</strong> para el pedido #@Model.NumeroPedido ha sido aprobada.</p>
+    }
+    else
+    {
+        <p>Nos complace informarte que tu solicitud de reembolso <strong>parcial</strong> para el pedido #@Model.NumeroPedido ha sido aprobada.</p>
+        <p>El resto de productos de tu pedido no se ven afectados por este reembolso.</p>
+    }
+
+    <p><strong>Detalles del reembolso:</strong></p>
+    <ul>
+        <li><strong>Fecha del reembolso:</strong> @Model.FechaRembolso</li>
+        <li><strong>Monto reembolsado:</strong> @Model.CantidadADevolver</li>
+        <li><strong>Motivo:</strong> @Model.MotivoRembolso</li>
+    </ul>
+
+    <h3>@(Model.EsReembolsoTotal ? "Productos reembolsados:" : "Producto(s) reembolsado(s) en esta operación:")</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Subtotal (sin IVA)</th>
+                <th>IVA</th>
+                <th>Total con IVA</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var producto in Model.Productos)
+            {
+                <tr>
+                    <td>@producto.ItemName</td>
+                    <td>@producto.ItemQuantity</td>
+                    <td>@producto.PrecioUnitario</td>
+                    <td>@producto.SubtotalSinIva</td>
+                    <td>@producto.Iva</td>
+                    <td>@producto.TotalConIva</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <p>El monto será acreditado en tu cuenta en un plazo de 3-5 días hábiles, dependiendo de tu método de pago.</p>
+    <p>Si tienes alguna pregunta, contáctanos en soporte@gestorinventario.com.</p>
+</div>
 </body>
 </html>

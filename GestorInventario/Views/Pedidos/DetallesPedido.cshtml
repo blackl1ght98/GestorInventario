@@ -65,11 +65,14 @@
                                     {
                                         @if (User.IsAdministrador())
                                         {
+
                                             <button type="button"
                                                     class="btn btn-outline-warning btn-sm refund-btn"
                                                     data-bs-toggle="modal"
                                                     data-bs-target="#confirmRefundModal"
                                                     data-detalle-id="@linea.DetalleId"
+                                                    data-pedido-id="@Model.PedidoId"
+                                                    data-payment-id="@Model.PaymentId"
                                                     data-currency="@Model.Currency">
                                                 <i class="bi bi-arrow-counterclockwise"></i> Reembolsar
                                             </button>

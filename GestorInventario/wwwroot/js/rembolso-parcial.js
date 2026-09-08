@@ -3,7 +3,7 @@
     const refundReasonSelect = document.getElementById('refundReason');
     const otherReasonContainer = document.getElementById('otherReasonContainer');
     const otherReasonInput = document.getElementById('otherReason');
-    let currentPedidoId, currentCurrency, currentButton;
+    let currentPedidoId, currentCurrency, currentButton, pedidoId,paymentId;
 
     // Mostrar/ocultar campo "Otro" según selección
     refundReasonSelect.addEventListener('change', function () {
@@ -22,6 +22,8 @@
         btn.addEventListener('click', function () {
             currentPedidoId = this.dataset.detalleId;
             currentCurrency = this.dataset.currency;
+            pedidoId = this.dataset.pedidoId;
+            paymentId = this.dataset.paymentId;
             currentButton = this;
             // Reiniciar el formulario al abrir el modal
             refundReasonSelect.value = '';
@@ -76,8 +78,19 @@
             });
             const result = await response.json();
             if (result.success) {
+
                 modal.hide();
                 currentButton.disabled = true;
+                console.log("el payment id es :" + paymentId)
+                console.log("el pedido id es :" + pedidoId)
+                const syncResponse = await fetch(`/Payment/SincronizarJs?paymentId=${paymentId}&pedidoId=${pedidoId}`, {
+                    method: 'GET'
+                });
+
+                if (!syncResponse.ok) {
+                    console.warn('El reembolso se realizó, pero la sincronización falló.');
+                }
+
                 currentButton.classList.replace('btn-outline-warning', 'btn-outline-secondary');
                 currentButton.textContent = 'Reembolsado';
                 alert('Reembolso procesado con éxito.');

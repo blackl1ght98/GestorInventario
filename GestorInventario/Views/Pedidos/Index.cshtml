@@ -108,13 +108,21 @@
                                 {
                                     <div class="btn-group" role="group">
                                       
-                                        <button type="button"
-                                                class="btn btn-outline-warning flex-fill refund-total-btn"
-                                                data-pedido-id="@pedido.Id"
-                                                data-currency="@pedido.Currency"
-                                                @(pedido.EstadoPedido == EstadoPedido.Rembolsado.ToString()  ? "disabled" : "")>
-                                            Rembolsar
-                                        </button>
+                                        @{
+                                            var captura = pedido.PayPalPaymentCaptures.FirstOrDefault();
+                                        }
+
+                                        @if (captura != null)
+                                        {
+                                            <button type="button"
+                                                    class="btn btn-outline-warning flex-fill refund-total-btn"
+                                                    data-pedido-id="@pedido.Id"
+                                                    data-currency="@pedido.Currency"
+                                                    data-payment-id="@captura.PaymentId"
+                                                    @(pedido.EstadoPedido == EstadoPedido.Rembolsado.ToString() ? "disabled" : "")>
+                                                Rembolsar
+                                            </button>
+                                        }
                                         <button type="button"
                                                 class="btn btn-outline-warning flex-fill cancel-btn"
                                                 data-pedido-id="@pedido.Id"                                        
@@ -364,5 +372,5 @@
     <script src="~/js/rembolso.js" asp-append-version="true"></script>
     <script src="~/js/cancelarPedido.js" asp-append-version="true"></script>
     <script src="~/js/confirmarEntrega.js" asp-append-version="true"></script>
-    <script src="~/js/sincronizar.js" asp-append-version="true"></script>
+
 }

@@ -15,6 +15,7 @@ using GestorInventario.Shared.DTOS.Email;
 using GestorInventario.Shared.DTOS.Paypal.BD;
 using GestorInventario.Shared.DTOS.Paypal.Responses.GET.Order;
 using GestorInventario.Shared.DTOS.Paypal.Responses.POST.Order;
+using GestorInventario.Shared.DTOS.Rembolso;
 using GestorInventario.Shared.DTOS.User;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;
@@ -338,6 +339,17 @@ namespace GestorInventario.Application.Services.Payment
 
             await _paypalRepository.AgregarRembolsoAsync(rembolso);
 
+            var mapeo = paypalItems.Select(d =>
+            {
+                return new PaypalPaymentItemDto
+                {
+                    ItemName = d.ItemName,
+                    ItemQuantity = d.ItemQuantity,
+                    ItemCurrency = d.ItemCurrency,
+                    ItemPrice = d.ItemPrice,
+                    ItemSku = d.ItemSku,
+                };
+            }).ToList();
 
             var emailRembolso = new EmailReembolsoAprobadoDto
             {
@@ -346,7 +358,7 @@ namespace GestorInventario.Application.Services.Payment
                 EmailCliente = rembolso.EmailCliente,
                 FechaRembolso = rembolso.FechaRembolso,
                 MotivoRembolso = rembolso.MotivoRembolso,
-                Productos = paypalItems
+                Productos = mapeo
             };
             await _emailService.EnviarEmailSolicitudRembolso(emailRembolso);
 
