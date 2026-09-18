@@ -197,7 +197,7 @@ namespace GestorInventario.Controllers.RembolsoController
                 var procesar = await _refundService.ProcesarRembolsoTotalAsync(
                         pedido.Id,
                         refundResult.Data.RefundId);
-                //MODIFICAR
+                
                 if (procesar.Success)
                 {
                     var detalleIds = detallesPendientes.Select(d => d.Id).ToList();
