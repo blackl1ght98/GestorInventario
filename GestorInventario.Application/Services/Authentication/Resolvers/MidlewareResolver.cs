@@ -1,11 +1,12 @@
 ﻿using GestorInventario.Application.Services.Authentication.Strategies.Middleware;
+using GestorInventario.Interfaces.Application.Services.Authentication.Resolvers;
 using GestorInventario.Interfaces.Application.Services.Authentication.Strategies.Middleware;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace GestorInventario.Application.Services.Authentication.Resolvers
 {
-    public class MidlewareResolver
+    public class MidlewareResolver:IMidlewareResolver
     {
         private readonly IConfiguration _configuration;
         private readonly IServiceProvider _serviceProvider;

@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Application.Services.Authentication.Resolvers;
+using GestorInventario.Interfaces.Application.Services.Authentication.Resolvers;
 using GestorInventario.Interfaces.Application.Services.Authentication.TokenGeneration.Generators;
 using GestorInventario.Shared.DTOS.Auth;
 using GestorInventario.Shared.Utilities;
@@ -9,9 +10,9 @@ namespace GestorInventario.Application.Services.Authentication.TokenGeneration.G
 {
     public class LoginGenerator : ILoginGenerator
     {
-        private readonly LoginStrategyResolver _resolver;
+        private readonly ILoginStrategyResolver _resolver;
 
-        public LoginGenerator(LoginStrategyResolver resolver)
+        public LoginGenerator(ILoginStrategyResolver resolver)
         {
             _resolver = resolver;
         }

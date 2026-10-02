@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Application.Services.Authentication.Resolvers;
 using GestorInventario.Domain.Models;
+using GestorInventario.Interfaces.Application.Services.Authentication.Resolvers;
 using GestorInventario.Interfaces.Application.Services.Authentication.TokenGeneration.Generators;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.DTOS.Auth;
@@ -8,9 +9,9 @@ namespace GestorInventario.Application.Services.Authentication.TokenGeneration.G
     public class TokenGenerator : ITokenGenerator
     {
         private readonly IUserRepository _userRepository;
-        private readonly TokenStrategyResolver _resolver;
+        private readonly ITokenStrategyResolver _resolver;
 
-        public TokenGenerator(IUserRepository userRepository, TokenStrategyResolver resolver)
+        public TokenGenerator(IUserRepository userRepository, ITokenStrategyResolver resolver)
         {
             _userRepository = userRepository;
             _resolver = resolver;

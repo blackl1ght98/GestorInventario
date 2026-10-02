@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Application.Services.Authentication.Resolvers;
+using GestorInventario.Interfaces.Application.Services.Authentication.Resolvers;
 
 namespace GestorInventario.Middlewares
 {
@@ -22,7 +23,7 @@ namespace GestorInventario.Middlewares
 
         public async Task InvokeAsync(
             HttpContext context,
-            MidlewareResolver resolver)  
+            IMidlewareResolver resolver)  
         {
             var strategy = resolver.ResolveMiddleware();
             await strategy.ProcessAuthentication(context, () => _next(context));

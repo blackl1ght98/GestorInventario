@@ -122,10 +122,10 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
         private async Task HandleExpiredToken(HttpContext context, string refreshToken)
         {
             var refreshTokenValid = await ValidateRefreshToken(refreshToken);
-            var logger = log4net.LogManager.GetLogger(typeof(FixedAsymmetricAuthStrategy));
+
             if (!refreshTokenValid)
             {
-               logger.Error("Refresh token no válido ");
+                _logger.LogError("Refresh token no válido");
                 RedirectToLogin(context);
                 return;
             }
@@ -136,14 +136,14 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
 
             if (string.IsNullOrEmpty(userId))
             {
-               logger.Error("No se encontró userId en el refresh token ");
+                _logger.LogError("No se encontró userId en el refresh token");
                 RedirectToLogin(context);
                 return;
             }
 
             if (!int.TryParse(userId, out var userIdParsed))
             {
-               logger.Error("El userId {UserId} no es válido ");
+                _logger.LogError("El userId {UserId} no es válido", userId);
                 RedirectToLogin(context);
                 return;
             }
@@ -151,7 +151,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
             var user = await _userRepository.ObtenerUsuarioPorId(userIdParsed);
             if (user == null)
             {
-               logger.Error("Usuario no encontrado");
+                _logger.LogError("Usuario no encontrado");
                 RedirectToLogin(context);
                 return;
             }
@@ -160,11 +160,11 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
             var newRefreshToken = await _refreshTokenStrategy.GenerateTokenAsync(user);
             var minutos = _tokenClaimsBuilder.ObtenerDuracionAccessTokenMinutos();
             var horas = _tokenClaimsBuilder.ObtenerDuracionRefreshTokenHoras();
+
             context.Response.Cookies.Append("auth", newAccessToken.Token, new CookieOptions
             {
                 HttpOnly = true,
                 SameSite = SameSiteMode.Lax,
-               
                 Secure = true,
                 Expires = DateTime.UtcNow.AddMinutes(minutos)
             });
@@ -172,13 +172,11 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
             {
                 HttpOnly = true,
                 SameSite = SameSiteMode.Lax,
-
                 Secure = true,
                 Expires = DateTime.UtcNow.AddHours(horas)
             });
 
-
-            logger.Info("Tokens generados con exito");
+            _logger.LogInformation("Tokens generados con éxito para usuario {UserId}", userIdParsed);
         }
 
         private async Task<bool> ValidateRefreshToken(string refreshToken)
@@ -231,9 +229,9 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Middle
             {
                 context.Response.Cookies.Delete(cookie.Key);
             }
-            if (context.Request.Path != "/Auth/Login")
+
+            if (!context.Request.Path.StartsWithSegments("/Auth/Login"))
             {
-             
                 context.Response.Redirect("/Auth/Login");
             }
         }

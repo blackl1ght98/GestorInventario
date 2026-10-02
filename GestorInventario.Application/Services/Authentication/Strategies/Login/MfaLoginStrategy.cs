@@ -38,8 +38,8 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Login
             await _cache.SetStringAsync($"MFA_{user.Data.Id}", mfaCode, TimeSpan.FromMinutes(5));
             await _emailService.SendMfaCodeEmail(user.Data.Email, mfaCode);
 
-            // Retornamos un OK, pero indicamos que REQUIERE MFA y pasamos el código
-            return OperationResult<AuthSessionDetails>.Ok("Código MFA enviado", new AuthSessionDetails(user.Data, true, mfaCode));
+            // Retornamos un OK, pero indicamos que REQUIERE MFA 
+            return OperationResult<AuthSessionDetails>.Ok("Código MFA enviado", new AuthSessionDetails(user.Data, true));
         }
     }
 }

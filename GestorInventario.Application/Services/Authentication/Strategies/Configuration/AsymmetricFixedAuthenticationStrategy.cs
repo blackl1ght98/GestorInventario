@@ -7,12 +7,9 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Config
 {
     public class AsymmetricFixedAuthenticationStrategy : IConfigurationAuthenticationStrategy
     {
-       
-
+        
         public void Configure(IServiceCollection services, IConfiguration configuration)
         {
-
-
             services.AddBaseCookieAuth(
          securePolicy: CookieSecurePolicy.Always,
          includeAccessDeniedPath: false);

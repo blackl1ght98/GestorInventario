@@ -11,9 +11,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Config
         
 
         public void Configure(IServiceCollection services, IConfiguration configuration)
-        {
-
-
+        { 
             services.AddBaseCookieAuth(
           securePolicy: CookieSecurePolicy.Always,
           includeAccessDeniedPath: false);

@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Application.Services.Authentication.Resolvers;
 using GestorInventario.Domain.Models;
+using GestorInventario.Interfaces.Application.Services.Authentication.Resolvers;
 using GestorInventario.Interfaces.Application.Services.Authentication.TokenGeneration.Generators;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 
@@ -9,9 +10,9 @@ namespace GestorInventario.Application.Services.Authentication.TokenGeneration.G
 
     public class RefreshTokenGenerator : IRefreshTokenGenerator
     {
-        private readonly TokenStrategyResolver _resolver;
+        private readonly ITokenStrategyResolver _resolver;
         private readonly IUserRepository _userRepository;
-        public RefreshTokenGenerator(IUserRepository userRepository, TokenStrategyResolver resolver)
+        public RefreshTokenGenerator(IUserRepository userRepository, ITokenStrategyResolver resolver)
         {
             _resolver = resolver;
             _userRepository = userRepository;

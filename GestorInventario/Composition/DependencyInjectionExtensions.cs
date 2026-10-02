@@ -39,6 +39,7 @@ using GestorInventario.Infrastructure.Repositories.UserRepository;
 using GestorInventario.Interfaces.Application.MetodosPaginacion;
 using GestorInventario.Interfaces.Application.RetryPolicy;
 using GestorInventario.Interfaces.Application.Services.Authentication.Jwt;
+using GestorInventario.Interfaces.Application.Services.Authentication.Resolvers;
 using GestorInventario.Interfaces.Application.Services.Authentication.Services;
 using GestorInventario.Interfaces.Application.Services.Authentication.TokenGeneration;
 using GestorInventario.Interfaces.Application.Services.Authentication.TokenGeneration.Generators;
@@ -116,9 +117,9 @@ namespace GestorInventario.Composition
             services.AddScoped<IRefreshTokenGenerator, RefreshTokenGenerator>();
          
             services.AddScoped<ILoginGenerator, LoginGenerator>();
-            services.AddScoped<TokenStrategyResolver>();
-            services.AddScoped<LoginStrategyResolver>();
-            services.AddScoped<MidlewareResolver>();
+            services.AddScoped<ITokenStrategyResolver, TokenStrategyResolver>();
+            services.AddScoped<ILoginStrategyResolver, LoginStrategyResolver>();
+            services.AddScoped<IMidlewareResolver, MidlewareResolver>();
            
             services.AddHttpClient<ICallMeBotService, CallMeBotService>();
             

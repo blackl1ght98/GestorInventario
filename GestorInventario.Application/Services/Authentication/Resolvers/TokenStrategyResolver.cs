@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Application.Services.Authentication.Strategies.AccessToken;
 using GestorInventario.Application.Services.Authentication.Strategies.RefreshToken;
+using GestorInventario.Interfaces.Application.Services.Authentication.Resolvers;
 using GestorInventario.Interfaces.Application.Services.Authentication.Strategies.AccessToken;
 using GestorInventario.Interfaces.Application.Services.Authentication.Strategies.RefreshToken;
 using Microsoft.Extensions.Configuration;
@@ -8,8 +9,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace GestorInventario.Application.Services.Authentication.Resolvers
 {
-   
-    public class TokenStrategyResolver
+    
+    
+    public class TokenStrategyResolver:ITokenStrategyResolver
     {
         private readonly IConfiguration _configuration;
         private readonly IServiceProvider _serviceProvider;

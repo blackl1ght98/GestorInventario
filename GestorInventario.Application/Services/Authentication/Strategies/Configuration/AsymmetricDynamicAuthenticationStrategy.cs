@@ -8,17 +8,11 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Config
 {
     public class AsymmetricDynamicAuthenticationStrategy : IConfigurationAuthenticationStrategy
     {
-       
-
         public void Configure(IServiceCollection services, IConfiguration configuration)
         {
-          
-
            services.AddBaseCookieAuth(
           securePolicy: CookieSecurePolicy.Always,
           includeAccessDeniedPath: true);
-
-
         }
     }
 }

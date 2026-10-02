@@ -8,7 +8,6 @@ using GestorInventario.Interfaces.Application.Services.Common;
 using GestorInventario.Interfaces.Application.Services.ShopCart;
 using GestorInventario.Interfaces.Web;
 using GestorInventario.Shared.DTOS.Auth;
-using GestorInventario.Shared.DTOS.User;
 using GestorInventario.ViewModels.Users;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -137,7 +136,7 @@ namespace GestorInventario.Controllers.AuthenticationController
             return View();
         }
 
-        [HttpPost]
+       [HttpPost]
         public async Task<IActionResult> VerifyMfa(string codigo)
         {
             var pendingUserId = Request.Cookies["mfa_pending"];
@@ -150,7 +149,6 @@ namespace GestorInventario.Controllers.AuthenticationController
 
             if (attempts >= 3)
             {
-
                 await _cache.RemoveAsync($"MFA_{pendingUserId}");
                 await _cache.RemoveAsync(attemptsKey);
                 Response.Cookies.Delete("mfa_pending");
@@ -172,12 +170,10 @@ namespace GestorInventario.Controllers.AuthenticationController
 
             if (string.IsNullOrEmpty(codigo) || cachedCode != codigo)
             {
-
                 attempts++;
                 await _cache.SetStringAsync(attemptsKey, attempts.ToString(), TimeSpan.FromMinutes(5));
 
                 ModelState.AddModelError("", $"Código incorrecto. Le quedan {3 - attempts} intentos.");
-
 
                 TempData["LoginModel"] = modelJson;
 
@@ -187,7 +183,14 @@ namespace GestorInventario.Controllers.AuthenticationController
                 return View(viewmodel);
             }
 
-            // 3. CÓDIGO CORRECTO: Generamos los tokens 
+            // 3. CÓDIGO CORRECTO: Generamos los tokens
+            if (model == null)
+            {
+                _logger.LogWarning("Se perdió el LoginDto de TempData durante la verificación MFA para usuario {UserId}", pendingUserId);
+                TempData["ErrorMessage"] = "Tu sesión de verificación expiró. Por favor, inicia sesión de nuevo.";
+                return RedirectToAction(nameof(Login));
+            }
+
             try
             {
                 // Limpiamos el contador de intentos ya que tuvo éxito
@@ -223,7 +226,7 @@ namespace GestorInventario.Controllers.AuthenticationController
                 _logger.LogError(ex, "Error generando tokens tras MFA");
                 return RedirectToAction("Error", "Home");
             }
-        }
+        }   
         [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> Logout()

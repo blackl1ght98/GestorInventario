@@ -1,6 +1,5 @@
 ﻿using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application.Services.Authentication.Jwt;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;

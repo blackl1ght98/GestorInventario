@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Application.Services.Authentication.Strategies.Login;
+using GestorInventario.Interfaces.Application.Services.Authentication.Resolvers;
 using GestorInventario.Interfaces.Application.Services.Authentication.Strategies.Login;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace GestorInventario.Application.Services.Authentication.Resolvers
 {
     
-    public class LoginStrategyResolver
+    public class LoginStrategyResolver:ILoginStrategyResolver
     {
         private readonly IConfiguration _configuration;
         private readonly IServiceProvider _serviceProvider;
