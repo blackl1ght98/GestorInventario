@@ -119,10 +119,10 @@ namespace GestorInventario.Application.Services.Orders
             PurchaseUnitDetails unidad, PayPalPaymentDetail detallePago)
         {
             var shipping = unidad.Shipping;
-            var envio = new PayPalPaymentShipping
+            var payer = detallePago.PayerFirstName + " " + detallePago.PayerLastName;            var envio = new PayPalPaymentShipping
             {
                 PaymentId = detallePago.Id,
-                RecipientName = shipping.Name.FullName,
+                RecipientName = payer,
                 AddressLine1 = shipping.Address.AddressLine1,
                 City = shipping.Address.AdminArea2,
                 State = shipping.Address.AdminArea1,
