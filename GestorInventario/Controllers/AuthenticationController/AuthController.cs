@@ -136,7 +136,7 @@ namespace GestorInventario.Controllers.AuthenticationController
             return View();
         }
 
-       [HttpPost]
+        [HttpPost]
         public async Task<IActionResult> VerifyMfa(string codigo)
         {
             var pendingUserId = Request.Cookies["mfa_pending"];
@@ -226,7 +226,8 @@ namespace GestorInventario.Controllers.AuthenticationController
                 _logger.LogError(ex, "Error generando tokens tras MFA");
                 return RedirectToAction("Error", "Home");
             }
-        }   
+        }
+       
         [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> Logout()

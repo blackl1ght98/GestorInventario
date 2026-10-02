@@ -18,16 +18,16 @@ namespace GestorInventario.Application.Services.Authentication.TokenGeneration
             _refreshTokenGenerator = refresh;
      
         }
-      
+
         public async Task<LoginResponseDto> GenerarToken(Usuario credencialesUsuario)
         {
-            var tareaTokenPrincipal = _tokenGenerator.GenerateTokenAsync(credencialesUsuario);
-            var tareaTokenRefresco = _refreshTokenGenerator.GenerateTokenAsync(credencialesUsuario);
+            // Generar el token principal: dependiendo de la estrategia escogida
+            var tokenPrincipal = await _tokenGenerator.GenerateTokenAsync(credencialesUsuario);
+            // Generar el token de refresco
+            var tokenRefresco = await _refreshTokenGenerator.GenerateTokenAsync(credencialesUsuario);
+            // Devolver ambos tokens en la respuesta
 
-            await Task.WhenAll(tareaTokenPrincipal, tareaTokenRefresco);
 
-            var tokenPrincipal = tareaTokenPrincipal.Result;
-            var tokenRefresco = tareaTokenRefresco.Result;
 
             return new LoginResponseDto
             {
