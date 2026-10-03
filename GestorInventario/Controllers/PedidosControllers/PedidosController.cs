@@ -127,7 +127,7 @@ namespace GestorInventario.Controllers.PedidosControllers
                         SubtotalSinIva = subtotalSinIva,
                         Iva = iva,
                         TotalConIva = totalConIva,
-                        Rembolsado = d.Rembolsado ?? false
+                        Rembolsado = d.Rembolsado 
                     };
                 }).ToList();
 

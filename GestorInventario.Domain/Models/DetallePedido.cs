@@ -13,7 +13,7 @@ public partial class DetallePedido
 
     public int Cantidad { get; set; }
 
-    public bool? Rembolsado { get; set; }
+    public bool Rembolsado { get; set; }
 
     public virtual Pedido Pedido { get; set; } = null!;
 

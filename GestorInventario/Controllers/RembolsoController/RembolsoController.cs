@@ -1,11 +1,9 @@
 ﻿using GestorInventario.Application.Services.Common;
-using GestorInventario.Domain.enums.Pedido;
-using GestorInventario.Domain.Models;
+
 using GestorInventario.Extensions;
 using GestorInventario.Interfaces.Application.MetodosPaginacion;
 using GestorInventario.Interfaces.Application.RetryPolicy;
 using GestorInventario.Interfaces.Application.Services.BackgroundServices;
-using GestorInventario.Interfaces.Application.Services.Orders;
 using GestorInventario.Interfaces.Application.Services.Payment;
 using GestorInventario.Interfaces.Application.Services.Paypal.Mapping;
 using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Order;
@@ -159,9 +157,9 @@ namespace GestorInventario.Controllers.RembolsoController
                 // 2. CALCULAR MONTO A REEMBOLSAR (todas las líneas
                 //    aún no reembolsadas, según BD, con su cantidad real)
                 // ============================================
-
+                
                 var detallesPendientes = pedido.DetallePedidos
-                    .Where(d => !(d.Rembolsado ?? false))
+                    .Where(d => !(d.Rembolsado ))
                     .ToList();
 
                 if (!detallesPendientes.Any())

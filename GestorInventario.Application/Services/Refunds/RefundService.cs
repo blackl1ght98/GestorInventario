@@ -200,8 +200,8 @@ namespace GestorInventario.Application.Services.Refunds
             var detalleReembolsado = pedido.DetallePedidos.FirstOrDefault(d => d.Id == detalleId);
             if (detalleReembolsado == null)
                 return OperationResult<string>.Fail($"Detalle con ID {detalleId} no encontrado.");
-
-            if (detalleReembolsado.Rembolsado ?? false)
+          
+            if (detalleReembolsado.Rembolsado)
                 return OperationResult<string>.Fail($"El detalle con ID {detalleId} ya ha sido reembolsado.");
 
             var usuarioActual = _currentUserAccesor.GetCurrentUserId();
@@ -231,7 +231,8 @@ namespace GestorInventario.Application.Services.Refunds
 
             // Si ya no queda ninguna línea pendiente, el pedido pasa a
             // reembolso TOTAL aunque se haya llegado ahí a base de parciales.
-            bool todosReembolsados = pedido.DetallePedidos.All(d => d.Rembolsado ?? false);
+            
+            bool todosReembolsados = pedido.DetallePedidos.All(d => d.Rembolsado);
 
             pedido.EstadoPedido = todosReembolsados
                 ? EstadoPedido.Rembolsado.ToString()
