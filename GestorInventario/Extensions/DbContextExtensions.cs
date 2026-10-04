@@ -57,15 +57,19 @@ namespace GestorInventario.Extensions
                 ?? configuration["DataBaseConection:DBHost"];
             var dbName = Environment.GetEnvironmentVariable("DB_NAME")
                 ?? configuration["DataBaseConection:DBName"];
-
+            var dbUserName = Environment.GetEnvironmentVariable("DB_SQLUSER")
+                             ?? configuration["DataBaseConection:DBUserName"];
+            var dbPassword = Environment.GetEnvironmentVariable("DB_SQLUSER_PASSWORD")
+                             ?? configuration["DataBaseConection:DBPassword"];
             if (string.IsNullOrWhiteSpace(dbHost) || string.IsNullOrWhiteSpace(dbName))
             {
                 throw new InvalidOperationException(
                     "Faltan variables de configuración local (DB_HOST, DB_NAME).");
             }
 
-            return $"Data Source={dbHost};Initial Catalog={dbName};" +
-                   $"Integrated Security=True;TrustServerCertificate=True";
+            return$"Data Source={dbHost};Initial Catalog={dbName};" +
+                  $"User ID={dbUserName};Password={dbPassword};" +
+                  $"TrustServerCertificate=True";
         }
     }
 
