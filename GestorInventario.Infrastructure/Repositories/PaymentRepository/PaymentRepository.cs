@@ -39,7 +39,7 @@ namespace GestorInventario.Infrastructure.Repositories.PaymentRepository
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.AddEntityAsync(detalle);
-                return OperationResult<PayPalPaymentItem>.Ok("", detalle);
+                return OperationResult<PayPalPaymentItem>.Ok( detalle);
             });
         }
      
@@ -48,7 +48,7 @@ namespace GestorInventario.Infrastructure.Repositories.PaymentRepository
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.AddEntityAsync(detalle);
-                return OperationResult<PayPalPaymentShipping>.Ok("", detalle);
+                return OperationResult<PayPalPaymentShipping>.Ok(detalle);
             });
         }
         public async Task<OperationResult<PayPalPaymentCapture>> AgregarCaptureAsync(PayPalPaymentCapture detalle)
@@ -56,7 +56,7 @@ namespace GestorInventario.Infrastructure.Repositories.PaymentRepository
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.AddEntityAsync(detalle);
-                return OperationResult<PayPalPaymentCapture>.Ok("", detalle);
+                return OperationResult<PayPalPaymentCapture>.Ok( detalle);
             });
         }
 

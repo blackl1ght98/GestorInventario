@@ -43,7 +43,7 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Subscriptions
                 });
             var productResponse = JsonConvert.DeserializeObject<CreateProductResponseDto>(responseBody);
             string productId = productResponse.Id;
-            return OperationResult<string>.Ok("", productId);
+            return OperationResult<string>.Ok("Producto creado con exito", productId);
         }
 
         // Update the BuildProductRequest to use the request DTO
@@ -192,7 +192,7 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Subscriptions
                   
                 var planDetails = JsonConvert.DeserializeObject<PaypalPlanDetailsDto>(responseBody);
                
-                return OperationResult< PaypalPlanDetailsDto>.Ok("",planDetails);
+                return OperationResult< PaypalPlanDetailsDto>.Ok(planDetails);
             }
            
             catch (Exception ex)
@@ -218,7 +218,7 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Subscriptions
             var jsonResponse = JsonConvert.DeserializeObject<PaypalProductListResponseDto>(responseBody);
           
             bool hasNextPage = jsonResponse.Links.Any(link => link.Rel == "next");
-            return OperationResult<(PaypalProductListResponseDto, bool)>.Ok("", (jsonResponse, hasNextPage));
+            return OperationResult<(PaypalProductListResponseDto, bool)>.Ok((jsonResponse, hasNextPage));
         }
         #endregion
 
@@ -264,7 +264,7 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Subscriptions
                
             }
                
-                return OperationResult<(List<PaypalPlanResponseDto>, bool)>.Ok("", (detailedPlans, hasNextPage));
+                return OperationResult<(List<PaypalPlanResponseDto>, bool)>.Ok((detailedPlans, hasNextPage));
             }
             catch (Exception ex)
             {
@@ -284,7 +284,7 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Subscriptions
            
             try
             {
-                var productrequest = await _paypal.ExecutePayPalRequestAsync<string>(
+                 await _paypal.ExecutePayPalRequestAsync<string>(
                     HttpMethod.Get,
                     $"v1/catalogs/products/{id}",
                     async err =>
@@ -295,7 +295,7 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Subscriptions
 
                 // Crear la solicitud PATCH usando DTOs
                 var patchRequest = BuildEditProductRequest(name, description);
-                var pathrequest = await _paypal.ExecutePayPalRequestAsync<string>(
+                 await _paypal.ExecutePayPalRequestAsync<string>(
                     HttpMethod.Patch,
                     $"v1/catalogs/products/{id}",
                     patchRequest,
@@ -350,7 +350,7 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Subscriptions
                     throw new PayPalException("No se proporcionaron esquemas de precios válidos para actualizar el plan. Los precios enviados son idénticos a los actuales o no se proporcionaron cambios.");
                 }
                 var planRequest = new UpdatePricingPlanDto { PricingSchemes = pricingUpdates };
-                var updatePlanPricing = await _paypal.ExecutePayPalRequestAsync<string>(
+                await _paypal.ExecutePayPalRequestAsync<string>(
                     HttpMethod.Post,
                     $"v1/billing/plans/{planId}/update-pricing-schemes",
                     planRequest,
@@ -497,7 +497,7 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Subscriptions
             {
                 throw new InvalidOperationException("No se encontró el enlace de aprobación en la respuesta de PayPal.");
             }
-            return OperationResult<string>.Ok("", approvalLink);
+            return OperationResult<string>.Ok(data: approvalLink);
 
         }
         private SubscriptionCreateRequestDto BuildSubscriptionRequest(string id, string returnUrl, string cancelUrl, string planName)
@@ -538,7 +538,7 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Subscriptions
 
             var subscriptionDetails = JsonConvert.DeserializeObject<PaypalSubscriptionResponse>(responseBody);
             
-            return OperationResult< PaypalSubscriptionResponse>.Ok("", subscriptionDetails);
+            return OperationResult< PaypalSubscriptionResponse>.Ok(subscriptionDetails);
         }
         #endregion
 

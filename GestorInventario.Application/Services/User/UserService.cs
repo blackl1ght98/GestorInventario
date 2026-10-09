@@ -78,7 +78,7 @@ namespace GestorInventario.Application.Services.User
         {
             var resultado = await _usuarioRepository.ObtenerUsuarioPorId(userVM.Id);
             if (resultado is null)
-                return OperationResult<string>.Fail("Usuario no encontrado");
+                return OperationResult<string>.Fail();
 
            
             string emailActual = resultado.Email;
@@ -113,14 +113,14 @@ namespace GestorInventario.Application.Services.User
             var usuario = await _usuarioRepository.ObtenerUsuarioConProveedoresYPedidosAsync(id);
 
             if (usuario is null)
-                return OperationResult<string>.Fail("El usuario no existe");
+                return OperationResult<string>.Fail();
 
             if (usuario.Pedidos.Any())
                 return OperationResult<string>.Fail("El usuario no se puede eliminar porque tiene pedidos asociados");
 
             if (usuario.Proveedores.Any())
                 return OperationResult<string>.Fail("El usuario no se puede eliminar porque tiene proveedores asociados");
-
+            
             return await _adminRepository.EliminarUsuario(id);
         }
         public async Task<OperationResult<string>> ValidarRegistro(ConfirmRegistrationDto confirmar)

@@ -83,7 +83,7 @@ namespace GestorInventario.Infrastructure.Repositories.UserRepository
         {
             var usuario = await _context.Usuarios.FindAsync(userId);
             if (usuario == null)
-                return OperationResult<string>.Fail("Usuario no encontrado");
+                return OperationResult<string>.Fail();
 
             usuario.EmailVerificationToken = token;
             await _context.UpdateEntityAsync(usuario);
@@ -99,7 +99,7 @@ namespace GestorInventario.Infrastructure.Repositories.UserRepository
                     .FirstOrDefaultAsync(x => x.Email == email);
 
                 if (usuario == null)
-                    return OperationResult<Usuario>.Fail("Usuario no encontrado");
+                    return OperationResult<Usuario>.Fail();
                 usuario.TemporaryPassword = hash;
                 usuario.ResetTokenSalt = salt;       
                 usuario.FechaExpiracionContrasenaTemporal = fechaExpiracion;

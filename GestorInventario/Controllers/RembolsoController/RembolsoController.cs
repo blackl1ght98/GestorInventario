@@ -194,7 +194,8 @@ namespace GestorInventario.Controllers.RembolsoController
 
                 var procesar = await _refundService.ProcesarRembolsoTotalAsync(
                         pedido.Id,
-                        refundResult.Data.RefundId);
+                        refundResult.Data.RefundId,
+                        refundResult.Data.AmountRefunded);
                 
                 if (procesar.Success)
                 {

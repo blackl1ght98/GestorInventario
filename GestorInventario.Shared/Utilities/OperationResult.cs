@@ -1,7 +1,7 @@
 ﻿namespace GestorInventario.Shared.Utilities
 {
     /// <summary>
-    /// Clase central de resultados de operación. 292 referencias en el proyecto.
+    /// Clase central de resultados de operación. 478 referencias en el proyecto.
     /// 
     /// ⚠️ ADVERTENCIA: No modificar la estructura de esta clase sin revisar TODAS las referencias.
     /// Cambios en los constructores, propiedades o métodos estáticos pueden romper
@@ -23,12 +23,20 @@
      
         public static OperationResult<T> Ok(string message = "Operación exitosa", T? data = default)
             => new(true, message, data);
-
-        public static OperationResult<T> Fail(string message, T? data = default)
-            => new(false, message, data);
-
-       
+        public static OperationResult<T> Ok(T? data = default)
+            => new(true, "Operación exitosa", data);
+        public static OperationResult<T> Ok(string message)
+            => new(true, message, default);
+        public static OperationResult<T> Ok()
+            => new(true, "Operación exitosa", default);
+    
         public static OperationResult<T> Fail(string message)
-            => Fail(message, default);
+            => new(false, message, default);
+        public static OperationResult<T> Fail()
+            => new(false, "Operación fallida", default);
+       
     }
+    
+   
+    
 }

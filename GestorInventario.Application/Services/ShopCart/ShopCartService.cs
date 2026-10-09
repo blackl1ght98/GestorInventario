@@ -115,7 +115,7 @@ namespace GestorInventario.Application.Services.Carrito
                 if (detalle == null)
                 {
                 _logger.LogError("Item no encontrado");
-                return OperationResult<string>.Fail("Item no encontrado");
+                return OperationResult<string>.Fail();
 
             }
 
@@ -149,7 +149,7 @@ namespace GestorInventario.Application.Services.Carrito
             var producto = await _productoRepository.ObtenerProductoPorIdAsync(idProducto);
             if (producto == null)
             {
-                return OperationResult<string>.Fail("El producto no existe.");
+                return OperationResult<string>.Fail();
             }
             if (producto.Cantidad < cantidad)
             {
@@ -195,7 +195,7 @@ namespace GestorInventario.Application.Services.Carrito
                 if (detalle == null)
                 {
                 _logger.LogError("Item no encontrado");
-                return OperationResult<string>.Fail("Item no encontrado");
+                return OperationResult<string>.Fail();
 
             }
 
@@ -213,7 +213,7 @@ namespace GestorInventario.Application.Services.Carrito
                 if (producto == null)
                 {
 
-                    return OperationResult<string>.Fail("El producto no existe");
+                    return OperationResult<string>.Fail();
                 }
 
                 producto.Cantidad++;
@@ -229,7 +229,7 @@ namespace GestorInventario.Application.Services.Carrito
             var detalle = await _pedidoRepository.ObtenerDetallePorIdAsync(id);
                 if (detalle == null)
                 {
-                    return OperationResult<string>.Fail("No se puede eliminar porque no hay productos");
+                    return OperationResult<string>.Fail();
                 }
 
                 var producto = await _productoRepository.ObtenerProductoPorIdAsync((int)detalle.ProductoId);

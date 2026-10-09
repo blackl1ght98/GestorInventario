@@ -38,18 +38,18 @@ namespace GestorInventario.Application.Services.Refunds
         // ============================================
         // REEMBOLSO TOTAL
         // ============================================
-        // Marca TODAS las líneas del pedido como reembolsadas y registra
-        // el reembolso como TipoRembolso.Total por el importe completo del pedido.
+        // Marca TODAS las líneas del pedido como reembolsadas y registra el importe
+        // que PayPal devolvió realmente en esta operación (no el total del pedido).
         public async Task<OperationResult<string>> ProcesarRembolsoTotalAsync(
-            int pedidoId, string refundId)
+            int pedidoId, string refundId, decimal montoReembolsado)
         {
             var pedido = await _pedidoRepository.ObtenerPedidoConDetallesAsync(pedidoId);
-
+         
             if (pedido == null)
-                return OperationResult<string>.Fail($"Pedido con ID {pedidoId} no encontrado.");
-
+                return OperationResult<string>.Fail();
+         
             pedido.EstadoPedido = EstadoPedido.Rembolsado.ToString();
-
+         
             if (pedido.DetallePedidos != null)
             {
                 foreach (var detalle in pedido.DetallePedidos)
@@ -57,14 +57,16 @@ namespace GestorInventario.Application.Services.Refunds
                     detalle.Rembolsado = true;
                 }
             }
-
+         
             await _pedidoRepository.ActualizarPedidoAsync(pedido);
-
+         
             var usuarioActual = _currentUserAccesor.GetCurrentUserId();
-
-            var obtenerRembolso = await _paypalRepository.ObtenRembolsoAsync(pedido.NumeroPedido);
-
-            if (obtenerRembolso == null)
+         
+            var rembolsoExistente = await _paypalRepository.ObtenRembolsoAsync(pedido.NumeroPedido);
+         
+            // Un registro ya completado (por ejemplo, un parcial anterior) se conserva
+            // como historial: el total se guarda como un registro nuevo.
+            if (rembolsoExistente == null || rembolsoExistente.ReembolsoCompletado == true)
             {
                 var rembolso = new Rembolso
                 {
@@ -73,29 +75,30 @@ namespace GestorInventario.Application.Services.Refunds
                     EmailCliente = pedido.IdUsuarioNavigation?.Email,
                     FechaRembolso = DateTime.UtcNow,
                     MotivoRembolso = "Rembolso solicitado por el usuario",
-                    EstadoRembolso = EstadoRembolso.Aprobado.ToString(),
+                    EstadoRembolso = EstadoRembolso.EnRevision.ToString(),
                     ReembolsoCompletado = true,
                     UsuarioId = usuarioActual,
                     PedidoId = pedido.Id,
                     RefundIdPayPal = refundId,
-                    MontoRembolsado = pedido.Total,
+                    MontoRembolsado = montoReembolsado,
                     Currency = pedido.Currency,
                     TipoRembolso = TipoRembolso.Total.ToString(),
                 };
-
+         
                 await _paypalRepository.AgregarRembolsoAsync(rembolso);
                 return OperationResult<string>.Ok("Rembolso procesado con éxito");
             }
-            else
-            {
-                obtenerRembolso.EstadoRembolso = EstadoRembolso.Aprobado.ToString();
-                obtenerRembolso.ReembolsoCompletado = true;
-                obtenerRembolso.TipoRembolso = TipoRembolso.Total.ToString();
-                obtenerRembolso.FechaRembolso = DateTime.UtcNow;
-
-                await _paypalRepository.ActualizarRembolsoAsync(obtenerRembolso);
-                return OperationResult<string>.Ok("Rembolso actualizado con éxito");
-            }
+         
+            // Solicitud pendiente (p. ej. EnRevision) que ahora se aprueba.
+            rembolsoExistente.EstadoRembolso = EstadoRembolso.Aprobado.ToString();
+            rembolsoExistente.ReembolsoCompletado = true;
+            rembolsoExistente.TipoRembolso = TipoRembolso.Total.ToString();
+            rembolsoExistente.FechaRembolso = DateTime.UtcNow;
+            rembolsoExistente.RefundIdPayPal = refundId;
+            rembolsoExistente.MontoRembolsado = montoReembolsado;
+         
+            await _paypalRepository.ActualizarRembolsoAsync(rembolsoExistente);
+            return OperationResult<string>.Ok("Rembolso actualizado con éxito");
         }
 
         // ============================================
@@ -106,7 +109,7 @@ namespace GestorInventario.Application.Services.Refunds
             // 1. OBTENER DATOS DEL PEDIDO (tu BD)
             var detallePedido = await _pedidoRepository.ObtenerDetalleParaReembolsoAsync(request.DetalleId);
             if (detallePedido == null)
-                return OperationResult<(int, int,decimal, string)>.Fail("Su pedido no se encuentra");
+                return OperationResult<(int, int,decimal, string)>.Fail();
 
             // 2. CALCULAR MONTO CON IVA
             var precioSinIva = detallePedido.Producto.Precio;
@@ -195,11 +198,11 @@ namespace GestorInventario.Application.Services.Refunds
             var pedido = await _pedidoRepository.ObtenerPedidoConDetallesAsync(pedidoId);
 
             if (pedido == null)
-                return OperationResult<string>.Fail($"Pedido con ID {pedidoId} no encontrado.");
+                return OperationResult<string>.Fail();
 
             var detalleReembolsado = pedido.DetallePedidos.FirstOrDefault(d => d.Id == detalleId);
             if (detalleReembolsado == null)
-                return OperationResult<string>.Fail($"Detalle con ID {detalleId} no encontrado.");
+                return OperationResult<string>.Fail();
           
             if (detalleReembolsado.Rembolsado)
                 return OperationResult<string>.Fail($"El detalle con ID {detalleId} ya ha sido reembolsado.");

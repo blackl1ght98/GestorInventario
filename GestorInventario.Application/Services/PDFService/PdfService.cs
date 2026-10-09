@@ -22,7 +22,7 @@ namespace GestorInventario.Application.Services.PDFService
         {
             var detalle = await _paymentRepository.ObtenerDetallesPagoPorIDAsync(pagoId);
             if (detalle == null)
-                return OperationResult<byte[]>.Fail("No se encontró el detalle de pago");
+                return OperationResult<byte[]>.Fail();
 
             var pdfBytes = _invoiceRenderer.Render(detalle);
             return OperationResult<byte[]>.Ok("Factura generada correctamente", pdfBytes);

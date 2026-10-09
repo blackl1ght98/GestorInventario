@@ -39,7 +39,7 @@ namespace GestorInventario.Application.Services.Orders
         {
             var pedido = await _pedidoRepository.ObtenerPedidoConDetallesAsync(id);
             if (pedido == null)
-                return OperationResult<string>.Fail("Pedido no encontrado");
+                return OperationResult<string>.Fail();
 
             // Solo carritos sin capturas de PayPal
             if (pedido.EstadoPedido == EstadoPedido.Carrito.ToString()
@@ -69,7 +69,7 @@ namespace GestorInventario.Application.Services.Orders
                 await ProcesarUnidadDeCompraAsync(primeraUnidad, detalleBD, pedidoId);
             }
 
-            return OperationResult<PayPalPaymentDetail>.Ok("", detalleBD);
+            return OperationResult<PayPalPaymentDetail>.Ok(data: detalleBD);
         }
 
 
@@ -119,7 +119,8 @@ namespace GestorInventario.Application.Services.Orders
             PurchaseUnitDetails unidad, PayPalPaymentDetail detallePago)
         {
             var shipping = unidad.Shipping;
-            var payer = detallePago.PayerFirstName + " " + detallePago.PayerLastName;            var envio = new PayPalPaymentShipping
+            var payer = detallePago.PayerFirstName + " " + detallePago.PayerLastName;            
+            var envio = new PayPalPaymentShipping
             {
                 PaymentId = detallePago.Id,
                 RecipientName = payer,
@@ -217,7 +218,7 @@ namespace GestorInventario.Application.Services.Orders
                 string.IsNullOrWhiteSpace(orderId))
             {
                 _logger.LogWarning("Parámetros inválidos al confirmar pago: captureId, currency u orderId vacíos");
-                return OperationResult<Pedido>.Fail("Datos no validos");
+                return OperationResult<Pedido>.Fail();
             }
 
           
@@ -225,7 +226,7 @@ namespace GestorInventario.Application.Services.Orders
             if (pedido == null)
             {
                 _logger.LogWarning("No se encontró pedido pendiente para el usuario {UsuarioId}", usuarioActual);
-                return OperationResult<Pedido>.Fail("Pedido no encontrado");
+                return OperationResult<Pedido>.Fail();
             }
 
            

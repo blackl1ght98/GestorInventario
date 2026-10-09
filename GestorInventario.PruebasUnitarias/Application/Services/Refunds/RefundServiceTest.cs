@@ -50,7 +50,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.Refunds
             _repositoryMock.Setup(r => r.ObtenerPedidoConDetallesAsync(999))
                 .ReturnsAsync((Pedido)null);
 
-            var resultado = await _sut.ProcesarRembolsoTotalAsync(2,"REF-123");
+            var resultado = await _sut.ProcesarRembolsoTotalAsync(2,"REF-123",0);
 
             Assert.False(resultado.IsSuccess);
            
@@ -81,7 +81,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.Refunds
                  .Returns(Task.FromResult(OperationResult<Rembolso>.Ok()));
             _userAccessorMock.Setup(u => u.GetCurrentUserId()).Returns(7);
 
-            var resultado = await _sut.ProcesarRembolsoTotalAsync(1,  "REF-001");
+            var resultado = await _sut.ProcesarRembolsoTotalAsync(1,  "REF-001",0);
 
             Assert.True(resultado.IsSuccess);
             _repositoryMock.Verify(r => r.ActualizarPedidoAsync(pedido), Times.Once);
@@ -119,7 +119,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.Refunds
                 .Returns(Task.FromResult(OperationResult<Rembolso>.Ok()));
             _userAccessorMock.Setup(u => u.GetCurrentUserId()).Returns(5);
 
-            var resultado = await _sut.ProcesarRembolsoTotalAsync(2, "REF-NEW");
+            var resultado = await _sut.ProcesarRembolsoTotalAsync(2, "REF-NEW",0);
 
             Assert.True(resultado.IsSuccess);
             Assert.Equal("Rembolso procesado con éxito", resultado.Message);
@@ -176,7 +176,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.Refunds
                 .Returns(Task.FromResult(OperationResult<Rembolso>.Ok()));
             _userAccessorMock.Setup(u => u.GetCurrentUserId()).Returns(3);
 
-            var resultado = await _sut.ProcesarRembolsoTotalAsync(3,  "REF-OLD");
+            var resultado = await _sut.ProcesarRembolsoTotalAsync(3,  "REF-OLD",0);
 
             Assert.True(resultado.IsSuccess);
             Assert.Equal("Rembolso actualizado con éxito", resultado.Message);

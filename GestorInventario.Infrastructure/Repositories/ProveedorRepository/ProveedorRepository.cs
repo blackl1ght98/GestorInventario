@@ -62,7 +62,7 @@ namespace GestorInventario.Infrastructure.Repositories.ProveedorRepository
                 var proveedor = await _context.Proveedores.Include(p => p.Productos).FirstOrDefaultAsync(m => m.Id == Id);
                 if (proveedor == null)
                 {
-                    return OperationResult<string>.Fail("Proveedor no encontrado");
+                    return OperationResult<string>.Fail();
                 }
                 if (proveedor.Productos.Any())
                 {
@@ -82,7 +82,7 @@ namespace GestorInventario.Infrastructure.Repositories.ProveedorRepository
                 if (proveedor == null)
 
                 {
-                    return OperationResult<string>.Fail("El proveedor no existe");
+                    return OperationResult<string>.Fail();
                 }
                 await ActualizarProveedor(proveedor, model);      
                 return OperationResult<string>.Ok("Proveedor editado con éxito");

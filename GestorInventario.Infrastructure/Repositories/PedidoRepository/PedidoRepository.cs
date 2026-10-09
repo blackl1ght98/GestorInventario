@@ -103,7 +103,7 @@ namespace GestorInventario.Infrastructure.Repositories.PedidoRepository
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.AddEntityAsync(pedido);
-                return OperationResult<DetallePedido>.Ok("Detalle del producto actualizado", pedido);
+                return OperationResult<DetallePedido>.Ok("Detalle del producto agregado", pedido);
             });
         }
         public async Task<OperationResult<DetallePedido>> EliminarDetallePedidoAsync(DetallePedido pedido)

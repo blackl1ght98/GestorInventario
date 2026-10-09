@@ -87,7 +87,7 @@ namespace GestorInventario.Infrastructure.Repositories.PaypalRepository
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.AddEntityAsync(rembolso);
-                return OperationResult<Rembolso>.Ok("Plan creado", rembolso);
+                return OperationResult<Rembolso>.Ok("Rembolso creado", rembolso);
             });
         }
         public async Task<OperationResult<Rembolso>> ActualizarRembolsoAsync(Rembolso rembolso)
@@ -95,7 +95,7 @@ namespace GestorInventario.Infrastructure.Repositories.PaypalRepository
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.UpdateEntityAsync(rembolso);
-                return OperationResult<Rembolso>.Ok("Plan creado", rembolso);
+                return OperationResult<Rembolso>.Ok("Rembolso actualizado", rembolso);
             });
         }
         public async Task<OperationResult<SubscriptionDetail>> AgregarDetallesSubscripcionAsync(SubscriptionDetail subscripcion)
@@ -111,7 +111,7 @@ namespace GestorInventario.Infrastructure.Repositories.PaypalRepository
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.UpdateEntityAsync(subscripcion);
-                return OperationResult<SubscriptionDetail>.Ok("Detalles de subscripcion creada", subscripcion);
+                return OperationResult<SubscriptionDetail>.Ok("Detalles de subscripcion actualizada", subscripcion);
             });
         }
         public async Task<OperationResult<UserSubscription>> AgregarSubscripcionUsuarioAsync(UserSubscription subscripcion)

@@ -30,7 +30,7 @@ namespace GestorInventario.Infrastructure.Repositories.RembolsoRepository
                 var rembolso = await _context.Rembolsos.FindAsync(id);
                 if (rembolso == null)
                 {
-                    return OperationResult<string>.Fail("El rembolso no existe");
+                    return OperationResult<string>.Fail();
                 }
                 await _context.DeleteEntityAsync(rembolso);             
                 return OperationResult<string>.Ok("Rembolso eliminado con exito");

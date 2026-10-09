@@ -39,7 +39,7 @@ namespace GestorInventario.Infrastructure.Repositories.NotificacionRepository
                 var notificacion = await _context.Notificacions.FindAsync(id);
                 if (notificacion is null)
                 {
-                    return OperationResult<string>.Fail("El usuario no existe");
+                    return OperationResult<string>.Fail();
                 }
                 notificacion.Leida = true;
 

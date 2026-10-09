@@ -1,4 +1,5 @@
-﻿using GestorInventario.Domain.Models;
+﻿using GestorInventario.Domain.enums.Usuario;
+using GestorInventario.Domain.Models;
 using GestorInventario.Infrastructure.Data;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.Utilities;
@@ -33,7 +34,7 @@ namespace GestorInventario.Infrastructure.Repositories.AdminRepository
         {
            
             return await _context.Usuarios
-                .Where(u => u.IdRolNavigation.Nombre == "Administrador" && u.Email != null)
+                .Where(u => u.IdRolNavigation.Nombre == Rol.Administrador.ToString() && u.Email != null)
                 .Select(u => u.Email)
                 .Distinct()
                 .ToListAsync(stoppingToken);
@@ -50,7 +51,7 @@ namespace GestorInventario.Infrastructure.Repositories.AdminRepository
             {
                 var user = await _context.Usuarios.FindAsync(id);
                 if (user == null)
-                    return OperationResult<string>.Fail("El usuario no existe");
+                    return OperationResult<string>.Fail();
 
                 await _context.DeleteEntityAsync(user);
                 return OperationResult<string>.Ok("Usuario eliminado con exito");
@@ -63,7 +64,7 @@ namespace GestorInventario.Infrastructure.Repositories.AdminRepository
                 var usuarioDB = await _context.Usuarios.FindAsync(id); ;
                 if (usuarioDB is null)
                 {
-                    return OperationResult<string>.Fail("El usuario no existe");
+                    return OperationResult<string>.Fail();
                 }
                 usuarioDB.BajaUsuario = true;
 
@@ -81,7 +82,7 @@ namespace GestorInventario.Infrastructure.Repositories.AdminRepository
                 var usuarioDB = await _context.Usuarios.FindAsync(id);
                 if (usuarioDB is null )
                 {
-                    return OperationResult<string>.Fail("El usuario no existe");
+                    return OperationResult<string>.Fail();
                 }
                 usuarioDB.BajaUsuario = false;
 
@@ -101,7 +102,7 @@ namespace GestorInventario.Infrastructure.Repositories.AdminRepository
 
                 if (usuario is null)
                 {
-                    return OperationResult<Usuario>.Fail("Usuario no encontrado");
+                    return OperationResult<Usuario>.Fail();
                 }
                 var rol = await _context.Roles.FindAsync(rolId);
                 if (rol == null)
@@ -111,7 +112,7 @@ namespace GestorInventario.Infrastructure.Repositories.AdminRepository
 
                 usuario.IdRol = rolId;
                 await _context.UpdateEntityAsync(usuario);              
-                return OperationResult<Usuario>.Ok("", usuario);
+                return OperationResult<Usuario>.Ok(usuario);
             });
            
         }

@@ -81,13 +81,13 @@ namespace GestorInventario.Application.Services.Products
                 "Producto creado exitosamente: {NombreProducto}, UpcCode: {UpcCode}",
                 producto.NombreProducto, producto.CodigoBarras);
 
-            return OperationResult<Producto>.Ok("", producto);
+            return OperationResult<Producto>.Ok(data: producto);
         }
         public async Task<OperationResult<string>> EditarProducto(EditarProductoDto model, int usuarioId)
         {
             var producto = await _productoRepository.ObtenerProductoPorIdAsync(model.Id);
             if (producto is null)
-                return OperationResult<string>.Fail("Producto no encontrado");
+                return OperationResult<string>.Fail();
 
             producto.NombreProducto = model.NombreProducto;
             producto.FechaModificacion = DateTime.UtcNow;

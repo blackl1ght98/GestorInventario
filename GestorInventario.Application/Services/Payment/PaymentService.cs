@@ -29,9 +29,7 @@ namespace GestorInventario.Application.Services.Payment
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IUnitOfWork _unitOfWork;    
         private readonly ILogger<PaymentService> _logger;      
-       
         private readonly IPaypalOrderService _paypalOrder;
-       
         private readonly IEmailService _emailService;
         private readonly IPaypalRepository _paypalRepository;
         private readonly IUrlService _urlService;
@@ -43,14 +41,11 @@ namespace GestorInventario.Application.Services.Payment
             _currentUserAccessor = currentUserAccessor;
             _unitOfWork= unit;
             _logger = logger;      
-          
             _paypalOrder = paypalOrder;
             _urlService = url;
             _emailService = email;
             _paypalRepository= paypal;
-          
-          
-         
+            
         }
 
         public async Task<OperationResult<string>> Pagar(string moneda, int userId)
@@ -95,7 +90,7 @@ namespace GestorInventario.Application.Services.Payment
      
             var pedido = await _unitOfWork.PedidoRepository.ObtenerPedidoPorIdAsync(pedidoId);
             if (pedido == null)
-                return OperationResult<string>.Fail("Pedido no encontrado.");
+                return OperationResult<string>.Fail();
 
             if (pedido.EstadoPedido != EstadoPedido.Pendiente.ToString())
                 return OperationResult<string>.Fail("El pedido no está pendiente de pago.");
@@ -139,7 +134,7 @@ namespace GestorInventario.Application.Services.Payment
             var usuarioActual = await _unitOfWork.UserRepository.ObtenerUsuarioPorId(usuarioId);
             if (usuarioActual == null)
             {
-                return OperationResult<InfoUsuarioDto>.Fail("El usuario no existe");
+                return OperationResult<InfoUsuarioDto>.Fail();
             }
             var infoUsuario = new InfoUsuarioDto
             {
@@ -367,7 +362,7 @@ namespace GestorInventario.Application.Services.Payment
                 _logger.LogError($"No se encontraron ítems en PurchaseUnits para el reembolso del pedido {form.NumeroPedido}.");
                 return OperationResult<PayPalPaymentItem>.Fail("No se puede procesar el rembolso sin items asociados");
             }
-            return OperationResult<PayPalPaymentItem>.Ok("", paypalItems.First());
+            return OperationResult<PayPalPaymentItem>.Ok(paypalItems.First());
 
         }
        
