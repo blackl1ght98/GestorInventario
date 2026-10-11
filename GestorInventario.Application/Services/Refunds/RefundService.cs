@@ -151,8 +151,8 @@ namespace GestorInventario.Application.Services.Refunds
                         _logger.LogWarning("Falso positivo: Reembolso ya procesado (ID {RefundId}).", recentRefund.Id);
 
                         refundResult = OperationResult<(string, decimal)>.Ok(
-                            "Reembolso ya existente",
-                            (recentRefund.Id, montoReembolso));
+                            
+                            (recentRefund.Id, montoReembolso),"Reembolso ya existente");
                     }
                     else
                     {
@@ -179,8 +179,8 @@ namespace GestorInventario.Application.Services.Refunds
             if (rembolsoParcial.Success)
             {
                 return OperationResult<(int, int,decimal, string)>.Ok(
-                    "Rembolso parcial realizado",
-                    (detallePedido.Pedido.Id, detallePedido.Id,detallePedido.Producto.Precio, request.Motivo));
+                    
+                    (detallePedido.Pedido.Id, detallePedido.Id,detallePedido.Producto.Precio, request.Motivo),"Rembolso parcial realizado");
             }
             else
             {

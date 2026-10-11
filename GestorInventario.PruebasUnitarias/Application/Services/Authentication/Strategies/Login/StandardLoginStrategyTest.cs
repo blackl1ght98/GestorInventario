@@ -49,7 +49,7 @@ public class StandardLoginStrategyTest
 
         _authServiceMock
             .Setup(a => a.Login(model.Email, model))
-            .ReturnsAsync(OperationResult<Usuario>.Ok("Login correcto", usuario));
+            .ReturnsAsync(OperationResult<Usuario>.Ok( usuario));
 
         var resultado = await _sut.AuthenticateAsync(model);
 

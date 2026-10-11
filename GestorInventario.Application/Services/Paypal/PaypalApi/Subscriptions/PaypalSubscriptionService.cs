@@ -30,20 +30,35 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Subscriptions
         #region creacion de un producto y plan de suscripcion
         public async Task<OperationResult<string>> CreateProductAsync(string productName, string productDescription, string productType, string productCategory)
         {
+            try
+            {
+                var productRequest = BuildProductRequest(productName, productDescription, productType, productCategory);
+                var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
+                    HttpMethod.Post,
+                    $"v1/catalogs/products/",
+                    productRequest,
+                    async error =>
+                    {
+                        var errorBody = await error.Content.ReadAsStringAsync();
+                        throw new InvalidOperationException($"Error al crear el producto {error.StatusCode} - {errorBody}");
+                    });
+                var productResponse = JsonConvert.DeserializeObject<CreateProductResponseDto>(responseBody);
+                
+                string productId = productResponse.Id;
+                return OperationResult<string>.Ok("Producto creado con exito", productId);
 
-            var productRequest = BuildProductRequest(productName, productDescription, productType, productCategory);
-            var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
-                HttpMethod.Post,
-                $"v1/catalogs/products/",
-                productRequest,
-                async error =>
-                {
-                    var errorBody = await error.Content.ReadAsStringAsync();
-                    throw new InvalidOperationException($"Error al crear el producto {error.StatusCode} - {errorBody}");
-                });
-            var productResponse = JsonConvert.DeserializeObject<CreateProductResponseDto>(responseBody);
-            string productId = productResponse.Id;
-            return OperationResult<string>.Ok("Producto creado con exito", productId);
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Capturamos los errores de PayPal o los errores de Unwrap()
+                return OperationResult<string>.Fail(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<string>.Fail($"Ocurrió un error inesperado: {ex.Message}");
+            }
+
+            
         }
 
         // Update the BuildProductRequest to use the request DTO
@@ -79,6 +94,11 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Subscriptions
 
                 string createdPlanId = responseObject.Id;
                 return OperationResult<string>.Ok("", createdPlanId);
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Capturamos los errores de PayPal o los errores de Unwrap()
+                return OperationResult<string>.Fail(ex.Message);
             }
             catch (Exception ex)
             {
@@ -122,10 +142,8 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Subscriptions
                 });
             }
 
-            // Ciclo regular (dinámico: MONTH o YEAR)
-            int sequence = trialDays > 0 ? 2 : 1;
-            int totalCycles = intervalUnit == "YEAR" ? 1 : 12;   // 1 año o 12 meses
-                                                                 // Ciclo regular (dinámico: MONTH o YEAR)
+           
+                                                                 
             billingCycles.Add(new BillingCycleRq
             {
                 TenureType = "REGULAR",
@@ -206,19 +224,34 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Subscriptions
         #region Obtener producto asociado a un plan
         public async Task<OperationResult<(PaypalProductListResponseDto ProductsResponse, bool HasNextPage)>> GetProductsAsync(int page = 1, int pageSize = 10)
         {
-
-            var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
-                HttpMethod.Get,
-                $"v1/catalogs/products?page_size={pageSize}&page={page}",
-                async err =>
-                {
-                    var errorBody = await err.Content.ReadAsStringAsync();
-                    throw new InvalidOperationException($"Error al obtener los productos {err.StatusCode} - {errorBody} ");
-                });
-            var jsonResponse = JsonConvert.DeserializeObject<PaypalProductListResponseDto>(responseBody);
+            try
+            {
+                var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
+                    HttpMethod.Get,
+                    $"v1/catalogs/products?page_size={pageSize}&page={page}",
+                    async err =>
+                    {
+                        var errorBody = await err.Content.ReadAsStringAsync();
+                        throw new InvalidOperationException($"Error al obtener los productos {err.StatusCode} - {errorBody} ");
+                    });
+                var jsonResponse = JsonConvert.DeserializeObject<PaypalProductListResponseDto>(responseBody);
           
-            bool hasNextPage = jsonResponse.Links.Any(link => link.Rel == "next");
-            return OperationResult<(PaypalProductListResponseDto, bool)>.Ok((jsonResponse, hasNextPage));
+                bool hasNextPage = jsonResponse.Links.Any(link => link.Rel == "next");
+                return OperationResult<(PaypalProductListResponseDto, bool)>.Ok((jsonResponse, hasNextPage));
+
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Capturamos los errores de PayPal o los errores de Unwrap()
+                return OperationResult<(PaypalProductListResponseDto, bool)>.Fail(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // Capturamos cualquier otro error inesperado (red, timeout, etc.)
+                return OperationResult<(PaypalProductListResponseDto, bool)>.Fail($"Ocurrió un error inesperado: {ex.Message}");
+            }
+
+          
         }
         #endregion
 
@@ -241,7 +274,7 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Subscriptions
             var plansListResponse = JsonConvert.DeserializeObject<PaypalPlansListResponse>(responseBody);
             if (plansListResponse == null)
             {
-                throw new ArgumentNullException("No se pudo obtener los planes");
+                throw new InvalidOperationException("No se pudo obtener los planes");
             }
             bool hasNextPage = plansListResponse.Links.Any(link => link.Rel == "next");
             var detailedPlans = new List<PaypalPlanResponseDto>();
@@ -265,6 +298,11 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Subscriptions
             }
                
                 return OperationResult<(List<PaypalPlanResponseDto>, bool)>.Ok((detailedPlans, hasNextPage));
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Capturamos los errores de PayPal o los errores de Unwrap()
+                return OperationResult<(List<PaypalPlanResponseDto>, bool)>.Fail(ex.Message);
             }
             catch (Exception ex)
             {
@@ -347,7 +385,7 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Subscriptions
                 var pricingUpdates = DeterminePricingUpdates(responseBody.Data, trialAmount, regularAmount, currency, planId);
                 if (!pricingUpdates.Any())
                 {
-                    throw new PayPalException("No se proporcionaron esquemas de precios válidos para actualizar el plan. Los precios enviados son idénticos a los actuales o no se proporcionaron cambios.");
+                    throw new InvalidOperationException("No se proporcionaron esquemas de precios válidos para actualizar el plan. Los precios enviados son idénticos a los actuales o no se proporcionaron cambios.");
                 }
                 var planRequest = new UpdatePricingPlanDto { PricingSchemes = pricingUpdates };
                 await _paypal.ExecutePayPalRequestAsync<string>(
@@ -360,23 +398,23 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Subscriptions
                          var errorResponse = JsonConvert.DeserializeObject<PaypalErrorResponse>(errorBody);
                          if (errorResponse?.Name == "PRICING_SCHEME_INVALID_AMOUNT")
                          {
-                             throw new PayPalException(
+                             throw new InvalidOperationException(
                                  "Uno o más precios son idénticos al valor actual. Debes proporcionar un precio diferente.");
                          }
 
                          if (errorResponse?.Name == "PRICING_SCHEME_UPDATE_NOT_ALLOWED")
                          {
-                             throw new PayPalException(
+                             throw new InvalidOperationException(
                                  "No es posible actualizar el precio de un plan activo que ya tiene suscripciones asociadas. " +
                                  "Crea un nuevo plan o actualiza las suscripciones de forma individual.");
                          }
 
                      });
 
-                return OperationResult<(string, UpdatePricingPlanDto)>.Ok("Precio actualizado en PayPal",(planId, planRequest));
+                return OperationResult<(string, UpdatePricingPlanDto)>.Ok((planId, planRequest),"Precio actualizado en PayPal");
 
             }
-            catch (PayPalException ex)
+            catch (InvalidOperationException ex)
             {
                 _logger.LogError(ex, "Error al actualizar el precio del plan");
                 throw;
@@ -471,33 +509,48 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Subscriptions
         #region Suscribirse a un plan
         public async Task<OperationResult<string>> Subscribirse(string id, string returnUrl, string cancelUrl, string planName)
         {
-
-            CultureHelper.SetInvariantCulture();
-            var subscriptionRequest = BuildSubscriptionRequest(id, returnUrl, cancelUrl, planName);
-            var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
-                HttpMethod.Post,
-                "v1/billing/subscriptions",
-                subscriptionRequest,
-                async err =>
-                {
-                    var errBody = await err.Content.ReadAsStringAsync();
-                    if (errBody != null)
+            try
+            {
+                CultureHelper.SetInvariantCulture();
+                var subscriptionRequest = BuildSubscriptionRequest(id, returnUrl, cancelUrl, planName);
+                var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
+                    HttpMethod.Post,
+                    "v1/billing/subscriptions",
+                    subscriptionRequest,
+                    async err =>
                     {
-                        throw new InvalidOperationException($"Error al subscribirse: {err.StatusCode} - {errBody}");
-                    }
-                });
+                        var errBody = await err.Content.ReadAsStringAsync();
+                        if (errBody != null)
+                        {
+                            throw new InvalidOperationException($"Error al subscribirse: {err.StatusCode} - {errBody}");
+                        }
+                    });
 
-            var subscriptionJson = JsonConvert.DeserializeObject<SubscriptionCreateRequestDto>(responseBody);
-            if (subscriptionJson == null)
-            {
-                throw new ArgumentNullException("No se pudo iniciar el proceso para suscribirse");
+                var subscriptionJson = JsonConvert.DeserializeObject<SubscriptionCreateRequestDto>(responseBody);
+                if (subscriptionJson == null)
+                {
+                    throw new InvalidOperationException("No se pudo iniciar el proceso para suscribirse");
+                }
+                var approvalLink = subscriptionJson?.Links?.FirstOrDefault(link => link.Rel == "approve")?.Href;
+                if (string.IsNullOrEmpty(approvalLink))
+                {
+                    throw new InvalidOperationException("No se encontró el enlace de aprobación en la respuesta de PayPal.");
+                }
+                return OperationResult<string>.Ok(data: approvalLink);
+
             }
-            var approvalLink = subscriptionJson?.Links?.FirstOrDefault(link => link.Rel == "approve")?.Href;
-            if (string.IsNullOrEmpty(approvalLink))
+            catch (InvalidOperationException ex)
             {
-                throw new InvalidOperationException("No se encontró el enlace de aprobación en la respuesta de PayPal.");
+                // Capturamos los errores de PayPal o los errores de Unwrap()
+                return OperationResult<string>.Fail(ex.Message);
             }
-            return OperationResult<string>.Ok(data: approvalLink);
+            catch (Exception ex)
+            {
+                // Capturamos cualquier otro error inesperado (red, timeout, etc.)
+                return OperationResult<string>.Fail($"Ocurrió un error inesperado: {ex.Message}");
+            }
+
+           
 
         }
         private SubscriptionCreateRequestDto BuildSubscriptionRequest(string id, string returnUrl, string cancelUrl, string planName)
@@ -524,121 +577,225 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Subscriptions
         #endregion
 
         #region Obtener detalles de la suscripción
-        public async Task<OperationResult<PaypalSubscriptionResponse>> ObtenerDetallesSuscripcion(string subscription_id)
+        public async Task<OperationResult<PaypalSubscriptionResponse>> ObtenerDetallesSuscripcion(string subscriptionId)
         {
+            try
+            {
+                var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
+                    HttpMethod.Get,
+                    $"v1/billing/subscriptions/{subscriptionId}",
+                    async err =>
+                    {
+                        var errBody = await err.Content.ReadAsStringAsync();
+                        throw new InvalidOperationException($"Error al obtener los detalles de la subscripcion");
+                    });
 
-            var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
-                HttpMethod.Get,
-                $"v1/billing/subscriptions/{subscription_id}",
-                async err =>
-                {
-                    var errBody = await err.Content.ReadAsStringAsync();
-                    throw new InvalidOperationException($"Error al obtener los detalles de la subscripcion");
-                });
-
-            var subscriptionDetails = JsonConvert.DeserializeObject<PaypalSubscriptionResponse>(responseBody);
+                var subscriptionDetails = JsonConvert.DeserializeObject<PaypalSubscriptionResponse>(responseBody);
             
-            return OperationResult< PaypalSubscriptionResponse>.Ok(subscriptionDetails);
+                return OperationResult< PaypalSubscriptionResponse>.Ok(subscriptionDetails);
+
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Capturamos los errores de PayPal o los errores de Unwrap()
+                return OperationResult<PaypalSubscriptionResponse>.Fail(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // Capturamos cualquier otro error inesperado (red, timeout, etc.)
+                return OperationResult<PaypalSubscriptionResponse>.Fail($"Ocurrió un error inesperado: {ex.Message}");
+            }
+           
         }
         #endregion
 
         #region desactivar plan de suscripcion
         public async Task<OperationResult<(string planId, string planStatus)>> DesactivarPlan(string planId)
         {
-            var deactivatePlanRequest = await _paypal.ExecutePayPalRequestAsync<string>(
-                HttpMethod.Post,
-                $"v1/billing/plans/{planId}/deactivate",
-                async error =>
-                {
-                    var errBody = await error.Content.ReadAsStringAsync();
-                    throw new InvalidOperationException($"Error al desactivar el plan: {error.StatusCode}- {errBody}");
-                });
-            var planresponse = await ObtenerDetallesPlan(planId); 
-            var planStatusResult = planresponse.Data.Status;
+            try
+            {
+                await _paypal.ExecutePayPalRequestAsync<string>(
+                    HttpMethod.Post,
+                    $"v1/billing/plans/{planId}/deactivate",
+                    async error =>
+                    {
+                        var errBody = await error.Content.ReadAsStringAsync();
+                        throw new InvalidOperationException($"Error al desactivar el plan: {error.StatusCode}- {errBody}");
+                    });
+                var planresponse = await ObtenerDetallesPlan(planId);
+                var plan = planresponse.Unwrap();
+                var planStatusResult = plan.Status;
             
-            return OperationResult<(string,string)>.Ok("Plan desactivado con exito",(planId,planStatusResult));
+                return OperationResult<(string,string)>.Ok((planId,planStatusResult),"Plan desactivado con exito");
+
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Capturamos los errores de PayPal o los errores de Unwrap()
+                return OperationResult<(string, string)>.Fail(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // Capturamos cualquier otro error inesperado (red, timeout, etc.)
+                return OperationResult<(string, string)>.Fail($"Ocurrió un error inesperado: {ex.Message}");
+            }
+            
         }
         #endregion
 
         #region Activar plan
         public async Task<OperationResult<(string planId, string planStatus)>> ActivarPlan(string planId)
         {
-            var activatePlanRequest = await _paypal.ExecutePayPalRequestAsync<string>(
-                HttpMethod.Post,
-                $"v1/billing/plans/{planId}/activate",
-                async error =>
-                {
-                    var errorBody = await error.Content.ReadAsStringAsync();
-                    throw new InvalidOperationException($"Error al activar el plan: {error.StatusCode} - {errorBody}");
-                });
-            var planDetails = await ObtenerDetallesPlan(planId);
-            
-            string planStatusResult = planDetails.Data.Status;
+            try
+            {
+                await _paypal.ExecutePayPalRequestAsync<string>(
+                    HttpMethod.Post,
+                    $"v1/billing/plans/{planId}/activate",
+                    async error =>
+                    {
+                        var errorBody = await error.Content.ReadAsStringAsync();
+                        throw new InvalidOperationException($"Error al activar el plan: {error.StatusCode} - {errorBody}");
+                    });
+                var planDetails = await ObtenerDetallesPlan(planId);
+                var detalles = planDetails.Unwrap();
+                string planStatusResult = detalles.Status;
          
-            return OperationResult<(string,string)>.Ok( "Plan activado con éxito",(planId,planStatusResult));
+                return OperationResult<(string,string)>.Ok( (planId,planStatusResult),"Plan activado con éxito");
+
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Capturamos los errores de PayPal o los errores de Unwrap()
+                return OperationResult<(string, string)>.Fail(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // Capturamos cualquier otro error inesperado (red, timeout, etc.)
+                return OperationResult<(string, string)>.Fail($"Ocurrió un error inesperado: {ex.Message}");
+            }
+             
         }
         #endregion
 
         #region Cancelar Subscripcion
-        public async Task<OperationResult<(string subId, string subStatus)>> CancelarSuscripcion(string subscription_id, string reason)
+        public async Task<OperationResult<(string subId, string subStatus)>> CancelarSuscripcion(string subscriptionId, string reason)
         {
-            var subscriptionRequest = new
+            try
             {
-                reason = reason,
-            };
-            var response = await _paypal.ExecutePayPalRequestAsync<string>(
-                HttpMethod.Post,
-                $"v1/billing/subscriptions/{subscription_id}/cancel",
-                subscriptionRequest,
-               async error =>
-               {
-                   var errorBody = await error.Content.ReadAsStringAsync();
-                   throw new InvalidOperationException($"Error al cancelar la subscripcion");
-               });
-            var detalles= await ObtenerDetallesSuscripcion(subscription_id);
-            string status = detalles.Data.Status;
-            return OperationResult<(string,string)>.Ok("Suscripción cancelada exitosamente",(subscription_id,status));
+                var subscriptionRequest = new
+                {
+                    reason = reason,
+                };
+                await _paypal.ExecutePayPalRequestAsync<string>(
+                    HttpMethod.Post,
+                    $"v1/billing/subscriptions/{subscriptionId}/cancel",
+                    subscriptionRequest,
+                    async error =>
+                    {
+                        var errorBody = await error.Content.ReadAsStringAsync();
+                        throw new InvalidOperationException($"Error al cancelar la subscripcion");
+                    });
+                var detallesSubscripcion= await ObtenerDetallesSuscripcion(subscriptionId);
+                var detalles = detallesSubscripcion.Unwrap();
+                string status = detalles.Status;
+                return OperationResult<(string,string)>.Ok((subscriptionId,status),"Suscripción cancelada exitosamente");
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Capturamos los errores de PayPal o los errores de Unwrap()
+                return OperationResult<(string, string)>.Fail(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // Capturamos cualquier otro error inesperado (red, timeout, etc.)
+                return OperationResult<(string, string)>.Fail($"Ocurrió un error inesperado: {ex.Message}");
+            }
+            
         }
         #endregion
 
         #region Suspender suscripcion
-        public async Task<OperationResult<(string subId, string subStatus)>> SuspenderSuscripcion(string subscription_id, string reason)
+        public async Task<OperationResult<(string subId, string subStatus)>> SuspenderSuscripcion(string subscriptionId, string reason)
         {
+            try
+            {
+                var razon = new { reason = reason };
+                await _paypal.ExecutePayPalRequestAsync<string>(
+                    HttpMethod.Post,
+                    $"v1/billing/subscriptions/{subscriptionId}/suspend",
+                    razon,
+                    async error =>
+                    {
+                        var errorBody = await error.Content.ReadAsStringAsync();
+                        throw new InvalidOperationException($"Error al suspender la subscripcion");
+                    });
 
-            var razon = new { reason = reason };
-            var suspendSubscriptionRequest = await _paypal.ExecutePayPalRequestAsync<string>(
-                HttpMethod.Post,
-                $"v1/billing/subscriptions/{subscription_id}/suspend",
-                razon,
-                async error =>
-                {
-                    var errorBody = await error.Content.ReadAsStringAsync();
-                    throw new InvalidOperationException($"Error al suspender la subscripcion");
-                });
+                var subscriptionDetails = await ObtenerDetallesSuscripcion(subscriptionId);
+                var details = subscriptionDetails.Unwrap();
+                string subscriptionStatus = details.Status;
+                return OperationResult<(string,string)>.Ok( (subscriptionId,subscriptionStatus),"Subscripcion suspendida con éxito");
 
-            var subscriptionDetails = await ObtenerDetallesSuscripcion(subscription_id);           
-            string subscriptionStatus = subscriptionDetails.Data.Status;
-            return OperationResult<(string,string)>.Ok( "Subscripcion suspendida con éxito",(subscription_id,subscriptionStatus));
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Capturamos los errores de PayPal o los errores de Unwrap()
+                return OperationResult<(string, string)>.Fail(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // Capturamos cualquier otro error inesperado (red, timeout, etc.)
+                return OperationResult<(string, string)>.Fail($"Ocurrió un error inesperado: {ex.Message}");
+            }
+
+            
         }
         #endregion
 
         #region Activar suscripcion
-        public async Task<OperationResult<(string subId, string subStatus)>> ActivarSuscripcion(string subscription_id, string reason)
+        public async Task<OperationResult<(string subId, string subStatus)>> ActivarSuscripcion(string subscriptionId, string reason)
         {
-            var razon = new { reason = reason };
-            var activateSubscriptionRequest = await _paypal.ExecutePayPalRequestAsync<string>(
-                HttpMethod.Post,
-                $"v1/billing/subscriptions/{subscription_id}/activate",
-                razon,
-                async error =>
-                {
-                    var errorBody = await error.Content.ReadAsStringAsync();
-                    throw new InvalidOperationException($"Error al activar la subscripcion");
-                });
+            try
+            {
+                var razon = new { reason = reason };
 
-            var subscriptionDetails = await ObtenerDetallesSuscripcion(subscription_id);
-            string subscriptionStatus = subscriptionDetails.Data.Status;
-            return OperationResult<(string, string)>.Ok("Subscripcion activada con éxito", (subscription_id, subscriptionStatus));
+                // 1. Ejecutar la petición de activación
+                await _paypal.ExecutePayPalRequestAsync<string>(
+                    HttpMethod.Post,
+                    $"v1/billing/subscriptions/{subscriptionId}/activate",
+                    razon,
+                    async error =>
+                    {
+                        var errorBody = await error.Content.ReadAsStringAsync();
+                        // Aquí podrías loguear errorBody para saber EXACTAMENTE por qué falló PayPal
+                        _logger.LogError($"Error de PayPal al activar la suscripción: {errorBody}");
+                       
+                    });
+
+                // 2. Obtener los detalles para confirmar el estado actual
+                var subscriptionDetailsResult = await ObtenerDetallesSuscripcion(subscriptionId);
+
+                // 3. 
+                // Si ObtenerDetallesSuscripcion falló o el Data es null, Unwrap lanzará una excepción
+                // que será capturada por el catch, devolviendo un Fail ordenado.
+                var details = subscriptionDetailsResult.Unwrap();
+
+                string subscriptionStatus = details.Status;
+
+                return OperationResult<(string, string)>.Ok(
+                    
+                    (subscriptionId, subscriptionStatus),"Suscripción activada con éxito"
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Capturamos los errores de PayPal o los errores de Unwrap()
+                return OperationResult<(string, string)>.Fail(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // Capturamos cualquier otro error inesperado (red, timeout, etc.)
+                return OperationResult<(string, string)>.Fail($"Ocurrió un error inesperado: {ex.Message}");
+            }
         }
         #endregion  
     }

@@ -14,12 +14,12 @@ namespace GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Subs
         Task<OperationResult<string>> EditarProducto(string id, string name, string description);
         Task<OperationResult<(string, UpdatePricingPlanDto)>> UpdatePricingPlanAsync(string planId, decimal? trialAmount, decimal regularAmount, string currency);
         Task<OperationResult<string>> Subscribirse(string id, string returnUrl, string cancelUrl, string planName);
-        Task<OperationResult<PaypalSubscriptionResponse>> ObtenerDetallesSuscripcion(string subscription_id);
+        Task<OperationResult<PaypalSubscriptionResponse>> ObtenerDetallesSuscripcion(string subscriptionId);
         Task<OperationResult<(string planId, string planStatus)>> DesactivarPlan(string planId);
         Task<OperationResult<(string planId, string planStatus)>> ActivarPlan(string planId);
-        Task<OperationResult<(string subId, string subStatus)>> CancelarSuscripcion(string subscription_id, string reason);
-        Task<OperationResult<(string subId, string subStatus)>> SuspenderSuscripcion(string subscription_id, string reason);
-        Task<OperationResult<(string subId, string subStatus)>> ActivarSuscripcion(string subscription_id, string reason);
+        Task<OperationResult<(string subId, string subStatus)>> CancelarSuscripcion(string subscriptionId, string reason);
+        Task<OperationResult<(string subId, string subStatus)>> SuspenderSuscripcion(string subscriptionId, string reason);
+        Task<OperationResult<(string subId, string subStatus)>> ActivarSuscripcion(string subscriptionId, string reason);
       
     }
 }

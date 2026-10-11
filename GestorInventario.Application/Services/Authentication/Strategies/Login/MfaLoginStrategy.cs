@@ -39,7 +39,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Login
             await _emailService.SendMfaCodeEmail(user.Data.Email, mfaCode);
 
             // Retornamos un OK, pero indicamos que REQUIERE MFA 
-            return OperationResult<AuthSessionDetails>.Ok("Código MFA enviado", new AuthSessionDetails(user.Data, true));
+            return OperationResult<AuthSessionDetails>.Ok( new AuthSessionDetails(user.Data, true),"Código MFA enviado");
         }
     }
 }

@@ -105,7 +105,7 @@ namespace GestorInventario.Infrastructure.Repositories.UserRepository
                 usuario.FechaExpiracionContrasenaTemporal = fechaExpiracion;
                 usuario.ResetTokenUsed = false;
                 await _context.UpdateEntityAsync(usuario);
-                return OperationResult<Usuario>.Ok("Password temporal guardada", usuario);
+                return OperationResult<Usuario>.Ok( usuario,"Password temporal guardada");
             });
         }      
         public async Task<OperationResult<Usuario>> AgregarUsuarioAsync(Usuario usuario)
@@ -113,7 +113,7 @@ namespace GestorInventario.Infrastructure.Repositories.UserRepository
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.AddEntityAsync(usuario);
-                return OperationResult<Usuario>.Ok("Usuario guardado", usuario);
+                return OperationResult<Usuario>.Ok( usuario,"Usuario guardado");
             });
         }
         public async Task<OperationResult<Role>> AddAsync(Role rol)
@@ -121,7 +121,7 @@ namespace GestorInventario.Infrastructure.Repositories.UserRepository
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.AddEntityAsync(rol);
-                return OperationResult<Role>.Ok("Usuario guardado", rol);
+                return OperationResult<Role>.Ok(rol);
             });
         }
         

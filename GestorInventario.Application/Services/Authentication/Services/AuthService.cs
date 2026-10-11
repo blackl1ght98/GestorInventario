@@ -57,7 +57,7 @@ namespace GestorInventario.Application.Services.Authentication.Services
                 return OperationResult<Usuario>.Fail("El email y/o la contraseña son incorrectos.");
 
             }
-            return OperationResult<Usuario>.Ok("", login);
+            return OperationResult<Usuario>.Ok( login);
         }
       
         public async Task<OperationResult<string>> SetNewPasswordAsync(RestoresPasswordDto cambio)
@@ -132,7 +132,7 @@ namespace GestorInventario.Application.Services.Authentication.Services
                 return OperationResult<Usuario>.Fail("El enlace y contraseña temporal han expirado. Solicite una nueva");
             }
 
-            return OperationResult<Usuario>.Ok("Token valido", usuario);
+            return OperationResult<Usuario>.Ok( usuario);
         }
         public async Task<OperationResult<string>> ChangePassword(string passwordAnterior, string passwordActual)
         {
@@ -170,7 +170,7 @@ namespace GestorInventario.Application.Services.Authentication.Services
                 if (!resultado.Success)
                     return OperationResult<RestoresPasswordDto>.Fail(resultado.Message);
 
-                return OperationResult<RestoresPasswordDto>.Ok("Modelo preparado con éxito", cambio);
+                return OperationResult<RestoresPasswordDto>.Ok( cambio);
             }
             catch (Exception ex)
             {
@@ -198,8 +198,8 @@ namespace GestorInventario.Application.Services.Authentication.Services
                 _logger.LogError("Error al enviar el email: {error}", userEmail.Message);
             else
                 _logger.LogInformation("Email de restablecimiento de contraseña enviado con éxito");
-
-            return OperationResult<string>.Ok("", userEmail.Data);
+            
+            return OperationResult<string>.Ok("Email enviado");
         }
     }
 }

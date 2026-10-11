@@ -1,5 +1,4 @@
-﻿using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Subscription;
+﻿using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Subscription;
 using GestorInventario.Interfaces.Application.Services.Syncs;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.Utilities;
@@ -32,8 +31,7 @@ namespace GestorInventario.Application.Services.Syncs
             {
                 var existingPlan = await _paypalRepository.ObtenerPlanPorIdAsync(planDto.Id);
 
-                if (existingPlan != null)
-                {
+                
                     // ── Comparación campo a campo (igual que SubscriptionDetail) ──
                     bool hasChanges = !(
                         existingPlan.Name == planDto.Name &&
@@ -42,9 +40,9 @@ namespace GestorInventario.Application.Services.Syncs
                         existingPlan.ProductId == planDto.ProductId &&
 
                         // Ciclos de prueba
-                        existingPlan.TrialIntervalUnit == planDto.BillingCycles?.FirstOrDefault(c => c.TenureType == "TRIAL")?.Frequency?.IntervalUnit &&
-                        existingPlan.TrialIntervalCount == planDto.BillingCycles?.FirstOrDefault(c => c.TenureType == "TRIAL")?.Frequency?.IntervalCount &&
-                        existingPlan.TrialTotalCycles == planDto.BillingCycles?.FirstOrDefault(c => c.TenureType == "TRIAL")?.TotalCycles &&
+                        existingPlan.TrialIntervalUnit == planDto.BillingCycles.FirstOrDefault(c => c.TenureType == "TRIAL")?.Frequency.IntervalUnit &&
+                        existingPlan.TrialIntervalCount == planDto.BillingCycles.FirstOrDefault(c => c.TenureType == "TRIAL")?.Frequency.IntervalCount &&
+                        existingPlan.TrialTotalCycles == planDto.BillingCycles.FirstOrDefault(c => c.TenureType == "TRIAL")?.TotalCycles &&
 
                         // Ciclos regulares
                         existingPlan.RegularIntervalUnit == planDto.BillingCycles?.FirstOrDefault(c => c.TenureType == "REGULAR")?.Frequency?.IntervalUnit &&
@@ -75,7 +73,7 @@ namespace GestorInventario.Application.Services.Syncs
 
                         var trialCycle = planDto.BillingCycles?.FirstOrDefault(c => c.TenureType == "TRIAL");
                         var regularCycle = planDto.BillingCycles?.FirstOrDefault(c => c.TenureType == "REGULAR")
-                                         ?? planDto.BillingCycles?.LastOrDefault();
+                                           ?? planDto.BillingCycles?.LastOrDefault();
 
                         if (trialCycle != null)
                         {
@@ -89,7 +87,7 @@ namespace GestorInventario.Application.Services.Syncs
                         if (regularCycle != null)
                         {
                             existingPlan.RegularIntervalUnit = regularCycle.Frequency?.IntervalUnit;
-                            existingPlan.RegularIntervalCount = regularCycle.Frequency.IntervalCount;
+                            existingPlan.RegularIntervalCount = regularCycle.Frequency.IntervalCount ;
                             existingPlan.RegularTotalCycles = regularCycle.TotalCycles;
                             if (regularCycle.PricingScheme?.FixedPrice?.Value != null)
                                 existingPlan.RegularFixedPrice = decimal.Parse(regularCycle.PricingScheme.FixedPrice.Value, CultureInfo.InvariantCulture);
@@ -101,52 +99,12 @@ namespace GestorInventario.Application.Services.Syncs
                         actualizados++;
 
                     }
-                }
-                else
-                {
-                    // ── CREAR: el plan existe en PayPal pero no en BD ──
-                    var nuevoPlan = new PlanDetail
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        PaypalPlanId = planDto.Id,
-                        Name = planDto.Name,
-                        Description = planDto.Description,
-                        Status = planDto.Status,
-                        ProductId = planDto.ProductId
-                    };
-
-                    var trialCycle = planDto.BillingCycles?.FirstOrDefault(c => c.TenureType == "TRIAL");
-                    var regularCycle = planDto.BillingCycles?.FirstOrDefault(c => c.TenureType == "REGULAR")
-                                     ?? planDto.BillingCycles?.LastOrDefault();
-
-                    if (trialCycle != null)
-                    {
-                        nuevoPlan.TrialIntervalUnit = trialCycle.Frequency?.IntervalUnit;
-                        nuevoPlan.TrialIntervalCount = trialCycle.Frequency?.IntervalCount;
-                        nuevoPlan.TrialTotalCycles = trialCycle.TotalCycles;
-                        if (trialCycle.PricingScheme?.FixedPrice?.Value != null)
-                            nuevoPlan.TrialFixedPrice = decimal.Parse(trialCycle.PricingScheme.FixedPrice.Value, CultureInfo.InvariantCulture);
-                    }
-
-                    if (regularCycle != null)
-                    {
-                        nuevoPlan.RegularIntervalUnit = regularCycle.Frequency?.IntervalUnit;
-                        nuevoPlan.RegularIntervalCount = regularCycle.Frequency.IntervalCount;
-                        nuevoPlan.RegularTotalCycles = regularCycle.TotalCycles;
-                        if (regularCycle.PricingScheme?.FixedPrice?.Value != null)
-                            nuevoPlan.RegularFixedPrice = decimal.Parse(regularCycle.PricingScheme.FixedPrice.Value, CultureInfo.InvariantCulture);
-                    }
-
-                    nuevoPlan.CurrencyCode = planDto.BillingCycles?.FirstOrDefault()?.PricingScheme?.FixedPrice?.CurrencyCode;
-
-                    await _paypalRepository.AgregarPlanAsync(nuevoPlan);
-                    creados++;
-                }
+                
             }
 
             return OperationResult<int>.Ok(
-                $"Sincronización completada. {actualizados} actualizado(s), {creados} creado(s).",
-                actualizados + creados);
+                
+                actualizados + creados,$"Sincronización completada. {actualizados} actualizado(s), {creados} creado(s).");
         }
     }
 }

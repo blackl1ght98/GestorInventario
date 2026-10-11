@@ -25,7 +25,7 @@ namespace GestorInventario.Infrastructure.Repositories.ProductoRepository
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.AddEntityAsync(producto);
-                return OperationResult<Producto>.Ok("Producto creado", producto);
+                return OperationResult<Producto>.Ok( producto);
             });
         }
        
@@ -60,7 +60,7 @@ namespace GestorInventario.Infrastructure.Repositories.ProductoRepository
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.DeleteEntityAsync(producto);
-                return OperationResult<Producto>.Ok("Producto eliminado", producto);
+                return OperationResult<Producto>.Ok( producto);
             });
         }
         public async Task<OperationResult<Producto>> ActualizarProductoAsync(Producto producto)
@@ -68,7 +68,7 @@ namespace GestorInventario.Infrastructure.Repositories.ProductoRepository
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.UpdateEntityAsync(producto);
-                return OperationResult<Producto>.Ok("Producto actualizado", producto);
+                return OperationResult<Producto>.Ok( producto);
             });
         }
     }

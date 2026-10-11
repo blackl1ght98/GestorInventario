@@ -35,8 +35,7 @@ namespace GestorInventario.Application.Services.Authentication.Services
             if (!resultado.Success)
                 return OperationResult<string>.Fail(resultado.Message);
 
-            return OperationResult<string>.Ok("Password temporal generada",
-                contrasenaTemporal);
+            return OperationResult<string>.Ok(contrasenaTemporal);
         }
 
         private string GenerarContrasenaTemporal()

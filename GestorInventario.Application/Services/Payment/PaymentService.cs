@@ -81,9 +81,7 @@ namespace GestorInventario.Application.Services.Payment
             // 6. Limpiar
             await EliminarCarritosVaciosUsuario(userId);
 
-            return OperationResult<string>.Ok(
-                "Redirigiendo a PayPal para completar el pago",
-                approvalUrl.Data);
+            return OperationResult<string>.Ok(approvalUrl.Data,"redirigiendo...");
         }
         public async Task<OperationResult<string>> ReintentarPago(int pedidoId)
         {
@@ -124,9 +122,7 @@ namespace GestorInventario.Application.Services.Payment
 
            
 
-            return OperationResult<string>.Ok(
-                "Redirigiendo a PayPal para completar el pago",
-                approvalUrl.Data);
+            return OperationResult<string>.Ok(approvalUrl.Data,"Redirigiendo...");
         }
         private async Task<OperationResult<InfoUsuarioDto>> ValidarUsuarioYObtenerInfo()
         {
@@ -146,7 +142,7 @@ namespace GestorInventario.Application.Services.Payment
                 Line2 = usuarioActual.Direccion.Split(",").Length > 1 ? usuarioActual.Direccion.Split(",")[1].Trim() : ""
             };
 
-            return OperationResult<InfoUsuarioDto>.Ok("Validacion exitosa", infoUsuario);
+            return OperationResult<InfoUsuarioDto>.Ok( infoUsuario);
         }
         private async Task<OperationResult<CarritoConItemsDto>> ValidarCarritoYObtenerItems(int userId)
         {
@@ -169,7 +165,7 @@ namespace GestorInventario.Application.Services.Payment
                 Items = itemsDelCarrito
             };
 
-            return OperationResult<CarritoConItemsDto>.Ok("Validacion exitosa", resultado);
+            return OperationResult<CarritoConItemsDto>.Ok( resultado);
         }
 
 
@@ -270,7 +266,7 @@ namespace GestorInventario.Application.Services.Payment
             var approvalUrl = createdPayment?.Links?.FirstOrDefault(x => x.Rel == "payer-action")?.Href;
             if (!string.IsNullOrEmpty(approvalUrl))
             {
-                return OperationResult<string>.Ok("Redirigiendo a PayPal para completar el pago", approvalUrl);
+                return OperationResult<string>.Ok( approvalUrl,"Redirigiendo a PayPal para completar el pago");
 
             }
             return OperationResult<string>.Fail("Error al procesar el pago con paypal");

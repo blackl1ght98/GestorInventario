@@ -74,20 +74,20 @@ namespace GestorInventario.Application.Services.User
             _logger.LogInformation("Usuario {Email} creado con rol {Rol}", model.Email, nombreRol);
             return OperationResult<string>.Ok("Usuario creado correctamente");
         }
-        public async Task<OperationResult<string>> EditarUsuarioAsync(EditUserDto userVM)
+        public async Task<OperationResult<string>> EditarUsuarioAsync(EditUserDto userVm)
         {
-            var resultado = await _usuarioRepository.ObtenerUsuarioPorId(userVM.Id);
+            var resultado = await _usuarioRepository.ObtenerUsuarioPorId(userVm.Id);
             if (resultado is null)
                 return OperationResult<string>.Fail();
 
            
             string emailActual = resultado.Email;
 
-            UpdateUsuarioFromDto(resultado, userVM);
+            UpdateUsuarioFromDto(resultado, userVm);
 
-            if (emailActual != userVM.Email)
+            if (emailActual != userVm.Email)
             {
-                resultado.Email = userVM.Email;
+                resultado.Email = userVm.Email;
                 resultado.ConfirmacionEmail = false;
             }
 
@@ -95,15 +95,15 @@ namespace GestorInventario.Application.Services.User
             if (!resultadoEdicion.Success)
                 return OperationResult<string>.Fail(resultadoEdicion.Message);
 
-            if (emailActual != userVM.Email)
+            if (emailActual != userVm.Email)
             {
                 var correo = await _emailService.SendEmailAsyncRegister(
-                    new EmailDto { ToEmail = userVM.Email }, resultado.Id);
+                    new EmailDto { ToEmail = userVm.Email }, resultado.Id);
 
                 if (!correo.Success)
                     _logger.LogWarning("Error al enviar correo de confirmación: {Error}", correo.Message);
                 else
-                    _logger.LogInformation("Correo de confirmación enviado a {Email}", userVM.Email);
+                    _logger.LogInformation("Correo de confirmación enviado a {Email}", userVm.Email);
             }
 
             return OperationResult<string>.Ok("Edicion realizada con exito");
@@ -125,32 +125,32 @@ namespace GestorInventario.Application.Services.User
         }
         public async Task<OperationResult<string>> ValidarRegistro(ConfirmRegistrationDto confirmar)
         {
-            var usuarioDB = await _usuarioRepository.ObtenerUsuarioPorId(confirmar.UserId);
+            var usuarioDb = await _usuarioRepository.ObtenerUsuarioPorId(confirmar.UserId);
 
-            if (usuarioDB is null)
+            if (usuarioDb is null)
             {
 
                 _logger.LogWarning("Intento de confirmar un usuario inexistente con ID {UserId}", confirmar.UserId);
                 return OperationResult<string>.Fail("Error al confirmar el usuario. Intentelo de nuevo mas tarde"); 
             }
 
-            if (usuarioDB.ConfirmacionEmail != false)
+            if (usuarioDb.ConfirmacionEmail)
             {
              
-                _logger.LogInformation($"El usuario con email {usuarioDB.Email} ha intentado confirmar su correo estando confirmado");
+                _logger.LogInformation($"El usuario con email {usuarioDb.Email} ha intentado confirmar su correo estando confirmado");
                 return OperationResult<string>.Fail("Usuario ya validado");
             }
-            if (usuarioDB.EmailVerificationToken != confirmar.Token)
+            if (usuarioDb.EmailVerificationToken != confirmar.Token)
             {
-                _logger.LogCritical("Intento de manipulacion del token por el usuario: " + usuarioDB.Id);
+                _logger.LogCritical("Intento de manipulacion del token por el usuario: " + usuarioDb.Id);
                 return OperationResult<string>.Fail("Ocurrio un error al confirmar el usuario");
             }
             await _usuarioRepository.ConfirmEmail(new ConfirmRegistrationDto
             {
                 UserId = confirmar.UserId
             });
-            usuarioDB.EmailVerificationToken = null;
-            await _usuarioRepository.ActualizarUsuarioAsync(usuarioDB);
+            usuarioDb.EmailVerificationToken = null;
+            await _usuarioRepository.ActualizarUsuarioAsync(usuarioDb);
             return OperationResult<string>.Ok("Validacion exitosa");
         }
         // Crea un Usuario nuevo a partir de un RegisterUserDto.
@@ -163,8 +163,8 @@ namespace GestorInventario.Application.Services.User
                 Email = dto.Email,
                 NombreCompleto = dto.NombreCompleto,
                 FechaNacimiento = dto.FechaNacimiento ?? default,
-                Telefono = dto.Telefono ?? string.Empty,
-                Direccion = dto.Direccion ?? "No especificada",
+                Telefono = dto.Telefono ,
+                Direccion = dto.Direccion ,
                 Ciudad = dto.Ciudad,
                 CodigoPostal = int.Parse(dto.CodigoPostal),
                 BajaUsuario = false,

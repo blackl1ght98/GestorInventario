@@ -154,7 +154,11 @@ namespace GestorInventario.Controllers.PaypalControllers
                     Reason = "Suspension manual por administrador";
 
                 var result = await _paypalSubscriptionService.SuspenderSuscripcion(Id, Reason);
-
+                if (!result.IsSuccess)
+                {
+                    
+                    return RedirigirSegunRol();
+                }
                 // Update subscription status using the repository
                 await _subscriptionService.UpdateSubscriptionStatusAsync(result.Data.subId, result.Data.subStatus);
 

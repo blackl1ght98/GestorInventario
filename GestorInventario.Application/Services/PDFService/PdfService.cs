@@ -25,7 +25,7 @@ namespace GestorInventario.Application.Services.PDFService
                 return OperationResult<byte[]>.Fail();
 
             var pdfBytes = _invoiceRenderer.Render(detalle);
-            return OperationResult<byte[]>.Ok("Factura generada correctamente", pdfBytes);
+            return OperationResult<byte[]>.Ok( pdfBytes,"Factura generada correctamente");
         }
     }
 }

@@ -135,7 +135,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.User
             // Task.FromResult = "devuelve este valor ya resuelto dentro de una Task"
             // (necesario porque el método es async).
             _repoMock.Setup(r => r.AgregarUsuarioAsync(It.IsAny<Usuario>()))
-                .Returns(Task.FromResult(OperationResult<Usuario>.Ok("Guardado", new Usuario())));
+                .Returns(Task.FromResult(OperationResult<Usuario>.Ok( new Usuario())));
 
             // Act
             var resultado = await _sut.CrearUsuarioAsync(dto);
@@ -176,7 +176,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.User
                 .Returns(new HashResult { Hash = "hashFakeEnBase64==", Salt = new byte[16] });
 
             _repoMock.Setup(r => r.AgregarUsuarioAsync(It.IsAny<Usuario>()))
-                .Returns(Task.FromResult(OperationResult<Usuario>.Ok("Guardado", new Usuario())));
+                .Returns(Task.FromResult(OperationResult<Usuario>.Ok( new Usuario())));
 
             _emailMock.Setup(e => e.SendEmailAsyncRegister(It.IsAny<EmailDto>(), It.IsAny<int>()))
                 .Returns(Task.FromResult(OperationResult<string>.Ok("Enviado")));
@@ -212,7 +212,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.User
                 .Returns(new HashResult { Hash = "hashFakeEnBase64==", Salt = new byte[16] });
 
             _repoMock.Setup(r => r.AgregarUsuarioAsync(It.IsAny<Usuario>()))
-                .Returns(Task.FromResult(OperationResult<Usuario>.Ok("Guardado", new Usuario())));
+                .Returns(Task.FromResult(OperationResult<Usuario>.Ok( new Usuario())));
 
             _emailMock.Setup(e => e.SendEmailAsyncRegister(It.IsAny<EmailDto>(), It.IsAny<int>()))
                 .Returns(Task.FromResult(OperationResult<string>.Ok("Enviado")));
@@ -312,7 +312,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.User
                 .Returns(new HashResult { Hash = "hashFakeEnBase64==", Salt = new byte[16] });
 
             _repoMock.Setup(r => r.AgregarUsuarioAsync(It.IsAny<Usuario>()))
-                .Returns(Task.FromResult(OperationResult<Usuario>.Ok("Guardado", new Usuario())));
+                .Returns(Task.FromResult(OperationResult<Usuario>.Ok( new Usuario())));
 
             // It.Is<EmailDto>(m => m.ToEmail == dto.Email)
             // = "Verifica que el email se envió EXACTAMENTE a esta dirección"
@@ -352,7 +352,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.User
                 .Returns(new HashResult { Hash = "hashFakeEnBase64==", Salt = new byte[16] });
 
             _repoMock.Setup(r => r.AgregarUsuarioAsync(It.IsAny<Usuario>()))
-                .Returns(Task.FromResult(OperationResult<Usuario>.Ok("Guardado", new Usuario())));
+                .Returns(Task.FromResult(OperationResult<Usuario>.Ok( new Usuario())));
 
             // Simulamos que el servicio de email devuelve FAIL
             _emailMock.Setup(e => e.SendEmailAsyncRegister(It.IsAny<EmailDto>(), It.IsAny<int>()))

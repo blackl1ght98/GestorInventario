@@ -79,7 +79,7 @@ namespace GestorInventario.Infrastructure.Repositories.PedidoRepository
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.AddEntityAsync(pedido);
-                return OperationResult<Pedido>.Ok("Pedido Agregado", pedido);
+                return OperationResult<Pedido>.Ok( pedido);
             });
         }
         public async Task<OperationResult<Pedido>> ActualizarPedidoAsync(Pedido pedido)
@@ -87,7 +87,7 @@ namespace GestorInventario.Infrastructure.Repositories.PedidoRepository
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.UpdateEntityAsync(pedido);
-                return OperationResult<Pedido>.Ok("Pedido actualizado", pedido);
+                return OperationResult<Pedido>.Ok( pedido);
             });
         }
         public async Task<OperationResult<DetallePedido>> ActualizarDetallePedidoAsync(DetallePedido pedido)
@@ -95,7 +95,7 @@ namespace GestorInventario.Infrastructure.Repositories.PedidoRepository
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.UpdateEntityAsync(pedido);
-                return OperationResult<DetallePedido>.Ok("Detalle del pedido actualizado", pedido);
+                return OperationResult<DetallePedido>.Ok( pedido);
             });
         }
         public async Task<OperationResult<DetallePedido>> AgregarDetallePedidoAsync(DetallePedido pedido)
@@ -103,7 +103,7 @@ namespace GestorInventario.Infrastructure.Repositories.PedidoRepository
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.AddEntityAsync(pedido);
-                return OperationResult<DetallePedido>.Ok("Detalle del producto agregado", pedido);
+                return OperationResult<DetallePedido>.Ok( pedido);
             });
         }
         public async Task<OperationResult<DetallePedido>> EliminarDetallePedidoAsync(DetallePedido pedido)
@@ -111,7 +111,7 @@ namespace GestorInventario.Infrastructure.Repositories.PedidoRepository
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.DeleteEntityAsync(pedido);
-                return OperationResult<DetallePedido>.Ok("Detalle del producto eliminado", pedido);
+                return OperationResult<DetallePedido>.Ok( pedido);
             });
         }
         public async Task<OperationResult<string>> EliminarCarritoAsync(Pedido pedido)

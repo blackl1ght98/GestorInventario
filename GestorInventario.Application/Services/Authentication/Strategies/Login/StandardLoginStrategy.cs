@@ -29,7 +29,7 @@ namespace GestorInventario.Application.Services.Authentication.Strategies.Login
             }
 
             // Retornamos un OK con los datos de sesión (MFA = false por defecto)
-            return OperationResult<AuthSessionDetails>.Ok("Login exitoso", new AuthSessionDetails(user.Data));
+            return OperationResult<AuthSessionDetails>.Ok( new AuthSessionDetails(user.Data),"Login exitoso");
         }
     }
 }

@@ -52,8 +52,8 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Refunds
                 : amount;
 
             return OperationResult<(string, decimal)>.Ok(
-                "Reembolso procesado correctamente",
-                (response.Id!, amountRefunded));
+                
+                (response.Id!, amountRefunded),"Reembolso procesado correctamente");
         }
 
         private PaypalRefundRequest BuildRefundRequest(

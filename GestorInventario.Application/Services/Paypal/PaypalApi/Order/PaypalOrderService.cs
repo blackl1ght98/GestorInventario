@@ -193,22 +193,32 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Order
         #region Obtener detalles del pago v2 paypal   
         public async Task<OrderDetailsResponse> ObtenerDetallesPagoEjecutadoAsync(string id)
         {
-            var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
-             HttpMethod.Get,
-             $"v2/checkout/orders/{id}",
-             async resp =>
-             {
-                 var errBody = await resp.Content.ReadAsStringAsync();
-                 throw new InvalidOperationException(
-                     $"Error al obtener detalles de orden {id}: {resp.StatusCode} - {errBody}");
-             });
-            // Deserializamos la respuesta al DTO correspondiente
-            var subscriptionDetails = JsonConvert.DeserializeObject<OrderDetailsResponse>(responseBody);
-            if (subscriptionDetails == null)
+            try
             {
-                throw new ArgumentNullException("No se puede obtener los detalles de la subscripcion");
+                var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
+                    HttpMethod.Get,
+                    $"v2/checkout/orders/{id}",
+                    async resp =>
+                    {
+                        var errBody = await resp.Content.ReadAsStringAsync();
+                        throw new InvalidOperationException(
+                            $"Error al obtener detalles de orden {id}: {resp.StatusCode} - {errBody}");
+                    });
+                // Deserializamos la respuesta al DTO correspondiente
+                var subscriptionDetails = JsonConvert.DeserializeObject<OrderDetailsResponse>(responseBody);
+                if (subscriptionDetails == null)
+                {
+                    throw new InvalidOperationException("No se puede obtener los detalles de la subscripcion");
+                }
+                return subscriptionDetails;
+
             }
-            return subscriptionDetails;
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+           
 
         }
         #endregion

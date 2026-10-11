@@ -81,7 +81,7 @@ namespace GestorInventario.Application.Services.Products
                 "Producto creado exitosamente: {NombreProducto}, UpcCode: {UpcCode}",
                 producto.NombreProducto, producto.CodigoBarras);
 
-            return OperationResult<Producto>.Ok(data: producto);
+            return OperationResult<Producto>.Ok( producto);
         }
         public async Task<OperationResult<string>> EditarProducto(EditarProductoDto model, int usuarioId)
         {
@@ -113,7 +113,7 @@ namespace GestorInventario.Application.Services.Products
                         model.ArchivoImagenNombre,
                         "imagenes");
 
-                    seGeneroNuevaImagen = true;  // ← NUEVO
+                    seGeneroNuevaImagen = true;  
 
                     _logger.LogInformation(
                         "Imagen guardada: {ImagenPath}", producto.Imagen);

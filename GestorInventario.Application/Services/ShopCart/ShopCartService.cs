@@ -8,8 +8,7 @@ using GestorInventario.Interfaces.Web;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 
-
-namespace GestorInventario.Application.Services.Carrito
+namespace GestorInventario.Application.Services.ShopCart
 {
     public class ShopCartService : IShopCartService
     {
@@ -56,7 +55,7 @@ namespace GestorInventario.Application.Services.Carrito
                 // 2. Verificar si tiene items
                 var items = await _carritoRepository.ObtenerItemsDelCarritoUsuario(carritoActivo.Id);
 
-                if (items.Any() == true)
+                if (items.Any())
                 {
                     _logger.LogInformation("Carrito activo del usuario {UsuarioId} tiene items → no se elimina", usuarioId);
                     return;
@@ -70,7 +69,7 @@ namespace GestorInventario.Application.Services.Carrito
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al intentar eliminar el carrito activo del usuario {UsuarioId}", usuarioId);
-                return;
+                
             }
         }
       
@@ -97,7 +96,7 @@ namespace GestorInventario.Application.Services.Carrito
 
                 }
 
-                return OperationResult<Pedido>.Ok("", carrito);
+                return OperationResult<Pedido>.Ok( carrito);
             }
             catch (Exception ex)
             {
@@ -114,15 +113,15 @@ namespace GestorInventario.Application.Services.Carrito
                
                 if (detalle == null)
                 {
-                _logger.LogError("Item no encontrado");
-                return OperationResult<string>.Fail();
+                   _logger.LogError("Item no encontrado");
+                   return OperationResult<string>.Fail();
 
-            }
+                }
 
-            detalle.Cantidad++;
+                detalle.Cantidad++;
                 await _pedidoRepository.ActualizarDetallePedidoAsync(detalle);
 
-                var producto = await _productoRepository.ObtenerProductoPorIdAsync((int)detalle.ProductoId);
+                var producto = await _productoRepository.ObtenerProductoPorIdAsync(detalle.ProductoId);
                 if (producto == null || producto.Cantidad <= 0)
                 {
 
@@ -156,10 +155,11 @@ namespace GestorInventario.Application.Services.Carrito
                 return OperationResult<string>.Fail("No hay suficientes productos en stock.");
             }
             // Obtener o crear el carrito
-            var carrito = await CrearCarritoUsuario(usuarioId);
-            if (carrito != null)
+            var carritoResult = await CrearCarritoUsuario(usuarioId);
+            if (carritoResult.IsSuccess)
             {
-                var detalleExistente = await _productoRepository.ObtenerDetallesCarrito(carrito.Data.Id, idProducto);
+                var carrito = carritoResult.Unwrap();
+                var detalleExistente = await _productoRepository.ObtenerDetallesCarrito(carrito.Id, idProducto);
                 if (detalleExistente != null)
                 {
                     // Sumar la cantidad al ítem existente
@@ -171,7 +171,7 @@ namespace GestorInventario.Application.Services.Carrito
                     // Crear un nuevo ítem en el carrito
                     var detalle = new DetallePedido
                     {
-                        PedidoId = carrito.Data.Id,
+                        PedidoId = carrito.Id,
                         ProductoId = idProducto,
                         Cantidad = cantidad
                     };
@@ -193,13 +193,13 @@ namespace GestorInventario.Application.Services.Carrito
                 var detalle = await _carritoRepository.ItemsDelCarrito(id);
               
                 if (detalle == null)
-                {
-                _logger.LogError("Item no encontrado");
-                return OperationResult<string>.Fail();
+                { 
+                    _logger.LogError("Item no encontrado");
+                    return OperationResult<string>.Fail();
 
-            }
+                }
 
-            detalle.Cantidad--;
+                detalle.Cantidad--;
                 if (detalle.Cantidad <= 0)
                 {
                     await _pedidoRepository.EliminarDetallePedidoAsync(detalle);
@@ -209,7 +209,7 @@ namespace GestorInventario.Application.Services.Carrito
                     await _pedidoRepository.ActualizarDetallePedidoAsync(detalle);
                 }
 
-                var producto = await _productoRepository.ObtenerProductoPorIdAsync((int)detalle.ProductoId);
+                var producto = await _productoRepository.ObtenerProductoPorIdAsync(detalle.ProductoId);
                 if (producto == null)
                 {
 
@@ -232,7 +232,7 @@ namespace GestorInventario.Application.Services.Carrito
                     return OperationResult<string>.Fail();
                 }
 
-                var producto = await _productoRepository.ObtenerProductoPorIdAsync((int)detalle.ProductoId);
+                var producto = await _productoRepository.ObtenerProductoPorIdAsync(detalle.ProductoId);
                 if (producto != null)
                 {
                     producto.Cantidad += detalle.Cantidad;

@@ -17,8 +17,6 @@ namespace GestorInventario.Application.Services.Orders
     {
         private readonly IPedidoRepository _pedidoRepository;
         private readonly ILogger<OrderService> _logger;
-       
-       
         private readonly IPaypalOrderService _paypalOrderService;
         private readonly IPaymentRepository _paymentRepository;
       
@@ -28,12 +26,9 @@ namespace GestorInventario.Application.Services.Orders
             
             _logger = logger;
             _pedidoRepository = pedido;
-           
-       
             _paypalOrderService = paypal;
             _paymentRepository = payment;
-           
-        
+            
         }
         public async Task<OperationResult<string>> EliminarPedido(int id)
         {
@@ -69,7 +64,7 @@ namespace GestorInventario.Application.Services.Orders
                 await ProcesarUnidadDeCompraAsync(primeraUnidad, detalleBD, pedidoId);
             }
 
-            return OperationResult<PayPalPaymentDetail>.Ok(data: detalleBD);
+            return OperationResult<PayPalPaymentDetail>.Ok(detalleBD);
         }
 
 
@@ -274,7 +269,7 @@ namespace GestorInventario.Application.Services.Orders
 
             await _pedidoRepository.ActualizarPedidoAsync(pedido);
 
-            return OperationResult<Pedido>.Ok("Pago confirmado. Pendiente de sincronización con PayPal.", pedido);
+            return OperationResult<Pedido>.Ok( pedido,"Pago confirmado. Pendiente de sincronización con PayPal.");
         }
       
         public async Task AddInfoTrackingOrder(int pedidoId, string tracking, string carrier)
