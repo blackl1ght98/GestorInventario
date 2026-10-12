@@ -7,6 +7,9 @@ using GestorInventario.Shared.DTOS.Paypal.Responses.GET.Order;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Globalization;
+using GestorInventario.Shared.DTOS.Paypal.BD;
+using GestorInventario.Shared.DTOS.Paypal.Responses.POST.Order;
+using GestorInventario.Shared.Utilities;
 
 namespace GestorInventario.Application.Services.Paypal.PaypalApi.Order
 {
@@ -23,20 +26,33 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Order
           
         }
         #region Crear orden 
-        public async Task<string> CreateOrderWithPaypalAsync(CheckoutDto pagar)
+        public async Task<OperationResult<string>> CreateOrderWithPaypalAsync(CheckoutDto pagar)
         {
-            var order = BuildOrder(pagar);
-            var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
-                HttpMethod.Post,
-                "v2/checkout/orders",
-                order,
-               async resp =>
-               {
-                   var body = await resp.Content.ReadAsStringAsync();
-                   throw new InvalidOperationException($"Error al crear orden: {resp.StatusCode} - {body}");
-               });
-          
-            return responseBody;
+            try
+            {
+                var order = BuildOrder(pagar);
+                var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
+                    HttpMethod.Post,
+                    "v2/checkout/orders",
+                    order,
+                    async resp =>
+                    {
+                        var body = await resp.Content.ReadAsStringAsync();
+                        throw new InvalidOperationException($"Error al crear orden: {resp.StatusCode} - {body}");
+                    });
+                var createdPayment = JsonConvert.DeserializeObject<PayPalOrderResponse>(responseBody);
+                var approvalUrl = createdPayment?.Links?.FirstOrDefault(x => x.Rel == "payer-action")?.Href;
+                return OperationResult<string>.Ok(approvalUrl,"URL a la que redirigir");
+            }
+            catch (InvalidOperationException ex)
+            {
+                return OperationResult<string>.Fail(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<string>.Fail($"Ocurrió un error inesperado: {ex.Message}");
+            }
+           
         }
         private CreateOrderRequest BuildOrder(CheckoutDto pagar)
         {
@@ -150,7 +166,7 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Order
         #endregion
 
         #region Capturar el pago (orden)
-        public async Task<(string CaptureId, decimal Total, string Currency)> CapturarPagoAsync(string orderId)
+        public async Task<OperationResult<PaymentCapturedDto>> CapturarPagoAsync(string orderId)
         {
             try
             {
@@ -179,19 +195,28 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Order
                     throw new Exception("No se pudo extraer la información de la captura del pago.");
                 }
                 decimal amountValue= decimal.Parse(capture.Amount.Value, CultureInfo.InvariantCulture);
-                return (capture.Id, amountValue, capture.Amount.CurrencyCode);
+                var captured = new PaymentCapturedDto
+                {
+                    CaptureId = capture.Id,
+                    Total = amountValue,
+                    Currency = capture.Amount.CurrencyCode
+                };
+                return OperationResult<PaymentCapturedDto>.Ok(captured);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return OperationResult<PaymentCapturedDto>.Fail(ex.Message);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al capturar el pago de PayPal");
-                throw new InvalidOperationException("No se pudo capturar el pago de PayPal", ex);
+                return OperationResult<PaymentCapturedDto>.Fail($"Ocurrió un error inesperado: {ex.Message}");
             }
         }
 
         #endregion
 
-        #region Obtener detalles del pago v2 paypal   
-        public async Task<OrderDetailsResponse> ObtenerDetallesPagoEjecutadoAsync(string id)
+        #region Obtener detalles del pago  paypal   
+        public async Task<OperationResult<OrderDetailsResponse>> ObtenerDetallesPagoEjecutadoAsync(string id)
         {
             try
             {
@@ -210,7 +235,7 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Order
                 {
                     throw new InvalidOperationException("No se puede obtener los detalles de la subscripcion");
                 }
-                return subscriptionDetails;
+                return OperationResult<OrderDetailsResponse>.Ok(subscriptionDetails);
 
             }
             catch (Exception e)

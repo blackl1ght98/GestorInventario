@@ -1,61 +1,72 @@
 ﻿using GestorInventario.Shared.DTOS.Paypal.Responses.GET.Order;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
+using GestorInventario.Shared.DTOS.Paypal.BD;
+using GestorInventario.Shared.Utilities;
+
 
 namespace GestorInventario.Application.Services.Common
 {
     public static class PaypalRefundCalculator
     {
-        public static (decimal montoReembolso, decimal montoDisponible, string estadoVenta)
+        
+        public static OperationResult<RefundCalculadorDto>
         CalcularMontoDisponibleYEstado(
             OrderDetailsResponse captureDetails,
             decimal montoSolicitado,
-            string currency,
-            ILogger logger)
+            string currency
+            )
         {
-            var firstUnit = captureDetails.PurchaseUnits?.FirstOrDefault()
-                ?? throw new InvalidOperationException("La orden no contiene unidades de compra.");
+            try
+            { 
+                var firstUnit = captureDetails.PurchaseUnits?.FirstOrDefault()
+                              ?? throw new InvalidOperationException("La orden no contiene unidades de compra."); 
+                var capture = firstUnit.Payments?.Captures?.FirstOrDefault()
+                              ?? throw new InvalidOperationException("La orden no contiene capturas de pago.");
+                if (currency != capture.Amount?.CurrencyCode)
+                {
+                    throw new InvalidOperationException(
+                        $"Moneda solicitada ({currency}) no coincide con la captura ({capture.Amount?.CurrencyCode}).");
+                }
 
-            var capture = firstUnit.Payments?.Captures?.FirstOrDefault()
-                ?? throw new InvalidOperationException("La orden no contiene capturas de pago.");
+                var grossAmount = ParseDecimalSeguro(capture.Amount?.Value, "monto bruto de la captura");
+                var refundedAmount = firstUnit.Payments?.Refunds?
+                                         .Where(r => r.Amount?.Value != null)
+                                         .Sum(r => ParseDecimalSeguro(r.Amount.Value, "monto de reembolso previo"))
+                                     ?? 0m; 
+                var availableAmount = grossAmount - refundedAmount; 
+                if (availableAmount <= 0)
+                {
+                    return OperationResult<RefundCalculadorDto>.Fail($"No hay fondos disponibles para reembolsar. Bruto: {grossAmount}, Ya reembolsado: {refundedAmount}");
+                
+                } 
+                var finalRefundAmount = Math.Min(montoSolicitado, availableAmount);
 
-            if (currency != capture.Amount?.CurrencyCode)
-                throw new InvalidOperationException(
-                    $"Moneda solicitada ({currency}) no coincide con la captura ({capture.Amount?.CurrencyCode}).");
+                if (finalRefundAmount < montoSolicitado)
+                {
+                    return OperationResult<RefundCalculadorDto>.Fail($"Monto solicitado ({montoSolicitado}) excede disponible ({availableAmount}). Ajustando a {finalRefundAmount}.");
+                }
 
-            var grossAmount = ParseDecimalSeguro(capture.Amount?.Value, "monto bruto de la captura");
-
-            var refundedAmount = firstUnit.Payments?.Refunds?
-                .Where(r => r.Amount?.Value != null)
-                .Sum(r => ParseDecimalSeguro(r.Amount.Value, "monto de reembolso previo"))
-                ?? 0m;
-
-            var availableAmount = grossAmount - refundedAmount;
-
-            if (availableAmount <= 0)
-            {
-                logger.LogWarning("No hay fondos disponibles para reembolsar. Bruto: {Gross}, Ya reembolsado: {Refunded}",
-                    grossAmount, refundedAmount);
-                throw new InvalidOperationException("No hay monto disponible para reembolsar.");
+                var estadoVenta = finalRefundAmount >= availableAmount && refundedAmount == 0
+                    ? "REFUNDED"
+                    : "PARTIALLY_REFUNDED";
+                var finalRefund = new RefundCalculadorDto()
+                {
+                    MontoDisponible = availableAmount,
+                    MontoReembolso = finalRefundAmount,
+                    Estado = estadoVenta
+                };
+                return OperationResult<RefundCalculadorDto>.Ok(finalRefund);
             }
-
-            var finalRefundAmount = Math.Min(montoSolicitado, availableAmount);
-
-            if (finalRefundAmount < montoSolicitado)
+            catch (InvalidOperationException ex)
             {
-                logger.LogWarning(
-                    "Monto solicitado ({Solicitado}) excede disponible ({Disponible}). Ajustando a {Ajustado}.",
-                    montoSolicitado, availableAmount, finalRefundAmount);
+               
+                return OperationResult<RefundCalculadorDto>.Fail(ex.Message);
             }
-
-            var estadoVenta = finalRefundAmount >= availableAmount && refundedAmount == 0
-                ? "REFUNDED"
-                : "PARTIALLY_REFUNDED";
-
-            return (finalRefundAmount, availableAmount, estadoVenta);
+            catch (Exception ex)
+            {
+                return OperationResult<RefundCalculadorDto>.Fail($"Ocurrió un error inesperado: {ex.Message}");
+            }
+            
         }
 
         private static decimal ParseDecimalSeguro(string? value, string campo)

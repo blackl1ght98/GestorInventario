@@ -117,6 +117,12 @@ namespace GestorInventario.Controllers.AuthenticationController
                     Secure = true,
                     Expires = DateTime.UtcNow.AddHours(24)
                 });
+                var userId = _current.GetCurrentUserId();
+                var crearCarrito = await _carritoService.CrearCarritoUsuario(userId);
+                if (!crearCarrito.Success)
+                {
+                    return RedirectToAction("Error", "Home");
+                }
 
                 return RedirectToAction("Index", "Home");
             }

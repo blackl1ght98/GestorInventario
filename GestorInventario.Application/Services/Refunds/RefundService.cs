@@ -109,7 +109,7 @@ namespace GestorInventario.Application.Services.Refunds
             // 1. OBTENER DATOS DEL PEDIDO (tu BD)
             var detallePedido = await _pedidoRepository.ObtenerDetalleParaReembolsoAsync(request.DetalleId);
             if (detallePedido == null)
-                return OperationResult<(int, int,decimal, string)>.Fail();
+                return OperationResult<(int, int, decimal, string)>.Fail("No se encontró el detalle del pedido.");
 
             // 2. CALCULAR MONTO CON IVA
             var precioSinIva = detallePedido.Producto.Precio;
@@ -119,17 +119,21 @@ namespace GestorInventario.Application.Services.Refunds
                 "Reembolso parcial pedido {PedidoId} -> Precio:{Precio} Total con IVA:{Total}",
                 request.DetalleId, precioSinIva, montoSolicitadoConIva);
 
-            // 3. VERIFICAR ESTADO ACTUAL EN PAYPAL
-            var captureDetails = await _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(
-                detallePedido.Pedido.PayPalPaymentCaptures.First().PaymentId);
+            // 3. VERIFICAR ESTADO ACTUAL EN PAYPAL (Flujo fluido con Bind)
+            var resultRefund = await _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(
+                    detallePedido.Pedido.PayPalPaymentCaptures.First().PaymentId)
+                .Bind(details =>
+                    PaypalRefundCalculator.CalcularMontoDisponibleYEstado(details, montoSolicitadoConIva, request.Currency));
 
-            var (montoReembolso, montoDisponible, estadoVenta) = PaypalRefundCalculator.CalcularMontoDisponibleYEstado(
-                captureDetails, montoSolicitadoConIva, request.Currency, _logger);
+            if (resultRefund.IsFailure)
+                return OperationResult<(int, int, decimal, string)>.Fail(resultRefund.Message);
+
+            var finalRefund = resultRefund.Data;
 
             // 4. EJECUTAR REEMBOLSO EN PAYPAL
             var refundResult = await _paypalRefundService.RefundCaptureAsync(
                 captureId: detallePedido.Pedido.PayPalPaymentCaptures.First().CaptureId,
-                amount: montoReembolso,
+                amount: finalRefund.MontoReembolso,
                 currency: detallePedido.Pedido.Currency,
                 nota: $"Reembolso parcial pedido #{detallePedido.Pedido.Id} - {request.Motivo}");
 
@@ -139,30 +143,36 @@ namespace GestorInventario.Application.Services.Refunds
                 if (refundResult.Message.Contains("REFUND_AMOUNT_EXCEEDED") ||
                     refundResult.Message.Contains("UnprocessableEntity"))
                 {
-                    var updatedCapture = await _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(
+                    // Obtenemos la captura actualizada UNA SOLA VEZ
+                    var updatedCaptureResult = await _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(
                         detallePedido.Pedido.PayPalPaymentCaptures.First().PaymentId);
+
+                    if (updatedCaptureResult.IsFailure)
+                        return OperationResult<(int, int, decimal, string)>.Fail($"Error al verificar estado en PayPal: {updatedCaptureResult.Message}");
+
+                    var capture = updatedCaptureResult.Unwrap();
                     var montoFormateado = CalculadoraFiscal.FormatearPayPal(montoSolicitadoConIva);
 
-                    var recentRefund = updatedCapture?.PurchaseUnits[0].Payments.Refunds?
+                    var recentRefund = capture.PurchaseUnits[0].Payments.Refunds?
                         .FirstOrDefault(r => r.Amount.Value == montoFormateado);
 
                     if (recentRefund != null)
                     {
                         _logger.LogWarning("Falso positivo: Reembolso ya procesado (ID {RefundId}).", recentRefund.Id);
 
+                        // Actualizamos refundResult para que el flujo continúe al registro en BD
                         refundResult = OperationResult<(string, decimal)>.Ok(
-                            
-                            (recentRefund.Id, montoReembolso),"Reembolso ya existente");
+                            (recentRefund.Id, finalRefund.MontoReembolso), "Reembolso ya existente");
                     }
                     else
                     {
-                        return OperationResult<(int,int, decimal, string)>.Fail(
-                            $"El monto ({montoSolicitadoConIva} {request.Currency}) excede disponible ({montoDisponible} {request.Currency}).");
+                        return OperationResult<(int, int, decimal, string)>.Fail(
+                            $"El monto ({montoSolicitadoConIva} {request.Currency}) excede disponible ({finalRefund.MontoDisponible} {request.Currency}).");
                     }
                 }
                 else
                 {
-                    return OperationResult<(int, int,decimal, string)>.Fail(refundResult.Message);
+                    return OperationResult<(int, int, decimal, string)>.Fail(refundResult.Message);
                 }
             }
 
@@ -171,23 +181,19 @@ namespace GestorInventario.Application.Services.Refunds
                 detallePedido.Pedido.Id,
                 detallePedido.Id,
                 request.Motivo,
-                montoReembolso,
+                finalRefund.MontoReembolso,
                 detallePedido.Pedido.Currency,
                 refundResult.Data.RefundId
                 );
 
             if (rembolsoParcial.Success)
             {
-                return OperationResult<(int, int,decimal, string)>.Ok(
-                    
-                    (detallePedido.Pedido.Id, detallePedido.Id,detallePedido.Producto.Precio, request.Motivo),"Rembolso parcial realizado");
+                return OperationResult<(int, int, decimal, string)>.Ok(
+                    (detallePedido.Pedido.Id, detallePedido.Id, detallePedido.Producto.Precio, request.Motivo), "Reembolso parcial realizado");
             }
-            else
-            {
-                return OperationResult<(int,int, decimal, string)>.Fail(rembolsoParcial.Message);
-            }
-        }
 
+            return OperationResult<(int, int, decimal, string)>.Fail(rembolsoParcial.Message);
+        }
         // Registra el reembolso parcial y actualiza el estado del pedido.
         // Si tras este reembolso ya no queda ninguna línea pendiente, el pedido
         // pasa a EstadoPedido.Rembolsado (total); si aún quedan líneas, se queda

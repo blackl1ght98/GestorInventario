@@ -9,7 +9,7 @@
     var isPartialRefund = Model.Capture?.Status == "PARTIALLY_REFUNDED";
     var refundDate = Model.Refund?.CreateTime.ToString("dd/MM/yyyy HH:mm");
     var saldoPendiente = isRefunded
-        ? Model.Amount.Total - Model.Refund!.Amount
+        ? Model.Amount.Total - Model.TotalReembolsado
         : (decimal?)null;
 }
 
@@ -131,10 +131,13 @@
                           
                             @if (isRefunded)
                             {
-                                <div class="d-flex justify-content-between mb-2 text-warning">
-                                    <span>Reembolso del @refundDate</span>
-                                    <span>-@Model.Refund!.Amount.ToString("0.00") @Model.Refund.Currency</span>
-                                </div>
+                                @if (Model.TotalReembolsado > 0)
+                                {
+                                    <div class="d-flex justify-content-between mb-2 text-warning">
+                                        <span>Total Reembolsado</span>
+                                        <span>-@Model.TotalReembolsado.ToString("0.00") @Model.Amount.Currency</span>
+                                    </div>
+                                }
                             }
 
                             <hr>

@@ -15,6 +15,7 @@ namespace GestorInventario.ViewModels.Paypal
         public PayeeInfo Payee { get; init; } = new();
         public CaptureInfo Capture { get; init; } = new();
         public RefundInfo? Refund { get; init; }
+        public decimal TotalReembolsado { get; set; }
         public List<PayPalPaymentItemDto> Items { get; init; } = new();
     }
 

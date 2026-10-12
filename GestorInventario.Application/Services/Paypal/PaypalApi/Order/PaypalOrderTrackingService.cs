@@ -65,7 +65,7 @@ public class PaypalOrderTrackingService : IPaypalOrderTrackingService
                         $"Error al establecer el seguimiento: {resp.StatusCode} - {errBody}");
                 });
 
-            return OperationResult<string>.Ok("Informacion de envio agregada con exito",trackingNumber);
+            return OperationResult<string>.Ok(trackingNumber,"Informacion de envio agregada con exito");
                 
         }
         catch (Exception ex)

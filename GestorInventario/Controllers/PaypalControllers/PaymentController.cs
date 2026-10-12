@@ -62,10 +62,10 @@ namespace GestorInventario.Controllers.PaypalControllers
 
                 // Capturamos el pago en PayPal y guardamos el resultado en BD
                 // (pedido Pagado, payment detail y capture con PENDING_SYNC).
-                var (captureId, total, currency) = await _paypalOrderService.CapturarPagoAsync(paymentId);
-
+                var capturarPagoAsync = await _paypalOrderService.CapturarPagoAsync(paymentId);
+                var pago = capturarPagoAsync.Unwrap();
                 var usuarioActual = _currentUserAccessor.GetCurrentUserId();
-                var result = await _pedidoService.ConfirmarPagoDelPedidoAsync(usuarioActual, captureId, total, currency, paymentId);
+                var result = await _pedidoService.ConfirmarPagoDelPedidoAsync(usuarioActual, pago.CaptureId, pago.Total, pago.Currency, paymentId);
 
                 if (result.Success)
                 {
@@ -171,7 +171,8 @@ namespace GestorInventario.Controllers.PaypalControllers
         public async Task<IActionResult> DetallesPagoEjecutado(string paymentId)
         {
             var paypalDetail = await _paypalRepository.ObtenerDetallePagoPorId(paymentId);
-
+            var totalReembolsado = paypalDetail.PayPalPaymentRefunds?
+                .Sum(r => r.Amount) ?? 0m;
             if (paypalDetail == null)
             {
                 _logger.LogError("No se encontró el detalle de pago {PaymentId} en BD", paymentId);
@@ -188,7 +189,8 @@ namespace GestorInventario.Controllers.PaypalControllers
             var ultimoRefund = paypalDetail.PayPalPaymentRefunds?
             .OrderByDescending(r => r.CreateTime)
             .FirstOrDefault();
-
+           
+            
             var viewModel = new PayPalPaymentDetailViewModel
             {
                 Id = paypalDetail.Id,
@@ -214,7 +216,7 @@ namespace GestorInventario.Controllers.PaypalControllers
                     PostalCode = ultimaInfoEnvio?.PostalCode ?? string.Empty,
                     CountryCode = ultimaInfoEnvio?.CountryCode ?? string.Empty,
                 },
-
+                TotalReembolsado = totalReembolsado,
                 Amount = new AmountInfo
                 {
                     Total = paypalDetail.AmountTotal,
@@ -268,7 +270,8 @@ namespace GestorInventario.Controllers.PaypalControllers
                     ItemQuantity = item.ItemQuantity,
                 }).ToList() ?? new List<PayPalPaymentItemDto>(),
             };
-
+         
+          
             return View(viewModel);
         }
     }

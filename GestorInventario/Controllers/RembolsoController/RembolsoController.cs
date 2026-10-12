@@ -179,13 +179,15 @@ namespace GestorInventario.Controllers.RembolsoController
 
                 var captureDetails = await _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(
                     pedido.PayPalPaymentCaptures.First().PaymentId);
-
-                var (montoReembolso, montoDisponible, estadoVenta) = PaypalRefundCalculator.CalcularMontoDisponibleYEstado(
-                    captureDetails, montoSolicitadoConIva, request.Currency,_logger);
+                var details = captureDetails.Unwrap();
+    
+                var resultRefund = PaypalRefundCalculator.CalcularMontoDisponibleYEstado(
+                    details, montoSolicitadoConIva, request.Currency);
+                var finalRefund = resultRefund.Unwrap();
 
                 var refundResult = await _paypalRefundService.RefundCaptureAsync(
                         captureId: captureId,
-                        amount: montoReembolso,
+                        amount: finalRefund.MontoReembolso,
                         currency: request.Currency,
                         nota: $"Reembolso pedido #{pedido.NumeroPedido}");
 
@@ -329,21 +331,17 @@ namespace GestorInventario.Controllers.RembolsoController
                 var detallespago = await _policyExecutor.ExecutePolicyAsync(() =>
                     _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(orderId));
 
-                if (detallespago == null)
-                {
-                    _logger.LogInformation("No se ha podido obtener los detalles del pago");
-                    return View(nameof(FormularioRembolso));
-                }
+                var detalles = detallespago.Unwrap();
 
                 // Verificar que hay purchase units
-                if (detallespago.PurchaseUnits == null || !detallespago.PurchaseUnits.Any())
+                if (detalles.PurchaseUnits == null || !detalles.PurchaseUnits.Any())
                 {
                     _logger.LogInformation("No se encuntran las unidades de pago en la peticion");
                 }
 
-                var firstPurchaseUnit = detallespago.PurchaseUnits.First();
+                var firstPurchaseUnit = detalles.PurchaseUnits.First();
 
-                var paymentDetail = _mappingService.MapearOrdenADetallePago(detallespago);
+                var paymentDetail = _mappingService.MapearOrdenADetallePago(detalles);
               
                 // Lista para almacenar los ítems de PayPal
                 var paypalItems = await _paymentService.ProcesarRembolso(firstPurchaseUnit, paymentDetail, usuarioActual, dto, obtenerNumeroPedido, emailCliente);

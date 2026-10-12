@@ -45,7 +45,7 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Subscriptions
                 var productResponse = JsonConvert.DeserializeObject<CreateProductResponseDto>(responseBody);
                 
                 string productId = productResponse.Id;
-                return OperationResult<string>.Ok("Producto creado con exito", productId);
+                return OperationResult<string>.Ok( productId,"Producto creado con exito");
 
             }
             catch (InvalidOperationException ex)
@@ -93,7 +93,7 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Subscriptions
                 var responseObject = JsonConvert.DeserializeObject<PaypalPlanDetailsDto>(responseBody);
 
                 string createdPlanId = responseObject.Id;
-                return OperationResult<string>.Ok("", createdPlanId);
+                return OperationResult<string>.Ok(  createdPlanId,"Plano creado con exito");
             }
             catch (InvalidOperationException ex)
             {
@@ -536,7 +536,7 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Subscriptions
                 {
                     throw new InvalidOperationException("No se encontró el enlace de aprobación en la respuesta de PayPal.");
                 }
-                return OperationResult<string>.Ok(data: approvalLink);
+                return OperationResult<string>.Ok(approvalLink,"Redirigiendo...");
 
             }
             catch (InvalidOperationException ex)

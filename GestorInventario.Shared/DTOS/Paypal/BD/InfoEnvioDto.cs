@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace GestorInventario.Shared.DTOS.Paypal.BD
 {
-    public class InfoEnvioDTO
+    public class InfoEnvioDto
     {
         public int PedidoId { get; set; }
 

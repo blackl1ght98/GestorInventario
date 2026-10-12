@@ -261,19 +261,14 @@ namespace GestorInventario.Application.Services.Payment
     
         private async Task<OperationResult<string>> ProcesarPagoPayPal(CheckoutDto checkout)
         {
-            var createdPaymentJson = await _paypalOrder.CreateOrderWithPaypalAsync(checkout);
-            var createdPayment = JsonConvert.DeserializeObject<PayPalOrderResponse>(createdPaymentJson);
-            var approvalUrl = createdPayment?.Links?.FirstOrDefault(x => x.Rel == "payer-action")?.Href;
-            if (!string.IsNullOrEmpty(approvalUrl))
+            var createdPayment = await _paypalOrder.CreateOrderWithPaypalAsync(checkout);
+            if (createdPayment.IsSuccess)
             {
-                return OperationResult<string>.Ok( approvalUrl,"Redirigiendo a PayPal para completar el pago");
+                return OperationResult<string>.Ok(createdPayment.Data,"Redirigiendo a PayPal para completar el pago");
 
             }
             return OperationResult<string>.Fail("Error al procesar el pago con paypal");
         }
-
-
-
         private async Task EliminarCarritosVaciosUsuario(int userId)
         {
 

@@ -100,7 +100,7 @@
             if (!Success) return OperationResult<TOut>.Fail(Message);
             return await next(Data!);
         }
-
+     
         /// <summary> Valida que el dato cumpla una condición; si no, marca el resultado como fallido. </summary>
         public OperationResult<T> Ensure(Func<T, bool> predicate, string errorMessage)
         {

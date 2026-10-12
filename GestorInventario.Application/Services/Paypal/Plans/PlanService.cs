@@ -4,6 +4,7 @@ using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.DTOS.Paypal.Responses.POST.Subscription;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
+using GestorInventario.Shared.Utilities;
 
 
 namespace GestorInventario.Application.Services.Paypal.Plans
@@ -19,7 +20,7 @@ namespace GestorInventario.Application.Services.Paypal.Plans
             _logger = logger;
         }
 
-        public async Task SavePlanDetailsAsync(string planId, PaypalPlanDetailsDto planDetails)
+        public async Task<OperationResult<string>> SavePlanDetailsAsync(string planId, PaypalPlanDetailsDto planDetails)
         {
             // Verificar si el plan ya existe
             var existingPlan = await _paypalRepository.ObtenerPlanPorIdAsync(planId);
@@ -27,12 +28,13 @@ namespace GestorInventario.Application.Services.Paypal.Plans
             if (existingPlan != null)
             {
                 _logger.LogInformation($"El plan con ID {planId} ya existe en la base de datos.");
-                return;
+                return OperationResult<string>.Fail();
             }
             // Mapeo y guardado
             var planDetail = PlanMapper.MapPayPalPlanToEntity(planId, planDetails);
             await _paypalRepository.AgregarPlanAsync(planDetail);
             _logger.LogInformation($"Detalles del plan {planId} guardados exitosamente.");
+            return OperationResult<string>.Ok();
         }
         public async Task UpdatePlanStatusAsync(string planId, string status)
         {

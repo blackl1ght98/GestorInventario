@@ -111,6 +111,10 @@ namespace GestorInventario.Controllers.PedidosControllers
                 }
 
                 var detalles = pedido.DetallePedidos.ToList();
+                if (!detalles.Any())
+                {
+                    return RedirectToAction(nameof(Index));
+                }
 
                 var productos = detalles.Select(d =>
                 {
@@ -134,7 +138,7 @@ namespace GestorInventario.Controllers.PedidosControllers
                 var (totalSinIva, totalIva, granTotal) = CalculadoraFiscal.CalcularTotales(
                     detalles.Select(d => (d.Producto?.Precio ?? 0, d.Cantidad))
                 );
-          var paymentId = pedido.PayPalPaymentCaptures.FirstOrDefault().PaymentId;
+                var paymentId = pedido.PayPalPaymentCaptures.FirstOrDefault().PaymentId;
                 var pedidoId = pedido.Id;
                 var viewmodel = new OrderDetailsViewmodel
                 {

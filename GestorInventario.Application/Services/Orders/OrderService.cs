@@ -4,12 +4,10 @@ using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Application.Services.Orders;
 using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Order;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
-using GestorInventario.Interfaces.Web;
 using GestorInventario.Shared.DTOS.Paypal.Responses.GET.Order;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using System.Globalization;
+
 
 namespace GestorInventario.Application.Services.Orders
 {
@@ -51,14 +49,12 @@ namespace GestorInventario.Application.Services.Orders
            string id, int pedidoId)
         {
             var detallesPayPal = await _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(id);
-            if (detallesPayPal == null)
-                return OperationResult<PayPalPaymentDetail>.Fail(
-                    "Detalles del pedido no encontrados para generar la factura");
+            var detalles = detallesPayPal.Unwrap();
 
-            var detalleBD = await ObtenerOCrearDetallePagoAsync(id, detallesPayPal);
-            PayPalPaymentMapper.MapearPayer(detallesPayPal, detalleBD);
+            var detalleBD = await ObtenerOCrearDetallePagoAsync(id, detalles);
+            PayPalPaymentMapper.MapearPayer(detalles, detalleBD);
 
-            var primeraUnidad = detallesPayPal.PurchaseUnits?.FirstOrDefault();
+            var primeraUnidad = detalles.PurchaseUnits?.FirstOrDefault();
             if (primeraUnidad != null)
             {
                 await ProcesarUnidadDeCompraAsync(primeraUnidad, detalleBD, pedidoId);

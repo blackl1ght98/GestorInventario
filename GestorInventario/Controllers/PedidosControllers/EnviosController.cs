@@ -26,7 +26,7 @@ namespace GestorInventario.Controllers.PedidosControllers
         [Authorize]
         [HttpPost]
       
-        public async Task<IActionResult> AgregarInfoEnvio([FromBody] InfoEnvioDTO envio)
+        public async Task<IActionResult> AgregarInfoEnvio([FromBody] InfoEnvioDto envio)
         {
             try
             {

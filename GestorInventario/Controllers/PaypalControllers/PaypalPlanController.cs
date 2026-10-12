@@ -188,7 +188,8 @@ namespace GestorInventario.Controllers.PaypalControllers
         }
 
         //Metodo que crea el producto  y plan al que se suscribira el usuario
-        [HttpPost]
+     
+         [HttpPost]
         [Authorize]
         public async Task<IActionResult> CrearProductoYPlan(PayPalProductPlanViewModel model, string monedaSeleccionada)
         {
@@ -206,23 +207,12 @@ namespace GestorInventario.Controllers.PaypalControllers
             }
             try
             {
-                var product = await _paypalSubscriptionService.CreateProductAsync(
+                var finalResult = await _paypalSubscriptionService.CreateProductAsync(
                     model.Name,
                     model.Description,
                     model.Type,
                     model.Category
-                );
-
-                if (product.Data == null)
-                {
-                    _logger.LogWarning("Hubo un error al crear el producto en PayPal");
-                    TempData["ErrorMessage"] = "No se pudo crear el producto en PayPal.";
-                    return View(model);
-                }
-
-                string productId = product.Data;
-
-                var planResponse = await _paypalSubscriptionService.CreateSubscriptionPlanAsync(
+                ).BindAsync(async productId=> await _paypalSubscriptionService.CreateSubscriptionPlanAsync(
                     productId,
                     model.PlanName,
                     model.PlanDescription,
@@ -231,17 +221,13 @@ namespace GestorInventario.Controllers.PaypalControllers
                     model.IntervalUnit,
                     model.HasTrialPeriod ? model.TrialPeriodDays : 0,
                     model.HasTrialPeriod ? model.TrialAmount : 0.00m
-                );
-                if (!planResponse.Success)
-                {
-                    TempData["ErrorMessage"] = planResponse.Message;
-                    return View(model);
-                }
-                var detallesPlan = await _paypalSubscriptionService.ObtenerDetallesPlan(planResponse.Data);
-                if (detallesPlan.Success) {
-                    await _planService.SavePlanDetailsAsync(planResponse.Data, detallesPlan.Data);
+                )).BindAsync(async planId=>await _paypalSubscriptionService.ObtenerDetallesPlan(planId))
+                .BindAsync(async detallesPlan=> await _planService.SavePlanDetailsAsync(detallesPlan.Id, detallesPlan));
 
-                }
+               
+                
+               
+               
 
                 return RedirectToAction("MostrarProductos", "PaypalProduct");
                
