@@ -224,11 +224,11 @@ namespace GestorInventario.Controllers.PaypalControllers
                 )).BindAsync(async planId=>await _paypalSubscriptionService.ObtenerDetallesPlan(planId))
                 .BindAsync(async detallesPlan=> await _planService.SavePlanDetailsAsync(detallesPlan.Id, detallesPlan));
 
-               
-                
-               
-               
-
+                if (!finalResult.Success)
+                {
+                    TempData["ErrorMessage"] = finalResult.Message;
+                    return View(model);
+                }
                 return RedirectToAction("MostrarProductos", "PaypalProduct");
                
             }

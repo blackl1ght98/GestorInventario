@@ -28,7 +28,6 @@ namespace GestorInventario.Controllers.PaypalControllers
         private readonly IOrderService _pedidoService;
         private readonly IPaymentService _paymentService;
         private readonly IPaypalRepository _paypalRepository;
-        private readonly IBackgroundTaskQueue _background;
         private readonly INotificationService _notificationService;
         public PaymentController(
             ILogger<PaymentController> logger,   
@@ -38,7 +37,6 @@ namespace GestorInventario.Controllers.PaypalControllers
             IOrderService pedidoService, 
             IPaymentService paymentService,
             IPaypalRepository repo,
-            IBackgroundTaskQueue background,
             INotificationService noti)
         {
             _logger = logger;           
@@ -48,7 +46,6 @@ namespace GestorInventario.Controllers.PaypalControllers
             _pedidoService = pedidoService;
             _paymentService = paymentService;
             _paypalRepository = repo;
-            _background = background;
             _notificationService = noti;
            
            
@@ -62,16 +59,15 @@ namespace GestorInventario.Controllers.PaypalControllers
 
                 // Capturamos el pago en PayPal y guardamos el resultado en BD
                 // (pedido Pagado, payment detail y capture con PENDING_SYNC).
-                var capturarPagoAsync = await _paypalOrderService.CapturarPagoAsync(paymentId);
-                var pago = capturarPagoAsync.Unwrap();
                 var usuarioActual = _currentUserAccessor.GetCurrentUserId();
-                var result = await _pedidoService.ConfirmarPagoDelPedidoAsync(usuarioActual, pago.CaptureId, pago.Total, pago.Currency, paymentId);
-
-                if (result.Success)
+                var finalResult = await _paypalOrderService.CapturarPagoAsync(paymentId)
+                    .BindAsync(async pago =>await _pedidoService.ConfirmarPagoDelPedidoAsync(usuarioActual, pago.CaptureId, pago.Total, pago.Currency, paymentId));
+                
+                if (finalResult.Success)
                 {
                     // Tras confirmar, sincronizamos los datos reales con PayPal y
                     // llevamos al usuario directamente al detalle de su pago.
-                    return RedirectToAction(nameof(Sincronizar), new { paymentId = paymentId, pedidoId = result.Data?.Id ?? 0 });
+                    return RedirectToAction(nameof(Sincronizar), new { paymentId = paymentId, pedidoId = finalResult.Data?.Id ?? 0 });
                 }
                 else
                 {

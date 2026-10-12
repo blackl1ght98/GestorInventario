@@ -50,7 +50,6 @@ namespace GestorInventario.Controllers.AuthenticationController
             _current= currentUser;
             _authService = authService;
             _cache = cache;
-         
             _loginGenerator = factory;
         }
         
