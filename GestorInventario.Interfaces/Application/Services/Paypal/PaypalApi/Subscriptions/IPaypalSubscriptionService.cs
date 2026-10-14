@@ -1,6 +1,5 @@
-﻿using GestorInventario.Shared.DTOS.Paypal.Requests.POST;
-using GestorInventario.Shared.DTOS.Paypal.Responses.GET.Subscription;
-using GestorInventario.Shared.DTOS.Paypal.Responses.POST.Subscription;
+﻿using GestorInventario.Shared.ExternalServices.Paypal.API.Requests.POST;
+using GestorInventario.Shared.ExternalServices.Paypal.API.Responses.GET.Subscription;
 using GestorInventario.Shared.Utilities;
 
 namespace GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Subscription

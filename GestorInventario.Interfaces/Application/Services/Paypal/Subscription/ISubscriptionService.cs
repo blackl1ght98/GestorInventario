@@ -1,5 +1,5 @@
 ﻿using GestorInventario.Domain.Models;
-using GestorInventario.Shared.DTOS.Paypal.Responses.GET.Subscription;
+using GestorInventario.Shared.ExternalServices.Paypal.API.Responses.GET.Subscription;
 
 
 namespace GestorInventario.Interfaces.Application.Services.Paypal.Subscription

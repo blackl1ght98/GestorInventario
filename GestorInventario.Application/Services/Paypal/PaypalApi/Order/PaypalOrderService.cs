@@ -1,13 +1,11 @@
 ﻿using GestorInventario.Application.Services.Common;
 using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi;
 using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Order;
-using GestorInventario.Shared.DTOS.Paypal.Requests.POST;
-using GestorInventario.Shared.DTOS.Paypal.Responses.GET.Order;
+using GestorInventario.Shared.ExternalServices.Paypal.API.Requests.POST;
+using GestorInventario.Shared.ExternalServices.Paypal.API.Responses.GET.Order;
+using GestorInventario.Shared.ExternalServices.Paypal.API.Responses.POST.Order;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System.Globalization;
-using GestorInventario.Shared.DTOS.Paypal.BD;
-using GestorInventario.Shared.DTOS.Paypal.Responses.POST.Order;
 using GestorInventario.Shared.Utilities;
 
 namespace GestorInventario.Application.Services.Paypal.PaypalApi.Order
@@ -55,23 +53,20 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Order
         }
         private CreateOrderRequest BuildOrder(CheckoutRequest pagar)
         {
-            decimal totalNeto = 0m;
-            decimal totalImpuestos = 0m;
-
             var itemsParaPayPal = pagar.Items.ConvertAll(item =>
             {
+                // El precio ya viene calculado desde el PaymentService
                 decimal precioUnitario = item.Price;
-                int cantidad = int.Parse(item.Quantity);
-                decimal impuestoPorUnidad = CalculadoraFiscal.CalcularIvaUnitario(precioUnitario);
 
-                totalNeto += precioUnitario * cantidad;
-                totalImpuestos += impuestoPorUnidad * cantidad;
+                // Calculamos el impuesto unitario aquí mismo usando la utilidad estática
+                // No necesitamos BD para esto, solo el precio.
+                decimal impuestoPorUnidad = CalculadoraFiscal.CalcularIvaUnitario(precioUnitario);
 
                 return new Item
                 {
                     Name = item.Name,
                     Description = item.Description,
-                    Quantity = cantidad.ToString(),
+                    Quantity = item.Quantity,
                     UnitAmount = new Money
                     {
                         Value = CalculadoraFiscal.FormatearPayPal(precioUnitario),
@@ -86,68 +81,54 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Order
                 };
             });
 
-            // ✅ Validación de coherencia: lo que calculamos debe coincidir con el checkout
-            var (subtotalEsperado, ivaEsperado, totalEsperado) = CalculadoraFiscal.CalcularTotales(
-                pagar.Items.Select(i => (i.Price, int.Parse(i.Quantity))));
-
-            if (totalNeto != subtotalEsperado || totalImpuestos != ivaEsperado)
-            {
-                _logger.LogError("Descuadre fiscal: Neto={Neto} vs {Esperado}, IVA={Iva} vs {Esperado}",
-                    totalNeto, subtotalEsperado, totalImpuestos, ivaEsperado);
-                throw new InvalidOperationException("Descuadre en cálculo fiscal del pedido");
-            }
-
             return new CreateOrderRequest
             {
                 Intent = "CAPTURE",
                 PurchaseUnits = new List<PurchaseUnit>
-        {
-            new PurchaseUnit
-            {
-                Amount = new Amount
                 {
-                    CurrencyCode = pagar.Currency,
-                    Value = CalculadoraFiscal.FormatearPayPal(totalEsperado),
-                    Breakdown = new AmountBreakdown
+                    new PurchaseUnit
                     {
-                        ItemTotal = new Money
+                        Amount = new Amount
                         {
                             CurrencyCode = pagar.Currency,
-                            Value = CalculadoraFiscal.FormatearPayPal(totalNeto)
+                            Value = CalculadoraFiscal.FormatearPayPal(pagar.TotalAmount), // <--- Usa el Total del Request
+                            Breakdown = new AmountBreakdown
+                            {
+                                ItemTotal = new Money
+                                {
+                                    CurrencyCode = pagar.Currency,
+                                    Value = CalculadoraFiscal.FormatearPayPal(pagar.Subtotal) // <--- Usa el Subtotal del Request
+                                },
+                                TaxTotal = new Money
+                                {
+                                    CurrencyCode = pagar.Currency,
+                                    Value = CalculadoraFiscal.FormatearPayPal(pagar.Iva) // <--- Usa el Iva del Request
+                                },
+                                ShippingAmount = new Money
+                                {
+                                    CurrencyCode = pagar.Currency,
+                                    Value = "0.00"
+                                }
+                            }
                         },
-                        TaxTotal = new Money
+                        Description = "The payment transaction description.",
+                        InvoiceId = Guid.NewGuid().ToString(),
+                        Items = itemsParaPayPal,
+                        Shipping = new Shipping
                         {
-                            CurrencyCode = pagar.Currency,
-                            Value = CalculadoraFiscal.FormatearPayPal(totalImpuestos)
-                        },
-                        ShippingAmount = new Money
-                        {
-                            CurrencyCode = pagar.Currency,
-                            Value = "0.00"
+                            Name = new OrderShippingName { FullName = pagar.NombreCompleto },
+                            Address = new OrderShippingAddress
+                            {
+                                AddressLine1 = pagar.Line1,
+                                AddressLine2 = pagar.Line2 ?? "",
+                                City = pagar.Ciudad,
+                                State = "ES",
+                                PostalCode = pagar.CodigoPostal.ToString(),
+                                CountryCode = "ES"
+                            }
                         }
                     }
                 },
-                Description = "The payment transaction description.",
-                InvoiceId = Guid.NewGuid().ToString(),
-                Items = itemsParaPayPal,
-                Shipping = new Shipping
-                {
-                    Name = new OrderShippingName
-                    {
-                        FullName = pagar.NombreCompleto
-                    },
-                    Address = new OrderShippingAddress
-                    {
-                        AddressLine1 = pagar.Line1,
-                        AddressLine2 = pagar.Line2 ?? "",
-                        City = pagar.Ciudad,
-                        State = "ES",
-                        PostalCode = pagar.CodigoPostal.ToString(),
-                        CountryCode = "ES"
-                    }
-                }
-            }
-        },
                 PaymentSource = new PaymentSource
                 {
                     Paypal = new PayPalWallet
@@ -165,7 +146,7 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Order
         #endregion
 
         #region Capturar el pago (orden)
-        public async Task<OperationResult<PaymentCapturedDto>> CapturarPagoAsync(string orderId)
+        public async Task<OperationResult<OrderDetailsResponse>> CapturarPagoAsync(string orderId)
         {
             try
             {
@@ -179,36 +160,16 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Order
                         var body = await resp.Content.ReadAsStringAsync();
                         throw new InvalidOperationException($"Error al capturar: {resp.StatusCode} - {body}");
                     });
-
-
                 var paypalResponse = JsonConvert.DeserializeObject<OrderDetailsResponse>(responseBody);
-
-                var capture = paypalResponse?.PurchaseUnits?
-                    .FirstOrDefault()?.Payments?
-                    .Captures?.FirstOrDefault();
-
-                if (capture == null || string.IsNullOrEmpty(capture.Id) ||
-                    string.IsNullOrEmpty(capture.Amount?.Value) ||
-                    string.IsNullOrEmpty(capture.Amount?.CurrencyCode))
-                {
-                    throw new Exception("No se pudo extraer la información de la captura del pago.");
-                }
-                decimal amountValue= decimal.Parse(capture.Amount.Value, CultureInfo.InvariantCulture);
-                var captured = new PaymentCapturedDto
-                {
-                    CaptureId = capture.Id,
-                    Total = amountValue,
-                    Currency = capture.Amount.CurrencyCode
-                };
-                return OperationResult<PaymentCapturedDto>.Ok(captured);
+                return OperationResult<OrderDetailsResponse>.Ok(paypalResponse);
             }
             catch (InvalidOperationException ex)
             {
-                return OperationResult<PaymentCapturedDto>.Fail(ex.Message);
+                return OperationResult<OrderDetailsResponse>.Fail(ex.Message);
             }
             catch (Exception ex)
             {
-                return OperationResult<PaymentCapturedDto>.Fail($"Ocurrió un error inesperado: {ex.Message}");
+                return OperationResult<OrderDetailsResponse>.Fail($"Ocurrió un error inesperado: {ex.Message}");
             }
         }
 

@@ -1,4 +1,5 @@
-﻿using GestorInventario.Domain.enums.Notification;
+﻿using System.Globalization;
+using GestorInventario.Domain.enums.Notification;
 using GestorInventario.Interfaces.Application.RetryPolicy;
 using GestorInventario.Interfaces.Application.Services.BackgroundServices;
 using GestorInventario.Interfaces.Application.Services.Orders;
@@ -55,19 +56,39 @@ namespace GestorInventario.Controllers.PaypalControllers
         {
             try
             {
+                
                 var paymentId = token ?? string.Empty;
 
                 // Capturamos el pago en PayPal y guardamos el resultado en BD
                 // (pedido Pagado, payment detail y capture con PENDING_SYNC).
                 var usuarioActual = _currentUserAccessor.GetCurrentUserId();
-                var finalResult = await _paypalOrderService.CapturarPagoAsync(paymentId)
-                    .BindAsync(async pago =>await _pedidoService.ConfirmarPagoDelPedidoAsync(usuarioActual, pago.CaptureId, pago.Total, pago.Currency, paymentId));
-                
+                var finalResult = await _paypalOrderService.CapturarPagoAsync(paymentId);
+                var pago = finalResult.Unwrap();
+                var capture = pago?.PurchaseUnits?
+                    .FirstOrDefault()?.Payments?
+                    .Captures?.FirstOrDefault();
+
+                if (capture == null || string.IsNullOrEmpty(capture.Id) ||
+                    string.IsNullOrEmpty(capture.Amount?.Value) ||
+                    string.IsNullOrEmpty(capture.Amount?.CurrencyCode))
+                {
+                    throw new Exception("No se pudo extraer la información de la captura del pago.");
+                }
+                decimal amountValue= decimal.Parse(capture.Amount.Value, CultureInfo.InvariantCulture);
+                var captured = new PaymentCapturedDto
+                {
+                    CaptureId = capture.Id,
+                    Total = amountValue,
+                    Currency = capture.Amount.CurrencyCode
+                };
+                var confirmar = await _pedidoService.ConfirmarPagoDelPedidoAsync(usuarioActual, captured.CaptureId,
+                    captured.Total, captured.Currency, paymentId);
+                var result= confirmar.Unwrap();
                 if (finalResult.Success)
                 {
                     // Tras confirmar, sincronizamos los datos reales con PayPal y
                     // llevamos al usuario directamente al detalle de su pago.
-                    return RedirectToAction(nameof(Sincronizar), new { paymentId = paymentId, pedidoId = finalResult.Data?.Id ?? 0 });
+                    return RedirectToAction(nameof(Sincronizar), new { paymentId = paymentId, pedidoId = result.Id  });
                 }
                 else
                 {

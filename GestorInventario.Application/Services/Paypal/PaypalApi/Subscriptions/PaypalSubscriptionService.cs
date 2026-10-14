@@ -1,15 +1,15 @@
 ﻿using GestorInventario.Application.Exceptions;
 using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi;
 using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Subscription;
-using GestorInventario.Shared.DTOS.Paypal.Requests.PATCH;
-using GestorInventario.Shared.DTOS.Paypal.Requests.POST;
-using GestorInventario.Shared.DTOS.Paypal.Responses.Error;
-using GestorInventario.Shared.DTOS.Paypal.Responses.GET.Subscription;
-using GestorInventario.Shared.DTOS.Paypal.Responses.POST.Subscription;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Globalization;
+using GestorInventario.Shared.ExternalServices.Paypal.API.Requests.PATCH;
+using GestorInventario.Shared.ExternalServices.Paypal.API.Requests.POST;
+using GestorInventario.Shared.ExternalServices.Paypal.API.Responses.Error;
+using GestorInventario.Shared.ExternalServices.Paypal.API.Responses.GET.Subscription;
+using GestorInventario.Shared.ExternalServices.Paypal.API.Responses.POST.Subscription;
 
 namespace GestorInventario.Application.Services.Paypal.PaypalApi.Subscriptions
 {

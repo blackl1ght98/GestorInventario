@@ -1,7 +1,7 @@
 ﻿
 using GestorInventario.Domain.Models;
-using GestorInventario.Shared.DTOS.Paypal.Responses.GET.Subscription;
 using System.Globalization;
+using GestorInventario.Shared.ExternalServices.Paypal.API.Responses.GET.Subscription;
 
 namespace GestorInventario.Application.Mappers
 {

@@ -1,9 +1,9 @@
 ﻿using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi;
-using GestorInventario.Shared.DTOS.Paypal.Responses.GET.PaypalAuthentication;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Net.Http.Headers;
 using System.Text;
+using GestorInventario.Shared.ExternalServices.Paypal.API.Responses.GET.PaypalAuthentication;
 
 namespace GestorInventario.Application.Services.Paypal.PaypalApi
 {

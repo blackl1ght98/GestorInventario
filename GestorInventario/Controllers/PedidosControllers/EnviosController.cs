@@ -1,10 +1,10 @@
-﻿using GestorInventario.Domain.enums.Pedido;
+﻿using GestorInventario.Application.Mappers;
+using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Domain.enums.Productos;
 using GestorInventario.Interfaces.Application.Services.Orders;
 using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Order;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.DTOS.Paypal.BD;
-using GestorInventario.Shared.DTOS.Paypal.Requests.POST;
 using GestorInventario.Shared.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

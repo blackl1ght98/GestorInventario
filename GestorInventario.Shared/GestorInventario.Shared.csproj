@@ -14,4 +14,8 @@
     <ProjectReference Include="..\GestorInventario.Domain\GestorInventario.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ExternalServices\Paypal\" />
+  </ItemGroup>
+
 </Project>

@@ -1,11 +1,11 @@
 ﻿using GestorInventario.Domain.Models;
-using GestorInventario.Shared.DTOS.Paypal.Responses.GET.Order;
 using GestorInventario.Shared.Utilities;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using GestorInventario.Shared.ExternalServices.Paypal.API.Responses.GET.Order;
 
 namespace GestorInventario.Application.Mappers
 {

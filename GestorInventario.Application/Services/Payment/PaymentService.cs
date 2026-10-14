@@ -13,11 +13,10 @@ using GestorInventario.Shared.DTOS.Carrito;
 using GestorInventario.Shared.DTOS.Checkout;
 using GestorInventario.Shared.DTOS.Email;
 using GestorInventario.Shared.DTOS.Paypal.BD;
-using GestorInventario.Shared.DTOS.Paypal.Requests.POST;
-using GestorInventario.Shared.DTOS.Paypal.Responses.GET.Order;
-using GestorInventario.Shared.DTOS.Paypal.Responses.POST.Order;
 using GestorInventario.Shared.DTOS.Rembolso;
 using GestorInventario.Shared.DTOS.User;
+using GestorInventario.Shared.ExternalServices.Paypal.API.Requests.POST;
+using GestorInventario.Shared.ExternalServices.Paypal.API.Responses.GET.Order;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -207,48 +206,51 @@ namespace GestorInventario.Application.Services.Payment
             }
         }
         private async Task<CheckoutDto> PrepararCheckoutParaPagoPayPal(
-         List<DetallePedido> itemsDelCarrito,
-         string moneda,
-         InfoUsuarioDto infoUsuario
-         )
+            List<DetallePedido> itemsDelCarrito,
+            string moneda,
+            InfoUsuarioDto infoUsuario
+        )
         {
-            var items = new List<ItemModelDto>();
-            var lineasParaCalculo = new List<(decimal precio, int cantidad)>();
+            var itemsParaPayPal = new List<ItemModelDto>();
+            decimal totalNeto = 0m;
+            decimal totalImpuestos = 0m;
 
             foreach (var item in itemsDelCarrito)
             {
-                var producto = await _unitOfWork.ProductoRepository
-                    .ObtenerProductoPorIdAsync(item.ProductoId);
-
+                var producto = await _unitOfWork.ProductoRepository.ObtenerProductoPorIdAsync(item.ProductoId);
                 if (producto == null) continue;
 
                 var cantidad = item.Cantidad;
-                var precio = Convert.ToDecimal(producto.Precio);
+                var precioUnitario = Convert.ToDecimal(producto.Precio);
+                var impuestoUnitario = CalculadoraFiscal.CalcularIvaUnitario(precioUnitario);
 
-                items.Add(new ItemModelDto
+                totalNeto += precioUnitario * cantidad;
+                totalImpuestos += impuestoUnitario * cantidad;
+
+                itemsParaPayPal.Add(new ItemModelDto
                 {
                     Name = producto.NombreProducto,
                     Currency = moneda,
-                    Price = producto.Precio,
+                    Price = precioUnitario,
                     Quantity = cantidad.ToString(),
-                    Sku = producto.Descripcion
+                    Sku = producto.Descripcion,
+                    
+                    TaxAmount = impuestoUnitario
                 });
-
-                lineasParaCalculo.Add((precio, cantidad));
             }
 
-            var (subtotal, iva, total) = CalculadoraFiscal.CalcularTotales(lineasParaCalculo);
+            var totalFinal = totalNeto + totalImpuestos;
 
             string returnUrl = _urlService.GetPaypalReturnUrl();
             string cancelUrl = _urlService.GetPaypalCancelUrl();
-            
+
             return new CheckoutDto
             {
-                TotalAmount = total,        
-                Subtotal = subtotal,        
-                Iva = iva,                  
+                TotalAmount = totalFinal,
+                Subtotal = totalNeto,
+                Iva = totalImpuestos,
                 Currency = moneda,
-                Items = items,
+                Items = itemsParaPayPal,
                 NombreCompleto = infoUsuario.NombreCompletoUsuario,
                 ReturnUrl = returnUrl,
                 CancelUrl = cancelUrl,
@@ -275,6 +277,8 @@ namespace GestorInventario.Application.Services.Payment
                 CancelUrl = checkout.CancelUrl,
                 TotalAmount = checkout.TotalAmount,
                 Telefono = checkout.Telefono,
+                Subtotal = checkout.Subtotal,
+                Iva = checkout.Iva,
              
                 Items = checkout.Items.Select(i => new ItemModelRequest 
                 {
@@ -287,7 +291,7 @@ namespace GestorInventario.Application.Services.Payment
                 }).ToList()
             };
 
-            // Ahora pasamos el 'paypalRequest' en lugar del 'checkout'
+           
             var createdPayment = await _paypalOrder.CreateOrderWithPaypalAsync(paypalRequest);
 
             if (createdPayment.IsSuccess)
