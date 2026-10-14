@@ -26,14 +26,13 @@ public class PaypalOrderTrackingService : IPaypalOrderTrackingService
             string paymentId,
             string captureId,
             Carrier carrier,
-           
-            List<TrackingItemDto> items)
+            List<PayPalTrackingItemRequest> items)
     {
         try
         {
             var trackingNumber = GenerarNumeroSeguimiento();
 
-            var trackingInfo = new PayPalTrackingInfoRequestDto
+            var trackingInfo = new PayPalTrackingInfoRequest
             {
                 CaptureId = captureId,
                 TrackingNumber = trackingNumber,

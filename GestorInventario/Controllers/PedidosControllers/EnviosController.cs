@@ -4,7 +4,8 @@ using GestorInventario.Interfaces.Application.Services.Orders;
 using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Order;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.DTOS.Paypal.BD;
-
+using GestorInventario.Shared.DTOS.Paypal.Requests.POST;
+using GestorInventario.Shared.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -51,25 +52,17 @@ namespace GestorInventario.Controllers.PedidosControllers
                     return BadRequest(new {success=true, message= "El pedido no tiene pago asociado en PayPal" });
                 }
 
-                // 2. Mapear items del pedido a DTOs planos (tu dominio → datos planos)
-              
-                var items = pedido.DetallePedidos.Select(d => new TrackingItemDto
-                {
-                    Name = d.Producto?.NombreProducto ?? "Producto no disponible",
-                    Sku = d.Producto?.Descripcion ?? "N/A",
-                    Quantity = d.Cantidad,
-                    BarcodeType = d.Producto?.TipoCodigoBarras ?? BarcodeType.CODE_128.ToString(),  // por producto
-                    BarcodeCode = d.Producto?.CodigoBarras ?? string.Empty,             // por producto
-                    ImageUrl = d.Producto?.Imagen ?? string.Empty,
-                    Url = string.Empty
-                }).ToList();
-                //pedido.DetallePedidos.First().Producto.CodigoBarras
-                // 3. Llamar al servicio de PayPal 
+                // 2. Transformar la VERDAD de la BD al formato de PayPal
+                var paypalItems = pedido.DetallePedidos
+                    .Select(d => d.ToPayPalRequest())
+                    .ToList();
+
+                // 3. Ejecutar la acción con datos verificados
                 var result = await _paypalOrderService.AddTrackingAsync(
-                   capture.PaymentId,
-                   capture.CaptureId,
-                  envio.Carrier,
-                 items);
+                    capture.PaymentId,
+                    capture.CaptureId,
+                    envio.Carrier,
+                    paypalItems);
 
                 if (!result.Success)
                 {

@@ -13,6 +13,7 @@ using GestorInventario.Shared.DTOS.Carrito;
 using GestorInventario.Shared.DTOS.Checkout;
 using GestorInventario.Shared.DTOS.Email;
 using GestorInventario.Shared.DTOS.Paypal.BD;
+using GestorInventario.Shared.DTOS.Paypal.Requests.POST;
 using GestorInventario.Shared.DTOS.Paypal.Responses.GET.Order;
 using GestorInventario.Shared.DTOS.Paypal.Responses.POST.Order;
 using GestorInventario.Shared.DTOS.Rembolso;
@@ -240,7 +241,7 @@ namespace GestorInventario.Application.Services.Payment
 
             string returnUrl = _urlService.GetPaypalReturnUrl();
             string cancelUrl = _urlService.GetPaypalCancelUrl();
-
+            
             return new CheckoutDto
             {
                 TotalAmount = total,        
@@ -261,14 +262,42 @@ namespace GestorInventario.Application.Services.Payment
     
         private async Task<OperationResult<string>> ProcesarPagoPayPal(CheckoutDto checkout)
         {
-            var createdPayment = await _paypalOrder.CreateOrderWithPaypalAsync(checkout);
+            
+            var paypalRequest = new CheckoutRequest
+            {
+                Currency = checkout.Currency,
+                NombreCompleto = checkout.NombreCompleto,
+                Line1 = checkout.Line1,
+                Line2 = checkout.Line2,
+                Ciudad = checkout.Ciudad,
+                CodigoPostal = checkout.CodigoPostal,
+                ReturnUrl = checkout.ReturnUrl,
+                CancelUrl = checkout.CancelUrl,
+                TotalAmount = checkout.TotalAmount,
+                Telefono = checkout.Telefono,
+             
+                Items = checkout.Items.Select(i => new ItemModelRequest 
+                {
+                    Name = i.Name,
+                    Description = i.Sku, 
+                    Price = i.Price,
+                    Quantity = i.Quantity,
+                    Currency = i.Currency,
+                    Sku = i.Sku
+                }).ToList()
+            };
+
+            // Ahora pasamos el 'paypalRequest' en lugar del 'checkout'
+            var createdPayment = await _paypalOrder.CreateOrderWithPaypalAsync(paypalRequest);
+
             if (createdPayment.IsSuccess)
             {
-                return OperationResult<string>.Ok(createdPayment.Data,"Redirigiendo a PayPal para completar el pago");
-
+                return OperationResult<string>.Ok(createdPayment.Data, "Redirigiendo a PayPal para completar el pago");
             }
+
             return OperationResult<string>.Fail("Error al procesar el pago con paypal");
         }
+        
         private async Task EliminarCarritosVaciosUsuario(int userId)
         {
 

@@ -72,7 +72,7 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Refunds
             };
         }
 
-        private async Task<PaypalRefundResponseDto> ExecuteRefundAsync(
+        private async Task<PaypalRefundResponse> ExecuteRefundAsync(
             string captureId,
             PaypalRefundRequest request)
         {
@@ -86,7 +86,7 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Refunds
                     throw new InvalidOperationException($"Error PayPal: {resp.StatusCode} - {errBody}");
                 });
 
-            return JsonConvert.DeserializeObject<PaypalRefundResponseDto>(responseBody)
+            return JsonConvert.DeserializeObject<PaypalRefundResponse>(responseBody)
                 ?? throw new InvalidOperationException("Respuesta de reembolso inválida");
         }
     }

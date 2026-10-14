@@ -1,7 +1,6 @@
 ﻿using GestorInventario.Application.Services.Common;
 using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi;
 using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Order;
-using GestorInventario.Shared.DTOS.Checkout;
 using GestorInventario.Shared.DTOS.Paypal.Requests.POST;
 using GestorInventario.Shared.DTOS.Paypal.Responses.GET.Order;
 using Microsoft.Extensions.Logging;
@@ -26,7 +25,7 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Order
           
         }
         #region Crear orden 
-        public async Task<OperationResult<string>> CreateOrderWithPaypalAsync(CheckoutDto pagar)
+        public async Task<OperationResult<string>> CreateOrderWithPaypalAsync(CheckoutRequest pagar)
         {
             try
             {
@@ -54,7 +53,7 @@ namespace GestorInventario.Application.Services.Paypal.PaypalApi.Order
             }
            
         }
-        private CreateOrderRequest BuildOrder(CheckoutDto pagar)
+        private CreateOrderRequest BuildOrder(CheckoutRequest pagar)
         {
             decimal totalNeto = 0m;
             decimal totalImpuestos = 0m;

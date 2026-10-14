@@ -2,7 +2,7 @@
 
 namespace GestorInventario.Shared.DTOS.Paypal.Responses.POST.Refund
 {
-    public record PaypalRefundResponseDto
+    public record PaypalRefundResponse
     {
         [JsonProperty("id")]
         public  string? Id { get; init; }
