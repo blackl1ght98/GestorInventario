@@ -80,7 +80,7 @@ namespace GestorInventario.Application.Mappers
             };
 
         }
-        public static PlanDetail MapPayPalPlanToEntity(string planId, PaypalPlanDetailsDto planDetails)
+        public static PlanDetail MapPayPalPlanToEntity(string planId, PaypalPlanDetailsResponse planDetails)
         {
             var planDetail = new PlanDetail
             {

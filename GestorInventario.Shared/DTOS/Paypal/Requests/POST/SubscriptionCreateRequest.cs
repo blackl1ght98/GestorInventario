@@ -1,10 +1,11 @@
-﻿using Newtonsoft.Json;
+﻿using GestorInventario.Shared.DTOS.Paypal.Common;
+using Newtonsoft.Json;
 
 
 namespace GestorInventario.Shared.DTOS.Paypal.Requests.POST
 {
     // DTO para la respuesta completa de la creación de una suscripción
-    public class SubscriptionCreateRequestDto
+    public class SubscriptionCreateRequest
     {
        
         [JsonProperty("plan_id")]
@@ -14,7 +15,7 @@ namespace GestorInventario.Shared.DTOS.Paypal.Requests.POST
         public required ApplicationContext ApplicationContext { get; set; }
 
         [JsonProperty("links")]
-        public  List<Link>? Links { get; set; }
+        public  List<LinkPaypal>? Links { get; set; }
     }
 
     public class ApplicationContext
@@ -51,14 +52,5 @@ namespace GestorInventario.Shared.DTOS.Paypal.Requests.POST
     }
 
 
-    public class Link
-    {
-        [JsonProperty("href")]
-        public required string Href { get; set; }
-
-        [JsonProperty("rel")]
-        public required string Rel { get; set; }
-
-      
-    }
+   
 }

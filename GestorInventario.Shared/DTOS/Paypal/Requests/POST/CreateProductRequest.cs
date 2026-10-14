@@ -2,7 +2,7 @@
 
 namespace GestorInventario.Shared.DTOS.Paypal.Requests.POST
 {
-    public record CreateProductRequestDto
+    public record CreateProductRequest
     {
         [JsonProperty("name")]
         public required string Nombre { get; init; }

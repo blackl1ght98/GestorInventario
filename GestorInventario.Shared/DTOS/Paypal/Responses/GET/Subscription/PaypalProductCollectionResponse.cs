@@ -1,8 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿using GestorInventario.Shared.DTOS.Paypal.Common;
+using Newtonsoft.Json;
 
 namespace GestorInventario.Shared.DTOS.Paypal.Responses.GET.Subscription
 {
-    public record PaypalProductListResponseDto
+    public record PaypalProductCollectionResponse
     {
         [JsonProperty("total_items")]
         public int TotalItems { get; init; }
@@ -10,7 +11,7 @@ namespace GestorInventario.Shared.DTOS.Paypal.Responses.GET.Subscription
         public int TotalPages { get; init; }
         [JsonProperty("products")]
         public List<Products> Products { get; init; } = new List<Products>();
-        public List<Links> Links { get; init; } = new List<Links>();
+        public List<LinkPaypal> Links { get; init; } = new List<LinkPaypal>();
     }
     public record Products
     {
@@ -23,18 +24,7 @@ namespace GestorInventario.Shared.DTOS.Paypal.Responses.GET.Subscription
         [JsonProperty("create_time")]
         public required string CreateTime { get; init; }
         [JsonProperty("links")]
-        public required List<Links> Links { get; init; }
+        public required List<LinkPaypal> Links { get; init; }
     }
-    public record Links
-    {
-        [JsonProperty("href")]
-        public required string Href { get; init; }
-
-        [JsonProperty("rel")]
-        public required string Rel { get; init; }
-
-        [JsonProperty("method")]
-        public required string Method { get; init; }
-
-    }
+  
 }

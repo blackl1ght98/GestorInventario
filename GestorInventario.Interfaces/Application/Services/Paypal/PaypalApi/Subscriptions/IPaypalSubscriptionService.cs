@@ -1,4 +1,5 @@
-﻿using GestorInventario.Shared.DTOS.Paypal.Responses.GET.Subscription;
+﻿using GestorInventario.Shared.DTOS.Paypal.Requests.POST;
+using GestorInventario.Shared.DTOS.Paypal.Responses.GET.Subscription;
 using GestorInventario.Shared.DTOS.Paypal.Responses.POST.Subscription;
 using GestorInventario.Shared.Utilities;
 
@@ -8,11 +9,11 @@ namespace GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Subs
     {
         Task<OperationResult<string>> CreateProductAsync(string productName, string productDescription, string productType, string productCategory);
         Task<OperationResult<string>> CreateSubscriptionPlanAsync(string productId, string planName, string description, decimal amount, string currency, string intervalUnit, int trialDays = 0, decimal trialAmount = 0.00m);
-        Task<OperationResult<PaypalPlanDetailsDto>> ObtenerDetallesPlan(string id);
-        Task<OperationResult<(PaypalProductListResponseDto ProductsResponse, bool HasNextPage)>> GetProductsAsync(int page = 1, int pageSize = 10);
-        Task<OperationResult<(List<PaypalPlanResponseDto> plans, bool HasNextPage)>> GetSubscriptionPlansAsync(int page = 1, int pageSize = 6);
+        Task<OperationResult<PaypalPlanDetailsResponse>> ObtenerDetallesPlan(string id);
+        Task<OperationResult<(PaypalProductCollectionResponse ProductsResponse, bool HasNextPage)>> GetProductsAsync(int page = 1, int pageSize = 10);
+        Task<OperationResult<(List<PaypalPlanResponse> plans, bool HasNextPage)>> GetSubscriptionPlansAsync(int page = 1, int pageSize = 6);
         Task<OperationResult<string>> EditarProducto(string id, string name, string description);
-        Task<OperationResult<(string, UpdatePricingPlanDto)>> UpdatePricingPlanAsync(string planId, decimal? trialAmount, decimal regularAmount, string currency);
+        Task<OperationResult<(string, UpdatePricingPlanRequest)>> UpdatePricingPlanAsync(string planId, decimal? trialAmount, decimal regularAmount, string currency);
         Task<OperationResult<string>> Subscribirse(string id, string returnUrl, string cancelUrl, string planName);
         Task<OperationResult<PaypalSubscriptionResponse>> ObtenerDetallesSuscripcion(string subscriptionId);
         Task<OperationResult<(string planId, string planStatus)>> DesactivarPlan(string planId);

@@ -1,18 +1,12 @@
 ﻿using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
+using GestorInventario.Shared.DTOS.Paypal.Common;
 
 
 namespace GestorInventario.Shared.DTOS.Paypal.Responses.GET.Subscription
 {
-    public record PaypalPlansListResponse
-    {
-        [JsonProperty("plans")]
-        public required List<PaypalPlanResponseDto> Plans { get; init; }
-
-        [JsonProperty("links")]
-        public required List<Link> Links { get; init; }
-    }
-    public record PaypalPlanResponseDto
+  
+    public record PaypalPlanResponse
     {
         [JsonProperty("id")]
         [Required(ErrorMessage = "El ID del plan es requerido.")]
@@ -57,7 +51,7 @@ namespace GestorInventario.Shared.DTOS.Paypal.Responses.GET.Subscription
         public required DateTime UpdateTime { get; init; }
 
         [JsonProperty("links")]
-        public required List<Link> Links { get; init; }
+        public required List<LinkPaypal> Links { get; init; }
     }
 
     // DTO para los ciclos de facturación
@@ -149,21 +143,5 @@ namespace GestorInventario.Shared.DTOS.Paypal.Responses.GET.Subscription
 
         [JsonProperty("inclusive")]
         public bool Inclusive { get; init; }
-    }
-
-    // DTO para los enlaces
-    public record Link
-    {
-        [JsonProperty("href")]
-        public required string Href { get; init; }
-
-        [JsonProperty("rel")]
-        public required string Rel { get; init; }
-
-        [JsonProperty("method")]
-        public required string Method { get; init; }
-
-        [JsonProperty("encType")]
-        public required string EncType { get; init; }
     }
 }

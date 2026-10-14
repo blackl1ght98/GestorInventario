@@ -3,7 +3,7 @@
 namespace GestorInventario.Shared.DTOS.Paypal.Responses.POST.Subscription
 {
     //Dto para crear el plan de suscripcion
-    public record PaypalPlanDetailsDto
+    public record PaypalPlanDetailsResponse
     {
         [JsonProperty("id")]
         public  string? Id { get; init; } // ID del plan en PayPal

@@ -1,8 +1,8 @@
 ﻿using Newtonsoft.Json;
 
-namespace GestorInventario.Shared.DTOS.Paypal.Responses.POST.Subscription
+namespace GestorInventario.Shared.DTOS.Paypal.Requests.POST
 {
-    public record UpdatePricingPlanDto
+    public record UpdatePricingPlanRequest
     {
         [JsonProperty("pricing_schemes")]
         public required List<UpdatePricingSchemes> PricingSchemes { get; init; }
