@@ -1,10 +1,10 @@
 ﻿using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application.Services.Authentication.Jwt;
-using GestorInventario.Shared.DTOS.Auth;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
+using GestorInventario.Application.DTOS.Auth;
+using GestorInventario.Application.Interfaces.Services.Authentication.Jwt;
 
 namespace GestorInventario.Application.Services.Authentication.Strategies.AccessToken
 {

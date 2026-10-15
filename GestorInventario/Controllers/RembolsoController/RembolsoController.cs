@@ -1,19 +1,19 @@
-﻿using GestorInventario.Application.Services.Common;
+﻿using GestorInventario.Application.DTOS.Paypal.BD;
+using GestorInventario.Application.DTOS.Rembolso;
+using GestorInventario.Application.Interfaces.MetodosPaginacion;
+using GestorInventario.Application.Interfaces.RetryPolicy;
+using GestorInventario.Application.Interfaces.Services.BackgroundServices;
+using GestorInventario.Application.Interfaces.Services.Payment;
+using GestorInventario.Application.Interfaces.Services.Paypal.Mapping;
+using GestorInventario.Application.Interfaces.Services.Paypal.PaypalApi.Order;
+using GestorInventario.Application.Interfaces.Services.Paypal.PaypalApi.Refunds;
+using GestorInventario.Application.Interfaces.Services.Refunds;
+using GestorInventario.Application.Services.Common;
 
 using GestorInventario.Extensions;
-using GestorInventario.Interfaces.Application.MetodosPaginacion;
-using GestorInventario.Interfaces.Application.RetryPolicy;
-using GestorInventario.Interfaces.Application.Services.BackgroundServices;
-using GestorInventario.Interfaces.Application.Services.Payment;
-using GestorInventario.Interfaces.Application.Services.Paypal.Mapping;
-using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Order;
-using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Refunds;
-using GestorInventario.Interfaces.Application.Services.Refunds;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Interfaces.Notifications.SendNotification.Email;
 using GestorInventario.Interfaces.Web;
-using GestorInventario.Shared.DTOS.Paypal.BD;
-using GestorInventario.Shared.DTOS.Rembolso;
 using GestorInventario.Shared.Utilities;
 using GestorInventario.ViewModels.Paypal;
 using GestorInventario.ViewModels.Refunds;
@@ -301,7 +301,7 @@ namespace GestorInventario.Controllers.RembolsoController
                     MotivoRembolso = form.MotivoRembolso,
                 };
 
-                var obtenerNumeroPedido = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.ObtenerNumeroPedido(dto));
+                var obtenerNumeroPedido = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.ObtenerNumeroPedido(dto.NumeroPedido));
 
                 if (obtenerNumeroPedido == null)
                 {
@@ -318,7 +318,7 @@ namespace GestorInventario.Controllers.RembolsoController
                 }
 
 
-                var pedido = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.ObtenerNumeroPedido(dto));
+                var pedido = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.ObtenerNumeroPedido(dto.NumeroPedido));
 
                 if (pedido == null)
                 {

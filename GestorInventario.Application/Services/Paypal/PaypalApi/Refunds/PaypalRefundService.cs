@@ -1,10 +1,10 @@
 using GestorInventario.Application.Services.Common;
-using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi;
-using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Refunds;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Globalization;
+using GestorInventario.Application.Interfaces.Services.Paypal.PaypalApi;
+using GestorInventario.Application.Interfaces.Services.Paypal.PaypalApi.Refunds;
 using GestorInventario.Shared.ExternalServices.Paypal.API.Requests.POST;
 using GestorInventario.Shared.ExternalServices.Paypal.API.Responses.POST.Refund;
 

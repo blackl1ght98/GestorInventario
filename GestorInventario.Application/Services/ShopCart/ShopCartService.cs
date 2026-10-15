@@ -1,8 +1,8 @@
-﻿using GestorInventario.Application.Services.Common;
+﻿using GestorInventario.Application.Interfaces.Services.Orders;
+using GestorInventario.Application.Interfaces.Services.ShopCart;
+using GestorInventario.Application.Services.Common;
 using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application.Services.Orders;
-using GestorInventario.Interfaces.Application.Services.ShopCart;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Interfaces.Web;
 using GestorInventario.Shared.Utilities;

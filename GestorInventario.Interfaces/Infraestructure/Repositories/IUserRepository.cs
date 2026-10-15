@@ -1,6 +1,5 @@
 ﻿using GestorInventario.Domain.enums.Usuario;
 using GestorInventario.Domain.Models;
-using GestorInventario.Shared.DTOS.User;
 using GestorInventario.Shared.Utilities;
 
 namespace GestorInventario.Interfaces.Infraestructure.Repositories
@@ -19,7 +18,7 @@ namespace GestorInventario.Interfaces.Infraestructure.Repositories
         Task<Role?> GetRolByNameAsync(string nombre);
         Task<Role?> GetByIdRolAsync(int idRol);
         //Operaciones
-        Task ConfirmEmail(ConfirmRegistrationDto confirm);
+        Task ConfirmEmail(int userId);
         Task<OperationResult<string>> ActualizarEmailVerificationTokenAsync(int userId, string token); 
         Task<OperationResult<Usuario>> AgregarUsuarioAsync(Usuario usuario);      
         Task<OperationResult<string>> ActualizarUsuarioAsync(Usuario usuario);

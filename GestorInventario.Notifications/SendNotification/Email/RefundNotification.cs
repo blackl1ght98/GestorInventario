@@ -1,10 +1,11 @@
-﻿using GestorInventario.Application.Services.Common;
+﻿using GestorInventario.Application.DTOS.Email;
+using GestorInventario.Application.DTOS.Rembolso;
+using GestorInventario.Application.Interfaces.Services.Email;
+using GestorInventario.Application.Services.Common;
 using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Interfaces.Notifications.EmailServices;
 using GestorInventario.Interfaces.Notifications.SendNotification.Email;
-using GestorInventario.Shared.DTOS.Email;
-using GestorInventario.Shared.DTOS.Rembolso;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 

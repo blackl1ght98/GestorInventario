@@ -2,7 +2,6 @@
 using GestorInventario.Domain.Models;
 using GestorInventario.Infrastructure.Data;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
-using GestorInventario.Shared.DTOS.Paypal.BD;
 using GestorInventario.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,9 +19,9 @@ namespace GestorInventario.Infrastructure.Repositories.PedidoRepository
                   
          
         }
-        public async Task<Pedido> ObtenerNumeroPedido(RefundDto form)
+        public async Task<Pedido> ObtenerNumeroPedido(string numPedido)
         {
-            var numeroPedido = await _context.Pedidos.Include(x=>x.PayPalPaymentCaptures).FirstOrDefaultAsync(p => p.NumeroPedido == form.NumeroPedido);    
+            var numeroPedido = await _context.Pedidos.Include(x=>x.PayPalPaymentCaptures).FirstOrDefaultAsync(p => p.NumeroPedido == numPedido);    
             return  numeroPedido;
         }
         public async Task<Pedido?> ObtenerPedidoPendienteUsuarioAsync(int usuarioId)

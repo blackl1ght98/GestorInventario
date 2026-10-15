@@ -1,11 +1,11 @@
-﻿using GestorInventario.Domain.enums.Productos;
+﻿using GestorInventario.Application.DTOS.Products;
+using GestorInventario.Application.Interfaces.Services.Common;
+using GestorInventario.Application.Interfaces.Services.Products;
+using GestorInventario.Domain.enums.Productos;
 using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application.Services.Common;
-using GestorInventario.Interfaces.Application.Services.Products;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Interfaces.Renderer.Images;
 using GestorInventario.Interfaces.Web;
-using GestorInventario.Shared.DTOS.Products;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 

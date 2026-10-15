@@ -2,7 +2,6 @@
 using GestorInventario.Domain.Models;
 using GestorInventario.Infrastructure.Data;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
-using GestorInventario.Shared.DTOS.User;
 using GestorInventario.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 
@@ -69,10 +68,10 @@ namespace GestorInventario.Infrastructure.Repositories.UserRepository
         {
             return await _context.Usuarios.AnyAsync(x => x.Email == email);
         }
-        public async Task ConfirmEmail(ConfirmRegistrationDto confirm)
+        public async Task ConfirmEmail(int userId)
         {
 
-            var usuarioUpdate = _context.Usuarios.AsTracking().FirstOrDefault(x => x.Id == confirm.UserId);
+            var usuarioUpdate = _context.Usuarios.AsTracking().FirstOrDefault(x => x.Id == userId);
             if (usuarioUpdate != null)
             {
                 usuarioUpdate.ConfirmacionEmail = true;

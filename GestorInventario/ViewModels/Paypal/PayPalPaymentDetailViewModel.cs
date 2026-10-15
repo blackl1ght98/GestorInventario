@@ -1,4 +1,4 @@
-﻿using GestorInventario.Shared.DTOS.Paypal.BD;
+﻿using GestorInventario.Application.DTOS.Paypal.BD;
 
 namespace GestorInventario.ViewModels.Paypal
 {

@@ -1,4 +1,4 @@
-﻿using GestorInventario.Interfaces.Application.RetryPolicy;
+﻿using GestorInventario.Application.Interfaces.RetryPolicy;
 
 namespace GestorInventario.Application.RetryPolicy
 {

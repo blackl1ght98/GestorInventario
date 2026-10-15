@@ -1,5 +1,4 @@
-﻿
-using GestorInventario.Shared.DTOS.Paypal.Projections;
+﻿using GestorInventario.Application.DTOS.Paypal.Projections;
 using GestorInventario.Shared.Utilities;
 
 namespace GestorInventario.ViewModels.Paypal

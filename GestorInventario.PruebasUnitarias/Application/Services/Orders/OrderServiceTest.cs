@@ -2,7 +2,6 @@
 using GestorInventario.Domain.enums.Paypal;
 using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Order;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Interfaces.Web;
 using GestorInventario.Shared.Utilities;
@@ -13,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
+using GestorInventario.Application.Interfaces.Services.Paypal.PaypalApi.Order;
 using GestorInventario.Shared.ExternalServices.Paypal.API.Responses.GET.Order;
 
 namespace GestorInventario.PruebasUnitarias.Application.Services.Orders

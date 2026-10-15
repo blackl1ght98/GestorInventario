@@ -1,7 +1,7 @@
-﻿using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application.Services.Authentication.TokenGeneration;
-using GestorInventario.Interfaces.Application.Services.Authentication.TokenGeneration.Generators;
-using GestorInventario.Shared.DTOS.Auth;
+﻿using GestorInventario.Application.DTOS.Auth;
+using GestorInventario.Application.Interfaces.Services.Authentication.TokenGeneration;
+using GestorInventario.Application.Interfaces.Services.Authentication.TokenGeneration.Generators;
+using GestorInventario.Domain.Models;
 
 namespace GestorInventario.Application.Services.Authentication.TokenGeneration
 {

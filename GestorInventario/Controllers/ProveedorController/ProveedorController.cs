@@ -1,9 +1,9 @@
-﻿using GestorInventario.Extensions;
-using GestorInventario.Interfaces.Application.MetodosPaginacion;
-using GestorInventario.Interfaces.Application.RetryPolicy;
+﻿using GestorInventario.Application.DTOS.Supplier;
+using GestorInventario.Application.Interfaces.MetodosPaginacion;
+using GestorInventario.Application.Interfaces.RetryPolicy;
+using GestorInventario.Application.Interfaces.Services.Provider;
+using GestorInventario.Extensions;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
-using GestorInventario.Shared.DTOS.Supplier;
-using GestorInventario.Shared.DTOS.User;
 using GestorInventario.Shared.Utilities;
 using GestorInventario.ViewModels.Supplier;
 
@@ -24,19 +24,22 @@ namespace GestorInventario.Controllers.ProveedorController
         private readonly IPolicyExecutor _policyExecutor;
         private readonly IPaginationHelper _paginationHelper;
         private readonly IUserRepository _userRepository;
+        private readonly IProviderService  _providerService;
        
         public ProveedorController( 
             ILogger<ProveedorController> logger, 
             IUserRepository userRepository, 
             IProveedorRepository proveedorRepository,  
             IPolicyExecutor policyExecutor, 
-            IPaginationHelper pagination)
+            IPaginationHelper pagination,
+            IProviderService providerService)
         {           
             _logger = logger;                
             _proveedorRepository= proveedorRepository;           
             _policyExecutor = policyExecutor;
             _paginationHelper = pagination;
             _userRepository = userRepository;  
+            _providerService = providerService;
         }
       
      
@@ -120,7 +123,7 @@ namespace GestorInventario.Controllers.ProveedorController
                     Direccion = model.Direccion,
                     IdUsuario = model.IdUsuario,
                 };
-                var proveedor = await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.CrearProveedor(dto));
+                var proveedor = await _policyExecutor.ExecutePolicyAsync(() => _providerService.CrearProveedor(dto));
                 if (!proveedor.IsSuccess)
                 {
                     TempData["ErrorMessage"] = proveedor.Message;
@@ -180,7 +183,7 @@ namespace GestorInventario.Controllers.ProveedorController
             {
              
                
-                var success = await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.EliminarProveedor(Id));
+                var success = await _policyExecutor.ExecutePolicyAsync(() => _providerService.EliminarProveedor(Id));
                 if (success.Success)
                 {
                     TempData["SuccessMessage"] = "Los datos se han eliminado con éxito.";
@@ -265,7 +268,7 @@ namespace GestorInventario.Controllers.ProveedorController
                     IdUsuario = model.IdUsuario
 
                 };
-                var success = await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.EditarProveedor(dto, Id));
+                var success = await _policyExecutor.ExecutePolicyAsync(() => _providerService.EditarProveedor(dto, Id));
 
                 if (success.Success)
                 {

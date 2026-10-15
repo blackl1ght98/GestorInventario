@@ -1,7 +1,7 @@
-﻿using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application.Services.Authentication.Jwt;
-using GestorInventario.Interfaces.Application.Services.Authentication.Strategies.AccessToken;
-using GestorInventario.Shared.DTOS.Auth;
+﻿using GestorInventario.Application.DTOS.Auth;
+using GestorInventario.Application.Interfaces.Services.Authentication.Jwt;
+using GestorInventario.Application.Interfaces.Services.Authentication.Strategies.AccessToken;
+using GestorInventario.Domain.Models;
 using Microsoft.Extensions.Configuration;
 
 

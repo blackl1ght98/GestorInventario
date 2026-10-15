@@ -1,6 +1,6 @@
-﻿using GestorInventario.Application.DTOs;
-using GestorInventario.Interfaces.Application.MetodosPaginacion;
-using GestorInventario.Interfaces.Application.RetryPolicy;
+﻿using GestorInventario.Application.DTOS.Gestion_Roles;
+using GestorInventario.Application.Interfaces.MetodosPaginacion;
+using GestorInventario.Application.Interfaces.RetryPolicy;
 using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Shared.Utilities;
 using GestorInventario.ViewModels.Users;

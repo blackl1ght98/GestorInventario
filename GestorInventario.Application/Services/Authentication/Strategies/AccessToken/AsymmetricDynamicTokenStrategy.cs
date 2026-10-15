@@ -1,13 +1,13 @@
 ﻿using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application.Services.Authentication.Jwt;
-using GestorInventario.Interfaces.Application.Services.Common;
-using GestorInventario.Shared.DTOS.Auth;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
+using GestorInventario.Application.DTOS.Auth;
+using GestorInventario.Application.Interfaces.Services.Authentication.Jwt;
+using GestorInventario.Application.Interfaces.Services.Common;
 
 namespace GestorInventario.Application.Services.Authentication.Strategies.AccessToken
 {

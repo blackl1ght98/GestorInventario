@@ -1,5 +1,5 @@
-﻿using GestorInventario.Domain.Models;
-using GestorInventario.Shared.DTOS.Rembolso;
+﻿using GestorInventario.Application.DTOS.Rembolso;
+using GestorInventario.Domain.Models;
 
 namespace GestorInventario.Notifications.Email
 {

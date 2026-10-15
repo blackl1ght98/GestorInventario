@@ -1,6 +1,6 @@
-﻿using GestorInventario.Application.Services.Common;
-using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi;
-using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Order;
+﻿using GestorInventario.Application.Interfaces.Services.Paypal.PaypalApi;
+using GestorInventario.Application.Interfaces.Services.Paypal.PaypalApi.Order;
+using GestorInventario.Application.Services.Common;
 using GestorInventario.Shared.ExternalServices.Paypal.API.Requests.POST;
 using GestorInventario.Shared.ExternalServices.Paypal.API.Responses.GET.Order;
 using GestorInventario.Shared.ExternalServices.Paypal.API.Responses.POST.Order;

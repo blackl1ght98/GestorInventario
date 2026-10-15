@@ -1,10 +1,11 @@
-﻿using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application.Services.Authentication.Services;
-using GestorInventario.Interfaces.Application.Services.User;
+﻿using GestorInventario.Application.DTOS.Email;
+using GestorInventario.Application.DTOS.User;
+using GestorInventario.Application.Interfaces.Services.Authentication.Services;
+using GestorInventario.Application.Interfaces.Services.Email;
+using GestorInventario.Application.Interfaces.Services.User;
+using GestorInventario.Domain.Models;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Interfaces.Notifications.EmailServices;
-using GestorInventario.Shared.DTOS.Email;
-using GestorInventario.Shared.DTOS.User;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 
@@ -145,10 +146,8 @@ namespace GestorInventario.Application.Services.User
                 _logger.LogCritical("Intento de manipulacion del token por el usuario: " + usuarioDb.Id);
                 return OperationResult<string>.Fail("Ocurrio un error al confirmar el usuario");
             }
-            await _usuarioRepository.ConfirmEmail(new ConfirmRegistrationDto
-            {
-                UserId = confirmar.UserId
-            });
+
+            await _usuarioRepository.ConfirmEmail(confirmar.UserId);
             usuarioDb.EmailVerificationToken = null;
             await _usuarioRepository.ActualizarUsuarioAsync(usuarioDb);
             return OperationResult<string>.Ok("Validacion exitosa");

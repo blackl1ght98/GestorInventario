@@ -1,4 +1,4 @@
-﻿using GestorInventario.Interfaces.Application.RetryPolicy;
+﻿using GestorInventario.Application.Interfaces.RetryPolicy;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

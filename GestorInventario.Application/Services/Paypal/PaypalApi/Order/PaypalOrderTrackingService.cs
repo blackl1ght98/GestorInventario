@@ -1,7 +1,6 @@
-﻿using GestorInventario.Domain.enums.Pedido;
-using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi;
-using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Order;
-using GestorInventario.Shared.DTOS.Paypal.BD;
+﻿using GestorInventario.Application.Interfaces.Services.Paypal.PaypalApi;
+using GestorInventario.Application.Interfaces.Services.Paypal.PaypalApi.Order;
+using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Shared.ExternalServices.Paypal.API.Requests.POST;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;

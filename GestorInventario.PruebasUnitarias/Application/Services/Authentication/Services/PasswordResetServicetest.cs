@@ -1,8 +1,8 @@
-﻿using GestorInventario.Application.Services.Authentication.Services;
+﻿using GestorInventario.Application.DTOS.Auth;
+using GestorInventario.Application.Interfaces.Services.Authentication.Services;
+using GestorInventario.Application.Services.Authentication.Services;
 using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application.Services.Authentication.Services;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
-using GestorInventario.Shared.DTOS.Auth;
 using GestorInventario.Shared.Utilities;
 using Moq;
 using Xunit;

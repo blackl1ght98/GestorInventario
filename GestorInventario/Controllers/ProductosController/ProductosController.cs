@@ -1,17 +1,16 @@
 ﻿using GestorInventario.Extensions;
-using GestorInventario.Interfaces.Application.MetodosPaginacion;
-using GestorInventario.Interfaces.Application.RetryPolicy;
-using GestorInventario.Interfaces.Application.Services.Products;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Interfaces.Web;
-using GestorInventario.Shared.DTOS.Products;
-using GestorInventario.Shared.DTOS.User;
 using GestorInventario.Shared.Utilities;
 using GestorInventario.ViewModels.Products;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Security.Claims;
+using GestorInventario.Application.DTOS.Products;
+using GestorInventario.Application.Interfaces.MetodosPaginacion;
+using GestorInventario.Application.Interfaces.RetryPolicy;
+using GestorInventario.Application.Interfaces.Services.Products;
 
 namespace GestorInventario.Controllers.ProductosController
 {

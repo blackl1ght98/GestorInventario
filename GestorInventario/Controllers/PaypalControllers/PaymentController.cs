@@ -1,14 +1,13 @@
 ﻿using System.Globalization;
+using GestorInventario.Application.DTOS.Paypal.BD;
+using GestorInventario.Application.Interfaces.RetryPolicy;
+using GestorInventario.Application.Interfaces.Services.Orders;
+using GestorInventario.Application.Interfaces.Services.Payment;
+using GestorInventario.Application.Interfaces.Services.Paypal.PaypalApi.Order;
 using GestorInventario.Domain.enums.Notification;
-using GestorInventario.Interfaces.Application.RetryPolicy;
-using GestorInventario.Interfaces.Application.Services.BackgroundServices;
-using GestorInventario.Interfaces.Application.Services.Orders;
-using GestorInventario.Interfaces.Application.Services.Payment;
-using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Order;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Interfaces.Notifications.InternalNotification;
 using GestorInventario.Interfaces.Web;
-using GestorInventario.Shared.DTOS.Paypal.BD;
 using GestorInventario.Shared.Utilities;
 
 using GestorInventario.ViewModels.Paypal;

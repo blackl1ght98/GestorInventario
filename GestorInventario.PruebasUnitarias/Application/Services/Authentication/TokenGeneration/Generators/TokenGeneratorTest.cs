@@ -1,7 +1,7 @@
-﻿using GestorInventario.Application.Services.Authentication.Resolvers;
+﻿using GestorInventario.Application.Interfaces.Services.Authentication.Resolvers;
+using GestorInventario.Application.Services.Authentication.Resolvers;
 using GestorInventario.Application.Services.Authentication.TokenGeneration.Generators;
 using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application.Services.Authentication.Resolvers;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using Moq;
 

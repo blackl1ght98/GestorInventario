@@ -1,5 +1,5 @@
 ﻿using GestorInventario.Domain.Models;
-using GestorInventario.Shared.DTOS.Supplier;
+
 using GestorInventario.Shared.Utilities;
 
 
@@ -10,10 +10,15 @@ namespace GestorInventario.Interfaces.Infraestructure.Repositories
         //Consultas
         IQueryable<Proveedore> ObtenerProveedores();
         Task<Proveedore> ObtenerProveedorId(int id);
+        Task<Proveedore> ObtenerProveedoresConProductos(int Id);
+        Task<Proveedore> ObtenerProveedorNombre(string nombreProveedor);
         //Operaciones
-        Task<OperationResult<string>> CrearProveedor(CrearProveedorDto model); 
-        Task<OperationResult<string>> EliminarProveedor(int Id);
-        Task<OperationResult<string>> EditarProveedor(EditarProveedorDto model, int Id);
-       
+ 
+    
+        Task<OperationResult<Proveedore>> AddAsync(Proveedore proveedore);
+        Task<OperationResult<Proveedore>> UpdateAsync(Proveedore proveedore);
+        Task<OperationResult<Proveedore>> DeleteAsync(Proveedore proveedore);
+
+
     }
 }

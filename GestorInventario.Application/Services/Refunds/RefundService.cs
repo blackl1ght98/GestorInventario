@@ -1,14 +1,14 @@
 ﻿
+using GestorInventario.Application.DTOS.Rembolso;
+using GestorInventario.Application.Interfaces.Services.Paypal.PaypalApi.Order;
+using GestorInventario.Application.Interfaces.Services.Paypal.PaypalApi.Refunds;
+using GestorInventario.Application.Interfaces.Services.Refunds;
 using GestorInventario.Application.Services.Common;
 using GestorInventario.Domain.enums.Paypal;
 using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Order;
-using GestorInventario.Interfaces.Application.Services.Paypal.PaypalApi.Refunds;
-using GestorInventario.Interfaces.Application.Services.Refunds;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Interfaces.Web;
-using GestorInventario.Shared.DTOS.Rembolso;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 

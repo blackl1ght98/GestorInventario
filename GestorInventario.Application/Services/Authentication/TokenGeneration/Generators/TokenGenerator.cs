@@ -1,9 +1,10 @@
-﻿using GestorInventario.Application.Services.Authentication.Resolvers;
+﻿using GestorInventario.Application.DTOS.Auth;
+using GestorInventario.Application.Interfaces.Services.Authentication.Resolvers;
+using GestorInventario.Application.Interfaces.Services.Authentication.TokenGeneration.Generators;
+using GestorInventario.Application.Services.Authentication.Resolvers;
 using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Application.Services.Authentication.Resolvers;
-using GestorInventario.Interfaces.Application.Services.Authentication.TokenGeneration.Generators;
 using GestorInventario.Interfaces.Infraestructure.Repositories;
-using GestorInventario.Shared.DTOS.Auth;
+
 namespace GestorInventario.Application.Services.Authentication.TokenGeneration.Generators
 {
     public class TokenGenerator : ITokenGenerator

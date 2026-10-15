@@ -1,5 +1,4 @@
-﻿using GestorInventario.Interfaces.Application;
-
+﻿
 
 namespace GestorInventario.Middlewares
 {

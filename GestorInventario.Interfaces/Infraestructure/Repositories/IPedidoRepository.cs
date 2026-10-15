@@ -1,5 +1,4 @@
 ﻿using GestorInventario.Domain.Models;
-using GestorInventario.Shared.DTOS.Paypal.BD;
 using GestorInventario.Shared.Utilities;
 
 
@@ -13,7 +12,7 @@ namespace GestorInventario.Interfaces.Infraestructure.Repositories
         Task<Pedido> ObtenerPedidoConDetallesAsync(int id);
         Task<Pedido> ObtenerPedidoPorIdAsync(int id);
         Task<Pedido?> ObtenerPedidoPendienteUsuarioAsync(int usuarioId);
-        Task<Pedido> ObtenerNumeroPedido(RefundDto form);
+        Task<Pedido> ObtenerNumeroPedido(string numPedido);
         Task<List<DetallePedido>> ObtenerDetallesPedidoAsync(int pedidoId);
         Task<DetallePedido> ObtenerDetalleParaReembolsoAsync(int detallePedidoId);
         Task<DetallePedido> ObtenerDetallePorIdAsync(int id);
