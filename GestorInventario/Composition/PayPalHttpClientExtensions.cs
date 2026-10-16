@@ -1,6 +1,6 @@
-﻿using GestorInventario.Application.Services.Paypal.PaypalApi;
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi;
+using GestorInventario.Infrastructure.Paypal;
 
 namespace GestorInventario.Composition
 {

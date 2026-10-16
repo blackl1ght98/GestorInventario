@@ -12,7 +12,7 @@ using GestorInventario.Application.Interfaces.MetodosPaginacion;
 using GestorInventario.Application.Interfaces.Notifications.SendNotification.Email;
 using GestorInventario.Application.Interfaces.Web;
 using GestorInventario.Application.Services.Common;
-
+using GestorInventario.Domain.Common;
 using GestorInventario.Extensions;
 using GestorInventario.Shared.Utilities;
 using GestorInventario.ViewModels.Paypal;
@@ -240,7 +240,7 @@ namespace GestorInventario.Controllers.RembolsoController
             {
 
                 var resultado = await _refundService.RealizarRembolsoParcial(request);
-                var red = resultado.Data.precioProducto;
+               
                 var total = CalculadoraFiscal.CalcularPrecioConIva(resultado.Data.precioProducto);
              
                

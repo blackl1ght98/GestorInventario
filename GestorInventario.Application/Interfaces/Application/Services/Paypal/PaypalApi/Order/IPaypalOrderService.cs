@@ -9,5 +9,7 @@ namespace GestorInventario.Application.Interfaces.Application.Services.Paypal.Pa
         Task<OperationResult<string>> CreateOrderWithPaypalAsync(CheckoutRequest pagar);
         Task<OperationResult<OrderDetailsResponse>> CapturarPagoAsync(string orderId);
         Task<OperationResult<OrderDetailsResponse>> ObtenerDetallesPagoEjecutadoAsync(string id);
+        Task<bool> VerificarReembolsoExistenteAsync(OrderDetailsResponse capture, decimal monto);
+        string? ObtenerRefundIdPorMonto(OrderDetailsResponse capture, decimal monto);
     }
 }

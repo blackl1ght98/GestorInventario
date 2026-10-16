@@ -12,6 +12,7 @@ using GestorInventario.Application.Interfaces.Infrastructure.Common;
 using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
 using GestorInventario.Application.Interfaces.Web;
 using GestorInventario.Application.Services.Common;
+using GestorInventario.Domain.Common;
 using GestorInventario.Domain.enums.Paypal;
 using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Domain.Models;
@@ -19,7 +20,7 @@ using GestorInventario.Shared.ExternalServices.Paypal.API.Requests.POST;
 using GestorInventario.Shared.ExternalServices.Paypal.API.Responses.GET.Order;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+
 
 namespace GestorInventario.Application.Services.Payment
 {
@@ -27,7 +28,8 @@ namespace GestorInventario.Application.Services.Payment
     {
        
         private readonly ICurrentUserAccessor _currentUserAccessor;
-        private readonly IUnitOfWork _unitOfWork;    
+        private readonly IUnitOfWork _unitOfWork;   
+        
         private readonly ILogger<PaymentService> _logger;      
         private readonly IPaypalOrderService _paypalOrder;
         private readonly IEmailService _emailService;

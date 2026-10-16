@@ -1,6 +1,7 @@
 ﻿using GestorInventario.Application.Interfaces.Application.Services.Authentication.Resolvers;
 using GestorInventario.Application.Interfaces.Services.Authentication.Resolvers;
 using GestorInventario.Application.Services.Authentication.Resolvers;
+using GestorInventario.Infrastructure.Interfaces.Middleware;
 
 namespace GestorInventario.Middlewares
 {

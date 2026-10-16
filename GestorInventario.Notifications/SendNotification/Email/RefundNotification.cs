@@ -4,6 +4,7 @@ using GestorInventario.Application.Interfaces.Application.Services.Email;
 using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
 using GestorInventario.Application.Interfaces.Notifications.SendNotification.Email;
 using GestorInventario.Application.Services.Common;
+using GestorInventario.Domain.Common;
 using GestorInventario.Domain.Models;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;

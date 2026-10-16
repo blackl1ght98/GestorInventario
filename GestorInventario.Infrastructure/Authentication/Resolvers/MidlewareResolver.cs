@@ -1,0 +1,37 @@
+﻿using GestorInventario.Application.Interfaces.Application.Services.Authentication.Resolvers;
+using GestorInventario.Infrastructure.Authentication.Middleware;
+using GestorInventario.Infrastructure.Interfaces.Middleware;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace GestorInventario.Infrastructure.Authentication.Resolvers
+{
+    public class MidlewareResolver:IMidlewareResolver
+    {
+        private readonly IConfiguration _configuration;
+        private readonly IServiceProvider _serviceProvider;
+
+        public MidlewareResolver(IConfiguration configuration, IServiceProvider serviceProvider)
+        {
+            _configuration = configuration;
+            _serviceProvider = serviceProvider;
+        }
+        
+        public IAuthenticationMiddlewareStrategy ResolveMiddleware()
+        {
+            var mode = _configuration["AuthMode"] ?? Environment.GetEnvironmentVariable("AUTH_MODE");
+
+
+            return mode switch
+            {
+                "Symmetric" => ActivatorUtilities.CreateInstance<SymmetricAuthStrategy>(_serviceProvider),
+
+                "AsymmetricFixed" => ActivatorUtilities.CreateInstance<FixedAsymmetricAuthStrategy>(_serviceProvider),
+
+                "AsymmetricDynamic" => ActivatorUtilities.CreateInstance<DynamicAsymmetricAuthStrategy>(_serviceProvider),
+
+                _ => throw new InvalidOperationException($"Modo de autenticación no soportado: {mode}.")
+            };
+        }
+    }
+}
