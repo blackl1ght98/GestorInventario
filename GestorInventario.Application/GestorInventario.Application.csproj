@@ -18,13 +18,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GestorInventario.Domain\GestorInventario.Domain.csproj" />
-    <ProjectReference Include="..\GestorInventario.Infrastructure\GestorInventario.Infrastructure.csproj" />
-    <ProjectReference Include="..\GestorInventario.Interfaces\GestorInventario.Interfaces.csproj" />
     <ProjectReference Include="..\GestorInventario.Shared\GestorInventario.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Interfaces\" />
+    <Folder Include="Interfaces\Application\" />
+    <Folder Include="Interfaces\Infrastructure\" />
   </ItemGroup>
 
 </Project>

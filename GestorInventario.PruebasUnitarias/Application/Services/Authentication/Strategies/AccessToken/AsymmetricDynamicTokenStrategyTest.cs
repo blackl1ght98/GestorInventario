@@ -4,8 +4,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using System.Security.Claims;
-using GestorInventario.Application.Interfaces.Services.Authentication.Jwt;
-using GestorInventario.Application.Interfaces.Services.Common;
+using GestorInventario.Application.Interfaces.Application.Services.Authentication.Jwt;
+using GestorInventario.Application.Interfaces.Application.Services.Common;
 using GestorInventario.Domain.enums.Usuario;
 
 namespace GestorInventario.PruebasUnitarias.Application.Services.Authentication.Strategies.AccessToken;

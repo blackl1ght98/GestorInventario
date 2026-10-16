@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
-using GestorInventario.Application.Interfaces.Services.Authentication.Jwt;
-using GestorInventario.Application.Interfaces.Services.Common;
+using GestorInventario.Application.Interfaces.Application.Services.Authentication.Jwt;
+using GestorInventario.Application.Interfaces.Application.Services.Common;
 using GestorInventario.Application.Services.Authentication.Strategies.RefreshToken;
 using GestorInventario.Domain.Models;
 using Moq;

@@ -14,8 +14,8 @@
 		<PackageReference Include="QuestPDF" Version="2026.7.1" />
 	</ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\GestorInventario.Application\GestorInventario.Application.csproj" />
     <ProjectReference Include="..\GestorInventario.Domain\GestorInventario.Domain.csproj" />
-    <ProjectReference Include="..\GestorInventario.Interfaces\GestorInventario.Interfaces.csproj" />
   </ItemGroup>
 
 </Project>

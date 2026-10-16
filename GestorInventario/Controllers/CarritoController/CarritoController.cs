@@ -1,9 +1,9 @@
-﻿using GestorInventario.Application.Interfaces.MetodosPaginacion;
-using GestorInventario.Application.Interfaces.RetryPolicy;
-using GestorInventario.Application.Interfaces.Services.Payment;
-using GestorInventario.Application.Interfaces.Services.ShopCart;
-using GestorInventario.Interfaces.Infraestructure.Repositories;
-using GestorInventario.Interfaces.Web;
+﻿using GestorInventario.Application.Interfaces.Application.Services.Payment;
+using GestorInventario.Application.Interfaces.Application.Services.ShopCart;
+using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
+using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;
+using GestorInventario.Application.Interfaces.MetodosPaginacion;
+using GestorInventario.Application.Interfaces.Web;
 using GestorInventario.Shared.Utilities;
 using GestorInventario.ViewModels.ShoppingCart;
 using Microsoft.AspNetCore.Authorization;

@@ -1,12 +1,12 @@
 ﻿using GestorInventario.Application.DTOS.Paypal.BD;
 using GestorInventario.Application.Exceptions;
+using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Subscriptions;
+using GestorInventario.Application.Interfaces.Application.Services.Paypal.Plans;
+using GestorInventario.Application.Interfaces.Application.Services.Syncs;
+using GestorInventario.Application.Interfaces.Infrastructure.Common;
+using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;
 using GestorInventario.Application.Interfaces.MetodosPaginacion;
-using GestorInventario.Application.Interfaces.RetryPolicy;
-using GestorInventario.Application.Interfaces.Services.Paypal.PaypalApi.Subscriptions;
-using GestorInventario.Application.Interfaces.Services.Paypal.Plans;
-using GestorInventario.Application.Interfaces.Services.Syncs;
 using GestorInventario.Application.Mappers;
-using GestorInventario.Interfaces.Infraestructure.Common;
 using GestorInventario.Shared.Utilities;
 
 using GestorInventario.ViewModels.Paypal;

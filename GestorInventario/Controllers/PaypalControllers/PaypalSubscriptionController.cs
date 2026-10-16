@@ -1,10 +1,10 @@
-﻿using GestorInventario.Application.Interfaces.MetodosPaginacion;
-using GestorInventario.Application.Interfaces.RetryPolicy;
-using GestorInventario.Application.Interfaces.Services.Paypal.PaypalApi.Subscriptions;
-using GestorInventario.Application.Interfaces.Services.Paypal.Subscription;
+﻿using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Subscriptions;
+using GestorInventario.Application.Interfaces.Application.Services.Paypal.Subscription;
+using GestorInventario.Application.Interfaces.Infrastructure.Common;
+using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;
+using GestorInventario.Application.Interfaces.MetodosPaginacion;
+using GestorInventario.Application.Interfaces.Web;
 using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Infraestructure.Common;
-using GestorInventario.Interfaces.Web;
 using GestorInventario.Shared.Utilities;
 
 using GestorInventario.ViewModels.Paypal;

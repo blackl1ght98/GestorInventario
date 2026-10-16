@@ -1,4 +1,4 @@
-﻿using GestorInventario.Interfaces.Infraestructure.Repositories;
+﻿using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

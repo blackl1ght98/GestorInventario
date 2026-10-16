@@ -1,7 +1,7 @@
-﻿using GestorInventario.Interfaces.Web;
-using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Net.Sockets;
 using System.Security.Claims;
+using GestorInventario.Application.Interfaces.Web;
 
 namespace GestorInventario.Context
 {

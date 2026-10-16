@@ -1,4 +1,4 @@
-﻿using GestorInventario.Application.Interfaces.Services.Authentication.Strategies.Configuration;
+﻿using GestorInventario.Application.Interfaces.Application.Services.Authentication.Strategies.Configuration;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

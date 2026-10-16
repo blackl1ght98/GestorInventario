@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 using System.Security.Cryptography;
-using GestorInventario.Application.Interfaces.Services.Authentication.Jwt;
+using GestorInventario.Application.Interfaces.Application.Services.Authentication.Jwt;
 using GestorInventario.Application.Services.Authentication.Strategies.RefreshToken;
 using GestorInventario.Domain.Models;
 using Microsoft.Extensions.Logging;

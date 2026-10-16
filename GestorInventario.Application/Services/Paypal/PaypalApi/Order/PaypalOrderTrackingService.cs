@@ -1,5 +1,5 @@
-﻿using GestorInventario.Application.Interfaces.Services.Paypal.PaypalApi;
-using GestorInventario.Application.Interfaces.Services.Paypal.PaypalApi.Order;
+﻿using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi;
+using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Order;
 using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Shared.ExternalServices.Paypal.API.Requests.POST;
 using GestorInventario.Shared.Utilities;

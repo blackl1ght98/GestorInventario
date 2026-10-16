@@ -1,6 +1,6 @@
 ﻿using GestorInventario.Application.DTOS.Supplier;
-using GestorInventario.Application.Interfaces.RetryPolicy;
-using GestorInventario.Interfaces.Infraestructure.Common;
+using GestorInventario.Application.Interfaces.Infrastructure.Common;
+using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

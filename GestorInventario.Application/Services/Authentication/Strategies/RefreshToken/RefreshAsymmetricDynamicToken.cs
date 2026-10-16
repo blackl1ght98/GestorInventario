@@ -3,8 +3,8 @@ using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
-using GestorInventario.Application.Interfaces.Services.Authentication.Jwt;
-using GestorInventario.Application.Interfaces.Services.Common;
+using GestorInventario.Application.Interfaces.Application.Services.Authentication.Jwt;
+using GestorInventario.Application.Interfaces.Application.Services.Common;
 
 namespace GestorInventario.Application.Services.Authentication.Strategies.RefreshToken
 {

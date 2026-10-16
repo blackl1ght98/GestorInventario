@@ -1,7 +1,7 @@
-﻿using GestorInventario.Domain.enums.Pedido;
+﻿using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
+using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infrastructure.Data;
-using GestorInventario.Interfaces.Infraestructure.Repositories;
 using GestorInventario.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 

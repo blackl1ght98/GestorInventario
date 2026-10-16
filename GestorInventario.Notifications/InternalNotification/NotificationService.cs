@@ -1,7 +1,7 @@
-﻿using GestorInventario.Domain.enums.Notification;
+﻿using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
+using GestorInventario.Application.Interfaces.Notifications.InternalNotification;
+using GestorInventario.Domain.enums.Notification;
 using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Infraestructure.Repositories;
-using GestorInventario.Interfaces.Notifications.InternalNotification;
 using GestorInventario.Shared.Utilities;
 
 

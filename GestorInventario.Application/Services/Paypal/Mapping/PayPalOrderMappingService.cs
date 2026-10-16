@@ -2,7 +2,7 @@
 using GestorInventario.Shared.Utilities;
 using Newtonsoft.Json;
 using System.Globalization;
-using GestorInventario.Application.Interfaces.Services.Paypal.Mapping;
+using GestorInventario.Application.Interfaces.Application.Services.Paypal.Mapping;
 using GestorInventario.Shared.ExternalServices.Paypal.API.Responses.GET.Order;
 
 namespace GestorInventario.Application.Services.Paypal.Mapping

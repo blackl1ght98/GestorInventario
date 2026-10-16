@@ -1,5 +1,5 @@
-﻿using GestorInventario.Application.Interfaces.Services.Authentication.Jwt;
-using GestorInventario.Application.Interfaces.Services.Authentication.Strategies.RefreshToken;
+﻿using GestorInventario.Application.Interfaces.Application.Services.Authentication.Jwt;
+using GestorInventario.Application.Interfaces.Application.Services.Authentication.Strategies.RefreshToken;
 using GestorInventario.Domain.Models;
 using Microsoft.Extensions.Configuration;
 

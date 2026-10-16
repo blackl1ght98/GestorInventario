@@ -1,6 +1,6 @@
 ﻿using GestorInventario.Application.DTOS.Auth;
+using GestorInventario.Application.Interfaces.Application.Services.Authentication.TokenGeneration.Generators;
 using GestorInventario.Application.Interfaces.Services.Authentication.Resolvers;
-using GestorInventario.Application.Interfaces.Services.Authentication.TokenGeneration.Generators;
 using GestorInventario.Application.Services.Authentication.Resolvers;
 using GestorInventario.Shared.Utilities;
 

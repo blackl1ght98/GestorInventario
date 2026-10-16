@@ -1,11 +1,11 @@
-﻿using GestorInventario.Application.Interfaces.MetodosPaginacion;
-using GestorInventario.Application.Interfaces.RetryPolicy;
+﻿using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
+using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;
+using GestorInventario.Application.Interfaces.MetodosPaginacion;
+using GestorInventario.Application.Interfaces.Web;
 using GestorInventario.Application.Services.Common;
 using GestorInventario.Domain.enums.Paypal;
 using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Extensions;
-using GestorInventario.Interfaces.Infraestructure.Repositories;
-using GestorInventario.Interfaces.Web;
 using GestorInventario.Shared.Utilities;
 using GestorInventario.ViewModels.Orders;
 

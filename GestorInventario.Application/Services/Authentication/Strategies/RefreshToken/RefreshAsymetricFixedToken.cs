@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
-using GestorInventario.Application.Interfaces.Services.Authentication.Jwt;
+using GestorInventario.Application.Interfaces.Application.Services.Authentication.Jwt;
 
 namespace GestorInventario.Application.Services.Authentication.Strategies.RefreshToken
 {

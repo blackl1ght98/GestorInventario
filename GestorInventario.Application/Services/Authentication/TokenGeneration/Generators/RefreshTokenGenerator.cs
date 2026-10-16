@@ -1,8 +1,9 @@
-﻿using GestorInventario.Application.Interfaces.Services.Authentication.Resolvers;
-using GestorInventario.Application.Interfaces.Services.Authentication.TokenGeneration.Generators;
+﻿using GestorInventario.Application.Interfaces.Application.Services.Authentication.Resolvers;
+using GestorInventario.Application.Interfaces.Application.Services.Authentication.TokenGeneration.Generators;
+using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
+using GestorInventario.Application.Interfaces.Services.Authentication.Resolvers;
 using GestorInventario.Application.Services.Authentication.Resolvers;
 using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Infraestructure.Repositories;
 
 
 namespace GestorInventario.Application.Services.Authentication.TokenGeneration.Generators

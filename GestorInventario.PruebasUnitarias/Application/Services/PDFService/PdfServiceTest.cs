@@ -1,7 +1,7 @@
-﻿using GestorInventario.Application.Services.PDFService;
+﻿using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
+using GestorInventario.Application.Interfaces.Renderer.PDF;
+using GestorInventario.Application.Services.PDFService;
 using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Infraestructure.Repositories;
-using GestorInventario.Interfaces.Renderer.PDF;
 using Moq;
 using Xunit;
 

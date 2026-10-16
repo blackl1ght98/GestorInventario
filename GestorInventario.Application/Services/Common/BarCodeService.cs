@@ -1,9 +1,9 @@
 ﻿using GestorInventario.Application.DTOS.Barcode;
-using GestorInventario.Application.Interfaces.Services.Common;
-using GestorInventario.Application.Interfaces.Services.Files;
+using GestorInventario.Application.Interfaces.Application.Services.Common;
+using GestorInventario.Application.Interfaces.Application.Services.Files;
+using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
+using GestorInventario.Application.Interfaces.Renderer.Barcode;
 using GestorInventario.Domain.enums.Productos;
-using GestorInventario.Interfaces.Infraestructure.Repositories;
-using GestorInventario.Interfaces.Renderer.Barcode;
 using Microsoft.Extensions.Logging;
 
 

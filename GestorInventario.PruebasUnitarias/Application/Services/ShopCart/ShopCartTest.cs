@@ -1,9 +1,9 @@
 ﻿using Castle.Core.Logging;
-using GestorInventario.Application.Interfaces.Services.Orders;
+using GestorInventario.Application.Interfaces.Application.Services.Orders;
+using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
+using GestorInventario.Application.Interfaces.Web;
 using GestorInventario.Application.Services.ShopCart;
 using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Infraestructure.Repositories;
-using GestorInventario.Interfaces.Web;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 using Moq;

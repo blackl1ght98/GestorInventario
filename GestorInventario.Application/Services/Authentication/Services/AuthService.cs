@@ -1,7 +1,4 @@
 ﻿using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Infraestructure.Repositories;
-using GestorInventario.Interfaces.Notifications.EmailServices;
-using GestorInventario.Interfaces.Web;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel.DataAnnotations;
@@ -9,8 +6,10 @@ using System.Security.Cryptography;
 using System.Text;
 using GestorInventario.Application.DTOS.Auth;
 using GestorInventario.Application.DTOS.Email;
-using GestorInventario.Application.Interfaces.Services.Authentication.Services;
-using GestorInventario.Application.Interfaces.Services.Email;
+using GestorInventario.Application.Interfaces.Application.Services.Authentication.Services;
+using GestorInventario.Application.Interfaces.Application.Services.Email;
+using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
+using GestorInventario.Application.Interfaces.Web;
 
 namespace GestorInventario.Application.Services.Authentication.Services
 {

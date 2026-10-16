@@ -1,11 +1,10 @@
 ﻿using GestorInventario.Application.DTOS.Email;
 using GestorInventario.Application.DTOS.User;
-using GestorInventario.Application.Interfaces.Services.Authentication.Services;
-using GestorInventario.Application.Interfaces.Services.Email;
-using GestorInventario.Application.Interfaces.Services.User;
+using GestorInventario.Application.Interfaces.Application.Services.Authentication.Services;
+using GestorInventario.Application.Interfaces.Application.Services.Email;
+using GestorInventario.Application.Interfaces.Application.Services.User;
+using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
 using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Infraestructure.Repositories;
-using GestorInventario.Interfaces.Notifications.EmailServices;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 

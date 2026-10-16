@@ -1,6 +1,6 @@
 using GestorInventario.Domain.enums.Productos;
-using GestorInventario.Interfaces.Renderer.Barcode;
 using System.Runtime.InteropServices;
+using GestorInventario.Application.Interfaces.Renderer.Barcode;
 using SkiaSharp;
 using ZXing;
 

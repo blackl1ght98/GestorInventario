@@ -3,16 +3,16 @@ using GestorInventario.Application.Services.Refunds;
 using GestorInventario.Domain.enums.Paypal;
 using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Domain.Models;
-using GestorInventario.Interfaces.Infraestructure.Repositories;
-using GestorInventario.Interfaces.Web;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 using Moq;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using GestorInventario.Application.Interfaces.Services.Paypal.PaypalApi.Order;
-using GestorInventario.Application.Interfaces.Services.Paypal.PaypalApi.Refunds;
+using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Order;
+using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Refunds;
+using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
+using GestorInventario.Application.Interfaces.Web;
 
 namespace GestorInventario.PruebasUnitarias.Application.Services.Refunds
 {

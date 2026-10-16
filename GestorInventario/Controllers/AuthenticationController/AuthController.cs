@@ -1,13 +1,14 @@
 ﻿
 using GestorInventario.Application.DTOS.Auth;
-using GestorInventario.Application.Interfaces.RetryPolicy;
-using GestorInventario.Application.Interfaces.Services.Authentication.Services;
-using GestorInventario.Application.Interfaces.Services.Authentication.TokenGeneration;
-using GestorInventario.Application.Interfaces.Services.Authentication.TokenGeneration.Generators;
-using GestorInventario.Application.Interfaces.Services.Common;
-using GestorInventario.Application.Interfaces.Services.ShopCart;
+using GestorInventario.Application.Interfaces.Application.Services.Authentication.Services;
+using GestorInventario.Application.Interfaces.Application.Services.Authentication.TokenGeneration;
+using GestorInventario.Application.Interfaces.Application.Services.Authentication.TokenGeneration.Generators;
+using GestorInventario.Application.Interfaces.Application.Services.Common;
+using GestorInventario.Application.Interfaces.Application.Services.ShopCart;
+using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;
+
+using GestorInventario.Application.Interfaces.Web;
 using GestorInventario.Extensions;
-using GestorInventario.Interfaces.Web;
 using GestorInventario.ViewModels.Users;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;

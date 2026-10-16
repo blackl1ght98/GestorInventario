@@ -1,4 +1,4 @@
-﻿using GestorInventario.Interfaces.Notifications.SendNotification.Telegram;
+﻿using GestorInventario.Application.Interfaces.Notifications.SendNotification.Telegram;
 using Microsoft.Extensions.Configuration;
 
 namespace GestorInventario.Notifications.SendNotification.Telegram

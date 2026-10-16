@@ -1,8 +1,7 @@
 ﻿using GestorInventario.Application.DTOS.Email;
-using GestorInventario.Application.Interfaces.Services.Email;
-using GestorInventario.Application.Interfaces.Services.PDFService;
-using GestorInventario.Interfaces.Notifications.EmailServices;
-using GestorInventario.Interfaces.Web;
+using GestorInventario.Application.Interfaces.Application.Services.Email;
+using GestorInventario.Application.Interfaces.Application.Services.PDFService;
+using GestorInventario.Application.Interfaces.Web;
 using GestorInventario.Notifications.Email;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
