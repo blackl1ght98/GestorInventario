@@ -1,83 +1,124 @@
-# Guía de instalación para usar el proyecto Gestor Inventario
+# 📦 Gestor Inventario
 
-# 📑 Índice (en construccion)
-- ⚠️ Requisitos para ejecutarlo con docker
-- ⚠️ Requisitos para ejecutarlo en local
-- 🔑 Generación de certificado HTTPS
-- 🐳 Puesta en marcha para ejecutacion con docker
-- 📝 Credenciales de prueba 
-- Puesta en marcha en local
-   - 📂 Restaurar base de datos
-   - ⚙️ Scaffold-DbContext
-       - 🔑 Scaffold-DbContext con usuario y contraseña (recomendado)
-   - 🔐 Configurar Secretos de usuario
-   - ⚙️ Modificación GestorInventarioContext.cs    
-- 🐳 Problemas comunes (Docker / Visual Studio / WSL)
-- ✨ Características
-- 🆕 Novedades
-- 🧠 Notas importantes
+[![.NET 10](https://img.shields.io/badge/.NET-10.0-purple.svg)](https://dotnet.microsoft.com/)
+[![Architecture](https://img.shields.io/badge/Architecture-Clean_Architecture-green.svg)]()
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)]()
 
-# ⚠️ Requisitos para ejecutarlo con docker
-Antes de comenzar asegúrate de tener instalado lo siguiente:
--  [Docker Desktop](https://www.docker.com/products/docker-desktop/)
--  [Git](https://git-scm.com/)
+Sistema robusto de gestión de inventarios y suscripciones con integración de pagos PayPal, notificaciones automatizadas y una arquitectura escalable.
 
-# ⚠️ Requisitos para ejecutarlo en local
-Antes de comenzar asegúrate de tener instalado lo siguiente:
-Tener instalado lo siguiente:
-  - [Visual Studio 2022](https://visualstudio.microsoft.com/) 
-  - [Git](https://git-scm.com/)  
-  - [SQL Server](https://www.microsoft.com/es-es/download/details.aspx?id=104781)
-  - [SQL Server Management Studio (SSMS)](https://aka.ms/ssmsfullsetup)  para gestionar la BD
-    
+---
 
-# 🐳 Puesta en marcha para ejecutacion con docker
-1. Clonar el repositorio con el comando:
-```sh
-git clone https://github.com/blackl1ght98/GestorInventario
+## 🚀 Características Principales
+
+### 🛠️ Gestión de Inventario y Datos
+- **Operaciones CRUD Completas**: Gestión eficiente de productos, proveedores y pedidos.
+- **Control de Stock**: Monitoreo automático de niveles bajos con notificaciones en tiempo real.
+- **Generación de Códigos de Barras**: Simulación de entorno de tienda con renderizado de códigos de barras profesional.
+
+### 🔐 Seguridad y Autenticación
+- **Autenticación Multi-Modo**: Soporte para autenticación Simétrica, Asimétrica (Claves Fijas) y Asimétrica Dinámica.
+- **MFA (Multi-Factor Authentication)**: Implementación de doble factor de autenticación global mediante códigos OTP enviados por email.
+- **Control de Acceso Basado en Roles (RBAC)**: Gestión granular de permisos para Administradores y Usuarios.
+
+### 💳 Integración con PayPal y Suscripciones
+- **Pasarela de Pagos**: Implementación completa de PayPal Sandbox para transacciones seguras.
+- **Gestión de Planes**: Creación, edición y suscripción a planes de pago.
+- **Gestión de Reembolsos**: Sistema de reembolsos totales y parciales con auditoría.
+- **Facturación PDF**: Generación automática de facturas profesionales en formato PDF.
+
+### 🔔 Sistema de Notificaciones
+- **Omnicanal**: Notificaciones vía Email y Telegram (CallMeBot).
+- **Automatización**: Alertas automáticas de stock bajo y confirmaciones de registro.
+
+---
+
+## 🏗️ Arquitectura del Proyecto
+
+El proyecto ha sido refactorizado bajo los principios de **Clean Architecture**, asegurando un bajo acoplamiento y una alta mantenibilidad.
+
+### Estructura de Capas
+- **`Web`**: Capa de presentación. Maneja controladores, vistas y la interfaz de usuario.
+- **`Application`**: El "cerebro" del sistema. Contiene la lógica de negocio, orquestadores (Generators), estrategias y los contratos (interfaces).
+- **`Infrastructure`**: La implementación técnica. Incluye el acceso a datos (EF Core), servicios de email, renderizado de PDF/Barcodes, caché (Redis) y resiliencia (Polly).
+- **`Domain`**: El núcleo. Contiene los modelos de entidad y enumeraciones fundamentales.
+- **`Shared`**: Utilidades y constantes transversales utilizadas por todas las capas.
+
+### Stack Tecnológico
+- **Framework**: .NET 10
+- **Base de Datos**: SQL Server (EF Core)
+- **Caché**: Redis
+- **Resiliencia**: Polly (Retry, Circuit Breaker, Fallback)
+- **Renderizado**: QuestPDF, RazorLight, SkiaSharp, ZXing.Net
+- **Pagos**: PayPal REST SDK
+
+---
+
+## 🛠️ Guía de Instalación
+
+### 📋 Requisitos Previos
+
+**Para ejecución con Docker:**
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [Git](https://git-scm.com/)
+
+**Para ejecución en Local:**
+- [Visual Studio 2022](https://visualstudio.microsoft.com/) o [Rider](https://www.jetbrains.com/es-es/rider/)
+- [SQL Server](https://www.microsoft.com/es-es/download/details.aspx?id=104781)
+- [Git](https://git-scm.com/)
+- **Opcional pero recomendado:** [SSMS](https://aka.ms/ssmsfullsetup) o [DataGrip](https://www.jetbrains.com/es-es/datagrip/)
+
+---
+
+### 🐳 Puesta en Marcha con Docker
+
+1. **Clonar el repositorio:**
+   ```sh
+   git clone https://github.com/blackl1ght98/GestorInventario
+   ```
+
+2. **Ejecutar el instalador guiado:**
+   ```powershell
+   ./install.ps1
+   ```
+   *(En Linux usar `sudo ./install-linux.sh`)*. El script creará un archivo `.env` con las variables de entorno necesarias.
+
+3. **Lanzar la aplicación:**
+   Reiniciar Docker y ejecutar el proyecto.
+
+---
+
+### 💻 Puesta en Marcha en Local
+
+#### 1. Restaurar Base de Datos
+Tienes dos opciones para restaurar la copia de seguridad:
+
+**Opción A: Interfaz Visual (SSMS)**
+1. Abrir **SSMS** $\rightarrow$ Conectar con **Certificado de servidor de confianza** activado.
+2. Mover el archivo `.bak` a la ruta de backups de SQL Server (ej. `C:\Program Files\Microsoft SQL Server\MSSQL17.SQLEXPRESS\MSSQL\Backup\`).
+3. Clic derecho en **Bases de datos** $\rightarrow$ **Restaurar base de datos** $\rightarrow$ Seleccionar el archivo `.bak` desde el Dispositivo.
+
+**Opción B: Mediante Comandos SQL**
+1. Abrir el archivo `restauracionPorConsulta.sql`.
+2. Ejecutar la primera consulta (`RESTORE HEADERONLY`) para identificar la posición (`Position`) de la última versión de la base de datos.
+````sql
+RESTORE HEADERONLY 
+FROM DISK = N'C:\Ruta\Al\Archivo\GestorInventario.bak';
 ````
-2. Ejecutar el Instalador
-Para que todo quede configurado ejecutar el script **install.ps1** este script es un instalador guiado que te indicara que valores poner.
-```powershell
-./install.ps1
-````
-En caso de estar en linux ejecutar
-````sh
-sudo ./install-linux.sh
-````
-**NOTA**: Este script al finalizar crearar un archivo .env, este archivo contendra el valor de cada variable de entorno, si quisieramos tenerlo en local tambien a parte de docker este archivo .env sera de gran ayuda para rellenar el archivo de secretos.
+3. En la segunda consulta, ajustar la ruta en `FROM DISK` y el número en `FILE = [Posicion]` con el valor obtenido.
+   ```sql
+   RESTORE DATABASE [GestorInventario]
+   FROM DISK = N'C:\Ruta\Al\Archivo\GestorInventario.bak'
+   WITH FILE = 21, REPLACE, STATS = 5;
+   GO
+   ```
 
-# Credenciales para probar
-- **Email**: keupa@yopmail.com
-- **Contraseña**: 1a2a3a4a5
-- Estas credenciales para probar son del usuario administrador.
- Una vez instalado reiniciamos docker y ya dejaria iniciarlo.
-# Puesta en marcha en local:
-## 📂 Restaurar la copia de seguridad
-El primer paso que tendremos que realizar es la restauración de la base de datos para ello hacemos lo siguiente:
-1. Abrir **SSMS**
-2. Marcar la casilla de **Certificado de servidor de confianza**
-3. Darle a conectar
-4. En el **Explorador de objetos**, haz clic derecho en **Bases de datos** → **Restaurar base de datos** en caso de tener el programa en ingles la opción para restaurar la base de datos se llama **Database**->**Restore database**.
-5. Para no tener problema con la restauración de la base de datos mover el archivo `.back` a la  ruta `C:\Program Files\Microsoft SQL Server\MSSQL17.SQLEXPRESS\MSSQL\Backup\` la carpeta   `MSSQL17.SQLEXPRESS` puede variar dependiendo de la version que tengamos pero esta es la ruta tipica.
-6. Una vez que estemos en la ventana de restauración hacemos lo siguiente:
-      - Selecciona **Dispositivo**.
-      - Haz clic en el botón `...`
-      -  Pulsa **Agregar** y busca el archivo `.bak` en la carpeta `Backup`.
-      -  Confirma con **Aceptar**.
-      -  Hacer nuevamente en **Aceptar** para completar la restauración
-
-
-
-
-## 🔐 Configurar Secretos de usuario
-
-Para acceder al archivo de **Secretos del usuario** en Visual Studio 2022:  
-`Clic derecho sobre el proyecto > Administrar secretos de usuario`.
-
-Luego, agrega los siguientes valores en formato JSON:
-
-```json
+#### 2. Configurar Secretos de Usuario
+En Visual Studio: `Clic derecho sobre el proyecto > Administrar secretos de usuario`.
+Agregar el JSON de configuración (ver `appsettings.json` o el archivo `.env` generado por el instalador) incluyendo:
+- Credenciales de Redis, PayPal y Email.
+- Claves JWT y modos de autenticación (`LoginMode`, `AuthMode`).
+- URLs base de la aplicación.
+````json
 {
   "Redis": {
     "ConnectionString": "redis:6379",
@@ -134,102 +175,35 @@ Luego, agrega los siguientes valores en formato JSON:
   }
 }
 ````
-En caso de haber ejecutado el script **install.ps1** este script nos habra creado archivo de variables de entorno podemos usar dicho archivo para rellenar los valores faltantes del archivo de secretos
-
-
-## ⚙️ Scaffold-DbContext
-El scaffold solo se ejecutara si la base de datos cambia mientras que no cambie la base de datos no se ejecutara el scaffold
-Para ejecutar este comando hacemos lo siguiente:
-
-
-1. Abrimos **Visual Studio**
-2. Activa la consola desde: `Ver > Otras ventanas > Consola del Administrador de paquetes`.  
-3. Ejecutar el comando:
-
-```sh
-Scaffold-DbContext "Data Source=localhost\SQLEXPRESS;Initial Catalog=GestorInventario;User ID=sa;Password=SQL#1234;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -ContextDir ../GestorInventario.Infrastructure/Data -ContextNamespace "GestorInventario.Infrastructure.Data" -Namespace "GestorInventario.Domain.Models" -force -Project GestorInventario.Domain -NoOnConfiguring 
-````
-
-
-
-# 🐳 Problemas comunes (Docker / Visual Studio / WSL)
-## Visual Studio y Docker
-Si **no tienes instalado Docker Desktop**, Visual Studio puede mostrar un error de compilación al intentar interpretar el archivo `docker-compose`.
-
-Para solucionarlo haremos lo siguiente:
-
-1. Abre **Visual Studio** y ve al **Explorador de Soluciones**.  
-2. Haz **clic derecho** sobre el proyecto `docker-compose`.  
-3. Selecciona **“Descargar proyecto”** (*Unload Project*).  
-4. Vuelve a compilar el proyecto → ya no tendrás el error.
- 
-Si más adelante instalas **Docker Desktop**, puedes volver a habilitar `docker-compose` haciendo clic derecho en el proyecto y seleccionando **“Volver a cargar”** (*Reload Project*).  
-# Problema al instalar Docker
-Para solucionar este problema hacemos lo siguiente:
-1. Vamos a la unidad C en Windows y una vez que estemos habilitamos la opción para ver archivos ocultos.
-2. Vamos a la carpeta llamada **ProgramData**
-3. Dentro de esa carpeta veremos una carpeta llamada **DockerDescktop**
-4. Eliminamos dicha carpeta
-Con estos pasos realizados la instalación se completara.
-# Problema al iniciar docker (WSL)
-El mismo docker nos dice que ejecutemos en la terminal el comando:
-```sh
-wsl --update
+1. Para obtener el **ClientId y ClientSecret** de paypal registrarse en paypal developer: [PaypalDeveloper](https://developer.paypal.com/community/developer-program/)
+2. En email para establecer la contraseña es necesario usar **contraseña de aplicacion** esta la obtenemos en: [ApplicationPassword](https://myaccount.google.com/apppasswords)
+**SOLO SI LO EJECUTAS EN LINUX**
+1. Modificar el valor de **DBHost** y dejar solo **localhost** ya que en linux funciona de otra forma
+#### 3. Sincronización de Modelos (Scaffold)
+Si la base de datos cambia, ejecutar en la **Consola del Administrador de Paquetes**:
+```powershell
+Scaffold-DbContext "Data Source=localhost\SQLEXPRESS;Initial Catalog=GestorInventario;User ID=sa;Password=SQL#1234;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -ContextDir ../GestorInventario.Infrastructure/Data -ContextNamespace "GestorInventario.Infrastructure.Data" -Namespace "GestorInventario.Domain.Models" -force -Project GestorInventario.Domain -NoOnConfiguring
 ```
-pero si esto no lo soluciona lo que haremos es descargar la ultima versión de wsl del repositorio de microsoft: [WSL](https://github.com/microsoft/WSL/releases) instalamos la ultima version del programa y el problema se soluciona
 
-## Solución al error de restauración de base de datos en linux (Arch)
-Para solucionar este problema ejecutar los comandos:
-```sh
-  sudo pacman -S git-lfs
-  git lfs install
-  git lfs pull
+---
 
-```
-Esto lo que hara es agregarle los datos faltantes al .bak
-# ✨ Características
+## ⚠️ Solución de Problemas Comunes
 
-El proyecto **Gestor Inventario** ofrece una amplia gama de características para gestionar eficientemente el inventario:
+### Docker & Visual Studio
+Si no tienes Docker instalado y ves errores en el proyecto `docker-compose`:
+`Clic derecho sobre docker-compose > Descargar proyecto (Unload Project)`.
 
-- **Gestión de Datos**: Permite realizar operaciones CRUD (Crear, Leer, Actualizar, Eliminar).
-- **Autenticación Robusta**: El sistema de autenticación se basa en la generación de tokens y ofrece tres métodos de autenticación: Autenticación simétrica, Autenticación asimétrica con clave pública y privada fija, Autenticación asimétrica con clave pública y privada dinámica.
-- **Generación de Informes**: Los usuarios pueden descargar informes en formato PDF del historial de pedidos y productos.
-- **Notificaciones por Correo Electrónico**: El sistema envía notificaciones por correo electrónico cuando el stock de un producto está bajo.
-- **Registro y Acceso de Usuarios**: Los usuarios pueden registrarse y acceder al sistema. Cuando un nuevo usuario se registra, se le envía un correo electrónico de confirmación.
-- **Panel de Administración de Usuarios**: El proyecto incluye un panel de administración de usuarios para gestionar las cuentas de usuario.
-- **Sistema Basado en Roles**: El acceso a diferentes niveles del sistema se controla mediante un sistema basado en roles.
-- **Pasarela de Pago PayPal**: El proyecto incluye la implementación de una pasarela de pago PayPal.
-- **Restablecimiento de Contraseña**: El usuario como el administrador puede restablecer la constraseña si es un usuario solo puede restablecer la suya y un administrador puede restablecer la de todos.
-- **Flexibilidad en la Autenticación**: Los usuarios pueden cambiar entre los modos de autenticación de manera efectiva comentando y descomentando el código correspondiente.
-- **Alta y baja de usuarios**: El administrador puede dar de alta o baja a un usuario o varios usuarios.
-- **Docker**: Configuración necesaria para integrar en Docker.
-- **Redis**: Configuración necesaria para que funcione correctamente en Redis.
-- **Función de reembolso**: Ahora cuenta con la función de reembolsar un pedido
--  **Creacion de planes y productos con paypal**: Actualmente cuenta con la funcionalidad de crear productos y planes en paypal 
-- **Función de suscripcion a planes**: Actualmente cuenta con la posibilidad de suscribirse a planes.
-- **Ver planes**: Los usuarios pueden ver los planes a los cuales pueden suscribirse
-- **Ver subscriptores**: El administrador puede ver cuantos subscriptores ahi subscriptos
-- **Ver Productos**: El administrador puede ver los productos que estan asociados a los planes
-- **Cambio de precio en los planes**: El administrador puede cambiar el precio de los planes
+### Instalación de Docker
+Si la instalación falla en Windows:
+`C:\ProgramData\DockerDesktop` $\rightarrow$ Eliminar la carpeta y reintentar.
 
-# 🆕 Novedades
-- **Rembolsos parciales**: esta nueva funcion permite devolver parte de los productos de un pedido, esta funcion la veremos siempre y cuando el pedido que se realice tenga mas de un producto
-- **Generacion de codigos de barras**: nueva funcion que permite simular como si fuese una tienda.
-- **Agregar informacion de envio**: con esta nueva funcionalidad  podemos agregar informacion sobre que empresa se encarga de repartir el pedido
--  **Activacion de subscripcion**: El administrador puede activar una subscripcion cancelada o suspendida
--  **Suspender subscripcion**: El usuario puede suspender su propia subscripcion, y el administrador puede suspender las de todos
--  **Cancelar subscripcion**: El usuario puede cancelar su propia subscripcion, y el administrador puede cancelar cualquier susbscripcion
--  **Agregar informacion de seguimiento a pedidos**: El administrador puede agregar informacion de seguimiento a los pedidos
--  **MFA Implementado**: Autenticacion de doble factor implementado a nivel global
--  **Notificaciones via telegram**: Notifica al usuario de eventos importantes
- 
-  # 🧠 Notas importantes
+### WSL (Windows Subsystem for Linux)
+Si Docker no inicia por problemas de WSL:
+Ejecutar `wsl --update` en la terminal o descargar la última versión desde el repositorio oficial de Microsoft.
 
-- ✅ Proyecto probado en **Windows 10** y **Windows 11**.  
-- ⚠️ **No testeado en Linux ni MacOS** (puede requerir ajustes adicionales).  
-- 🔧 Se recomienda instalar y usar **SQL Server Express** con **SQL Server Management Studio** (SSMS) .  
-- 🔑 Mantener credenciales y claves JWT en **User Secrets** o variables de entorno (no en el código fuente) en caso de integrar nuevas.  
-- 💳 La integración con PayPal funciona en **modo sandbox** por defecto.  
-- 🌐 Si quieres pasar a producción, recuerda cambiar `Mode: sandbox` → `Mode: live` y registrar tus credenciales reales en PayPal Developer.
- 
+---
 
+## 🧠 Notas Finales
+- ✅ Probando en Windows 10/11.
+- 💳 PayPal configurado en modo **Sandbox**. Para producción, cambiar `Mode: sandbox` $\rightarrow$ `Mode: live`.
+- 🔐 No subir el archivo `appsettings.json` con credenciales reales al repositorio; usar **User Secrets**.
