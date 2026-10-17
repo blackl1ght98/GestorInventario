@@ -1,11 +1,12 @@
 using System.Globalization;
+using GestorInventario.Application.DTOS;
+using GestorInventario.Application.ExternalServices.Paypal.API.Requests.POST;
+using GestorInventario.Application.ExternalServices.Paypal.API.Responses.POST.Refund;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Refunds;
 using GestorInventario.Application.Services.Common;
 using GestorInventario.Domain.Common;
 using GestorInventario.Infrastructure.Helpers.Formaters;
-using GestorInventario.Shared.ExternalServices.Paypal.API.Requests.POST;
-using GestorInventario.Shared.ExternalServices.Paypal.API.Responses.POST.Refund;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -91,5 +92,28 @@ namespace GestorInventario.Infrastructure.Paypal.Refunds
             return JsonConvert.DeserializeObject<PaypalRefundResponse>(responseBody)
                 ?? throw new InvalidOperationException("Respuesta de reembolso inválida");
         }
+        // Antes: OrderDetailsResponse
+// Ahora: PayPalOrderDetailsDto
+
+        public Task<bool> VerificarReembolsoExistenteAsync(
+            PayPalOrderDetailsDto orderDetails,
+            decimal monto)
+        {
+            // Buscar en orderDetails.Refunds si ya hay uno con ese Amount
+            var existe = orderDetails.Refunds
+                .Any(r => r.Amount == monto); // o con tolerancia decimal si hace falta
+
+            return Task.FromResult(existe);
+        }
+
+        public string? ObtenerRefundIdPorMonto(
+            PayPalOrderDetailsDto orderDetails,
+            decimal monto)
+        {
+            return orderDetails.Refunds
+                .FirstOrDefault(r => r.Amount == monto)
+                ?.RefundId;
+        }
+     
     }
 }

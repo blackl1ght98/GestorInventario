@@ -1,9 +1,12 @@
-﻿using GestorInventario.Application.DTOS.Carrito;
+﻿using GestorInventario.Application.DTOS;
+using GestorInventario.Application.DTOS.Carrito;
 using GestorInventario.Application.DTOS.Checkout;
 using GestorInventario.Application.DTOS.Email;
 using GestorInventario.Application.DTOS.Paypal.BD;
 using GestorInventario.Application.DTOS.Rembolso;
 using GestorInventario.Application.DTOS.User;
+using GestorInventario.Application.ExternalServices.Paypal.API.Requests.POST;
+using GestorInventario.Application.ExternalServices.Paypal.API.Responses.GET.Order;
 using GestorInventario.Application.Interfaces.Application.Services.Common;
 using GestorInventario.Application.Interfaces.Application.Services.Email;
 using GestorInventario.Application.Interfaces.Application.Services.Payment;
@@ -16,8 +19,6 @@ using GestorInventario.Domain.Common;
 using GestorInventario.Domain.enums.Paypal;
 using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Domain.Models;
-using GestorInventario.Shared.ExternalServices.Paypal.API.Requests.POST;
-using GestorInventario.Shared.ExternalServices.Paypal.API.Responses.GET.Order;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 
@@ -319,29 +320,29 @@ namespace GestorInventario.Application.Services.Payment
             
         }
        
-        public async Task<OperationResult<PayPalPaymentItem>> ProcesarRembolso(PurchaseUnitDetails firstPurchaseUnit, PayPalPaymentDetail detallesSuscripcion, int usuarioActual, RefundDto form, Pedido obtenerNumeroPedido, string emailCliente)
+        public async Task<OperationResult<PayPalPaymentItem>> ProcesarRembolso(
+            PayPalOrderDetailsDto detalles,
+            int usuarioActual,
+            RefundDto form,
+            Pedido obtenerNumeroPedido,
+            string emailCliente)
         {
             // Lista para almacenar los ítems de PayPal
             var paypalItems = new List<PayPalPaymentItem>();
 
             // Procesar items
-            if (firstPurchaseUnit?.Items != null)
+            foreach (var item in detalles.Items)
             {
-                foreach (var item in firstPurchaseUnit.Items)
+                paypalItems.Add(new PayPalPaymentItem
                 {
-                    var paymentItem = new PayPalPaymentItem
-                    {
-                        PayPalId = detallesSuscripcion.Id,
-                        ItemName = item.Name,
-                        ItemSku = item.Sku,
-                        ItemPrice = (decimal)(item.UnitAmount != null ? ConversionExtensions.ToDecimalSafe(item.UnitAmount.Value) : 0),
-                        ItemCurrency = item.UnitAmount?.CurrencyCode,
-                        ItemTax = (decimal)(item.Tax != null ? ConversionExtensions.ToDecimalSafe(item.Tax.Value) : 0),
-                        ItemQuantity = ConversionExtensions.ToIntSafe(item.Quantity)
-                    };
-
-                    paypalItems.Add(paymentItem);
-                }
+                    PayPalId = detalles.OrderId,
+                    ItemName = item.Name,
+                    ItemSku = item.Sku,
+                    ItemPrice = item.UnitAmount,
+                    ItemCurrency = item.Currency,
+                    ItemTax = item.Tax,
+                    ItemQuantity = item.Quantity
+                });
             }
 
             // Crear el reembolso

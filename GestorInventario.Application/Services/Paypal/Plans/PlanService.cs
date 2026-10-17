@@ -1,10 +1,10 @@
 ﻿using GestorInventario.Application.Mappers;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
+using GestorInventario.Application.ExternalServices.Paypal.API.Requests.POST;
+using GestorInventario.Application.ExternalServices.Paypal.API.Responses.GET.Subscription;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.Plans;
 using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
-using GestorInventario.Shared.ExternalServices.Paypal.API.Requests.POST;
-using GestorInventario.Shared.ExternalServices.Paypal.API.Responses.GET.Subscription;
 using GestorInventario.Shared.Utilities;
 
 

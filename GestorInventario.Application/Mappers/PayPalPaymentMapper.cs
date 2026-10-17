@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
-using GestorInventario.Shared.ExternalServices.Paypal.API.Responses.GET.Order;
+using GestorInventario.Application.ExternalServices.Paypal.API.Responses.GET.Order;
 
 namespace GestorInventario.Application.Mappers
 {

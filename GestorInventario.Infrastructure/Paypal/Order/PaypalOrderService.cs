@@ -1,11 +1,11 @@
-﻿using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi;
+﻿using GestorInventario.Application.DTOS;
+using GestorInventario.Application.ExternalServices.Paypal.API.Requests.POST;
+using GestorInventario.Application.ExternalServices.Paypal.API.Responses.GET.Order;
+using GestorInventario.Application.ExternalServices.Paypal.API.Responses.POST.Order;
+using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Order;
-using GestorInventario.Application.Services.Common;
 using GestorInventario.Domain.Common;
 using GestorInventario.Infrastructure.Helpers.Formaters;
-using GestorInventario.Shared.ExternalServices.Paypal.API.Requests.POST;
-using GestorInventario.Shared.ExternalServices.Paypal.API.Responses.GET.Order;
-using GestorInventario.Shared.ExternalServices.Paypal.API.Responses.POST.Order;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -178,7 +178,7 @@ namespace GestorInventario.Infrastructure.Paypal.Order
         #endregion
 
         #region Obtener detalles del pago  paypal   
-        public async Task<OperationResult<OrderDetailsResponse>> ObtenerDetallesPagoEjecutadoAsync(string id)
+        public async Task<OperationResult<PayPalOrderDetailsDto>> ObtenerDetallesPagoEjecutadoAsync(string id)
         {
             try
             {
@@ -191,40 +191,27 @@ namespace GestorInventario.Infrastructure.Paypal.Order
                         throw new InvalidOperationException(
                             $"Error al obtener detalles de orden {id}: {resp.StatusCode} - {errBody}");
                     });
-                // Deserializamos la respuesta al DTO correspondiente
-                var subscriptionDetails = JsonConvert.DeserializeObject<OrderDetailsResponse>(responseBody);
-                if (subscriptionDetails == null)
-                {
-                    throw new InvalidOperationException("No se puede obtener los detalles de la subscripcion");
-                }
-                return OperationResult<OrderDetailsResponse>.Ok(subscriptionDetails);
 
+                var paypalResponse = JsonConvert.DeserializeObject<OrderDetailsResponse>(responseBody)
+                                     ?? throw new InvalidOperationException("No se pudo deserializar la respuesta de PayPal");
+
+                var dto = PaypalMappingService.MapToOrderDetailsDto(paypalResponse);
+                return OperationResult<PayPalOrderDetailsDto>.Ok(dto);
             }
-            catch (Exception e)
+            catch (InvalidOperationException ex)
             {
-                Console.WriteLine(e);
-                throw;
+                return OperationResult<PayPalOrderDetailsDto>.Fail(ex.Message);
             }
+            catch (Exception ex)
+            {
+                return OperationResult<PayPalOrderDetailsDto>.Fail($"Error inesperado: {ex.Message}");
+            }
+        }
            
 
         }
         #endregion
 
-        public async Task<bool> VerificarReembolsoExistenteAsync(OrderDetailsResponse capture, decimal monto)
-        {
-            // AQUÍ es donde usamos el formateador, porque estamos en Infra
-            var montoFormateado = PayPalFormatter.FormatearPayPal(monto);
-
-            var recentRefund = capture.PurchaseUnits[0].Payments.Refunds?
-                .FirstOrDefault(r => r.Amount.Value == montoFormateado);
-
-            return recentRefund != null;
-        }
-        public string? ObtenerRefundIdPorMonto(OrderDetailsResponse capture, decimal monto)
-        {
-            var montoFormateado = PayPalFormatter.FormatearPayPal(monto);
-            return capture.PurchaseUnits[0].Payments.Refunds?
-                .FirstOrDefault(r => r.Amount.Value == montoFormateado)?.Id;
-        }
+       
     }
-}
+

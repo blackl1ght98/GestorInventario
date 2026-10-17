@@ -105,12 +105,17 @@ namespace GestorInventario.Application.Services.Refunds
         // ============================================
         // REEMBOLSO PARCIAL
         // ============================================
-      public async Task<OperationResult<(int pedidoId, int detalleId, decimal precioProducto, string motivo)>> RealizarRembolsoParcial(RefundPartialDto request)
+    public async Task<OperationResult<(int pedidoId, int detalleId, decimal precioProducto, string motivo)>>
+    RealizarRembolsoParcial(RefundPartialDto request)
 {
     // 1. OBTENER DATOS DEL PEDIDO (tu BD)
     var detallePedido = await _pedidoRepository.ObtenerDetalleParaReembolsoAsync(request.DetalleId);
     if (detallePedido == null)
         return OperationResult<(int, int, decimal, string)>.Fail("No se encontró el detalle del pedido.");
+
+    var captureInfo = detallePedido.Pedido.PayPalPaymentCaptures?.FirstOrDefault();
+    if (captureInfo == null || string.IsNullOrEmpty(captureInfo.PaymentId) || string.IsNullOrEmpty(captureInfo.CaptureId))
+        return OperationResult<(int, int, decimal, string)>.Fail("El pedido no tiene captura de PayPal asociada.");
 
     // 2. CALCULAR MONTO CON IVA
     var precioSinIva = detallePedido.Producto.Precio;
@@ -118,13 +123,14 @@ namespace GestorInventario.Application.Services.Refunds
 
     _logger.LogInformation(
         "Reembolso parcial pedido {PedidoId} -> Precio:{Precio} Total con IVA:{Total}",
-        request.DetalleId, precioSinIva, montoSolicitadoConIva);
+        detallePedido.Pedido.Id, precioSinIva, montoSolicitadoConIva);
 
     // 3. VERIFICAR ESTADO ACTUAL EN PAYPAL
-    var resultRefund = await _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(
-            detallePedido.Pedido.PayPalPaymentCaptures.First().PaymentId)
+    var resultRefund = await _paypalOrderService
+        .ObtenerDetallesPagoEjecutadoAsync(captureInfo.PaymentId)
         .Bind(details =>
-            PaypalRefundCalculator.CalcularMontoDisponibleYEstado(details, montoSolicitadoConIva, request.Currency));
+            PaypalRefundCalculator.CalcularMontoDisponibleYEstado(
+                details, montoSolicitadoConIva, request.Currency));
 
     if (resultRefund.IsFailure)
         return OperationResult<(int, int, decimal, string)>.Fail(resultRefund.Message);
@@ -133,7 +139,7 @@ namespace GestorInventario.Application.Services.Refunds
 
     // 4. EJECUTAR REEMBOLSO EN PAYPAL
     var refundResult = await _paypalRefundService.RefundCaptureAsync(
-        captureId: detallePedido.Pedido.PayPalPaymentCaptures.First().CaptureId,
+        captureId: captureInfo.CaptureId,
         amount: finalRefund.MontoReembolso,
         currency: detallePedido.Pedido.Currency,
         nota: $"Reembolso parcial pedido #{detallePedido.Pedido.Id} - {request.Motivo}");
@@ -144,27 +150,28 @@ namespace GestorInventario.Application.Services.Refunds
         if (refundResult.Message.Contains("REFUND_AMOUNT_EXCEEDED") ||
             refundResult.Message.Contains("UnprocessableEntity"))
         {
-            var updatedCaptureResult = await _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(
-                detallePedido.Pedido.PayPalPaymentCaptures.First().PaymentId);
+            var updatedCaptureResult = await _paypalOrderService
+                .ObtenerDetallesPagoEjecutadoAsync(captureInfo.PaymentId);
 
             if (updatedCaptureResult.IsFailure)
-                return OperationResult<(int, int, decimal, string)>.Fail($"Error al verificar estado en PayPal: {updatedCaptureResult.Message}");
+                return OperationResult<(int, int, decimal, string)>.Fail(
+                    $"Error al verificar estado en PayPal: {updatedCaptureResult.Message}");
 
-            var capture = updatedCaptureResult.Unwrap();
+            var orderDetails = updatedCaptureResult.Unwrap(); // PayPalOrderDetailsDto
 
-            // --- CORRECCIÓN: Usamos el servicio de Infrastructure para la verificación técnica ---
-            bool yaExiste = await _paypalOrderService.VerificarReembolsoExistenteAsync(capture, montoSolicitadoConIva);
+            bool yaExiste = await _paypalRefundService
+                .VerificarReembolsoExistenteAsync(orderDetails, montoSolicitadoConIva);
 
             if (yaExiste)
             {
                 _logger.LogWarning("Falso positivo: Reembolso ya procesado en PayPal.");
 
-                // Obtenemos el ID del reembolso sin usar PayPalFormatter aquí
-                var refundIdExistente = _paypalOrderService.ObtenerRefundIdPorMonto(capture, montoSolicitadoConIva);
+                var refundIdExistente = _paypalRefundService
+                    .ObtenerRefundIdPorMonto(orderDetails, montoSolicitadoConIva);
 
-                // Simulamos el OK para que el flujo continúe al registro en tu BD
-                refundResult = OperationResult<(string, decimal)>.Ok(
-                    (refundIdExistente ?? "UNKNOWN", finalRefund.MontoReembolso), "Reembolso ya existente");
+                refundResult = OperationResult<(string RefundId, decimal AmountRefunded)>.Ok(
+                    (refundIdExistente ?? "UNKNOWN", finalRefund.MontoReembolso),
+                    "Reembolso ya existente");
             }
             else
             {
@@ -185,13 +192,13 @@ namespace GestorInventario.Application.Services.Refunds
         request.Motivo,
         finalRefund.MontoReembolso,
         detallePedido.Pedido.Currency,
-        refundResult.Data.RefundId
-        );
+        refundResult.Data.RefundId);
 
     if (rembolsoParcial.Success)
     {
         return OperationResult<(int, int, decimal, string)>.Ok(
-            (detallePedido.Pedido.Id, detallePedido.Id, detallePedido.Producto.Precio, request.Motivo), "Reembolso parcial realizado");
+            (detallePedido.Pedido.Id, detallePedido.Id, detallePedido.Producto.Precio, request.Motivo),
+            "Reembolso parcial realizado");
     }
 
     return OperationResult<(int, int, decimal, string)>.Fail(rembolsoParcial.Message);

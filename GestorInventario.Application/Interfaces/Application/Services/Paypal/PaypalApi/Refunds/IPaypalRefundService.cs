@@ -1,4 +1,5 @@
-﻿using GestorInventario.Shared.Utilities;
+﻿using GestorInventario.Application.DTOS;
+using GestorInventario.Shared.Utilities;
 
 namespace GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Refunds
 {
@@ -10,5 +11,12 @@ namespace GestorInventario.Application.Interfaces.Application.Services.Paypal.Pa
                 decimal amount,
                 string currency,
                 string? nota = null);
+
+        Task<bool> VerificarReembolsoExistenteAsync(
+            PayPalOrderDetailsDto orderDetails,
+            decimal monto);
+        string? ObtenerRefundIdPorMonto(
+            PayPalOrderDetailsDto orderDetails,
+            decimal monto);
     }
 }

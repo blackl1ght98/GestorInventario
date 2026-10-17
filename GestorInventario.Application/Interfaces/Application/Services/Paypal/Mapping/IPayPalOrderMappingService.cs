@@ -1,5 +1,5 @@
-﻿using GestorInventario.Domain.Models;
-using GestorInventario.Shared.ExternalServices.Paypal.API.Responses.GET.Order;
+﻿using GestorInventario.Application.ExternalServices.Paypal.API.Responses.GET.Order;
+using GestorInventario.Domain.Models;
 
 namespace GestorInventario.Application.Interfaces.Application.Services.Paypal.Mapping
 {

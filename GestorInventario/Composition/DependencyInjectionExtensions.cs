@@ -23,6 +23,7 @@ using GestorInventario.Application.Interfaces.Application.Services.Refunds;
 using GestorInventario.Application.Interfaces.Application.Services.ShopCart;
 using GestorInventario.Application.Interfaces.Application.Services.Syncs;
 using GestorInventario.Application.Interfaces.Application.Services.User;
+using GestorInventario.Application.Interfaces.Infrastructure;
 using GestorInventario.Application.Interfaces.Infrastructure.Common;
 using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
 using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;

@@ -284,85 +284,103 @@ namespace GestorInventario.Controllers.RembolsoController
             return View();
         }
 
-        [HttpPost]
-        [Authorize]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> FormularioRembolso(RefundFormViewModel form)
+       [HttpPost]
+[Authorize]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> FormularioRembolso(RefundFormViewModel form)
+{
+    try
+    {
+        var dto = new RefundDto
         {
-            try
+            NumeroPedido = form.NumeroPedido,
+            NombreCliente = form.NombreCliente,
+            EmailCliente = form.EmailCliente,
+            FechaRembolso = form.FechaRembolso,
+            MotivoRembolso = form.MotivoRembolso,
+        };
 
-            {
-                var dto = new RefundDto
-                {
-                    NumeroPedido = form.NumeroPedido,
-                    NombreCliente = form.NombreCliente,
-                    EmailCliente = form.EmailCliente,
-                    FechaRembolso = form.FechaRembolso,
-                    MotivoRembolso = form.MotivoRembolso,
-                };
+        var obtenerNumeroPedido = await _policyExecutor.ExecutePolicyAsync(
+            () => _pedidoRepository.ObtenerNumeroPedido(dto.NumeroPedido));
 
-                var obtenerNumeroPedido = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.ObtenerNumeroPedido(dto.NumeroPedido));
-
-                if (obtenerNumeroPedido == null)
-                {
-                    _logger.LogInformation("El numero de pedido proporcionado no existe " + obtenerNumeroPedido);
-                    return RedirectToAction(nameof(FormularioRembolso));
-                }
-
-                int usuarioActual = _currentUserAccessor.GetCurrentUserId();
-
-                var emailCliente = _policyExecutor.ExecutePolicy(() => _currentUserAccessor.GetCurrentUserEmail());
-                if (emailCliente == null)
-                {
-                    _logger.LogInformation("El email proporcionado no se encuentra registrado " + emailCliente);
-                }
-
-
-                var pedido = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.ObtenerNumeroPedido(dto.NumeroPedido));
-
-                if (pedido == null)
-                {
-
-                    _logger.LogInformation("El pedido con el numero de pedido proporcionado no existe ");
-                    return View(nameof(FormularioRembolso));
-                }
-                var capture = pedido.PayPalPaymentCaptures?.FirstOrDefault();
-                var orderId = capture?.PaymentId;
-                var detallespago = await _policyExecutor.ExecutePolicyAsync(() =>
-                    _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(orderId));
-
-                var detalles = detallespago.Unwrap();
-
-                // Verificar que hay purchase units
-                if (detalles.PurchaseUnits == null || !detalles.PurchaseUnits.Any())
-                {
-                    _logger.LogInformation("No se encuntran las unidades de pago en la peticion");
-                }
-
-                var firstPurchaseUnit = detalles.PurchaseUnits.First();
-
-                var paymentDetail = _mappingService.MapearOrdenADetallePago(detalles);
-              
-                // Lista para almacenar los ítems de PayPal
-                var paypalItems = await _paymentService.ProcesarRembolso(firstPurchaseUnit, paymentDetail, usuarioActual, dto, obtenerNumeroPedido, emailCliente);
-                if (User.IsAdministrador())
-                {
-                    return RedirectToAction("Index", "Admin");
-                }
-                else
-                {
-                    return RedirectToAction("Index", "Pedido");
-                }
-
-
-            }
-            catch (Exception ex)
-            {
-                // Loggear el error
-                _logger.LogError(ex, "Error al procesar el reembolso");
-                return StatusCode(500, "Ocurrió un error al procesar tu solicitud");
-            }
+        if (obtenerNumeroPedido == null)
+        {
+            _logger.LogInformation(
+                "El número de pedido proporcionado no existe: {NumeroPedido}", dto.NumeroPedido);
+            return RedirectToAction(nameof(FormularioRembolso));
         }
+
+        int usuarioActual = _currentUserAccessor.GetCurrentUserId();
+
+        var emailCliente = _policyExecutor.ExecutePolicy(
+            () => _currentUserAccessor.GetCurrentUserEmail());
+
+        if (string.IsNullOrEmpty(emailCliente))
+        {
+            _logger.LogInformation("El email del usuario actual no se encuentra registrado");
+        }
+
+        var pedido = await _policyExecutor.ExecutePolicyAsync(
+            () => _pedidoRepository.ObtenerNumeroPedido(dto.NumeroPedido));
+
+        if (pedido == null)
+        {
+            _logger.LogInformation(
+                "El pedido con el número proporcionado no existe: {NumeroPedido}", dto.NumeroPedido);
+            return View(nameof(FormularioRembolso));
+        }
+
+        var capture = pedido.PayPalPaymentCaptures?.FirstOrDefault();
+        var orderId = capture?.PaymentId;
+
+        if (string.IsNullOrEmpty(orderId))
+        {
+            _logger.LogWarning(
+                "El pedido {NumeroPedido} no tiene PaymentId de PayPal", dto.NumeroPedido);
+            return View(nameof(FormularioRembolso));
+        }
+
+        var detallespago = await _policyExecutor.ExecutePolicyAsync(
+            () => _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(orderId));
+
+        if (!detallespago.Success)
+        {
+            _logger.LogError(
+                "Error al obtener detalles de PayPal para orderId {OrderId}: {Message}",
+                orderId, detallespago.Message);
+            return StatusCode(500, "No se pudieron obtener los detalles del pago");
+        }
+
+        var detalles = detallespago.Unwrap(); // PayPalOrderDetailsDto
+
+        // Ya no hace falta comprobar PurchaseUnits ni mapear aquí.
+        // El DTO limpio ya trae Items, Captures, etc.
+        var resultado = await _paymentService.ProcesarRembolso(
+            detalles,          
+            usuarioActual,
+            dto,
+            obtenerNumeroPedido,
+            emailCliente);
+
+        if (!resultado.Success)
+        {
+            _logger.LogError(
+                "Error al procesar reembolso del pedido {NumeroPedido}: {Message}",
+                dto.NumeroPedido, resultado.Message);
+            return StatusCode(500, resultado.Message);
+        }
+
+        if (User.IsAdministrador())
+            return RedirectToAction("Index", "Admin");
+
+        return RedirectToAction("Index", "Pedido");
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error al procesar el reembolso");
+        return StatusCode(500, "Ocurrió un error al procesar tu solicitud");
+    }
+}
 
     }
 }

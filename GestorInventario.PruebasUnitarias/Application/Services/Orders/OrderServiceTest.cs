@@ -2,7 +2,6 @@
 using GestorInventario.Application.Services.Orders;
 using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Domain.Models;
-using GestorInventario.Shared.ExternalServices.Paypal.API.Responses.GET.Order;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -12,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using GestorInventario.Infrastructure.ExternalServices;
 using Xunit;
 
 namespace GestorInventario.PruebasUnitarias.Application.Services.Orders

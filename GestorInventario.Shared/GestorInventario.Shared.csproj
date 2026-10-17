@@ -6,16 +6,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-  </ItemGroup>
+
 
   <ItemGroup>
     <ProjectReference Include="..\GestorInventario.Domain\GestorInventario.Domain.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="ExternalServices\Paypal\" />
   </ItemGroup>
 
 </Project>

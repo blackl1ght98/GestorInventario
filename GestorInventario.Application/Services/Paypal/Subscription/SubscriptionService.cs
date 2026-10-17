@@ -1,8 +1,8 @@
-﻿using GestorInventario.Application.Interfaces.Application.Services.Paypal.Subscription;
+﻿using GestorInventario.Application.ExternalServices.Paypal.API.Responses.GET.Subscription;
+using GestorInventario.Application.Interfaces.Application.Services.Paypal.Subscription;
 using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
 using GestorInventario.Application.Mappers;
 using GestorInventario.Domain.Models;
-using GestorInventario.Shared.ExternalServices.Paypal.API.Responses.GET.Subscription;
 using Microsoft.Extensions.Logging;
 
 
