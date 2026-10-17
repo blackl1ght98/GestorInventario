@@ -20,13 +20,13 @@ namespace GestorInventario.Controllers.ProductosController
         private readonly ILogger<ProductosController> _logger;       
         private readonly IProductoRepository _productoRepository;                    
         private readonly IPolicyExecutor _policyExecutor;
-        private readonly IPaginationHelper _paginationHelper;
+        private readonly IPaginationService _paginationService;
         private readonly ICurrentUserAccessor _current;
         private readonly IProductService _productoService;
         
         public ProductosController(
             IPolicyExecutor policyExecutor,
-            IPaginationHelper pagination,
+            IPaginationService pagination,
             ICurrentUserAccessor currentUserAccessor, 
             ILogger<ProductosController> logger, 
             IProductoRepository productoRepository,    
@@ -35,7 +35,7 @@ namespace GestorInventario.Controllers.ProductosController
             _logger = logger;                  
             _productoRepository = productoRepository;         
             _policyExecutor = policyExecutor;      
-            _paginationHelper = pagination;
+            _paginationService = pagination;
             _current = currentUserAccessor;
             _productoService = productoService;
          
@@ -76,7 +76,7 @@ namespace GestorInventario.Controllers.ProductosController
                 // Aplicar paginación
                 // 🔹 Usamos el helper directamente
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
-                    _paginationHelper.PaginarAsync(productos, paginacion)
+                    _paginationService.PaginarAsync(productos, paginacion)
                 );
 
                 // Obtener proveedores

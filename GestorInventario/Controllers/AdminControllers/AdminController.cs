@@ -21,21 +21,21 @@ namespace GestorInventario.Controllers.AdminControllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPolicyExecutor _policyExecutor;
         private readonly ICurrentUserAccessor _currentUserAccessor;
-        private readonly IPaginationHelper _paginationHelper;
+        private readonly IPaginationService _paginationService;
         private readonly IUserService _userService;
         public AdminController(
             ILogger<AdminController> logger,
             IUnitOfWork unitOfWork,
             IUserService userManagement,
             IPolicyExecutor policyExecutor,
-            IPaginationHelper paginationHelper,
+            IPaginationService paginationService,
             ICurrentUserAccessor currentUser
          )
         {
             _logger = logger;
             _policyExecutor = policyExecutor;
             _unitOfWork = unitOfWork;
-            _paginationHelper = paginationHelper;
+            _paginationService = paginationService;
             _currentUserAccessor = currentUser;
             _userService = userManagement;
         }
@@ -56,7 +56,7 @@ namespace GestorInventario.Controllers.AdminControllers
                 }
 
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
-                    _paginationHelper.PaginarAsync(queryable, paginacion));
+                    _paginationService.PaginarAsync(queryable, paginacion));
 
                 var viewModel = new UserIndexViewModel
                 {

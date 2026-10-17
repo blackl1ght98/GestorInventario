@@ -2,6 +2,7 @@
 using GestorInventario.Domain.enums.Usuario;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infrastructure.Data;
+using GestorInventario.Infrastructure.Extensions;
 using GestorInventario.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

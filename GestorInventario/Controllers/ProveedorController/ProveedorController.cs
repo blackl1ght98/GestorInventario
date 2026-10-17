@@ -22,7 +22,7 @@ namespace GestorInventario.Controllers.ProveedorController
         private readonly ILogger<ProveedorController> _logger;       
         private readonly IProveedorRepository _proveedorRepository;     
         private readonly IPolicyExecutor _policyExecutor;
-        private readonly IPaginationHelper _paginationHelper;
+        private readonly IPaginationService _paginationService;
         private readonly IUserRepository _userRepository;
         private readonly IProviderService  _providerService;
        
@@ -31,13 +31,13 @@ namespace GestorInventario.Controllers.ProveedorController
             IUserRepository userRepository, 
             IProveedorRepository proveedorRepository,  
             IPolicyExecutor policyExecutor, 
-            IPaginationHelper pagination,
+            IPaginationService pagination,
             IProviderService providerService)
         {           
             _logger = logger;                
             _proveedorRepository= proveedorRepository;           
             _policyExecutor = policyExecutor;
-            _paginationHelper = pagination;
+            _paginationService = pagination;
             _userRepository = userRepository;  
             _providerService = providerService;
         }
@@ -59,7 +59,7 @@ namespace GestorInventario.Controllers.ProveedorController
 
                 // 🔹 Usamos el helper directamente
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
-                    _paginationHelper.PaginarAsync(proveedores, paginacion)
+                    _paginationService.PaginarAsync(proveedores, paginacion)
                 );
                 var viewModel = new SupplierIndexViewModel
                 {

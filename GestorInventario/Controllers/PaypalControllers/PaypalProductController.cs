@@ -15,18 +15,18 @@ namespace GestorInventario.Controllers.PaypalControllers
         private readonly ILogger<PaypalProductController> _logger;     
         private readonly IPolicyExecutor _policyExecutor;
         private readonly IPaypalSubscriptionService _paypalSubscriptionService;         
-        private readonly IPaginationHelper _paginationHelper;      
+        private readonly IPaginationService _paginationService;      
         public PaypalProductController(
          ILogger<PaypalProductController> logger,
          IPolicyExecutor policyExecutor,
-         IPaginationHelper paginationHelper,
+         IPaginationService paginationService,
          IPaypalSubscriptionService paypalSubscriptionService
         )
         {
             _paypalSubscriptionService = paypalSubscriptionService;        
             _policyExecutor= policyExecutor;
             _logger = logger;               
-            _paginationHelper = paginationHelper;
+            _paginationService = paginationService;
                      
         }
         [HttpGet]
@@ -58,7 +58,7 @@ namespace GestorInventario.Controllers.PaypalControllers
                 }).ToList() ?? new List<ProductoProjection>();
 
                 // Usar el helper para generar la paginación
-                var paginationResult = _paginationHelper.PaginarSinTotal(
+                var paginationResult = _paginationService.PaginarSinTotal(
                     items: productos,
                     paginaActual: paginacion.Pagina,
                     hasNextPage: tienePaginaSiguiente,

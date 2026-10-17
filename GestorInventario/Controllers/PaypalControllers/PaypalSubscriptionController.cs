@@ -20,7 +20,7 @@ namespace GestorInventario.Controllers.PaypalControllers
         private readonly ILogger<PaypalSubscriptionController> _logger;
         private readonly IPolicyExecutor _policyExecutor;       
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IPaginationHelper _paginationHelper;
+        private readonly IPaginationService _paginationService;
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly ISubscriptionService _subscriptionService;
 
@@ -31,14 +31,14 @@ namespace GestorInventario.Controllers.PaypalControllers
            ISubscriptionService subscriptionService,
            
             IUnitOfWork unitOfWork, 
-            IPaginationHelper paginationHelper,
+            IPaginationService paginationService,
             ICurrentUserAccessor currentUserAccessor)
         {
             _paypalSubscriptionService = paypalSubscriptionService;
             _logger = logger;
             _policyExecutor = policyExecutor;        
             _unitOfWork = unitOfWork;
-            _paginationHelper = paginationHelper;
+            _paginationService = paginationService;
             _currentUserAccessor = currentUserAccessor;
             _subscriptionService = subscriptionService;
         }
@@ -311,7 +311,7 @@ namespace GestorInventario.Controllers.PaypalControllers
                                            .OrderByDescending(s => s.StartTime);
 
 
-                var paginationResult = await _paginationHelper.PaginarAsync(
+                var paginationResult = await _paginationService.PaginarAsync(
                     query: queryable,
                     paginacion: paginacion
                 );
@@ -358,7 +358,7 @@ namespace GestorInventario.Controllers.PaypalControllers
                 var queryable = _unitOfWork.PaypalRepository.ObtenerSubscripcionesUsuario(usuarioActual);
 
                 // Delegamos toda la paginación al helper
-                var paginationResult = await _paginationHelper.PaginarAsync(
+                var paginationResult = await _paginationService.PaginarAsync(
                     query: queryable,
                     paginacion: paginacion
                 );

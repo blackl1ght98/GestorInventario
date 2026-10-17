@@ -18,7 +18,7 @@ namespace GestorInventario.Controllers.CarritoController
         private readonly ILogger<CarritoController> _logger;        
         private readonly IPolicyExecutor _policyExecutor;       
         private readonly ICurrentUserAccessor _currentUserAccessor;
-        private readonly IPaginationHelper _paginationHelper;
+        private readonly IPaginationService _paginationService;
         private readonly IPaymentService _paymentService;
         private readonly IShopCartService _carritoService;
         public CarritoController(
@@ -27,13 +27,13 @@ namespace GestorInventario.Controllers.CarritoController
          IShopCartService carritoService,
          ILogger<CarritoController> logger,  
          IPolicyExecutor policyExecutor,  
-         IPaginationHelper pagination, 
+         IPaginationService pagination, 
          IPaymentService paymentService)
         {          
             _carritoRepository = carritorepository;       
             _logger = logger;              
             _policyExecutor= policyExecutor;           
-            _paginationHelper = pagination;
+            _paginationService = pagination;
             _currentUserAccessor = currentUser;
             _paymentService = paymentService;
             _carritoService=carritoService;
@@ -67,7 +67,7 @@ namespace GestorInventario.Controllers.CarritoController
                 );
 
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
-                    _paginationHelper.PaginarAsync(itemsDelCarrito, paginacion)
+                    _paginationService.PaginarAsync(itemsDelCarrito, paginacion)
                 );
 
                

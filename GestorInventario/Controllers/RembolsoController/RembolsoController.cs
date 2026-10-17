@@ -29,7 +29,7 @@ namespace GestorInventario.Controllers.RembolsoController
         private readonly IPolicyExecutor _policyExecutor;
         private readonly IRembolsoRepository _rembolsoRepository;       
         private readonly ILogger<RembolsoController> _logger;
-        private readonly IPaginationHelper _paginationHelper;     
+        private readonly IPaginationService _paginationService;     
         private readonly IPedidoRepository _pedidoRepository;
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IPaypalOrderService _paypalOrderService;
@@ -43,7 +43,7 @@ namespace GestorInventario.Controllers.RembolsoController
             IPolicyExecutor policyExecutor, 
             IRembolsoRepository rembolsoRepository, 
              ILogger<RembolsoController> logger, 
-             IPaginationHelper paginationHelper,      
+             IPaginationService paginationService,      
              IPedidoRepository pedidoRepository,
              ICurrentUserAccessor currentUserAccessor,
              IPaypalOrderService paypalOrderService,
@@ -56,7 +56,7 @@ namespace GestorInventario.Controllers.RembolsoController
             _policyExecutor = policyExecutor;
             _rembolsoRepository = rembolsoRepository;  
             _logger = logger;
-            _paginationHelper = paginationHelper;
+            _paginationService = paginationService;
             _pedidoRepository = pedidoRepository;
             _currentUserAccessor = currentUserAccessor;
             _paypalOrderService = paypalOrderService;
@@ -82,7 +82,7 @@ namespace GestorInventario.Controllers.RembolsoController
                 }
                 // 🔹 Usamos el helper directamente
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
-                    _paginationHelper.PaginarAsync(queryable, paginacion)
+                    _paginationService.PaginarAsync(queryable, paginacion)
                 );
 
                 var viewModel = new RefundsViewModel

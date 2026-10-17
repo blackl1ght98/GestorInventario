@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Security.Claims;
-using GestorInventario.Application.Services.Authentication.Jwt;
 using GestorInventario.Domain.Models;
+using GestorInventario.Infrastructure.Authentication.Jwt;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using Xunit;

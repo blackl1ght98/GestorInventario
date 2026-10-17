@@ -2,6 +2,7 @@
 using GestorInventario.Domain.enums.Paypal;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infrastructure.Data;
+using GestorInventario.Infrastructure.Extensions;
 using GestorInventario.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 

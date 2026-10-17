@@ -12,14 +12,14 @@ namespace GestorInventario.Controllers.AdminControllers
     public class RoleController : Controller
     {
         private readonly IPolicyExecutor _policyExecutor;
-        private readonly IPaginationHelper _paginationHelper;
+        private readonly IPaginationService _paginationService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<RoleController> _logger;
 
-        public RoleController(IPolicyExecutor policyExecutor, IPaginationHelper paginationHelper, IUnitOfWork unitOfWork, ILogger<RoleController> logger)
+        public RoleController(IPolicyExecutor policyExecutor, IPaginationService paginationService, IUnitOfWork unitOfWork, ILogger<RoleController> logger)
         {
             _policyExecutor = policyExecutor;
-            _paginationHelper = paginationHelper;
+            _paginationService = paginationService;
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
@@ -32,7 +32,7 @@ namespace GestorInventario.Controllers.AdminControllers
             {
                 var queryable = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles());
 
-                var paginationResult = await _policyExecutor.ExecutePolicyAsync(() => _paginationHelper.PaginarAsync(queryable, paginacion));
+                var paginationResult = await _policyExecutor.ExecutePolicyAsync(() => _paginationService.PaginarAsync(queryable, paginacion));
 
                 var viewModel = new RolesViewModel
                 {
@@ -62,7 +62,7 @@ namespace GestorInventario.Controllers.AdminControllers
 
 
                 var usuariosQueryable = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerUsuariosPorRol(id));
-                var paginationResult = await _policyExecutor.ExecutePolicyAsync(() => _paginationHelper.PaginarAsync(usuariosQueryable, paginacion));
+                var paginationResult = await _policyExecutor.ExecutePolicyAsync(() => _paginationService.PaginarAsync(usuariosQueryable, paginacion));
 
                 var todosLosRoles = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles());
 

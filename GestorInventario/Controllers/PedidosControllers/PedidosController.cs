@@ -25,13 +25,13 @@ namespace GestorInventario.Controllers.PedidosControllers
         private readonly ILogger<PedidosController> _logger;
         private readonly IPedidoRepository _pedidoRepository;                   
         private readonly IPolicyExecutor _policyExecutor;      
-        private readonly IPaginationHelper _paginationHelper;       
+        private readonly IPaginationService _paginationService;       
         private readonly ICurrentUserAccessor _currentUserAccessor;     
        
         
         public PedidosController( 
             ILogger<PedidosController> logger, 
-            IPaginationHelper pagination,  
+            IPaginationService pagination,  
             ICurrentUserAccessor currentUser,  
             IPedidoRepository pedidoRepository,        
             IPolicyExecutor policyExecutor       
@@ -40,7 +40,7 @@ namespace GestorInventario.Controllers.PedidosControllers
             _logger = logger;
             _pedidoRepository = pedidoRepository;               
             _policyExecutor = policyExecutor;        
-            _paginationHelper = pagination;          
+            _paginationService = pagination;          
             _currentUserAccessor = currentUser;      
            
        
@@ -76,7 +76,7 @@ namespace GestorInventario.Controllers.PedidosControllers
                     pedidos = pedidos.Where(s => s.FechaPedido >= fechaInicio.Value && s.FechaPedido <= fechaFin.Value);
                 }
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
-              _paginationHelper.PaginarAsync(pedidos, paginacion)
+              _paginationService.PaginarAsync(pedidos, paginacion)
                 );
                 var viewModel = new OrderViewModel
                 {

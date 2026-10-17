@@ -2,7 +2,7 @@
 using GestorInventario.Application.Interfaces.Application.Services.Email;
 using GestorInventario.Application.Interfaces.Application.Services.PDFService;
 using GestorInventario.Application.Interfaces.Web;
-using GestorInventario.Notifications.Email;
+using GestorInventario.Infrastructure.Notifications.Email.EmailViewmodel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

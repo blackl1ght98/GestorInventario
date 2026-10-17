@@ -5,13 +5,13 @@ using GestorInventario.Configuracion;
 using GestorInventario.Extensions;
 
 using GestorInventario.Middlewares;
-using GestorInventario.Renderer.PDF;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 using Microsoft.Net.Http.Headers;
 using System.Text.Json.Serialization;
 using GestorInventario.Application.DTOS.Configuration;
+using GestorInventario.Infrastructure.Configuration;
 using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 
 var builder = WebApplication.CreateBuilder(args);

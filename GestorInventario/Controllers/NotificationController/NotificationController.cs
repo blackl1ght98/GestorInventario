@@ -14,15 +14,15 @@ namespace GestorInventario.Controllers.NotificationController
         private readonly INotificationRepository _notificationRepository;
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IPolicyExecutor _policyExecutor;
-        private readonly IPaginationHelper _paginationHelper;
+        private readonly IPaginationService _paginationService;
 
 
-        public NotificationController(INotificationRepository notificationRepository, ICurrentUserAccessor currentUserAccessor, IPolicyExecutor policyExecutor, IPaginationHelper pagination)
+        public NotificationController(INotificationRepository notificationRepository, ICurrentUserAccessor currentUserAccessor, IPolicyExecutor policyExecutor, IPaginationService pagination)
         {
             _notificationRepository = notificationRepository;
             _currentUserAccessor = currentUserAccessor;
             _policyExecutor = policyExecutor;
-            _paginationHelper = pagination; 
+            _paginationService = pagination; 
         }
 
         public async Task<IActionResult> Index(Paginacion paginacion)
@@ -31,7 +31,7 @@ namespace GestorInventario.Controllers.NotificationController
             var queryable = _policyExecutor.ExecutePolicy(() =>
                    _notificationRepository.ObtenerNotificaciones(usuarioId));
             var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
-                     _paginationHelper.PaginarAsync(queryable, paginacion));
+                     _paginationService.PaginarAsync(queryable, paginacion));
             var viewmodel = new NotificationViewmodel
             {
                 Notificaciones = paginationResult.Items,
@@ -47,7 +47,7 @@ namespace GestorInventario.Controllers.NotificationController
             var queryable = _policyExecutor.ExecutePolicy(() =>
                    _notificationRepository.ObtenerNotificaciones(usuarioId));
             var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
-                     _paginationHelper.PaginarAsync(queryable, paginacion));
+                     _paginationService.PaginarAsync(queryable, paginacion));
             var viewmodel = new NotificationViewmodel
             {
                 Notificaciones = paginationResult.Items,

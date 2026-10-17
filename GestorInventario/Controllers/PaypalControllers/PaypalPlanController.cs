@@ -23,7 +23,7 @@ namespace GestorInventario.Controllers.PaypalControllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPolicyExecutor _policyExecutor;
         private readonly IPaypalSubscriptionService _paypalSubscriptionService;     
-        private readonly IPaginationHelper _paginationHelper;
+        private readonly IPaginationService _paginationService;
         private readonly ILogger<PaypalPlanController> _logger;
         private readonly ISyncService _syncService;
         public readonly IPlanService _planService;
@@ -32,7 +32,7 @@ namespace GestorInventario.Controllers.PaypalControllers
             IPolicyExecutor policyExecutor, 
             IPaypalSubscriptionService paypalSubscriptionService,
             IPlanService planService,
-            IPaginationHelper paginationHelper,
+            IPaginationService paginationService,
             ILogger<PaypalPlanController> logger,
             ISyncService sync
             )
@@ -40,7 +40,7 @@ namespace GestorInventario.Controllers.PaypalControllers
             _unitOfWork = unitOfWork;
             _policyExecutor = policyExecutor;
             _paypalSubscriptionService = paypalSubscriptionService;
-            _paginationHelper = paginationHelper;
+            _paginationService = paginationService;
             _logger = logger;
           
             _syncService = sync;
@@ -122,7 +122,7 @@ namespace GestorInventario.Controllers.PaypalControllers
                 .OrderByDescending(s => s.PaypalPlanId)
                 .Select(p => p.ToPlanProjection()); 
 
-                var paginationResult = await _paginationHelper.PaginarAsync(
+                var paginationResult = await _paginationService.PaginarAsync(
                     query: queryable,
                     paginacion: paginacion
                 );
