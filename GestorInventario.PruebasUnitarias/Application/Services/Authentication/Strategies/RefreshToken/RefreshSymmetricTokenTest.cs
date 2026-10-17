@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using GestorInventario.Application.Interfaces.Application.Services.Authentication.Jwt;
 using GestorInventario.Application.Services.Authentication.Strategies.RefreshToken;
 using GestorInventario.Domain.Models;
+using GestorInventario.Infrastructure.Authentication.RefreshToken;
 using Microsoft.Extensions.Logging;
 using Moq;
 

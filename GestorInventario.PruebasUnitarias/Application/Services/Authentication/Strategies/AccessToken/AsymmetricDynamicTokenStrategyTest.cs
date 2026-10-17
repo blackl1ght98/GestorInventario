@@ -7,6 +7,7 @@ using System.Security.Claims;
 using GestorInventario.Application.Interfaces.Application.Services.Authentication.Jwt;
 using GestorInventario.Application.Interfaces.Application.Services.Common;
 using GestorInventario.Domain.enums.Usuario;
+using GestorInventario.Infrastructure.Authentication.AccessToken;
 
 namespace GestorInventario.PruebasUnitarias.Application.Services.Authentication.Strategies.AccessToken;
 

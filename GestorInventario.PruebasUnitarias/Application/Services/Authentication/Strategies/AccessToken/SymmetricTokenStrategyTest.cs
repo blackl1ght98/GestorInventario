@@ -2,6 +2,7 @@
 using GestorInventario.Application.Interfaces.Application.Services.Authentication.Jwt;
 using GestorInventario.Application.Services.Authentication.Strategies.AccessToken;
 using GestorInventario.Domain.Models;
+using GestorInventario.Infrastructure.Authentication.AccessToken;
 using Microsoft.Extensions.Configuration;
 using Moq;
 

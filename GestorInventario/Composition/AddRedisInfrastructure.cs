@@ -23,8 +23,7 @@ namespace GestorInventario.Composition
                     options.InstanceName = "GestorInventario";
                 });
 
-                services.AddDataProtection()
-                    .PersistKeysToStackExchangeRedis(multiplexer, "DataProtection-Keys");
+            
 
                 services.AddSingleton<IConnectionMultiplexer>(multiplexer);
 

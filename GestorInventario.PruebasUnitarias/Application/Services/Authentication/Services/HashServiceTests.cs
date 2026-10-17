@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Application.Services.Authentication.Services;
+using GestorInventario.Infrastructure.Authentication.Hash;
 using Xunit;
 
 namespace GestorInventario.PruebasUnitarias.Application.Services.Authentication.Services

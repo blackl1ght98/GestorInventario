@@ -3,6 +3,7 @@ using GestorInventario.Application.Interfaces.Application.Services.Authenticatio
 using GestorInventario.Application.Interfaces.Application.Services.Common;
 using GestorInventario.Application.Services.Authentication.Strategies.RefreshToken;
 using GestorInventario.Domain.Models;
+using GestorInventario.Infrastructure.Authentication.RefreshToken;
 using Moq;
 
 namespace GestorInventario.PruebasUnitarias.Application.Services.Authentication.Strategies.RefreshToken;

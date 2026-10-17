@@ -5,6 +5,7 @@ using Moq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using GestorInventario.Application.Interfaces.Application.Services.Authentication.Jwt;
+using GestorInventario.Infrastructure.Authentication.AccessToken;
 
 namespace GestorInventario.PruebasUnitarias.Application.Services.Authentication.Strategies.AccessToken;
 

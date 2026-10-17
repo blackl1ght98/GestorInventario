@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Application.Services.Common;
+using GestorInventario.Infrastructure.Handlers;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Moq;
