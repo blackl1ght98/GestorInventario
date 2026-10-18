@@ -1,4 +1,5 @@
 ﻿
+using GestorInventario.Infrastructure.ExternalServices.Common;
 using Newtonsoft.Json;
 
 namespace GestorInventario.Infrastructure.ExternalServices
@@ -345,14 +346,7 @@ namespace GestorInventario.Infrastructure.ExternalServices
         public required Upc Upc { get; init; }
     }
 
-    public record Upc
-    {
-        [JsonProperty("type")]
-        public required string Type { get; init; }
-
-        [JsonProperty("code")]
-        public required string Code { get; init; }
-    }
+   
 
     public record Payer
     {

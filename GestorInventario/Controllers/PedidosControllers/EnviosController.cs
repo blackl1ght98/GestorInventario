@@ -5,6 +5,7 @@ using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
 using GestorInventario.Application.Mappers;
 using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Domain.enums.Productos;
+using GestorInventario.Infrastructure.Caching;
 using GestorInventario.Shared.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -54,9 +55,9 @@ namespace GestorInventario.Controllers.PedidosControllers
 
                 // 2. Transformar la VERDAD de la BD al formato de PayPal
                 var paypalItems = pedido.DetallePedidos
-                    .Select(d => d.ToPayPalRequest())
+                    .Select(d => d.ToDto())
                     .ToList();
-
+    
                 // 3. Ejecutar la acción con datos verificados
                 var result = await _paypalOrderService.AddTrackingAsync(
                     capture.PaymentId,

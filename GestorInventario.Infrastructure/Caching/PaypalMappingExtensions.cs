@@ -1,13 +1,15 @@
-﻿using GestorInventario.Application.ExternalServices.Paypal.API.Requests.POST;
+﻿using GestorInventario.Application.DTOS;
 using GestorInventario.Domain.Models;
 
-namespace GestorInventario.Application.Mappers;
+namespace GestorInventario.Infrastructure.Caching;
 
 public static class PaypalMappingExtensions
 {
-    public static PayPalTrackingItemRequest ToPayPalRequest(this DetallePedido detalle)
+   
+    
+    public static TrackingItemDto ToDto(this DetallePedido detalle)
     {
-        return new PayPalTrackingItemRequest
+        return new TrackingItemDto
         {
             Name = detalle.Producto?.NombreProducto ?? "Producto no disponible",
             Sku = detalle.Producto?.Descripcion ?? "N/A",
@@ -18,5 +20,5 @@ public static class PaypalMappingExtensions
             Url = string.Empty
         };
     }
-  
+    
 }

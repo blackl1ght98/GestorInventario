@@ -1,8 +1,9 @@
 ﻿using GestorInventario.Domain.enums.Pedido;
+using GestorInventario.Infrastructure.ExternalServices.Common;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace GestorInventario.Application.ExternalServices.Paypal.API.Requests.POST
+namespace GestorInventario.Infrastructure.ExternalServices
 {
     public record PayPalTrackingInfoRequest
     {
@@ -35,12 +36,5 @@ namespace GestorInventario.Application.ExternalServices.Paypal.API.Requests.POST
         public required string Url { get; init; }
       
     }
-    public record Upc
-    {
-        [JsonProperty("type")]
-        [JsonConverter(typeof(StringEnumConverter))]
-        public string Type { get; init; } // Ejemplo: "UPC-A", "UPC-B", "EAN-13", "ISBN"
-        [JsonProperty("code")]
-        public required string Code { get; init; } // Ejemplo: "upc001"
-    }
+   
 }

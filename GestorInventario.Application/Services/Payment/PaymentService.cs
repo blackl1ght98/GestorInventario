@@ -329,7 +329,8 @@ namespace GestorInventario.Application.Services.Payment
         {
             // Lista para almacenar los ítems de PayPal
             var paypalItems = new List<PayPalPaymentItem>();
-
+            if (paypalItems == null || !paypalItems.Any())
+                return OperationResult<PayPalPaymentItem>.Fail("No hay ítems para el seguimiento");
             // Procesar items
             foreach (var item in detalles.Items)
             {

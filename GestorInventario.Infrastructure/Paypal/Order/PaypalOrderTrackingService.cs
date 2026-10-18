@@ -1,7 +1,11 @@
-﻿using GestorInventario.Application.ExternalServices.Paypal.API.Requests.POST;
+﻿using GestorInventario.Application.DTOS;
+using GestorInventario.Application.ExternalServices.Paypal.API.Requests.POST;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Order;
 using GestorInventario.Domain.enums.Pedido;
+using GestorInventario.Infrastructure.Caching;
+using GestorInventario.Infrastructure.ExternalServices;
+using GestorInventario.Infrastructure.ExternalServices.Common;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 
@@ -25,12 +29,12 @@ public class PaypalOrderTrackingService : IPaypalOrderTrackingService
             string paymentId,
             string captureId,
             Carrier carrier,
-            List<PayPalTrackingItemRequest> items)
+            List<TrackingItemDto> items)
     {
         try
         {
             var trackingNumber = GenerarNumeroSeguimiento();
-
+           
             var trackingInfo = new PayPalTrackingInfoRequest
             {
                 CaptureId = captureId,

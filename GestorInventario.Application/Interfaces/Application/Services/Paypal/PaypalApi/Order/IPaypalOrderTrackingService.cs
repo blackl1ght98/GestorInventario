@@ -1,4 +1,5 @@
-﻿using GestorInventario.Application.ExternalServices.Paypal.API.Requests.POST;
+﻿using GestorInventario.Application.DTOS;
+using GestorInventario.Application.ExternalServices.Paypal.API.Requests.POST;
 using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Shared.Utilities;
 
@@ -6,12 +7,11 @@ namespace GestorInventario.Application.Interfaces.Application.Services.Paypal.Pa
 {
     public interface IPaypalOrderTrackingService
     {
-        Task<OperationResult<string>>
-         AddTrackingAsync(
-             string paymentId,
-             string captureId,
-             Carrier carrier,
-
-             List<PayPalTrackingItemRequest> items);
+        Task<OperationResult<string  >> 
+            AddTrackingAsync(
+                string paymentId,
+                string captureId,
+                Carrier carrier,
+                List<TrackingItemDto> items);
     }
 }
