@@ -1,16 +1,15 @@
-﻿using GestorInventario.Domain.Models;
+﻿using System.Globalization;
+
+using GestorInventario.Domain.Models;
 using GestorInventario.Shared.Utilities;
 using Newtonsoft.Json;
-using System.Globalization;
-using GestorInventario.Application.ExternalServices.Paypal.API.Responses.GET.Order;
-using GestorInventario.Application.Interfaces.Application.Services.Paypal.Mapping;
 
-namespace GestorInventario.Application.Services.Paypal.Mapping
+namespace GestorInventario.Infrastructure.ExternalServices
 {
-    public class PayPalOrderMappingService: IPayPalOrderMappingService
+    public static class PayPalOrderMappingService
     {
        
-        public PayPalPaymentDetail MapearOrdenADetallePago(OrderDetailsResponse detallespago)
+        public static PayPalPaymentDetail MapearOrdenADetallePago(OrderDetailsResponse detallespago)
         {
             if (detallespago.PurchaseUnits == null || !detallespago.PurchaseUnits.Any())
             {

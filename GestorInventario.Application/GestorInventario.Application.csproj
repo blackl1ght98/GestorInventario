@@ -12,7 +12,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="ExternalServices\Paypal\API\Responses\GET\Order\" />
     <Folder Include="Interfaces\Application\" />
+    <Folder Include="Interfaces\Application\Services\Paypal\Mapping\" />
+    <Folder Include="Services\Paypal\Mapping\" />
   </ItemGroup>
 
   <ItemGroup>

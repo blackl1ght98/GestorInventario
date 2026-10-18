@@ -2,7 +2,6 @@
 using GestorInventario.Application.DTOS.Rembolso;
 using GestorInventario.Application.Interfaces.Application.Services.BackgroundServices;
 using GestorInventario.Application.Interfaces.Application.Services.Payment;
-using GestorInventario.Application.Interfaces.Application.Services.Paypal.Mapping;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Order;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Refunds;
 using GestorInventario.Application.Interfaces.Application.Services.Refunds;
@@ -34,7 +33,7 @@ namespace GestorInventario.Controllers.RembolsoController
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IPaypalOrderService _paypalOrderService;
         private readonly IPaymentService _paymentService;
-        private readonly IPayPalOrderMappingService _mappingService;   
+        
         private readonly IRefundService _refundService;
         private readonly IBackgroundTaskQueue _background;
       
@@ -48,7 +47,7 @@ namespace GestorInventario.Controllers.RembolsoController
              ICurrentUserAccessor currentUserAccessor,
              IPaypalOrderService paypalOrderService,
              IPaymentService paymentService,
-             IPayPalOrderMappingService mappingService,
+            
              IRefundService refundService,
              IBackgroundTaskQueue provider,   
              IPaypalRefundService refund)
@@ -61,7 +60,7 @@ namespace GestorInventario.Controllers.RembolsoController
             _currentUserAccessor = currentUserAccessor;
             _paypalOrderService = paypalOrderService;
             _paymentService = paymentService;
-            _mappingService = mappingService;      
+                 
             _refundService = refundService;
             _background = provider;
             _paypalRefundService = refund;

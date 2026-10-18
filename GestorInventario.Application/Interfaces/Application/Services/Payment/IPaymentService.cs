@@ -1,6 +1,6 @@
 ﻿using GestorInventario.Application.DTOS;
 using GestorInventario.Application.DTOS.Paypal.BD;
-using GestorInventario.Application.ExternalServices.Paypal.API.Responses.GET.Order;
+
 using GestorInventario.Domain.Models;
 using GestorInventario.Shared.Utilities;
 

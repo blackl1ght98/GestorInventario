@@ -6,7 +6,6 @@ using GestorInventario.Application.DTOS.Paypal.BD;
 using GestorInventario.Application.DTOS.Rembolso;
 using GestorInventario.Application.DTOS.User;
 using GestorInventario.Application.ExternalServices.Paypal.API.Requests.POST;
-using GestorInventario.Application.ExternalServices.Paypal.API.Responses.GET.Order;
 using GestorInventario.Application.Interfaces.Application.Services.Common;
 using GestorInventario.Application.Interfaces.Application.Services.Email;
 using GestorInventario.Application.Interfaces.Application.Services.Payment;
@@ -267,7 +266,6 @@ namespace GestorInventario.Application.Services.Payment
     
         private async Task<OperationResult<string>> ProcesarPagoPayPal(CheckoutDto checkout)
         {
-            
             var paypalRequest = new CheckoutRequest
             {
                 Currency = checkout.Currency,
@@ -282,11 +280,10 @@ namespace GestorInventario.Application.Services.Payment
                 Telefono = checkout.Telefono,
                 Subtotal = checkout.Subtotal,
                 Iva = checkout.Iva,
-             
-                Items = checkout.Items.Select(i => new ItemModelRequest 
+                Items = checkout.Items.Select(i => new ItemModelRequest
                 {
                     Name = i.Name,
-                    Description = i.Sku, 
+                    Description = i.Sku,
                     Price = i.Price,
                     Quantity = i.Quantity,
                     Currency = i.Currency,
@@ -294,15 +291,18 @@ namespace GestorInventario.Application.Services.Payment
                 }).ToList()
             };
 
-           
             var createdPayment = await _paypalOrder.CreateOrderWithPaypalAsync(paypalRequest);
 
-            if (createdPayment.IsSuccess)
-            {
-                return OperationResult<string>.Ok(createdPayment.Data, "Redirigiendo a PayPal para completar el pago");
-            }
+            if (!createdPayment.Success)
+                return OperationResult<string>.Fail(
+                    createdPayment.Message ?? "Error al procesar el pago con PayPal");
 
-            return OperationResult<string>.Fail("Error al procesar el pago con paypal");
+            // Si más adelante quieres guardar el OrderId antes de redirigir:
+            // var orderId = createdPayment.Data.OrderId;
+
+            return OperationResult<string>.Ok(
+                createdPayment.Data.ApprovalUrl,
+                "Redirigiendo a PayPal para completar el pago");
         }
         
         private async Task EliminarCarritosVaciosUsuario(int userId)

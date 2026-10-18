@@ -63,22 +63,15 @@ namespace GestorInventario.Controllers.PaypalControllers
                 var usuarioActual = _currentUserAccessor.GetCurrentUserId();
                 var finalResult = await _paypalOrderService.CapturarPagoAsync(paymentId);
                 var pago = finalResult.Unwrap();
-                var capture = pago?.PurchaseUnits?
-                    .FirstOrDefault()?.Payments?
-                    .Captures?.FirstOrDefault();
-
-                if (capture == null || string.IsNullOrEmpty(capture.Id) ||
-                    string.IsNullOrEmpty(capture.Amount?.Value) ||
-                    string.IsNullOrEmpty(capture.Amount?.CurrencyCode))
-                {
-                    throw new Exception("No se pudo extraer la información de la captura del pago.");
-                }
-                decimal amountValue= decimal.Parse(capture.Amount.Value, CultureInfo.InvariantCulture);
+                var captureId = pago?.Captures?
+                    .FirstOrDefault()?.CaptureId;
+                var amount = pago.Captures.FirstOrDefault()?.Amount;
+                var currency = pago.Captures.FirstOrDefault()?.Currency;
                 var captured = new PaymentCapturedDto
                 {
-                    CaptureId = capture.Id,
-                    Total = amountValue,
-                    Currency = capture.Amount.CurrencyCode
+                    CaptureId = captureId,
+                    Total = (decimal)amount,
+                    Currency = currency
                 };
                 var confirmar = await _pedidoService.ConfirmarPagoDelPedidoAsync(usuarioActual, captured.CaptureId,
                     captured.Total, captured.Currency, paymentId);

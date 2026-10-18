@@ -9,7 +9,6 @@ using GestorInventario.Application.Interfaces.Application.Services.Email;
 using GestorInventario.Application.Interfaces.Application.Services.Files;
 using GestorInventario.Application.Interfaces.Application.Services.Orders;
 using GestorInventario.Application.Interfaces.Application.Services.Payment;
-using GestorInventario.Application.Interfaces.Application.Services.Paypal.Mapping;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Order;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Refunds;
@@ -47,7 +46,6 @@ using GestorInventario.Application.Services.BarcodeService;
 using GestorInventario.Application.Services.Files;
 using GestorInventario.Application.Services.Orders;
 using GestorInventario.Application.Services.Payment;
-using GestorInventario.Application.Services.Paypal.Mapping;
 using GestorInventario.Application.Services.Paypal.Plans;
 using GestorInventario.Application.Services.Paypal.Subscription;
 using GestorInventario.Application.Services.PDFService;
@@ -65,6 +63,7 @@ using GestorInventario.Infrastructure.Authentication.Resolvers;
 using GestorInventario.Infrastructure.BackgroundServices;
 using GestorInventario.Infrastructure.Caching;
 using GestorInventario.Infrastructure.Data;
+using GestorInventario.Infrastructure.ExternalServices;
 using GestorInventario.Infrastructure.Interfaces.Middleware;
 using GestorInventario.Infrastructure.Notifications.Email.EmailServices;
 using GestorInventario.Infrastructure.Notifications.InternalNotification;
@@ -165,7 +164,6 @@ namespace GestorInventario.Composition
         {
             // --- Integraciones de Pagos (PayPal) ---
             services.AddSingleton<IPayPalHttpClient, PayPalHttpClient>();
-            services.AddSingleton<IPayPalOrderMappingService, PayPalOrderMappingService>();
             services.AddSingleton<IPaypalOrderService, PaypalOrderService>();
             services.AddSingleton<IPaypalOrderTrackingService, PaypalOrderTrackingService>();
             services.AddSingleton<IPaypalSubscriptionService, PaypalSubscriptionService>();

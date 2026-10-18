@@ -1,10 +1,10 @@
 ﻿using GestorInventario.Application.DTOS;
 using GestorInventario.Application.ExternalServices.Paypal.API.Requests.POST;
-using GestorInventario.Application.ExternalServices.Paypal.API.Responses.GET.Order;
 using GestorInventario.Application.ExternalServices.Paypal.API.Responses.POST.Order;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Order;
 using GestorInventario.Domain.Common;
+using GestorInventario.Infrastructure.ExternalServices;
 using GestorInventario.Infrastructure.Helpers.Formaters;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;
@@ -25,11 +25,12 @@ namespace GestorInventario.Infrastructure.Paypal.Order
           
         }
         #region Crear orden 
-        public async Task<OperationResult<string>> CreateOrderWithPaypalAsync(CheckoutRequest pagar)
+        public async Task<OperationResult<CreateOrderResultDto>> CreateOrderWithPaypalAsync(CheckoutRequest pagar)
         {
             try
             {
                 var order = BuildOrder(pagar);
+
                 var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                     HttpMethod.Post,
                     "v2/checkout/orders",
@@ -37,21 +38,42 @@ namespace GestorInventario.Infrastructure.Paypal.Order
                     async resp =>
                     {
                         var body = await resp.Content.ReadAsStringAsync();
-                        throw new InvalidOperationException($"Error al crear orden: {resp.StatusCode} - {body}");
+                        throw new InvalidOperationException(
+                            $"Error al crear orden: {resp.StatusCode} - {body}");
                     });
+
+                // PayPalOrderResponse solo existe en Infrastructure
                 var createdPayment = JsonConvert.DeserializeObject<PayPalOrderResponse>(responseBody);
-                var approvalUrl = createdPayment?.Links?.FirstOrDefault(x => x.Rel == "payer-action")?.Href;
-                return OperationResult<string>.Ok(approvalUrl,"URL a la que redirigir");
+                if (createdPayment == null || string.IsNullOrEmpty(createdPayment.Id))
+                    return OperationResult<CreateOrderResultDto>.Fail(
+                        "Respuesta de creación de orden vacía o inválida");
+
+                var approvalUrl = createdPayment.Links?
+                    .FirstOrDefault(x => x.Rel is "payer-action" or "approve")
+                    ?.Href;
+
+                if (string.IsNullOrEmpty(approvalUrl))
+                    return OperationResult<CreateOrderResultDto>.Fail(
+                        "PayPal no devolvió URL de aprobación");
+
+                var dto = new CreateOrderResultDto
+                {
+                    OrderId = createdPayment.Id,
+                    ApprovalUrl = approvalUrl,
+                    Status = createdPayment.Status
+                };
+
+                return OperationResult<CreateOrderResultDto>.Ok(dto, "URL a la que redirigir");
             }
             catch (InvalidOperationException ex)
             {
-                return OperationResult<string>.Fail(ex.Message);
+                return OperationResult<CreateOrderResultDto>.Fail(ex.Message);
             }
             catch (Exception ex)
             {
-                return OperationResult<string>.Fail($"Ocurrió un error inesperado: {ex.Message}");
+                return OperationResult<CreateOrderResultDto>.Fail(
+                    $"Ocurrió un error inesperado: {ex.Message}");
             }
-           
         }
         private CreateOrderRequest BuildOrder(CheckoutRequest pagar)
         {
@@ -148,7 +170,7 @@ namespace GestorInventario.Infrastructure.Paypal.Order
         #endregion
 
         #region Capturar el pago (orden)
-        public async Task<OperationResult<OrderDetailsResponse>> CapturarPagoAsync(string orderId)
+        public async Task<OperationResult<PayPalOrderDetailsDto>> CapturarPagoAsync(string orderId)
         {
             try
             {
@@ -163,15 +185,17 @@ namespace GestorInventario.Infrastructure.Paypal.Order
                         throw new InvalidOperationException($"Error al capturar: {resp.StatusCode} - {body}");
                     });
                 var paypalResponse = JsonConvert.DeserializeObject<OrderDetailsResponse>(responseBody);
-                return OperationResult<OrderDetailsResponse>.Ok(paypalResponse);
+                
+               var dto = PaypalMappingService.MapToOrderDetailsDto(paypalResponse);
+                return OperationResult<PayPalOrderDetailsDto>.Ok(dto);
             }
             catch (InvalidOperationException ex)
             {
-                return OperationResult<OrderDetailsResponse>.Fail(ex.Message);
+                return OperationResult<PayPalOrderDetailsDto>.Fail(ex.Message);
             }
             catch (Exception ex)
             {
-                return OperationResult<OrderDetailsResponse>.Fail($"Ocurrió un error inesperado: {ex.Message}");
+                return OperationResult<PayPalOrderDetailsDto>.Fail($"Ocurrió un error inesperado: {ex.Message}");
             }
         }
 
