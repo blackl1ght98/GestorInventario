@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Application.DTOS;
+using GestorInventario.Application.DTOS.Checkout;
 using GestorInventario.Application.ExternalServices.Paypal.API.Requests.POST;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Order;
@@ -24,7 +25,7 @@ namespace GestorInventario.Infrastructure.Paypal.Order
           
         }
         #region Crear orden 
-        public async Task<OperationResult<CreateOrderResultDto>> CreateOrderWithPaypalAsync(CheckoutRequest pagar)
+        public async Task<OperationResult<CreateOrderResultDto>> CreateOrderWithPaypalAsync(CheckoutDto pagar)
         {
             try
             {
@@ -74,7 +75,7 @@ namespace GestorInventario.Infrastructure.Paypal.Order
                     $"Ocurrió un error inesperado: {ex.Message}");
             }
         }
-        private CreateOrderRequest BuildOrder(CheckoutRequest pagar)
+        private CreateOrderRequest BuildOrder(CheckoutDto pagar)
         {
             var itemsParaPayPal = pagar.Items.ConvertAll(item =>
             {

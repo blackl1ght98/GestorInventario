@@ -266,7 +266,7 @@ namespace GestorInventario.Application.Services.Payment
     
         private async Task<OperationResult<string>> ProcesarPagoPayPal(CheckoutDto checkout)
         {
-            var paypalRequest = new CheckoutRequest
+            var paypalRequest = new CheckoutDto
             {
                 Currency = checkout.Currency,
                 NombreCompleto = checkout.NombreCompleto,
@@ -280,14 +280,15 @@ namespace GestorInventario.Application.Services.Payment
                 Telefono = checkout.Telefono,
                 Subtotal = checkout.Subtotal,
                 Iva = checkout.Iva,
-                Items = checkout.Items.Select(i => new ItemModelRequest
+                Items = checkout.Items.Select(i => new ItemModelDto
                 {
                     Name = i.Name,
                     Description = i.Sku,
                     Price = i.Price,
                     Quantity = i.Quantity,
                     Currency = i.Currency,
-                    Sku = i.Sku
+                    Sku = i.Sku,
+                    TaxAmount = i.TaxAmount,    
                 }).ToList()
             };
 
