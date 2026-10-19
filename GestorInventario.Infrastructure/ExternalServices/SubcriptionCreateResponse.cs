@@ -1,7 +1,7 @@
 ﻿using GestorInventario.Application.ExternalServices.Paypal.API.Common;
 using Newtonsoft.Json;
 
-namespace GestorInventario.Application.ExternalServices.Paypal.API.Responses.GET.Subscription;
+namespace GestorInventario.Infrastructure.ExternalServices;
 
 public class SubcriptionCreateResponse
 {

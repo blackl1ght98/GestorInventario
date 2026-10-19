@@ -1,7 +1,7 @@
 ﻿using System.Net.Http.Headers;
 using System.Text;
-using GestorInventario.Application.ExternalServices.Paypal.API.Responses.GET.PaypalAuthentication;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi;
+using GestorInventario.Infrastructure.ExternalServices;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 
@@ -35,7 +35,7 @@ namespace GestorInventario.Infrastructure.Paypal
             response.EnsureSuccessStatusCode();
 
             var responseString = await response.Content.ReadAsStringAsync();
-            var responseJson = JsonConvert.DeserializeObject<TokenResponsePayPalDto>(responseString);
+            var responseJson = JsonConvert.DeserializeObject<TokenResponsePayPal>(responseString);
             if (responseJson?.AccessToken == null)
             {
                 throw new InvalidOperationException("No se pudo obtener el token de acceso.");

@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace GestorInventario.Application.ExternalServices.Paypal.API.Responses.POST.Refund
+namespace GestorInventario.Infrastructure.ExternalServices
 {
     public record PaypalRefundResponse
     {

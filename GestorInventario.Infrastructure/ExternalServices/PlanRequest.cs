@@ -1,7 +1,7 @@
 ﻿
 using Newtonsoft.Json;
 
-namespace GestorInventario.Application.ExternalServices.Paypal.API.Requests.POST
+namespace GestorInventario.Infrastructure.ExternalServices
 {
     public record PlanRequest
      {

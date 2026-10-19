@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace GestorInventario.Application.ExternalServices.Paypal.API.Requests.PATCH
+namespace GestorInventario.Infrastructure.ExternalServices
 {
     public record PatchOperationRequest
     {
