@@ -1,8 +1,9 @@
 ﻿using GestorInventario.Application.Mappers;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
-using GestorInventario.Application.ExternalServices.Paypal.API.Requests.POST;
-using GestorInventario.Application.ExternalServices.Paypal.API.Responses.GET.Subscription;
+using GestorInventario.Application.DTOS;
+
+
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.Plans;
 using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
 using GestorInventario.Shared.Utilities;
@@ -10,7 +11,7 @@ using GestorInventario.Shared.Utilities;
 
 namespace GestorInventario.Application.Services.Paypal.Plans
 {
-    public class PlanService: IPlanService
+    public class PlanService : IPlanService
     {
         private readonly IPaypalRepository _paypalRepository;
         private readonly ILogger<PlanService> _logger;
@@ -21,7 +22,7 @@ namespace GestorInventario.Application.Services.Paypal.Plans
             _logger = logger;
         }
 
-        public async Task<OperationResult<string>> SavePlanDetailsAsync(string planId, PaypalPlanDetailsResponse planDetails)
+        public async Task<OperationResult<string>> SavePlanDetailsAsync(string planId, PlanDetailsDto planDetails)
         {
             // Verificar si el plan ya existe
             var existingPlan = await _paypalRepository.ObtenerPlanPorIdAsync(planId);
@@ -31,12 +32,14 @@ namespace GestorInventario.Application.Services.Paypal.Plans
                 _logger.LogInformation($"El plan con ID {planId} ya existe en la base de datos.");
                 return OperationResult<string>.Fail();
             }
+
             // Mapeo y guardado
             var planDetail = PlanMapper.MapPayPalPlanToEntity(planId, planDetails);
             await _paypalRepository.AgregarPlanAsync(planDetail);
             _logger.LogInformation($"Detalles del plan {planId} guardados exitosamente.");
             return OperationResult<string>.Ok();
         }
+
         public async Task UpdatePlanStatusAsync(string planId, string status)
         {
             var planDetails = await _paypalRepository.ObtenerPlanPorIdAsync(planId);
@@ -44,58 +47,75 @@ namespace GestorInventario.Application.Services.Paypal.Plans
             {
                 planDetails.Status = status;
                 await _paypalRepository.ActualizarPlanAsync(planDetails);
-
             }
         }
-        public async Task SavePlanPriceUpdateAsync(string planId, UpdatePricingPlanRequest planPriceUpdate)
-        {
 
-            // Buscar el plan en la base de datos
+        public async Task SavePlanPriceUpdateAsync(PlanPriceUpdateResultDto planPriceUpdate)
+        {
+            if (planPriceUpdate == null)
+                throw new ArgumentNullException(nameof(planPriceUpdate));
+
+            var planId = planPriceUpdate.PlanId;
+
             var planDetail = await _paypalRepository.ObtenerPlanPorIdAsync(planId);
             if (planDetail == null)
             {
-                _logger.LogWarning($"No se encontró el plan con ID {planId} en la base de datos.");
+                _logger.LogWarning("No se encontró el plan con ID {PlanId} en la base de datos.", planId);
                 throw new ArgumentException($"No se encontró el plan con ID {planId}.");
             }
 
-            // Verificar si el plan tiene un ciclo de prueba (basado en los campos Trial no nulos)
+            // Tiene trial si en BD hay intervalo de prueba
             bool hasTrial = !string.IsNullOrEmpty(planDetail.TrialIntervalUnit);
 
-            // Procesar los esquemas de precios
             foreach (var pricingScheme in planPriceUpdate.PricingSchemes)
             {
-                int billingCycleSequence = pricingScheme.BillingCycleSequence;
-                string priceValue = pricingScheme.PricingScheme.FixedPrice.Value;
+                int sequence = pricingScheme.BillingCycleSequence;
+                string priceValue = pricingScheme.Value;
 
                 if (string.IsNullOrEmpty(priceValue))
                 {
-                    _logger.LogWarning($"El precio proporcionado para el ciclo {billingCycleSequence} del plan {planId} es nulo o vacío.");
+                    _logger.LogWarning(
+                        "El precio del ciclo {Sequence} del plan {PlanId} es nulo o vacío.",
+                        sequence, planId);
                     continue;
                 }
 
-                decimal price = decimal.Parse(priceValue, CultureInfo.InvariantCulture);
-
-                if (hasTrial && billingCycleSequence == 1)
+                if (!decimal.TryParse(
+                        priceValue,
+                        NumberStyles.Any,
+                        CultureInfo.InvariantCulture,
+                        out decimal price))
                 {
-                    // Actualizar el precio del ciclo de prueba
-                    planDetail.TrialFixedPrice = price;
-                    _logger.LogInformation($"Precio del ciclo de prueba para el plan {planId} actualizado a {price}.");
+                    _logger.LogWarning(
+                        "No se pudo parsear el precio '{Price}' del ciclo {Sequence} del plan {PlanId}.",
+                        priceValue, sequence, planId);
+                    continue;
                 }
-                else if (hasTrial && billingCycleSequence == 2 || !hasTrial && billingCycleSequence == 1)
+
+                if (hasTrial && sequence == 1)
                 {
-                    // Actualizar el precio del ciclo regular
+                    planDetail.TrialFixedPrice = price;
+                    _logger.LogInformation(
+                        "Precio trial del plan {PlanId} actualizado a {Price}.", planId, price);
+                }
+                else if ((hasTrial && sequence == 2) || (!hasTrial && sequence == 1))
+                {
                     planDetail.RegularFixedPrice = price;
-                    _logger.LogInformation($"Precio del ciclo regular para el plan {planId} actualizado a {price}.");
+                    _logger.LogInformation(
+                        "Precio regular del plan {PlanId} actualizado a {Price}.", planId, price);
                 }
                 else
                 {
-                    _logger.LogWarning($"Ciclo de facturación {billingCycleSequence} no válido para el plan {planId}.");
+                    _logger.LogWarning(
+                        "Ciclo de facturación {Sequence} no válido para el plan {PlanId} (hasTrial={HasTrial}).",
+                        sequence, planId, hasTrial);
                 }
             }
+
             await _paypalRepository.ActualizarPlanAsync(planDetail);
 
-            _logger.LogInformation($"Precios del plan {planId} actualizados exitosamente en la base de datos.");
-
+            _logger.LogInformation(
+                "Precios del plan {PlanId} actualizados correctamente en la base de datos.", planId);
         }
     }
 }

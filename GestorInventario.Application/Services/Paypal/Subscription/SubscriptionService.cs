@@ -1,4 +1,5 @@
-﻿using GestorInventario.Application.ExternalServices.Paypal.API.Responses.GET.Subscription;
+﻿using GestorInventario.Application.DTOS;
+
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.Subscription;
 using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
 using GestorInventario.Application.Mappers;
@@ -19,7 +20,7 @@ namespace GestorInventario.Application.Services.Paypal.Subscription
             _logger = logger;
         }
 
-        public async Task<SubscriptionDetail> CreateSubscriptionDetailAsync(PaypalSubscriptionResponse subscriptionDetails, string planId)
+        public async Task<SubscriptionDetail> CreateSubscriptionDetailAsync(PaypalSubscriptionDto subscriptionDetails, string planId)
         {
             try
             {

@@ -1,7 +1,7 @@
 ﻿
 using GestorInventario.Domain.Models;
 using System.Globalization;
-using GestorInventario.Application.ExternalServices.Paypal.API.Responses.GET.Subscription;
+using GestorInventario.Application.DTOS;
 
 namespace GestorInventario.Application.Mappers
 {
@@ -73,7 +73,7 @@ namespace GestorInventario.Application.Mappers
                 && a.TrialFixedPrice == b.TrialFixedPrice;
         }
         public static SubscriptionDetail MapPayPalSubscriptionToEntity(
-        PaypalSubscriptionResponse paypalResponse,
+        PaypalSubscriptionDto paypalResponse,
         PlanDetail? plan)
         {
             var billingInfo = paypalResponse.BillingInfo;
@@ -128,7 +128,7 @@ namespace GestorInventario.Application.Mappers
 
         // ── Helpers privados ──
 
-        private static string BuildSubscriberName(Subscriber? subscriber)
+        private static string BuildSubscriberName(SubscriberDto? subscriber)
         {
             if (subscriber?.Name == null)
                 return string.Empty;
@@ -143,17 +143,17 @@ namespace GestorInventario.Application.Mappers
                 : 0;
         }
 
-        private static int GetLastCycleValue(List<CycleExecution>? cycles, Func<CycleExecution, int> selector)
+        private static int GetLastCycleValue(List<CycleExecutionDto>? cycles, Func<CycleExecutionDto, int> selector)
         {
             return cycles?.LastOrDefault() != null ? selector(cycles.Last()) : 0;
         }
 
-        private static int GetFirstCycleValue(List<CycleExecution>? cycles, Func<CycleExecution, int> selector)
+        private static int GetFirstCycleValue(List<CycleExecutionDto>? cycles, Func<CycleExecutionDto, int> selector)
         {
             return cycles?.FirstOrDefault() != null ? selector(cycles.First()) : 0;
         }
 
-        private static DateTime CalculateFinalPaymentTime(BillingInfo? billingInfo, PlanDetail? plan)
+        private static DateTime CalculateFinalPaymentTime(BillingInfoDto? billingInfo, PlanDetail? plan)
         {
             // Si PayPal envía fecha final explícita, usarla
             if (billingInfo?.FinalPaymentTime != null)

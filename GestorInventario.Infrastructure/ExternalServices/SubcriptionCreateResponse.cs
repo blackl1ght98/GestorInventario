@@ -1,4 +1,5 @@
-﻿using GestorInventario.Application.ExternalServices.Paypal.API.Common;
+﻿
+using GestorInventario.Infrastructure.ExternalServices.Common;
 using Newtonsoft.Json;
 
 namespace GestorInventario.Infrastructure.ExternalServices;

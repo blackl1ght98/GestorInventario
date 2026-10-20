@@ -1,16 +1,17 @@
-﻿using Newtonsoft.Json;
+﻿using GestorInventario.Infrastructure.ExternalServices.Common;
+using Newtonsoft.Json;
 
-namespace GestorInventario.Application.ExternalServices.Paypal.API.Responses.GET.Subscription
+namespace GestorInventario.Infrastructure.ExternalServices
 {
    
     public record PaypalSubscriptionResponse
     {
         [JsonProperty("id")]
-        public  string? Id { get; init; }
+        public  string? Id { get; init; }//
         [JsonProperty("plan_id")]
         public required string PlanId { get; init; }
         [JsonProperty("status")]
-        public required string Status { get; init; }
+        public required string Status { get; init; }//
         [JsonProperty("start_time")]
         public DateTime? StartTime { get; init; }
         [JsonProperty("status_update_time")]
@@ -53,13 +54,7 @@ namespace GestorInventario.Application.ExternalServices.Paypal.API.Responses.GET
         public  required List<CycleExecution> CycleExecutions { get; init; }
     }
 
-    public record Amount
-    {
-        [JsonProperty("currency_code")]
-        public required string CurrencyCode { get; init; }
-        [JsonProperty("value")]
-        public required string Value { get; init; }
-    }
+
 
     public record LastPayment
     {

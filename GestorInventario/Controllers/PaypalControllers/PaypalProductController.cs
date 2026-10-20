@@ -11,24 +11,24 @@ namespace GestorInventario.Controllers.PaypalControllers
 {
     public class PaypalProductController : Controller
     {
-          
-        private readonly ILogger<PaypalProductController> _logger;     
+        private readonly ILogger<PaypalProductController> _logger;
         private readonly IPolicyExecutor _policyExecutor;
-        private readonly IPaypalSubscriptionService _paypalSubscriptionService;         
-        private readonly IPaginationService _paginationService;      
+        private readonly IPaypalSubscriptionService _paypalSubscriptionService;
+        private readonly IPaginationService _paginationService;
+
         public PaypalProductController(
-         ILogger<PaypalProductController> logger,
-         IPolicyExecutor policyExecutor,
-         IPaginationService paginationService,
-         IPaypalSubscriptionService paypalSubscriptionService
+            ILogger<PaypalProductController> logger,
+            IPolicyExecutor policyExecutor,
+            IPaginationService paginationService,
+            IPaypalSubscriptionService paypalSubscriptionService
         )
         {
-            _paypalSubscriptionService = paypalSubscriptionService;        
-            _policyExecutor= policyExecutor;
-            _logger = logger;               
+            _paypalSubscriptionService = paypalSubscriptionService;
+            _policyExecutor = policyExecutor;
+            _logger = logger;
             _paginationService = paginationService;
-                     
         }
+
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> MostrarProductos([FromQuery] Paginacion paginacion)
@@ -47,21 +47,23 @@ namespace GestorInventario.Controllers.PaypalControllers
                 }
 
                 // Desestructurar la tupla desde result.Data
-                var (respuestaProductos, tienePaginaSiguiente) = result.Data;
+                var page = result.Data; // ProductsPageDto
 
-                // Mapear productos a DTO
-                var productos = respuestaProductos?.Products?.Select(p => new ProductoProjection
-                {
-                    Id = p.Id,
-                    Nombre = p.Name,
-                    Descripcion = p.Description
-                }).ToList() ?? new List<ProductoProjection>();
+                var productos = page.Products
+                    .Select(p => new ProductoProjection
+                    {
+                        Id = p.Id,
+                        Nombre = p.Name,
+                        Descripcion = p.Description
+                    })
+                    .ToList();
+
 
                 // Usar el helper para generar la paginación
                 var paginationResult = _paginationService.PaginarSinTotal(
                     items: productos,
                     paginaActual: paginacion.Pagina,
-                    hasNextPage: tienePaginaSiguiente,
+                    hasNextPage: page.HasNextPage,
                     cantidadAMostrar: paginacion.CantidadAMostrar,
                     radio: paginacion.Radio
                 );
@@ -89,19 +91,17 @@ namespace GestorInventario.Controllers.PaypalControllers
         {
             return View();
         }
-       
+
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> EditarProductoPaypal(string id, EditProductPaypal model)
         {
-
             if (ModelState.IsValid)
             {
-
                 try
                 {
-                    
-                    var productResponse = await _paypalSubscriptionService.EditarProducto(id, model.Name, model.Description);
+                    var productResponse =
+                        await _paypalSubscriptionService.EditarProducto(id, model.Name, model.Description);
                     return RedirectToAction(nameof(MostrarProductos));
                 }
                 catch (Exception ex)
@@ -112,8 +112,5 @@ namespace GestorInventario.Controllers.PaypalControllers
 
             return View(model);
         }
-
-       
-
     }
 }

@@ -1,8 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using GestorInventario.Application.ExternalServices.Paypal.API.Common;
+
+using GestorInventario.Infrastructure.ExternalServices.Common;
 using Newtonsoft.Json;
 
-namespace GestorInventario.Application.ExternalServices.Paypal.API.Responses.GET.Subscription
+namespace GestorInventario.Infrastructure.ExternalServices
 {
   
     public record PaypalPlanResponse
@@ -93,16 +94,7 @@ namespace GestorInventario.Application.ExternalServices.Paypal.API.Responses.GET
     }
 
    
-    public record Money
-    {
-        [JsonProperty("currency_code")]
-        [Required(ErrorMessage = "El código de moneda es requerido.")]
-        public required string CurrencyCode { get; init; }
-
-        [JsonProperty("value")]
-        [Required(ErrorMessage = "El valor del monto es requerido.")]
-        public required string Value { get; init; }
-    }
+  
 
    
     public record Frequency

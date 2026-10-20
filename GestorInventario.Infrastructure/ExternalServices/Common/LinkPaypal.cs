@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace GestorInventario.Application.ExternalServices.Paypal.API.Common;
+namespace GestorInventario.Infrastructure.ExternalServices.Common;
 
 public class LinkPaypal
 {

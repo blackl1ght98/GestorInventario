@@ -5,7 +5,7 @@ using GestorInventario.Application.DTOS.Email;
 using GestorInventario.Application.DTOS.Paypal.BD;
 using GestorInventario.Application.DTOS.Rembolso;
 using GestorInventario.Application.DTOS.User;
-using GestorInventario.Application.ExternalServices.Paypal.API.Requests.POST;
+
 using GestorInventario.Application.Interfaces.Application.Services.Common;
 using GestorInventario.Application.Interfaces.Application.Services.Email;
 using GestorInventario.Application.Interfaces.Application.Services.Payment;

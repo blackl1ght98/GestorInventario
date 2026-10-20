@@ -1,10 +1,10 @@
 ﻿using GestorInventario.Application.DTOS;
 using GestorInventario.Application.DTOS.Checkout;
-using GestorInventario.Application.ExternalServices.Paypal.API.Requests.POST;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Order;
 using GestorInventario.Domain.Common;
 using GestorInventario.Infrastructure.ExternalServices;
+using GestorInventario.Infrastructure.ExternalServices.Common;
 using GestorInventario.Infrastructure.Helpers.Formaters;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;

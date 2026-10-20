@@ -1,8 +1,7 @@
-﻿
-using GestorInventario.Domain.Models;
-using System.Globalization;
+﻿using System.Globalization;
+using GestorInventario.Application.DTOS;
 using GestorInventario.Application.DTOS.Paypal.Projections;
-using GestorInventario.Application.ExternalServices.Paypal.API.Responses.GET.Subscription;
+using GestorInventario.Domain.Models;
 
 namespace GestorInventario.Application.Mappers
 {
@@ -10,25 +9,25 @@ namespace GestorInventario.Application.Mappers
     {
         public static PlanProjection ToPlanProjection(this PlanDetail detail)
         {
-            var billingCycles = new List<BillingCycle>();
+            var billingCycles = new List<CatalogPlanBillingCycleDto>();
 
             // Ciclo de prueba (si existe)
             if (detail.TrialFixedPrice.HasValue && detail.TrialIntervalUnit != null)
             {
-                billingCycles.Add(new BillingCycle
+                billingCycles.Add(new CatalogPlanBillingCycleDto
                 {
                     TenureType = "TRIAL",
                     TotalCycles = detail.TrialTotalCycles ?? 0,
                     Sequence = 1,
-                    PricingScheme = new PricingScheme
+                    PricingScheme = new CatalogPlanPricingSchemeDto
                     {
-                        FixedPrice = new Money
+                        FixedPrice = new PlanMoneyDto
                         {
                             Value = detail.TrialFixedPrice.Value.ToString("F2", CultureInfo.InvariantCulture),
                             CurrencyCode = detail.CurrencyCode ?? "EUR"
                         }
                     },
-                    Frequency = new Frequency
+                    Frequency = new CatalogPlanFrequencyDto
                     {
                         IntervalUnit = detail.TrialIntervalUnit,
                         IntervalCount = detail.TrialIntervalCount ?? 1
@@ -39,20 +38,20 @@ namespace GestorInventario.Application.Mappers
             // Ciclo regular (siempre debería existir a menos que la api de paypal cambie)
             if (detail.RegularFixedPrice > 0 && detail.RegularIntervalUnit != null)
             {
-                billingCycles.Add(new BillingCycle
+                billingCycles.Add(new CatalogPlanBillingCycleDto
                 {
                     TenureType = "REGULAR",
                     TotalCycles = detail.RegularTotalCycles,
                     Sequence = detail.TrialFixedPrice.HasValue ? 2 : 1,
-                    PricingScheme = new PricingScheme
+                    PricingScheme = new CatalogPlanPricingSchemeDto
                     {
-                        FixedPrice = new Money
+                        FixedPrice = new PlanMoneyDto
                         {
                             Value = detail.RegularFixedPrice.ToString("F2", CultureInfo.InvariantCulture),
                             CurrencyCode = detail.CurrencyCode ?? "EUR"
                         }
                     },
-                    Frequency = new Frequency
+                    Frequency = new CatalogPlanFrequencyDto
                     {
                         IntervalUnit = detail.RegularIntervalUnit,
                         IntervalCount = detail.RegularIntervalCount 
@@ -70,7 +69,7 @@ namespace GestorInventario.Application.Mappers
                 Usage_type = "LICENSED",
                 CreateTime = DateTime.UtcNow,
                 Billing_cycles = billingCycles,
-                Taxes = new Taxes
+                Taxes = new CatalogPlanTaxesDto
                 {
                     Percentage = (detail.TaxPercentage ?? 0).ToString("F2", CultureInfo.InvariantCulture),
                     Inclusive = detail.TaxInclusive ?? false
@@ -79,7 +78,7 @@ namespace GestorInventario.Application.Mappers
             };
 
         }
-        public static PlanDetail MapPayPalPlanToEntity(string planId, PaypalPlanDetailsResponse planDetails)
+        public static PlanDetail MapPayPalPlanToEntity(string planId, PlanDetailsDto planDetails)
         {
             var planDetail = new PlanDetail
             {
@@ -111,7 +110,7 @@ namespace GestorInventario.Application.Mappers
             };
 
             // Manejo de ciclos de facturación
-            if (planDetails.BillingCycles.Length > 1)
+            if (planDetails.BillingCycles.Any())
             {
                 planDetail.TrialIntervalUnit = planDetails.BillingCycles[0].Frequency.IntervalUnit;
                 planDetail.TrialIntervalCount = planDetails.BillingCycles[0].Frequency.IntervalCount;
@@ -127,7 +126,7 @@ namespace GestorInventario.Application.Mappers
                     ? decimal.Parse(planDetails.BillingCycles[1].PricingScheme.FixedPrice.Value, CultureInfo.InvariantCulture)
                     : 0;
             }
-            else if (planDetails.BillingCycles.Length == 1)
+            else if (planDetails.BillingCycles.Any())
             {
                 planDetail.RegularIntervalUnit = planDetails.BillingCycles[0].Frequency.IntervalUnit;
                 planDetail.RegularIntervalCount = planDetails.BillingCycles[0].Frequency.IntervalCount;
@@ -139,5 +138,7 @@ namespace GestorInventario.Application.Mappers
 
             return planDetail;
         }
+
+       
     }
 }

@@ -7,6 +7,7 @@ using GestorInventario.Application.Interfaces.Infrastructure.Common;
 using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;
 using GestorInventario.Application.Interfaces.MetodosPaginacion;
 using GestorInventario.Application.Mappers;
+using GestorInventario.Infrastructure.Mappers;
 using GestorInventario.Shared.Utilities;
 
 using GestorInventario.ViewModels.Paypal;
@@ -88,7 +89,7 @@ namespace GestorInventario.Controllers.PaypalControllers
                 {
                     return BadRequest(new { success = false, errorMessage = $"No se ha podido actualizar el plan en este momento, intentelo de nuevo mas tarde" });
                 }
-                await _planService.SavePlanPriceUpdateAsync(result.Data.Item1, result.Data.Item2);
+                await _planService.SavePlanPriceUpdateAsync(result.Data);
                 TempData["SuccessMessage"] = "Precio del plan actualizado con éxito.";
                 return Ok(new { success = true, message = "Precio del plan actualizado con éxito." });
             }
@@ -221,8 +222,9 @@ namespace GestorInventario.Controllers.PaypalControllers
                     model.IntervalUnit,
                     model.HasTrialPeriod ? model.TrialPeriodDays : 0,
                     model.HasTrialPeriod ? model.TrialAmount : 0.00m
-                )).BindAsync(async planId=>await _paypalSubscriptionService.ObtenerDetallesPlan(planId))
-                .BindAsync(async detallesPlan=> await _planService.SavePlanDetailsAsync(detallesPlan.Id, detallesPlan));
+                )).BindAsync(async planId => await _paypalSubscriptionService.ObtenerDetallesPlan(planId))
+                .BindAsync(async detallesPlan =>
+                    await _planService.SavePlanDetailsAsync(detallesPlan.Id, detallesPlan));
 
                 if (!finalResult.Success)
                 {

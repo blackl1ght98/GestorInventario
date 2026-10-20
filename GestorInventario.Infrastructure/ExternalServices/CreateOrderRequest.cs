@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using GestorInventario.Infrastructure.ExternalServices.Common;
 using Newtonsoft.Json;
 
 namespace GestorInventario.Infrastructure.ExternalServices
@@ -34,29 +35,9 @@ namespace GestorInventario.Infrastructure.ExternalServices
         public required Shipping Shipping { get; init; }
     }
 
-    public record Amount
-    {
-        [JsonProperty("currency_code")]
-        public required string CurrencyCode { get; init; }
+  
 
-        [JsonProperty("value")]
-        public required string Value { get; init; }
-
-        [JsonProperty("breakdown")]
-        public required AmountBreakdown Breakdown { get; init; }
-    }
-
-    public record AmountBreakdown
-    {
-        [JsonProperty("item_total")]
-        public required Money ItemTotal { get; init; }
-
-        [JsonProperty("tax_total")]
-        public required Money TaxTotal { get; init; }
-
-        [JsonProperty("shipping")]
-        public required Money ShippingAmount { get; init; }
-    }
+  
 
     public record Item
     {
@@ -139,14 +120,5 @@ namespace GestorInventario.Infrastructure.ExternalServices
         public required string CancelUrl { get; init; }
     }
 
-    public record Money
-    {
-        [JsonProperty("currency_code")]
-        [Required(ErrorMessage = "El código de moneda es requerido.")]
-        public required string CurrencyCode { get; init; }
 
-        [JsonProperty("value")]
-        [Required(ErrorMessage = "El valor del monto es requerido.")]
-        public required string Value { get; init; }
-    }
 }

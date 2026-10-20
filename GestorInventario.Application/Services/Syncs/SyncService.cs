@@ -27,7 +27,7 @@ namespace GestorInventario.Application.Services.Syncs
             int actualizados = 0;
             int creados = 0;
 
-            foreach (var planDto in planesPayPal.plans)
+            foreach (var planDto in planesPayPal.Plans)
             {
                 var existingPlan = await _paypalRepository.ObtenerPlanPorIdAsync(planDto.Id);
 

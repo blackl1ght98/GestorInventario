@@ -1,8 +1,8 @@
-﻿using GestorInventario.Application.ExternalServices.Paypal.API.Common;
-
+﻿
+using GestorInventario.Infrastructure.ExternalServices.Common;
 using Newtonsoft.Json;
 
-namespace GestorInventario.Application.ExternalServices.Paypal.API.Responses.GET.Subscription;
+namespace GestorInventario.Infrastructure.ExternalServices;
 
 public record PaypalPlansCollectionResponse
 {
