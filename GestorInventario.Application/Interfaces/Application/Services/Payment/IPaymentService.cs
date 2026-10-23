@@ -1,6 +1,5 @@
 ﻿using GestorInventario.Application.DTOS;
-using GestorInventario.Application.DTOS.Paypal.BD;
-
+using GestorInventario.Application.DTOS.Paypal;
 using GestorInventario.Domain.Models;
 using GestorInventario.Shared.Utilities;
 

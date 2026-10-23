@@ -5,8 +5,8 @@ using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;
 using GestorInventario.Application.Interfaces.MetodosPaginacion;
 using GestorInventario.Application.Interfaces.Web;
 using GestorInventario.Domain.Models;
+using GestorInventario.Mappers;
 using GestorInventario.Shared.Utilities;
-
 using GestorInventario.ViewModels.Paypal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,25 +18,24 @@ namespace GestorInventario.Controllers.PaypalControllers
     {
         private readonly IPaypalSubscriptionService _paypalSubscriptionService;
         private readonly ILogger<PaypalSubscriptionController> _logger;
-        private readonly IPolicyExecutor _policyExecutor;       
+        private readonly IPolicyExecutor _policyExecutor;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPaginationService _paginationService;
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly ISubscriptionService _subscriptionService;
 
         public PaypalSubscriptionController(
-            IPaypalSubscriptionService paypalSubscriptionService, 
-            ILogger<PaypalSubscriptionController> logger, 
+            IPaypalSubscriptionService paypalSubscriptionService,
+            ILogger<PaypalSubscriptionController> logger,
             IPolicyExecutor policyExecutor,
-           ISubscriptionService subscriptionService,
-           
-            IUnitOfWork unitOfWork, 
+            ISubscriptionService subscriptionService,
+            IUnitOfWork unitOfWork,
             IPaginationService paginationService,
             ICurrentUserAccessor currentUserAccessor)
         {
             _paypalSubscriptionService = paypalSubscriptionService;
             _logger = logger;
-            _policyExecutor = policyExecutor;        
+            _policyExecutor = policyExecutor;
             _unitOfWork = unitOfWork;
             _paginationService = paginationService;
             _currentUserAccessor = currentUserAccessor;
@@ -53,8 +52,8 @@ namespace GestorInventario.Controllers.PaypalControllers
             string cancelUrl = Url.Action("CancelarSuscripcion", "PaypalSubscription", null, Request.Scheme);
             try
             {
-
-               var approvalUrl = await _paypalSubscriptionService.Subscribirse(plan_id, returnUrl, cancelUrl, planName);
+                var approvalUrl =
+                    await _paypalSubscriptionService.Subscribirse(plan_id, returnUrl, cancelUrl, planName);
                 if (!approvalUrl.Success)
                 {
                     return RedirectToAction("Index", "Home");
@@ -68,9 +67,9 @@ namespace GestorInventario.Controllers.PaypalControllers
                 _logger.LogError($"Ocurrio un error con la api de paypa: {ex.Message}");
                 TempData["ErrorMessage"] = $"Error al iniciar la suscripción";
                 return RedirectToAction("MostrarPlanes", "PaypalPlan");
-
             }
         }
+
         [Authorize]
         public async Task<IActionResult> ConfirmarSuscripcion(string subscription_id, string token, string ba_token)
         {
@@ -82,9 +81,10 @@ namespace GestorInventario.Controllers.PaypalControllers
                     return RedirectToAction("Error", "Home");
                 }
 
-                int usuarioId =  _currentUserAccessor.GetCurrentUserId();
+                int usuarioId = _currentUserAccessor.GetCurrentUserId();
 
-                var subscriptionDetails = await _policyExecutor.ExecutePolicyAsync(() => _paypalSubscriptionService.ObtenerDetallesSuscripcion(subscription_id));
+                var subscriptionDetails = await _policyExecutor.ExecutePolicyAsync(() =>
+                    _paypalSubscriptionService.ObtenerDetallesSuscripcion(subscription_id));
                 if (!subscriptionDetails.Success)
                 {
                     TempData["ErrorMessage"] = "No se pudieron obtener los detalles de la suscripción desde PayPal.";
@@ -94,9 +94,11 @@ namespace GestorInventario.Controllers.PaypalControllers
                 string planId = subscriptionDetails.Data.PlanId ?? string.Empty;
 
 
-                var detallesSuscripcion = await _subscriptionService.CreateSubscriptionDetailAsync(subscriptionDetails.Data, planId);
+                var detallesSuscripcion =
+                    await _subscriptionService.CreateSubscriptionDetailAsync(subscriptionDetails.Data, planId);
 
-                await _subscriptionService.SaveUserSubscriptionAsync(usuarioId, subscription_id, detallesSuscripcion.SubscriberName, detallesSuscripcion.PlanId);
+                await _subscriptionService.SaveUserSubscriptionAsync(usuarioId, subscription_id,
+                    detallesSuscripcion.SubscriberName, detallesSuscripcion.PlanId);
 
                 TempData["SuccessMessage"] = "¡Suscripción confirmada con éxito!";
                 return RedirectToAction("DetallesSuscripcion", new { id = subscription_id });
@@ -108,6 +110,7 @@ namespace GestorInventario.Controllers.PaypalControllers
                 return RedirectToAction("Error", "Home");
             }
         }
+
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
@@ -121,9 +124,9 @@ namespace GestorInventario.Controllers.PaypalControllers
                     return RedirigirSegunRol();
                 }
 
-                var result =   await _paypalSubscriptionService.CancelarSuscripcion(Id, Reason);
+                var result = await _paypalSubscriptionService.CancelarSuscripcion(Id, Reason);
 
-             
+
                 await _subscriptionService.UpdateSubscriptionStatusAsync(result.Data.subId, result.Data.subStatus);
 
                 return RedirigirSegunRol();
@@ -135,8 +138,6 @@ namespace GestorInventario.Controllers.PaypalControllers
                 return RedirigirSegunRol();
             }
         }
-
-
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
@@ -156,9 +157,9 @@ namespace GestorInventario.Controllers.PaypalControllers
                 var result = await _paypalSubscriptionService.SuspenderSuscripcion(Id, Reason);
                 if (!result.IsSuccess)
                 {
-                    
                     return RedirigirSegunRol();
                 }
+
                 // Update subscription status using the repository
                 await _subscriptionService.UpdateSubscriptionStatusAsync(result.Data.subId, result.Data.subStatus);
 
@@ -171,6 +172,7 @@ namespace GestorInventario.Controllers.PaypalControllers
                 return RedirigirSegunRol();
             }
         }
+
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
@@ -181,6 +183,7 @@ namespace GestorInventario.Controllers.PaypalControllers
                 _logger.LogError("ID de la susbcripcion requerido para poder activarla");
                 return RedirigirSegunRol();
             }
+
             if (string.IsNullOrWhiteSpace(Reason))
                 Reason = "Activación manual por administrador";
             try
@@ -191,10 +194,10 @@ namespace GestorInventario.Controllers.PaypalControllers
                     _logger.LogError("Error al realizar la peticion");
                     return RedirigirSegunRol();
                 }
+
                 await _subscriptionService.UpdateSubscriptionStatusAsync(result.Data.subId, result.Data.subStatus);
                 TempData["SuccessMessage"] = "Suscripción activada correctamente.";
                 return RedirigirSegunRol();
-
             }
             catch (Exception ex)
             {
@@ -219,9 +222,9 @@ namespace GestorInventario.Controllers.PaypalControllers
                     return RedirectToAction("Error", "Home");
                 }
 
-                // 1. Siempre obtener datos frescos de PayPal
-                var subscriptionDetails = await _policyExecutor.ExecutePolicyAsync(
-                    () => _paypalSubscriptionService.ObtenerDetallesSuscripcion(id));
+                // 1. Obtener datos frescos de PayPal (con política de reintentos)
+                var subscriptionDetails = await _policyExecutor.ExecutePolicyAsync(() =>
+                    _paypalSubscriptionService.ObtenerDetallesSuscripcion(id));
 
                 if (!subscriptionDetails.Success)
                 {
@@ -229,8 +232,8 @@ namespace GestorInventario.Controllers.PaypalControllers
                     return RedirectToAction("Error", "Home");
                 }
 
-                // 2. Extraer planId
-                string planId = subscriptionDetails.Data.PlanId;
+                // 2. Sincronizar/Crear el detalle en nuestra BD
+                string planId = subscriptionDetails.Data.PlanId ?? string.Empty;
                 if (string.IsNullOrEmpty(planId))
                 {
                     _logger.LogWarning("El planId de la suscripción {SubscriptionId} es nulo o vacío", id);
@@ -238,57 +241,12 @@ namespace GestorInventario.Controllers.PaypalControllers
                     return RedirectToAction("Error", "Home");
                 }
 
-                // 3. Crear/actualizar el SubscriptionDetail 
                 var detallesSuscripcion = await _subscriptionService.CreateSubscriptionDetailAsync(subscriptionDetails.Data, planId);
 
-
-
-                int trialIntervalCount = detallesSuscripcion.TrialIntervalCount ?? 0;
-                int trialTotalCycles = detallesSuscripcion.TrialTotalCycles ?? 0;
-                int trialDays = trialIntervalCount > 0 ? trialIntervalCount * trialTotalCycles : 0;
-                // PayPal no expone directamente si una suscripción está en período de prueba activo.
-                // Se deduce de forma indirecta: si está activa, tiene próximo cobro programado,
-                // ese cobro aún no ha ocurrido y nunca ha habido un pago previo,
-                // entonces está en período de prueba.
-                // LastPaymentTime <= 1900 indica que PayPal no registra ningún pago real aún.
-                bool enPeriodoPruebaActivo =
-                 detallesSuscripcion.Status == "ACTIVE" &&
-                 detallesSuscripcion.NextBillingTime.HasValue &&
-                 DateTime.UtcNow < detallesSuscripcion.NextBillingTime.Value &&
-                 detallesSuscripcion.LastPaymentTime <= new DateTime(1900, 1, 1);
-
-                var viewModel = new SubcriptionDetailViewModel
-                {
-                    SubscriptionId = detallesSuscripcion.SubscriptionId,
-                    PlanId = detallesSuscripcion.PlanId,
-                    Status = detallesSuscripcion.Status,
-                    SubscriberName = detallesSuscripcion.SubscriberName,
-                    SubscriberEmail = detallesSuscripcion.SubscriberEmail,
-                    PayerId = detallesSuscripcion.PayerId,
-                    StartDate = detallesSuscripcion.StartTime,
-                    StatusUpdateDate = detallesSuscripcion.StatusUpdateTime,
-
-                    NextBillingTime = detallesSuscripcion.NextBillingTime,
-                    LastPaymentTime = detallesSuscripcion.LastPaymentTime,
-                    FinalPaymentTime = detallesSuscripcion.FinalPaymentTime,
-                    OutstandingBalance = detallesSuscripcion.OutstandingBalance,
-                    OutstandingCurrency = detallesSuscripcion.OutstandingCurrency,
-                    LastPaymentAmount = detallesSuscripcion.LastPaymentAmount,
-                    LastPaymentCurrency = detallesSuscripcion.LastPaymentCurrency,
-                    TrialDays = trialDays,
-                    CyclesCompleted = detallesSuscripcion.CyclesCompleted,
-                    CyclesRemaining = detallesSuscripcion.CyclesRemaining,
-                    TotalCycles = detallesSuscripcion.TotalCycles,
-                    MostrarCiclos = detallesSuscripcion.CyclesCompleted > 0 ||
-                                    detallesSuscripcion.CyclesRemaining > 0 ||
-                                    detallesSuscripcion.TotalCycles > 0 ||
-                                    trialDays > 0,
-                    EnPeriodoPrueba = enPeriodoPruebaActivo
-
-                };
+                // 3. Mapear al ViewModel usando el nuevo Mapper
+                var viewModel = PaypalSubscriptionMapper.ToViewModel(detallesSuscripcion);
 
                 return View(viewModel);
-
             }
             catch (Exception ex)
             {
@@ -304,11 +262,8 @@ namespace GestorInventario.Controllers.PaypalControllers
         {
             try
             {
-
-
-
                 var queryable = _unitOfWork.PaypalRepository.ObtenerSubscripciones()
-                                           .OrderByDescending(s => s.StartTime);
+                    .OrderByDescending(s => s.StartTime);
 
 
                 var paginationResult = await _paginationService.PaginarAsync(
@@ -331,8 +286,10 @@ namespace GestorInventario.Controllers.PaypalControllers
             }
             catch (Exception ex)
             {
-                TempData["ConnectionError"] = "El servidor ha tardado mucho en responder. Inténtelo de nuevo más tarde.";
-                _logger.LogError(ex, "Error al obtener los datos de suscripción para la página {Pagina}", paginacion.Pagina);
+                TempData["ConnectionError"] =
+                    "El servidor ha tardado mucho en responder. Inténtelo de nuevo más tarde.";
+                _logger.LogError(ex, "Error al obtener los datos de suscripción para la página {Pagina}",
+                    paginacion.Pagina);
                 return RedirectToAction("Error", "Home");
             }
         }
@@ -343,8 +300,6 @@ namespace GestorInventario.Controllers.PaypalControllers
         {
             try
             {
-
-
                 var usuarioActual = _currentUserAccessor.GetCurrentUserId();
 
                 _logger.LogInformation(
@@ -379,15 +334,18 @@ namespace GestorInventario.Controllers.PaypalControllers
             }
             catch (Exception ex)
             {
-                TempData["ConnectionError"] = "El servidor ha tardado mucho en responder. Inténtelo de nuevo más tarde.";
-                _logger.LogError(ex, "Error al obtener las suscripciones del usuario {UsuarioId} para la página {Pagina}",
+                TempData["ConnectionError"] =
+                    "El servidor ha tardado mucho en responder. Inténtelo de nuevo más tarde.";
+                _logger.LogError(ex,
+                    "Error al obtener las suscripciones del usuario {UsuarioId} para la página {Pagina}",
                     _currentUserAccessor.GetCurrentUserId(), paginacion.Pagina);
                 return RedirectToAction("Error", "Home");
             }
         }
+
         private IActionResult RedirigirSegunRol() =>
-           User.IsInRole("Administrador")
-               ? RedirectToAction(nameof(TodasSuscripciones))
-               : RedirectToAction(nameof(ObtenerSuscripcionUsuario));
+            User.IsInRole("Administrador")
+                ? RedirectToAction(nameof(TodasSuscripciones))
+                : RedirectToAction(nameof(ObtenerSuscripcionUsuario));
     }
 }

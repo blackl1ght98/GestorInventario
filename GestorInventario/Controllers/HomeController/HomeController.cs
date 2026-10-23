@@ -29,6 +29,12 @@ namespace GestorInventario.Controllers.HomeController
            
             return View();
         }
+        public IActionResult Pepe()
+        {
+           
+           
+            return View();
+        }
         /**    
          DASHBOARD EN PROCESO DE CONTRUCCION
          */

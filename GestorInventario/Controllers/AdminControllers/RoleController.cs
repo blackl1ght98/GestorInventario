@@ -24,7 +24,7 @@ namespace GestorInventario.Controllers.AdminControllers
             _logger = logger;
         }
 
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Policy = "EsAdministrador")]
         [HttpGet]
         public async Task<IActionResult> ObtenerRoles([FromQuery] Paginacion paginacion)
         {
@@ -53,14 +53,12 @@ namespace GestorInventario.Controllers.AdminControllers
             }
         }
 
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Policy = "EsAdministrador")]
         [HttpGet]
         public async Task<IActionResult> VerUsuariosPorRol(int id, [FromQuery] Paginacion paginacion)
         {
             try
             {
-
-
                 var usuariosQueryable = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerUsuariosPorRol(id));
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() => _paginationService.PaginarAsync(usuariosQueryable, paginacion));
 
@@ -75,7 +73,6 @@ namespace GestorInventario.Controllers.AdminControllers
                     RolId = id,
                     TodosLosRoles = todosLosRoles.ToList(),
                 };
-
                 return View(viewModel);
             }
             catch (Exception ex)
@@ -85,10 +82,9 @@ namespace GestorInventario.Controllers.AdminControllers
                 return RedirectToAction("Error", "Home");
             }
         }
-
         //Metodo para editar el rol se llama desde el script ver-usuario-rol.js
         [HttpPost]
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Policy = "EsAdministrador")]
         public async Task<IActionResult> CambiarRol([FromBody] CambiarRolDto request)
         {
             try

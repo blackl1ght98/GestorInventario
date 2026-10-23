@@ -1,7 +1,8 @@
-﻿using GestorInventario.Application.DTOS.Paypal.Projections;
+﻿using GestorInventario.Application.DTOS.Paypal;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Subscriptions;
 using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;
 using GestorInventario.Application.Interfaces.MetodosPaginacion;
+using GestorInventario.Application.Projections;
 using GestorInventario.Shared.Utilities;
 using GestorInventario.ViewModels.Paypal;
 using Microsoft.AspNetCore.Authorization;
@@ -28,7 +29,6 @@ namespace GestorInventario.Controllers.PaypalControllers
             _logger = logger;
             _paginationService = paginationService;
         }
-
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> MostrarProductos([FromQuery] Paginacion paginacion)
@@ -45,17 +45,10 @@ namespace GestorInventario.Controllers.PaypalControllers
                     TempData["ErrorMessage"] = result.Message ?? "No se pudieron obtener los productos de PayPal.";
                     return RedirectToAction("Index", "Home");
                 }
-
-                // Desestructurar la tupla desde result.Data
-                var page = result.Data; // ProductsPageDto
+                var page = result.Unwrap(); 
 
                 var productos = page.Products
-                    .Select(p => new ProductoProjection
-                    {
-                        Id = p.Id,
-                        Nombre = p.Name,
-                        Descripcion = p.Description
-                    })
+                    .Select(p => p.ToProjection())
                     .ToList();
 
 

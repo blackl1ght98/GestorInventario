@@ -24,6 +24,11 @@ namespace GestorInventario.Infrastructure.Repositories.AdminRepository
             var roles = _context.Roles.Include(x => x.Usuarios).AsQueryable();
             return roles;
         }
+        public string? ObtenerNombreRolPorId(int idRol)
+        {
+            var roles = ObtenerRoles();
+            return roles.FirstOrDefault(r => r.Id == idRol)?.Nombre;
+        }
         public IQueryable<Usuario> ObtenerUsuariosPorRol(int rolId)
         {
             return _context.Usuarios

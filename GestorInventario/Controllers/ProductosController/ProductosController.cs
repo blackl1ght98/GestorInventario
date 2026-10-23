@@ -16,41 +16,39 @@ namespace GestorInventario.Controllers.ProductosController
 {
     public class ProductosController : Controller
     {
-             
-        private readonly ILogger<ProductosController> _logger;       
-        private readonly IProductoRepository _productoRepository;                    
+        private readonly ILogger<ProductosController> _logger;
+        private readonly IProductoRepository _productoRepository;
         private readonly IPolicyExecutor _policyExecutor;
         private readonly IPaginationService _paginationService;
         private readonly ICurrentUserAccessor _current;
         private readonly IProductService _productoService;
-        
+
         public ProductosController(
             IPolicyExecutor policyExecutor,
             IPaginationService pagination,
-            ICurrentUserAccessor currentUserAccessor, 
-            ILogger<ProductosController> logger, 
-            IProductoRepository productoRepository,    
+            ICurrentUserAccessor currentUserAccessor,
+            ILogger<ProductosController> logger,
+            IProductoRepository productoRepository,
             IProductService productoService)
         {
-            _logger = logger;                  
-            _productoRepository = productoRepository;         
-            _policyExecutor = policyExecutor;      
+            _logger = logger;
+            _productoRepository = productoRepository;
+            _policyExecutor = policyExecutor;
             _paginationService = pagination;
             _current = currentUserAccessor;
             _productoService = productoService;
-         
         }
+
         //Metodo para obtener los productos
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> Index(string buscar, string ordenarPorPrecio, int? idProveedor, [FromQuery] Paginacion paginacion)
+        public async Task<IActionResult> Index(string buscar, string ordenarPorPrecio, int? idProveedor,
+            [FromQuery] Paginacion paginacion)
         {
             try
             {
-                
-
                 // Obtiene la consulta como IQueryable
-                var productos =  _policyExecutor.ExecutePolicy(() => _productoRepository.ObtenerTodosLosProductos());
+                var productos = _policyExecutor.ExecutePolicy(() => _productoRepository.ObtenerTodosLosProductos());
 
                 // Aplicamos los filtros a la consulta
                 if (!string.IsNullOrEmpty(buscar))
@@ -80,9 +78,9 @@ namespace GestorInventario.Controllers.ProductosController
                 );
 
                 // Obtener proveedores
-                var proveedores = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProveedores());
+                var proveedores =
+                    await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProveedores());
 
-           
 
                 // Crear el ViewModel
                 var viewModel = new ProductsIndexViewModel
@@ -96,13 +94,15 @@ namespace GestorInventario.Controllers.ProductosController
                     IdProveedor = idProveedor,
                     Proveedores = new SelectList(proveedores, "Id", "NombreProveedor")
                 };
-                ViewData["Proveedores"] = new SelectList(await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProveedores()), "Id", "NombreProveedor");
+                ViewData["Proveedores"] =
+                    new SelectList(
+                        await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProveedores()), "Id",
+                        "NombreProveedor");
 
                 return View(viewModel);
             }
             catch (Exception ex)
             {
-               
                 _logger.LogError(ex, "Error al mostrar la vista");
                 return RedirectToAction("Error", "Home");
             }
@@ -113,18 +113,18 @@ namespace GestorInventario.Controllers.ProductosController
         {
             try
             {
-               
-                ViewData["Productos"] = new SelectList(await _productoRepository.ObtenerProveedores(), "Id", "NombreProveedor");
+                ViewData["Productos"] =
+                    new SelectList(await _productoRepository.ObtenerProveedores(), "Id", "NombreProveedor");
                 var proveedores = await _productoRepository.ObtenerProveedores();
                 var model = new ProductFormViewModel
                 {
-                    NombreProducto="",
-                    Descripcion="",
-                   Proveedores = proveedores.ToSelectList(
-                   u => u.Id,
-                   u => u.NombreProveedor,
-                   placeholder: "Seleccione un proveedor..."
-               )
+                    NombreProducto = "",
+                    Descripcion = "",
+                    Proveedores = proveedores.ToSelectList(
+                        u => u.Id,
+                        u => u.NombreProveedor,
+                        placeholder: "Seleccione un proveedor..."
+                    )
                 };
 
                 return View(model);
@@ -135,12 +135,12 @@ namespace GestorInventario.Controllers.ProductosController
                 _logger.LogError(ex, "Error al mostrar la vista de creacion del producto");
                 return RedirectToAction("Error", "Home");
             }
-
         }
+
         //Metodo que crea el producto
         [HttpPost]
         [Authorize(Policy = "EsAdministrador")]
-        [ValidateAntiForgeryToken]  
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ProductFormViewModel model)
         {
             // Recargamos siempre la lista de proveedores para que no se pierda el dropdown
@@ -154,7 +154,7 @@ namespace GestorInventario.Controllers.ProductosController
             // VALIDACIÓN DEL MODELO
             if (!ModelState.IsValid)
             {
-                return View(model);  
+                return View(model);
             }
 
             try
@@ -188,9 +188,10 @@ namespace GestorInventario.Controllers.ProductosController
             {
                 _logger.LogError(ex, "Error al crear el producto: {NombreProducto}", model.NombreProducto);
                 TempData["ConectionError"] = "El servidor ha tardado mucho en responder, inténtelo de nuevo más tarde.";
-                return View(model);  
+                return View(model);
             }
         }
+
         private static async Task<byte[]?> ToBytesAsync(IFormFile? file)
         {
             // 1. CASO BORDE: si no hay archivo, devolvemos null
@@ -205,30 +206,29 @@ namespace GestorInventario.Controllers.ProductosController
             // 4. CONVERTIMOS el MemoryStream en un byte[]
             return ms.ToArray();
         }
+
         //Metodo que obtiene la información necesaria para eliminar el producto
         [Authorize(Policy = "EsAdministrador")]
         public async Task<IActionResult> Delete(int id)
         {
             try
             {
-               
-                
-                var producto = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProductoPorIdAsync(id));    
+                var producto =
+                    await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProductoPorIdAsync(id));
                 if (producto == null)
                 {
                     _logger.LogError("No se ha encontrado el producto");
                     return RedirectToAction(nameof(Index));
                 }
-                var viewmodel = new DeleteProductoViewmodel 
-                { 
+
+                var viewmodel = new DeleteProductoViewmodel
+                {
                     Id = id,
-                    NombreProducto= producto.NombreProducto,
-                    Descripcion= producto.Descripcion,
-                    Cantidad= producto.Cantidad,
-                    Precio= producto.Precio,
-                    NombreProvedor= producto.IdProveedorNavigation.NombreProveedor
-                
-                
+                    NombreProducto = producto.NombreProducto,
+                    Descripcion = producto.Descripcion,
+                    Cantidad = producto.Cantidad,
+                    Precio = producto.Precio,
+                    NombreProvedor = producto.IdProveedorNavigation.NombreProveedor
                 };
                 return View(viewmodel);
             }
@@ -238,8 +238,8 @@ namespace GestorInventario.Controllers.ProductosController
                 _logger.LogError(ex, "Error al eliminar el producto");
                 return RedirectToAction("Error", "Home");
             }
-
         }
+
         //Metodo que elimina el producto
         [HttpPost]
         [Authorize(Policy = "EsAdministrador")]
@@ -248,15 +248,13 @@ namespace GestorInventario.Controllers.ProductosController
         {
             try
             {
-               
                 var existeUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 int usuarioId;
                 if (int.TryParse(existeUsuario, out usuarioId))
-                {                  
+                {
                     var success = await _policyExecutor.ExecutePolicyAsync(() => _productoService.EliminarProducto(Id));
                     if (success.Success)
                     {
-                       
                         return RedirectToAction(nameof(Index));
                     }
                     else
@@ -265,31 +263,33 @@ namespace GestorInventario.Controllers.ProductosController
                         return RedirectToAction(nameof(Delete), new { id = Id });
                     }
                 }
+
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
-
-
                 TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex,"Error al eliminar el producto");
+                _logger.LogError(ex, "Error al eliminar el producto");
                 return RedirectToAction("Error", "Home");
-            }                    
+            }
         }
+
         [Authorize(Policy = "EsAdministrador")]
         public async Task<ActionResult> Edit(int id)
         {
             try
             {
-               
-
-                var producto = await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProductoPorIdAsync(id));
+                var producto =
+                    await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProductoPorIdAsync(id));
                 if (producto == null)
                 {
                     TempData["ErrorMessage"] = "No se ha encontrado el producto";
                 }
-                
-                ViewData["Productos"] = new SelectList(await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProveedores()), "Id", "NombreProveedor");
+
+                ViewData["Productos"] =
+                    new SelectList(
+                        await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProveedores()), "Id",
+                        "NombreProveedor");
                 ProductFormViewModel viewModel = new ProductFormViewModel()
                 {
                     Id = producto.Id,
@@ -308,18 +308,14 @@ namespace GestorInventario.Controllers.ProductosController
                 _logger.LogError(ex, "Error al editar el producto");
                 return RedirectToAction("Error", "Home");
             }
-
         }
 
-       
+
         [HttpPost]
-     
-      
         public async Task<ActionResult> Edit(ProductFormViewModel model)
         {
             try
             {
-                
                 if (ModelState.IsValid)
                 {
                     var dto = new EditarProductoDto
@@ -330,13 +326,14 @@ namespace GestorInventario.Controllers.ProductosController
                         Cantidad = model.Cantidad,
                         Imagen = model.Imagen,
                         Precio = model.Precio,
-                        IdProveedor = model.IdProveedor,    
+                        IdProveedor = model.IdProveedor,
                         ArchivoImagenBytes = await ToBytesAsync(model.ArchivoImagen),
                         ArchivoImagenNombre = model.ArchivoImagen?.FileName,
                         ArchivoImagenContentType = model.ArchivoImagen?.ContentType,
                     };
                     int usuarioId = _current.GetCurrentUserId();
-                    var success = await _policyExecutor.ExecutePolicyAsync(() => _productoService.EditarProducto(dto, usuarioId));
+                    var success =
+                        await _policyExecutor.ExecutePolicyAsync(() => _productoService.EditarProducto(dto, usuarioId));
                     if (success.Success)
                     {
                         return RedirectToAction(nameof(Index));
@@ -345,10 +342,11 @@ namespace GestorInventario.Controllers.ProductosController
                     {
                         TempData["ErrorMessage"] = success.Message;
                     }
+
                     return RedirectToAction("Index");
                 }
+
                 return View(nameof(Edit));
-            
             }
             catch (Exception ex)
             {
@@ -356,10 +354,6 @@ namespace GestorInventario.Controllers.ProductosController
                 _logger.LogError(ex, "Error al editar el producto");
                 return RedirectToAction("Error", "Home");
             }
-
         }
-       
-       
-
     }
 }

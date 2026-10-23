@@ -7,6 +7,7 @@ using System.Text;
 using GestorInventario.Application.DTOS.Auth;
 using GestorInventario.Application.DTOS.Email;
 using GestorInventario.Application.Interfaces.Application.Services.Authentication.Services;
+using GestorInventario.Application.Interfaces.Application.Services.Common;
 using GestorInventario.Application.Interfaces.Application.Services.Email;
 using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
 using GestorInventario.Application.Interfaces.Web;
@@ -21,7 +22,10 @@ namespace GestorInventario.Application.Services.Authentication.Services
         private readonly ICurrentUserAccessor _currentUserAccesor;
         private readonly ILogger<AuthService> _logger;
         private readonly IEmailService _emailService;
-        public AuthService( IHashService hashService, IUserRepository userRepository, ICurrentUserAccessor currentUser, ILogger<AuthService> logger, IEmailService emailService  )
+        private readonly IHybridCacheService _cache;
+        
+        public AuthService( IHashService hashService, IUserRepository userRepository, ICurrentUserAccessor currentUser, 
+            ILogger<AuthService> logger, IEmailService emailService, IHybridCacheService cache  )
         {
           
             _hashService = hashService;
@@ -29,6 +33,7 @@ namespace GestorInventario.Application.Services.Authentication.Services
             _currentUserAccesor = currentUser;
             _logger = logger;
             _emailService = emailService;
+            _cache = cache;
         }
 
         public async Task<OperationResult<Usuario>> Login(string email, LoginDto model)
@@ -200,6 +205,65 @@ namespace GestorInventario.Application.Services.Authentication.Services
                 _logger.LogInformation("Email de restablecimiento de contraseña enviado con éxito");
             
             return OperationResult<string>.Ok("Email enviado");
+        }
+
+        public async Task<OperationResult<Usuario>> CompletarMfaAsync(string userId, string codigo)
+        {
+            // Ajusta Usuario al tipo que use GenerarToken (entidad o DTO)
+
+            if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(codigo))
+                return OperationResult<Usuario>.Fail("Datos de verificación inválidos.");
+
+            const int MaxAttempts = 3;
+
+            string attemptsKey = $"MFA_Attempts_{userId}";
+            string codeKey = $"MFA_{userId}";
+
+            var attemptsStr = await _cache.GetStringAsync(attemptsKey);
+            int attempts = string.IsNullOrEmpty(attemptsStr) ? 0 : int.Parse(attemptsStr);
+
+             // Ya estaba bloqueado de antes
+            if (attempts >= MaxAttempts)
+            {
+                await _cache.RemoveAsync(codeKey);
+                await _cache.RemoveAsync(attemptsKey);
+                return OperationResult<Usuario>.Fail(
+                    "Número de intentos superado. Haga login de nuevo.");
+            }
+
+            var cachedCode = await _cache.GetStringAsync(codeKey);
+
+            if (string.IsNullOrEmpty(codigo) || cachedCode != codigo)
+            {
+                attempts++;
+                await _cache.SetStringAsync(attemptsKey, attempts.ToString(), TimeSpan.FromMinutes(5));
+
+                // 3º fallo → bloqueo aquí, no en el siguiente request
+                if (attempts >= MaxAttempts)
+                {
+                    await _cache.RemoveAsync(codeKey);
+                    await _cache.RemoveAsync(attemptsKey);
+                    return OperationResult<Usuario>.Fail(
+                        "Número de intentos superado. Haga login de nuevo.");
+                }
+
+                int restantes = MaxAttempts - attempts;
+                return OperationResult<Usuario>.Fail(
+                    $"Código incorrecto. Le quedan {restantes} intento(s).");
+            }
+
+            // --- Éxito ---
+            await _cache.RemoveAsync(attemptsKey);
+            await _cache.RemoveAsync(codeKey);
+
+            if (!int.TryParse(userId, out int id))
+                return OperationResult<Usuario>.Fail("Usuario de verificación inválido.");
+
+            var user = await _userRepository.ObtenerUsuarioPorId(id); 
+            if (user == null)
+                return OperationResult<Usuario>.Fail("Usuario no encontrado.");
+
+            return OperationResult<Usuario>.Ok(user, "MFA verificado correctamente.");
         }
     }
 }

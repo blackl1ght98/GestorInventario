@@ -1,19 +1,15 @@
-﻿using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
+﻿using GestorInventario.Application.Interfaces.Application.Services.Orders;
+using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
 using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;
 using GestorInventario.Application.Interfaces.MetodosPaginacion;
 using GestorInventario.Application.Interfaces.Web;
-using GestorInventario.Application.Services.Common;
 using GestorInventario.Domain.Common;
-using GestorInventario.Domain.enums.Paypal;
 using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Extensions;
 using GestorInventario.Shared.Utilities;
 using GestorInventario.ViewModels.Orders;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
-
 
 
 namespace GestorInventario.Controllers.PedidosControllers
@@ -21,62 +17,65 @@ namespace GestorInventario.Controllers.PedidosControllers
     [Authorize]
     public class PedidosController : Controller
     {
-            
         private readonly ILogger<PedidosController> _logger;
-        private readonly IPedidoRepository _pedidoRepository;                   
-        private readonly IPolicyExecutor _policyExecutor;      
-        private readonly IPaginationService _paginationService;       
-        private readonly ICurrentUserAccessor _currentUserAccessor;     
-       
-        
-        public PedidosController( 
-            ILogger<PedidosController> logger, 
-            IPaginationService pagination,  
-            ICurrentUserAccessor currentUser,  
-            IPedidoRepository pedidoRepository,        
-            IPolicyExecutor policyExecutor       
-          )
-        {          
+        private readonly IPedidoRepository _pedidoRepository;
+        private readonly IPolicyExecutor _policyExecutor;
+        private readonly IPaginationService _paginationService;
+        private readonly ICurrentUserAccessor _currentUserAccessor;
+        private readonly IOrderService _orderService;
+
+        public PedidosController(
+            ILogger<PedidosController> logger,
+            IPaginationService pagination,
+            ICurrentUserAccessor currentUser,
+            IPedidoRepository pedidoRepository,
+            IPolicyExecutor policyExecutor,
+            IOrderService orderService
+        )
+        {
             _logger = logger;
-            _pedidoRepository = pedidoRepository;               
-            _policyExecutor = policyExecutor;        
-            _paginationService = pagination;          
-            _currentUserAccessor = currentUser;      
-           
-       
+            _pedidoRepository = pedidoRepository;
+            _policyExecutor = policyExecutor;
+            _paginationService = pagination;
+            _currentUserAccessor = currentUser;
+            _orderService = orderService;
         }
 
         [Authorize]
-        public async Task<IActionResult> Index(string buscar, DateTime? fechaInicio, DateTime? fechaFin, [FromQuery] Paginacion paginacion)
+        public async Task<IActionResult> Index(string buscar, DateTime? fechaInicio, DateTime? fechaFin,
+            [FromQuery] Paginacion paginacion)
         {
             try
             {
                 var usuarioId = _currentUserAccessor.GetCurrentUserId();
-           
+
                 var pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidos());
                 if (User.IsAdministrador())
                 {
-
                     pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidos());
                 }
                 else
                 {
-
                     pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidoUsuario(usuarioId));
                 }
+
                 ViewData["Buscar"] = buscar;
                 ViewData["FechaInicio"] = fechaInicio;
                 ViewData["FechaFin"] = fechaFin;
                 if (!string.IsNullOrEmpty(buscar))
                 {
-                    pedidos = pedidos.Where(p => p.NumeroPedido.Contains(buscar) || p.EstadoPedido.Contains(buscar) || p.IdUsuarioNavigation.NombreCompleto.Contains(buscar));
+                    pedidos = pedidos.Where(p =>
+                        p.NumeroPedido.Contains(buscar) || p.EstadoPedido.Contains(buscar) ||
+                        p.IdUsuarioNavigation.NombreCompleto.Contains(buscar));
                 }
+
                 if (fechaInicio.HasValue && fechaFin.HasValue)
                 {
                     pedidos = pedidos.Where(s => s.FechaPedido >= fechaInicio.Value && s.FechaPedido <= fechaFin.Value);
                 }
+
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
-              _paginationService.PaginarAsync(pedidos, paginacion)
+                    _paginationService.PaginarAsync(pedidos, paginacion)
                 );
                 var viewModel = new OrderViewModel
                 {
@@ -84,13 +83,12 @@ namespace GestorInventario.Controllers.PedidosControllers
                     Paginas = paginationResult.Paginas.ToList(),
                     TotalPaginas = paginationResult.TotalPaginas,
                     PaginaActual = paginacion.Pagina,
-                    Carrier= GetCarrierFromEnum(),
+                    Carrier = GetCarrierFromEnum(),
                     Buscar = buscar
                 };
 
 
                 return View(viewModel);
-
             }
             catch (Exception ex)
             {
@@ -99,15 +97,18 @@ namespace GestorInventario.Controllers.PedidosControllers
                 return RedirectToAction("Error", "Home");
             }
         }
-        [Authorize]
+/*
+ *  [Authorize]
         public async Task<IActionResult> DetallesPedido(int id)
         {
             try
             {
-                var pedido = await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.ObtenerPedidoConDetallesAsync(id));
+                var pedido =
+                    await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.ObtenerPedidoConDetallesAsync(id));
                 if (pedido == null)
                 {
-                    _logger.LogCritical("Pedido no encontrado: no se puede mostrar los detalles de un pedido inexistente");
+                    _logger.LogCritical(
+                        "Pedido no encontrado: no se puede mostrar los detalles de un pedido inexistente");
                     return RedirectToAction(nameof(Index));
                 }
 
@@ -120,7 +121,8 @@ namespace GestorInventario.Controllers.PedidosControllers
                 var productos = detalles.Select(d =>
                 {
                     var precioUnitario = d.Producto?.Precio ?? 0;
-                    var (subtotalSinIva, iva, totalConIva) = CalculadoraFiscal.CalcularCosteProducto(precioUnitario, d.Cantidad);
+                    var (subtotalSinIva, iva, totalConIva) =
+                        CalculadoraFiscal.CalcularCosteProducto(precioUnitario, d.Cantidad);
 
                     return new DetallePedidoLineaViewModel
                     {
@@ -132,7 +134,7 @@ namespace GestorInventario.Controllers.PedidosControllers
                         SubtotalSinIva = subtotalSinIva,
                         Iva = iva,
                         TotalConIva = totalConIva,
-                        Rembolsado = d.Rembolsado 
+                        Rembolsado = d.Rembolsado
                     };
                 }).ToList();
 
@@ -152,9 +154,8 @@ namespace GestorInventario.Controllers.PedidosControllers
                     TotalSinIva = totalSinIva,
                     TotalIva = totalIva,
                     GranTotal = granTotal,
-                  PaymentId = paymentId,
-                  PedidoId = pedidoId,
-                   
+                    PaymentId = paymentId,
+                    PedidoId = pedidoId,
                 };
 
                 return View(viewmodel);
@@ -166,6 +167,50 @@ namespace GestorInventario.Controllers.PedidosControllers
                 return RedirectToAction("Error", "Home");
             }
         }
+ */
+        [Authorize]
+        public async Task<IActionResult> DetallesPedido(int id)
+        {
+            try
+            {
+                var pedido = await _orderService.GetOrderDetailsAsync(id);
+                var result = pedido.Unwrap();
+                var viewmodel = new OrderDetailsViewmodel
+                {
+                    FechaPedido = result.FechaPedido,
+                    NombreCompleto = result.NombreCompleto,
+                    NumeroPedido = result.NumeroPedido,
+                    EstadoPedido = result.EstadoPedido,
+                    Currency = result.Currency,
+                  
+                    DetallePedido = result.DetallePedidoDtos.Select(d => new DetallePedidoLineaViewModel
+                    {
+                        DetalleId = d.DetalleId,
+                        NombreProducto = d.NombreProducto,
+                        Descripcion = d.Descripcion,
+                        Cantidad = d.Cantidad,
+                        PrecioUnitario = d.PrecioUnitario,
+                        SubtotalSinIva = d.SubtotalSinIva,
+                        Iva = d.Iva,
+                        TotalConIva = d.Total, 
+                        Rembolsado = d.Rembolsado
+                    }).ToList(),
+                    TotalSinIva = result.TotalSinIva,
+                    TotalIva = result.TotalIva,
+                    GranTotal = result.Total,
+                    PaymentId = result.PaymentId,
+                    PedidoId = result.PedidoId,
+                };
+                return View(viewmodel);
+            }
+            catch (Exception ex)
+            {
+                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
+                _logger.LogError(ex, "Error al obtener los detalles del pedido");
+                return RedirectToAction("Error", "Home");
+            }
+        }
+
         // Usuario o Admin cancela antes de envío
         [HttpPost]
         [Authorize]
@@ -177,12 +222,12 @@ namespace GestorInventario.Controllers.PedidosControllers
             // Solo se puede cancelar si no está enviado ni entregado
             if (pedido.EstadoPedido == EstadoPedido.Enviado.ToString()
                 || pedido.EstadoPedido == EstadoPedido.Entregado.ToString())
-                 return BadRequest(new { success = false, errorMessage = "No se puede cancelar un pedido ya enviado" });
+                return BadRequest(new { success = false, errorMessage = "No se puede cancelar un pedido ya enviado" });
 
             pedido.EstadoPedido = EstadoPedido.Cancelado.ToString();
             await _pedidoRepository.ActualizarPedidoAsync(pedido);
 
-            return Ok(new {success = true, message="Pedido cancelado correctamente"});
+            return Ok(new { success = true, message = "Pedido cancelado correctamente" });
         }
 
         // Usuario confirma que recibió (o tracking automático)
@@ -201,6 +246,7 @@ namespace GestorInventario.Controllers.PedidosControllers
 
             return Ok();
         }
+
         public List<string> GetCarrierFromEnum()
         {
             return Enum.GetNames(typeof(Carrier)).ToList();

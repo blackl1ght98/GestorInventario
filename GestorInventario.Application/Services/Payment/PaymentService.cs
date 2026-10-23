@@ -2,10 +2,9 @@
 using GestorInventario.Application.DTOS.Carrito;
 using GestorInventario.Application.DTOS.Checkout;
 using GestorInventario.Application.DTOS.Email;
-using GestorInventario.Application.DTOS.Paypal.BD;
+using GestorInventario.Application.DTOS.Paypal;
 using GestorInventario.Application.DTOS.Rembolso;
 using GestorInventario.Application.DTOS.User;
-
 using GestorInventario.Application.Interfaces.Application.Services.Common;
 using GestorInventario.Application.Interfaces.Application.Services.Email;
 using GestorInventario.Application.Interfaces.Application.Services.Payment;
@@ -24,30 +23,27 @@ using Microsoft.Extensions.Logging;
 
 namespace GestorInventario.Application.Services.Payment
 {
-    public class PaymentService: IPaymentService
+    public class PaymentService : IPaymentService
     {
-       
         private readonly ICurrentUserAccessor _currentUserAccessor;
-        private readonly IUnitOfWork _unitOfWork;   
-        
-        private readonly ILogger<PaymentService> _logger;      
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger<PaymentService> _logger;
         private readonly IPaypalOrderService _paypalOrder;
         private readonly IEmailService _emailService;
         private readonly IPaypalRepository _paypalRepository;
         private readonly IUrlService _urlService;
-       
-        public PaymentService( ICurrentUserAccessor currentUserAccessor, ILogger<PaymentService> logger, IUnitOfWork unit,
-        IPaypalOrderService paypalOrder,  IEmailService email, IPaypalRepository paypal, IUrlService url)
+
+        public PaymentService(ICurrentUserAccessor currentUserAccessor, ILogger<PaymentService> logger,
+            IUnitOfWork unit,
+            IPaypalOrderService paypalOrder, IEmailService email, IPaypalRepository paypal, IUrlService url)
         {
-            
             _currentUserAccessor = currentUserAccessor;
-            _unitOfWork= unit;
-            _logger = logger;      
+            _unitOfWork = unit;
+            _logger = logger;
             _paypalOrder = paypalOrder;
             _urlService = url;
             _emailService = email;
-            _paypalRepository= paypal;
-            
+            _paypalRepository = paypal;
         }
 
         public async Task<OperationResult<string>> Pagar(string moneda, int userId)
@@ -83,11 +79,11 @@ namespace GestorInventario.Application.Services.Payment
             // 6. Limpiar
             await EliminarCarritosVaciosUsuario(userId);
 
-            return OperationResult<string>.Ok(approvalUrl.Data,"redirigiendo...");
+            return OperationResult<string>.Ok(approvalUrl.Data, "redirigiendo...");
         }
+
         public async Task<OperationResult<string>> ReintentarPago(int pedidoId)
         {
-     
             var pedido = await _unitOfWork.PedidoRepository.ObtenerPedidoPorIdAsync(pedidoId);
             if (pedido == null)
                 return OperationResult<string>.Fail();
@@ -95,37 +91,36 @@ namespace GestorInventario.Application.Services.Payment
             if (pedido.EstadoPedido != EstadoPedido.Pendiente.ToString())
                 return OperationResult<string>.Fail("El pedido no está pendiente de pago.");
 
-            
+
             var itemsPedido = await _unitOfWork.PedidoRepository.ObtenerDetallesPedidoAsync(pedidoId);
             if (!itemsPedido.Any())
                 return OperationResult<string>.Fail("El pedido no tiene items.");
 
-         
+
             var result = await ValidarUsuarioYObtenerInfo();
             if (!result.Success)
                 return OperationResult<string>.Fail(result.Message);
 
-         
+
             var checkout = await PrepararCheckoutParaPagoPayPal(
                 itemsPedido,
                 pedido.Currency ?? "EUR",
                 result.Data);
 
-         
+
             checkout.Subtotal = pedido.Subtotal;
             checkout.Iva = pedido.Iva;
             checkout.TotalAmount = pedido.Total;
-           
 
-          
+
             var approvalUrl = await ProcesarPagoPayPal(checkout);
             if (!approvalUrl.Success)
                 return OperationResult<string>.Fail(approvalUrl.Message);
 
-           
 
-            return OperationResult<string>.Ok(approvalUrl.Data,"Redirigiendo...");
+            return OperationResult<string>.Ok(approvalUrl.Data, "Redirigiendo...");
         }
+
         private async Task<OperationResult<InfoUsuarioDto>> ValidarUsuarioYObtenerInfo()
         {
             var usuarioId = _currentUserAccessor.GetCurrentUserId();
@@ -134,22 +129,26 @@ namespace GestorInventario.Application.Services.Payment
             {
                 return OperationResult<InfoUsuarioDto>.Fail();
             }
+
             var infoUsuario = new InfoUsuarioDto
             {
                 NombreCompletoUsuario = usuarioActual.NombreCompleto ?? "Nombre no facilitado",
                 Telefono = usuarioActual.Telefono ?? "Telefono no facilitado",
-                CodigoPostal = usuarioActual.CodigoPostal ,
+                CodigoPostal = usuarioActual.CodigoPostal,
                 Ciudad = usuarioActual.Ciudad ?? "Ciudad no facilitado",
                 Line1 = usuarioActual.Direccion.Split(",")[0].Trim(),
-                Line2 = usuarioActual.Direccion.Split(",").Length > 1 ? usuarioActual.Direccion.Split(",")[1].Trim() : ""
+                Line2 = usuarioActual.Direccion.Split(",").Length > 1
+                    ? usuarioActual.Direccion.Split(",")[1].Trim()
+                    : ""
             };
 
-            return OperationResult<InfoUsuarioDto>.Ok( infoUsuario);
+            return OperationResult<InfoUsuarioDto>.Ok(infoUsuario);
         }
+
         private async Task<OperationResult<CarritoConItemsDto>> ValidarCarritoYObtenerItems(int userId)
         {
             var carrito = await _unitOfWork.CarritoRepository.ObtenerCarritoUsuario(userId);
-          
+
             if (carrito == null)
             {
                 return OperationResult<CarritoConItemsDto>.Fail("No se encontró un carrito para el usuario.");
@@ -167,7 +166,7 @@ namespace GestorInventario.Application.Services.Payment
                 Items = itemsDelCarrito
             };
 
-            return OperationResult<CarritoConItemsDto>.Ok( resultado);
+            return OperationResult<CarritoConItemsDto>.Ok(resultado);
         }
 
 
@@ -207,6 +206,7 @@ namespace GestorInventario.Application.Services.Payment
                 throw;
             }
         }
+
         private async Task<CheckoutDto> PrepararCheckoutParaPagoPayPal(
             List<DetallePedido> itemsDelCarrito,
             string moneda,
@@ -236,7 +236,7 @@ namespace GestorInventario.Application.Services.Payment
                     Price = precioUnitario,
                     Quantity = cantidad.ToString(),
                     Sku = producto.Descripcion,
-                    
+
                     TaxAmount = impuestoUnitario
                 });
             }
@@ -263,7 +263,7 @@ namespace GestorInventario.Application.Services.Payment
                 Line2 = infoUsuario.Line2
             };
         }
-    
+
         private async Task<OperationResult<string>> ProcesarPagoPayPal(CheckoutDto checkout)
         {
             var paypalRequest = new CheckoutDto
@@ -288,7 +288,7 @@ namespace GestorInventario.Application.Services.Payment
                     Quantity = i.Quantity,
                     Currency = i.Currency,
                     Sku = i.Sku,
-                    TaxAmount = i.TaxAmount,    
+                    TaxAmount = i.TaxAmount,
                 }).ToList()
             };
 
@@ -305,10 +305,9 @@ namespace GestorInventario.Application.Services.Payment
                 createdPayment.Data.ApprovalUrl,
                 "Redirigiendo a PayPal para completar el pago");
         }
-        
+
         private async Task EliminarCarritosVaciosUsuario(int userId)
         {
-
             var carritosActivos = await _unitOfWork.CarritoRepository.ObtenerCarritosActivosAsync(userId);
             foreach (var carritoActivo in carritosActivos)
             {
@@ -318,9 +317,8 @@ namespace GestorInventario.Application.Services.Payment
                     _logger.LogInformation($"Carrito vacío eliminado para el usuario {userId}, ID: {carritoActivo.Id}");
                 }
             }
-            
         }
-       
+
         public async Task<OperationResult<PayPalPaymentItem>> ProcesarRembolso(
             PayPalOrderDetailsDto detalles,
             int usuarioActual,
@@ -388,13 +386,12 @@ namespace GestorInventario.Application.Services.Payment
 
             if (!paypalItems.Any())
             {
-                _logger.LogError($"No se encontraron ítems en PurchaseUnits para el reembolso del pedido {form.NumeroPedido}.");
+                _logger.LogError(
+                    $"No se encontraron ítems en PurchaseUnits para el reembolso del pedido {form.NumeroPedido}.");
                 return OperationResult<PayPalPaymentItem>.Fail("No se puede procesar el rembolso sin items asociados");
             }
+
             return OperationResult<PayPalPaymentItem>.Ok(paypalItems.First());
-
         }
-       
-
     }
 }

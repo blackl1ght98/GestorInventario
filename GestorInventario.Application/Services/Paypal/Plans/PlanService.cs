@@ -2,8 +2,8 @@
 using Microsoft.Extensions.Logging;
 using System.Globalization;
 using GestorInventario.Application.DTOS;
-
-
+using GestorInventario.Application.DTOS.Paypal;
+using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Subscriptions;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.Plans;
 using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
 using GestorInventario.Shared.Utilities;
@@ -14,11 +14,13 @@ namespace GestorInventario.Application.Services.Paypal.Plans
     public class PlanService : IPlanService
     {
         private readonly IPaypalRepository _paypalRepository;
+        private readonly IPaypalSubscriptionService _paypalSubscriptionService;
         private readonly ILogger<PlanService> _logger;
 
-        public PlanService(IPaypalRepository paypalRepository, ILogger<PlanService> logger)
+        public PlanService(IPaypalRepository paypalRepository,IPaypalSubscriptionService subscriptionService, ILogger<PlanService> logger)
         {
             _paypalRepository = paypalRepository;
+            _paypalSubscriptionService = subscriptionService;
             _logger = logger;
         }
 
@@ -116,6 +118,50 @@ namespace GestorInventario.Application.Services.Paypal.Plans
 
             _logger.LogInformation(
                 "Precios del plan {PlanId} actualizados correctamente en la base de datos.", planId);
+        }
+
+        
+        
+        public async Task<OperationResult<string>> ActualizarPrecioPlanAsync(UpdatePlanPriceRequestDto request)
+        {
+             // Validar que el plan exista
+                var plan = await _paypalRepository.ObtenerPlanPorIdAsync(request.PlanId);
+                if (plan == null)
+                {
+                    return OperationResult<string>.Fail( $"No se encontró el plan con ID {request.PlanId}");  
+                }
+
+                // Obtener los detalles del plan desde PayPal para verificar la moneda
+                var planDetails = await  _paypalSubscriptionService .ObtenerDetallesPlan(request.PlanId);
+                string planCurrency = planDetails.Data.BillingCycles
+                    ?.FirstOrDefault(c => c.PricingScheme?.FixedPrice?.CurrencyCode != null)
+                    ?.PricingScheme.FixedPrice.CurrencyCode;
+                if (string.IsNullOrEmpty(planCurrency))
+                {
+                    return OperationResult<string>.Fail( "No se pudo determinar la moneda del plan.");  
+                  
+                }
+
+                // Validar que la moneda solicitada coincida con la del plan
+                if (request.Currency != planCurrency)
+                {
+                    return OperationResult<string>.Fail(  $"La moneda {request.Currency} no coincide con la moneda del plan ({planCurrency}).");  
+                   
+                }
+
+                // Llamar al servicio para actualizar el precio
+                var result = await _paypalSubscriptionService.UpdatePricingPlanAsync(request.PlanId,
+                    request.TrialAmount, request.RegularAmount, request.Currency);
+                if (!result.Success)
+                {
+                    return OperationResult<string>.Fail(  $"No se ha podido actualizar el plan en este momento, intentelo de nuevo mas tarde");  
+
+                   
+                }
+
+                await SavePlanPriceUpdateAsync(result.Data);
+                return OperationResult<string>.Ok( "Precio del plan actualizado con éxito." );
+              
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System.Globalization;
 using GestorInventario.Application.DTOS;
-using GestorInventario.Application.DTOS.Paypal.BD;
-
+using GestorInventario.Application.DTOS.Paypal;
 using GestorInventario.Shared.Utilities;
 
 

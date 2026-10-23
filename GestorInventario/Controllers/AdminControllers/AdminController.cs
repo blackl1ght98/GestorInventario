@@ -7,12 +7,9 @@ using GestorInventario.Application.Interfaces.Web;
 using GestorInventario.Extensions;
 using GestorInventario.Shared.Utilities;
 using GestorInventario.ViewModels.Users;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-
-
 namespace GestorInventario.Controllers.AdminControllers
 {
     public class AdminController : Controller
@@ -74,7 +71,6 @@ namespace GestorInventario.Controllers.AdminControllers
                 return RedirectToAction("Error", "Home");
             }
         }
-
         public IActionResult Create()
         {
             try
@@ -101,12 +97,10 @@ namespace GestorInventario.Controllers.AdminControllers
                     CargarRolesEnViewData();
                     return View(model);
                 }
-
                 var dto = new RegisterUserDto
                 {
                     Email = model.Email,
                     Password = model.Password,
-                  
                     NombreCompleto = model.NombreCompleto,
                     FechaNacimiento = model.FechaNacimiento,
                     Telefono = model.Telefono,
@@ -118,7 +112,7 @@ namespace GestorInventario.Controllers.AdminControllers
                 // El admin puede elegir rol desde el dropdown (que es Id → Nombre).
                 // Si es auto-registro (sin rol solicitado), el servicio aplica Roles.DefaultRegistro.
                 var rolNombre = User.IsAdministrador()
-              ?  ObtenerNombreRolPorId(model.IdRol)
+              ?  _unitOfWork.AdminRepository.ObtenerNombreRolPorId(model.IdRol)
               : null;
 
                 var result = await _policyExecutor.ExecutePolicyAsync(
@@ -143,12 +137,6 @@ namespace GestorInventario.Controllers.AdminControllers
                 return RedirectToAction("Error", "Home");
             }
         }
-        private string? ObtenerNombreRolPorId(int idRol)
-        {
-            var roles = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles());
-            return roles.FirstOrDefault(r => r.Id == idRol)?.Nombre;
-        }
-
         [AllowAnonymous]
         [HttpGet("admin/confirm-registration/{UserId}/{Token}")]
         public async Task<IActionResult> ConfirmRegistration(ConfirmRegistrationDto confirmar)
@@ -218,7 +206,6 @@ namespace GestorInventario.Controllers.AdminControllers
         {
             try
             {             
-                         
                 if (!ModelState.IsValid)
                 {
                     return View(userVM);
@@ -233,8 +220,6 @@ namespace GestorInventario.Controllers.AdminControllers
                     Direccion = userVM.Direccion,
                     Ciudad = userVM.Ciudad,
                     CodigoPostal = userVM.CodigoPostal,
-
-
                 };
                 var result= await _userService.EditarUsuarioAsync(dto);
                
@@ -251,7 +236,6 @@ namespace GestorInventario.Controllers.AdminControllers
                 {
                     return RedirectToAction("Index", "Home");
                 }
-               
             }
             catch (Exception ex)
             {
@@ -294,8 +278,6 @@ namespace GestorInventario.Controllers.AdminControllers
             }
 
         }
-
-
         [HttpPost]
         [Authorize(Policy = "EsAdministrador")]
         [ValidateAntiForgeryToken]
@@ -365,13 +347,7 @@ namespace GestorInventario.Controllers.AdminControllers
                 return Json(new { success = false, errorMessage = result.Message });
             }
         }
-        //PROTOTIPO DE IDEA DE PONER NOTIFICACIONES CON EL ADMINISTRADOR A USUARIOS
-        //[HttpPost("alert")]
-        //public async Task<IActionResult> SendAlert([FromBody] string msg)
-        //{
-        //    var success = await _notificationService.SendWhatsAppNotificationAsync(msg);
-        //    return success ? Ok("Enviado") : BadRequest("Error al enviar");
-        //}
+       
         private void CargarRolesEnViewData()
         {
             var roles = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles());

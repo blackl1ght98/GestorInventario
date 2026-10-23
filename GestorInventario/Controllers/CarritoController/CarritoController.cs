@@ -50,9 +50,6 @@ namespace GestorInventario.Controllers.CarritoController
                 var carrito = await _policyExecutor.ExecutePolicyAsync(
                     () => _carritoRepository.ObtenerCarritoUsuario(usuarioId)
                 );
-
-              
-
                 // Crear carrito automáticamente si no existe
                 if (carrito == null)
                 {
@@ -61,24 +58,18 @@ namespace GestorInventario.Controllers.CarritoController
                     );
                     carrito = carritoUsuario.Data;
                 }
-
                 var itemsDelCarrito = _policyExecutor.ExecutePolicy(
                     () => _carritoRepository.ObtenerItemsConDetalles(carrito.Id)
                 );
-
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
                     _paginationService.PaginarAsync(itemsDelCarrito, paginacion)
                 );
-
-               
                 var subtotal = paginationResult.Items.Sum(item => item.Producto.Precio * (item.Cantidad));
                 var impuestos = subtotal * 0.21m;        
                 var total = subtotal + impuestos;        
-
                 var resultadoMonedas = await _policyExecutor.ExecutePolicyAsync(
                     () => _carritoRepository.ObtenerMoneda()
                 );
-
                 var viewModel = new CarritoViewModel
                 {
                     Productos = paginationResult.Items.ToList(),
@@ -100,7 +91,6 @@ namespace GestorInventario.Controllers.CarritoController
                 return RedirectToAction("Error", "Home");
             }
         }
-
         //Metodo que realiza el pago
         [HttpPost]
         [Authorize]
@@ -205,21 +195,13 @@ namespace GestorInventario.Controllers.CarritoController
         {
             try
             {
-
-
                 int usuarioId = _currentUserAccessor.GetCurrentUserId();
-
                 var success = await _policyExecutor.ExecutePolicyAsync(() => _carritoService.AgregarProductoAlCarrito(idProducto, cantidad, usuarioId));
-                if (success.Success)
-                {
-                    return RedirectToAction("Index", "Productos");
-
-                }
-                else
+                if (!success.Success)
                 {
                     TempData["ErrorMessage"] = success.Message;
-                }
 
+                }
                 return RedirectToAction("Index","Productos");
             }
             catch (Exception ex)

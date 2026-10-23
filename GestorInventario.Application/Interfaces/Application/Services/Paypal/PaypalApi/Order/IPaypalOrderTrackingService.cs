@@ -1,5 +1,5 @@
 ﻿using GestorInventario.Application.DTOS;
-
+using GestorInventario.Application.DTOS.Paypal;
 using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Shared.Utilities;
 

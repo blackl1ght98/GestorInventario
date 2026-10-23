@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Application.DTOS;
+using GestorInventario.Application.DTOS.Paypal;
 using GestorInventario.Infrastructure.ExternalServices;
 
 namespace GestorInventario.Infrastructure.Mappers;

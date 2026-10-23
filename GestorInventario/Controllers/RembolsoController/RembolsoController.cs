@@ -1,4 +1,4 @@
-﻿using GestorInventario.Application.DTOS.Paypal.BD;
+﻿using GestorInventario.Application.DTOS.Paypal;
 using GestorInventario.Application.DTOS.Rembolso;
 using GestorInventario.Application.Interfaces.Application.Services.BackgroundServices;
 using GestorInventario.Application.Interfaces.Application.Services.Payment;
@@ -33,7 +33,6 @@ namespace GestorInventario.Controllers.RembolsoController
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IPaypalOrderService _paypalOrderService;
         private readonly IPaymentService _paymentService;
-        
         private readonly IRefundService _refundService;
         private readonly IBackgroundTaskQueue _background;
       

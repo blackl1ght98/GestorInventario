@@ -12,18 +12,17 @@ using Microsoft.Extensions.Logging;
 
 namespace GestorInventario.Application.Services.Products
 {
-    public class ProductService: IProductService
+    public class ProductService : IProductService
     {
-       
         private readonly IGestorArchivos _gestorArchivos;
         private readonly IBarCodeService _barCodeService;
         private readonly ILogger<ProductService> _logger;
         private readonly IProductoRepository _productoRepository;
-        private readonly IImageOptimizerService _imageOptimizerService;  
-      
-        public ProductService( IGestorArchivos gestorArchivos, IBarCodeService barcode, ILogger<ProductService> logger,
-        IProductoRepository producto, IImageOptimizerService image)
-        {         
+        private readonly IImageOptimizerService _imageOptimizerService;
+
+        public ProductService(IGestorArchivos gestorArchivos, IBarCodeService barcode, ILogger<ProductService> logger,
+            IProductoRepository producto, IImageOptimizerService image)
+        {
             _gestorArchivos = gestorArchivos;
             _barCodeService = barcode;
             _logger = logger;
@@ -81,8 +80,9 @@ namespace GestorInventario.Application.Services.Products
                 "Producto creado exitosamente: {NombreProducto}, UpcCode: {UpcCode}",
                 producto.NombreProducto, producto.CodigoBarras);
 
-            return OperationResult<Producto>.Ok( producto);
+            return OperationResult<Producto>.Ok(producto);
         }
+
         public async Task<OperationResult<string>> EditarProducto(EditarProductoDto model, int usuarioId)
         {
             var producto = await _productoRepository.ObtenerProductoPorIdAsync(model.Id);
@@ -97,7 +97,7 @@ namespace GestorInventario.Application.Services.Products
             producto.IdProveedor = model.IdProveedor;
 
             string? imagenAnterior = producto.Imagen;
-            bool seGeneroNuevaImagen = false;  // ← NUEVO
+            bool seGeneroNuevaImagen = false; // ← NUEVO
 
             if (model.ArchivoImagenBytes is { Length: > 0 } &&
                 !string.IsNullOrEmpty(model.ArchivoImagenNombre))
@@ -113,7 +113,7 @@ namespace GestorInventario.Application.Services.Products
                         model.ArchivoImagenNombre,
                         "imagenes");
 
-                    seGeneroNuevaImagen = true;  
+                    seGeneroNuevaImagen = true;
 
                     _logger.LogInformation(
                         "Imagen guardada: {ImagenPath}", producto.Imagen);
@@ -133,7 +133,7 @@ namespace GestorInventario.Application.Services.Products
 
             // 3. Solo borra la imagen antigua si la BD confirmó el cambio
             //    Y se generó una imagen nueva
-            if (resultado.Success && seGeneroNuevaImagen && !string.IsNullOrEmpty(imagenAnterior))  // ← NUEVO
+            if (resultado.Success && seGeneroNuevaImagen && !string.IsNullOrEmpty(imagenAnterior)) // ← NUEVO
             {
                 string fileName = Path.GetFileName(imagenAnterior);
                 await _gestorArchivos.BorrarArchivo(fileName, "imagenes");
@@ -151,23 +151,22 @@ namespace GestorInventario.Application.Services.Products
             var producto = await _productoRepository.ObtenerProductoCompletoAsync(Id);
             if (producto == null)
                 return OperationResult<string>.Fail("No hay productos para eliminar");
-            
+
             // 1. Elimina en BD primero
             var resultado = await _productoRepository.EliminarProductoAsync(producto);
-           
+
             // 2. Solo borra la imagen si la BD confirmó
-            if (resultado.Success && !string.IsNullOrEmpty(producto.Imagen) && !string.IsNullOrEmpty(producto.CodigoBarrasImagen))
+            if (resultado.Success && !string.IsNullOrEmpty(producto.Imagen) &&
+                !string.IsNullOrEmpty(producto.CodigoBarrasImagen))
             {
                 string fileName = Path.GetFileName(producto.Imagen);
                 string codigoBarras = Path.GetFileName(producto.CodigoBarrasImagen);
                 await _gestorArchivos.BorrarArchivo(fileName, "imagenes");
                 await _gestorArchivos.BorrarArchivo(codigoBarras, "barcodes");
-
             }
 
             _logger.LogInformation("Producto con ID {Id} eliminado correctamente.", Id);
             return OperationResult<string>.Ok("Producto eliminado con exito");
         }
-
     }
 }

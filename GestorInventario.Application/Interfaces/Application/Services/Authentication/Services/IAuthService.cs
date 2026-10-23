@@ -11,5 +11,6 @@ namespace GestorInventario.Application.Interfaces.Application.Services.Authentic
         Task<OperationResult<string>> ChangePassword(string passwordAnterior, string passwordActual);
         Task<OperationResult<RestoresPasswordDto>> PrepareRestorePassModel(int userId, string token);
         Task<OperationResult<string>> EnviarCorreoResetAsync(string email);
+        Task<OperationResult<Usuario>> CompletarMfaAsync(string userId, string codigo);
     }
 }

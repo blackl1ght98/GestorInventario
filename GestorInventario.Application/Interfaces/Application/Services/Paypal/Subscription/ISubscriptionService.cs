@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Application.DTOS;
+using GestorInventario.Application.DTOS.Paypal;
 using GestorInventario.Domain.Models;
 
 namespace GestorInventario.Application.Interfaces.Application.Services.Paypal.Subscription

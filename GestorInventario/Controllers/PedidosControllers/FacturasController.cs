@@ -2,7 +2,7 @@
 using GestorInventario.Application.Interfaces.Application.Services.Email;
 using GestorInventario.Application.Interfaces.Application.Services.PDFService;
 using GestorInventario.Application.Interfaces.Web;
-using GestorInventario.Infrastructure.Notifications.Email.EmailViewmodel;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -66,13 +66,6 @@ namespace GestorInventario.Controllers.PedidosControllers
                 return RedirectToAction("DetallesPagoEjecutado", new { id });
             }
 
-            // Preparar modelo para la plantilla del email
-            var emailModel = new InvoiceViewmodel
-            {
-                IdPago = id,
-                EnlaceDescarga = Url.Action(nameof(DownloadInvoice), "Pedidos", new { id }, Request.Scheme)
-
-            };
 
             var emailDto = new EmailDto { ToEmail = emailDestinatario };
             await _emailService.SendEmailAsyncFactura(emailDto, id);

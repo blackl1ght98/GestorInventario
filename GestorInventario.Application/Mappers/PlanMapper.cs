@@ -1,13 +1,13 @@
 ﻿using System.Globalization;
 using GestorInventario.Application.DTOS;
-using GestorInventario.Application.DTOS.Paypal.Projections;
+using GestorInventario.Application.DTOS.Paypal;
 using GestorInventario.Domain.Models;
 
 namespace GestorInventario.Application.Mappers
 {
     public static class PlanMapper
     {
-        public static PlanProjection ToPlanProjection(this PlanDetail detail)
+        public static PlanPaypalDto ToPlanProjection(this PlanDetail detail)
         {
             var billingCycles = new List<CatalogPlanBillingCycleDto>();
 
@@ -59,7 +59,7 @@ namespace GestorInventario.Application.Mappers
                 });
             }
 
-            return new PlanProjection
+            return new PlanPaypalDto
             {
                 Id = detail.PaypalPlanId,
                 productId = detail.ProductId ?? string.Empty,

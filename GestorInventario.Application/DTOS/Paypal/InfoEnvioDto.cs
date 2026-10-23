@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using GestorInventario.Domain.enums.Pedido;
 
-namespace GestorInventario.Application.DTOS.Paypal.BD
+namespace GestorInventario.Application.DTOS.Paypal
 {
     public class InfoEnvioDto
     {

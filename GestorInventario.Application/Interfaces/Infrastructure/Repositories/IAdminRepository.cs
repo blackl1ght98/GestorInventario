@@ -7,6 +7,7 @@ namespace GestorInventario.Application.Interfaces.Infrastructure.Repositories
     {
         //Consulta
         IQueryable<Role> ObtenerRoles();
+        string? ObtenerNombreRolPorId(int idRol);
         IQueryable<Usuario> ObtenerUsuarios();
         IQueryable<Usuario> ObtenerUsuariosPorRol(int rolId);
         Task<Usuario> ObtenerUsuarioConProveedoresYPedidosAsync(int id);

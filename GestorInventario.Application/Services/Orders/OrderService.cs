@@ -1,7 +1,10 @@
 ﻿using GestorInventario.Application.DTOS;
+using GestorInventario.Application.DTOS.Paypal;
 using GestorInventario.Application.Interfaces.Application.Services.Orders;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Order;
 using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
+using GestorInventario.Application.Interfaces.Web;
+using GestorInventario.Domain.Common;
 using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Domain.Models;
 using GestorInventario.Shared.Utilities;
@@ -15,14 +18,16 @@ public class OrderService : IOrderService
     private readonly IPaymentRepository _paymentRepository;
     private readonly IPaypalOrderService _paypalOrderService;
     private readonly IPedidoRepository _pedidoRepository;
+    private readonly ICurrentUserAccessor _currentUserAccessor;
 
     public OrderService(ILogger<OrderService> logger, IPedidoRepository pedido,
-        IPaypalOrderService paypal, IPaymentRepository payment)
+        IPaypalOrderService paypal, IPaymentRepository payment, ICurrentUserAccessor currentUserAccessor)
     {
         _logger = logger;
         _pedidoRepository = pedido;
         _paypalOrderService = paypal;
         _paymentRepository = payment;
+        _currentUserAccessor = currentUserAccessor;
     }
 
     public async Task<OperationResult<string>> EliminarPedido(int id)
@@ -81,40 +86,38 @@ public class OrderService : IOrderService
 
 
     public async Task<OperationResult<Pedido>> ConfirmarPagoDelPedidoAsync(
-        int usuarioActual,
-        string captureId,
-        decimal total,
-        string? currency,
-        string orderId)
+        PaymentCapturedDto capture,
+        string paymentId)
     {
-        if (string.IsNullOrWhiteSpace(captureId) ||
-            string.IsNullOrWhiteSpace(currency) ||
-            string.IsNullOrWhiteSpace(orderId))
+        if (string.IsNullOrWhiteSpace(capture.CaptureId) ||
+            string.IsNullOrWhiteSpace(capture.Currency) ||
+            string.IsNullOrWhiteSpace(paymentId))
         {
-            _logger.LogWarning("Parámetros inválidos al confirmar pago: captureId, currency u orderId vacíos");
+            _logger.LogWarning("Parámetros inválidos al confirmar pago: captureId, currency u paymentId vacíos");
             return OperationResult<Pedido>.Fail();
         }
 
+        int userId = _currentUserAccessor.GetCurrentUserId();
 
-        var pedido = await _pedidoRepository.ObtenerPedidoPendienteUsuarioAsync(usuarioActual);
+        var pedido = await _pedidoRepository.ObtenerPedidoPendienteUsuarioAsync(userId);
         if (pedido == null)
         {
-            _logger.LogWarning("No se encontró pedido pendiente para el usuario {UsuarioId}", usuarioActual);
+            _logger.LogWarning("No se encontró pedido pendiente para el usuario {UsuarioId}", userId);
             return OperationResult<Pedido>.Fail();
         }
 
 
-        var paymentDetail = await _paymentRepository.ObtenerDetallesPago(orderId);
+        var paymentDetail = await _paymentRepository.ObtenerDetallesPago(paymentId);
 
         if (paymentDetail == null)
         {
             paymentDetail = new PayPalPaymentDetail
             {
-                Id = orderId,
+                Id = paymentId,
                 Intent = "CAPTURE",
-                AmountTotal = total,
-                AmountCurrency = currency,
-                AmountItemTotal = total,
+                AmountTotal = capture.Total,
+                AmountCurrency = capture.Currency,
+                AmountItemTotal = capture.Total,
                 AmountShipping = 0,
                 Description = $"Pedido #{pedido.NumeroPedido} - pendiente de sincronización con PayPal",
                 CreateTime = DateTime.UtcNow,
@@ -126,11 +129,11 @@ public class OrderService : IOrderService
 
         var capturePayment = new PayPalPaymentCapture
         {
-            PaymentId = orderId,
-            CaptureId = captureId,
+            PaymentId = paymentId,
+            CaptureId = capture.CaptureId,
             PedidoId = pedido.Id,
-            Amount = total,
-            Currency = currency,
+            Amount = capture.Total,
+            Currency = capture.Currency,
             TransactionFeeAmount = 0,
             ReceivableAmount = 0,
             ExchangeRate = 0,
@@ -142,8 +145,8 @@ public class OrderService : IOrderService
         await _paymentRepository.AgregarCaptureAsync(capturePayment);
 
 
-        pedido.Total = total;
-        pedido.Currency = currency;
+        pedido.Total = capture.Total;
+        pedido.Currency = capture.Currency;
         pedido.EstadoPedido = EstadoPedido.Pagado.ToString();
 
         await _pedidoRepository.ActualizarPedidoAsync(pedido);
@@ -303,5 +306,61 @@ public class OrderService : IOrderService
 
             await _paymentRepository.AgregarPagoItemAsync(paymentItem);
         }
+    }
+
+    public async Task<OperationResult<DetalleOrdenDto>> GetOrderDetailsAsync(int id)
+    {
+        var pedido = await _pedidoRepository.ObtenerPedidoConDetallesAsync(id);
+        if (pedido == null)
+        {
+            return OperationResult<DetalleOrdenDto>.Fail();
+        }
+
+        var detalles = pedido.DetallePedidos.ToList();
+        if (!detalles.Any())
+        {
+            return OperationResult<DetalleOrdenDto>.Fail();
+        }
+
+        var productos = detalles.Select(d =>
+        {
+            var precioUnitario = d.Producto?.Precio ?? 0;
+            var (subtotalSinIva, iva, totalConIva) =
+                CalculadoraFiscal.CalcularCosteProducto(precioUnitario, d.Cantidad);
+
+            return new DetallePedidoDto
+            {
+                DetalleId = d.Id,
+                NombreProducto = d.Producto?.NombreProducto,
+                Descripcion = d.Producto?.Descripcion,
+                Cantidad = d.Cantidad,
+                PrecioUnitario = precioUnitario,
+                SubtotalSinIva = subtotalSinIva,
+                Iva = iva,
+                Total = totalConIva,
+                Rembolsado = d.Rembolsado
+            };
+        }).ToList();
+
+        var (totalSinIva, totalIva, granTotal) = CalculadoraFiscal.CalcularTotales(
+            detalles.Select(d => (d.Producto?.Precio ?? 0, d.Cantidad))
+        );
+        var paymentId = pedido.PayPalPaymentCaptures.FirstOrDefault().PaymentId;
+        var pedidoId = pedido.Id;
+        var viewmodel = new DetalleOrdenDto
+        {
+            FechaPedido = pedido.FechaPedido,
+            NombreCompleto = pedido.IdUsuarioNavigation.NombreCompleto,
+            NumeroPedido = pedido.NumeroPedido,
+            EstadoPedido = pedido.EstadoPedido,
+            Currency = pedido.Currency,
+            DetallePedidoDtos = productos,
+            TotalSinIva = totalSinIva,
+            TotalIva = totalIva,
+            Total = granTotal,
+            PaymentId = paymentId,
+            PedidoId = pedidoId,
+        };
+        return OperationResult<DetalleOrdenDto>.Ok(viewmodel);
     }
 }

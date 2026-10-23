@@ -3,7 +3,6 @@ using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;
 using GestorInventario.Application.Interfaces.MetodosPaginacion;
 using GestorInventario.Application.Interfaces.Web;
 using GestorInventario.Shared.Utilities;
-using GestorInventario.ViewModels;
 using GestorInventario.ViewModels.Notification;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,8 +14,6 @@ namespace GestorInventario.Controllers.NotificationController
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IPolicyExecutor _policyExecutor;
         private readonly IPaginationService _paginationService;
-
-
         public NotificationController(INotificationRepository notificationRepository, ICurrentUserAccessor currentUserAccessor, IPolicyExecutor policyExecutor, IPaginationService pagination)
         {
             _notificationRepository = notificationRepository;
@@ -91,5 +88,12 @@ namespace GestorInventario.Controllers.NotificationController
                 return RedirectToAction("Error", "Home");
             }
         }
+        //Idea de mandar notificaciones personalizadas
+        //[HttpPost("alert")]
+        //public async Task<IActionResult> SendAlert([FromBody] string msg)
+        //{
+        //    var success = await _notificationService.SendWhatsAppNotificationAsync(msg);
+        //    return success ? Ok("Enviado") : BadRequest("Error al enviar");
+        //}
     }
 }

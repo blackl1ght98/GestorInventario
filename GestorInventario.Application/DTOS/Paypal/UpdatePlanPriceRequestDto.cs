@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace GestorInventario.Application.DTOS.Paypal.BD
+namespace GestorInventario.Application.DTOS.Paypal
 {
     public record UpdatePlanPriceRequestDto
     {

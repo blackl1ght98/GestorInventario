@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using GestorInventario.Application.DTOS;
+using GestorInventario.Application.DTOS.Paypal;
 using GestorInventario.Infrastructure.ExternalServices;
 using GestorInventario.Shared.Utilities;
 using Newtonsoft.Json;

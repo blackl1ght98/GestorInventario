@@ -1,5 +1,5 @@
 ﻿using GestorInventario.Application.DTOS;
-
+using GestorInventario.Application.DTOS.Paypal;
 using GestorInventario.Shared.Utilities;
 
 namespace GestorInventario.Application.Interfaces.Application.Services.Paypal.Plans
@@ -9,5 +9,6 @@ namespace GestorInventario.Application.Interfaces.Application.Services.Paypal.Pl
         Task<OperationResult<string>> SavePlanDetailsAsync(string planId, PlanDetailsDto planDetails);
         Task UpdatePlanStatusAsync(string planId, string status);
         Task SavePlanPriceUpdateAsync(PlanPriceUpdateResultDto planPriceUpdate);
+        Task<OperationResult<string>> ActualizarPrecioPlanAsync(UpdatePlanPriceRequestDto request);
     }
 }

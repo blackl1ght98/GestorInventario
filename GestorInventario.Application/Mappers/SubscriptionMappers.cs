@@ -2,6 +2,7 @@
 using GestorInventario.Domain.Models;
 using System.Globalization;
 using GestorInventario.Application.DTOS;
+using GestorInventario.Application.DTOS.Paypal;
 
 namespace GestorInventario.Application.Mappers
 {

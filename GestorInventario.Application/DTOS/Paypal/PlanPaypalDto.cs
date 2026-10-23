@@ -1,8 +1,8 @@
 ﻿
 
-namespace GestorInventario.Application.DTOS.Paypal.Projections
+namespace GestorInventario.Application.DTOS.Paypal
 {
-    public record PlanProjection
+    public record PlanPaypalDto
     {
         public required string Id { get; init; }
         public required string productId { get; init; }

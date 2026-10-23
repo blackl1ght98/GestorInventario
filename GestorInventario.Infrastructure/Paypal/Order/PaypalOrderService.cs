@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Application.DTOS;
 using GestorInventario.Application.DTOS.Checkout;
+using GestorInventario.Application.DTOS.Paypal;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Order;
 using GestorInventario.Domain.Common;

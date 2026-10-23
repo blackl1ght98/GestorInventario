@@ -24,7 +24,6 @@ namespace GestorInventario.Application.Services.User
             IHashService hashService,
             IEmailService emailService,
             IAdminRepository admin,
-
             ILogger<UserService> logger)
         {
             _usuarioRepository = usuarioRepository;
@@ -32,10 +31,10 @@ namespace GestorInventario.Application.Services.User
             _emailService = emailService;
             _logger = logger;
             _adminRepository = admin;
-
         }
 
-        public async Task<OperationResult<string>> CrearUsuarioAsync(RegisterUserDto model, string? rolSolicitado = null)
+        public async Task<OperationResult<string>> CrearUsuarioAsync(RegisterUserDto model,
+            string? rolSolicitado = null)
         {
             if (await _usuarioRepository.ExisteEmailAsync(model.Email))
                 return OperationResult<string>.Fail("Ya existe un usuario con este correo electrónico.");
@@ -48,8 +47,8 @@ namespace GestorInventario.Application.Services.User
                 : (rolSolicitado ?? Roles.DefaultRegistro);
 
             var rol = await _usuarioRepository.GetRolByNameAsync(nombreRol)
-                ?? throw new InvalidOperationException(
-                    $"Rol '{nombreRol}' no existe. ¿Se ejecutó el seed?");
+                      ?? throw new InvalidOperationException(
+                          $"Rol '{nombreRol}' no existe. ¿Se ejecutó el seed?");
 
             var hash = _hashService.Hash(model.Password);
             var usuarioEf = CreateUsuarioFromDto(model);
@@ -74,13 +73,14 @@ namespace GestorInventario.Application.Services.User
             _logger.LogInformation("Usuario {Email} creado con rol {Rol}", model.Email, nombreRol);
             return OperationResult<string>.Ok("Usuario creado correctamente");
         }
+
         public async Task<OperationResult<string>> EditarUsuarioAsync(EditUserDto userVm)
         {
             var resultado = await _usuarioRepository.ObtenerUsuarioPorId(userVm.Id);
             if (resultado is null)
                 return OperationResult<string>.Fail();
 
-           
+
             string emailActual = resultado.Email;
 
             UpdateUsuarioFromDto(resultado, userVm);
@@ -108,6 +108,7 @@ namespace GestorInventario.Application.Services.User
 
             return OperationResult<string>.Ok("Edicion realizada con exito");
         }
+
         public async Task<OperationResult<string>> EliminarUsuarioAsync(int id)
         {
             var usuario = await _usuarioRepository.ObtenerUsuarioConProveedoresYPedidosAsync(id);
@@ -119,27 +120,29 @@ namespace GestorInventario.Application.Services.User
                 return OperationResult<string>.Fail("El usuario no se puede eliminar porque tiene pedidos asociados");
 
             if (usuario.Proveedores.Any())
-                return OperationResult<string>.Fail("El usuario no se puede eliminar porque tiene proveedores asociados");
-            
+                return OperationResult<string>.Fail(
+                    "El usuario no se puede eliminar porque tiene proveedores asociados");
+
             return await _adminRepository.EliminarUsuario(id);
         }
+
         public async Task<OperationResult<string>> ValidarRegistro(ConfirmRegistrationDto confirmar)
         {
             var usuarioDb = await _usuarioRepository.ObtenerUsuarioPorId(confirmar.UserId);
 
             if (usuarioDb is null)
             {
-
                 _logger.LogWarning("Intento de confirmar un usuario inexistente con ID {UserId}", confirmar.UserId);
-                return OperationResult<string>.Fail("Error al confirmar el usuario. Intentelo de nuevo mas tarde"); 
+                return OperationResult<string>.Fail("Error al confirmar el usuario. Intentelo de nuevo mas tarde");
             }
 
             if (usuarioDb.ConfirmacionEmail)
             {
-             
-                _logger.LogInformation($"El usuario con email {usuarioDb.Email} ha intentado confirmar su correo estando confirmado");
+                _logger.LogInformation(
+                    $"El usuario con email {usuarioDb.Email} ha intentado confirmar su correo estando confirmado");
                 return OperationResult<string>.Fail("Usuario ya validado");
             }
+
             if (usuarioDb.EmailVerificationToken != confirmar.Token)
             {
                 _logger.LogCritical("Intento de manipulacion del token por el usuario: " + usuarioDb.Id);
@@ -151,6 +154,7 @@ namespace GestorInventario.Application.Services.User
             await _usuarioRepository.ActualizarUsuarioAsync(usuarioDb);
             return OperationResult<string>.Ok("Validacion exitosa");
         }
+
         // Crea un Usuario nuevo a partir de un RegisterUserDto.
         // Los campos sensibles (Password, Salt, IdRol, FechaRegistro, ConfirmacionEmail)
         // los asigna el caller porque dependen de hash/rol/estado de bootstrap.
@@ -161,8 +165,8 @@ namespace GestorInventario.Application.Services.User
                 Email = dto.Email,
                 NombreCompleto = dto.NombreCompleto,
                 FechaNacimiento = dto.FechaNacimiento ?? default,
-                Telefono = dto.Telefono ,
-                Direccion = dto.Direccion ,
+                Telefono = dto.Telefono,
+                Direccion = dto.Direccion,
                 Ciudad = dto.Ciudad,
                 CodigoPostal = int.Parse(dto.CodigoPostal),
                 BajaUsuario = false,
@@ -188,5 +192,4 @@ namespace GestorInventario.Application.Services.User
             usuario.CodigoPostal = int.Parse(dto.CodigoPostal);
         }
     }
-
 }

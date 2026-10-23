@@ -1,5 +1,5 @@
 ﻿using GestorInventario.Application.DTOS;
-
+using GestorInventario.Application.DTOS.Paypal;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.Subscription;
 using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
 using GestorInventario.Application.Mappers;
@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace GestorInventario.Application.Services.Paypal.Subscription
 {
-    public class SubscriptionService: ISubscriptionService
+    public class SubscriptionService : ISubscriptionService
     {
         private readonly IPaypalRepository _paypalRepository;
         private readonly ILogger<SubscriptionService> _logger;
@@ -20,7 +20,8 @@ namespace GestorInventario.Application.Services.Paypal.Subscription
             _logger = logger;
         }
 
-        public async Task<SubscriptionDetail> CreateSubscriptionDetailAsync(PaypalSubscriptionDto subscriptionDetails, string planId)
+        public async Task<SubscriptionDetail> CreateSubscriptionDetailAsync(PaypalSubscriptionDto subscriptionDetails,
+            string planId)
         {
             try
             {
@@ -40,6 +41,7 @@ namespace GestorInventario.Application.Services.Paypal.Subscription
                 throw;
             }
         }
+
         private async Task SaveOrUpdateSubscriptionDetailsAsync(SubscriptionDetail subscriptionDetails)
         {
             var existingSubscription = await _paypalRepository
@@ -67,9 +69,10 @@ namespace GestorInventario.Application.Services.Paypal.Subscription
             _logger.LogInformation("Suscripción actualizada: {SubscriptionId}",
                 subscriptionDetails.SubscriptionId);
         }
-        public async Task SaveUserSubscriptionAsync(int userId, string subscriptionId, string subscriberName, string planId)
-        {
 
+        public async Task SaveUserSubscriptionAsync(int userId, string subscriptionId, string subscriberName,
+            string planId)
+        {
             // Verificar si la relación ya existe
             var existingRelation = await _paypalRepository.ObtenerSubscricionUsuarioAsync(userId, subscriptionId);
 
@@ -85,14 +88,13 @@ namespace GestorInventario.Application.Services.Paypal.Subscription
 
                 await _paypalRepository.AgregarSubscripcionUsuarioAsync(userSubscription);
 
-                _logger.LogInformation($"Relación UserSubscription creada para usuario {userId}, suscripción {subscriptionId}");
-
+                _logger.LogInformation(
+                    $"Relación UserSubscription creada para usuario {userId}, suscripción {subscriptionId}");
             }
-
         }
+
         public async Task UpdateSubscriptionStatusAsync(string subscriptionId, string status)
         {
-
             var subscription = await _paypalRepository.ObtenerSubscriptionIdAsync(subscriptionId);
 
             if (subscription == null)
@@ -104,19 +106,22 @@ namespace GestorInventario.Application.Services.Paypal.Subscription
 
             if (status == "ACTIVE" && subscription.Status != "CANCELLED" && subscription.Status != "SUSPENDED")
             {
-                _logger.LogInformation($"No se puede activar la suscripción {subscriptionId} porque no está en estado CANCELLED o SUSPENDED (estado actual: {subscription.Status})");
+                _logger.LogInformation(
+                    $"No se puede activar la suscripción {subscriptionId} porque no está en estado CANCELLED o SUSPENDED (estado actual: {subscription.Status})");
                 return;
             }
 
             else if (status == "SUSPENDED" && subscription.Status != "ACTIVE")
             {
-                _logger.LogInformation($"No se puede suspender la suscripción {subscriptionId} porque no está en estado ACTIVE (estado actual: {subscription.Status})");
+                _logger.LogInformation(
+                    $"No se puede suspender la suscripción {subscriptionId} porque no está en estado ACTIVE (estado actual: {subscription.Status})");
                 return;
             }
 
             else if (status == "CANCELLED" && subscription.Status != "ACTIVE" && subscription.Status != "SUSPEND")
             {
-                _logger.LogInformation($"No se puede cancelar la suscripción {subscriptionId} porque no está en estado ACTIVE o SUSPEND (estado actual: {subscription.Status})");
+                _logger.LogInformation(
+                    $"No se puede cancelar la suscripción {subscriptionId} porque no está en estado ACTIVE o SUSPEND (estado actual: {subscription.Status})");
                 return;
             }
 
@@ -124,8 +129,6 @@ namespace GestorInventario.Application.Services.Paypal.Subscription
             await _paypalRepository.ActualizarDetallesSubscripcionAsync(subscription);
 
             _logger.LogInformation($"Estado de la suscripción {subscriptionId} actualizado a {status}");
-
-
         }
     }
 }
