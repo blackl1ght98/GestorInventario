@@ -6,6 +6,7 @@ using GestorInventario.Application.Interfaces.Web;
 using GestorInventario.Domain.Common;
 using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Extensions;
+using GestorInventario.Mappers;
 using GestorInventario.Shared.Utilities;
 using GestorInventario.ViewModels.Orders;
 using Microsoft.AspNetCore.Authorization;
@@ -97,77 +98,7 @@ namespace GestorInventario.Controllers.PedidosControllers
                 return RedirectToAction("Error", "Home");
             }
         }
-/*
- *  [Authorize]
-        public async Task<IActionResult> DetallesPedido(int id)
-        {
-            try
-            {
-                var pedido =
-                    await _policyExecutor.ExecutePolicyAsync(() => _pedidoRepository.ObtenerPedidoConDetallesAsync(id));
-                if (pedido == null)
-                {
-                    _logger.LogCritical(
-                        "Pedido no encontrado: no se puede mostrar los detalles de un pedido inexistente");
-                    return RedirectToAction(nameof(Index));
-                }
 
-                var detalles = pedido.DetallePedidos.ToList();
-                if (!detalles.Any())
-                {
-                    return RedirectToAction(nameof(Index));
-                }
-
-                var productos = detalles.Select(d =>
-                {
-                    var precioUnitario = d.Producto?.Precio ?? 0;
-                    var (subtotalSinIva, iva, totalConIva) =
-                        CalculadoraFiscal.CalcularCosteProducto(precioUnitario, d.Cantidad);
-
-                    return new DetallePedidoLineaViewModel
-                    {
-                        DetalleId = d.Id,
-                        NombreProducto = d.Producto?.NombreProducto,
-                        Descripcion = d.Producto?.Descripcion,
-                        Cantidad = d.Cantidad,
-                        PrecioUnitario = precioUnitario,
-                        SubtotalSinIva = subtotalSinIva,
-                        Iva = iva,
-                        TotalConIva = totalConIva,
-                        Rembolsado = d.Rembolsado
-                    };
-                }).ToList();
-
-                var (totalSinIva, totalIva, granTotal) = CalculadoraFiscal.CalcularTotales(
-                    detalles.Select(d => (d.Producto?.Precio ?? 0, d.Cantidad))
-                );
-                var paymentId = pedido.PayPalPaymentCaptures.FirstOrDefault().PaymentId;
-                var pedidoId = pedido.Id;
-                var viewmodel = new OrderDetailsViewmodel
-                {
-                    FechaPedido = pedido.FechaPedido,
-                    NombreCompleto = pedido.IdUsuarioNavigation.NombreCompleto,
-                    NumeroPedido = pedido.NumeroPedido,
-                    EstadoPedido = pedido.EstadoPedido,
-                    Currency = pedido.Currency,
-                    DetallePedido = productos,
-                    TotalSinIva = totalSinIva,
-                    TotalIva = totalIva,
-                    GranTotal = granTotal,
-                    PaymentId = paymentId,
-                    PedidoId = pedidoId,
-                };
-
-                return View(viewmodel);
-            }
-            catch (Exception ex)
-            {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al obtener los detalles del pedido");
-                return RedirectToAction("Error", "Home");
-            }
-        }
- */
         [Authorize]
         public async Task<IActionResult> DetallesPedido(int id)
         {
@@ -175,32 +106,10 @@ namespace GestorInventario.Controllers.PedidosControllers
             {
                 var pedido = await _orderService.GetOrderDetailsAsync(id);
                 var result = pedido.Unwrap();
-                var viewmodel = new OrderDetailsViewmodel
-                {
-                    FechaPedido = result.FechaPedido,
-                    NombreCompleto = result.NombreCompleto,
-                    NumeroPedido = result.NumeroPedido,
-                    EstadoPedido = result.EstadoPedido,
-                    Currency = result.Currency,
-                  
-                    DetallePedido = result.DetallePedidoDtos.Select(d => new DetallePedidoLineaViewModel
-                    {
-                        DetalleId = d.DetalleId,
-                        NombreProducto = d.NombreProducto,
-                        Descripcion = d.Descripcion,
-                        Cantidad = d.Cantidad,
-                        PrecioUnitario = d.PrecioUnitario,
-                        SubtotalSinIva = d.SubtotalSinIva,
-                        Iva = d.Iva,
-                        TotalConIva = d.Total, 
-                        Rembolsado = d.Rembolsado
-                    }).ToList(),
-                    TotalSinIva = result.TotalSinIva,
-                    TotalIva = result.TotalIva,
-                    GranTotal = result.Total,
-                    PaymentId = result.PaymentId,
-                    PedidoId = result.PedidoId,
-                };
+
+               
+                var viewmodel = result.ToViewModel();
+
                 return View(viewmodel);
             }
             catch (Exception ex)

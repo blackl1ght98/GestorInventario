@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Application.DTOS.Supplier;
 using GestorInventario.Application.Interfaces.Application.Services.Provider;
+using GestorInventario.Application.Interfaces.Infrastructure.Common;
 using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
 using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;
 using GestorInventario.Application.Interfaces.MetodosPaginacion;
@@ -25,14 +26,15 @@ namespace GestorInventario.Controllers.ProveedorController
         private readonly IPaginationService _paginationService;
         private readonly IUserRepository _userRepository;
         private readonly IProviderService  _providerService;
-       
+       private readonly IUnitOfWork _unitOfWork;
         public ProveedorController( 
             ILogger<ProveedorController> logger, 
             IUserRepository userRepository, 
             IProveedorRepository proveedorRepository,  
             IPolicyExecutor policyExecutor, 
             IPaginationService pagination,
-            IProviderService providerService)
+            IProviderService providerService,
+            IUnitOfWork unitOfWork)
         {           
             _logger = logger;                
             _proveedorRepository= proveedorRepository;           
@@ -40,6 +42,7 @@ namespace GestorInventario.Controllers.ProveedorController
             _paginationService = pagination;
             _userRepository = userRepository;  
             _providerService = providerService;
+            _unitOfWork = unitOfWork;
         }
       
      
@@ -297,7 +300,34 @@ namespace GestorInventario.Controllers.ProveedorController
                 return RedirectToAction("Error", "Home");
             }
         }
+        [HttpGet]
+        public async Task<IActionResult> ObtenerInfoReasignacion(int id)
+        {
+            var usuario = await _policyExecutor.ExecutePolicyAsync(() =>
+                _unitOfWork.AdminRepository.ObtenerUsuarioConProveedoresYPedidosAsync(id));
 
+            if (usuario is null)
+                return Json(new { success = false, message = "Usuario no encontrado" });
+
+            if (!usuario.Proveedores.Any())
+                return Json(new { success = false, message = "Este usuario no tiene proveedores asignados" });
+
+            var usuarios = _unitOfWork.AdminRepository.ObtenerUsuarios()
+                .Where(u => u.Id != id)
+                .Select(u => new { u.Id, u.NombreCompleto })
+                .ToList();
+
+            return Json(new { success = true, usuarios });
+        }
+        [HttpPost]
+        public async Task<IActionResult> ReasignarProveedores([FromBody] ReasignarProveedoresDto request)
+        {
+            var result = await _policyExecutor.ExecutePolicyAsync(() =>
+                _unitOfWork.AdminRepository.ReasignarProveedoresAsync(
+                    request.UsuarioOrigenId, request.UsuarioDestinoId));
+
+            return Json(new { success = result.Success, message = result.Message });
+        }
 
 
     }

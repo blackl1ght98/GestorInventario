@@ -166,7 +166,7 @@ namespace GestorInventario.Controllers.ProductosController
                     Cantidad = model.Cantidad,
                     Precio = model.Precio,
                     IdProveedor = model.IdProveedor,
-                    ArchivoImagenBytes = await ToBytesAsync(model.ArchivoImagen),
+                    ArchivoImagenBytes = await FileHelper.ToBytesAsync(model.ArchivoImagen),
                     ArchivoImagenNombre = model.ArchivoImagen?.FileName,
                     ArchivoImagenContentType = model.ArchivoImagen?.ContentType,
                 };
@@ -192,20 +192,7 @@ namespace GestorInventario.Controllers.ProductosController
             }
         }
 
-        private static async Task<byte[]?> ToBytesAsync(IFormFile? file)
-        {
-            // 1. CASO BORDE: si no hay archivo, devolvemos null
-            if (file is null || file.Length == 0) return null;
-
-            // 2. CREAMOS un MemoryStream vacío (un buffer en memoria que se puede escribir)
-            using var ms = new MemoryStream();
-
-            // 3. COPIAMOS los bytes del archivo subido al MemoryStream
-            await file.CopyToAsync(ms);
-
-            // 4. CONVERTIMOS el MemoryStream en un byte[]
-            return ms.ToArray();
-        }
+     
 
         //Metodo que obtiene la información necesaria para eliminar el producto
         [Authorize(Policy = "EsAdministrador")]
@@ -327,7 +314,7 @@ namespace GestorInventario.Controllers.ProductosController
                         Imagen = model.Imagen,
                         Precio = model.Precio,
                         IdProveedor = model.IdProveedor,
-                        ArchivoImagenBytes = await ToBytesAsync(model.ArchivoImagen),
+                        ArchivoImagenBytes = await FileHelper.ToBytesAsync(model.ArchivoImagen),
                         ArchivoImagenNombre = model.ArchivoImagen?.FileName,
                         ArchivoImagenContentType = model.ArchivoImagen?.ContentType,
                     };

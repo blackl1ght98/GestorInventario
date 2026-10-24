@@ -1,4 +1,7 @@
-﻿using GestorInventario.Application.DTOS.Rembolso;
+﻿using GestorInventario.Application.DTOS;
+using GestorInventario.Application.DTOS.Paypal;
+using GestorInventario.Application.DTOS.Rembolso;
+using GestorInventario.Application.Interfaces.Application.Services.Payment;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Order;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Refunds;
 using GestorInventario.Application.Interfaces.Application.Services.Refunds;
@@ -23,9 +26,10 @@ namespace GestorInventario.Application.Services.Refunds
         private readonly IPaypalOrderService _paypalOrderService;
         private readonly IPaypalRefundService _paypalRefundService;
         private readonly ILogger<RefundService> _logger;
+        private readonly IPaymentService _paymentService;
 
         public RefundService(IPedidoRepository pedidoRepository, ICurrentUserAccessor currentUserAccesor,
-            IPaypalRepository paypalRepository,
+            IPaypalRepository paypalRepository,IPaymentService paymentService,
             IPaypalOrderService paypalOrderService, IPaypalRefundService paypalRefundService,
             ILogger<RefundService> logger)
         {
@@ -35,6 +39,7 @@ namespace GestorInventario.Application.Services.Refunds
             _paypalOrderService = paypalOrderService;
             _paypalRefundService = paypalRefundService;
             _logger = logger;
+            _paymentService = paymentService;
         }
 
         // ============================================
@@ -267,6 +272,153 @@ namespace GestorInventario.Application.Services.Refunds
                 pedidoId, detalleId, pedido.EstadoPedido);
 
             return OperationResult<string>.Ok("Rembolso registrado con exito");
+        }
+
+        public async Task<OperationResult<RembolsoTotal>> EjecutarReembolsoTotalAsync( RefundFullDto request)
+        {
+            var pedido = await _pedidoRepository
+                    .ObtenerPedidoConDetallesAsync(request.PedidoId);
+
+                if (pedido == null)
+                    return OperationResult<RembolsoTotal>.Fail();
+
+                var reembolsoPrevio = pedido.Rembolsos?
+                    .FirstOrDefault(r => r.ReembolsoCompletado == true);
+
+                if (reembolsoPrevio != null)
+                {
+                    return OperationResult<RembolsoTotal>.Ok();
+                }
+                var captureId = pedido.PayPalPaymentCaptures.FirstOrDefault().CaptureId;
+                if (string.IsNullOrEmpty(captureId))
+                    return OperationResult<RembolsoTotal>.Fail();
+
+                // ============================================
+                // 2. CALCULAR MONTO A REEMBOLSAR (todas las líneas
+                //    aún no reembolsadas, según BD, con su cantidad real)
+                // ============================================
+                
+                var detallesPendientes = pedido.DetallePedidos
+                    .Where(d => !(d.Rembolsado ))
+                    .ToList();
+
+                if (!detallesPendientes.Any())
+                    return OperationResult<RembolsoTotal>.Fail();
+
+                var (_, _, montoSolicitadoConIva) = CalculadoraFiscal.CalcularTotales(
+                    detallesPendientes.Select(d => (d.Producto.Precio, d.Cantidad))
+                );
+
+                
+
+                // ============================================
+                // 3. VERIFICAR CONTRA PAYPAL (fuente de verdad real)
+                // ============================================
+
+                var captureDetails = await _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(
+                    pedido.PayPalPaymentCaptures.First().PaymentId);
+                var details = captureDetails.Unwrap();
+    
+                var resultRefund = PaypalRefundCalculator.CalcularMontoDisponibleYEstado(
+                    details, montoSolicitadoConIva, request.Currency);
+                var finalRefund = resultRefund.Unwrap();
+
+                var refundResult = await _paypalRefundService.RefundCaptureAsync(
+                        captureId: captureId,
+                        amount: finalRefund.MontoReembolso,
+                        currency: request.Currency,
+                        nota: $"Reembolso pedido #{pedido.NumeroPedido}");
+
+                if (!refundResult.Success)
+                     return OperationResult<RembolsoTotal>.Fail();
+
+                var procesar = await ProcesarRembolsoTotalAsync(
+                        pedido.Id,
+                        refundResult.Data.RefundId,
+                        refundResult.Data.AmountRefunded);
+                if (!procesar.Success)
+                {
+                    return OperationResult<RembolsoTotal>.Fail();
+                }
+            
+                var amountRefunded = refundResult.Data.AmountRefunded;
+                var pedidoId = pedido.Id;
+                var dto = new RembolsoTotal
+                {
+                    PedidoId = pedidoId,
+                    AmountRefunded = amountRefunded,
+                    DetallesIds = detallesPendientes.Select(d => d.Id).ToList()
+                };
+                return OperationResult<RembolsoTotal>.Ok(dto);
+        }
+
+        public async Task<OperationResult<string>> RefundFormAsync(RefundDto form)
+        {
+              var obtenerNumeroPedido = _pedidoRepository.ObtenerNumeroPedido(form.NumeroPedido);
+
+                if (obtenerNumeroPedido == null)
+                {
+                    _logger.LogInformation("El número de pedido proporcionado no existe: {NumeroPedido}", form.NumeroPedido);
+                    return OperationResult<string>.Fail();
+                }
+
+                int usuarioActual = _currentUserAccesor.GetCurrentUserId();
+
+                var emailCliente = _currentUserAccesor.GetCurrentUserEmail();
+
+                if (string.IsNullOrEmpty(emailCliente))
+                {
+                    _logger.LogInformation("El email del usuario actual no se encuentra registrado");
+                }
+
+                var pedido = await _pedidoRepository.ObtenerNumeroPedido(form.NumeroPedido);
+
+                if (pedido == null)
+                {
+                    _logger.LogInformation(
+                        "El pedido con el número proporcionado no existe: {NumeroPedido}", form.NumeroPedido);
+                    return OperationResult<string>.Fail();
+                }
+
+                var capture = pedido.PayPalPaymentCaptures?.FirstOrDefault();
+                var orderId = capture?.PaymentId;
+
+                if (string.IsNullOrEmpty(orderId))
+                {
+                    _logger.LogWarning(
+                        "El pedido {NumeroPedido} no tiene PaymentId de PayPal", form.NumeroPedido);
+                    return OperationResult<string>.Fail();
+                }
+
+                var detallespago = await _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(orderId);
+
+                if (!detallespago.Success)
+                {
+                    _logger.LogError(
+                        "Error al obtener detalles de PayPal para orderId {OrderId}: {Message}",
+                        orderId, detallespago.Message);
+                    return OperationResult<string>.Fail();
+                }
+
+                var detalles = detallespago.Unwrap(); // PayPalOrderDetailsDto
+
+                // Ya no hace falta comprobar PurchaseUnits ni mapear aquí.
+                // El DTO limpio ya trae Items, Captures, etc.
+                var resultado = await _paymentService.ProcesarRembolso(
+                    detalles,
+                    usuarioActual,
+                    form,
+                    obtenerNumeroPedido.Id,
+                    emailCliente);
+
+                if (!resultado.Success)
+                {
+                    _logger.LogError(
+                        "Error al procesar reembolso del pedido {NumeroPedido}: {Message}",
+                        form.NumeroPedido, resultado.Message);
+                    return OperationResult<string>.Fail();
+                }
+                return OperationResult<string>.Ok();
         }
     }
 }

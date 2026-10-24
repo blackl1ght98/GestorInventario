@@ -19,6 +19,7 @@ using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Domain.Models;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;
+using RefundDto = GestorInventario.Application.DTOS.Paypal.RefundDto;
 
 
 namespace GestorInventario.Application.Services.Payment
@@ -323,7 +324,7 @@ namespace GestorInventario.Application.Services.Payment
             PayPalOrderDetailsDto detalles,
             int usuarioActual,
             RefundDto form,
-            Pedido obtenerNumeroPedido,
+            int pedidoId,
             string emailCliente)
         {
             // Lista para almacenar los ítems de PayPal
@@ -356,7 +357,7 @@ namespace GestorInventario.Application.Services.Payment
                 EstadoRembolso = EstadoRembolso.EnRevision.ToString(),
                 MotivoRembolso = form.MotivoRembolso,
                 TipoRembolso = TipoRembolso.Total.ToString(),
-                PedidoId = obtenerNumeroPedido.Id,
+                PedidoId = pedidoId,
             };
 
             await _paypalRepository.AgregarRembolsoAsync(rembolso);

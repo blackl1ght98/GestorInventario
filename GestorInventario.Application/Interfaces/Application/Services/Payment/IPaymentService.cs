@@ -2,6 +2,7 @@
 using GestorInventario.Application.DTOS.Paypal;
 using GestorInventario.Domain.Models;
 using GestorInventario.Shared.Utilities;
+using RefundDto = GestorInventario.Application.DTOS.Paypal.RefundDto;
 
 namespace GestorInventario.Application.Interfaces.Application.Services.Payment
 {
@@ -13,8 +14,8 @@ namespace GestorInventario.Application.Interfaces.Application.Services.Payment
             PayPalOrderDetailsDto detalles,
             int usuarioActual,
             RefundDto form,
-            Pedido obtenerNumeroPedido,
-            string emailCliente);       
+            int pedidoId,
+            string emailCliente);      
         Task<OperationResult<string>> ReintentarPago(int pedidoId);
     }
 }
