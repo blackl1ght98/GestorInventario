@@ -30,7 +30,7 @@ namespace GestorInventario.Controllers.AdminControllers
         {
             try
             {
-                var queryable = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles());
+                var queryable = _policyExecutor.ExecutePolicy(() => _unitOfWork.RoleRepository.ObtenerRoles());
 
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() => _paginationService.PaginarAsync(queryable, paginacion));
 
@@ -62,7 +62,7 @@ namespace GestorInventario.Controllers.AdminControllers
                 var usuariosQueryable = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerUsuariosPorRol(id));
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() => _paginationService.PaginarAsync(usuariosQueryable, paginacion));
 
-                var todosLosRoles = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles());
+                var todosLosRoles = _policyExecutor.ExecutePolicy(() => _unitOfWork.RoleRepository.ObtenerRoles());
 
                 var viewModel = new UserByRolViewModel
                 {
@@ -90,7 +90,7 @@ namespace GestorInventario.Controllers.AdminControllers
             try
             {
                 var usuario = await _policyExecutor.ExecutePolicyAsync(() =>
-                    _unitOfWork.UserRepository.ObtenerUsuarioPorId(request.Id));
+                    _unitOfWork.AdminRepository.ObtenerUsuarioPorId(request.Id));
 
                 if (usuario == null)
                 {
@@ -103,7 +103,7 @@ namespace GestorInventario.Controllers.AdminControllers
                 }
 
                 // Obtener todos los roles disponibles
-                var rolesDomainResult = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles()).ToList();
+                var rolesDomainResult = _policyExecutor.ExecutePolicy(() => _unitOfWork.RoleRepository.ObtenerRoles()).ToList();
 
                 if (rolesDomainResult == null || !rolesDomainResult.Any())
                 {
@@ -122,10 +122,9 @@ namespace GestorInventario.Controllers.AdminControllers
                 {
                     return Json(new { success = false, errorMessage = "El usuario ya tiene el rol seleccionado." });
                 }
-
-                // Actualizar el rol
-                await _policyExecutor.ExecutePolicy(() =>
-                    _unitOfWork.AdminRepository.ActualizarRolUsuario(request.Id, nuevoRol.Id));
+                usuario.IdRol = nuevoRol.Id;
+                await _unitOfWork.AdminRepository.ActualizarUsuarioAsync(usuario);
+                
 
                 return Json(new
                 {

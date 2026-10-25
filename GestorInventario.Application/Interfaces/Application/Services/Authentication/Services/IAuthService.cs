@@ -7,7 +7,7 @@ namespace GestorInventario.Application.Interfaces.Application.Services.Authentic
     public interface IAuthService
     {
         Task<OperationResult<Usuario>> Login(string email, LoginDto model);
-        Task<OperationResult<string>> SetNewPasswordAsync(RestoresPasswordDto cambio);
+        Task<OperationResult<string>> SetNewPasswordAsync(SetNewPasswordDto cambio);
         Task<OperationResult<string>> ChangePassword(string passwordAnterior, string passwordActual);
         Task<OperationResult<RestoresPasswordDto>> PrepareRestorePassModel(int userId, string token);
         Task<OperationResult<string>> EnviarCorreoResetAsync(string email);

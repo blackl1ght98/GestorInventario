@@ -29,10 +29,7 @@ namespace GestorInventario.Infrastructure.BackgroundServices
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
-
-          
             _intervalo = DefaultInterval;
-
             _logger.LogWarning("Servicio de Stock configurado con un intervalo de: {Intervalo}", _intervalo);
         }
 
@@ -56,16 +53,7 @@ namespace GestorInventario.Infrastructure.BackgroundServices
 
                 try
                 {
-                    /*
-                     * GESTIÓN DE SCOPES (Ámbitos de Servicio):
-                     * BackgroundService es un Singleton (vive toda la vida de la app).
-                     * Los repositorios y servicios de negocio suelen ser Scoped (viven solo una petición).
-                     *
-                     * No podemos inyectar un servicio Scoped directamente en el constructor de un Singleton.
-                     * Solución: Inyectamos IServiceProvider y creamos un Scope manual. Esto simula
-                     * el ciclo de vida de una petición HTTP, asegurando que el DbContext se cree
-                     * y se destruya correctamente en cada iteración.
-                     */
+                 
                     using var scope = _serviceProvider.CreateScope();
 
                     // Resolvemos el servicio dentro del scope creado

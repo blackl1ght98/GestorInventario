@@ -10,13 +10,13 @@ namespace GestorInventario.Application.Services.BarcodeService
 {
     public class BarCodeService : IBarCodeService
     {
-        private readonly IProductoRepository _productoRepository; 
+        private readonly IProductRepository _productRepository; 
         private readonly ILogger<BarCodeService> _logger;
         private readonly IBarCodeImageRenderer _renderer;   
         private readonly IBarCodeImageStorage _storage;    
-        public BarCodeService(IProductoRepository producto,  ILogger<BarCodeService> logger, IBarCodeImageRenderer renderer, IBarCodeImageStorage storage)
+        public BarCodeService(IProductRepository product,  ILogger<BarCodeService> logger, IBarCodeImageRenderer renderer, IBarCodeImageStorage storage)
         {
-            _productoRepository = producto;         
+            _productRepository = product;         
             _logger = logger;
             _renderer = renderer;
             _storage = storage;
@@ -53,7 +53,7 @@ namespace GestorInventario.Application.Services.BarcodeService
                 _logger.LogDebug("Intento {Attempt} - Código generado: {Code}", attempts + 1, code);
 
                 // Verificar unicidad
-                var exists = await _productoRepository.ObtenerCodigoUPC(code);
+                var exists = await _productRepository.ObtenerCodigoUPC(code);
                 if (!exists)
                 {
                     _logger.LogInformation("Código UPC-A único generado: {Code}", code);

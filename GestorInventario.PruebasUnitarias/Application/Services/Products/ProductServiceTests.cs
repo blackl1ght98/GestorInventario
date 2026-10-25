@@ -22,7 +22,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.Products
     /// pero nosotros NO testeamos eso. Testeamos las decisiones de negocio:
     /// - Validar nombre duplicado
     /// - Solo borrar archivos si la BD confirmó
-    /// - Manejar producto no encontrado
+    /// - Manejar product no encontrado
     /// Los servicios de archivos/imágenes/barcode se mockean (son infraestructura).
     /// </summary>
     public class ProductServiceTests
@@ -30,7 +30,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.Products
         private readonly Mock<IGestorArchivos> _mockArchivos;
         private readonly Mock<IBarCodeService> _mockBarcode;
         private readonly Mock<ILogger<ProductService>> _mockLogger;
-        private readonly Mock<IProductoRepository> _mockRepo;
+        private readonly Mock<IProductRepository> _mockRepo;
         private readonly Mock<IImageOptimizerService> _mockImageOptimizer;
         private readonly ProductService _sut;
 
@@ -39,7 +39,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.Products
             _mockArchivos = new Mock<IGestorArchivos>();
             _mockBarcode = new Mock<IBarCodeService>();
             _mockLogger = new Mock<ILogger<ProductService>>();
-            _mockRepo = new Mock<IProductoRepository>();
+            _mockRepo = new Mock<IProductRepository>();
             _mockImageOptimizer = new Mock<IImageOptimizerService>();
 
             _sut = new ProductService(
@@ -71,7 +71,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.Products
                     It.IsAny<BarcodeType>(), It.IsAny<string>(), It.IsAny<bool>()))
                 .Returns(Task.FromResult(new BarcodeResultDto { Code = "123", ImagePath = "/img/bar.png" }));
 
-            // El repositorio dice que YA existe un producto con ese nombre
+            // El repositorio dice que YA existe un product con ese nombre
             _mockRepo.Setup(r => r.ExisteNombreProductoAsync("ProductoExistente"))
                 .Returns(Task.FromResult(true));
 
@@ -80,7 +80,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.Products
 
             // Assert
             Assert.False(resultado.Success);
-            Assert.Contains("Ya hay un producto con ese nombre", resultado.Message);
+            Assert.Contains("Ya hay un product con ese nombre", resultado.Message);
 
             // Verificamos que NUNCA intentó guardar en BD
             _mockRepo.Verify(r => r.AgregarProductoAsync(It.IsAny<Producto>()), Times.Never);
@@ -134,7 +134,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.Products
                 Precio = 50,
                 ArchivoImagenBytes = new byte[] { 1, 2, 3 }, // ← SÍ tiene imagen
                 ArchivoImagenNombre = "foto.jpg",
-                Descripcion="producto con foto"
+                Descripcion="product con foto"
             };
 
             _mockBarcode.Setup(b => b.GenerateUniqueBarCodeAsync(

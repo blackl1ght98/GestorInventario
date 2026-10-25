@@ -15,6 +15,8 @@ namespace GestorInventario.Application.Interfaces.Infrastructure.Repositories
         Task<UserSubscription> ObtenerSubscricionUsuarioAsync(int userId, string subscriptionId);
         Task<List<UserSubscription>> ObtenerSusbcripcionesUsuario(string planId);
         IQueryable<PlanDetail> ObtenerPlanes();
+
+        Task<Rembolso> ObtenRembolsoByIdAsync(int rembolsoId);
         //Operaciones
         Task<OperationResult<PlanDetail>> AgregarPlanAsync(PlanDetail plan);
         Task<OperationResult<Rembolso>> AgregarRembolsoAsync(Rembolso rembolso);

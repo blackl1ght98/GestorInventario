@@ -1,16 +1,11 @@
 ﻿using GestorInventario.Application.DTOS.Paypal;
 using GestorInventario.Application.DTOS.Rembolso;
 using GestorInventario.Application.Interfaces.Application.Services.BackgroundServices;
-using GestorInventario.Application.Interfaces.Application.Services.Payment;
-using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Order;
-using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Refunds;
 using GestorInventario.Application.Interfaces.Application.Services.Refunds;
 using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
 using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;
 using GestorInventario.Application.Interfaces.MetodosPaginacion;
 using GestorInventario.Application.Interfaces.Notifications.SendNotification.Email;
-using GestorInventario.Application.Interfaces.Web;
-using GestorInventario.Application.Services.Common;
 using GestorInventario.Domain.Common;
 using GestorInventario.Extensions;
 using GestorInventario.Shared.Utilities;
@@ -25,7 +20,7 @@ namespace GestorInventario.Controllers.RembolsoController
     public class RembolsoController : Controller
     {
         private readonly IPolicyExecutor _policyExecutor;
-        private readonly IRembolsoRepository _rembolsoRepository;
+        private readonly IRefundRepository _refundRepository;
         private readonly ILogger<RembolsoController> _logger;
         private readonly IPaginationService _paginationService;
         private readonly IRefundService _refundService;
@@ -35,7 +30,7 @@ namespace GestorInventario.Controllers.RembolsoController
 
         public RembolsoController(
             IPolicyExecutor policyExecutor,
-            IRembolsoRepository rembolsoRepository,
+            IRefundRepository refundRepository,
             ILogger<RembolsoController> logger,
             IPaginationService paginationService,
             IRefundService refundService,
@@ -43,7 +38,7 @@ namespace GestorInventario.Controllers.RembolsoController
            )
         {
             _policyExecutor = policyExecutor;
-            _rembolsoRepository = rembolsoRepository;
+            _refundRepository = refundRepository;
             _logger = logger;
             _paginationService = paginationService;
             _refundService = refundService;
@@ -56,7 +51,7 @@ namespace GestorInventario.Controllers.RembolsoController
         {
             try
             {
-                var queryable = await _policyExecutor.ExecutePolicyAsync(() => _rembolsoRepository.ObtenerRembolsos());
+                var queryable = await _policyExecutor.ExecutePolicyAsync(() => _refundRepository.ObtenerRembolsos());
                 if (!string.IsNullOrEmpty(buscar))
                 {
                     queryable = queryable.Where(s => s.NumeroPedido.Contains(buscar));
@@ -88,7 +83,7 @@ namespace GestorInventario.Controllers.RembolsoController
         [Authorize(Policy = "EsAdministrador")]
         public async Task<IActionResult> EliminarRembolso(int id)
         {
-            var success = await _policyExecutor.ExecutePolicyAsync(() => _rembolsoRepository.EliminarRembolso(id));
+            var success = await _policyExecutor.ExecutePolicyAsync(() => _refundRepository.EliminarRembolso(id));
 
             if (success.Success)
             {
@@ -132,7 +127,7 @@ namespace GestorInventario.Controllers.RembolsoController
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error inesperado en refund pedido {PedidoId}", request.PedidoId);
+                _logger.LogError(ex, "Error inesperado en refund order {PedidoId}", request.PedidoId);
                 return StatusCode(500, new { success = false, message = "Error procesando reembolso" });
             }
         }
@@ -175,12 +170,12 @@ namespace GestorInventario.Controllers.RembolsoController
             }
             catch (ArgumentException ex)
             {
-                _logger.LogWarning(ex, "Validación fallida en reembolso parcial pedido {PedidoId}", request.DetalleId);
+                _logger.LogWarning(ex, "Validación fallida en reembolso parcial order {PedidoId}", request.DetalleId);
                 return Json(new { success = false, message = ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error inesperado en reembolso parcial pedido {PedidoId}", request.DetalleId);
+                _logger.LogError(ex, "Error inesperado en reembolso parcial order {PedidoId}", request.DetalleId);
                 return Json(new
                 {
                     success = false, message = "No se pudo realizar el reembolso. Intenta de nuevo o contacta soporte."

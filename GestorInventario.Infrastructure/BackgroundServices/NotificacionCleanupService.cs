@@ -1,10 +1,11 @@
 ﻿using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace GestorInventario.Infrastructure.BackgroundServices
 {
-    public class NotificacionCleanupService : Microsoft.Extensions.Hosting.BackgroundService
+    public class NotificacionCleanupService : BackgroundService
     {
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<NotificacionCleanupService> _logger;

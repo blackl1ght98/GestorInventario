@@ -229,19 +229,15 @@ namespace GestorInventario.Controllers.AuthenticationController
         public async Task<IActionResult> RestorePassword(int UserId, string Token)
         {
             var modelo = await _authService.PrepareRestorePassModel(UserId, Token);
-            if (!modelo.Success || modelo.Data is null)
-            {
-                _logger.LogCritical("La URL a intentado ser manipulada por el usuario ", UserId);
-                return RedirectToAction("ResetPasswordOlvidada");
-            }
+        
 
             // Convertimos el DTO a ViewModel
             var viewModel = new RestorePasswordViewModel
             {
                 UserId = modelo.Data.UserId,
                 Token = modelo.Data.Token,
-                TemporaryPassword = string.Empty,
                 Password = string.Empty,
+                TemporaryPassword = string.Empty,
             };
             return View(viewModel);
         }
@@ -250,20 +246,9 @@ namespace GestorInventario.Controllers.AuthenticationController
         public async Task<IActionResult> RestorePasswordUser(RestorePasswordViewModel model)
         {
             if (!ModelState.IsValid)
-            {
                 return View("RestorePassword", model);
-            }
 
-            var result = await _authService.PrepareRestorePassModel(model.UserId, model.Token);
-
-            if (!result.Success)
-            {
-                _logger.LogCritical("La URL fue manipulada por el usuario: ", model.UserId);
-                return RedirectToAction(nameof(Login));
-            }
-
-            // Preparar DTO para el cambio (con la nueva contraseña)
-            var cambio = new RestoresPasswordDto
+            var cambio = new SetNewPasswordDto
             {
                 UserId = model.UserId,
                 Token = model.Token,
@@ -271,27 +256,12 @@ namespace GestorInventario.Controllers.AuthenticationController
                 Password = model.Password
             };
 
-            try
-            {
-                var setResult = await _authService.SetNewPasswordAsync(cambio);
+            var setResult = await _authService.SetNewPasswordAsync(cambio);
+            if (setResult.Success)
+                return RedirectToAction(nameof(Login));
 
-                if (setResult.Success)
-                {
-                    _logger.LogInformation("Contraseña restablecida con exito para el usuario: ", cambio.UserId);
-                    return RedirectToAction("Login", "Auth");
-                }
-                else
-                {
-                    _logger.LogCritical(setResult.Message);
-                    return RedirectToAction(nameof(Logout));
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al recuperar la contraseña");
-                TempData["ConnectionError"] = "El servidor tardó mucho en responder, inténtelo de nuevo más tarde";
-                return RedirectToAction("Error", "Home");
-            }
+            TempData["ErrorMessage"] = setResult.Message;
+            return View("RestorePassword", model); 
         }
         [HttpGet]
         public IActionResult ResetPasswordOlvidada()

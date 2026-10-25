@@ -25,7 +25,7 @@ namespace GestorInventario.Infrastructure.Paypal.Subscriptions
             _paypal = paypal;
         }
 
-        #region creacion de un producto y plan de suscripcion
+        #region creacion de un product y plan de suscripcion
 
         public async Task<OperationResult<string>> CreateProductAsync(string productName, string productDescription,
             string productType, string productCategory)
@@ -41,7 +41,7 @@ namespace GestorInventario.Infrastructure.Paypal.Subscriptions
                     {
                         var errorBody = await error.Content.ReadAsStringAsync();
                         throw new InvalidOperationException(
-                            $"Error al crear el producto {error.StatusCode} - {errorBody}");
+                            $"Error al crear el product {error.StatusCode} - {errorBody}");
                     });
                 var productResponse = JsonConvert.DeserializeObject<CreateProductResponse>(responseBody);
 
@@ -231,7 +231,7 @@ namespace GestorInventario.Infrastructure.Paypal.Subscriptions
 
         #endregion
 
-        #region Obtener producto asociado a un plan
+        #region Obtener product asociado a un plan
 
         public async Task<OperationResult<ProductsPageDto>> GetProductsAsync(int page = 1, int pageSize = 10)
         {
@@ -384,7 +384,7 @@ namespace GestorInventario.Infrastructure.Paypal.Subscriptions
 
         #endregion
 
-        #region Editar producto vinculado a un plan
+        #region Editar product vinculado a un plan
 
         public async Task<OperationResult<string>> EditarProducto(string id, string name, string description)
         {
@@ -397,7 +397,7 @@ namespace GestorInventario.Infrastructure.Paypal.Subscriptions
                     {
                         var errorBody = await err.Content.ReadAsStringAsync();
                         throw new InvalidOperationException(
-                            $"Error al obtener la informacion para editar el producto: {err.StatusCode} - {errorBody}");
+                            $"Error al obtener la informacion para editar el product: {err.StatusCode} - {errorBody}");
                     });
 
                 // Crear la solicitud PATCH usando DTOs
@@ -410,14 +410,14 @@ namespace GestorInventario.Infrastructure.Paypal.Subscriptions
                     {
                         var errorBody = await err.Content.ReadAsStringAsync();
                         throw new InvalidOperationException(
-                            $"Error al  editar el producto: {err.StatusCode} - {errorBody}");
+                            $"Error al  editar el product: {err.StatusCode} - {errorBody}");
                     });
                 return OperationResult<string>.Ok("Producto actualizado con éxito");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al actualizar el producto con ID {ProductId}", id);
-                throw new Exception("Ocurrio un error al actualizar el producto");
+                _logger.LogError(ex, "Error al actualizar el product con ID {ProductId}", id);
+                throw new Exception("Ocurrio un error al actualizar el product");
             }
         }
 

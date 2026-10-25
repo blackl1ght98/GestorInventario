@@ -13,20 +13,20 @@ namespace GestorInventario.Application.Services.User
 {
     public class UserService : IUserService
     {
-        private readonly IUserRepository _usuarioRepository;
+        private readonly IRoleRepository _roleRepository;
         private readonly IHashService _hashService;
         private readonly IEmailService _emailService;
         private readonly ILogger<UserService> _logger;
         private readonly IAdminRepository _adminRepository;
 
         public UserService(
-            IUserRepository usuarioRepository,
+            IRoleRepository roleRepository,
             IHashService hashService,
             IEmailService emailService,
             IAdminRepository admin,
             ILogger<UserService> logger)
         {
-            _usuarioRepository = usuarioRepository;
+            _roleRepository = roleRepository;
             _hashService = hashService;
             _emailService = emailService;
             _logger = logger;
@@ -36,17 +36,17 @@ namespace GestorInventario.Application.Services.User
         public async Task<OperationResult<string>> CrearUsuarioAsync(RegisterUserDto model,
             string? rolSolicitado = null)
         {
-            if (await _usuarioRepository.ExisteEmailAsync(model.Email))
+            if (await _adminRepository.ExisteEmailAsync(model.Email))
                 return OperationResult<string>.Fail("Ya existe un usuario con este correo electrónico.");
 
-            var esPrimerUsuario = !await _usuarioRepository.AnyAsync();
+            var esPrimerUsuario = !await _adminRepository.AnyAsync();
 
             // Bootstrap siempre gana: el primer usuario del sistema es admin, sin importar lo que manden
             var nombreRol = esPrimerUsuario
                 ? Roles.Administrador
                 : (rolSolicitado ?? Roles.DefaultRegistro);
 
-            var rol = await _usuarioRepository.GetRolByNameAsync(nombreRol)
+            var rol = await _roleRepository.GetRolByNameAsync(nombreRol)
                       ?? throw new InvalidOperationException(
                           $"Rol '{nombreRol}' no existe. ¿Se ejecutó el seed?");
 
@@ -58,7 +58,7 @@ namespace GestorInventario.Application.Services.User
             usuarioEf.FechaRegistro = DateTime.UtcNow;
             usuarioEf.ConfirmacionEmail = esPrimerUsuario;
 
-            var resultadoGuardado = await _usuarioRepository.AgregarUsuarioAsync(usuarioEf);
+            var resultadoGuardado = await _adminRepository.AgregarUsuarioAsync(usuarioEf);
             if (!resultadoGuardado.Success)
                 return OperationResult<string>.Fail(resultadoGuardado.Message);
 
@@ -76,7 +76,7 @@ namespace GestorInventario.Application.Services.User
 
         public async Task<OperationResult<string>> EditarUsuarioAsync(EditUserDto userVm)
         {
-            var resultado = await _usuarioRepository.ObtenerUsuarioPorId(userVm.Id);
+            var resultado = await _adminRepository.ObtenerUsuarioPorId(userVm.Id);
             if (resultado is null)
                 return OperationResult<string>.Fail();
 
@@ -91,7 +91,7 @@ namespace GestorInventario.Application.Services.User
                 resultado.ConfirmacionEmail = false;
             }
 
-            var resultadoEdicion = await _usuarioRepository.ActualizarUsuarioAsync(resultado);
+            var resultadoEdicion = await _adminRepository.ActualizarUsuarioAsync(resultado);
             if (!resultadoEdicion.Success)
                 return OperationResult<string>.Fail(resultadoEdicion.Message);
 
@@ -109,26 +109,26 @@ namespace GestorInventario.Application.Services.User
             return OperationResult<string>.Ok("Edicion realizada con exito");
         }
 
-        public async Task<OperationResult<string>> EliminarUsuarioAsync(int id)
+        public async Task<OperationResult<Usuario>> EliminarUsuarioAsync(int id)
         {
-            var usuario = await _usuarioRepository.ObtenerUsuarioConProveedoresYPedidosAsync(id);
+            var usuario = await _adminRepository.ObtenerUsuarioConProveedoresYPedidosAsync(id);
 
             if (usuario is null)
-                return OperationResult<string>.Fail();
+                return OperationResult<Usuario>.Fail();
 
             if (usuario.Pedidos.Any())
-                return OperationResult<string>.Fail("El usuario no se puede eliminar porque tiene pedidos asociados");
+                return OperationResult<Usuario>.Fail("El usuario no se puede eliminar porque tiene pedidos asociados");
 
             if (usuario.Proveedores.Any())
-                return OperationResult<string>.Fail(
+                return OperationResult<Usuario>.Fail(
                     "El usuario no se puede eliminar porque tiene proveedores asociados");
 
-            return await _adminRepository.EliminarUsuario(id);
+            return await _adminRepository.EliminarUsuarioAsync(usuario);
         }
 
         public async Task<OperationResult<string>> ValidarRegistro(ConfirmRegistrationDto confirmar)
         {
-            var usuarioDb = await _usuarioRepository.ObtenerUsuarioPorId(confirmar.UserId);
+            var usuarioDb = await _adminRepository.ObtenerUsuarioPorId(confirmar.UserId);
 
             if (usuarioDb is null)
             {
@@ -149,9 +149,9 @@ namespace GestorInventario.Application.Services.User
                 return OperationResult<string>.Fail("Ocurrio un error al confirmar el usuario");
             }
 
-            await _usuarioRepository.ConfirmEmail(confirmar.UserId);
+            await ConfirmEmail(confirmar.UserId);
             usuarioDb.EmailVerificationToken = null;
-            await _usuarioRepository.ActualizarUsuarioAsync(usuarioDb);
+            await _adminRepository.ActualizarUsuarioAsync(usuarioDb);
             return OperationResult<string>.Ok("Validacion exitosa");
         }
 
@@ -183,13 +183,33 @@ namespace GestorInventario.Application.Services.User
         // NO toca Password, Salt, IdRol, ConfirmacionEmail, FechaRegistro ni Id.
         private static void UpdateUsuarioFromDto(Usuario usuario, EditUserDto dto)
         {
+            int.TryParse(dto.CodigoPostal, out int cp);
             usuario.Email = dto.Email;
             usuario.NombreCompleto = dto.NombreCompleto;
             usuario.FechaNacimiento = dto.FechaNacimiento ?? default;
             usuario.Telefono = dto.Telefono ?? string.Empty;
             usuario.Direccion = dto.Direccion;
             usuario.Ciudad = dto.Ciudad;
-            usuario.CodigoPostal = int.Parse(dto.CodigoPostal);
+            usuario.CodigoPostal = cp;
+        }
+        public async Task<OperationResult<string>> CambiarEstadoUsuarioAsync(int id, bool activar)
+        {
+            var usuario = await _adminRepository.ObtenerUsuarioPorId(id);
+            if (usuario == null) return OperationResult<string>.Fail();
+
+            usuario.BajaUsuario = !activar; // Lógica de negocio
+
+            return await _adminRepository.ActualizarUsuarioAsync(usuario);
+        }
+    
+        private async Task ConfirmEmail(int userId)
+        {
+            var usuarioUpdate = await _adminRepository.ObtenerUsuarioPorId(userId);
+            if (usuarioUpdate != null)
+            {
+                usuarioUpdate.ConfirmacionEmail = true;
+                await _adminRepository.ActualizarUsuarioAsync(usuarioUpdate);
+            }
         }
     }
 }

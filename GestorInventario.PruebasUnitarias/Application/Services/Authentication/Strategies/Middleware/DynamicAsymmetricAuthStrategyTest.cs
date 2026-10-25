@@ -19,7 +19,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.Authentication.
 public class DynamicAsymmetricAuthStrategyTest
 {
     private readonly Mock<ITokenGenerator> _tokenGeneratorMock = new();
-    private readonly Mock<IUserRepository> _userRepositoryMock = new();
+    private readonly Mock<IRoleRepository> _userRepositoryMock = new();
     private readonly Mock<IHybridCacheService> _cacheMock = new();
     private readonly Mock<IRefreshTokenGenerator> _refreshTokenGeneratorMock = new();
     private readonly Mock<IJwtTokenSettings> _claimsBuilderMock = new();

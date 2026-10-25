@@ -13,26 +13,26 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.ShopCart
 {
     public class ShopCartTest
     {
-        private readonly Mock<ICarritoRepository> _mockCarrito;
+        private readonly Mock<IShopCartRepository> _mockCarrito;
         private readonly Mock<ICurrentUserAccessor> _mockUserAccessor;
         private readonly Mock<ILogger<ShopCartService>> _mockLogger;
         private readonly Mock<IOrderService> _mockOrder;
-        private readonly Mock<IPedidoRepository> _mockPedido;
-        private readonly Mock<IProductoRepository> _mockProducto;
+        private readonly Mock<IOrderRepository> _mockPedido;
+        private readonly Mock<IProductRepository> _mockProducto;
         private readonly ShopCartService _sut;
 
         public ShopCartTest() {
         
-        _mockCarrito = new Mock<ICarritoRepository>();
+        _mockCarrito = new Mock<IShopCartRepository>();
         _mockUserAccessor = new Mock<ICurrentUserAccessor>();
         _mockLogger = new Mock<ILogger<ShopCartService>>();
-        _mockPedido = new Mock<IPedidoRepository>();
-        _mockProducto = new Mock<IProductoRepository>();
+        _mockPedido = new Mock<IOrderRepository>();
+        _mockProducto = new Mock<IProductRepository>();
         _mockOrder= new Mock<IOrderService>();
             _sut = new ShopCartService(_mockCarrito.Object, _mockOrder.Object, _mockProducto.Object, _mockUserAccessor.Object, _mockLogger.Object, _mockPedido.Object);
         }
         // ============================================================
-        // Test 1: Elimina el carrito exitosamente.
+        // Test 1: Elimina el shopCart exitosamente.
      
         // ============================================================
         [Fact]
@@ -70,7 +70,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.ShopCart
         // ============================================================
         // Test 2: Usuario NO autenticado (ID <= 0).
         // El método entra, ve que usuarioId = 0, loguea warning y sale.
-        // NUNCA debe tocar el repositorio de carrito.
+        // NUNCA debe tocar el repositorio de shopCart.
         // ============================================================
         [Fact]
         public async Task EliminarCarritoActivoAsync_UsuarioNoAutenticado_LogueaWarningYNoTocaRepo()
@@ -98,7 +98,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.ShopCart
         }
 
         // ============================================================
-        // Test 3: Usuario autenticado, pero NO tiene carrito activo.
+        // Test 3: Usuario autenticado, pero NO tiene shopCart activo.
         // ObtenerCarritoUsuario devuelve null. Loguea debug y sale.
         // ============================================================
         [Fact]
@@ -110,7 +110,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.ShopCart
             // Mentira 1: el usuario está autenticado
             _mockUserAccessor.Setup(u => u.GetCurrentUserId()).Returns(userId);
 
-            // Mentira 2: el repositorio dice "no tengo carrito para este usuario"
+            // Mentira 2: el repositorio dice "no tengo shopCart para este usuario"
             _mockCarrito.Setup(c => c.ObtenerCarritoUsuario(userId))
                 .Returns(Task.FromResult<Pedido>(null!));
 
@@ -118,25 +118,25 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.ShopCart
             await _sut.EliminarCarritoActivoAsync();
 
             // Assert
-            // NUNCA debe preguntar por items (si no hay carrito, no hay items)
+            // NUNCA debe preguntar por items (si no hay shopCart, no hay items)
             _mockCarrito.Verify(c => c.ObtenerItemsDelCarritoUsuario(It.IsAny<int>()), Times.Never);
 
             // NUNCA debe intentar eliminar
             _mockOrder.Verify(o => o.EliminarPedido(It.IsAny<int>()), Times.Never);
 
-            // Verificamos que se logueó que no se encontró carrito
+            // Verificamos que se logueó que no se encontró shopCart
             _mockLogger.Verify(
                 x => x.Log(
                     LogLevel.Debug,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("No se encontró carrito activo")),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("No se encontró shopCart activo")),
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception, string>>()),
                 Times.Once);
         }
 
         // ============================================================
-        // Test 4: Usuario autenticado, tiene carrito, pero el carrito TIENE items.
+        // Test 4: Usuario autenticado, tiene shopCart, pero el shopCart TIENE items.
         // No se elimina. Loguea info y sale.
         // ============================================================
         [Fact]
@@ -149,7 +149,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.ShopCart
             // Mentira 1: usuario autenticado
             _mockUserAccessor.Setup(u => u.GetCurrentUserId()).Returns(userId);
 
-            // Mentira 2: existe un carrito
+            // Mentira 2: existe un shopCart
             var carrito = new Pedido
             {
                 Id = carritoId,
@@ -159,7 +159,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.ShopCart
             _mockCarrito.Setup(c => c.ObtenerCarritoUsuario(userId))
                 .Returns(Task.FromResult(carrito));
 
-            // Mentira 3: el carrito TIENE items (lista NO vacía)
+            // Mentira 3: el shopCart TIENE items (lista NO vacía)
             _mockCarrito.Setup(c => c.ObtenerItemsDelCarritoUsuario(carritoId))
                 .Returns(Task.FromResult(new List<DetallePedido>
                 {
@@ -217,8 +217,8 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.ShopCart
                 Times.Once);
         }
         // -----------------------------------------------------------
-        // Test 1: El usuario YA tiene carrito. 
-        // Debe devolver el carrito existente SIN crear uno nuevo.
+        // Test 1: El usuario YA tiene shopCart. 
+        // Debe devolver el shopCart existente SIN crear uno nuevo.
         // -----------------------------------------------------------
         [Fact]
         public async Task CrearCarritoUsuario_CarritoExistente_DevuelveOkSinCrearNuevo()
@@ -245,12 +245,12 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.ShopCart
             Assert.True(resultado.Success);
             Assert.Equal(carritoExistente, resultado.Data);
 
-            // Verificamos que NO se intentó crear un carrito nuevo
+            // Verificamos que NO se intentó crear un shopCart nuevo
             _mockPedido.Verify(p => p.AgregarPedidoAsync(It.IsAny<Pedido>()), Times.Never);
         }
 
         // -----------------------------------------------------------
-        // Test 2: El usuario NO tiene carrito.
+        // Test 2: El usuario NO tiene shopCart.
         // Debe crear uno nuevo, guardarlo, y devolverlo.
         // -----------------------------------------------------------
         [Fact]
@@ -259,7 +259,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.ShopCart
             // Arrange
             int userId = 2;
 
-            // El repositorio devuelve NULL (no tiene carrito)
+            // El repositorio devuelve NULL (no tiene shopCart)
             _mockCarrito.Setup(r => r.ObtenerCarritoUsuario(userId))
                 .Returns(Task.FromResult<Pedido>(null!));
 
@@ -278,7 +278,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.ShopCart
             Assert.Equal("Carrito", resultado.Data.EstadoPedido);
             Assert.Equal("EUR", resultado.Data.Currency);
 
-            // Verificamos que SÍ se llamó a guardar el nuevo pedido
+            // Verificamos que SÍ se llamó a guardar el nuevo order
             _mockPedido.Verify(p => p.AgregarPedidoAsync(It.Is<Pedido>(
                 ped => ped.IdUsuario == userId && ped.EsCarrito)), Times.Once);
         }
@@ -302,7 +302,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.ShopCart
 
             // Assert
             Assert.False(resultado.Success);
-            Assert.Equal("Error al crear el carrito", resultado.Message);
+            Assert.Equal("Error al crear el shopCart", resultado.Message);
 
             // Verificamos que se logueó el error
             _mockLogger.Verify(
@@ -496,14 +496,14 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.ShopCart
             var carrito = new Pedido { Id = 10, IdUsuario = userId, EsCarrito = true };
             var producto = new Producto { Id = productoId, Cantidad = 10 };
 
-            // CrearCarritoUsuario necesita que el mock devuelva un carrito existente
+            // CrearCarritoUsuario necesita que el mock devuelva un shopCart existente
             _mockCarrito.Setup(c => c.ObtenerCarritoUsuario(userId))
                 .Returns(Task.FromResult(carrito));
 
             _mockProducto.Setup(p => p.ObtenerProductoPorIdAsync(productoId))
                 .Returns(Task.FromResult(producto));
 
-            // El producto NO está aún en el carrito (devuelve null)
+            // El product NO está aún en el shopCart (devuelve null)
             _mockProducto.Setup(p => p.ObtenerDetallesCarrito(carrito.Id, productoId))
                 .Returns(Task.FromResult<DetallePedido>(null!));
 
@@ -547,7 +547,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.ShopCart
                 .Returns(Task.FromResult(carrito));
             _mockProducto.Setup(p => p.ObtenerProductoPorIdAsync(productoId))
                 .Returns(Task.FromResult(producto));
-            // El producto YA está en el carrito
+            // El product YA está en el shopCart
             _mockProducto.Setup(p => p.ObtenerDetallesCarrito(carrito.Id, productoId))
                 .Returns(Task.FromResult(detalleExistente));
             _mockPedido.Setup(p => p.ActualizarDetallePedidoAsync(detalleExistente))
@@ -613,7 +613,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.ShopCart
 
             // Assert
             Assert.True(resultado.Success);
-            Assert.Equal("Eliminacion exitosa del producto", resultado.Message);
+            Assert.Equal("Eliminacion exitosa del product", resultado.Message);
             Assert.Equal(13, producto.Cantidad); // 10 + 3 (devuelve el stock)
             _mockPedido.Verify(p => p.EliminarDetallePedidoAsync(detalle), Times.Once);
         }

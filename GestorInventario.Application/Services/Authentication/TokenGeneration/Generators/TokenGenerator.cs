@@ -9,18 +9,18 @@ namespace GestorInventario.Application.Services.Authentication.TokenGeneration.G
 {
     public class TokenGenerator : ITokenGenerator
     {
-        private readonly IUserRepository _userRepository;
+        private readonly IAdminRepository _adminRepository;
         private readonly ITokenStrategyResolver _resolver;
 
-        public TokenGenerator(IUserRepository userRepository, ITokenStrategyResolver resolver)
+        public TokenGenerator(IAdminRepository adminRepository, ITokenStrategyResolver resolver)
         {
-            _userRepository = userRepository;
+          _adminRepository = adminRepository;
             _resolver = resolver;
         }
 
         public async Task<LoginResponseDto> GenerateTokenAsync(Usuario credencialesUsuario)
         {
-            var usuarioDB = await _userRepository.ObtenerUsuarioPorId(credencialesUsuario.Id);
+            var usuarioDB = await _adminRepository.ObtenerUsuarioPorId(credencialesUsuario.Id);
 
             if (usuarioDB is null)
                 throw new ArgumentException("El usuario no existe en la base de datos.");

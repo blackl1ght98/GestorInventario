@@ -12,23 +12,23 @@ namespace GestorInventario.Application.Services.ShopCart
 {
     public class ShopCartService : IShopCartService
     {
-        private readonly ICarritoRepository _carritoRepository;
+        private readonly IShopCartRepository _shopCartRepository;
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly ILogger<ShopCartService> _logger;
         private readonly IOrderService _pedidoService;
-        private readonly IPedidoRepository _pedidoRepository;
-        private readonly IProductoRepository _productoRepository;
+        private readonly IOrderRepository _orderRepository;
+        private readonly IProductRepository _productRepository;
 
-        public ShopCartService(ICarritoRepository carritoRepository, IOrderService pedido, IProductoRepository producto,
+        public ShopCartService(IShopCartRepository shopCartRepository, IOrderService pedido, IProductRepository product,
             ICurrentUserAccessor currentUserAccessor, ILogger<ShopCartService> logger,
-            IPedidoRepository pedidoRepository)
+            IOrderRepository orderRepository)
         {
-            _carritoRepository = carritoRepository;
+            _shopCartRepository = shopCartRepository;
             _currentUserAccessor = currentUserAccessor;
             _logger = logger;
             _pedidoService = pedido;
-            _pedidoRepository = pedidoRepository;
-            _productoRepository = producto;
+            _orderRepository = orderRepository;
+            _productRepository = product;
         }
 
         public async Task EliminarCarritoActivoAsync()
@@ -37,23 +37,23 @@ namespace GestorInventario.Application.Services.ShopCart
 
             if (usuarioId <= 0)
             {
-                _logger.LogWarning("Intento de eliminar carrito sin usuario autenticado");
+                _logger.LogWarning("Intento de eliminar shopCart sin usuario autenticado");
                 return;
             }
 
             try
             {
-                // 1. Obtener el carrito activo del usuario (debería ser solo uno)
-                var carritoActivo = await _carritoRepository.ObtenerCarritoUsuario(usuarioId);
+                // 1. Obtener el shopCart activo del usuario (debería ser solo uno)
+                var carritoActivo = await _shopCartRepository.ObtenerCarritoUsuario(usuarioId);
 
                 if (carritoActivo == null)
                 {
-                    _logger.LogDebug("No se encontró carrito activo para el usuario {UsuarioId}", usuarioId);
+                    _logger.LogDebug("No se encontró shopCart activo para el usuario {UsuarioId}", usuarioId);
                     return;
                 }
 
                 // 2. Verificar si tiene items
-                var items = await _carritoRepository.ObtenerItemsDelCarritoUsuario(carritoActivo.Id);
+                var items = await _shopCartRepository.ObtenerItemsDelCarritoUsuario(carritoActivo.Id);
 
                 if (items.Any())
                 {
@@ -69,16 +69,16 @@ namespace GestorInventario.Application.Services.ShopCart
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al intentar eliminar el carrito activo del usuario {UsuarioId}", usuarioId);
+                _logger.LogError(ex, "Error al intentar eliminar el shopCart activo del usuario {UsuarioId}", usuarioId);
             }
         }
 
-        // Método para crear un carrito si no existe
+        // Método para crear un shopCart si no existe
         public async Task<OperationResult<Pedido>> CrearCarritoUsuario(int userId)
         {
             try
             {
-                var carrito = await _carritoRepository.ObtenerCarritoUsuario(userId);
+                var carrito = await _shopCartRepository.ObtenerCarritoUsuario(userId);
 
                 if (carrito == null)
                 {
@@ -91,7 +91,7 @@ namespace GestorInventario.Application.Services.ShopCart
                         EsCarrito = true,
                         Currency = "EUR"
                     };
-                    await _pedidoRepository.AgregarPedidoAsync(carrito);
+                    await _orderRepository.AgregarPedidoAsync(carrito);
                 }
 
                 return OperationResult<Pedido>.Ok(carrito);
@@ -99,13 +99,13 @@ namespace GestorInventario.Application.Services.ShopCart
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Ocurrio un error inesperado");
-                return OperationResult<Pedido>.Fail("Error al crear el carrito");
+                return OperationResult<Pedido>.Fail("Error al crear el shopCart");
             }
         }
 
         public async Task<OperationResult<string>> Incremento(int id)
         {
-            var detalle = await _carritoRepository.ItemsDelCarrito(id);
+            var detalle = await _shopCartRepository.ItemsDelCarrito(id);
 
             if (detalle == null)
             {
@@ -113,31 +113,31 @@ namespace GestorInventario.Application.Services.ShopCart
                 return OperationResult<string>.Fail();
             }
 
-            detalle.Cantidad++;
-            await _pedidoRepository.ActualizarDetallePedidoAsync(detalle);
-
-            var producto = await _productoRepository.ObtenerProductoPorIdAsync(detalle.ProductoId);
+            var producto = await _productRepository.ObtenerProductoPorIdAsync(detalle.ProductoId);
             if (producto == null || producto.Cantidad <= 0)
             {
-                return OperationResult<string>.Fail("Inventario insuficiente para el producto elegido");
+                return OperationResult<string>.Fail("Inventario insuficiente para el product elegido");
             }
 
+            // 1. Primero actualizamos el stock
             producto.Cantidad--;
-            await _productoRepository.ActualizarProductoAsync(producto);
+            await _productRepository.ActualizarProductoAsync(producto);
+
+            // 2. Luego incrementamos la cantidad en el shopCart
+            detalle.Cantidad++;
+            await _orderRepository.ActualizarDetallePedidoAsync(detalle);
 
             return OperationResult<string>.Ok("Incremento realizado con exito");
         }
 
         public async Task<OperationResult<string>> AgregarProductoAlCarrito(int idProducto, int cantidad, int usuarioId)
         {
-            // Validar cantidad
             if (cantidad <= 0)
             {
                 return OperationResult<string>.Fail("La cantidad debe ser mayor a cero.");
             }
 
-            // Validar existencia del producto y stock
-            var producto = await _productoRepository.ObtenerProductoPorIdAsync(idProducto);
+            var producto = await _productRepository.ObtenerProductoPorIdAsync(idProducto);
             if (producto == null)
             {
                 return OperationResult<string>.Fail();
@@ -148,40 +148,41 @@ namespace GestorInventario.Application.Services.ShopCart
                 return OperationResult<string>.Fail("No hay suficientes productos en stock.");
             }
 
-            // Obtener o crear el carrito
             var carritoResult = await CrearCarritoUsuario(usuarioId);
-            if (carritoResult.IsSuccess)
+            if (!carritoResult.IsSuccess)
             {
-                var carrito = carritoResult.Unwrap();
-                var detalleExistente = await _productoRepository.ObtenerDetallesCarrito(carrito.Id, idProducto);
-                if (detalleExistente != null)
-                {
-                    // Sumar la cantidad al ítem existente
-                    detalleExistente.Cantidad += cantidad;
-                    await _pedidoRepository.ActualizarDetallePedidoAsync(detalleExistente);
-                }
-                else
-                {
-                    // Crear un nuevo ítem en el carrito
-                    var detalle = new DetallePedido
-                    {
-                        PedidoId = carrito.Id,
-                        ProductoId = idProducto,
-                        Cantidad = cantidad
-                    };
-                    await _pedidoRepository.AgregarDetallePedidoAsync(detalle);
-                }
+                return OperationResult<string>.Fail("Error al gestionar el shopCart");
             }
 
-            // Actualizar el inventario del producto
+            var carrito = carritoResult.Unwrap();
+            var detalleExistente = await _productRepository.ObtenerDetallesCarrito(carrito.Id, idProducto);
+
+            if (detalleExistente != null)
+            {
+                detalleExistente.Cantidad += cantidad;
+                await _orderRepository.ActualizarDetallePedidoAsync(detalleExistente);
+            }
+            else
+            {
+                var detalle = new DetallePedido
+                {
+                    PedidoId = carrito.Id,
+                    ProductoId = idProducto,
+                    Cantidad = cantidad
+                };
+                await _orderRepository.AgregarDetallePedidoAsync(detalle);
+            }
+
+            // Actualizar el inventario (Reserva de stock)
             producto.Cantidad -= cantidad;
-            await _productoRepository.ActualizarProductoAsync(producto);
+            await _productRepository.ActualizarProductoAsync(producto);
+
             return OperationResult<string>.Ok("Producto agregado con exito");
         }
 
         public async Task<OperationResult<string>> Decremento(int id)
         {
-            var detalle = await _carritoRepository.ItemsDelCarrito(id);
+            var detalle = await _shopCartRepository.ItemsDelCarrito(id);
 
             if (detalle == null)
             {
@@ -189,47 +190,48 @@ namespace GestorInventario.Application.Services.ShopCart
                 return OperationResult<string>.Fail();
             }
 
+            var producto = await _productRepository.ObtenerProductoPorIdAsync(detalle.ProductoId);
+            if (producto == null)
+            {
+                return OperationResult<string>.Fail("Error al recuperar el product para devolver stock");
+            }
+
+            // 1. Devolvemos el stock inmediatamente
+            producto.Cantidad++;
+            await _productRepository.ActualizarProductoAsync(producto);
+
+            // 2. Gestionamos la cantidad del item
             detalle.Cantidad--;
             if (detalle.Cantidad <= 0)
             {
-                await _pedidoRepository.EliminarDetallePedidoAsync(detalle);
+                await _orderRepository.EliminarDetallePedidoAsync(detalle);
             }
             else
             {
-                await _pedidoRepository.ActualizarDetallePedidoAsync(detalle);
+                await _orderRepository.ActualizarDetallePedidoAsync(detalle);
             }
 
-            var producto = await _productoRepository.ObtenerProductoPorIdAsync(detalle.ProductoId);
-            if (producto == null)
-            {
-                return OperationResult<string>.Fail();
-            }
-
-            producto.Cantidad++;
-            await _productoRepository.ActualizarProductoAsync(producto);
-
-
-            return OperationResult<string>.Ok("Incremento realizado con exito");
+            return OperationResult<string>.Ok("Decremento realizado con exito");
         }
 
         public async Task<OperationResult<string>> EliminarProductoCarrito(int id)
         {
-            var detalle = await _pedidoRepository.ObtenerDetallePorIdAsync(id);
+            var detalle = await _orderRepository.ObtenerDetallePorIdAsync(id);
             if (detalle == null)
             {
                 return OperationResult<string>.Fail();
             }
 
-            var producto = await _productoRepository.ObtenerProductoPorIdAsync(detalle.ProductoId);
+            var producto = await _productRepository.ObtenerProductoPorIdAsync(detalle.ProductoId);
             if (producto != null)
             {
                 producto.Cantidad += detalle.Cantidad;
-                await _productoRepository.ActualizarProductoAsync(producto);
+                await _productRepository.ActualizarProductoAsync(producto);
             }
 
-            await _pedidoRepository.EliminarDetallePedidoAsync(detalle);
+            await _orderRepository.EliminarDetallePedidoAsync(detalle);
 
-            return OperationResult<string>.Ok("Eliminacion exitosa del producto");
+            return OperationResult<string>.Ok("Eliminacion exitosa del product");
         }
     }
 }

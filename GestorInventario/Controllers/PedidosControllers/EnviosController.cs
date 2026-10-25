@@ -11,13 +11,13 @@ namespace GestorInventario.Controllers.PedidosControllers
 {
     public class EnviosController : Controller
     {
-        private readonly IPedidoRepository _pedidoRepository;
+        private readonly IOrderRepository _orderRepository;
         private readonly IPaypalOrderTrackingService _paypalOrderService;
         private readonly ILogger<EnviosController> _logger;     
         private readonly IOrderService _pedidoService;
-        public EnviosController(IPedidoRepository pedidoRepository, IPaypalOrderTrackingService paypalOrderService,  ILogger<EnviosController> logger, IOrderService pedido)
+        public EnviosController(IOrderRepository orderRepository, IPaypalOrderTrackingService paypalOrderService,  ILogger<EnviosController> logger, IOrderService pedido)
         {
-            _pedidoRepository = pedidoRepository;
+            _orderRepository = orderRepository;
             _paypalOrderService = paypalOrderService;
             _logger = logger;
             _pedidoService = pedido;
@@ -30,24 +30,24 @@ namespace GestorInventario.Controllers.PedidosControllers
             try
             {
                 
-                // 1. Leer pedido de TU base de datos (con detalles y captures)
-                var pedido = await _pedidoRepository.ObtenerPedidoConCapturasAsync(envio.PedidoId);
+                // 1. Leer order de TU base de datos (con detalles y captures)
+                var pedido = await _orderRepository.ObtenerPedidoConCapturasAsync(envio.PedidoId);
                 if (pedido == null)
                 {
                     _logger.LogError("Intento de manipulacion de id: {PedidoId}", envio.PedidoId);
-                    return BadRequest(new {success=false, message="El pedido no es valido"});
+                    return BadRequest(new {success=false, message="El order no es valido"});
                 }
                 if (pedido.EstadoPedido == EstadoPedido.Cancelado.ToString())
                 {
                  
-                    return BadRequest(new {success=false, message= "El pedido ha sido cancelado no se puede establecer informacion de envio." });
+                    return BadRequest(new {success=false, message= "El order ha sido cancelado no se puede establecer informacion de envio." });
                 }
                 var capture = pedido.PayPalPaymentCaptures?.FirstOrDefault();
                 if (capture == null)
                 {
                     _logger.LogError("Pedido {PedidoId} no tiene captura de PayPal", envio.PedidoId);
                  
-                    return BadRequest(new {success=true, message= "El pedido no tiene pago asociado en PayPal" });
+                    return BadRequest(new {success=true, message= "El order no tiene pago asociado en PayPal" });
                 }
 
                 // 2. Transformar la VERDAD de la BD al formato de PayPal
@@ -80,7 +80,7 @@ namespace GestorInventario.Controllers.PedidosControllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al agregar seguimiento para pedido {PedidoId}", envio.PedidoId);
+                _logger.LogError(ex, "Error al agregar seguimiento para order {PedidoId}", envio.PedidoId);
 
                 string userMessage = "No se pudo agregar la información de envío en este momento. " +
                                      "Parece haber un problema temporal con los servidores de PayPal. " +

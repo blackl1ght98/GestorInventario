@@ -38,6 +38,12 @@ namespace GestorInventario.Infrastructure.Repositories.PaypalRepository
             var plan= await _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId);
             return plan;
         }
+
+        public async Task<Rembolso> ObtenRembolsoByIdAsync(int rembolsoId)
+        {
+            var rembolso = await _context.Rembolsos.FirstOrDefaultAsync(x=>x.Id==rembolsoId);
+            return rembolso;
+        }
         public IQueryable<PlanDetail> ObtenerPlanes()
         {
             return _context.PlanDetails

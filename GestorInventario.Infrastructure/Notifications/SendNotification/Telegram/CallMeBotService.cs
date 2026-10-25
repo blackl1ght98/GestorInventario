@@ -26,7 +26,7 @@ namespace GestorInventario.Infrastructure.Notifications.SendNotification.Telegra
             // Esto evita que espacios o caracteres especiales rompan la petición
             var encodedMessage = Uri.EscapeDataString(message);
 
-            var url = $"https://api.callmebot.com/text.php?user={_username}&text={encodedMessage}";
+            var url = $"https://api.callmebot.com/text.php?role={_username}&text={encodedMessage}";
 
             try
             {

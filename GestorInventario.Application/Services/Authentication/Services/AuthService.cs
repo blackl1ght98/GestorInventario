@@ -18,18 +18,18 @@ namespace GestorInventario.Application.Services.Authentication.Services
     {
        
         private readonly IHashService _hashService;
-        private readonly IUserRepository _userRepository;
+        private readonly IAdminRepository _adminRepository;
         private readonly ICurrentUserAccessor _currentUserAccesor;
         private readonly ILogger<AuthService> _logger;
         private readonly IEmailService _emailService;
         private readonly IHybridCacheService _cache;
         
-        public AuthService( IHashService hashService, IUserRepository userRepository, ICurrentUserAccessor currentUser, 
+        public AuthService( IHashService hashService, IAdminRepository adminRepository, ICurrentUserAccessor currentUser, 
             ILogger<AuthService> logger, IEmailService emailService, IHybridCacheService cache  )
         {
           
             _hashService = hashService;
-            _userRepository = userRepository;
+            _adminRepository = adminRepository;
             _currentUserAccesor = currentUser;
             _logger = logger;
             _emailService = emailService;
@@ -38,7 +38,7 @@ namespace GestorInventario.Application.Services.Authentication.Services
 
         public async Task<OperationResult<Usuario>> Login(string email, LoginDto model)
         {
-            var login = await _userRepository.ObtenerEmail(email);
+            var login = await _adminRepository.ObtenerEmail(email);
             if (login == null)
             {
                 return OperationResult<Usuario>.Fail("El email y/o la contraseña son incorrectos. ");
@@ -65,9 +65,10 @@ namespace GestorInventario.Application.Services.Authentication.Services
             return OperationResult<Usuario>.Ok( login);
         }
       
-        public async Task<OperationResult<string>> SetNewPasswordAsync(RestoresPasswordDto cambio)
+        public async Task<OperationResult<string>> SetNewPasswordAsync(SetNewPasswordDto cambio)
         {
-            var resultadoValidacion = await ValidarTokenAsync(cambio);
+           
+            var resultadoValidacion = await ValidarTokenAsync(cambio.UserId, cambio.Token);
             if (!resultadoValidacion.Success)
                 return OperationResult<string>.Fail(resultadoValidacion.Message);
 
@@ -93,57 +94,47 @@ namespace GestorInventario.Application.Services.Authentication.Services
             usuarioDB.FechaExpiracionContrasenaTemporal = null;
             usuarioDB.ResetTokenUsed = true;
 
-            await _userRepository.ActualizarUsuarioAsync(usuarioDB);
+            await _adminRepository.ActualizarUsuarioAsync(usuarioDB);
             return OperationResult<string>.Ok("Contraseña cambiada con exito");
         }
        
-        private async Task<OperationResult<Usuario>> ValidarTokenAsync(RestoresPasswordDto cambio)
+        private async Task<OperationResult<Usuario>> ValidarTokenAsync(int userId, string token)
         {
-            // 1) Validar formato del token ANTES de tocar la BD
-            if (string.IsNullOrWhiteSpace(cambio.Token))
+            if (string.IsNullOrWhiteSpace(token))
                 return OperationResult<Usuario>.Fail("El token no es valido");
 
-            // 2) Validar UserId
-            if (cambio.UserId <= 0)
+            if (userId <= 0)
                 return OperationResult<Usuario>.Fail("El usuario no es valido");
 
-            // 3) Recuperar usuario
-            var usuario = await _userRepository.ObtenerUsuarioPorId(cambio.UserId);
+            var usuario = await _adminRepository.ObtenerUsuarioPorId(userId);
             if (usuario == null)
                 return OperationResult<Usuario>.Fail("El usuario no existe");
 
-            // 4) Validar token 
             if (string.IsNullOrEmpty(usuario.EmailVerificationToken) ||
-
                 !CryptographicOperations.FixedTimeEquals(
                     Encoding.UTF8.GetBytes(usuario.EmailVerificationToken),
-                    Encoding.UTF8.GetBytes(cambio.Token)))
+                    Encoding.UTF8.GetBytes(token)))
             {
-                
-                    return OperationResult<Usuario>.Fail("El token no es valido");
+                return OperationResult<Usuario>.Fail("El token no es valido");
             }
-           
 
-            // 5) Validar expiración
             if (usuario.FechaExpiracionContrasenaTemporal < DateTime.UtcNow)
             {
-                // Limpiar datos sensibles al expirar
-               
                 usuario.FechaExpiracionContrasenaTemporal = null;
                 usuario.TemporaryPassword = null;
                 usuario.EmailVerificationToken = null;
-                await _userRepository.ActualizarUsuarioAsync(usuario);
-
-                return OperationResult<Usuario>.Fail("El enlace y contraseña temporal han expirado. Solicite una nueva");
+                await _adminRepository.ActualizarUsuarioAsync(usuario);
+                return OperationResult<Usuario>.Fail(
+                    "El enlace y contraseña temporal han expirado. Solicite una nueva");
             }
 
-            return OperationResult<Usuario>.Ok( usuario);
+            return OperationResult<Usuario>.Ok(usuario);
         }
         public async Task<OperationResult<string>> ChangePassword(string passwordAnterior, string passwordActual)
         {
             
                 var usuarioId = _currentUserAccesor.GetCurrentUserId();
-                var usuarioDB = await _userRepository.ObtenerUsuarioPorId(usuarioId);
+                var usuarioDB = await _adminRepository.ObtenerUsuarioPorId(usuarioId);
                 if (usuarioDB == null)
                 {
                     return OperationResult<string>.Fail("Usuario no encontrado");
@@ -156,7 +147,7 @@ namespace GestorInventario.Application.Services.Authentication.Services
                 var actualPassword = _hashService.Hash(passwordActual);
                 usuarioDB.Password = actualPassword.Hash;
                 usuarioDB.Salt = actualPassword.Salt;
-                await _userRepository.ActualizarUsuarioAsync(usuarioDB);
+                await _adminRepository.ActualizarUsuarioAsync(usuarioDB);
 
                 return OperationResult<string>.Ok("Contraseña cambiada con exito");
           
@@ -166,16 +157,16 @@ namespace GestorInventario.Application.Services.Authentication.Services
         {
             try
             {
-                var cambio = new RestoresPasswordDto
-                {
-                    UserId = userId,
-                    Token = token
-                };
-                var resultado = await ValidarTokenAsync(cambio);
+              
+                var resultado = await ValidarTokenAsync(userId, token);
                 if (!resultado.Success)
                     return OperationResult<RestoresPasswordDto>.Fail(resultado.Message);
-
-                return OperationResult<RestoresPasswordDto>.Ok( cambio);
+                var res = new RestoresPasswordDto
+                {
+                    Token = token,
+                    UserId = userId,
+                };
+                return OperationResult<RestoresPasswordDto>.Ok(res);
             }
             catch (Exception ex)
             {
@@ -189,7 +180,7 @@ namespace GestorInventario.Application.Services.Authentication.Services
             if (string.IsNullOrWhiteSpace(email) || !new EmailAddressAttribute().IsValid(email))
                 return OperationResult<string>.Fail("El correo proporcionado no es valido");
 
-            var user = await _userRepository.ObtenerEmail(email);
+            var user = await _adminRepository.ObtenerEmail(email);
 
             if (user == null)
                 return OperationResult<string>.Fail("No existe ningún usuario con ese correo");
@@ -259,7 +250,7 @@ namespace GestorInventario.Application.Services.Authentication.Services
             if (!int.TryParse(userId, out int id))
                 return OperationResult<Usuario>.Fail("Usuario de verificación inválido.");
 
-            var user = await _userRepository.ObtenerUsuarioPorId(id); 
+            var user = await _adminRepository.ObtenerUsuarioPorId(id); 
             if (user == null)
                 return OperationResult<Usuario>.Fail("Usuario no encontrado.");
 

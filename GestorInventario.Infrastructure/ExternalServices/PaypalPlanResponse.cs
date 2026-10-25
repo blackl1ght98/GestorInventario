@@ -13,7 +13,7 @@ namespace GestorInventario.Infrastructure.ExternalServices
         public required string Id { get; init; }
 
         [JsonProperty("product_id")]
-        [Required(ErrorMessage = "El ID del producto es requerido.")]
+        [Required(ErrorMessage = "El ID del product es requerido.")]
         public required string ProductId { get; init; }
 
         [JsonProperty("name")]

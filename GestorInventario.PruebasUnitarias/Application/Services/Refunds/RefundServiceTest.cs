@@ -18,7 +18,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.Refunds
 {
     public class RefundServiceTest
     {
-        private readonly Mock<IPedidoRepository> _repositoryMock;
+        private readonly Mock<IOrderRepository> _repositoryMock;
         private readonly Mock<IPaypalRepository> _paypalRepositoryMock;
         private readonly Mock<ICurrentUserAccessor> _userAccessorMock;
         private readonly Mock<ILogger<RefundService>> _loggerMock;
@@ -27,7 +27,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.Refunds
         private readonly RefundService _sut;
         public RefundServiceTest()
         {
-            _repositoryMock = new Mock<IPedidoRepository>();
+            _repositoryMock = new Mock<IOrderRepository>();
             _paypalRepositoryMock = new Mock<IPaypalRepository>();
             _userAccessorMock = new Mock<ICurrentUserAccessor>();
             _loggerMock = new Mock<ILogger<RefundService>>();  // <- añadido

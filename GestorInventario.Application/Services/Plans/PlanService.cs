@@ -1,15 +1,13 @@
-﻿using GestorInventario.Application.Mappers;
-using Microsoft.Extensions.Logging;
-using System.Globalization;
-using GestorInventario.Application.DTOS;
+﻿using System.Globalization;
 using GestorInventario.Application.DTOS.Paypal;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Subscriptions;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.Plans;
 using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
+using GestorInventario.Application.Mappers;
 using GestorInventario.Shared.Utilities;
+using Microsoft.Extensions.Logging;
 
-
-namespace GestorInventario.Application.Services.Paypal.Plans
+namespace GestorInventario.Application.Services.Plans
 {
     public class PlanService : IPlanService
     {

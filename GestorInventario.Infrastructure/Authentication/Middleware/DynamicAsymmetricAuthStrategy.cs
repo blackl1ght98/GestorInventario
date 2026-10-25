@@ -21,7 +21,7 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
 {
    
     private readonly ITokenGenerator _tokenGenerator;
-    private readonly IUserRepository _userRepository;
+    private readonly IAdminRepository _adminRepository;
     private readonly IHybridCacheService _cache;
     private readonly IRefreshTokenGenerator _refreshTokenGenerator;
     private readonly IJwtTokenSettings _tokenClaimsBuilder;
@@ -30,7 +30,7 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
     public DynamicAsymmetricAuthStrategy(
      
         ITokenGenerator tokenService,
-        IUserRepository userRepository,
+        IAdminRepository adminRepository,
         IHybridCacheService cache,
         IRefreshTokenGenerator refres,
         IJwtTokenSettings builder,
@@ -38,7 +38,7 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
     {
 
         _tokenGenerator = tokenService;
-        _userRepository = userRepository;
+        _adminRepository=adminRepository;
         _cache = cache;
         _logger = logger;
         _refreshTokenGenerator = refres;
@@ -162,7 +162,7 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
                 return;
             }
 
-            var user = await _userRepository.ObtenerUsuarioPorId(userId);
+            var user = await _adminRepository.ObtenerUsuarioPorId(userId);
             if (user is null)
             {
                 RedirectToLogin(context);

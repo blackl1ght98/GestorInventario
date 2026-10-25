@@ -111,7 +111,7 @@ namespace GestorInventario.Controllers.PaypalControllers
                 );
 
                 var monedas = await _policyExecutor.ExecutePolicyAsync(() =>
-                    _unitOfWork.CarritoRepository.ObtenerMoneda());
+                    _unitOfWork.ShopCartRepository.ObtenerMoneda());
 
                 var model = new PayPalPlansIndexViewModel
                 {
@@ -158,10 +158,10 @@ namespace GestorInventario.Controllers.PaypalControllers
         }
 
         [Authorize]
-        //Metodo que obtiene los datos necesarios antes de crear el producto al que se suscribira
+        //Metodo que obtiene los datos necesarios antes de crear el product al que se suscribira
         public async Task<IActionResult> CrearProductoYPlan()
         {
-            var monedas = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.CarritoRepository.ObtenerMoneda());
+            var monedas = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.ShopCartRepository.ObtenerMoneda());
 
             var model = new PayPalProductPlanViewModel();
             ViewData["Moneda"] = new SelectList(monedas, "Codigo", "Codigo");
@@ -171,7 +171,7 @@ namespace GestorInventario.Controllers.PaypalControllers
             return View(model);
         }
 
-        //Metodo que crea el producto  y plan al que se suscribira el usuario
+        //Metodo que crea el product  y plan al que se suscribira el usuario
 
         [HttpPost]
         [Authorize]
@@ -179,7 +179,7 @@ namespace GestorInventario.Controllers.PaypalControllers
         {
             CultureHelper.SetInvariantCulture();
 
-            var monedas = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.CarritoRepository.ObtenerMoneda());
+            var monedas = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.ShopCartRepository.ObtenerMoneda());
 
 
             ViewData["Moneda"] = new SelectList(monedas, "Codigo", "Codigo", monedaSeleccionada);
@@ -218,7 +218,7 @@ namespace GestorInventario.Controllers.PaypalControllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error inesperado al crear producto/plan");
+                _logger.LogError(ex, "Error inesperado al crear product/plan");
                 TempData["ErrorMessage"] = "Ocurrió un error inesperado. Inténtalo de nuevo.";
                 return View(model);
             }
@@ -246,7 +246,7 @@ namespace GestorInventario.Controllers.PaypalControllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error al eliminar el producto y el plan: {ex.Message}");
+                return StatusCode(500, $"Error al eliminar el product y el plan: {ex.Message}");
             }
         }
 
@@ -266,7 +266,7 @@ namespace GestorInventario.Controllers.PaypalControllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error al eliminar el producto y el plan: {ex.Message}");
+                return StatusCode(500, $"Error al eliminar el product y el plan: {ex.Message}");
             }
         }
     }

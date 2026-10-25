@@ -1,8 +1,8 @@
 ﻿namespace GestorInventario.Application.DTOS.Auth
 {
-    public class HashResult
+    public record HashResult
     {
-        public required string Hash { get; set; }
-        public required byte[] Salt { get; set; }
+        public required string Hash { get; init; }
+        public required byte[] Salt { get; init; }
     }
 }

@@ -14,7 +14,7 @@ namespace GestorInventario.Composition
 
             try
             {
-                var rolesRepo = services.GetRequiredService<IUserRepository>();
+                var rolesRepo = services.GetRequiredService<IRoleRepository>();
                 
 
                 var existing = await rolesRepo.GetAllAsync();

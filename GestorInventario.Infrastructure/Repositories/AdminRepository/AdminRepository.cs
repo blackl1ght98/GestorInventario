@@ -19,16 +19,7 @@ namespace GestorInventario.Infrastructure.Repositories.AdminRepository
             _logger = logger;     
          
         }
-        public  IQueryable<Role> ObtenerRoles()
-        {
-            var roles = _context.Roles.Include(x => x.Usuarios).AsQueryable();
-            return roles;
-        }
-        public string? ObtenerNombreRolPorId(int idRol)
-        {
-            var roles = ObtenerRoles();
-            return roles.FirstOrDefault(r => r.Id == idRol)?.Nombre;
-        }
+        
         public IQueryable<Usuario> ObtenerUsuariosPorRol(int rolId)
         {
             return _context.Usuarios
@@ -50,77 +41,6 @@ namespace GestorInventario.Infrastructure.Repositories.AdminRepository
             return _context.Usuarios
                 .Include(u => u.IdRolNavigation)
                 .AsQueryable();
-        }
-        public async Task<OperationResult<string>> EliminarUsuario(int id)
-        {
-            return await _context.ExecuteInTransactionAsync(async () =>
-            {
-                var user = await _context.Usuarios.FindAsync(id);
-                if (user == null)
-                    return OperationResult<string>.Fail();
-
-                await _context.DeleteEntityAsync(user);
-                return OperationResult<string>.Ok("Usuario eliminado con exito");
-            });
-        }
-        public async Task<OperationResult<string>> BajaUsuario(int id)
-        {
-            return await _context.ExecuteInTransactionAsync(async () =>
-            {
-                var usuarioDB = await _context.Usuarios.FindAsync(id); ;
-                if (usuarioDB is null)
-                {
-                    return OperationResult<string>.Fail();
-                }
-                usuarioDB.BajaUsuario = true;
-
-                await _context.UpdateEntityAsync(usuarioDB);
-
-                return OperationResult<string>.Ok("Usuario dado de baja con exito");
-
-            });         
-        }
-        public async Task<OperationResult<string>> AltaUsuario(int id)
-        {
-
-            return await _context.ExecuteInTransactionAsync(async () =>
-            {
-                var usuarioDB = await _context.Usuarios.FindAsync(id);
-                if (usuarioDB is null )
-                {
-                    return OperationResult<string>.Fail();
-                }
-                usuarioDB.BajaUsuario = false;
-
-                await _context.UpdateEntityAsync(usuarioDB);
-
-                return OperationResult<string>.Ok("Usuario dado de alta con exito");
-
-            });
-                
-          }
-          
-        public async Task<OperationResult<Usuario>> ActualizarRolUsuario(int usuarioId, int rolId)
-        {
-            return await _context.ExecuteInTransactionAsync(async () =>
-            {
-                var usuario = await _context.Usuarios.FindAsync(usuarioId);
-
-                if (usuario is null)
-                {
-                    return OperationResult<Usuario>.Fail();
-                }
-                var rol = await _context.Roles.FindAsync(rolId);
-                if (rol == null)
-                {
-                    return OperationResult<Usuario>.Fail("Rol no encontrado");
-                }
-
-                usuario.IdRol = rolId;
-                await _context.UpdateEntityAsync(usuario);              
-                return OperationResult<Usuario>.Ok(usuario);
-            });
-           
         }
         public async Task<OperationResult<string>> ReasignarProveedoresAsync(int usuarioOrigenId, int usuarioDestinoId)
         {
@@ -145,6 +65,65 @@ namespace GestorInventario.Infrastructure.Repositories.AdminRepository
 
             return usuario;
         }
+    
+        public async Task<Usuario> ObtenerUsuarioPorId(int id)
+        {
+            var usuario = await _context.Usuarios.AsTracking()
+                .Include(x => x.IdRolNavigation)
+                .FirstOrDefaultAsync(x => x.Id == id);
+            return usuario;
+        }  
+        public async Task<Usuario> ObtenerEmail(string email)
+        {
+            var correo = await _context.Usuarios.Include(x => x.IdRolNavigation).FirstOrDefaultAsync(u => u.Email == email); 
+            return  correo;
+
+        }
+        public async Task<bool> AnyAsync() => await _context.Usuarios.AnyAsync();
+          public async Task<List<Usuario>> ObtenerUsuariosAsync() 
+        { 
+            var listaUsuarios= await _context.Usuarios.Include(u => u.IdRolNavigation).ToListAsync();
+            return listaUsuarios;
+
+        }
+        public async Task<List<string>> ObtenerEmailsAdministradoresAsync()
+        {
+            return await _context.Usuarios
+                .Where(u => u.IdRolNavigation.Nombre == Rol.Administrador.ToString())
+                .Select(u => u.Email)
+                .ToListAsync();
+        }
+      
+        public async Task<bool> ExisteEmailAsync(string email)
+        {
+            return await _context.Usuarios.AnyAsync(x => x.Email == email);
+        }
+        public async Task<OperationResult<Usuario>> AgregarUsuarioAsync(Usuario usuario)
+        {
+            return await _context.ExecuteInTransactionAsync(async () =>
+            {
+                await _context.AddEntityAsync(usuario);
+                return OperationResult<Usuario>.Ok( usuario,"Usuario guardado");
+            });
+        }
+        public async Task<OperationResult<Usuario>> EliminarUsuarioAsync(Usuario usuario)
+        {
+            return await _context.ExecuteInTransactionAsync(async () =>
+            {
+                await _context.DeleteEntityAsync(usuario);
+                return OperationResult<Usuario>.Ok( usuario);
+            });
+        }
+        public async Task<OperationResult<string>> ActualizarUsuarioAsync(Usuario usuario)
+        {
+            return await _context.ExecuteInTransactionAsync(async () =>
+            {
+                _context.EntityModified(usuario);
+                await _context.UpdateEntityAsync(usuario);
+                return OperationResult<string>.Ok("Edicion realizada con exito");
+            });
+        }
+
     }     
 }
 

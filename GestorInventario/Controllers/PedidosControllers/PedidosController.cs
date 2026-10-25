@@ -19,7 +19,7 @@ namespace GestorInventario.Controllers.PedidosControllers
     public class PedidosController : Controller
     {
         private readonly ILogger<PedidosController> _logger;
-        private readonly IPedidoRepository _pedidoRepository;
+        private readonly IOrderRepository _orderRepository;
         private readonly IPolicyExecutor _policyExecutor;
         private readonly IPaginationService _paginationService;
         private readonly ICurrentUserAccessor _currentUserAccessor;
@@ -29,13 +29,13 @@ namespace GestorInventario.Controllers.PedidosControllers
             ILogger<PedidosController> logger,
             IPaginationService pagination,
             ICurrentUserAccessor currentUser,
-            IPedidoRepository pedidoRepository,
+            IOrderRepository orderRepository,
             IPolicyExecutor policyExecutor,
             IOrderService orderService
         )
         {
             _logger = logger;
-            _pedidoRepository = pedidoRepository;
+            _orderRepository = orderRepository;
             _policyExecutor = policyExecutor;
             _paginationService = pagination;
             _currentUserAccessor = currentUser;
@@ -50,14 +50,14 @@ namespace GestorInventario.Controllers.PedidosControllers
             {
                 var usuarioId = _currentUserAccessor.GetCurrentUserId();
 
-                var pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidos());
+                var pedidos = _policyExecutor.ExecutePolicy(() => _orderRepository.ObtenerPedidos());
                 if (User.IsAdministrador())
                 {
-                    pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidos());
+                    pedidos = _policyExecutor.ExecutePolicy(() => _orderRepository.ObtenerPedidos());
                 }
                 else
                 {
-                    pedidos = _policyExecutor.ExecutePolicy(() => _pedidoRepository.ObtenerPedidoUsuario(usuarioId));
+                    pedidos = _policyExecutor.ExecutePolicy(() => _orderRepository.ObtenerPedidoUsuario(usuarioId));
                 }
 
                 ViewData["Buscar"] = buscar;
@@ -115,7 +115,7 @@ namespace GestorInventario.Controllers.PedidosControllers
             catch (Exception ex)
             {
                 TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al obtener los detalles del pedido");
+                _logger.LogError(ex, "Error al obtener los detalles del order");
                 return RedirectToAction("Error", "Home");
             }
         }
@@ -125,16 +125,16 @@ namespace GestorInventario.Controllers.PedidosControllers
         [Authorize]
         public async Task<IActionResult> CancelarPedido([FromQuery] int pedidoId)
         {
-            var pedido = await _pedidoRepository.ObtenerPedidoPorIdAsync(pedidoId);
+            var pedido = await _orderRepository.ObtenerPedidoPorIdAsync(pedidoId);
             if (pedido == null) return NotFound();
 
             // Solo se puede cancelar si no está enviado ni entregado
             if (pedido.EstadoPedido == EstadoPedido.Enviado.ToString()
                 || pedido.EstadoPedido == EstadoPedido.Entregado.ToString())
-                return BadRequest(new { success = false, errorMessage = "No se puede cancelar un pedido ya enviado" });
+                return BadRequest(new { success = false, errorMessage = "No se puede cancelar un order ya enviado" });
 
             pedido.EstadoPedido = EstadoPedido.Cancelado.ToString();
-            await _pedidoRepository.ActualizarPedidoAsync(pedido);
+            await _orderRepository.ActualizarPedidoAsync(pedido);
 
             return Ok(new { success = true, message = "Pedido cancelado correctamente" });
         }
@@ -144,14 +144,14 @@ namespace GestorInventario.Controllers.PedidosControllers
         [Authorize]
         public async Task<IActionResult> ConfirmarEntrega(int pedidoId)
         {
-            var pedido = await _pedidoRepository.ObtenerPedidoPorIdAsync(pedidoId);
+            var pedido = await _orderRepository.ObtenerPedidoPorIdAsync(pedidoId);
             if (pedido == null) return NotFound();
 
             if (pedido.EstadoPedido != EstadoPedido.Enviado.ToString())
-                return BadRequest("El pedido no está enviado");
+                return BadRequest("El order no está enviado");
 
             pedido.EstadoPedido = EstadoPedido.Entregado.ToString();
-            await _pedidoRepository.ActualizarPedidoAsync(pedido);
+            await _orderRepository.ActualizarPedidoAsync(pedido);
 
             return Ok();
         }

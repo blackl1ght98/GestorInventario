@@ -12,13 +12,13 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.Authentication.
     public class PasswordResetServiceTests
     {
         private readonly Mock<IHashService> _hashServiceMock;
-        private readonly Mock<IUserRepository> _userRepositoryMock;
+        private readonly Mock<IRoleRepository> _userRepositoryMock;
         private readonly PasswordResetService _sut;
 
         public PasswordResetServiceTests()
         {
             _hashServiceMock = new Mock<IHashService>();
-            _userRepositoryMock = new Mock<IUserRepository>();
+            _userRepositoryMock = new Mock<IRoleRepository>();
             _sut = new PasswordResetService(_hashServiceMock.Object, _userRepositoryMock.Object);
         }
 

@@ -27,7 +27,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.Authentication.
     public class AuthServiceTests
     {
         private readonly Mock<IHashService> _hashMock;
-        private readonly Mock<IUserRepository> _repoMock;
+        private readonly Mock<IRoleRepository> _repoMock;
         private readonly Mock<ICurrentUserAccessor> _currentUserMock;
         private readonly Mock<ILogger<AuthService>> _loggerMock;
         private readonly Mock<IEmailService> _emailMock;
@@ -36,7 +36,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.Authentication.
         public AuthServiceTests()
         {
             _hashMock = new Mock<IHashService>();
-            _repoMock = new Mock<IUserRepository>();
+            _repoMock = new Mock<IRoleRepository>();
             _currentUserMock = new Mock<ICurrentUserAccessor>();
             _loggerMock = new Mock<ILogger<AuthService>>();
             _emailMock = new Mock<IEmailService>();

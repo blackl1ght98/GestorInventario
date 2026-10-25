@@ -112,7 +112,7 @@ namespace GestorInventario.Controllers.AdminControllers
                 // El admin puede elegir rol desde el dropdown (que es Id → Nombre).
                 // Si es auto-registro (sin rol solicitado), el servicio aplica Roles.DefaultRegistro.
                 var rolNombre = User.IsAdministrador()
-              ?  _unitOfWork.AdminRepository.ObtenerNombreRolPorId(model.IdRol)
+              ?  _unitOfWork.RoleRepository.ObtenerNombreRolPorId(model.IdRol)
               : null;
 
                 var result = await _policyExecutor.ExecutePolicyAsync(
@@ -167,7 +167,7 @@ namespace GestorInventario.Controllers.AdminControllers
 
                
                 var usuario = await _policyExecutor.ExecutePolicyAsync(
-                    () => _unitOfWork.UserRepository.ObtenerUsuarioPorId(usuarioAEditarId));
+                    () => _unitOfWork.AdminRepository.ObtenerUsuarioPorId(usuarioAEditarId));
 
                 if ( usuario == null)
                 {
@@ -250,7 +250,7 @@ namespace GestorInventario.Controllers.AdminControllers
         {
             try
             {
-                var usuario = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.UserRepository.ObtenerUsuarioPorId(id));
+                var usuario = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.AdminRepository.ObtenerUsuarioPorId(id));
                 if (usuario == null)
                 {
                     _logger.LogCritical("Se intento manipular la url por el usuario: " + _currentUserAccessor.GetCurrentUserId());
@@ -311,7 +311,7 @@ namespace GestorInventario.Controllers.AdminControllers
                 TempData["ErrorMessage"] = "No puedes darte de baja a ti mismo";
                 return RedirectToAction(nameof(Index));
             }
-            var result = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.AdminRepository.BajaUsuario(request.Id));
+            var result = await _policyExecutor.ExecutePolicyAsync(() => _userService.CambiarEstadoUsuarioAsync(request.Id,false));
          
             if (result.Success)
             {
@@ -335,7 +335,7 @@ namespace GestorInventario.Controllers.AdminControllers
                 TempData["ErrorMessage"] = "No puedes darte de baja a ti mismo";
                 return RedirectToAction(nameof(Index));
             }
-            var result = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.AdminRepository.AltaUsuario(request.Id));
+            var result = await _policyExecutor.ExecutePolicyAsync(() => _userService.CambiarEstadoUsuarioAsync(request.Id,true));
           
             if (result.Success)
             {
@@ -350,7 +350,7 @@ namespace GestorInventario.Controllers.AdminControllers
        
         private void CargarRolesEnViewData()
         {
-            var roles = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerRoles());
+            var roles = _policyExecutor.ExecutePolicy(() => _unitOfWork.RoleRepository.ObtenerRoles());
             ViewData["Roles"] = new SelectList(roles, "Id", "Nombre");
         }
     }

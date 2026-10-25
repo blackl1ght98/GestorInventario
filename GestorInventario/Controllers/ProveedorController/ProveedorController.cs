@@ -21,26 +21,20 @@ namespace GestorInventario.Controllers.ProveedorController
     {
         
         private readonly ILogger<ProveedorController> _logger;       
-        private readonly IProveedorRepository _proveedorRepository;     
         private readonly IPolicyExecutor _policyExecutor;
         private readonly IPaginationService _paginationService;
-        private readonly IUserRepository _userRepository;
         private readonly IProviderService  _providerService;
-       private readonly IUnitOfWork _unitOfWork;
+         private readonly IUnitOfWork _unitOfWork;
         public ProveedorController( 
             ILogger<ProveedorController> logger, 
-            IUserRepository userRepository, 
-            IProveedorRepository proveedorRepository,  
             IPolicyExecutor policyExecutor, 
             IPaginationService pagination,
             IProviderService providerService,
             IUnitOfWork unitOfWork)
         {           
             _logger = logger;                
-            _proveedorRepository= proveedorRepository;           
             _policyExecutor = policyExecutor;
             _paginationService = pagination;
-            _userRepository = userRepository;  
             _providerService = providerService;
             _unitOfWork = unitOfWork;
         }
@@ -52,7 +46,7 @@ namespace GestorInventario.Controllers.ProveedorController
             {
                 
 
-                var proveedores = _proveedorRepository.ObtenerProveedores();
+                var proveedores = _unitOfWork.ProviderRepository.ObtenerProveedores();
 
                 ViewData["Buscar"] = buscar;
                 if (!string.IsNullOrEmpty(buscar))
@@ -87,7 +81,7 @@ namespace GestorInventario.Controllers.ProveedorController
             
 
             // Cargar los usuarios desde la base de datos
-            var usuarios = await _policyExecutor.ExecutePolicyAsync(() => _userRepository.ObtenerUsuariosAsync());
+            var usuarios = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.AdminRepository.ObtenerUsuariosAsync());
 
             var model = new SupplierFormViewModel
             {
@@ -111,7 +105,7 @@ namespace GestorInventario.Controllers.ProveedorController
                
                 if (!ModelState.IsValid)
                 {
-                    var usuarios = await _policyExecutor.ExecutePolicyAsync(() => _userRepository.ObtenerUsuariosAsync());
+                    var usuarios = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.AdminRepository.ObtenerUsuariosAsync());
                     model.Usuarios = usuarios.ToSelectList(
                         u => u.Id,
                         u => u.NombreCompleto,
@@ -140,7 +134,7 @@ namespace GestorInventario.Controllers.ProveedorController
             catch (Exception ex)
             {
                 TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al crear el pedido");
+                _logger.LogError(ex, "Error al crear el order");
                 return RedirectToAction("Error", "Home");
             }
 
@@ -152,7 +146,7 @@ namespace GestorInventario.Controllers.ProveedorController
             {
                 
 
-                var proveedor = await _policyExecutor.ExecutePolicyAsync(() => _proveedorRepository.ObtenerProveedorId(id));
+                var proveedor = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.ProviderRepository.ObtenerProveedorId(id));
                 if (proveedor == null)
                 {
                     _logger.LogInformation("Proveedor no encontrado");
@@ -212,11 +206,11 @@ namespace GestorInventario.Controllers.ProveedorController
         {
             try
             {
-                var listaUsuarios = await _policyExecutor.ExecutePolicyAsync(() => _userRepository.ObtenerUsuariosAsync());
+                var listaUsuarios = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.AdminRepository.ObtenerUsuariosAsync());
 
                 var usuarios = new SelectList(listaUsuarios, "Id", "NombreCompleto");
 
-                var proveedor = await _proveedorRepository.ObtenerProveedorId(id);
+                var proveedor = await _unitOfWork.ProviderRepository.ObtenerProveedorId(id);
                 if(proveedor == null)
                 {
                     _logger.LogInformation("Proveedor no encontrado");
@@ -247,7 +241,7 @@ namespace GestorInventario.Controllers.ProveedorController
         {
             try
             {
-                var listaUsuarios = await _policyExecutor.ExecutePolicyAsync(() => _userRepository.ObtenerUsuariosAsync());
+                var listaUsuarios = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.AdminRepository.ObtenerUsuariosAsync());
 
                 // Validación del modelo (opcional, pero recomendado)
                 if (!ModelState.IsValid)

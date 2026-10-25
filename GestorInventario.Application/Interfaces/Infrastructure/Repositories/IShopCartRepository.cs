@@ -2,7 +2,7 @@
 
 namespace GestorInventario.Application.Interfaces.Infrastructure.Repositories
 {
-    public interface ICarritoRepository
+    public interface IShopCartRepository
     {
         //Consultas
         Task<Pedido> ObtenerCarritoUsuario(int userId);
@@ -11,5 +11,6 @@ namespace GestorInventario.Application.Interfaces.Infrastructure.Repositories
         IQueryable<DetallePedido> ObtenerItemsConDetalles(int pedidoId);
         Task<List<Monedum>> ObtenerMoneda();       
         Task<List<Pedido>> ObtenerCarritosActivosAsync(int userId);
+        Task<List<Pedido>> ObtenerCarritosAbandonadosAsync(DateTime cutoff);
     }
 }

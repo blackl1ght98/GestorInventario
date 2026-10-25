@@ -3,7 +3,7 @@ using GestorInventario.Shared.Utilities;
 
 namespace GestorInventario.Application.Interfaces.Infrastructure.Repositories
 {
-    public interface IPedidoRepository
+    public interface IOrderRepository
     {
         //Consultas
         IQueryable<Pedido> ObtenerPedidos();

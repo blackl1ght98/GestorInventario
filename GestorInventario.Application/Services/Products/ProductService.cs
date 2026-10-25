@@ -17,16 +17,16 @@ namespace GestorInventario.Application.Services.Products
         private readonly IGestorArchivos _gestorArchivos;
         private readonly IBarCodeService _barCodeService;
         private readonly ILogger<ProductService> _logger;
-        private readonly IProductoRepository _productoRepository;
+        private readonly IProductRepository _productRepository;
         private readonly IImageOptimizerService _imageOptimizerService;
 
         public ProductService(IGestorArchivos gestorArchivos, IBarCodeService barcode, ILogger<ProductService> logger,
-            IProductoRepository producto, IImageOptimizerService image)
+            IProductRepository product, IImageOptimizerService image)
         {
             _gestorArchivos = gestorArchivos;
             _barCodeService = barcode;
             _logger = logger;
-            _productoRepository = producto;
+            _productRepository = product;
             _imageOptimizerService = image;
         }
 
@@ -69,13 +69,13 @@ namespace GestorInventario.Application.Services.Products
                 }
             }
 
-            var existeProducto = await _productoRepository
+            var existeProducto = await _productRepository
                 .ExisteNombreProductoAsync(producto.NombreProducto);
             if (existeProducto)
                 return OperationResult<Producto>.Fail(
-                    "Ya hay un producto con ese nombre, proporcione otro nombre");
+                    "Ya hay un product con ese nombre, proporcione otro nombre");
 
-            await _productoRepository.AgregarProductoAsync(producto);
+            await _productRepository.AgregarProductoAsync(producto);
             _logger.LogInformation(
                 "Producto creado exitosamente: {NombreProducto}, UpcCode: {UpcCode}",
                 producto.NombreProducto, producto.CodigoBarras);
@@ -85,7 +85,7 @@ namespace GestorInventario.Application.Services.Products
 
         public async Task<OperationResult<string>> EditarProducto(EditarProductoDto model, int usuarioId)
         {
-            var producto = await _productoRepository.ObtenerProductoPorIdAsync(model.Id);
+            var producto = await _productRepository.ObtenerProductoPorIdAsync(model.Id);
             if (producto is null)
                 return OperationResult<string>.Fail();
 
@@ -129,7 +129,7 @@ namespace GestorInventario.Application.Services.Products
             }
 
             // 2. Actualiza en BD
-            var resultado = await _productoRepository.ActualizarProductoAsync(producto);
+            var resultado = await _productRepository.ActualizarProductoAsync(producto);
 
             // 3. Solo borra la imagen antigua si la BD confirmó el cambio
             //    Y se generó una imagen nueva
@@ -148,12 +148,12 @@ namespace GestorInventario.Application.Services.Products
 
         public async Task<OperationResult<string>> EliminarProducto(int Id)
         {
-            var producto = await _productoRepository.ObtenerProductoCompletoAsync(Id);
+            var producto = await _productRepository.ObtenerProductoCompletoAsync(Id);
             if (producto == null)
                 return OperationResult<string>.Fail("No hay productos para eliminar");
 
             // 1. Elimina en BD primero
-            var resultado = await _productoRepository.EliminarProductoAsync(producto);
+            var resultado = await _productRepository.EliminarProductoAsync(producto);
 
             // 2. Solo borra la imagen si la BD confirmó
             if (resultado.Success && !string.IsNullOrEmpty(producto.Imagen) &&

@@ -14,7 +14,7 @@ namespace GestorInventario.Controllers.CarritoController
 {
     public class CarritoController : Controller
     {       
-        private readonly ICarritoRepository _carritoRepository;              
+        private readonly IShopCartRepository _shopCartRepository;              
         private readonly ILogger<CarritoController> _logger;        
         private readonly IPolicyExecutor _policyExecutor;       
         private readonly ICurrentUserAccessor _currentUserAccessor;
@@ -22,7 +22,7 @@ namespace GestorInventario.Controllers.CarritoController
         private readonly IPaymentService _paymentService;
         private readonly IShopCartService _carritoService;
         public CarritoController(
-         ICarritoRepository carritorepository,  
+         IShopCartRepository carritorepository,  
          ICurrentUserAccessor currentUser, 
          IShopCartService carritoService,
          ILogger<CarritoController> logger,  
@@ -30,7 +30,7 @@ namespace GestorInventario.Controllers.CarritoController
          IPaginationService pagination, 
          IPaymentService paymentService)
         {          
-            _carritoRepository = carritorepository;       
+            _shopCartRepository = carritorepository;       
             _logger = logger;              
             _policyExecutor= policyExecutor;           
             _paginationService = pagination;
@@ -48,9 +48,9 @@ namespace GestorInventario.Controllers.CarritoController
                 int usuarioId = _currentUserAccessor.GetCurrentUserId();
 
                 var carrito = await _policyExecutor.ExecutePolicyAsync(
-                    () => _carritoRepository.ObtenerCarritoUsuario(usuarioId)
+                    () => _shopCartRepository.ObtenerCarritoUsuario(usuarioId)
                 );
-                // Crear carrito automáticamente si no existe
+                // Crear shopCart automáticamente si no existe
                 if (carrito == null)
                 {
                     var carritoUsuario = await _policyExecutor.ExecutePolicyAsync(
@@ -59,7 +59,7 @@ namespace GestorInventario.Controllers.CarritoController
                     carrito = carritoUsuario.Data;
                 }
                 var itemsDelCarrito = _policyExecutor.ExecutePolicy(
-                    () => _carritoRepository.ObtenerItemsConDetalles(carrito.Id)
+                    () => _shopCartRepository.ObtenerItemsConDetalles(carrito.Id)
                 );
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
                     _paginationService.PaginarAsync(itemsDelCarrito, paginacion)
@@ -68,7 +68,7 @@ namespace GestorInventario.Controllers.CarritoController
                 var impuestos = subtotal * 0.21m;        
                 var total = subtotal + impuestos;        
                 var resultadoMonedas = await _policyExecutor.ExecutePolicyAsync(
-                    () => _carritoRepository.ObtenerMoneda()
+                    () => _shopCartRepository.ObtenerMoneda()
                 );
                 var viewModel = new CarritoViewModel
                 {
@@ -87,7 +87,7 @@ namespace GestorInventario.Controllers.CarritoController
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al obtener los productos del carrito");
+                _logger.LogError(ex, "Error al obtener los productos del shopCart");
                 return RedirectToAction("Error", "Home");
             }
         }
@@ -139,7 +139,7 @@ namespace GestorInventario.Controllers.CarritoController
                 return RedirectToAction(nameof(Index));
             }                
         }
-        //Metodo para decrementar producto
+        //Metodo para decrementar product
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
@@ -159,7 +159,7 @@ namespace GestorInventario.Controllers.CarritoController
                 return RedirectToAction("Index");
             }                     
         }
-       //Metodo para eliminar un producto
+       //Metodo para eliminar un product
         [HttpPost]
         [Authorize]
         
@@ -207,7 +207,7 @@ namespace GestorInventario.Controllers.CarritoController
             catch (Exception ex)
             {
                 TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al agregar el producto al carrito");
+                _logger.LogError(ex, "Error al agregar el product al shopCart");
                 return RedirectToAction("Error", "Home");
             }
         }

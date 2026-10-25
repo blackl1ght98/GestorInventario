@@ -11,16 +11,16 @@ namespace GestorInventario.Application.Services.Authentication.TokenGeneration.G
     public class RefreshTokenGenerator : IRefreshTokenGenerator
     {
         private readonly ITokenStrategyResolver _resolver;
-        private readonly IUserRepository _userRepository;
-        public RefreshTokenGenerator(IUserRepository userRepository, ITokenStrategyResolver resolver)
+        private readonly IAdminRepository _adminRepository;
+        public RefreshTokenGenerator(IAdminRepository adminRepository, ITokenStrategyResolver resolver)
         {
             _resolver = resolver;
-            _userRepository = userRepository;
+            _adminRepository=adminRepository;
         }
 
         public async Task<string> GenerateTokenAsync(Usuario credencialesUsuario)
         {
-            var usuarioDB = await _userRepository.ObtenerUsuarioPorId(credencialesUsuario.Id);
+            var usuarioDB = await _adminRepository.ObtenerUsuarioPorId(credencialesUsuario.Id);
             return await _resolver.ResolveRefreshToken().GenerarTokenRefresco(usuarioDB);
         }
     }

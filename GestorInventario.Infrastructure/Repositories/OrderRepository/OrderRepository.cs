@@ -9,12 +9,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GestorInventario.Infrastructure.Repositories.PedidoRepository
 {
-    public class PedidoRepository : IPedidoRepository
+    public class OrderRepository : IOrderRepository
     {
         private readonly GestorInventarioContext _context;                   
               
      
-        public PedidoRepository(GestorInventarioContext context)
+        public OrderRepository(GestorInventarioContext context)
         {
             _context = context;      
                   

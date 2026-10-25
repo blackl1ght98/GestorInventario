@@ -56,7 +56,7 @@ namespace GestorInventario.Application.Services.Payment
 
             var infoUsuario = result.Data;
 
-            // 2. Validar carrito
+            // 2. Validar shopCart
             var resultado = await ValidarCarritoYObtenerItems(userId);
             if (!resultado.Success)
                 return OperationResult<string>.Fail(resultado.Message);
@@ -68,7 +68,7 @@ namespace GestorInventario.Application.Services.Payment
             moneda = string.IsNullOrEmpty(moneda) ? "EUR" : moneda;
             var checkout = await PrepararCheckoutParaPagoPayPal(itemsDelCarrito, moneda, infoUsuario);
 
-            // 4. ✅ Convertir carrito a pedido PERSISTIENDO los totales calculados
+            // 4. ✅ Convertir shopCart a order PERSISTIENDO los totales calculados
             await ConvertirCarritoAPedido(carrito, checkout);
 
             // 5. Procesar pago con PayPal
@@ -85,17 +85,17 @@ namespace GestorInventario.Application.Services.Payment
 
         public async Task<OperationResult<string>> ReintentarPago(int pedidoId)
         {
-            var pedido = await _unitOfWork.PedidoRepository.ObtenerPedidoPorIdAsync(pedidoId);
+            var pedido = await _unitOfWork.OrderRepository.ObtenerPedidoPorIdAsync(pedidoId);
             if (pedido == null)
                 return OperationResult<string>.Fail();
 
             if (pedido.EstadoPedido != EstadoPedido.Pendiente.ToString())
-                return OperationResult<string>.Fail("El pedido no está pendiente de pago.");
+                return OperationResult<string>.Fail("El order no está pendiente de pago.");
 
 
-            var itemsPedido = await _unitOfWork.PedidoRepository.ObtenerDetallesPedidoAsync(pedidoId);
+            var itemsPedido = await _unitOfWork.OrderRepository.ObtenerDetallesPedidoAsync(pedidoId);
             if (!itemsPedido.Any())
-                return OperationResult<string>.Fail("El pedido no tiene items.");
+                return OperationResult<string>.Fail("El order no tiene items.");
 
 
             var result = await ValidarUsuarioYObtenerInfo();
@@ -125,7 +125,7 @@ namespace GestorInventario.Application.Services.Payment
         private async Task<OperationResult<InfoUsuarioDto>> ValidarUsuarioYObtenerInfo()
         {
             var usuarioId = _currentUserAccessor.GetCurrentUserId();
-            var usuarioActual = await _unitOfWork.UserRepository.ObtenerUsuarioPorId(usuarioId);
+            var usuarioActual = await _unitOfWork.AdminRepository.ObtenerUsuarioPorId(usuarioId);
             if (usuarioActual == null)
             {
                 return OperationResult<InfoUsuarioDto>.Fail();
@@ -148,17 +148,17 @@ namespace GestorInventario.Application.Services.Payment
 
         private async Task<OperationResult<CarritoConItemsDto>> ValidarCarritoYObtenerItems(int userId)
         {
-            var carrito = await _unitOfWork.CarritoRepository.ObtenerCarritoUsuario(userId);
+            var carrito = await _unitOfWork.ShopCartRepository.ObtenerCarritoUsuario(userId);
 
             if (carrito == null)
             {
-                return OperationResult<CarritoConItemsDto>.Fail("No se encontró un carrito para el usuario.");
+                return OperationResult<CarritoConItemsDto>.Fail("No se encontró un shopCart para el usuario.");
             }
 
-            var itemsDelCarrito = await _unitOfWork.CarritoRepository.ObtenerItemsDelCarritoUsuario(carrito.Id);
+            var itemsDelCarrito = await _unitOfWork.ShopCartRepository.ObtenerItemsDelCarritoUsuario(carrito.Id);
             if (!itemsDelCarrito.Any())
             {
-                return OperationResult<CarritoConItemsDto>.Fail("El carrito está vacío.");
+                return OperationResult<CarritoConItemsDto>.Fail("El shopCart está vacío.");
             }
 
             var resultado = new CarritoConItemsDto
@@ -178,10 +178,10 @@ namespace GestorInventario.Application.Services.Payment
 
             if (checkout.TotalAmount <= 0)
                 throw new InvalidOperationException(
-                    $"No se puede crear un pedido con total 0. Subtotal:{checkout.Subtotal}, Iva:{checkout.Iva}");
+                    $"No se puede crear un order con total 0. Subtotal:{checkout.Subtotal}, Iva:{checkout.Iva}");
 
             if (string.IsNullOrWhiteSpace(checkout.Currency))
-                throw new InvalidOperationException("La moneda es obligatoria para crear el pedido.");
+                throw new InvalidOperationException("La moneda es obligatoria para crear el order.");
 
             try
             {
@@ -196,14 +196,14 @@ namespace GestorInventario.Application.Services.Payment
                 carrito.Currency = checkout.Currency;
 
                 _logger.LogInformation(
-                    "Persistiendo pedido {PedidoId} -> Subtotal:{Subtotal} Iva:{Iva} Total:{Total} {Currency}",
+                    "Persistiendo order {PedidoId} -> Subtotal:{Subtotal} Iva:{Iva} Total:{Total} {Currency}",
                     carrito.Id, checkout.Subtotal, checkout.Iva, checkout.TotalAmount, checkout.Currency);
 
-                await _unitOfWork.PedidoRepository.ActualizarPedidoAsync(carrito);
+                await _unitOfWork.OrderRepository.ActualizarPedidoAsync(carrito);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al convertir carrito a pedido ID {PedidoId}", carrito.Id);
+                _logger.LogError(ex, "Error al convertir shopCart a order ID {PedidoId}", carrito.Id);
                 throw;
             }
         }
@@ -220,7 +220,7 @@ namespace GestorInventario.Application.Services.Payment
 
             foreach (var item in itemsDelCarrito)
             {
-                var producto = await _unitOfWork.ProductoRepository.ObtenerProductoPorIdAsync(item.ProductoId);
+                var producto = await _unitOfWork.ProductRepository.ObtenerProductoPorIdAsync(item.ProductoId);
                 if (producto == null) continue;
 
                 var cantidad = item.Cantidad;
@@ -309,12 +309,12 @@ namespace GestorInventario.Application.Services.Payment
 
         private async Task EliminarCarritosVaciosUsuario(int userId)
         {
-            var carritosActivos = await _unitOfWork.CarritoRepository.ObtenerCarritosActivosAsync(userId);
+            var carritosActivos = await _unitOfWork.ShopCartRepository.ObtenerCarritosActivosAsync(userId);
             foreach (var carritoActivo in carritosActivos)
             {
                 if (!carritoActivo.DetallePedidos.Any())
                 {
-                    await _unitOfWork.PedidoRepository.EliminarCarritoAsync(carritoActivo);
+                    await _unitOfWork.OrderRepository.EliminarCarritoAsync(carritoActivo);
                     _logger.LogInformation($"Carrito vacío eliminado para el usuario {userId}, ID: {carritoActivo.Id}");
                 }
             }
@@ -388,7 +388,7 @@ namespace GestorInventario.Application.Services.Payment
             if (!paypalItems.Any())
             {
                 _logger.LogError(
-                    $"No se encontraron ítems en PurchaseUnits para el reembolso del pedido {form.NumeroPedido}.");
+                    $"No se encontraron ítems en PurchaseUnits para el reembolso del order {form.NumeroPedido}.");
                 return OperationResult<PayPalPaymentItem>.Fail("No se puede procesar el rembolso sin items asociados");
             }
 

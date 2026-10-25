@@ -14,20 +14,20 @@ namespace GestorInventario.Infrastructure.Authentication.Middleware
     public class SymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
     {
         private readonly ITokenGenerator _tokenGenerator;
-        private readonly IUserRepository _userRepository;
+        private readonly IAdminRepository _adminRepository;
         private readonly IRefreshTokenGenerator _refreshTokenStrategy;
         private readonly IJwtTokenSettings _tokenClaimsBuilder;
         private readonly ILogger<SymmetricAuthStrategy> _logger;
 
         public SymmetricAuthStrategy(
             ITokenGenerator tokenGenerator,
-            IUserRepository userRepository,
+            IAdminRepository adminRepository,
             IRefreshTokenGenerator refreshTokenStrategy,
             IJwtTokenSettings tokenClaimsBuilder,
             ILogger<SymmetricAuthStrategy> logger)
         {
             _tokenGenerator = tokenGenerator;
-            _userRepository = userRepository;
+            _adminRepository=adminRepository;
             _refreshTokenStrategy = refreshTokenStrategy;
             _tokenClaimsBuilder = tokenClaimsBuilder;
             _logger = logger;
@@ -145,7 +145,7 @@ namespace GestorInventario.Infrastructure.Authentication.Middleware
                 return;
             }
 
-            var user = await _userRepository.ObtenerUsuarioPorId(userIdParsed);
+            var user = await _adminRepository.ObtenerUsuarioPorId(userIdParsed);
             if (user == null)
             {
                 _logger.LogError("Usuario {UserId} no encontrado", userIdParsed);

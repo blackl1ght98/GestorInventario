@@ -17,14 +17,14 @@ public class OrderService : IOrderService
     private readonly ILogger<OrderService> _logger;
     private readonly IPaymentRepository _paymentRepository;
     private readonly IPaypalOrderService _paypalOrderService;
-    private readonly IPedidoRepository _pedidoRepository;
+    private readonly IOrderRepository _orderRepository;
     private readonly ICurrentUserAccessor _currentUserAccessor;
 
-    public OrderService(ILogger<OrderService> logger, IPedidoRepository pedido,
+    public OrderService(ILogger<OrderService> logger, IOrderRepository order,
         IPaypalOrderService paypal, IPaymentRepository payment, ICurrentUserAccessor currentUserAccessor)
     {
         _logger = logger;
-        _pedidoRepository = pedido;
+        _orderRepository = order;
         _paypalOrderService = paypal;
         _paymentRepository = payment;
         _currentUserAccessor = currentUserAccessor;
@@ -32,7 +32,7 @@ public class OrderService : IOrderService
 
     public async Task<OperationResult<string>> EliminarPedido(int id)
     {
-        var pedido = await _pedidoRepository.ObtenerPedidoConDetallesAsync(id);
+        var pedido = await _orderRepository.ObtenerPedidoConDetallesAsync(id);
         if (pedido == null)
             return OperationResult<string>.Fail();
 
@@ -40,11 +40,11 @@ public class OrderService : IOrderService
         if (pedido.EstadoPedido == EstadoPedido.Carrito.ToString()
             && !pedido.PayPalPaymentCaptures.Any())
         {
-            await _pedidoRepository.EliminarCarritoAsync(pedido);
+            await _orderRepository.EliminarCarritoAsync(pedido);
             return OperationResult<string>.Ok("Carrito eliminado");
         }
 
-        return OperationResult<string>.Fail("No se puede eliminar un pedido con historial");
+        return OperationResult<string>.Fail("No se puede eliminar un order con historial");
     }
 
     public async Task<OperationResult<PayPalPaymentDetail>> SincronizarDetallePagoAsync(
@@ -55,7 +55,7 @@ public class OrderService : IOrderService
         if (!detallesPayPal.Success)
             return OperationResult<PayPalPaymentDetail>.Fail(detallesPayPal.Message);
 
-        var detalles = detallesPayPal.Unwrap(); // PayPalOrderDetailsDto
+        var detalles = detallesPayPal.Unwrap(); 
 
         var detalleBD = await ObtenerOCrearDetallePagoAsync(id, detalles);
 
@@ -99,10 +99,10 @@ public class OrderService : IOrderService
 
         int userId = _currentUserAccessor.GetCurrentUserId();
 
-        var pedido = await _pedidoRepository.ObtenerPedidoPendienteUsuarioAsync(userId);
+        var pedido = await _orderRepository.ObtenerPedidoPendienteUsuarioAsync(userId);
         if (pedido == null)
         {
-            _logger.LogWarning("No se encontró pedido pendiente para el usuario {UsuarioId}", userId);
+            _logger.LogWarning("No se encontró order pendiente para el usuario {UsuarioId}", userId);
             return OperationResult<Pedido>.Fail();
         }
 
@@ -149,21 +149,21 @@ public class OrderService : IOrderService
         pedido.Currency = capture.Currency;
         pedido.EstadoPedido = EstadoPedido.Pagado.ToString();
 
-        await _pedidoRepository.ActualizarPedidoAsync(pedido);
+        await _orderRepository.ActualizarPedidoAsync(pedido);
 
         return OperationResult<Pedido>.Ok(pedido, "Pago confirmado. Pendiente de sincronización con PayPal.");
     }
 
     public async Task AddInfoTrackingOrder(int pedidoId, string tracking, string carrier)
     {
-        var pedido = await _pedidoRepository.ObtenerPedidoPorIdAsync(pedidoId);
+        var pedido = await _orderRepository.ObtenerPedidoPorIdAsync(pedidoId);
         if (pedido == null)
             throw new ArgumentException($"Pedido con ID {pedidoId} no encontrado.");
         pedido.EstadoPedido = EstadoPedido.Enviado.ToString();
         pedido.TrackingNumber = tracking;
         pedido.UrlTracking = "URL NO ESPECIFICADA";
         pedido.Transportista = carrier;
-        await _pedidoRepository.ActualizarPedidoAsync(pedido);
+        await _orderRepository.ActualizarPedidoAsync(pedido);
     }
 
     /// <summary>
@@ -283,7 +283,7 @@ public class OrderService : IOrderService
     }
 
     /// <summary>
-    ///     Procesa los items del pedido.
+    ///     Procesa los items del order.
     /// </summary>
     private async Task ProcesarItemsAsync(
         PayPalOrderDetailsDto detalles, PayPalPaymentDetail detallePago)
@@ -310,7 +310,7 @@ public class OrderService : IOrderService
 
     public async Task<OperationResult<DetalleOrdenDto>> GetOrderDetailsAsync(int id)
     {
-        var pedido = await _pedidoRepository.ObtenerPedidoConDetallesAsync(id);
+        var pedido = await _orderRepository.ObtenerPedidoConDetallesAsync(id);
         if (pedido == null)
         {
             return OperationResult<DetalleOrdenDto>.Fail();

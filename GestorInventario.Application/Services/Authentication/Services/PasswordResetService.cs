@@ -8,34 +8,37 @@ namespace GestorInventario.Application.Services.Authentication.Services
     public class PasswordResetService: IPasswordResetService
     {
         private readonly IHashService _hashService;
-        private readonly IUserRepository _userRepository;
+        private readonly IAdminRepository _adminRepository;
 
-        public PasswordResetService(IHashService hashService, IUserRepository userRepository)
+        
+        public PasswordResetService(IHashService hashService, IAdminRepository adminRepository)
         {
             _hashService = hashService;
-            _userRepository = userRepository;
+            _adminRepository = adminRepository;
         }
 
         public async Task<OperationResult<string > >GenerarPasswordTemporalAsync(string email)
         {
-            var correo = await _userRepository.ExisteEmailAsync(email);
+            var correo = await _adminRepository.ExisteEmailAsync(email);
             if (!correo)
             {
                 return OperationResult<string>.Fail("El correo electronico no existe");
             }
+            var usuario = await _adminRepository.ObtenerEmail(email);
             // Lógica de generación y hash aquí
             var contrasenaTemporal = GenerarContrasenaTemporal();
             var resultadoHash = _hashService.Hash(contrasenaTemporal);
             var fechaExpiracion = DateTime.UtcNow.AddMinutes(5);
+            if (usuario == null)
+                return OperationResult<string>.Fail();
+            usuario.TemporaryPassword = resultadoHash.Hash;
+            usuario.ResetTokenSalt = resultadoHash.Salt;       
+            usuario.FechaExpiracionContrasenaTemporal = fechaExpiracion;
+            usuario.ResetTokenUsed = false;
+            
+            await _adminRepository.ActualizarUsuarioAsync(usuario);
 
-            // El repositorio solo guarda
-            var resultado = await _userRepository.GuardarPasswordTemporalAsync(
-                email, resultadoHash.Hash, resultadoHash.Salt, fechaExpiracion);
-
-            if (!resultado.Success)
-                return OperationResult<string>.Fail(resultado.Message);
-
-            return OperationResult<string>.Ok(contrasenaTemporal);
+            return OperationResult<string>.Ok(contrasenaTemporal,"Restablecida");
         }
 
         private string GenerarContrasenaTemporal()

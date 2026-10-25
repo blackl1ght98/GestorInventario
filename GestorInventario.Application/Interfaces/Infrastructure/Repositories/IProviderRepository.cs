@@ -3,7 +3,7 @@ using GestorInventario.Shared.Utilities;
 
 namespace GestorInventario.Application.Interfaces.Infrastructure.Repositories
 {
-    public interface IProveedorRepository
+    public interface IProviderRepository
     {
         //Consultas
         IQueryable<Proveedore> ObtenerProveedores();

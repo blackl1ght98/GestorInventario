@@ -8,23 +8,25 @@ namespace GestorInventario.Infrastructure.Data
         private readonly GestorInventarioContext _context;
      
         public IAdminRepository AdminRepository { get; private set; }
-        public IUserRepository UserRepository { get; private set; }
+        public IRoleRepository RoleRepository { get; private set; }
         public IPaypalRepository PaypalRepository { get; private set; }
-        public ICarritoRepository CarritoRepository { get; private set; }
-        public IPedidoRepository PedidoRepository { get; private set; }
-        public IProductoRepository ProductoRepository { get; private set; }
+        public IShopCartRepository ShopCartRepository { get; private set; }
+        public IOrderRepository OrderRepository { get; private set; }
+        public IProductRepository ProductRepository { get; private set; }
+        public IProviderRepository ProviderRepository { get; private set; }
         private bool _disposed = false;
 
-        public UnitOfWork(GestorInventarioContext context, IAdminRepository admin, IUserRepository user, IPaypalRepository paypal,
-        ICarritoRepository carrito, IPedidoRepository pedidoRepository, IProductoRepository productoRepository)
+        public UnitOfWork(GestorInventarioContext context, IAdminRepository admin, IRoleRepository role, IPaypalRepository paypal,
+        IShopCartRepository shopCart, IOrderRepository orderRepository, IProductRepository productRepository, IProviderRepository providerRepository)
         {
             _context = context;
             AdminRepository = admin;
-            UserRepository = user;
+            RoleRepository = role;
             PaypalRepository = paypal;
-            CarritoRepository = carrito;
-            PedidoRepository = pedidoRepository;
-            ProductoRepository = productoRepository;
+            ShopCartRepository = shopCart;
+            OrderRepository = orderRepository;
+            ProductRepository = productRepository;
+            ProviderRepository = providerRepository;
         }
 
     

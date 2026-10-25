@@ -5,7 +5,7 @@ namespace GestorInventario.ViewModels.Paypal
  
     public class RefundFormViewModel
     {
-        [Required(ErrorMessage ="No ha proporcionado un numero de pedido")]
+        [Required(ErrorMessage ="No ha proporcionado un numero de order")]
         [Display(Name ="Numero de Pedido")]
         public required string NumeroPedido { get; set; }
         [Required(ErrorMessage ="No ha proporcionado su nombre")]

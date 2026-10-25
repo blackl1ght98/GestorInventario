@@ -27,7 +27,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.User
     {
         // Mock = "muñeco" que finge ser una dependencia real.
         // En lugar de tocar la base de datos real, usamos estos muñecos.
-        private readonly Mock<IUserRepository> _repoMock;
+        private readonly Mock<IRoleRepository> _repoMock;
         private readonly Mock<IHashService> _hashMock;
         private readonly Mock<IEmailService> _emailMock;
         private readonly Mock<IAdminRepository> _adminMock;
@@ -41,7 +41,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.User
         // Creamos los mocks nuevos para cada test para que no se contaminen entre sí.
         public UserServiceTests()
         {
-            _repoMock = new Mock<IUserRepository>();
+            _repoMock = new Mock<IRoleRepository>();
             _hashMock = new Mock<IHashService>();
             _emailMock = new Mock<IEmailService>();
             _adminMock = new Mock<IAdminRepository>();
@@ -415,7 +415,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.User
             var usuario = new Usuario
             {
                 Id = 1,
-                // Creamos un pedido ficticio para que la validación falle
+                // Creamos un order ficticio para que la validación falle
                 Pedidos = new List<Pedido> { new Pedido() }
             };
             _repoMock.Setup(r => r.ObtenerUsuarioConProveedoresYPedidosAsync(1))

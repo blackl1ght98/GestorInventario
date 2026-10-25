@@ -9,9 +9,9 @@ namespace GestorInventario.Application.Services.Provider;
 
 public class ProviderService : IProviderService
 {
-    private readonly IProveedorRepository _repository;
+    private readonly IProviderRepository _repository;
 
-    public ProviderService(IProveedorRepository repository)
+    public ProviderService(IProviderRepository repository)
     {
         _repository = repository;
     }
@@ -39,6 +39,10 @@ public class ProviderService : IProviderService
     public async Task<OperationResult<string>> EditarProveedor(EditarProveedorDto model, int Id)
     {
         var proveedor = await _repository.ObtenerProveedorId(Id);
+        if (proveedor != null && proveedor.Id != Id)
+        {
+            return OperationResult<string>.Fail("Ya existe otro proveedor registrado con ese nombre");
+        }
         if (proveedor == null)
 
         {

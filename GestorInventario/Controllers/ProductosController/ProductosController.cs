@@ -17,7 +17,7 @@ namespace GestorInventario.Controllers.ProductosController
     public class ProductosController : Controller
     {
         private readonly ILogger<ProductosController> _logger;
-        private readonly IProductoRepository _productoRepository;
+        private readonly IProductRepository _productRepository;
         private readonly IPolicyExecutor _policyExecutor;
         private readonly IPaginationService _paginationService;
         private readonly ICurrentUserAccessor _current;
@@ -28,11 +28,11 @@ namespace GestorInventario.Controllers.ProductosController
             IPaginationService pagination,
             ICurrentUserAccessor currentUserAccessor,
             ILogger<ProductosController> logger,
-            IProductoRepository productoRepository,
+            IProductRepository productRepository,
             IProductService productoService)
         {
             _logger = logger;
-            _productoRepository = productoRepository;
+            _productRepository = productRepository;
             _policyExecutor = policyExecutor;
             _paginationService = pagination;
             _current = currentUserAccessor;
@@ -48,7 +48,7 @@ namespace GestorInventario.Controllers.ProductosController
             try
             {
                 // Obtiene la consulta como IQueryable
-                var productos = _policyExecutor.ExecutePolicy(() => _productoRepository.ObtenerTodosLosProductos());
+                var productos = _policyExecutor.ExecutePolicy(() => _productRepository.ObtenerTodosLosProductos());
 
                 // Aplicamos los filtros a la consulta
                 if (!string.IsNullOrEmpty(buscar))
@@ -79,7 +79,7 @@ namespace GestorInventario.Controllers.ProductosController
 
                 // Obtener proveedores
                 var proveedores =
-                    await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProveedores());
+                    await _policyExecutor.ExecutePolicyAsync(() => _productRepository.ObtenerProveedores());
 
 
                 // Crear el ViewModel
@@ -96,7 +96,7 @@ namespace GestorInventario.Controllers.ProductosController
                 };
                 ViewData["Proveedores"] =
                     new SelectList(
-                        await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProveedores()), "Id",
+                        await _policyExecutor.ExecutePolicyAsync(() => _productRepository.ObtenerProveedores()), "Id",
                         "NombreProveedor");
 
                 return View(viewModel);
@@ -114,8 +114,8 @@ namespace GestorInventario.Controllers.ProductosController
             try
             {
                 ViewData["Productos"] =
-                    new SelectList(await _productoRepository.ObtenerProveedores(), "Id", "NombreProveedor");
-                var proveedores = await _productoRepository.ObtenerProveedores();
+                    new SelectList(await _productRepository.ObtenerProveedores(), "Id", "NombreProveedor");
+                var proveedores = await _productRepository.ObtenerProveedores();
                 var model = new ProductFormViewModel
                 {
                     NombreProducto = "",
@@ -132,19 +132,19 @@ namespace GestorInventario.Controllers.ProductosController
             catch (Exception ex)
             {
                 TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al mostrar la vista de creacion del producto");
+                _logger.LogError(ex, "Error al mostrar la vista de creacion del product");
                 return RedirectToAction("Error", "Home");
             }
         }
 
-        //Metodo que crea el producto
+        //Metodo que crea el product
         [HttpPost]
         [Authorize(Policy = "EsAdministrador")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ProductFormViewModel model)
         {
             // Recargamos siempre la lista de proveedores para que no se pierda el dropdown
-            var proveedores = await _productoRepository.ObtenerProveedores();
+            var proveedores = await _productRepository.ObtenerProveedores();
             model.Proveedores = proveedores.ToSelectList(
                 u => u.Id,
                 u => u.NombreProveedor,
@@ -180,13 +180,13 @@ namespace GestorInventario.Controllers.ProductosController
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = resultado.Message ?? "Error al crear el producto.";
+                    TempData["ErrorMessage"] = resultado.Message ?? "Error al crear el product.";
                     return View(model);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al crear el producto: {NombreProducto}", model.NombreProducto);
+                _logger.LogError(ex, "Error al crear el product: {NombreProducto}", model.NombreProducto);
                 TempData["ConectionError"] = "El servidor ha tardado mucho en responder, inténtelo de nuevo más tarde.";
                 return View(model);
             }
@@ -194,17 +194,17 @@ namespace GestorInventario.Controllers.ProductosController
 
      
 
-        //Metodo que obtiene la información necesaria para eliminar el producto
+        //Metodo que obtiene la información necesaria para eliminar el product
         [Authorize(Policy = "EsAdministrador")]
         public async Task<IActionResult> Delete(int id)
         {
             try
             {
                 var producto =
-                    await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProductoPorIdAsync(id));
+                    await _policyExecutor.ExecutePolicyAsync(() => _productRepository.ObtenerProductoPorIdAsync(id));
                 if (producto == null)
                 {
-                    _logger.LogError("No se ha encontrado el producto");
+                    _logger.LogError("No se ha encontrado el product");
                     return RedirectToAction(nameof(Index));
                 }
 
@@ -222,12 +222,12 @@ namespace GestorInventario.Controllers.ProductosController
             catch (Exception ex)
             {
                 TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al eliminar el producto");
+                _logger.LogError(ex, "Error al eliminar el product");
                 return RedirectToAction("Error", "Home");
             }
         }
 
-        //Metodo que elimina el producto
+        //Metodo que elimina el product
         [HttpPost]
         [Authorize(Policy = "EsAdministrador")]
         [ValidateAntiForgeryToken]
@@ -256,7 +256,7 @@ namespace GestorInventario.Controllers.ProductosController
             catch (Exception ex)
             {
                 TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al eliminar el producto");
+                _logger.LogError(ex, "Error al eliminar el product");
                 return RedirectToAction("Error", "Home");
             }
         }
@@ -267,15 +267,15 @@ namespace GestorInventario.Controllers.ProductosController
             try
             {
                 var producto =
-                    await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProductoPorIdAsync(id));
+                    await _policyExecutor.ExecutePolicyAsync(() => _productRepository.ObtenerProductoPorIdAsync(id));
                 if (producto == null)
                 {
-                    TempData["ErrorMessage"] = "No se ha encontrado el producto";
+                    TempData["ErrorMessage"] = "No se ha encontrado el product";
                 }
 
                 ViewData["Productos"] =
                     new SelectList(
-                        await _policyExecutor.ExecutePolicyAsync(() => _productoRepository.ObtenerProveedores()), "Id",
+                        await _policyExecutor.ExecutePolicyAsync(() => _productRepository.ObtenerProveedores()), "Id",
                         "NombreProveedor");
                 ProductFormViewModel viewModel = new ProductFormViewModel()
                 {
@@ -292,7 +292,7 @@ namespace GestorInventario.Controllers.ProductosController
             catch (Exception ex)
             {
                 TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al editar el producto");
+                _logger.LogError(ex, "Error al editar el product");
                 return RedirectToAction("Error", "Home");
             }
         }
@@ -338,7 +338,7 @@ namespace GestorInventario.Controllers.ProductosController
             catch (Exception ex)
             {
                 TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
-                _logger.LogError(ex, "Error al editar el producto");
+                _logger.LogError(ex, "Error al editar el product");
                 return RedirectToAction("Error", "Home");
             }
         }

@@ -18,7 +18,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.Orders
 {
     public class OrderServiceTest
     {
-        private readonly Mock<IPedidoRepository> _repositoryMock;
+        private readonly Mock<IOrderRepository> _repositoryMock;
         private readonly Mock<ILogger<OrderService>> _loggerMock;
         private readonly Mock<IPaypalOrderService> _paypalOrderServiceMock;
         private readonly Mock<IPaymentRepository> _paymentRepositoryMock;
@@ -26,7 +26,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.Orders
 
         public OrderServiceTest()
         {
-            _repositoryMock = new Mock<IPedidoRepository>();
+            _repositoryMock = new Mock<IOrderRepository>();
             _loggerMock = new Mock<ILogger<OrderService>>();
             _paypalOrderServiceMock = new Mock<IPaypalOrderService>();
             _paymentRepositoryMock = new Mock<IPaymentRepository>();

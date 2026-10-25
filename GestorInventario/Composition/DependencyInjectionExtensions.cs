@@ -22,7 +22,6 @@ using GestorInventario.Application.Interfaces.Application.Services.Refunds;
 using GestorInventario.Application.Interfaces.Application.Services.ShopCart;
 using GestorInventario.Application.Interfaces.Application.Services.Syncs;
 using GestorInventario.Application.Interfaces.Application.Services.User;
-using GestorInventario.Application.Interfaces.Infrastructure;
 using GestorInventario.Application.Interfaces.Infrastructure.Common;
 using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
 using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;
@@ -37,7 +36,6 @@ using GestorInventario.Application.Interfaces.Renderer.PDF;
 using GestorInventario.Application.Interfaces.Services.Authentication.Resolvers;
 using GestorInventario.Application.Interfaces.Web;
 using GestorInventario.Application.PaginationMethods;
-
 using GestorInventario.Application.Services.Authentication.Resolvers;
 using GestorInventario.Application.Services.Authentication.Services;
 using GestorInventario.Application.Services.Authentication.TokenGeneration.Generators;
@@ -46,13 +44,13 @@ using GestorInventario.Application.Services.BarcodeService;
 using GestorInventario.Application.Services.Files;
 using GestorInventario.Application.Services.Orders;
 using GestorInventario.Application.Services.Payment;
-using GestorInventario.Application.Services.Paypal.Plans;
-using GestorInventario.Application.Services.Paypal.Subscription;
 using GestorInventario.Application.Services.PDFService;
+using GestorInventario.Application.Services.Plans;
 using GestorInventario.Application.Services.Products;
 using GestorInventario.Application.Services.Provider;
 using GestorInventario.Application.Services.Refunds;
 using GestorInventario.Application.Services.ShopCart;
+using GestorInventario.Application.Services.Subscription;
 using GestorInventario.Application.Services.Syncs;
 using GestorInventario.Application.Services.User;
 using GestorInventario.Context;
@@ -63,7 +61,6 @@ using GestorInventario.Infrastructure.Authentication.Resolvers;
 using GestorInventario.Infrastructure.BackgroundServices;
 using GestorInventario.Infrastructure.Caching;
 using GestorInventario.Infrastructure.Data;
-using GestorInventario.Infrastructure.ExternalServices;
 using GestorInventario.Infrastructure.Interfaces.Middleware;
 using GestorInventario.Infrastructure.Notifications.Email.EmailServices;
 using GestorInventario.Infrastructure.Notifications.InternalNotification;
@@ -76,15 +73,15 @@ using GestorInventario.Infrastructure.Paypal.Subscriptions;
 using GestorInventario.Infrastructure.Renderers;
 using GestorInventario.Infrastructure.Renderers.PDF;
 using GestorInventario.Infrastructure.Repositories.AdminRepository;
-using GestorInventario.Infrastructure.Repositories.CarritoRepository;
 using GestorInventario.Infrastructure.Repositories.NotificacionRepository;
 using GestorInventario.Infrastructure.Repositories.PaymentRepository;
 using GestorInventario.Infrastructure.Repositories.PaypalRepository;
 using GestorInventario.Infrastructure.Repositories.PedidoRepository;
-using GestorInventario.Infrastructure.Repositories.ProductoRepository;
-using GestorInventario.Infrastructure.Repositories.ProveedorRepository;
+using GestorInventario.Infrastructure.Repositories.ProductRepository;
+using GestorInventario.Infrastructure.Repositories.ProviderRepository;
 using GestorInventario.Infrastructure.Repositories.RembolsoRepository;
-using GestorInventario.Infrastructure.Repositories.UserRepository;
+using GestorInventario.Infrastructure.Repositories.RoleRepository;
+using GestorInventario.Infrastructure.Repositories.ShopCartRepository;
 using GestorInventario.Infrastructure.Resilience;
 using GestorInventario.Infrastructure.Services;
 using GestorInventario.Shared.Utilities;
@@ -100,13 +97,13 @@ namespace GestorInventario.Composition
         // 1. CAPA DE DATOS: Solo Repositorios y Unit of Work
         public static IServiceCollection AddRepositories(this IServiceCollection services)
         {
-            services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<ICarritoRepository, CarritoRepository>();
+            services.AddScoped<IRoleRepository, RoleRepository>();
+            services.AddScoped<IShopCartRepository, ShopCartRepository>();
             services.AddScoped<IAdminRepository, AdminRepository>();
-            services.AddScoped<IPedidoRepository, PedidoRepository>();
-            services.AddScoped<IProductoRepository, ProductoRepository>();
-            services.AddScoped<IRembolsoRepository, RembolsoRepository>();
-            services.AddScoped<IProveedorRepository, ProveedorRepository>();
+            services.AddScoped<IOrderRepository, OrderRepository>();
+            services.AddScoped<IProductRepository, ProductRepository>();
+            services.AddScoped<IRefundRepository, RefundRepository>();
+            services.AddScoped<IProviderRepository, ProviderRepository>();
             services.AddScoped<IPaypalRepository, PaypalRepository>();
             services.AddScoped<IPaymentRepository, PaymentRepository>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
@@ -137,7 +134,7 @@ namespace GestorInventario.Composition
             services.AddScoped<IPdfService, PdfService>();
             services.AddScoped<IBarCodeService, BarCodeService>();
             services.AddScoped<IStockCheckService, StockCheckService>();
-           
+            services.AddScoped<ICartCleanupService,CartCleanupService>();
 
             // Servicios de Gestión (Core Business)
             services.AddScoped<IUserService, UserService>();
@@ -203,6 +200,7 @@ namespace GestorInventario.Composition
         {
             services.AddHostedService<StockCheckBackgroundService>();
             services.AddHostedService<NotificacionCleanupService>();
+            services.AddHostedService<CartCleanupBackgroundService>();
             return services;
         }
         //5. SERVICIOS QUE REQUIEREN CONFIGURACION MANUAL

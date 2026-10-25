@@ -18,7 +18,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.Authentication.
 public class SymmetricAuthStrategyTest
 {
     private readonly Mock<ITokenGenerator> _tokenGeneratorMock = new();
-    private readonly Mock<IUserRepository> _userRepositoryMock = new();
+    private readonly Mock<IRoleRepository> _userRepositoryMock = new();
     private readonly Mock<IRefreshTokenGenerator> _refreshTokenGeneratorMock = new();
     private readonly Mock<IJwtTokenSettings> _claimsBuilderMock = new();
     private readonly Mock<ILogger<SymmetricAuthStrategy>> _loggerMock = new();

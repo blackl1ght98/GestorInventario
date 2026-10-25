@@ -5,14 +5,14 @@ using GestorInventario.Infrastructure.Extensions;
 using GestorInventario.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 
-namespace GestorInventario.Infrastructure.Repositories.ProductoRepository
+namespace GestorInventario.Infrastructure.Repositories.ProductRepository
 {
-    public class ProductoRepository : IProductoRepository
+    public class ProductRepository : IProductRepository
     {
         private readonly GestorInventarioContext _context;      
          
      
-        public ProductoRepository(GestorInventarioContext context)
+        public ProductRepository(GestorInventarioContext context)
         {
             _context = context;              
                 

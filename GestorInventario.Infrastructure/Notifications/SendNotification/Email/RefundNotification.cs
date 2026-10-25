@@ -13,14 +13,14 @@ namespace GestorInventario.Infrastructure.Notifications.SendNotification.Email
     {
        
         private readonly ILogger<RefundNotification> _logger;
-        private readonly IPedidoRepository _pedidoRepository;  
+        private readonly IOrderRepository _orderRepository;  
         private readonly IEmailService _emailService;
-        public RefundNotification( ILogger<RefundNotification> logger, IPedidoRepository pedido,  
+        public RefundNotification( ILogger<RefundNotification> logger, IOrderRepository order,  
             IEmailService email)
         {
         
             _logger = logger;
-            _pedidoRepository = pedido;             
+            _orderRepository = order;             
             _emailService = email;
         }
 
@@ -32,11 +32,11 @@ namespace GestorInventario.Infrastructure.Notifications.SendNotification.Email
         {
             try
             {
-                var pedido = await _pedidoRepository.ObtenerPedidoConDetallesAsync(pedidoId);
+                var pedido = await _orderRepository.ObtenerPedidoConDetallesAsync(pedidoId);
 
                 if (pedido == null)
                 {
-                    _logger.LogWarning("No se encontró el pedido con ID {PedidoId}", pedidoId);
+                    _logger.LogWarning("No se encontró el order con ID {PedidoId}", pedidoId);
                     return OperationResult<string>.Fail("Pedido no encontrado");
                 }
 
@@ -85,7 +85,7 @@ namespace GestorInventario.Infrastructure.Notifications.SendNotification.Email
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al enviar notificación de reembolso para el pedido ID {PedidoId}", pedidoId);
+                _logger.LogError(ex, "Error al enviar notificación de reembolso para el order ID {PedidoId}", pedidoId);
                 return OperationResult<string>.Fail("Error al enviar el correo");
             }
         }

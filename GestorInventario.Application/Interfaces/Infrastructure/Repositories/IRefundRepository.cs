@@ -3,7 +3,7 @@ using GestorInventario.Shared.Utilities;
 
 namespace GestorInventario.Application.Interfaces.Infrastructure.Repositories
 {
-    public interface IRembolsoRepository
+    public interface IRefundRepository
     {
         Task<IQueryable<Rembolso>> ObtenerRembolsos();
         Task<OperationResult<string>> EliminarRembolso(int id);

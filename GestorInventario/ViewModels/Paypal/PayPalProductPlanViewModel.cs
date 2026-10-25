@@ -6,13 +6,13 @@ namespace GestorInventario.ViewModels.Paypal
     
     public class PayPalProductPlanViewModel
     {
-        [Required(ErrorMessage ="El nombre del producto es requerido")]
+        [Required(ErrorMessage ="El nombre del product es requerido")]
         public  string? Name { get; set; }
-        [Required(ErrorMessage ="La descripcion del producto es requerida")]
+        [Required(ErrorMessage ="La descripcion del product es requerida")]
         public string? Description { get; set; }
-        [Required(ErrorMessage ="El tipo de producto es requerido")]
+        [Required(ErrorMessage ="El tipo de product es requerido")]
         public string? Type { get; set; }
-        [Required(ErrorMessage ="La categoria del producto es requerida")]
+        [Required(ErrorMessage ="La categoria del product es requerida")]
         public string? Category { get; set; }
         [Required(ErrorMessage ="El nombre del plan es requerido")]
         public string? PlanName { get; set; }

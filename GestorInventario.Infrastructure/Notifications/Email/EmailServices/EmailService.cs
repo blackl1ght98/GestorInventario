@@ -4,6 +4,7 @@ using GestorInventario.Application.DTOS.Products;
 using GestorInventario.Application.Interfaces.Application.Services.Authentication.Services;
 using GestorInventario.Application.Interfaces.Application.Services.Common;
 using GestorInventario.Application.Interfaces.Application.Services.Email;
+using GestorInventario.Application.Interfaces.Application.Services.User;
 using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
 using GestorInventario.Application.Interfaces.Notifications.EmailServices;
 using GestorInventario.Domain.enums.Email;
@@ -18,21 +19,23 @@ namespace GestorInventario.Infrastructure.Notifications.Email.EmailServices
         
           
        
-        private readonly IUserRepository _userRepository;
+     
         private readonly ILogger<EmailService> _logger;
         private readonly IPasswordResetService _password;
         private readonly IBaseEmail _baseemail;
         private readonly IUrlService _urlService;
-        public EmailService(IUserRepository user,
+        private readonly IAdminRepository _adminRepository;
+        public EmailService(
             ILogger<EmailService> logger, IBaseEmail baseEmail,
-           IPasswordResetService pass, IUrlService url)
+           IPasswordResetService pass, IUrlService url,IAdminRepository adminRepository)
         {
                  
             _logger = logger;
-            _userRepository = user;
+          
             _password = pass;   
             _baseemail = baseEmail;
             _urlService = url;
+            _adminRepository = adminRepository;
            
         }
         public async Task<OperationResult<string>> SendEmailAsyncRegister(EmailDto userDataRegister, int usuarioId)
@@ -41,7 +44,7 @@ namespace GestorInventario.Infrastructure.Notifications.Email.EmailServices
             {   
                 // Generar token
                 string textoEnlace = GenerateSecureToken();    
-                var resultadoToken = await _userRepository.ActualizarEmailVerificationTokenAsync(usuarioId, textoEnlace);
+                var resultadoToken = await ActualizarEmailVerificationTokenAsync(usuarioId, textoEnlace);
                 if (!resultadoToken.Success)
                 {
                     return OperationResult<string>.Fail("Error al actualizar el token de verificación");
@@ -85,7 +88,7 @@ namespace GestorInventario.Infrastructure.Notifications.Email.EmailServices
                     return OperationResult<string>.Fail(resultado.Message);
                 }
                 string textoEnlace = GenerateSecureToken();
-                var resultadoToken = await _userRepository.ActualizarEmailVerificationTokenAsync(usuarioId, textoEnlace);
+                 await ActualizarEmailVerificationTokenAsync(usuarioId, textoEnlace);
          
                 // 2. Solo preparar el modelo y enviar el correo
                 var model = new ResetPasswordEmailViewmodel
@@ -118,7 +121,7 @@ namespace GestorInventario.Infrastructure.Notifications.Email.EmailServices
                 Cantidad=producto.Cantidad,
                 
             };
-            var enviado = await _baseemail.BuildEmail(correo.ToEmail, "Alerta: Bajo stock de producto", EmailView.LowStock, model);
+            var enviado = await _baseemail.BuildEmail(correo.ToEmail, "Alerta: Bajo stock de product", EmailView.LowStock, model);
             if (!enviado)
             {
                 return OperationResult<string>.Fail("Error al enviar el email");
@@ -144,7 +147,7 @@ namespace GestorInventario.Infrastructure.Notifications.Email.EmailServices
 
         public async Task<OperationResult<string>> EnviarEmailSolicitudRembolso(EmailReembolsoAprobadoDto correo)
         {
-            var administradores = await _userRepository.ObtenerEmailsAdministradoresAsync();
+            var administradores = await _adminRepository.ObtenerEmailsAdministradoresAsync();
 
             // Validar contenido, no solo null
             if (administradores is null || administradores.Count == 0)
@@ -225,7 +228,7 @@ namespace GestorInventario.Infrastructure.Notifications.Email.EmailServices
                     Productos = correo.Productos,
                     EsReembolsoTotal=correo.EsReembolsoTotal
                 };
-                var enviado = await _baseemail.BuildEmail(correo.EmailCliente, $"Tu reembolso para el pedido #{correo.NumeroPedido} ha sido aprobado", EmailView.RefundApproved, viewmodel);
+                var enviado = await _baseemail.BuildEmail(correo.EmailCliente, $"Tu reembolso para el order #{correo.NumeroPedido} ha sido aprobado", EmailView.RefundApproved, viewmodel);
                 if (!enviado)
                 {
                     return OperationResult<string>.Fail("Error al enviar el correo");
@@ -261,7 +264,16 @@ namespace GestorInventario.Infrastructure.Notifications.Email.EmailServices
                 throw;
             }
         }
-       
+        private async Task<OperationResult<string>> ActualizarEmailVerificationTokenAsync(int userId, string token)
+        {
+            var usuario = await _adminRepository.ObtenerUsuarioPorId(userId);
+            if (usuario == null)
+                return OperationResult<string>.Fail();
+
+            usuario.EmailVerificationToken = token;
+            await _adminRepository.ActualizarUsuarioAsync(usuario);
+            return OperationResult<string>.Ok("Token actualizado correctamente");
+        }
 
 
     }

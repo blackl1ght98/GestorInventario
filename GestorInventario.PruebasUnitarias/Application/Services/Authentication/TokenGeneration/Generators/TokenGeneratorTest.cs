@@ -10,13 +10,13 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.Authentication.
 
 public class TokenGeneratorTest
 {
-    private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<IRoleRepository> _userRepositoryMock;
     private readonly Mock<ITokenStrategyResolver> _tokenStrategyResolverMock;
     private readonly TokenGenerator _sut;
 
     public TokenGeneratorTest()
     {
-        _userRepositoryMock = new Mock<IUserRepository>();
+        _userRepositoryMock = new Mock<IRoleRepository>();
         _tokenStrategyResolverMock = new Mock<ITokenStrategyResolver>();
 
         _sut = new TokenGenerator(_userRepositoryMock.Object, _tokenStrategyResolverMock.Object);

@@ -1,26 +1,25 @@
 ﻿using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infrastructure.Data;
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace GestorInventario.Infrastructure.Repositories.CarritoRepository
+namespace GestorInventario.Infrastructure.Repositories.ShopCartRepository
 {
-    public class CarritoRepository : ICarritoRepository
+    public class ShopCartRepository : IShopCartRepository
     {
         private readonly GestorInventarioContext _context;     
-        private readonly ILogger<CarritoRepository> _logger;         
+        private readonly ILogger<ShopCartRepository> _logger;         
       
-        public CarritoRepository(GestorInventarioContext context,  
-            ILogger<CarritoRepository> logger )
+        public ShopCartRepository(GestorInventarioContext context,  
+            ILogger<ShopCartRepository> logger )
         {
             _context = context;        
             _logger = logger;                
            
         }
 
-        // Obtener el carrito del usuario (Pedidos con EsCarrito = 1)
+        // Obtener el shopCart del usuario (Pedidos con EsCarrito = 1)
         public async Task<Pedido> ObtenerCarritoUsuario(int userId)
         {
             var carrito = await _context.Pedidos
@@ -33,7 +32,7 @@ namespace GestorInventario.Infrastructure.Repositories.CarritoRepository
                .Where(p => p.IdUsuario == userId && p.EsCarrito)
                .ToListAsync();
 
-        // Obtener ítems del carrito (DetallePedido para un Pedido con EsCarrito = 1)
+        // Obtener ítems del shopCart (DetallePedido para un Pedido con EsCarrito = 1)
         public async Task<List<DetallePedido>> ObtenerItemsDelCarritoUsuario(int pedidoId)
         {
             var detallePedido = await _context.DetallePedidos
@@ -42,7 +41,7 @@ namespace GestorInventario.Infrastructure.Repositories.CarritoRepository
             return  detallePedido;
         }
 
-        // Obtener un ítem específico del carrito por ID
+        // Obtener un ítem específico del shopCart por ID
         public async Task<DetallePedido> ItemsDelCarrito(int id)
         {
             var item = await _context.DetallePedidos
@@ -51,7 +50,7 @@ namespace GestorInventario.Infrastructure.Repositories.CarritoRepository
         }
 
 
-        // Obtener ítems con datos relacionados (producto y proveedor)
+        // Obtener ítems con datos relacionados (product y proveedor)
         public IQueryable<DetallePedido> ObtenerItemsConDetalles(int pedidoId)
         {
             var detalle = _context.DetallePedidos
@@ -67,6 +66,11 @@ namespace GestorInventario.Infrastructure.Repositories.CarritoRepository
             var monedas = await _context.Moneda.ToListAsync();
             return monedas;
         }    
-      
+        public async Task<List<Pedido>> ObtenerCarritosAbandonadosAsync(DateTime cutoff)
+        {
+            return await _context.Pedidos
+                .Where(p => p.EsCarrito && p.FechaPedido < cutoff)
+                .ToListAsync();
+        }
     }
 }

@@ -10,7 +10,7 @@ namespace GestorInventario.Application.Services.BackgroundServices
 {
     public class StockCheckService : IStockCheckService
     {
-        private readonly IProductoRepository _productoRepository;
+        private readonly IProductRepository _productRepository;
         private readonly IEmailService _emailService;
         private readonly IAdminRepository _adminNotifierRepository;
         private readonly ILogger<StockCheckService> _logger;
@@ -18,7 +18,7 @@ namespace GestorInventario.Application.Services.BackgroundServices
 
 
         public StockCheckService(
-            IProductoRepository productoRepository,
+            IProductRepository productRepository,
             IEmailService emailService,
             IAdminRepository adminNotifierRepository,
             ILogger<StockCheckService> logger,
@@ -26,7 +26,7 @@ namespace GestorInventario.Application.Services.BackgroundServices
             
           )
         {
-            _productoRepository = productoRepository;
+            _productRepository = productRepository;
             _emailService = emailService;
             _adminNotifierRepository = adminNotifierRepository;
             _logger = logger;
@@ -54,7 +54,7 @@ namespace GestorInventario.Application.Services.BackgroundServices
                     adminEmails.Count);
 
                
-                var productos =  _productoRepository.ObtenerTodosLosProductos();
+                var productos =  _productRepository.ObtenerTodosLosProductos();
                 var productosBajoStock = productos.Where(p => p.Cantidad < 10).ToList();
 
                 if (!productosBajoStock.Any())

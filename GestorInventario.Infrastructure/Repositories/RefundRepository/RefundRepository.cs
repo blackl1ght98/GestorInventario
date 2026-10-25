@@ -7,12 +7,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GestorInventario.Infrastructure.Repositories.RembolsoRepository
 {
-    public class RembolsoRepository:IRembolsoRepository
+    public class RefundRepository:IRefundRepository
     {
         private readonly GestorInventarioContext _context;
        
 
-        public RembolsoRepository(GestorInventarioContext context)
+        public RefundRepository(GestorInventarioContext context)
         {
             _context = context;
            

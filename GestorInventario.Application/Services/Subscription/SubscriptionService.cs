@@ -1,13 +1,11 @@
-﻿using GestorInventario.Application.DTOS;
-using GestorInventario.Application.DTOS.Paypal;
+﻿using GestorInventario.Application.DTOS.Paypal;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.Subscription;
 using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
 using GestorInventario.Application.Mappers;
 using GestorInventario.Domain.Models;
 using Microsoft.Extensions.Logging;
 
-
-namespace GestorInventario.Application.Services.Paypal.Subscription
+namespace GestorInventario.Application.Services.Subscription
 {
     public class SubscriptionService : ISubscriptionService
     {

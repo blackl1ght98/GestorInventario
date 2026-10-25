@@ -1,15 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿
 
 namespace GestorInventario.Application.DTOS.Auth
 {
-    public class RestoresPasswordDto
+    public record RestoresPasswordDto
     {
-        public int UserId { get; set; }
-        public required string Token { get; set; }
-        [Required]
-        public  string? Password { get; set; }
-        [Required]
-        public  string? TemporaryPassword { get; set; }
+        public int UserId { get; init; }
+        public required string Token { get; init; }
+        
        
     }
 }

@@ -8,7 +8,7 @@ namespace GestorInventario.Infrastructure.ExternalServices
         public  string? Id { get; init; } // ID del plan en PayPal
 
         [JsonProperty("product_id")]
-        public required string ProductId { get; init; } // ID del producto asociado
+        public required string ProductId { get; init; } // ID del product asociado
 
         [JsonProperty("name")]
         public required string Name { get; init; } // Nombre del plan
