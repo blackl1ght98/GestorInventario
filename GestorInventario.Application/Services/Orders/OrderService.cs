@@ -55,7 +55,7 @@ public class OrderService : IOrderService
         if (!detallesPayPal.Success)
             return OperationResult<PayPalPaymentDetail>.Fail(detallesPayPal.Message);
 
-        var detalles = detallesPayPal.Unwrap(); 
+        var detalles = detallesPayPal.Unwrap();
 
         var detalleBD = await ObtenerOCrearDetallePagoAsync(id, detalles);
 
@@ -173,6 +173,7 @@ public class OrderService : IOrderService
     private async Task<PayPalPaymentDetail> ObtenerOCrearDetallePagoAsync(
         string id, PayPalOrderDetailsDto detalles)
     {
+        // Buscamos si ya existe por su ID de PayPal
         var existente = await _paymentRepository.ObtenerDetallesPago(id);
 
         if (existente == null)
@@ -183,8 +184,9 @@ public class OrderService : IOrderService
             return nuevo;
         }
 
-        await _paymentRepository.EliminarDetallesPagoAsync(existente);
-        _logger.LogInformation("Detalle de pago {Id} actualizado en BD", id);
+        // SI YA EXISTE: NO LO BORRES. Solo actualiza sus propiedades.
+        // De esta forma la entidad padre NUNCA pierde su identidad ni rompe relaciones.
+        _logger.LogInformation("Detalle de pago {Id} ya existe. Actualizando datos...", id);
         return existente;
     }
 
@@ -316,10 +318,10 @@ public class OrderService : IOrderService
             return OperationResult<DetalleOrdenDto>.Fail();
         }
 
-        var detalles = pedido.DetallePedidos.ToList();
-        if (!detalles.Any())
+        var detalles = pedido.DetallePedidos?.ToList() ?? new List<DetallePedido>();
+        if (pedido.EsCarrito && !detalles.Any())
         {
-            return OperationResult<DetalleOrdenDto>.Fail();
+            return OperationResult<DetalleOrdenDto>.Fail("El carrito está vacío.");
         }
 
         var productos = detalles.Select(d =>
@@ -331,7 +333,7 @@ public class OrderService : IOrderService
             return new DetallePedidoDto
             {
                 DetalleId = d.Id,
-                NombreProducto = d.Producto?.NombreProducto,
+                NombreProducto = d.Producto?.NombreProducto ?? "Producto sin nombre",
                 Descripcion = d.Producto?.Descripcion,
                 Cantidad = d.Cantidad,
                 PrecioUnitario = precioUnitario,
@@ -345,12 +347,14 @@ public class OrderService : IOrderService
         var (totalSinIva, totalIva, granTotal) = CalculadoraFiscal.CalcularTotales(
             detalles.Select(d => (d.Producto?.Precio ?? 0, d.Cantidad))
         );
-        var paymentId = pedido.PayPalPaymentCaptures.FirstOrDefault().PaymentId;
-        var pedidoId = pedido.Id;
+
+        // BLINDAJE: Evita NullReferenceException si no hay pagos de PayPal asociados
+        var paymentId = pedido.PayPalPaymentCaptures?.FirstOrDefault()?.PaymentId;
+
         var viewmodel = new DetalleOrdenDto
         {
             FechaPedido = pedido.FechaPedido,
-            NombreCompleto = pedido.IdUsuarioNavigation.NombreCompleto,
+            NombreCompleto = pedido.IdUsuarioNavigation?.NombreCompleto ?? "Cliente no registrado",
             NumeroPedido = pedido.NumeroPedido,
             EstadoPedido = pedido.EstadoPedido,
             Currency = pedido.Currency,
@@ -359,8 +363,9 @@ public class OrderService : IOrderService
             TotalIva = totalIva,
             Total = granTotal,
             PaymentId = paymentId,
-            PedidoId = pedidoId,
+            PedidoId = pedido.Id,
         };
+
         return OperationResult<DetalleOrdenDto>.Ok(viewmodel);
     }
 }

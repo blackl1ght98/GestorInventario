@@ -131,7 +131,6 @@ namespace GestorInventario.Controllers.ProductosController
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al mostrar la vista de creacion del product");
                 return RedirectToAction("Error", "Home");
             }
@@ -337,7 +336,6 @@ namespace GestorInventario.Controllers.ProductosController
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al editar el product");
                 return RedirectToAction("Error", "Home");
             }

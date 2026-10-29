@@ -219,7 +219,7 @@ namespace GestorInventario.Controllers.PaypalControllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error inesperado al crear product/plan");
-                TempData["ErrorMessage"] = "Ocurrió un error inesperado. Inténtalo de nuevo.";
+            
                 return View(model);
             }
         }

@@ -71,7 +71,6 @@ namespace GestorInventario.Controllers.ProveedorController
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor ha tardado mucho en responder, inténtelo de nuevo más tarde";
                 _logger.LogError(ex, "Error al mostrar los proveedores");
                 return RedirectToAction("Error", "Home");
             }
@@ -133,7 +132,6 @@ namespace GestorInventario.Controllers.ProveedorController
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al crear el order");
                 return RedirectToAction("Error", "Home");
             }
@@ -164,7 +162,6 @@ namespace GestorInventario.Controllers.ProveedorController
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor ha tardado mucho en responder, inténtelo de nuevo más tarde";
                 _logger.LogError(ex, "Error al mostrar la vista de eliminación del proveedor");
                 return RedirectToAction("Error", "Home");
             }
@@ -195,7 +192,6 @@ namespace GestorInventario.Controllers.ProveedorController
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al eliminar el proveedor");
                 return RedirectToAction("Error", "Home");
             }
@@ -228,7 +224,6 @@ namespace GestorInventario.Controllers.ProveedorController
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al mostrar la vista de edicion del proveedor");
                 return RedirectToAction("Error", "Home");
             }
@@ -289,7 +284,6 @@ namespace GestorInventario.Controllers.ProveedorController
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor tardó mucho en responder, inténtelo de nuevo más tarde";
                 _logger.LogError(ex, "Error al editar el proveedor");
                 return RedirectToAction("Error", "Home");
             }

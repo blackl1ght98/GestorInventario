@@ -3,7 +3,6 @@ using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
 using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;
 using GestorInventario.Application.Interfaces.MetodosPaginacion;
 using GestorInventario.Application.Interfaces.Web;
-using GestorInventario.Domain.Common;
 using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Extensions;
 using GestorInventario.Mappers;
@@ -93,7 +92,6 @@ namespace GestorInventario.Controllers.PedidosControllers
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al obtener los pedidos");
                 return RedirectToAction("Error", "Home");
             }
@@ -105,18 +103,24 @@ namespace GestorInventario.Controllers.PedidosControllers
             try
             {
                 var pedido = await _orderService.GetOrderDetailsAsync(id);
-                var result = pedido.Unwrap();
+                if (pedido.Success)
+                {
+                    var result = pedido.Unwrap();
+                    var viewmodel = result.ToViewModel();
+                    return View(viewmodel);
+                }
 
-               
-                var viewmodel = result.ToViewModel();
-
-                return View(viewmodel);
+                if ( pedido.Message.Contains("El carrito"))
+                {
+                    TempData["Error"] = "No se puede mostrar el detalle porque el carrito está vacío.";
+                }
+              
+                return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al obtener los detalles del order");
-                return RedirectToAction("Error", "Home");
+                return RedirectToAction(nameof(Index));
             }
         }
 
@@ -131,7 +135,7 @@ namespace GestorInventario.Controllers.PedidosControllers
             // Solo se puede cancelar si no está enviado ni entregado
             if (pedido.EstadoPedido == EstadoPedido.Enviado.ToString()
                 || pedido.EstadoPedido == EstadoPedido.Entregado.ToString())
-                return BadRequest(new { success = false, errorMessage = "No se puede cancelar un order ya enviado" });
+                return BadRequest(new { success = false, errorMessage = "No se puede cancelar un pedido ya enviado" });
 
             pedido.EstadoPedido = EstadoPedido.Cancelado.ToString();
             await _orderRepository.ActualizarPedidoAsync(pedido);
@@ -148,7 +152,7 @@ namespace GestorInventario.Controllers.PedidosControllers
             if (pedido == null) return NotFound();
 
             if (pedido.EstadoPedido != EstadoPedido.Enviado.ToString())
-                return BadRequest("El order no está enviado");
+                return BadRequest("El pedido no está enviado");
 
             pedido.EstadoPedido = EstadoPedido.Entregado.ToString();
             await _orderRepository.ActualizarPedidoAsync(pedido);

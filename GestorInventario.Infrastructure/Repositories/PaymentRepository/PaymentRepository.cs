@@ -60,23 +60,7 @@ namespace GestorInventario.Infrastructure.Repositories.PaymentRepository
                 return OperationResult<PayPalPaymentCapture>.Ok( detalle);
             });
         }
-
-       
-        // METODO USADO SOLO EN SINCRONIZACION DE DATOS CON PAYPAL
-        public async Task<OperationResult<string>> EliminarDetallesPagoAsync(PayPalPaymentDetail pago)
-        {
-            return await _context.ExecuteInTransactionAsync(async () =>
-            {
-                await _context.DeleteRangeEntityAsync(pago.PayPalPaymentItems);
-                await _context.DeleteRangeEntityAsync(pago.PayPalPaymentCaptures);
-                await _context.DeleteRangeEntityAsync(pago.PayPalPaymentShippings);
-                await _context.DeleteRangeEntityAsync(pago.PayPalPaymentRefunds);
-
-
-                return OperationResult<string>.Ok("Pedido eliminado con exito");
-            });
-        }
-
+        
         public async Task<OperationResult<PayPalPaymentRefund>> AgregarRefundAsync(PayPalPaymentRefund refund)
         {
             return await _context.ExecuteInTransactionAsync(async () =>

@@ -6,8 +6,7 @@ using GestorInventario.Infrastructure.Extensions;
 using GestorInventario.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 
-
-namespace GestorInventario.Infrastructure.Repositories.PedidoRepository
+namespace GestorInventario.Infrastructure.Repositories.OrderRepository
 {
     public class OrderRepository : IOrderRepository
     {
@@ -116,15 +115,18 @@ namespace GestorInventario.Infrastructure.Repositories.PedidoRepository
         }
         public async Task<OperationResult<string>> EliminarCarritoAsync(Pedido pedido)
         {
-            return await _context.ExecuteInTransactionAsync(async () =>
+            // Si los detalles no vienen cargados, los buscamos primero
+            if (pedido.DetallePedidos == null || !pedido.DetallePedidos.Any())
             {
-                await  _context.DeleteRangeEntityAsync(pedido.DetallePedidos);
-                await _context.DeleteEntityAsync(pedido);
-                return OperationResult<string>.Ok("Pedido eliminado con exito");
-            });
-        }
-      
+                pedido.DetallePedidos = await _context.DetallePedidos
+                    .Where(dp => dp.PedidoId == pedido.Id)
+                    .ToListAsync();
+            }
+            // Usamos tu nuevo método de extensión genérico
+            await _context.DeleteWithChildrenAsync(pedido, pedido.DetallePedidos);
 
+            return OperationResult<string>.Ok("Pedido eliminado con exito");
+        }
     }
     
 }

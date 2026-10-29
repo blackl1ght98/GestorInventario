@@ -80,7 +80,7 @@ namespace GestorInventario.Controllers.AdminControllers
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor ha tardado mucho en responder, inténtelo de nuevo más tarde.";
+                
                 _logger.LogError(ex, "Error al visualizar la vista de creación de usuario");
                 return RedirectToAction("Error", "Home");
             }
@@ -120,7 +120,6 @@ namespace GestorInventario.Controllers.AdminControllers
 
                 if (!result.Success)
                 {
-                    TempData["ErrorMessage"] = result.Message;
                     CargarRolesEnViewData();
                     return View(model);
                 }
@@ -132,7 +131,6 @@ namespace GestorInventario.Controllers.AdminControllers
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor tardó mucho en responder, inténtelo de nuevo más tarde.";
                 _logger.LogError(ex, "Error al realizar el registro del usuario");
                 return RedirectToAction("Error", "Home");
             }
@@ -145,13 +143,12 @@ namespace GestorInventario.Controllers.AdminControllers
             {               
                 var validar = await _userService.ValidarRegistro(confirmar);
                 if (!validar.Success) {
-                    TempData["ErrorMessageConfirm"] =validar.Message;
+                    _logger.LogError(validar.Message); 
                 }
                 return RedirectToAction("Login", "Auth");
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al confirmar la cuenta del usuario");
                 return RedirectToAction("Error", "Home");
             }
@@ -171,7 +168,7 @@ namespace GestorInventario.Controllers.AdminControllers
 
                 if ( usuario == null)
                 {
-                    TempData["ErrorMessage"] =  "Usuario no encontrado";
+                 
                     _logger.LogWarning("Intento de editar usuario inexistente con ID {UserId}", id);
                     return RedirectToAction(nameof(Index));
                 }
@@ -194,7 +191,7 @@ namespace GestorInventario.Controllers.AdminControllers
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor ha tardado mucho en responder. Inténtelo de nuevo más tarde.";
+               
                 _logger.LogError(ex, "Error al visualizar la vista de edición de usuario {UserId}", id);
                 return RedirectToAction("Error", "Home");
             }
@@ -225,7 +222,6 @@ namespace GestorInventario.Controllers.AdminControllers
                
                 if (!result.Success)
                 {
-                    TempData["ErrorMessage"] = result.Message;
                     return View(userVM);
                 }
                 if (User.IsAdministrador())
@@ -239,7 +235,7 @@ namespace GestorInventario.Controllers.AdminControllers
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor ha tardado mucho en responder, inténtelo de nuevo más tarde";
+                
                 _logger.LogError(ex, "Error al editar la información del usuario");
                 return RedirectToAction("Error", "Home");
             }
@@ -272,7 +268,7 @@ namespace GestorInventario.Controllers.AdminControllers
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
+               
                 _logger.LogError(ex, "Error al visualizar la vista de eliminacion del usuario");
                 return RedirectToAction("Error", "Home");
             }
@@ -289,7 +285,7 @@ namespace GestorInventario.Controllers.AdminControllers
                 if (result.Success)
                     return RedirectToAction(nameof(Index));
 
-                TempData["ErrorMessage"] = result.Message;
+              
                 _logger.LogError(result.Message);
                 return RedirectToAction(nameof(Delete), new { id = Id });
             }
@@ -308,7 +304,7 @@ namespace GestorInventario.Controllers.AdminControllers
             var currentUserId = _currentUserAccessor.GetCurrentUserId();
             if (request.Id == currentUserId)
             {
-                TempData["ErrorMessage"] = "No puedes darte de baja a ti mismo";
+             
                 return RedirectToAction(nameof(Index));
             }
             var result = await _policyExecutor.ExecutePolicyAsync(() => _userService.CambiarEstadoUsuarioAsync(request.Id,false));
@@ -343,7 +339,7 @@ namespace GestorInventario.Controllers.AdminControllers
             }
             else
             {
-                TempData["ErrorMessage"] = result.Message;
+             
                 return Json(new { success = false, errorMessage = result.Message });
             }
         }

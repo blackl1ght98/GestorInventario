@@ -79,34 +79,11 @@
                 throw new InvalidOperationException($"Intentando acceder a Data en un resultado fallido o vacío: {Message}");
             return Data;
         }
-        /// <summary> Transforma el dato interno a otro tipo si la operación fue exitosa. </summary>
-        public OperationResult<TOut> Map<TOut>(Func<T, TOut> mapper)
-        {
-            if (!Success) return OperationResult<TOut>.Fail(Message);
-            try
-            {
-                // El orden correcto es: (Mensaje, Dato)
-                return OperationResult<TOut>.Ok( mapper(Data!),Message);
-            }
-            catch (Exception ex)
-            {
-                return OperationResult<TOut>.Fail($"Error en transformación: {ex.Message}");
-            }
-        }
 
-        /// <summary> Encadena otra operación asíncrona que devuelve un OperationResult. </summary>
-        public async Task<OperationResult<TOut>> BindAsync<TOut>(Func<T, Task<OperationResult<TOut>>> next)
-        {
-            if (!Success) return OperationResult<TOut>.Fail(Message);
-            return await next(Data!);
-        }
+
      
-        /// <summary> Valida que el dato cumpla una condición; si no, marca el resultado como fallido. </summary>
-        public OperationResult<T> Ensure(Func<T, bool> predicate, string errorMessage)
-        {
-            if (!Success) return this;
-            return predicate(Data!) ? this : OperationResult<T>.Fail(errorMessage);
-        }
+     
+        
 
     }
 }

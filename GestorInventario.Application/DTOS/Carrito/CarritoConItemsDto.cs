@@ -2,9 +2,9 @@
 
 namespace GestorInventario.Application.DTOS.Carrito
 {
-    public class CarritoConItemsDto
+    public record CarritoConItemsDto
     {
-        public required Pedido Carrito { get; set; }
-        public List<DetallePedido> Items { get; set; } = new();
+        public required Pedido Carrito { get; init; }
+        public List<DetallePedido> Items { get; init; } = new();
     }
 }

@@ -38,7 +38,7 @@ namespace GestorInventario.Controllers.PedidosControllers
             if (!resultado.Success)
             {
                 TempData["ErrorMessage"] = resultado.Message ?? "No se pudo generar la factura.";
-                return RedirectToAction("DetallesPagoEjecutado", new { id });
+                return RedirectToAction("DetallesPagoEjecutado","Payment", new { id });
             }
 
             var pdfBytes = resultado.Data;

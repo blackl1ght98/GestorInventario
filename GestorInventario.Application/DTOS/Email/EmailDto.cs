@@ -1,8 +1,8 @@
 ﻿namespace GestorInventario.Application.DTOS.Email
 {
-    public class EmailDto
+    public record EmailDto
     {
-        public required string ToEmail { get; set; }
+        public required string ToEmail { get; init; }
      
 
     }

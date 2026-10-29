@@ -35,7 +35,7 @@ namespace GestorInventario.Controllers.PedidosControllers
                 if (pedido == null)
                 {
                     _logger.LogError("Intento de manipulacion de id: {PedidoId}", envio.PedidoId);
-                    return BadRequest(new {success=false, message="El order no es valido"});
+                    return BadRequest(new {success=false, message="Operacion fallida"});
                 }
                 if (pedido.EstadoPedido == EstadoPedido.Cancelado.ToString())
                 {

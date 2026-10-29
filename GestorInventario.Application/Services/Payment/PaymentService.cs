@@ -158,7 +158,7 @@ namespace GestorInventario.Application.Services.Payment
             var itemsDelCarrito = await _unitOfWork.ShopCartRepository.ObtenerItemsDelCarritoUsuario(carrito.Id);
             if (!itemsDelCarrito.Any())
             {
-                return OperationResult<CarritoConItemsDto>.Fail("El shopCart está vacío.");
+                return OperationResult<CarritoConItemsDto>.Fail("El carrito está vacío.");
             }
 
             var resultado = new CarritoConItemsDto

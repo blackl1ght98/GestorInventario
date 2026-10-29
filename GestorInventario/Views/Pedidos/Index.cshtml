@@ -13,7 +13,13 @@
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
         <h1 class="display-5 text-primary mb-0">Pedidos</h1>
     </div>
-
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
     <!-- Filtros -->
     <div class="row g-3 mb-5">
         <!-- Filtro por fechas -->
@@ -95,19 +101,20 @@
                         <div class="mt-auto pt-3">
                             <div class="d-grid gap-2">
                                 <a asp-action="DetallesPedido" asp-route-id="@pedido.Id"
-                                   class="btn btn-outline-primary">
+                                   class="btn btn-outline-primary @(pedido.DetallePedidos?.Any() == true ? "" : "d-none")">
                                     <i class="bi bi-eye me-2"></i>Ver Detalles
                                 </a>
+                              
                                 @{
                                     var estadoNoCancelable = pedido.EstadoPedido == "Cancelado"
-                                        || pedido.EstadoPedido == "Entregado"
-                                        || pedido.EstadoPedido == "Enviado"
-                                        || pedido.EstadoPedido == "Rembolsado";
+                                                             || pedido.EstadoPedido == "Entregado"
+                                                             || pedido.EstadoPedido == "Enviado"
+                                                             || pedido.EstadoPedido == "Rembolsado";
                                 }
                                 @if (User.IsAdministrador())
                                 {
                                     <div class="btn-group" role="group">
-                                      
+
                                         @{
                                             var captura = pedido.PayPalPaymentCaptures.FirstOrDefault();
                                         }
@@ -124,34 +131,34 @@
                                             </button>
                                         }
                                         <button type="button"
-                                                class="btn btn-outline-warning flex-fill cancel-btn"
-                                                data-pedido-id="@pedido.Id"                                        
-                                            @(estadoNoCancelable ? "disabled" : "")>
+                                                class="btn btn-outline-warning flex-fill cancel-btn "
+                                                data-pedido-id="@pedido.Id"
+                                                @(estadoNoCancelable ? "disabled" : "")>
                                             Cancelar
                                         </button>
                                         <button type="button"
                                                 class="btn btn-outline-warning flex-fill entrega-btn"
                                                 data-pedido-id="@pedido.Id"
-                                            @(pedido.EstadoPedido == EstadoPedido.Entregado.ToString() ? "disabled" : "")>
+                                                @(pedido.EstadoPedido == EstadoPedido.Entregado.ToString()  ? "disabled" : "")>
                                             Confirmar entrega
                                         </button>
-                                      
+
                                     </div>
 
                                     <button class="btn btn-success activate-action-button mt-2 envio-btn"
-                                            data-pedido-id="@pedido.Id"                                      
+                                            data-pedido-id="@pedido.Id"
                                             title="Agregar información de envío">
                                         <i class="bi bi-truck me-2"></i>Agregar Envío
                                     </button>
 
                                     <div class="d-grid gap-2 mt-2">
-                                   
+
 
 
                                         @{
                                             // Buscar el capture asociado 
                                             var capture = pedido.PayPalPaymentCaptures?.FirstOrDefault();
-                                            var paymentId = capture?.PaymentId; 
+                                            var paymentId = capture?.PaymentId;
                                         }
 
                                         @if (!string.IsNullOrEmpty(paymentId))
@@ -168,64 +175,63 @@
                                                asp-route-paymentId="@paymentId"
                                                asp-route-pedidoId="@pedido.Id"
                                                class="btn btn-outline-info">
-                                               Sincronizar
+                                                Sincronizar
                                             </a>
-                                          
+
                                         }
                                         else
                                         {
-                                            <a asp-action="ReintentarPago" 
-                                               asp-controller="Payment" 
-                                               asp-route-pedidoId="@pedido.Id" 
+                                            <a asp-action="ReintentarPago"
+                                               asp-controller="Payment"
+                                               asp-route-pedidoId="@pedido.Id"
                                                class="btn btn-sm btn-outline-primary">
                                                 <i class="fas fa-credit-card me-1"></i> Completar pago
-                                            </a>    
+                                            </a>
                                         }
-                                          
-                                        
+
+
                                     </div>
                                 }
                                 else
                                 {
                                     <div class="btn-group" role="group">
- 
-                                       
+
+
                                         <button type="button"
                                                 class="btn btn-outline-warning flex-fill cancel-btn"
                                                 data-pedido-id="@pedido.Id"
-                                          
-                                            @(estadoNoCancelable ? "disabled":"")
-                                            >
+
+                                                @(estadoNoCancelable ? "disabled" : "")>
                                             Cancelar
                                         </button>
                                         <button type="button"
                                                 class="btn btn-outline-warning flex-fill entrega-btn"
                                                 data-pedido-id="@pedido.Id"
-                                            @(pedido.EstadoPedido == "Entregado" ? "disabled" : "")>
+                                                @(pedido.EstadoPedido == "Entregado" ? "disabled" : "")>
                                             Confirmar entrega
                                         </button>
-                                        
-                                      
+
+
                                     </div>
-                                    <div class="d-grid gap-2 mt-2">                              
+                                    <div class="d-grid gap-2 mt-2">
                                         @{
                                             // Buscar el capture asociado
                                             var capture = pedido.PayPalPaymentCaptures?.FirstOrDefault();
                                             var paymentId = capture?.PaymentId;
                                         }
-                                      
+
                                         @if (!string.IsNullOrEmpty(paymentId))
                                         {
                                             <a asp-action="DetallesPagoEjecutado"
                                                asp-controller="Payment"
-                                               asp-route-paymentId="@paymentId"      
+                                               asp-route-paymentId="@paymentId"
                                                class="btn btn-outline-info">
                                                 Detalles del Pago
                                             </a>
-                                           
-                                              
-                                           
-                                            
+
+
+
+
                                         }
                                         else
                                         {

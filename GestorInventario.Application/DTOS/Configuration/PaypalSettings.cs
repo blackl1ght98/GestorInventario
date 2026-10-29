@@ -5,17 +5,17 @@ namespace GestorInventario.Application.DTOS.Configuration
     public class PaypalSettings
     {
         public const string SectionName = "Paypal";
-        public ReturnUrlSet ReturnUrls { get; set; } = new();
-        public CancelUrlSet CancelUrls { get; set; } = new();
+        public required ReturnUrlSet ReturnUrls { get; set; }
+        public required CancelUrlSet CancelUrls { get; set; } 
     }
-    public class ReturnUrlSet
+    public record ReturnUrlSet
     {
-        public string Development { get; set; } = string.Empty;
-        public string Docker { get; set; } = string.Empty;
+        public required string Development { get; set; } 
+        public required string Docker { get; set; } 
     }
-    public class CancelUrlSet
+    public record CancelUrlSet
     {
-        public string Development { get; set; } = string.Empty;
-        public string Docker { get; set; } = string.Empty;
+        public required string Development { get; set; } 
+        public required string Docker { get; set; }
     }
 }

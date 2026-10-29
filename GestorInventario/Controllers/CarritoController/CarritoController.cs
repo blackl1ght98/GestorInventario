@@ -116,7 +116,7 @@ namespace GestorInventario.Controllers.CarritoController
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
+               
                 _logger.LogError(ex, "Error al realizar el checkout");
                 return RedirectToAction("Error", "Home");
             }
@@ -182,7 +182,7 @@ namespace GestorInventario.Controllers.CarritoController
             catch (Exception ex)
             {
 
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
+               
                 _logger.LogError(ex, "Error al realizar el checkout");
                 return RedirectToAction("Error", "Home");
             }
@@ -206,7 +206,7 @@ namespace GestorInventario.Controllers.CarritoController
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
+             
                 _logger.LogError(ex, "Error al agregar el product al shopCart");
                 return RedirectToAction("Error", "Home");
             }

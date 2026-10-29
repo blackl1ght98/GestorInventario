@@ -65,13 +65,12 @@ namespace GestorInventario.Controllers.PaypalControllers
             catch (Exception ex)
             {
                 _logger.LogError($"Ocurrio un error con la api de paypa: {ex.Message}");
-                TempData["ErrorMessage"] = $"Error al iniciar la suscripción";
                 return RedirectToAction("MostrarPlanes", "PaypalPlan");
             }
         }
 
         [Authorize]
-        public async Task<IActionResult> ConfirmarSuscripcion(string subscription_id, string token, string ba_token)
+        public async Task<IActionResult> ConfirmarSuscripcion(string subscription_id, string token)
         {
             try
             {
@@ -134,7 +133,7 @@ namespace GestorInventario.Controllers.PaypalControllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al cancelar suscripción {Id}", Id);
-                TempData["ErrorMessage"] = $"Error al cancelar la suscripción";
+              
                 return RedirigirSegunRol();
             }
         }
@@ -168,7 +167,7 @@ namespace GestorInventario.Controllers.PaypalControllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al suspender suscripción {Id}", Id);
-                TempData["ErrorMessage"] = $"Error al suspender la suscripción: {ex.Message}";
+                
                 return RedirigirSegunRol();
             }
         }
@@ -334,8 +333,7 @@ namespace GestorInventario.Controllers.PaypalControllers
             }
             catch (Exception ex)
             {
-                TempData["ConnectionError"] =
-                    "El servidor ha tardado mucho en responder. Inténtelo de nuevo más tarde.";
+               
                 _logger.LogError(ex,
                     "Error al obtener las suscripciones del usuario {UsuarioId} para la página {Pagina}",
                     _currentUserAccessor.GetCurrentUserId(), paginacion.Pagina);

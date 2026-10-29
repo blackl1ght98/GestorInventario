@@ -21,7 +21,7 @@ namespace GestorInventario.Infrastructure.Notifications.Email.EmailServices
 
             // Apunta a GestorInventario.Notifications/ViewsEmailService/ dentro del output
             _templatesRoot = Path.Combine(AppContext.BaseDirectory, "Notifications", "Email", "ViewsEmailService");
-            Console.WriteLine("Ruta: "+_templatesRoot);
+          
             _razorEngine = new RazorLightEngineBuilder()
                 .UseFileSystemProject(_templatesRoot)
                 .UseMemoryCachingProvider()

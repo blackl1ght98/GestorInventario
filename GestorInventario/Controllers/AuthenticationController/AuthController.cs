@@ -195,7 +195,6 @@ namespace GestorInventario.Controllers.AuthenticationController
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor a tardado mucho en responder intentelo de nuevo mas tarde";
                 _logger.LogError(ex, "Error al cerrar sesion");
                 return RedirectToAction("Error", "Home");
             }
@@ -220,7 +219,6 @@ namespace GestorInventario.Controllers.AuthenticationController
             }
             catch (Exception ex)
             {
-                TempData["ConnectionError"] = "El servidor tardó mucho en responder, inténtelo de nuevo más tarde.";
                 _logger.LogError(ex, "Error al enviar el email de restablecimiento");
                 return RedirectToAction("Error", "Home");
             }
@@ -285,7 +283,6 @@ namespace GestorInventario.Controllers.AuthenticationController
             }
             catch (Exception ex)
             {
-                TempData["ConnectionError"] = "El servidor tardó mucho en responder, inténtelo de nuevo más tarde.";
                 _logger.LogError(ex, "Error al enviar el email de restablecimiento");
                 return RedirectToAction("Error", "Home");
             }
