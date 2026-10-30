@@ -127,6 +127,14 @@ namespace GestorInventario.Infrastructure.Repositories.OrderRepository
 
             return OperationResult<string>.Ok("Pedido eliminado con exito");
         }
+        public async Task<List<Pedido>> ObtenerTodosLosPendientesAntiguosAsync(DateTime limiteTiempo)
+        {
+            return await _context.Pedidos
+                .Include(p => p.DetallePedidos) 
+                .Where(p => p.EstadoPedido == EstadoPedido.Pendiente.ToString() 
+                            && p.FechaPedido <= limiteTiempo)
+                .ToListAsync();
+        }
     }
     
 }

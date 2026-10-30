@@ -201,6 +201,7 @@ namespace GestorInventario.Composition
             services.AddHostedService<StockCheckBackgroundService>();
             services.AddHostedService<NotificacionCleanupService>();
             services.AddHostedService<CartCleanupBackgroundService>();
+            services.AddHostedService<LimpiezaPedidosExpiradosService>();
             return services;
         }
         //5. SERVICIOS QUE REQUIEREN CONFIGURACION MANUAL

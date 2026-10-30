@@ -100,10 +100,11 @@
                                 </a>
                               
                                 @{
-                                    var estadoNoCancelable = pedido.EstadoPedido == "Cancelado"
-                                                             || pedido.EstadoPedido == "Entregado"
-                                                             || pedido.EstadoPedido == "Enviado"
-                                                             || pedido.EstadoPedido == "Rembolsado";
+                                    var estadoNoCancelable = pedido.EstadoPedido == EstadoPedido.Cancelado.ToString()
+                                                             || pedido.EstadoPedido == EstadoPedido.Entregado.ToString()
+                                                             || pedido.EstadoPedido == EstadoPedido.Enviado.ToString()
+                                                             || pedido.EstadoPedido == EstadoPedido.Rembolsado.ToString()
+                                                             || pedido.EstadoPedido == EstadoPedido.Pagado.ToString();
                                 }
                                 @if (User.IsAdministrador())
                                 {
@@ -142,7 +143,7 @@
                                     <button class="btn btn-success activate-action-button mt-2 envio-btn"
                                             data-pedido-id="@pedido.Id"
                                             title="Agregar información de envío"
-                                            @(pedido.EsCarrito?"disabled":"")>
+                                            @(pedido.EsCarrito || pedido.EstadoPedido == EstadoPedido.Cancelado.ToString()?"disabled":"")>
                                         <i class="bi bi-truck me-2"></i>Agregar Envío
                                     </button>
 
@@ -179,7 +180,8 @@
                                             <a asp-action="ReintentarPago"
                                                asp-controller="Payment"
                                                asp-route-pedidoId="@pedido.Id"
-                                               class="btn btn-sm btn-outline-primary">
+                                               class="btn btn-sm btn-outline-primary"
+                                               @(pedido.EstadoPedido == EstadoPedido.Cancelado.ToString() || pedido.EsCarrito ? "disabled" : "")>
                                                 <i class="fas fa-credit-card me-1"></i> Completar pago
                                             </a>
                                         }

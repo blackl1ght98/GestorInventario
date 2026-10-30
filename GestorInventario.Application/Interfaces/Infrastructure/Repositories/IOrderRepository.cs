@@ -16,6 +16,8 @@ namespace GestorInventario.Application.Interfaces.Infrastructure.Repositories
         Task<DetallePedido> ObtenerDetalleParaReembolsoAsync(int detallePedidoId);
         Task<DetallePedido> ObtenerDetallePorIdAsync(int id);
         Task<Pedido> ObtenerPedidoConCapturasAsync(int id);
+
+        Task<List<Pedido>> ObtenerTodosLosPendientesAntiguosAsync(DateTime limiteTiempo);
         //Operaciones
         Task<OperationResult<Pedido>> ActualizarPedidoAsync(Pedido pedido);
         Task<OperationResult<DetallePedido>> ActualizarDetallePedidoAsync(DetallePedido pedido);

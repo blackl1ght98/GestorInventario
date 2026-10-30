@@ -91,7 +91,11 @@ namespace GestorInventario.Application.Services.Payment
 
             if (pedido.EstadoPedido != EstadoPedido.Pendiente.ToString())
                 return OperationResult<string>.Fail("El order no está pendiente de pago.");
-
+            
+            if (pedido.EstadoPedido == EstadoPedido.Cancelado.ToString())
+            {
+                return OperationResult<string>.Fail("No puedes pagar un pedido ya cancelado");
+            }
 
             var itemsPedido = await _unitOfWork.OrderRepository.ObtenerDetallesPedidoAsync(pedidoId);
             if (!itemsPedido.Any())

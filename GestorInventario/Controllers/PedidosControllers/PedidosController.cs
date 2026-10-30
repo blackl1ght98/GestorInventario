@@ -167,6 +167,11 @@ namespace GestorInventario.Controllers.PedidosControllers
             {
                 return BadRequest(new {success=false,errorMessage = "No se puede cancelar un pedido que esta en el carrito"});
             }
+
+            if (pedido.EstadoPedido == EstadoPedido.Cancelado.ToString())
+            {
+                return BadRequest(new {success=false,errorMessage = "No puedes confirmar la entregaa de un pedido cancelado"});
+            }
             pedido.EstadoPedido = EstadoPedido.Entregado.ToString();
             await _orderRepository.ActualizarPedidoAsync(pedido);
 
