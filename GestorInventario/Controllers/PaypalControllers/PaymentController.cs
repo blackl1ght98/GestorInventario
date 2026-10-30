@@ -151,7 +151,7 @@ namespace GestorInventario.Controllers.PaypalControllers
                 {
                     _logger.LogInformation("Sincronización completada para pago {PaymentId}", paymentId);
                     await _notificationService.CrearNotificacion(
-                        currentUser, "Sincronizacion completada", "Sincronizacion completada con exito",
+                         "Sincronizacion completada", "Sincronizacion completada con exito",
                         TipoNotificacion.Info);
                 }
 

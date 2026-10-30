@@ -4,6 +4,7 @@ using GestorInventario.Application.Interfaces.MetodosPaginacion;
 using GestorInventario.Application.Interfaces.Web;
 using GestorInventario.Shared.Utilities;
 using GestorInventario.ViewModels.Notification;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GestorInventario.Controllers.NotificationController
@@ -88,12 +89,35 @@ namespace GestorInventario.Controllers.NotificationController
                 return RedirectToAction("Error", "Home");
             }
         }
-        //Idea de mandar notificaciones personalizadas
-        //[HttpPost("alert")]
-        //public async Task<IActionResult> SendAlert([FromBody] string msg)
-        //{
-        //    var success = await _notificationService.SendWhatsAppNotificationAsync(msg);
-        //    return success ? Ok("Enviado") : BadRequest("Error al enviar");
-        //}
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> ObtenerConteoNoLeidas()
+        {
+            int count = await _notificationRepository.ContarNoLeidasAsync(_currentUserAccessor.GetCurrentUserId());
+            return Json(new { count });
+        }
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> ObtenerUltimaNoLeida()
+        {
+            try
+            {
+                int usuarioId = _currentUserAccessor.GetCurrentUserId();
+                var ultima = await _notificationRepository.ObtenerUltimaNotificacionNoLeidaAsync(usuarioId);
+
+                if (ultima == null) return Json(null);
+
+                return Json(new {
+                    titulo = ultima.Titulo,
+                    mensaje = ultima.Mensaje,
+                    tipo = ultima.Tipo
+                });
+            }
+            catch (Exception ex)
+            {
+                
+                return Json(null);
+            }
+        }
     }
 }

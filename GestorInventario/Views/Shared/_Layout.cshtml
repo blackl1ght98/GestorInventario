@@ -280,26 +280,8 @@
                                             </a>
                                         </div>
                                     </div>
+                                   
                                 </li>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                             }
                             else if (userItems.Count == 1)
                             {
@@ -323,9 +305,9 @@
         </nav>
     </header>
 
-    <main role="main" class="container">
-        @RenderBody()
-    </main>
+<main role="main" class="container">
+    @RenderBody()
+</main>
 
     <footer class="footer text-center">
         <div class="container">
@@ -337,7 +319,37 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoFQmQznMR64s5FjtpVZBjVUXx0f5i5mAGsQcf5D4yH6rZ7" crossorigin="anonymous" defer></script>
     <script src="~/lib/bootstrap/js/bootstrap.bundle.min.js" asp-append-version="true" defer></script>
     <script src="~/js/site.js" asp-append-version="true" defer></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        actualizarBadgeNotificaciones();
+        
+        // Polling cada 30 segundos para mantener el badge actualizado en vivo
+        setInterval(actualizarBadgeNotificaciones, 30000);
+    });
 
+    function actualizarBadgeNotificaciones() {
+        fetch('/Notification/ObtenerConteoNoLeidas')
+            .then(response => {
+                if (!response.ok) throw new Error("Error al obtener notificaciones");
+                return response.json();
+            })
+            .then(data => {
+                const badge = document.getElementById("notificacionesBadge");
+                if (!badge) return;
+
+                const nuevoConteo = data.count;
+
+                // Actualizar el número visual en el badge rojo
+                if (nuevoConteo > 0) {
+                    badge.textContent = nuevoConteo > 99 ? "99+" : nuevoConteo;
+                    badge.style.display = "inline-block"; // Muestra el badge
+                } else {
+                    badge.style.display = "none"; // Lo oculta si está a 0
+                }
+            })
+            .catch(error => console.error("Error actualizando badge de notificaciones:", error));
+    }
+</script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -5,6 +5,6 @@ namespace GestorInventario.Application.Interfaces.Notifications.InternalNotifica
 {
     public interface INotificationService
     {
-        Task<OperationResult<string>> CrearNotificacion(int usuarioId, string titulo, string mensaje, TipoNotificacion tipo);
+        Task<OperationResult<string>> CrearNotificacion( string titulo, string mensaje, TipoNotificacion tipo);
     }
 }

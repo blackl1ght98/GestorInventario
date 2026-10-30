@@ -40,7 +40,8 @@ namespace GestorInventario.Infrastructure.BackgroundServices
                     var repository = scope.ServiceProvider
                         .GetRequiredService<INotificationRepository>();
 
-                    var cutoff = DateTime.UtcNow.AddDays(-90);
+                   
+                    var cutoff = DateTime.UtcNow.AddDays(-1);
                     int eliminadas = await repository
                         .EliminarNotificacionesAntiguas(cutoff);
 

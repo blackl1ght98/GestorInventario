@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
 using GestorInventario.Application.Interfaces.Notifications.InternalNotification;
+using GestorInventario.Application.Interfaces.Web;
 using GestorInventario.Domain.enums.Notification;
 using GestorInventario.Domain.Models;
 using GestorInventario.Shared.Utilities;
@@ -9,19 +10,21 @@ namespace GestorInventario.Infrastructure.Notifications.InternalNotification
     public class NotificationService: INotificationService
     {
         private readonly INotificationRepository _notificacion;
-       
+        private readonly ICurrentUserAccessor  _currentUserAccessor;
 
-        public NotificationService(INotificationRepository notificacion)
+        public NotificationService(INotificationRepository notificacion,ICurrentUserAccessor  currentUserAccessor)
         {
             _notificacion = notificacion;
+            _currentUserAccessor = currentUserAccessor;
             
         }
-        //PULIR SISTEMA DE NOTIFICACIONES INTERNAS
-        public async Task<OperationResult<string>> CrearNotificacion(int usuarioId, string titulo, string mensaje, TipoNotificacion tipo)
+        
+        public async Task<OperationResult<string>> CrearNotificacion(string titulo, string mensaje, TipoNotificacion tipo)
         {
+            
             var notificacion = new Notificacion
             {
-                UsuarioId=usuarioId,
+                UsuarioId= _currentUserAccessor.GetCurrentUserId(),
                 Titulo=titulo,
                 Mensaje=mensaje,
                 Tipo= tipo.ToString(),

@@ -99,7 +99,7 @@ namespace GestorInventario.Application.Services.ShopCart
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Ocurrio un error inesperado");
-                return OperationResult<Pedido>.Fail("Error al crear el shopCart");
+                return OperationResult<Pedido>.Fail("Error al crear el carrito");
             }
         }
 

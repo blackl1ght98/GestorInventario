@@ -72,7 +72,19 @@ namespace GestorInventario.Infrastructure.Repositories.NotificacionRepository
                 .Where(n => n.FechaCreacion < cutoff)
                 .ExecuteDeleteAsync();
         }
-
+        public async Task<int> ContarNoLeidasAsync(int usuarioId)
+        {
+            return await _context.Notificacions
+                .Where(n => n.UsuarioId == usuarioId && !n.Leida)
+                .CountAsync();
+        }
+        public async Task<Notificacion?> ObtenerUltimaNotificacionNoLeidaAsync(int usuarioId)
+        {
+            return await _context.Notificacions
+                .Where(n => n.UsuarioId == usuarioId && !n.Leida)
+                .OrderByDescending(n => n.FechaCreacion)
+                .FirstOrDefaultAsync();
+        }
     }
 }
 

@@ -291,7 +291,7 @@ namespace GestorInventario.Controllers.AdminControllers
             }
             catch (Exception ex)
             {
-                TempData["ConectionError"] = "El servidor ha tardado mucho en responder. Inténtelo de nuevo más tarde.";
+                
                 _logger.LogError(ex, "Error al eliminar un usuario");
                 return RedirectToAction("Error", "Home");
             }
@@ -315,7 +315,7 @@ namespace GestorInventario.Controllers.AdminControllers
             }
             else
             {
-                TempData["ErrorMessage"] = result.Message;
+              
                 return Json(new { success = false, errorMessage = result.Message });
             }
         }
@@ -328,7 +328,6 @@ namespace GestorInventario.Controllers.AdminControllers
             var currentUserId = _currentUserAccessor.GetCurrentUserId();
             if (request.Id == currentUserId)
             {
-                TempData["ErrorMessage"] = "No puedes darte de baja a ti mismo";
                 return RedirectToAction(nameof(Index));
             }
             var result = await _policyExecutor.ExecutePolicyAsync(() => _userService.CambiarEstadoUsuarioAsync(request.Id,true));
@@ -343,7 +342,6 @@ namespace GestorInventario.Controllers.AdminControllers
                 return Json(new { success = false, errorMessage = result.Message });
             }
         }
-       
         private void CargarRolesEnViewData()
         {
             var roles = _policyExecutor.ExecutePolicy(() => _unitOfWork.RoleRepository.ObtenerRoles());

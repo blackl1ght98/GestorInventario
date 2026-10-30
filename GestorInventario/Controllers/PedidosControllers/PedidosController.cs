@@ -2,7 +2,9 @@
 using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
 using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;
 using GestorInventario.Application.Interfaces.MetodosPaginacion;
+using GestorInventario.Application.Interfaces.Notifications.InternalNotification;
 using GestorInventario.Application.Interfaces.Web;
+using GestorInventario.Domain.enums.Notification;
 using GestorInventario.Domain.enums.Pedido;
 using GestorInventario.Extensions;
 using GestorInventario.Mappers;
@@ -23,6 +25,7 @@ namespace GestorInventario.Controllers.PedidosControllers
         private readonly IPaginationService _paginationService;
         private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IOrderService _orderService;
+        private readonly INotificationService _notificationService;
 
         public PedidosController(
             ILogger<PedidosController> logger,
@@ -30,7 +33,8 @@ namespace GestorInventario.Controllers.PedidosControllers
             ICurrentUserAccessor currentUser,
             IOrderRepository orderRepository,
             IPolicyExecutor policyExecutor,
-            IOrderService orderService
+            IOrderService orderService,
+            INotificationService notificationService
         )
         {
             _logger = logger;
@@ -39,6 +43,7 @@ namespace GestorInventario.Controllers.PedidosControllers
             _paginationService = pagination;
             _currentUserAccessor = currentUser;
             _orderService = orderService;
+            _notificationService=notificationService;
         }
 
         [Authorize]
@@ -112,7 +117,9 @@ namespace GestorInventario.Controllers.PedidosControllers
 
                 if ( pedido.Message.Contains("El carrito"))
                 {
-                    TempData["Error"] = "No se puede mostrar el detalle porque el carrito está vacío.";
+                    await _notificationService.CrearNotificacion("Carrito Vacio",
+                        "No se puede mostrar el detalle porque el carrito está vacío.", TipoNotificacion.Error);
+                  
                 }
               
                 return RedirectToAction(nameof(Index));
@@ -136,7 +143,10 @@ namespace GestorInventario.Controllers.PedidosControllers
             if (pedido.EstadoPedido == EstadoPedido.Enviado.ToString()
                 || pedido.EstadoPedido == EstadoPedido.Entregado.ToString())
                 return BadRequest(new { success = false, errorMessage = "No se puede cancelar un pedido ya enviado" });
-
+            if (pedido.EsCarrito)
+            {
+                return BadRequest(new {success=false,errorMessage = "No se puede cancelar un pedido que esta en el carrito"});
+            }
             pedido.EstadoPedido = EstadoPedido.Cancelado.ToString();
             await _orderRepository.ActualizarPedidoAsync(pedido);
 
@@ -153,7 +163,10 @@ namespace GestorInventario.Controllers.PedidosControllers
 
             if (pedido.EstadoPedido != EstadoPedido.Enviado.ToString())
                 return BadRequest("El pedido no está enviado");
-
+            if (pedido.EsCarrito)
+            {
+                return BadRequest(new {success=false,errorMessage = "No se puede cancelar un pedido que esta en el carrito"});
+            }
             pedido.EstadoPedido = EstadoPedido.Entregado.ToString();
             await _orderRepository.ActualizarPedidoAsync(pedido);
 

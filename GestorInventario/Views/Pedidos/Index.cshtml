@@ -13,13 +13,7 @@
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
         <h1 class="display-5 text-primary mb-0">Pedidos</h1>
     </div>
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
+   
     <!-- Filtros -->
     <div class="row g-3 mb-5">
         <!-- Filtro por fechas -->
@@ -133,13 +127,13 @@
                                         <button type="button"
                                                 class="btn btn-outline-warning flex-fill cancel-btn "
                                                 data-pedido-id="@pedido.Id"
-                                                @(estadoNoCancelable ? "disabled" : "")>
+                                                @(estadoNoCancelable || pedido.EsCarrito ? "disabled" : "")>
                                             Cancelar
                                         </button>
                                         <button type="button"
                                                 class="btn btn-outline-warning flex-fill entrega-btn"
                                                 data-pedido-id="@pedido.Id"
-                                                @(pedido.EstadoPedido == EstadoPedido.Entregado.ToString()  ? "disabled" : "")>
+                                                @(pedido.EstadoPedido == EstadoPedido.Entregado.ToString() || pedido.EsCarrito ? "disabled" : "")>
                                             Confirmar entrega
                                         </button>
 
@@ -147,7 +141,8 @@
 
                                     <button class="btn btn-success activate-action-button mt-2 envio-btn"
                                             data-pedido-id="@pedido.Id"
-                                            title="Agregar información de envío">
+                                            title="Agregar información de envío"
+                                            @(pedido.EsCarrito?"disabled":"")>
                                         <i class="bi bi-truck me-2"></i>Agregar Envío
                                     </button>
 

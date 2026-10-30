@@ -122,7 +122,7 @@ namespace GestorInventario.Infrastructure.Repositories.OrderRepository
                     .Where(dp => dp.PedidoId == pedido.Id)
                     .ToListAsync();
             }
-            // Usamos tu nuevo método de extensión genérico
+            
             await _context.DeleteWithChildrenAsync(pedido, pedido.DetallePedidos);
 
             return OperationResult<string>.Ok("Pedido eliminado con exito");

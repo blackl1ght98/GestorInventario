@@ -10,5 +10,7 @@ namespace GestorInventario.Application.Interfaces.Infrastructure.Repositories
         Task<OperationResult<string>> MarcarNotificacionComoLeida(int id);
         Task<OperationResult<string>> MarcarTodasNotificacionesComoLeidas(int usuarioId);
         Task<int> EliminarNotificacionesAntiguas(DateTime cutoff);
+        Task<int> ContarNoLeidasAsync(int usuarioId);
+        Task<Notificacion?> ObtenerUltimaNotificacionNoLeidaAsync(int usuarioId);
     }
 }
