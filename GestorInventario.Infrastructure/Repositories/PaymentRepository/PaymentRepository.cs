@@ -69,5 +69,18 @@ namespace GestorInventario.Infrastructure.Repositories.PaymentRepository
                 return OperationResult<PayPalPaymentRefund>.Ok( refund);
             });
         }
+        public async Task<OperationResult<string>> EliminarDetallesPagoAsync(PayPalPaymentDetail pago)
+        {
+            return await _context.ExecuteInTransactionAsync(async () =>
+            {
+                await _context.DeleteRangeEntityAsync(pago.PayPalPaymentItems);
+                await _context.DeleteRangeEntityAsync(pago.PayPalPaymentCaptures);
+                await _context.DeleteRangeEntityAsync(pago.PayPalPaymentShippings);
+                await _context.DeleteRangeEntityAsync(pago.PayPalPaymentRefunds);
+
+
+                return OperationResult<string>.Ok("Pedido eliminado con exito");
+            });
+        }
     }
 }

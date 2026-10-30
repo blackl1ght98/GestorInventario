@@ -83,9 +83,151 @@ public class OrderService : IOrderService
 
         return OperationResult<PayPalPaymentDetail>.Ok(detalleBD);
     }
+    /// <summary>
+    ///     Busca el detalle en BD. Si no existe, lo crea.
+    ///     Si existe, lo elimina y reutiliza la instancia.
+    /// </summary>
+    
+    private async Task<PayPalPaymentDetail> ObtenerOCrearDetallePagoAsync(
+        string id, PayPalOrderDetailsDto detalles)
+    {
 
+        var existente = await _paymentRepository.ObtenerDetallesPago(id);
 
-    public async Task<OperationResult<Pedido>> ConfirmarPagoDelPedidoAsync(
+        if (existente == null)
+        {
+            var nuevo = new PayPalPaymentDetail { Id = detalles.OrderId };
+            await _paymentRepository.AgregarDetallePagoAsync(nuevo);
+            _logger.LogInformation("Detalle de pago {Id} creado en BD", id);
+            return nuevo;
+        }
+
+        await _paymentRepository.EliminarDetallesPagoAsync(existente);
+        _logger.LogInformation("Detalle de pago {Id} actualizado en BD", id);
+
+        return existente;
+    }
+
+    /// <summary>
+    ///     Crea el registro de información de envío.
+    /// </summary>
+    private async Task ProcesarShippingAsync(
+        PayPalOrderDetailsDto detalles, PayPalPaymentDetail detallePago)
+    {
+        if (detalles.Shipping == null)
+            return;
+
+        var payerName = $"{detallePago.PayerFirstName} {detallePago.PayerLastName}".Trim();
+
+        var envio = new PayPalPaymentShipping
+        {
+            PaymentId = detallePago.Id,
+            RecipientName = detalles.Shipping.RecipientName ?? payerName,
+            AddressLine1 = detalles.Shipping.AddressLine1,
+            City = detalles.Shipping.City,
+            State = detalles.Shipping.State,
+            PostalCode = detalles.Shipping.PostalCode,
+            CountryCode = detalles.Shipping.CountryCode
+        };
+
+        await _paymentRepository.AgregarInfoEnvioAsync(envio);
+    }
+
+    /// <summary>
+    ///     Procesa las capturas de pago (captures) de PayPal.
+    /// </summary>
+    private async Task ProcesarCapturesAsync(
+        PayPalOrderDetailsDto detalles,
+        PayPalPaymentDetail detallePago,
+        int pedidoId)
+    {
+        if (detalles.Captures == null || !detalles.Captures.Any())
+            return;
+
+        foreach (var capture in detalles.Captures)
+        {
+            var paypalCapture = new PayPalPaymentCapture
+            {
+                PaymentId = detallePago.Id,
+                CaptureId = capture.CaptureId,
+                Status = capture.Status,
+                Amount = capture.Amount,
+                Currency = capture.Currency,
+                FinalCapture = capture.FinalCapture,
+                ProtectionEligibility = capture.ProtectionEligibility,
+                TransactionFeeAmount = capture.TransactionFeeAmount,
+                TransactionFeeCurrency = capture.TransactionFeeCurrency,
+                ReceivableAmount = capture.ReceivableAmount,
+                ReceivableCurrency = capture.ReceivableCurrency,
+                ExchangeRate = capture.ExchangeRate.ToDecimalSafe(),
+                DisputeCategories = capture.DisputeCategoriesJson,
+                CreateTime = capture.CreateTime.ToDateTimeSafe(),
+                UpdateTime = capture.UpdateTime.ToDateTimeSafe(),
+                PedidoId = pedidoId
+                
+            };
+
+            await _paymentRepository.AgregarCaptureAsync(paypalCapture);
+        }
+    }
+
+    /// <summary>
+    ///     Procesa los reembolsos (refunds) de PayPal.
+    /// </summary>
+    private async Task ProcesarRefundsAsync(
+        PayPalOrderDetailsDto detalles,
+        PayPalPaymentDetail detallePago,
+        int pedidoId)
+    {
+        if (detalles.Refunds == null || !detalles.Refunds.Any())
+            return;
+
+        foreach (var refund in detalles.Refunds)
+        {
+            var paypalRefund = new PayPalPaymentRefund // o el nombre real de tu entidad
+            {
+                PaymentId = detallePago.Id,
+                RefundId = refund.RefundId,
+                Status = refund.Status,
+                Amount = refund.Amount,
+                Currency = refund.Currency,
+                NoteToPayer = refund.NoteToPayer,
+
+                CreateTime = refund.CreateTime.ToDateTimeSafe(),
+                UpdateTime = refund.UpdateTime.ToDateTimeSafe(),
+                PedidoId = pedidoId
+            };
+
+            await _paymentRepository.AgregarRefundAsync(paypalRefund);
+        }
+    }
+
+    /// <summary>
+    ///     Procesa los items del order.
+    /// </summary>
+    private async Task ProcesarItemsAsync(
+        PayPalOrderDetailsDto detalles, PayPalPaymentDetail detallePago)
+    {
+        if (detalles.Items == null || !detalles.Items.Any())
+            return;
+
+        foreach (var item in detalles.Items)
+        {
+            var paymentItem = new PayPalPaymentItem
+            {
+                PayPalId = detallePago.Id,
+                ItemName = item.Name,
+                ItemSku = item.Sku,
+                ItemPrice = item.UnitAmount,
+                ItemCurrency = item.Currency,
+                ItemTax = item.Tax,
+                ItemQuantity = item.Quantity
+            };
+
+            await _paymentRepository.AgregarPagoItemAsync(paymentItem);
+        }
+    }
+ public async Task<OperationResult<Pedido>> ConfirmarPagoDelPedidoAsync(
         PaymentCapturedDto capture,
         string paymentId)
     {
@@ -165,151 +307,6 @@ public class OrderService : IOrderService
         pedido.Transportista = carrier;
         await _orderRepository.ActualizarPedidoAsync(pedido);
     }
-
-    /// <summary>
-    ///     Busca el detalle en BD. Si no existe, lo crea.
-    ///     Si existe, lo elimina y reutiliza la instancia.
-    /// </summary>
-    private async Task<PayPalPaymentDetail> ObtenerOCrearDetallePagoAsync(
-        string id, PayPalOrderDetailsDto detalles)
-    {
-        // Buscamos si ya existe por su ID de PayPal
-        var existente = await _paymentRepository.ObtenerDetallesPago(id);
-
-        if (existente == null)
-        {
-            var nuevo = new PayPalPaymentDetail { Id = detalles.OrderId };
-            await _paymentRepository.AgregarDetallePagoAsync(nuevo);
-            _logger.LogInformation("Detalle de pago {Id} creado en BD", id);
-            return nuevo;
-        }
-
-        // SI YA EXISTE: NO LO BORRES. Solo actualiza sus propiedades.
-        // De esta forma la entidad padre NUNCA pierde su identidad ni rompe relaciones.
-        _logger.LogInformation("Detalle de pago {Id} ya existe. Actualizando datos...", id);
-        return existente;
-    }
-
-    /// <summary>
-    ///     Crea el registro de información de envío.
-    /// </summary>
-    private async Task ProcesarShippingAsync(
-        PayPalOrderDetailsDto detalles, PayPalPaymentDetail detallePago)
-    {
-        if (detalles.Shipping == null)
-            return;
-
-        var payerName = $"{detallePago.PayerFirstName} {detallePago.PayerLastName}".Trim();
-
-        var envio = new PayPalPaymentShipping
-        {
-            PaymentId = detallePago.Id,
-            RecipientName = detalles.Shipping.RecipientName ?? payerName,
-            AddressLine1 = detalles.Shipping.AddressLine1,
-            City = detalles.Shipping.City,
-            State = detalles.Shipping.State,
-            PostalCode = detalles.Shipping.PostalCode,
-            CountryCode = detalles.Shipping.CountryCode
-        };
-
-        await _paymentRepository.AgregarInfoEnvioAsync(envio);
-    }
-
-    /// <summary>
-    ///     Procesa las capturas de pago (captures) de PayPal.
-    /// </summary>
-    private async Task ProcesarCapturesAsync(
-        PayPalOrderDetailsDto detalles,
-        PayPalPaymentDetail detallePago,
-        int pedidoId)
-    {
-        if (detalles.Captures == null || !detalles.Captures.Any())
-            return;
-
-        foreach (var capture in detalles.Captures)
-        {
-            var paypalCapture = new PayPalPaymentCapture
-            {
-                PaymentId = detallePago.Id,
-                CaptureId = capture.CaptureId,
-                Status = capture.Status,
-                Amount = capture.Amount,
-                Currency = capture.Currency,
-                FinalCapture = capture.FinalCapture,
-                ProtectionEligibility = capture.ProtectionEligibility,
-                TransactionFeeAmount = capture.TransactionFeeAmount,
-                TransactionFeeCurrency = capture.TransactionFeeCurrency,
-                ReceivableAmount = capture.ReceivableAmount,
-                ReceivableCurrency = capture.ReceivableCurrency,
-                ExchangeRate = capture.ExchangeRate.ToDecimalSafe(),
-                DisputeCategories = capture.DisputeCategoriesJson,
-                CreateTime = capture.CreateTime.ToDateTimeSafe(),
-                UpdateTime = capture.UpdateTime.ToDateTimeSafe(),
-                PedidoId = pedidoId
-                // Añade InvoiceId u otros campos si tu entidad los tiene
-            };
-
-            await _paymentRepository.AgregarCaptureAsync(paypalCapture);
-        }
-    }
-
-    /// <summary>
-    ///     Procesa los reembolsos (refunds) de PayPal.
-    /// </summary>
-    private async Task ProcesarRefundsAsync(
-        PayPalOrderDetailsDto detalles,
-        PayPalPaymentDetail detallePago,
-        int pedidoId)
-    {
-        if (detalles.Refunds == null || !detalles.Refunds.Any())
-            return;
-
-        foreach (var refund in detalles.Refunds)
-        {
-            var paypalRefund = new PayPalPaymentRefund // o el nombre real de tu entidad
-            {
-                PaymentId = detallePago.Id,
-                RefundId = refund.RefundId,
-                Status = refund.Status,
-                Amount = refund.Amount,
-                Currency = refund.Currency,
-                NoteToPayer = refund.NoteToPayer,
-
-                CreateTime = refund.CreateTime.ToDateTimeSafe(),
-                UpdateTime = refund.UpdateTime.ToDateTimeSafe(),
-                PedidoId = pedidoId
-            };
-
-            await _paymentRepository.AgregarRefundAsync(paypalRefund);
-        }
-    }
-
-    /// <summary>
-    ///     Procesa los items del order.
-    /// </summary>
-    private async Task ProcesarItemsAsync(
-        PayPalOrderDetailsDto detalles, PayPalPaymentDetail detallePago)
-    {
-        if (detalles.Items == null || !detalles.Items.Any())
-            return;
-
-        foreach (var item in detalles.Items)
-        {
-            var paymentItem = new PayPalPaymentItem
-            {
-                PayPalId = detallePago.Id,
-                ItemName = item.Name,
-                ItemSku = item.Sku,
-                ItemPrice = item.UnitAmount,
-                ItemCurrency = item.Currency,
-                ItemTax = item.Tax,
-                ItemQuantity = item.Quantity
-            };
-
-            await _paymentRepository.AgregarPagoItemAsync(paymentItem);
-        }
-    }
-
     public async Task<OperationResult<DetalleOrdenDto>> GetOrderDetailsAsync(int id)
     {
         var pedido = await _orderRepository.ObtenerPedidoConDetallesAsync(id);
