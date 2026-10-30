@@ -224,14 +224,13 @@ namespace GestorInventario.Controllers.AdminControllers
                 {
                     return View(userVM);
                 }
+            
                 if (User.IsAdministrador())
                 {
                     return RedirectToAction(nameof(Index));
                 }
-                else
-                {
-                    return RedirectToAction("Index", "Home");
-                }
+                return RedirectToAction("Index", "Home");
+                
             }
             catch (Exception ex)
             {
@@ -284,8 +283,6 @@ namespace GestorInventario.Controllers.AdminControllers
                 var result = await _policyExecutor.ExecutePolicyAsync(() =>_userService.EliminarUsuarioAsync(Id));
                 if (result.Success)
                     return RedirectToAction(nameof(Index));
-
-              
                 _logger.LogError(result.Message);
                 return RedirectToAction(nameof(Delete), new { id = Id });
             }
@@ -313,11 +310,8 @@ namespace GestorInventario.Controllers.AdminControllers
             {
                 return Json(new { success = true });
             }
-            else
-            {
-              
-                return Json(new { success = false, errorMessage = result.Message });
-            }
+            return Json(new { success = false, errorMessage = result.Message });
+            
         }
         // Este metodo se llaman desde el script alta-baja-usuario.js
         [HttpPost]
@@ -336,11 +330,8 @@ namespace GestorInventario.Controllers.AdminControllers
             {
                 return Json(new { success = true });
             }
-            else
-            {
-             
-                return Json(new { success = false, errorMessage = result.Message });
-            }
+            return Json(new { success = false, errorMessage = result.Message });
+            
         }
         private void CargarRolesEnViewData()
         {
