@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Application.DTOS;
+using GestorInventario.Application.DTOS.Pedidos;
 using GestorInventario.Application.Interfaces.Application.Services.Orders;
 using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
 using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;

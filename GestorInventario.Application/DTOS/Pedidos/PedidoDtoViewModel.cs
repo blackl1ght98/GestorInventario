@@ -1,6 +1,7 @@
-﻿using EstadoPedidoEnum = GestorInventario.Domain.enums.Pedido.EstadoPedido;using GestorInventario.Domain.Models;
+﻿using GestorInventario.Domain.Models;
+using EstadoPedidoEnum = GestorInventario.Domain.enums.Pedido.EstadoPedido;
 
-namespace GestorInventario.Application.DTOS;
+namespace GestorInventario.Application.DTOS.Pedidos;
 
 public class PedidoDtoViewModel
 {

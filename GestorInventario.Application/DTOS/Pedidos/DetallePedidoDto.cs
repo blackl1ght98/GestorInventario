@@ -1,5 +1,5 @@
-﻿namespace GestorInventario.Application.DTOS;
-//Esto a cada product
+﻿namespace GestorInventario.Application.DTOS.Pedidos;
+//Esto a cada producto
 public class DetallePedidoDto
 {
     public int DetalleId { get; set; }
@@ -12,7 +12,7 @@ public class DetallePedidoDto
     public decimal Total { get; set; }
     public bool Rembolsado { get; set; }
 }
-//Esto representa al order completo
+//Esto representa al pedido completo
 public class DetalleOrdenDto
 {
     public DateTime FechaPedido { get; set; }

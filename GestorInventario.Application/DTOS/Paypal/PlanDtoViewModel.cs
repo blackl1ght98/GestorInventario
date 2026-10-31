@@ -1,6 +1,4 @@
-﻿using GestorInventario.Application.DTOS.Paypal;
-
-namespace GestorInventario.Application.DTOS;
+﻿namespace GestorInventario.Application.DTOS.Paypal;
 
 public class PlanDtoViewModel
 {
