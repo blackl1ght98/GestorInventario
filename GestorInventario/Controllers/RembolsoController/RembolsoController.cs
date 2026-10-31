@@ -120,10 +120,8 @@ namespace GestorInventario.Controllers.RembolsoController
                     });
                     return Ok(new { success = true });
                 }
-                else
-                {
-                    return BadRequest(new { success = false, message = result.Message });
-                }
+                return BadRequest(new { success = false, errorMessage = result.Message });
+                
             }
             catch (Exception ex)
             {

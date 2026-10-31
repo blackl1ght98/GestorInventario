@@ -36,4 +36,10 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+ 
+
+  <ItemGroup>
+    <Folder Include="Application\Services\Authentication\Strategies\Middleware\" />
+  </ItemGroup>
+
 </Project>

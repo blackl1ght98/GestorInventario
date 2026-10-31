@@ -45,7 +45,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
             });
 
-            if (!response.ok) throw new Error();
+            let data = {};
+            try {
+                data = await response.json();
+            } catch {
+                // Por si la respuesta no viene en formato JSON
+            }
+
+            // 2. Si la respuesta no es OK, disparamos el error con el mensaje del servidor
+            if (!response.ok) {
+                const errorMsg = data.errorMessage || data.message || 'Error al cancelar el pedido';
+                throw new Error(errorMsg);
+            }
 
             // ✅ ÉXITO
             resultBox.className = 'alert alert-success mt-3';

@@ -1,5 +1,5 @@
 ﻿/**
- * Script encargado de realizar el rembolso
+ * - Script encargado de realizar el rembolso
  */
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -31,19 +31,22 @@ document.addEventListener('DOMContentLoaded', () => {
     confirmBtn.addEventListener('click', async () => {
         confirmBtn.disabled = true;
         confirmBtn.textContent = 'Procesando...';
+
         const tokenElement = document.querySelector('meta[name="csrf-token"]');
         if (!tokenElement) {
             console.error("Error: No se encontró el token CSRF");
             alert("Error: No se pudo encontrar el token de seguridad.");
-            return Promise.reject(new Error("Token CSRF no encontrado"));
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = 'Confirmar reembolso';
+            return;
         }
         const token = tokenElement.getAttribute("content");
+
         try {
             const response = await fetch('/Rembolso/RefundSale', {
                 method: 'POST',
                 headers: {
-                    'Content-Type':
-                        'application/json',
+                    'Content-Type': 'application/json',
                     'RequestVerificationToken': token
                 },
                 body: JSON.stringify({
@@ -52,8 +55,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
             });
 
-            if (!response.ok) throw new Error();
-            // Reembolso OK -> ahora encadenamos la sincronización
+            // 1. Intentamos leer el JSON devuelto por el servidor (sea OK o error)
+            let data = {};
+            try {
+                data = await response.json();
+            } catch {
+             throw new Error(data.errorMessage);
+            }
+
+            // 2. Si la respuesta no es OK (ej. 400 Bad Request o 500)
+            if (!response.ok) {
+                // Buscamos errorMessage o message, o ponemos un texto por defecto
+                const errorMsg = data.errorMessage || data.message || 'Error al realizar el reembolso';
+                throw new Error(errorMsg);
+            }
+
+            // 3. Reembolso OK -> encadenamos la sincronización
             const syncResponse = await fetch(`/Payment/SincronizarJs?paymentId=${paymentId}&pedidoId=${pedidoId}`, {
                 method: 'GET'
             });
@@ -65,7 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // ✅ ÉXITO
             resultBox.className = 'alert alert-success mt-3';
             resultBox.textContent = '✔️ Reembolso realizado con éxito';
-
             currentButton.disabled = true;
             currentButton.classList.replace('btn-outline-warning', 'btn-outline-secondary');
             currentButton.textContent = 'Reembolsado';
@@ -75,11 +91,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 location.reload();
             }, 1200);
 
-        } catch {
-            // ❌ ERROR
+        } catch (error) {
+           
             resultBox.className = 'alert alert-danger mt-3';
-            resultBox.textContent = '❌ Error al realizar el reembolso';
-
+            resultBox.textContent = `❌ ${error.errorMessage || 'Error al realizar el reembolso'}`;
             confirmBtn.disabled = false;
             confirmBtn.textContent = 'Confirmar reembolso';
         }

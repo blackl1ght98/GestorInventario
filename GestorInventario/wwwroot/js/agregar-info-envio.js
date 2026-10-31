@@ -1,7 +1,6 @@
 ﻿document.addEventListener("DOMContentLoaded", function () {
     const modalEl = document.getElementById('agregarEnvioModal');
     const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-
     const resultBox = document.getElementById('envioResult');
     const confirmBtn = document.getElementById('confirmAgregarEnvioBtn');
     const pedidoIdInput = document.getElementById('pedidoIdInput');
@@ -46,8 +45,7 @@
     // 2. Confirmar envío
     confirmBtn.addEventListener('click', async function () {
         const carrier = carrierSelect ? carrierSelect.value : '';
-      
-
+        
         // Validaciones locales
         if (!carrier) {
             showMessage("Por favor selecciona un transportista.", "warning");

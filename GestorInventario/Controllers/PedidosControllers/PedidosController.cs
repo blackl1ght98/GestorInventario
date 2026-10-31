@@ -1,4 +1,5 @@
-﻿using GestorInventario.Application.Interfaces.Application.Services.Orders;
+﻿using GestorInventario.Application.DTOS;
+using GestorInventario.Application.Interfaces.Application.Services.Orders;
 using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
 using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;
 using GestorInventario.Application.Interfaces.MetodosPaginacion;
@@ -82,9 +83,24 @@ namespace GestorInventario.Controllers.PedidosControllers
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
                     _paginationService.PaginarAsync(pedidos, paginacion)
                 );
+                var pedidosDto = paginationResult.Items.Select(p => new PedidoDtoViewModel
+                {
+                    Id = p.Id,
+                    NumeroPedido = p.NumeroPedido,
+                    EstadoPedido = p.EstadoPedido,
+                    FechaPedido = p.FechaPedido,
+                    NombreCompleto = p.IdUsuarioNavigation?.NombreCompleto,
+                    TrackingNumber = p.TrackingNumber,
+                    Transportista = p.Transportista,
+                    DetallePedidos = p.DetallePedidos.ToList(),
+                    PalPaymentCaptures = p.PayPalPaymentCaptures.ToList(),
+                    EsCarrito = p.EsCarrito,
+                    Currency = p.Currency,
+                    Carrier = GetCarrierFromEnum()
+                }).ToList();
                 var viewModel = new OrderViewModel
                 {
-                    Pedidos = paginationResult.Items,
+                    Pedidos = pedidosDto,
                     Paginas = paginationResult.Paginas.ToList(),
                     TotalPaginas = paginationResult.TotalPaginas,
                     PaginaActual = paginacion.Pagina,
