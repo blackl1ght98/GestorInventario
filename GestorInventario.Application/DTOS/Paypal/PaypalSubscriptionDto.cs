@@ -1,13 +1,13 @@
 ﻿namespace GestorInventario.Application.DTOS.Paypal;
 
-public class PaypalSubscriptionDto
+public record PaypalSubscriptionDto
 {
   
-        public  string? Id { get; init; }//
+        public  string? Id { get; init; }
       
         public required string PlanId { get; init; }
        
-        public required string Status { get; init; }//
+        public required string Status { get; init; }
        
         public DateTime? StartTime { get; init; }
         

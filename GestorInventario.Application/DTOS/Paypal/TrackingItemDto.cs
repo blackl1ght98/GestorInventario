@@ -1,6 +1,6 @@
 ﻿namespace GestorInventario.Application.DTOS.Paypal;
 
-public class TrackingItemDto
+public record TrackingItemDto
 {
     public required string Name { get; init; }
     public string? Sku { get; init; }

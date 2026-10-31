@@ -1,6 +1,6 @@
 ﻿namespace GestorInventario.Application.DTOS.Paypal;
 
-public class PayPalOrderDetailsDto
+public record PayPalOrderDetailsDto
 {
     public required string OrderId { get; init; }
     public required string Intent { get; init; }
@@ -27,7 +27,7 @@ public class PayPalOrderDetailsDto
     public List<PayPalItemDto> Items { get; init; } = new();
 }
 
-public class PayPalShippingDto
+public record PayPalShippingDto
 {
     public string? RecipientName { get; init; }
     public string? AddressLine1 { get; init; }
@@ -37,7 +37,7 @@ public class PayPalShippingDto
     public string? CountryCode { get; init; }
 }
 
-public class PayPalCaptureDto
+public record PayPalCaptureDto
 {
     public required string CaptureId { get; init; }
     public required string Status { get; init; }
@@ -56,7 +56,7 @@ public class PayPalCaptureDto
     public string? InvoiceId { get; init; }
 }
 
-public class PayPalRefundDto
+public record PayPalRefundDto
 {
     public required string RefundId { get; init; }
     public required string Status { get; init; }
@@ -68,7 +68,7 @@ public class PayPalRefundDto
     public DateTime? UpdateTime { get; init; }
 }
 
-public class PayPalItemDto
+public record PayPalItemDto
 {
     public required string Name { get; init; }
     public string? Sku { get; init; }

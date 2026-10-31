@@ -1,0 +1,40 @@
+﻿<!-- Modal para actualizar precio -->
+<div class="modal fade" id="updatePlanPriceModal" tabindex="-1" aria-labelledby="updatePlanPriceModalLabel" aria-hidden="true" data-plan-id="" data-currency="">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updatePlanPriceModalLabel">Actualizar Precio del Plan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updatePlanPriceForm">
+                    <div class="mb-3">
+                        <label class="form-label">ID del Plan</label>
+                        <p id="updatePlanPricePlanId" class="form-control-plaintext"></p>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newTrialPrice" class="form-label">Precio de Prueba (opcional)</label>
+                        <input type="number" step="0.01" min="0" class="form-control" id="newTrialPrice" placeholder="Ej. 0.00">
+                        <div class="invalid-feedback">El precio de prueba debe ser 0 o mayor.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newRegularPrice" class="form-label">Precio Regular</label>
+                        <input type="number" step="0.01" min="0.01" class="form-control" id="newRegularPrice" placeholder="Ej. 10.00" required>
+                        <div class="invalid-feedback">El precio regular debe ser mayor a 0.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="currencyDisplay" class="form-label">Moneda</label>
+                        <input type="text" class="form-control" id="currencyDisplay" readonly>
+                        <input type="hidden" id="currencySelect" name="currency">
+                        <div class="invalid-feedback">La moneda no es válida.</div>
+                        <small class="form-text text-muted">La moneda del plan no puede cambiarse. Para usar una moneda diferente, crea un nuevo plan.</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmUpdatePlanPriceBtn">Actualizar</button>
+            </div>
+        </div>
+    </div>
+</div>

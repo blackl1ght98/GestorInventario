@@ -1,0 +1,86 @@
+﻿<!-- Modal Cancelar -->
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="bi bi-x-circle me-2"></i>Cancelar Suscripción</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="cancelForm" asp-controller="PaypalSubscription" asp-action="CancelarSuscripcion" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="Id" id="cancelSubscriptionId" />
+                    <p class="mb-3">Estás a punto de cancelar la suscripción <strong id="cancelSubscriptionIdDisplay"></strong>.</p>
+                    <div class="mb-3">
+                        <label for="cancelReason" class="form-label fw-bold">Motivo de la cancelación <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="cancelReason" name="Reason" rows="4"
+                                  placeholder="Indica el motivo..." maxlength="500" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Volver</button>
+                    <button type="submit" class="btn btn-danger" id="confirmCancelBtn">
+                        <i class="bi bi-check-circle me-2"></i>Confirmar Cancelación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Suspender -->
+<div class="modal fade" id="suspendModal" tabindex="-1" aria-labelledby="suspendModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title text-dark"><i class="bi bi-pause-circle me-2"></i>Suspender Suscripción</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="suspendForm" asp-controller="PaypalSubscription" asp-action="SuspenderSuscripcion" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="Id" id="suspendSubscriptionId" />
+                    <p class="mb-3">Estás a punto de suspender la suscripción <strong id="suspendSubscriptionIdDisplay"></strong>.</p>
+                    <div class="mb-3">
+                        <label for="suspendReason" class="form-label fw-bold">Motivo de la suspensión <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="suspendReason" name="Reason" rows="4"
+                                  placeholder="Indica el motivo..." maxlength="500" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Volver</button>
+                    <button type="submit" class="btn btn-warning text-dark" id="confirmSuspendBtn">
+                        <i class="bi bi-check-circle me-2"></i>Confirmar Suspensión
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Activar -->
+<div class="modal fade" id="activateModal" tabindex="-1" aria-labelledby="activateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-check-circle me-2"></i>Activar Suscripción</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="activateForm" asp-controller="PaypalSubscription" asp-action="ActivarSuscripcion" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="Id" id="activateSubscriptionId" />
+                    <p class="mb-3">Estás a punto de reactivar la suscripción <strong id="activateSubscriptionIdDisplay"></strong>.</p>
+                    <div class="mb-3">
+                        <label for="activateReason" class="form-label fw-bold">Motivo de la activación <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="activateReason" name="Reason" rows="4"
+                                  placeholder="Indica el motivo..." maxlength="500" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Volver</button>
+                    <button type="submit" class="btn btn-success" id="confirmActivateBtn">
+                        <i class="bi bi-check-circle me-2"></i>Confirmar Activación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

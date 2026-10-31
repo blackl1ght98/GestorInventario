@@ -3,12 +3,12 @@ using GestorInventario.Domain.enums.Pedido;
 
 namespace GestorInventario.Application.DTOS.Paypal
 {
-    public class InfoEnvioDto
+    public record InfoEnvioDto
     {
-        public int PedidoId { get; set; }
+        public int PedidoId { get; init; }
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
-        public Carrier Carrier { get; set; }
+        public Carrier Carrier { get; init; }
 
       
     }

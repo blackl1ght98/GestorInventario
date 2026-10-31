@@ -1,10 +1,10 @@
 ﻿namespace GestorInventario.Application.DTOS.Paypal;
-public class SubscriptionPlansPageDto
+public record SubscriptionPlansPageDto
 {
     public List<SubscriptionPlan> Plans { get; init; } = new();
     public bool HasNextPage { get; init; }
 }
-public class SubscriptionPlan
+public record SubscriptionPlan
 {
     public required string Id { get; init; }
     public required string ProductId { get; init; }
@@ -18,7 +18,7 @@ public class SubscriptionPlan
     public DateTime CreateTime { get; init; }
     public DateTime UpdateTime { get; init; }
 }
-public class CatalogPlanBillingCycleDto
+public record CatalogPlanBillingCycleDto
 {
     public required string TenureType { get; init; }
     public int Sequence { get; init; }
@@ -27,13 +27,13 @@ public class CatalogPlanBillingCycleDto
     public required CatalogPlanPricingSchemeDto PricingScheme { get; init; }
 }
 
-public class CatalogPlanFrequencyDto
+public record CatalogPlanFrequencyDto
 {
     public required string IntervalUnit { get; init; }
     public int IntervalCount { get; init; }
 }
 
-public class CatalogPlanPricingSchemeDto
+public record CatalogPlanPricingSchemeDto
 {
     public int Version { get; init; }
     public required PlanMoneyDto FixedPrice { get; init; }
@@ -41,13 +41,13 @@ public class CatalogPlanPricingSchemeDto
     public DateTime UpdateTime { get; init; }
 }
 
-public class PlanMoneyDto
+public record PlanMoneyDto
 {
     public required string CurrencyCode { get; init; }
     public required string Value { get; init; }
 }
 
-public class CatalogPlanPaymentPreferencesDto
+public record CatalogPlanPaymentPreferencesDto
 {
     public string? ServiceType { get; init; }
     public bool AutoBillOutstanding { get; init; }
@@ -56,7 +56,7 @@ public class CatalogPlanPaymentPreferencesDto
     public int PaymentFailureThreshold { get; init; }
 }
 
-public class CatalogPlanTaxesDto
+public record CatalogPlanTaxesDto
 {
     public required string Percentage { get; init; }
     public bool Inclusive { get; init; }

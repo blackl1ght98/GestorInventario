@@ -1,6 +1,6 @@
 ﻿namespace GestorInventario.Application.DTOS.Paypal;
 
-public class PlanDetailsDto
+public record PlanDetailsDto
 {
     public string? Id { get; init; }
     public required string ProductId { get; init; }
@@ -12,7 +12,7 @@ public class PlanDetailsDto
     public PlanTaxesDto? Taxes { get; init; }
 }
 
-public class PlanBillingCycleDto
+public record PlanBillingCycleDto
 {
     public required string TenureType { get; init; }   // TRIAL | REGULAR
     public int Sequence { get; init; }
@@ -21,24 +21,24 @@ public class PlanBillingCycleDto
     public required PlanPricingSchemeDto PricingScheme { get; init; }
 }
 
-public class PlanFrequencyDto
+public record PlanFrequencyDto
 {
     public required string IntervalUnit { get; init; } // DAY, MONTH, YEAR...
     public int IntervalCount { get; init; }
 }
 
-public class PlanPricingSchemeDto
+public record PlanPricingSchemeDto
 {
     public PlanFixedPriceDto? FixedPrice { get; init; }
 }
 
-public class PlanFixedPriceDto
+public record PlanFixedPriceDto
 {
     public string? Value { get; init; }
     public string? CurrencyCode { get; init; }
 }
 
-public class PlanPaymentPreferencesDto
+public record PlanPaymentPreferencesDto
 {
     public bool AutoBillOutstanding { get; init; }
     public PlanFixedPriceDto? SetupFee { get; init; }
@@ -46,7 +46,7 @@ public class PlanPaymentPreferencesDto
     public int PaymentFailureThreshold { get; init; }
 }
 
-public class PlanTaxesDto
+public record PlanTaxesDto
 {
     public required string Percentage { get; init; }
     public bool Inclusive { get; init; }

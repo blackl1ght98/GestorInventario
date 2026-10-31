@@ -1,7 +1,5 @@
 ﻿@model SubcriptionsIndexViewModel
 @using GestorInventario.ViewModels.Paypal
-
-
 @{
     ViewData["Title"] = "Suscripciones - GestorInventario";
 }
@@ -40,89 +38,7 @@
         <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
             @foreach (var sub in Model.Suscripciones)
             {
-                <div class="col">
-                    <div class="card h-100 border-0 shadow-sm hover-card transition-all">
-                        <div class="card-body p-4 d-flex flex-column">
-
-                            <!-- ID de Suscripción -->
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <h5 class="card-title text-primary mb-0 fw-semibold">
-                                    @sub.SubscriptionId
-                                </h5>
-                               
-                            </div>
-
-                            <!-- Información -->
-                            <div class="mb-4">
-                                <p class="mb-2">
-                                    <strong>Estado:</strong>
-                                    <span class="text-muted">@sub.Status</span>
-                                </p>
-                                <p class="mb-2">
-                                    <strong>Plan:</strong>
-                                    <span class="text-muted">@sub.PlanId</span>
-                                </p>
-                                <p class="mb-2">
-                                    <strong>Suscriptor:</strong>
-                                    @sub.SubscriberName
-                                </p>
-                                <p class="mb-2">
-                                    <strong>Email:</strong>
-                                    <a href="mailto:@sub.SubscriberEmail" class="text-decoration-none">@sub.SubscriberEmail</a>
-                                </p>
-                                <p class="mb-2">
-                                    <strong>Payer ID:</strong>
-                                    <span class="text-muted small">@sub.PayerId</span>
-                                </p>
-                                @if (sub.TrialIntervalCount > 0)
-                                {
-                                    <p class="mb-0">
-                                        <strong>Período de prueba:</strong>
-                                        <span class="text-success">@sub.TrialIntervalCount días</span>
-                                    </p>
-                                }
-                            </div>
-
-                            <!-- Acciones (solo Admin) -->
-                            @if (User.IsInRole("Administrador"))
-                            {
-                                <div class="mt-auto pt-3 border-top">
-                                    <div class="d-flex flex-wrap gap-2">
-                                        <a asp-action="DetallesSuscripcion" asp-controller="PaypalSubscription"
-                                           asp-route-id="@sub.SubscriptionId"
-                                           class="btn btn-outline-primary flex-fill btn-sm">
-                                            <i class="bi bi-eye me-1"></i> Detalles
-                                        </a>
-
-                                        <button type="button"
-                                                class="btn btn-warning btn-sm flex-fill btn-suspend-suscripcion"
-                                                data-id="@sub.SubscriptionId"
-                                                data-bs-toggle="tooltip"
-                                                title="Suspender suscripción">
-                                            <i class="bi bi-pause-circle"></i> Suspender
-                                        </button>
-
-                                        <button type="button"
-                                                class="btn btn-danger btn-sm flex-fill btn-cancel-suscripcion"
-                                                data-id="@sub.SubscriptionId"
-                                                data-bs-toggle="tooltip"
-                                                title="Cancelar suscripción">
-                                            <i class="bi bi-x-circle"></i> Cancelar
-                                        </button>
-
-                                        <button type="button"
-                                                class="btn btn-success btn-sm flex-fill btn-activar-suscripcion"
-                                                data-id="@sub.SubscriptionId"
-                                                data-bs-toggle="tooltip"
-                                                title="Activar suscripción">
-                                            <i class="bi bi-play-circle"></i> Activar
-                                        </button>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    </div>
-                </div>
+                <partial name="_SubcriptionPartial" model="sub"/>
             }
         </div>
     }
@@ -158,95 +74,7 @@
         </nav>
     }
 </div>
-
-<!-- Modales (mejorados) -->
-<!-- Modal Cancelar -->
-<div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-3">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title"><i class="bi bi-x-circle me-2"></i>Cancelar Suscripción</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="cancelForm" asp-controller="PaypalSubscription" asp-action="CancelarSuscripcion" method="post">
-                <div class="modal-body">
-                    <input type="hidden" name="Id" id="cancelSubscriptionId" />
-                    <p class="mb-3">Estás a punto de cancelar la suscripción <strong id="cancelSubscriptionIdDisplay"></strong>.</p>
-                    <div class="mb-3">
-                        <label for="cancelReason" class="form-label fw-bold">Motivo de la cancelación <span class="text-danger">*</span></label>
-                        <textarea class="form-control" id="cancelReason" name="Reason" rows="4"
-                                  placeholder="Indica el motivo..." maxlength="500" required></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Volver</button>
-                    <button type="submit" class="btn btn-danger" id="confirmCancelBtn">
-                        <i class="bi bi-check-circle me-2"></i>Confirmar Cancelación
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Suspender -->
-<div class="modal fade" id="suspendModal" tabindex="-1" aria-labelledby="suspendModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-3">
-            <div class="modal-header bg-warning">
-                <h5 class="modal-title text-dark"><i class="bi bi-pause-circle me-2"></i>Suspender Suscripción</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="suspendForm" asp-controller="PaypalSubscription" asp-action="SuspenderSuscripcion" method="post">
-                <div class="modal-body">
-                    <input type="hidden" name="Id" id="suspendSubscriptionId" />
-                    <p class="mb-3">Estás a punto de suspender la suscripción <strong id="suspendSubscriptionIdDisplay"></strong>.</p>
-                    <div class="mb-3">
-                        <label for="suspendReason" class="form-label fw-bold">Motivo de la suspensión <span class="text-danger">*</span></label>
-                        <textarea class="form-control" id="suspendReason" name="Reason" rows="4"
-                                  placeholder="Indica el motivo..." maxlength="500" required></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Volver</button>
-                    <button type="submit" class="btn btn-warning text-dark" id="confirmSuspendBtn">
-                        <i class="bi bi-check-circle me-2"></i>Confirmar Suspensión
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Activar -->
-<div class="modal fade" id="activateModal" tabindex="-1" aria-labelledby="activateModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-3">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title"><i class="bi bi-check-circle me-2"></i>Activar Suscripción</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="activateForm" asp-controller="PaypalSubscription" asp-action="ActivarSuscripcion" method="post">
-                <div class="modal-body">
-                    <input type="hidden" name="Id" id="activateSubscriptionId" />
-                    <p class="mb-3">Estás a punto de reactivar la suscripción <strong id="activateSubscriptionIdDisplay"></strong>.</p>
-                    <div class="mb-3">
-                        <label for="activateReason" class="form-label fw-bold">Motivo de la activación <span class="text-danger">*</span></label>
-                        <textarea class="form-control" id="activateReason" name="Reason" rows="4"
-                                  placeholder="Indica el motivo..." maxlength="500" required></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Volver</button>
-                    <button type="submit" class="btn btn-success" id="confirmActivateBtn">
-                        <i class="bi bi-check-circle me-2"></i>Confirmar Activación
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
+<partial name="_ModalSubcriptionPartial"/>
 @section Scripts {
     <script src="~/js/suscripciones-actions.js" asp-append-version="true"></script>
 }

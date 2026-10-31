@@ -1,0 +1,59 @@
+﻿@model GestorInventario.Application.DTOS.SubcritionDtoViewModel
+
+
+<div class="col">
+    <div class="card h-100 border-0 shadow-sm hover-card transition-all">
+        <div class="card-body p-4 d-flex flex-column">
+
+            <!-- Cabecera de la tarjeta -->
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <h5 class="card-title text-primary fw-semibold mb-0">
+                    @Model.SubscriptionId
+                </h5>
+                <span class="badge bg-success fs-6">
+                                    @Model.Status
+                                </span>
+            </div>
+
+            <!-- Información del usuario y suscripción -->
+            <div class="mb-4">
+                <p class="mb-2">
+                    <strong>Usuario:</strong>
+                    @Model.NombreCompleto
+                </p>
+                <p class="mb-2">
+                    <strong>Nombre Suscriptor:</strong>
+                    @Model.SubscriberName
+                </p>
+                <p class="mb-2">
+                    <strong>Email:</strong>
+                    @Model.SubscriberEmail
+                </p>
+                <p class="mb-0">
+                    <strong>Plan ID:</strong>
+                    <span class="text-muted">@Model.PlanId</span>
+                </p>
+            </div>
+
+            <!-- Acciones -->
+            <div class="mt-auto pt-3 border-top">
+                <div class="d-flex flex-wrap gap-2">
+                    <a asp-action="DetallesSuscripcion"
+                       asp-controller="PaypalSubscription"
+                       asp-route-id="@Model.SubscriptionId"
+                       class="btn btn-outline-primary flex-fill btn-sm">
+                        <i class="bi bi-eye me-1"></i> Ver Detalles
+                    </a>
+
+                    <button type="button"
+                            class="btn btn-danger btn-sm flex-fill btn-cancel-suscripcion"
+                            data-id="@Model.SubscriptionId"
+                            data-bs-toggle="tooltip"
+                            title="Cancelar esta suscripción">
+                        <i class="bi bi-x-circle me-1"></i> Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

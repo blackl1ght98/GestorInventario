@@ -1,16 +1,16 @@
 ﻿namespace GestorInventario.Application.DTOS.Paypal
 {
-    public class RefundDto
+    public record RefundDto
     {
       
-        public required string NumeroPedido { get; set; }
+        public required string NumeroPedido { get; init; }
   
-        public required string NombreCliente { get; set; }
+        public required string NombreCliente { get; init; }
       
-        public required string EmailCliente { get; set; }
+        public required string EmailCliente { get; init; }
     
-        public DateTime FechaRembolso { get; set; }
+        public DateTime FechaRembolso { get; init; }
       
-        public required string MotivoRembolso { get; set; }
+        public required string MotivoRembolso { get; init; }
     }
 }

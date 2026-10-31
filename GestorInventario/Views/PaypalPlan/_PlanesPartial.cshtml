@@ -1,0 +1,112 @@
+﻿@model GestorInventario.Application.DTOS.PlanDtoViewModel
+
+<div class="col-lg-4 col-md-6 mb-4">
+    <div class="card h-100 border-0 shadow-sm hover-card animate-fade-in">
+        <div class="card-body d-flex flex-column p-4">
+
+            <!-- Título del Plan -->
+            <h5 class="card-title text-center text-primary fw-bold mb-3">@Model.Name</h5>
+
+            <!-- Descripción -->
+            <p class="card-text text-center text-muted mb-4">@Model.Description</p>
+
+            <!-- Estado -->
+            <div class="text-center mb-4">
+                                <span
+                                    class="badge fs-6 px-3 py-2 @(Model.Status == "ACTIVE" ? "bg-success" : "bg-danger")">
+                                    <i class="bi bi-circle-fill me-1"></i>@Model.Status
+                                </span>
+            </div>
+
+            <!-- Detalles de Facturación -->
+            @if (Model.Billing_cycles != null && Model.Billing_cycles.Any())
+            {
+                <div class="mb-4">
+                    <h6 class="text-muted mb-3"><i class="bi bi-wallet2 me-2"></i>Detalles de Facturación</h6>
+                    <ul class="list-unstyled">
+                        @foreach (var cycle in Model.Billing_cycles)
+                        {
+                            <li class="mb-3">
+                                @if (cycle.TenureType == "TRIAL")
+                                {
+                                    <span class="text-success">
+                                                        <i class="bi bi-gift me-2"></i>
+                                        Prueba: @cycle.TotalCycles ciclo@(cycle.TotalCycles > 1 ? "s" : "")
+                                        - @cycle.PricingScheme.FixedPrice.Value @cycle.PricingScheme.FixedPrice.CurrencyCode
+                                                    </span>
+                                }
+                                else
+                                {
+                                    <span>
+                                                        <i class="bi bi-wallet2 me-2 text-primary"></i>
+                                        Regular: @cycle.Frequency.IntervalCount
+                                        @cycle.Frequency.IntervalUnit
+                                        - @cycle.PricingScheme.FixedPrice.Value @cycle.PricingScheme.FixedPrice.CurrencyCode
+                                                    </span>
+                                }
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            <!-- Información técnica solo para Administradores -->
+            @if (User.IsInRole("Administrador"))
+            {
+                <div class="border-top pt-3 mb-4">
+                    <small class="text-muted">
+                        <strong>ID del Plan:</strong> @Model.Id <br/>
+                        <strong>Producto:</strong> @Model.productId
+                    </small>
+                </div>
+            }
+
+            <!-- Botones de Acción -->
+            <div class="mt-auto">
+                <div class="d-grid gap-2">
+                    <!-- Suscribirse -->
+                    <form asp-action="IniciarSuscripcion" asp-controller="PaypalSubscription" method="post">
+                        <input type="hidden" name="plan_id" value="@Model.Id"/>
+                        <input type="hidden" name="planName" value="@Model.Name"/>
+                        <button type="submit" class="btn btn-success btn-lg w-100">
+                            <i class="bi bi-check-circle-fill me-2"></i>Suscribirse
+                        </button>
+                    </form>
+
+                    @if (User.IsInRole("Administrador"))
+                    {
+                        <div class="row g-2 mt-2">
+                            <!-- Desactivar -->
+                            <div class="col-6">
+                                <form asp-action="DesactivarPlan" method="post">
+                                    <input type="hidden" name="id" value="@Model.Id"/>
+                                    <button type="submit" class="btn btn-danger w-100">
+                                        <i class="bi bi-x-circle-fill me-2"></i>Desactivar
+                                    </button>
+                                </form>
+                            </div>
+                            <!-- Activar -->
+                            <div class="col-6">
+                                <form asp-action="ActivarPlan" method="post">
+                                    <input type="hidden" name="id" value="@Model.Id"/>
+                                    <button type="submit" class="btn btn-success w-100">
+                                        <i class="bi bi-check-circle-fill me-2"></i>Activar
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Botón Actualizar Precio (más grande y separado) -->
+                        <button class="btn btn-warning w-100 mt-3 update-plan-price-button"
+                                data-plan-id="@Model.Id"
+                                data-currency="@(Model.CurrencyCode ?? "EUR")"
+                                data-bs-toggle="tooltip"
+                                title="Actualizar precio del plan">
+                            <i class="bi bi-currency-exchange me-2"></i>Actualizar Precio
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

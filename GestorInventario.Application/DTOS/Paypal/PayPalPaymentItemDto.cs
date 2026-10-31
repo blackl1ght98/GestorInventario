@@ -1,12 +1,12 @@
 ﻿namespace GestorInventario.Application.DTOS.Paypal
 {
-    public class PayPalPaymentItemDto
+    public record PayPalPaymentItemDto
     {
-        public string ItemName { get; set; }
-        public string ItemSku { get; set; }
-        public decimal? ItemPrice { get; set; }
-        public string ItemCurrency { get; set; }
-        public decimal? ItemTax { get; set; }
-        public decimal? ItemQuantity { get; set; }
+        public string ItemName { get; init; }
+        public string ItemSku { get; init; }
+        public decimal? ItemPrice { get; init; }
+        public string ItemCurrency { get; init; }
+        public decimal? ItemTax { get; init; }
+        public decimal? ItemQuantity { get; init; }
     }
 }

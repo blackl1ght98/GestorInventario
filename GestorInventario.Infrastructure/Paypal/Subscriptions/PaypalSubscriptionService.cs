@@ -279,54 +279,7 @@ namespace GestorInventario.Infrastructure.Paypal.Subscriptions
         }
 
         #endregion
-/*
- * public async Task<OperationResult<ProductsPageDto>> GetProductsAsync(int page = 1, int pageSize = 10)
-        {
-            try
-            {
-                var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
-                    HttpMethod.Get,
-                    $"v1/catalogs/products?page_size={pageSize}&page={page}",
-                    async err =>
-                    {
-                        var errorBody = await err.Content.ReadAsStringAsync();
-                        throw new InvalidOperationException(
-                            $"Error al obtener los productos {err.StatusCode} - {errorBody}");
-                    });
 
-                var jsonResponse = JsonConvert.DeserializeObject<PaypalProductCollectionResponse>(responseBody);
-                if (jsonResponse == null)
-                    return OperationResult<ProductsPageDto>.Fail("Respuesta de productos vacía");
-
-                var hasNextPage = jsonResponse.Links?.Any(link => link.Rel == "next") ?? false;
-
-                var dto = new ProductsPageDto
-                {
-                    HasNextPage = hasNextPage,
-                    Products = jsonResponse.Products?
-                        .Select(p => new ProductSummaryDto
-                        {
-                            Id = p.Id,
-                            Name = p.Name,
-                            Description = p.Description
-                        })
-                        .ToList() ?? new List<ProductSummaryDto>()
-                };
-
-                return OperationResult<ProductsPageDto>.Ok(dto);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return OperationResult<ProductsPageDto>.Fail(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return OperationResult<ProductsPageDto>.Fail($"Ocurrió un error inesperado: {ex.Message}");
-            }
-        }
- *
- * 
- */
         #region Obtener Planes de suscripcion
 
         public async Task<OperationResult<SubscriptionPlansPageDto>> GetSubscriptionPlansAsync(

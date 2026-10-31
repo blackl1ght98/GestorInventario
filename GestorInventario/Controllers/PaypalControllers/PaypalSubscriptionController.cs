@@ -1,4 +1,5 @@
-﻿using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Subscriptions;
+﻿using GestorInventario.Application.DTOS;
+using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Subscriptions;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.Subscription;
 using GestorInventario.Application.Interfaces.Infrastructure.Common;
 using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;
@@ -269,10 +270,20 @@ namespace GestorInventario.Controllers.PaypalControllers
                     query: queryable,
                     paginacion: paginacion
                 );
+                var subcripcionDto = paginationResult.Items.Select(s => new SubcritionDtoViewModel
+                {
+                    Status = s.Status,
+                    PlanId = s.PlanId,
+                    PayerId = s.PayerId,
+                    SubscriberEmail = s.SubscriberEmail,
+                    SubscriberName = s.SubscriberName,
+                    SubscriptionId = s.SubscriptionId,
+                    TrialIntervalCount = s.TrialIntervalCount,
 
+                }).ToList();
                 var model = new SubcriptionsIndexViewModel
                 {
-                    Suscripciones = paginationResult.Items ?? new List<SubscriptionDetail>(),
+                    Suscripciones = subcripcionDto,
                     Paginas = paginationResult.Paginas.ToList(),
                     TotalPaginas = paginationResult.TotalPaginas,
                     PaginaActual = paginationResult.PaginaActual,
@@ -316,11 +327,20 @@ namespace GestorInventario.Controllers.PaypalControllers
                     query: queryable,
                     paginacion: paginacion
                 );
-
+                var subcripcionDto = paginationResult.Items.Select(s => new SubcritionDtoViewModel
+                {
+                    Status = s.Subscription.Status,
+                    PlanId = s.Subscription.PlanId,
+                    SubscriberEmail = s.Subscription.SubscriberEmail,
+                    SubscriberName = s.Subscription.SubscriberName,
+                    SubscriptionId = s.SubscriptionId,
+                    TrialIntervalCount = s.Subscription.TrialIntervalCount,
+                    NombreCompleto = s.User.NombreCompleto ?? string.Empty,
+                }).ToList();
                 // Construimos el modelo usando directamente el resultado del helper
                 var model = new UserSubscriptionsIndexViewModel
                 {
-                    Suscripciones = paginationResult.Items ?? new List<UserSubscription>(),
+                    Suscripciones = subcripcionDto,
                     Paginas = paginationResult.Paginas.ToList(),
                     TotalPaginas = paginationResult.TotalPaginas,
                     PaginaActual = paginationResult.PaginaActual,

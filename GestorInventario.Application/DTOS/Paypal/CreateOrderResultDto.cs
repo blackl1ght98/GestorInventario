@@ -2,7 +2,7 @@
 
 
 
-public class CreateOrderResultDto
+public record CreateOrderResultDto
 {
     public required string OrderId { get; init; }
     public required string ApprovalUrl { get; init; }

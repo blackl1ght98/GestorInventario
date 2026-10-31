@@ -1,12 +1,12 @@
 ﻿namespace GestorInventario.Application.DTOS.Paypal;
 
-public class PlanPriceUpdateResultDto
+public record PlanPriceUpdateResultDto
 {
     public required string PlanId { get; init; }
     public List<PlanPriceSchemeDto> PricingSchemes { get; init; } = new();
 }
 
-public class PlanPriceSchemeDto
+public record PlanPriceSchemeDto
 {
     public int BillingCycleSequence { get; init; }
     public required string Value { get; init; }

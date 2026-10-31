@@ -1,4 +1,5 @@
-﻿using GestorInventario.Application.DTOS.Paypal;
+﻿using GestorInventario.Application.DTOS;
+using GestorInventario.Application.DTOS.Paypal;
 using GestorInventario.Application.Exceptions;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Subscriptions;
 using GestorInventario.Application.Interfaces.Application.Services.Paypal.Plans;
@@ -113,13 +114,23 @@ namespace GestorInventario.Controllers.PaypalControllers
                 var monedas = await _policyExecutor.ExecutePolicyAsync(() =>
                     _unitOfWork.ShopCartRepository.ObtenerMoneda());
 
+                var planDto = paginationResult.Items.Select(p => new PlanDtoViewModel
+                {
+                    Id = p.Id,
+                    Billing_cycles = p.Billing_cycles,
+                    productId = p.productId,
+                    CurrencyCode = p.CurrencyCode,
+                    Description = p.Description,
+                    Name = p.Name,
+                    Status = p.Status
+
+                }).ToList();
                 var model = new PayPalPlansIndexViewModel
                 {
-                    Planes = paginationResult.Items,
+                    Planes = planDto,
                     Paginas = paginationResult.Paginas.ToList(),
                     TotalPaginas = paginationResult.TotalPaginas,
                     PaginaActual = paginationResult.PaginaActual,
-
                     CantidadAMostrar = paginacion.CantidadAMostrar
                 };
 

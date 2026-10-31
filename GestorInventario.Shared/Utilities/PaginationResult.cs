@@ -18,12 +18,7 @@
             PaginaActual = paginaActual;
             Paginas = paginas;
         }
-
-        // Constructor para APIs externas (sin total)
-        public PaginationResult(List<T> items, int totalPaginas, int paginaActual, IEnumerable<PaginasModel> paginas)
-            : this(items, null, totalPaginas, paginaActual, paginas)  
-        {
-        }
+        
 
     }
 }
