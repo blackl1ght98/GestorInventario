@@ -1,6 +1,7 @@
 ﻿using GestorInventario.Application.Interfaces.Application.Services.PDFService;
 using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
 using GestorInventario.Application.Interfaces.Renderer.PDF;
+using GestorInventario.Application.Mappers;
 using GestorInventario.Shared.Utilities;
 
 namespace GestorInventario.Application.Services.PDFService
@@ -23,8 +24,8 @@ namespace GestorInventario.Application.Services.PDFService
             var detalle = await _paymentRepository.ObtenerDetallesPagoPorIDAsync(pagoId);
             if (detalle == null)
                 return OperationResult<byte[]>.Fail();
-
-            var pdfBytes = _invoiceRenderer.Render(detalle);
+            var facturaDto = FacturaMapper.ToDto(detalle);
+            var pdfBytes = _invoiceRenderer.Render(facturaDto);
             return OperationResult<byte[]>.Ok(pdfBytes, "Factura generada correctamente");
         }
     }

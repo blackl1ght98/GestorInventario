@@ -1,4 +1,5 @@
-﻿using GestorInventario.Domain.Models;
+﻿using GestorInventario.Application.DTOS;
+using GestorInventario.Application.DTOS.Paypal;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -7,9 +8,9 @@ namespace GestorInventario.Infrastructure.Renderers
 {
     public class FacturaPagoEjecutadoPdf : IDocument
     {
-        private readonly PayPalPaymentDetail _data;
+        private readonly FacturaPdfDto _data;
 
-        public FacturaPagoEjecutadoPdf(PayPalPaymentDetail data)
+        public FacturaPagoEjecutadoPdf(FacturaPdfDto data)
         {
             _data = data ?? throw new ArgumentNullException(nameof(data));
         }
@@ -23,7 +24,7 @@ namespace GestorInventario.Infrastructure.Renderers
                 page.Size(PageSizes.A4);
                 page.Margin(50);
                 page.PageColor(Colors.White);
-                page.DefaultTextStyle(x => x.FontSize(11).FontFamily("Arial"));
+                page.DefaultTextStyle(x => x.FontSize(11).FontFamily("Lato"));
 
                 page.Header().Element(ComposeHeader);
                 page.Content().Element(ComposeContent);
@@ -45,9 +46,9 @@ namespace GestorInventario.Infrastructure.Renderers
 
                 row.ConstantItem(150).AlignRight().Column(col =>
                 {
-                    col.Item().Text($"Fecha: {_data.CreateTime:dd/MM/yyyy HH:mm}")
+                    col.Item().Text($"Fecha: {_data.FechaCreacion:dd/MM/yyyy HH:mm}")
                         .FontSize(10).FontColor(Colors.Grey.Medium);
-                    col.Item().Text($"ID Pago: {_data.Id}")
+                    col.Item().Text($"ID Pago: {_data.IdPago}")
                         .FontSize(10).FontColor(Colors.Grey.Medium);
                 });
             });
@@ -84,22 +85,15 @@ namespace GestorInventario.Infrastructure.Renderers
                         columns.RelativeColumn(3);
                     });
 
-                    AddDetailRow(table, "Nombre", $"{_data.PayerFirstName} {_data.PayerLastName}");
-                    AddDetailRow(table, "Email", _data.PayerEmail ?? "No disponible");
-                    AddDetailRow(table, "Dirección de envío",
-                        $" {_data.PayPalPaymentShippings
-    .FirstOrDefault()?.AddressLine1},{_data.PayPalPaymentShippings
-    .FirstOrDefault()?.City},{_data.PayPalPaymentShippings
-    .FirstOrDefault()?.State}");
+                    AddDetailRow(table, "Nombre", _data.PayerNombreCompleto);
+                    AddDetailRow(table, "Email", string.IsNullOrEmpty(_data.PayerEmail) ? "No disponible" : _data.PayerEmail);
+                    AddDetailRow(table, "Dirección de envío", _data.DireccionEnvio);
                 });
             });
         }
 
         private void ComposeTransactionDetails(IContainer container)
         {
-            var ultimoCapture = _data.PayPalPaymentCaptures
-       .OrderByDescending(c => c.Id)
-       .FirstOrDefault();
             container.Border(1).BorderColor(Colors.Grey.Lighten2).Padding(10).Column(col =>
             {
                 col.Item().Text("Detalles de la Transacción").FontSize(14).Bold().FontColor(Colors.Blue.Darken2);
@@ -115,8 +109,8 @@ namespace GestorInventario.Infrastructure.Renderers
 
                     AddDetailRow(table, "Estado", _data.OrderStatus ?? "N/A");
                     AddDetailRow(table, "Descripción", _data.Description ?? "N/A");
-                    AddDetailRow(table, "ID de Venta/Captura", ultimoCapture.CaptureId ?? "N/A");
-                    AddDetailRow(table, "Estado de Captura", ultimoCapture.Status ?? "N/A");
+                    AddDetailRow(table, "ID de Venta/Captura", _data.UltimoCaptureId ?? "N/A");
+                    AddDetailRow(table, "Estado de Captura", _data.UltimoCaptureStatus ?? "N/A");
                 });
             });
         }
@@ -148,15 +142,17 @@ namespace GestorInventario.Infrastructure.Renderers
                         header.Cell().Background(Colors.Blue.Darken3).Padding(5).AlignCenter().AlignMiddle().Text("Total").FontSize(10).Bold().FontColor(Colors.White);
                     });
 
-                    if (_data.PayPalPaymentItems != null && _data.PayPalPaymentItems.Any())
+                    if (_data.Items != null && _data.Items.Any())
                     {
-                        foreach (var item in _data.PayPalPaymentItems)
+                        foreach (var item in _data.Items)
                         {
+                            var totalLinea = (item.ItemPrice * item.ItemQuantity) + item.ItemTax;
+
                             table.Cell().Padding(5).AlignLeft().AlignMiddle().Text(item.ItemName ?? "N/A");
-                            table.Cell().Padding(5).AlignCenter().AlignMiddle().Text(item.ItemQuantity.ToString() ?? "N/A");
-                            table.Cell().Padding(5).AlignRight().AlignMiddle().Text($"{item.ItemPrice.ToString("C") ?? "N/A"} {item.ItemCurrency}");
-                            table.Cell().Padding(5).AlignRight().AlignMiddle().Text($"{item.ItemTax.ToString("C") ?? "0.00"} {item.ItemCurrency}");
-                            table.Cell().Padding(5).AlignRight().AlignMiddle().Text($"{(item.ItemPrice * item.ItemQuantity + item.ItemTax).ToString("C") ?? "N/A"} {item.ItemCurrency}");
+                            table.Cell().Padding(5).AlignCenter().AlignMiddle().Text(item.ItemQuantity.ToString());
+                            table.Cell().Padding(5).AlignRight().AlignMiddle().Text($"{item.ItemPrice:C} {item.ItemCurrency}");
+                            table.Cell().Padding(5).AlignRight().AlignMiddle().Text($"{item.ItemTax:C} {item.ItemCurrency}");
+                            table.Cell().Padding(5).AlignRight().AlignMiddle().Text($"{totalLinea:C} {item.ItemCurrency}");
                         }
                     }
                     else
@@ -182,19 +178,15 @@ namespace GestorInventario.Infrastructure.Renderers
                         columns.RelativeColumn(2);
                     });
 
-                    AddTotalRow(table, "Subtotal ítems", $"{_data.AmountItemTotal.ToString("C") ?? "0.00"} {_data.AmountCurrency}");
-                    AddTotalRow(table, "Envío", $"{_data.AmountShipping.ToString("C") ?? "0.00"} {_data.AmountCurrency}");
-                    AddTotalRow(table, "Total", $"{_data.AmountTotal.ToString("C") ?? "0.00"} {_data.AmountCurrency}", isBold: true);
+                    AddTotalRow(table, "Subtotal ítems", $"{_data.AmountItemTotal:C} {_data.AmountCurrency}");
+                    AddTotalRow(table, "Envío", $"{_data.AmountShipping:C} {_data.AmountCurrency}");
+                    AddTotalRow(table, "Total", $"{_data.AmountTotal:C} {_data.AmountCurrency}", isBold: true);
                 });
             });
         }
 
         private void ComposeAdditionalDetails(IContainer container)
         {
-            var ultimoCapture = _data.PayPalPaymentCaptures
-      .OrderByDescending(c => c.Id)
-      .FirstOrDefault();
-
             container.Border(1).BorderColor(Colors.Grey.Lighten2).Padding(10).Column(col =>
             {
                 col.Item().Text("Detalles Adicionales").FontSize(14).Bold().FontColor(Colors.Blue.Darken2);
@@ -208,10 +200,9 @@ namespace GestorInventario.Infrastructure.Renderers
                         columns.RelativeColumn(2);
                     });
 
-                    AddDetailRow(table, "Comisión PayPal", $"{ultimoCapture.TransactionFeeAmount.ToString("C") ?? "0.00"} {ultimoCapture.TransactionFeeCurrency}");
-                    AddDetailRow(table, "Tasa de cambio", ultimoCapture.ExchangeRate.ToString("F4") ?? "N/A");
-                    AddDetailRow(table, "Monto recibible", $"{ultimoCapture.ReceivableAmount.ToString("C") ?? "0.00"} {ultimoCapture.ReceivableCurrency}");
-                   
+                    AddDetailRow(table, "Comisión PayPal", $"{_data.TransaccionFeeAmount:C} {_data.TransaccionFeeCurrency}");
+                    AddDetailRow(table, "Tasa de cambio", _data.ExchangeRate.ToString("F4"));
+                   AddDetailRow(table, "Monto recibible", $"{_data.ReceivableAmount:C} {_data.ReceivableCurrency}");
                 });
             });
         }
@@ -227,8 +218,6 @@ namespace GestorInventario.Infrastructure.Renderers
                     .FontSize(9).FontColor(Colors.Grey.Medium);
             });
         }
-
-       
 
         private static void AddDetailRow(TableDescriptor table, string label, string value)
         {

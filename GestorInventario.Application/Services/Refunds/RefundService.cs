@@ -27,11 +27,12 @@ namespace GestorInventario.Application.Services.Refunds
         private readonly IPaypalRefundService _paypalRefundService;
         private readonly ILogger<RefundService> _logger;
         private readonly IPaymentService _paymentService;
+        private readonly IAdminRepository _adminRepository;
 
         public RefundService(IOrderRepository orderRepository, ICurrentUserAccessor currentUserAccesor,
             IPaypalRepository paypalRepository, IPaymentService paymentService,
             IPaypalOrderService paypalOrderService, IPaypalRefundService paypalRefundService,
-            ILogger<RefundService> logger)
+            ILogger<RefundService> logger, IAdminRepository adminRepository)
         {
             _orderRepository = orderRepository;
             _currentUserAccesor = currentUserAccesor;
@@ -40,6 +41,7 @@ namespace GestorInventario.Application.Services.Refunds
             _paypalRefundService = paypalRefundService;
             _logger = logger;
             _paymentService = paymentService;
+            _adminRepository = adminRepository;
         }
 
         // ============================================
@@ -82,7 +84,7 @@ namespace GestorInventario.Application.Services.Refunds
                     EmailCliente = pedido.IdUsuarioNavigation?.Email,
                     FechaRembolso = DateTime.UtcNow,
                     MotivoRembolso = "Rembolso solicitado por el usuario",
-                    EstadoRembolso = EstadoRembolso.EnRevision.ToString(),
+                    EstadoRembolso = EstadoRembolso.Aprobado.ToString(),
                     ReembolsoCompletado = true,
                     UsuarioId = usuarioActual,
                     PedidoId = pedido.Id,
@@ -114,12 +116,20 @@ namespace GestorInventario.Application.Services.Refunds
         public async Task<OperationResult<(int pedidoId, int detalleId, decimal precioProducto, string motivo)>>
             RealizarRembolsoParcial(RefundPartialDto request)
         {
-            // 1. OBTENER DATOS DEL PEDIDO
+            // Si tu método actual es ObtenerDetalleParaReembolsoAsync, asegúrate de que incluya los DetallePedidos del pedido:
             var detallePedido = await _orderRepository.ObtenerDetalleParaReembolsoAsync(request.DetalleId);
             if (detallePedido == null)
                 return OperationResult<(int, int, decimal, string)>.Fail("No se encontró el detalle del order.");
+            var pedido = await _orderRepository.ObtenerPedidoConDetallesAsync(detallePedido.PedidoId);
+            if (pedido == null)
+            {
+                return OperationResult<(int, int, decimal, string)>.Fail("No se encontró el pedido.");
+            }
+            var pedidoCompleto = detallePedido.Pedido;
+            if (pedidoCompleto == null)
+                return OperationResult<(int, int, decimal, string)>.Fail("No se encontró el pedido asociado.");
 
-            var captureInfo = detallePedido.Pedido.PayPalPaymentCaptures?.FirstOrDefault();
+            var captureInfo = pedidoCompleto.PayPalPaymentCaptures?.FirstOrDefault();
             if (captureInfo == null || string.IsNullOrEmpty(captureInfo.PaymentId) ||
                 string.IsNullOrEmpty(captureInfo.CaptureId))
                 return OperationResult<(int, int, decimal, string)>.Fail(
@@ -140,36 +150,19 @@ namespace GestorInventario.Application.Services.Refunds
                 return OperationResult<(int, int, decimal, string)>.Fail(resultRefund.Message);
 
             var finalRefund = resultRefund.Data;
-
-       
             var usuarioActual = _currentUserAccesor.GetCurrentUserId();
-            var rembolsoPendiente = new Rembolso
-            {
-                PedidoId = detallePedido.Pedido.Id,
-                NumeroPedido = detallePedido.Pedido.NumeroPedido,
-                NombreCliente = detallePedido.Pedido.IdUsuarioNavigation?.NombreCompleto,
-                EmailCliente = detallePedido.Pedido.IdUsuarioNavigation?.Email,
-                FechaRembolso = DateTime.UtcNow,
-                MotivoRembolso = request.Motivo,
-                EstadoRembolso = EstadoRembolso.EnRevision.ToString(), // Marcamos como pendiente
-                ReembolsoCompletado = false,
-                UsuarioId = usuarioActual,
-                MontoRembolsado = finalRefund.MontoReembolso,
-                Currency = detallePedido.Pedido.Currency,
-                TipoRembolso = TipoRembolso.Parcial.ToString()
-            };
 
-            await _paypalRepository.AgregarRembolsoAsync(rembolsoPendiente);
-
+            // 4. EJECUTAR EL REEMBOLSO EN PAYPAL
             var refundResult = await _paypalRefundService.RefundCaptureAsync(
                 captureId: captureInfo.CaptureId,
                 amount: finalRefund.MontoReembolso,
-                currency: detallePedido.Pedido.Currency,
-                nota: $"Reembolso parcial order #{detallePedido.Pedido.Id} - {request.Motivo}");
+                currency: pedidoCompleto.Currency,
+                nota: $"Reembolso parcial order #{pedidoCompleto.Id} - {request.Motivo}"
+            );
 
+            // Manejo de falsos positivos
             if (!refundResult.Success)
             {
-                // Manejo de falsos positivos (se mantiene tu lógica original)
                 if (refundResult.Message.Contains("REFUND_AMOUNT_EXCEEDED") ||
                     refundResult.Message.Contains("UnprocessableEntity"))
                 {
@@ -193,71 +186,55 @@ namespace GestorInventario.Application.Services.Refunds
                     }
                     else
                     {
-                        return OperationResult<(int, int, decimal, string)>.Fail($"El monto excede disponible.");
+                        return OperationResult<(int, int, decimal, string)>.Fail("El monto excede el disponible.");
                     }
                 }
                 else
                 {
-                    // Marcamos el registro preventivo como fallido antes de salir
-                    rembolsoPendiente.EstadoRembolso = "Fallido";
-                    await _paypalRepository.ActualizarRembolsoAsync(rembolsoPendiente);
                     return OperationResult<(int, int, decimal, string)>.Fail(refundResult.Message);
                 }
             }
 
-            // 5. CONFIRMACIÓN FINAL EN BD
-            // Ahora que PayPal confirmó, actualizamos el registro y el estado del order.
-            var resultadoFinal = await ConfirmarReembolsoParcialAsync(
-                rembolsoPendiente.Id,
-                detallePedido.Pedido.Id,
-                detallePedido.Id,
-                refundResult.Data.RefundId);
+            // ==========================================
+            // 5. LÓGICA DE BASE DE DATOS UNIFICADA (CONFIRMACIÓN)
+            // ==========================================
 
-            if (resultadoFinal.Success)
+            // A. Crear el registro del reembolso directamente con estado Aprobado y su RefundId definitivo
+            var nuevoRembolso = new Rembolso
             {
-                return OperationResult<(int, int, decimal, string)>.Ok(
-                    (detallePedido.Pedido.Id, detallePedido.Id, detallePedido.Producto.Precio, request.Motivo),
-                    "Reembolso parcial realizado");
-            }
+                NumeroPedido = pedidoCompleto.NumeroPedido,
+                NombreCliente = pedido.IdUsuarioNavigation?.NombreCompleto,
+                EmailCliente = pedido.IdUsuarioNavigation?.Email,
+                FechaRembolso = DateTime.UtcNow,
+                MotivoRembolso = request.Motivo,
+                EstadoRembolso = EstadoRembolso.Aprobado.ToString(),
+                ReembolsoCompletado = true,
+                UsuarioId = usuarioActual,
+                PedidoId = pedidoCompleto.Id,
+                RefundIdPayPal = refundResult.Data.RefundId,
+                MontoRembolsado = finalRefund.MontoReembolso,
+                Currency = pedidoCompleto.Currency,
+                TipoRembolso = TipoRembolso.Parcial.ToString(),
+            };
+            await _paypalRepository.AgregarRembolsoAsync(nuevoRembolso);
 
-            return OperationResult<(int, int, decimal, string)>.Fail(resultadoFinal.Message);
-        }
+            // B. Marcar el detalle específico como reembolsado
+            detallePedido.Rembolsado = true;
+            await _orderRepository.ActualizarDetallePedidoAsync(detallePedido);
 
-        private async Task<OperationResult<string>> ConfirmarReembolsoParcialAsync(
-            int rembolsoId, int pedidoId, int detalleId, string refundId)
-        {
-            var pedido = await _orderRepository.ObtenerPedidoConDetallesAsync(pedidoId);
-            if (pedido == null) return OperationResult<string>.Fail();
-
-            var detalleReembolsado = pedido.DetallePedidos.FirstOrDefault(d => d.Id == detalleId);
-            if (detalleReembolsado == null) return OperationResult<string>.Fail();
-
-            // 1. Actualizar el registro de reembolso preventivo
-            var rembolso = await _paypalRepository.ObtenRembolsoByIdAsync(rembolsoId); // Asumo que existe este método
-            if (rembolso != null)
-            {
-                rembolso.EstadoRembolso = EstadoRembolso.Aprobado.ToString();
-                rembolso.ReembolsoCompletado = true;
-                rembolso.RefundIdPayPal = refundId;
-                await _paypalRepository.ActualizarRembolsoAsync(rembolso);
-            }
-
-            // 2. Marcar el detalle como reembolsado
-            detalleReembolsado.Rembolsado = true;
-            await _orderRepository.ActualizarDetallePedidoAsync(detalleReembolsado);
-
-            // 3. Actualizar estado del order (Total o Parcial)
-            bool todosReembolsados = pedido.DetallePedidos.All(d => d.Rembolsado);
-            pedido.EstadoPedido = todosReembolsados
+            // C. Evaluar si todos los detalles están reembolsados para actualizar el estado global del pedido
+            bool todosReembolsados = pedidoCompleto.DetallePedidos.All(d => d.Rembolsado);
+            pedidoCompleto.EstadoPedido = todosReembolsados
                 ? EstadoPedido.Rembolsado.ToString()
                 : EstadoPedido.RembolsoParcial.ToString();
 
-            await _orderRepository.ActualizarPedidoAsync(pedido);
+            await _orderRepository.ActualizarPedidoAsync(pedidoCompleto);
 
-            return OperationResult<string>.Ok("Reembolso confirmado");
+            return OperationResult<(int, int, decimal, string)>.Ok(
+                (pedidoCompleto.Id, detallePedido.Id, detallePedido.Producto.Precio, request.Motivo),
+                "Reembolso parcial realizado con éxito"
+            );
         }
-
-
         public async Task<OperationResult<RembolsoTotal>> EjecutarReembolsoTotalAsync(RefundFullDto request)
         {
             var pedido = await _orderRepository
@@ -385,10 +362,9 @@ namespace GestorInventario.Application.Services.Refunds
                 return OperationResult<string>.Fail();
             }
 
-            var detalles = detallespago.Unwrap(); // PayPalOrderDetailsDto
+            var detalles = detallespago.Unwrap();
 
-            // Ya no hace falta comprobar PurchaseUnits ni mapear aquí.
-            // El DTO limpio ya trae Items, Captures, etc.
+
             var resultado = await _paymentService.ProcesarRembolso(
                 detalles,
                 usuarioActual,

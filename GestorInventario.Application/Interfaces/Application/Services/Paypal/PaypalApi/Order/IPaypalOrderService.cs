@@ -8,7 +8,7 @@ namespace GestorInventario.Application.Interfaces.Application.Services.Paypal.Pa
     public interface IPaypalOrderService
     {
         Task<OperationResult<CreateOrderResultDto>> CreateOrderWithPaypalAsync(CheckoutDto pagar);
-        Task<OperationResult<PayPalOrderDetailsDto>> CapturarPagoAsync(string orderId);
+        Task<OperationResult<PayPalOrderDetailsDto>> CapturarPagoAsync(string paymentId);
         Task<OperationResult<PayPalOrderDetailsDto>> ObtenerDetallesPagoEjecutadoAsync(string id);
       
     }

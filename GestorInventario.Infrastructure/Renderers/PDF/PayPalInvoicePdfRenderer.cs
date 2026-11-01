@@ -1,4 +1,5 @@
-﻿using GestorInventario.Application.Interfaces.Renderer.PDF;
+﻿using GestorInventario.Application.DTOS;
+using GestorInventario.Application.Interfaces.Renderer.PDF;
 using GestorInventario.Domain.Models;
 using QuestPDF.Fluent;
 
@@ -6,9 +7,9 @@ namespace GestorInventario.Infrastructure.Renderers.PDF
 {
     public class PayPalInvoicePdfRenderer : IPayPalInvoiceRenderer
     {
-        public byte[] Render(PayPalPaymentDetail data)
+        public byte[] Render(FacturaPdfDto dto )
         {
-            return new FacturaPagoEjecutadoPdf(data).GeneratePdf();
+            return new FacturaPagoEjecutadoPdf(dto).GeneratePdf();
         }
     }
 }

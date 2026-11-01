@@ -1,0 +1,43 @@
+﻿<!-- Modal Reembolso Total -->
+<div class="modal fade" id="confirmRefundTotalModal" tabindex="-1" aria-labelledby="refundModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3 shadow">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title text-dark">Confirmar Reembolso Total</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="refundText" class="mb-3">⚠️ Esta acción reembolsará el pedido completo.</p>
+                <div id="refundResult" class="alert d-none" role="alert"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-danger" id="confirmRefundTotalBtn">
+                    <i class="bi bi-check-circle me-2"></i>Confirmar Reembolso
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Genérico de Confirmación -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="confirmModalLabel">Confirmación</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">¿Estás seguro de que deseas realizar esta acción?</p>
+                <p id="loadingMessage" class="d-none text-center text-muted mt-3">
+                    <span class="spinner-border spinner-border-sm me-2"></span>Procesando...
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmActionBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>

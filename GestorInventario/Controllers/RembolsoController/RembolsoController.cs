@@ -61,10 +61,21 @@ namespace GestorInventario.Controllers.RembolsoController
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
                     _paginationService.PaginarAsync(queryable, paginacion)
                 );
-
+                var rembolsoDto = paginationResult.Items.Select(r => new RefundDtoViewmodel
+                {
+                    Currency = r.Currency,
+                    EmailCliente = r.EmailCliente,
+                    EstadoPedido = r.Pedido.EstadoPedido,
+                    EstadoRembolso = r.EstadoRembolso,
+                    FechaRembolso = r.FechaRembolso,
+                    Id = r.PedidoId,
+                    NumeroPedido = r.NumeroPedido,
+                    MotivoRembolso = r.MotivoRembolso,
+                    NombreCliente = r.NombreCliente
+                }).ToList();
                 var viewModel = new RefundsViewModel
                 {
-                    Rembolsos = paginationResult.Items,
+                    Rembolsos = rembolsoDto,
                     Paginas = paginationResult.Paginas.ToList(),
                     TotalPaginas = paginationResult.TotalPaginas,
                     PaginaActual = paginacion.Pagina,

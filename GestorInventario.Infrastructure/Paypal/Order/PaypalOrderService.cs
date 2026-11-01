@@ -171,14 +171,14 @@ namespace GestorInventario.Infrastructure.Paypal.Order
         #endregion
 
         #region Capturar el pago (orden)
-        public async Task<OperationResult<PayPalOrderDetailsDto>> CapturarPagoAsync(string orderId)
+        public async Task<OperationResult<PayPalOrderDetailsDto>> CapturarPagoAsync(string paymentId)
         {
             try
             {
 
                 var responseBody = await _paypal.ExecutePayPalRequestAsync<string>(
                    HttpMethod.Post,
-                   $"v2/checkout/orders/{orderId}/capture",
+                   $"v2/checkout/orders/{paymentId}/capture",
                    rawJsonBody: "{}",
                     async resp =>
                     {

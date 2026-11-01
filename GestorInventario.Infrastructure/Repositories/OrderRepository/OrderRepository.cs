@@ -64,9 +64,14 @@ namespace GestorInventario.Infrastructure.Repositories.OrderRepository
        
         public async Task<DetallePedido> ObtenerDetalleParaReembolsoAsync(int detallePedidoId)
         {     
+            
+            
+            
+            
                 var detalle = await _context.DetallePedidos
                     .Include(dp => dp.Producto)
                     .Include(dp => dp.Pedido)
+                    
                     .ThenInclude(x => x.PayPalPaymentCaptures)
                     
                     .FirstOrDefaultAsync(dp => dp.Id == detallePedidoId);

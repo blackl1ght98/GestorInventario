@@ -1,0 +1,68 @@
+﻿@using GestorInventario.Domain.enums.Paypal
+@using GestorInventario.Domain.enums.Pedido
+@model GestorInventario.Application.DTOS.Rembolso.RefundDtoViewmodel
+    <div class="col">
+                    <div class="card h-100 border-0 shadow-sm hover-card transition-all">
+                        <div class="card-body p-4 d-flex flex-column">
+
+                            <h5 class="card-title fw-semibold text-primary mb-3">
+                                @Model.NombreCliente
+                            </h5>
+
+                            <div class="mb-4">
+                                <p class="mb-2">
+                                    <i class="bi bi-envelope text-muted me-2"></i>
+                                    <strong>Email:</strong> @Model.EmailCliente
+                                </p>
+                                <p class="mb-2">
+                                    <i class="bi bi-calendar text-muted me-2"></i>
+                                    <strong>Fecha:</strong> @Model.FechaRembolso
+                                </p>
+                                <p class="mb-2">
+                                    <i class="bi bi-receipt text-muted me-2"></i>
+                                    <strong>Nº Pedido:</strong> @Model.NumeroPedido
+                                </p>
+                                <p class="mb-2">
+                                    <strong>Estado Rembolso:</strong>
+                                    @{
+                                        var estadoTexto = Model.EstadoRembolso;
+                                        var estadoClass = estadoTexto == EstadoRembolso.Aprobado.ToString() ? "bg-success"
+                                                        : estadoTexto == EstadoRembolso.Rechazado.ToString() ? "bg-danger"
+                                                        : "bg-warning";
+                                    }
+                                    <span class="badge @estadoClass">
+                                        @Model.EstadoRembolso
+                                    </span>
+                                </p>
+                               
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(Model.MotivoRembolso))
+                            {
+                                <p class="text-muted small">
+                                    <strong>Motivo:</strong> @Model.MotivoRembolso
+                                </p>
+                            }
+
+                            <!-- Acciones -->
+                            <div class="mt-auto pt-3 border-top">
+                                <div class="d-flex flex-wrap gap-2">
+                                    <button type="button"
+                                            class="btn btn-outline-warning flex-fill btn-sm refund-total-btn"
+                                            data-pedido-id="@Model.Id"
+                                            data-currency="@Model.Currency"
+                                            @(Model.EstadoPedido == EstadoPedido.Rembolsado.ToString() ? "disabled" : "")>
+                                        <i class="bi bi-arrow-counterclockwise me-1"></i>Reembolsar
+                                    </button>
+
+                                    <button class="btn btn-outline-danger flex-fill btn-sm user-action-button"
+                                            data-rembolso-id="@Model.Id"
+                                            data-user-action="Eliminar">
+                                        <i class="bi bi-trash me-1"></i>Eliminar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
