@@ -1,4 +1,6 @@
 ﻿using GestorInventario.Application.DTOS.Gestion_Roles;
+using GestorInventario.Application.DTOS.Role;
+using GestorInventario.Application.DTOS.User;
 using GestorInventario.Application.Interfaces.Infrastructure.Common;
 using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;
 using GestorInventario.Application.Interfaces.MetodosPaginacion;
@@ -33,10 +35,16 @@ namespace GestorInventario.Controllers.AdminControllers
                 var queryable = _policyExecutor.ExecutePolicy(() => _unitOfWork.RoleRepository.ObtenerRoles());
 
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() => _paginationService.PaginarAsync(queryable, paginacion));
+                var rolesDto = paginationResult.Items.Select(r => new RoleCardViewModel
+                {
+                    Nombre = r.Nombre,
+                    NumeroUsuarios = r.Usuarios.Count(),
+                    RoleId = r.Id
 
+                }).ToList();
                 var viewModel = new RolesViewModel
                 {
-                    Roles = paginationResult.Items,
+                    Roles = rolesDto,
                     Paginas = paginationResult.Paginas.ToList(),
                     TotalPaginas = paginationResult.TotalPaginas,
                     PaginaActual = paginationResult.PaginaActual,
@@ -63,15 +71,32 @@ namespace GestorInventario.Controllers.AdminControllers
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() => _paginationService.PaginarAsync(usuariosQueryable, paginacion));
 
                 var todosLosRoles = _policyExecutor.ExecutePolicy(() => _unitOfWork.RoleRepository.ObtenerRoles());
+                var selectRolesDto = todosLosRoles.Select(r => new SelectRolDto
+                {
+                    Id = r.Id,
+                    Nombre = r.Nombre
+                }).ToList();
+                
+                var listRolDto = new ListRolDto
+                {
+                    Roles = selectRolesDto
+                };
+                var userByRole = paginationResult.Items.Select(r => new RoleUserDtoViewmodel
+                {
+                    NombreRol = r.IdRolNavigation.Nombre,
+                    Email = r.Email,
+                    NombreCompleto = r.NombreCompleto,
+                    UsuarioId = r.Id
 
+                }).ToList();
                 var viewModel = new UserByRolViewModel
                 {
-                    Usuarios = paginationResult.Items,
+                    Usuarios = userByRole,
                     Paginas = paginationResult.Paginas.ToList(),
                     TotalPaginas = paginationResult.TotalPaginas,
                     PaginaActual = paginacion.Pagina,
                     RolId = id,
-                    TodosLosRoles = todosLosRoles.ToList(),
+                    TodosLosRoles = listRolDto,
                 };
                 return View(viewModel);
             }

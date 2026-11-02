@@ -1,12 +1,9 @@
 ﻿@using GestorInventario.ViewModels.Users
 @model UserByRolViewModel
 
-
-
-
 @{
     ViewData["Title"] = "Usuarios por Rol";
-    var nombreRol = Model.TodosLosRoles.FirstOrDefault(r => r.Id == Model.RolId)?.Nombre ?? "Rol no encontrado";
+   
 }
 
 <div class="container my-5">
@@ -16,7 +13,7 @@
             <h1 class="display-5 fw-bold text-primary">
                 <i class="bi bi-people me-3"></i>Usuarios del Rol
             </h1>
-            <h2 class="h4 text-muted">@nombreRol</h2>
+            <h2 class="h4 text-muted">@Model.NombreRol</h2>
         </div>
 
         <a asp-action="ObtenerRoles" class="btn btn-outline-secondary btn-lg">
@@ -56,38 +53,7 @@
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
             @foreach (var usuario in Model.Usuarios)
             {
-                <div class="col">
-                    <div class="card h-100 border-0 shadow-sm hover-card transition-all">
-                        <div class="card-body p-4 d-flex flex-column">
-
-                            <!-- Nombre del Usuario -->
-                            <h5 class="card-title fw-semibold text-primary mb-3">
-                                <i class="bi bi-person me-2"></i>@usuario.NombreCompleto
-                            </h5>
-
-                            <!-- Información -->
-                            <div class="mb-4">
-                                <p class="mb-2">
-                                    <i class="bi bi-envelope text-muted me-2"></i>
-                                    <strong>Email:</strong> @usuario.Email
-                                </p>
-                                <p class="mb-0">
-                                    <i class="bi bi-person-badge text-muted me-2"></i>
-                                    <strong>Rol actual:</strong>
-                                    <span class="badge bg-primary">@(usuario.IdRolNavigation?.Nombre ?? "No definido")</span>
-                                </p>
-                            </div>
-
-                            <!-- Acción -->
-                            <div class="mt-auto">
-                                <button class="btn btn-primary w-100 change-role-button"
-                                        data-user-id="@usuario.Id">
-                                    <i class="bi bi-gear me-2"></i>Cambiar Rol
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+               <partial name="_RoleUserCardPartial" model="usuario"/>
             }
         </div>
     }
@@ -124,44 +90,7 @@
     }
 </div>
 
-<!-- Modal para Cambiar Rol -->
-<div class="modal fade" id="changeRoleModal" tabindex="-1" aria-labelledby="changeRoleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-3 shadow">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="changeRoleModalLabel">
-                    <i class="bi bi-gear me-2"></i>Cambiar Rol del Usuario
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p class="mb-3">Selecciona el nuevo rol para el usuario:</p>
-
-                <div class="input-group">
-                    <span class="input-group-text">
-                        <i class="bi bi-person-badge"></i>
-                    </span>
-                    <select id="roleSelect" class="form-select">
-                        @foreach (var rol in Model.TodosLosRoles)
-                        {
-                            <option value="@rol.Id">@rol.Nombre</option>
-                        }
-                    </select>
-                </div>
-
-                <p id="loadingMessage" class="d-none text-center text-muted mt-3">
-                    <span class="spinner-border spinner-border-sm me-2"></span>Procesando cambio...
-                </p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="confirmChangeRoleBtn">
-                    <i class="bi bi-check-circle me-2"></i>Confirmar Cambio
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+<partial name="_ChangeRolPartial" model="Model.TodosLosRoles"/>
 
 @section Scripts {
     <script src="~/js/ver-usuario-rol.js" asp-append-version="true"></script>

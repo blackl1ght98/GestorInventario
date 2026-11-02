@@ -1,9 +1,6 @@
 ﻿@using GestorInventario.ViewModels.Users
 @model RolesViewModel
 
-
-
-
 @{
     ViewData["Title"] = "Gestión de Roles";
 }
@@ -20,46 +17,13 @@
 
       
     </div>
-
- 
-
-  
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
             @foreach (var role in Model.Roles)
             {
-                <div class="col">
-                    <div class="card h-100 border-0 shadow-sm hover-card transition-all">
-                        <div class="card-body p-4 d-flex flex-column">
-
-                            <!-- Nombre del Rol -->
-                            <div class="d-flex align-items-center mb-4">
-                                <i class="bi bi-shield-lock fs-3 text-primary me-3"></i>
-                                <h5 class="card-title fw-semibold text-primary mb-0">@role.Nombre</h5>
-                            </div>
-
-                            <!-- Información -->
-                            <div class="mb-4">
-                                <p class="mb-3">
-                                    <i class="bi bi-people text-muted me-2"></i>
-                                    <strong>Usuarios con este rol:</strong>
-                                    <span class="badge bg-secondary fs-6 ms-2">@(role.Usuarios?.Count() ?? 0)</span>
-                                </p>
-                            </div>
-
-                            <!-- Acción -->
-                            <div class="mt-auto">
-                                <a asp-action="VerUsuariosPorRol" asp-route-id="@role.Id"
-                                   class="btn btn-primary w-100">
-                                    <i class="bi bi-people me-2"></i>Ver Usuarios Asociados
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <partial name="_RoleCardPartial" model="role"/>
             }
         </div>
     
-
     <!-- Paginación -->
     @if (Model.Paginas != null && Model.Paginas.Any())
     {

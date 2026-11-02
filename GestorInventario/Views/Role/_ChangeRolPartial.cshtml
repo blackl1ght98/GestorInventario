@@ -1,0 +1,40 @@
+﻿@model GestorInventario.Application.DTOS.Role.ListRolDto
+<!-- Modal para Cambiar Rol -->
+<div class="modal fade" id="changeRoleModal" tabindex="-1" aria-labelledby="changeRoleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="changeRoleModalLabel">
+                    <i class="bi bi-gear me-2"></i>Cambiar Rol del Usuario
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Selecciona el nuevo rol para el usuario:</p>
+
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="bi bi-person-badge"></i>
+                    </span>
+                    <select id="roleSelect" class="form-select">
+                        @foreach (var rol in Model.Roles)
+                        {
+                            <option value="@rol.Id">@rol.Nombre</option>
+                        }
+                    </select>
+                </div>
+
+                <p id="loadingMessage" class="d-none text-center text-muted mt-3">
+                    <span class="spinner-border spinner-border-sm me-2"></span>Procesando cambio...
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmChangeRoleBtn">
+                    <i class="bi bi-check-circle me-2"></i>Confirmar Cambio
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
