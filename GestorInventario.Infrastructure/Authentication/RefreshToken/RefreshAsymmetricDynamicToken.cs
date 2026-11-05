@@ -1,8 +1,8 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
-using GestorInventario.Application.Interfaces.Application.Services.Authentication.Jwt;
-using GestorInventario.Application.Interfaces.Application.Services.Common;
-using GestorInventario.Application.Services.Authentication.Strategies.RefreshToken;
+using GestorInventario.Application.Interfaces.Authentication;
+using GestorInventario.Application.Interfaces.Caching;
+using GestorInventario.Application.Services.Authentication;
 using GestorInventario.Domain.Models;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;

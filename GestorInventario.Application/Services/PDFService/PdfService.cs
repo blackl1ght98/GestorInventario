@@ -1,6 +1,6 @@
-﻿using GestorInventario.Application.Interfaces.Application.Services.PDFService;
-using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
-using GestorInventario.Application.Interfaces.Renderer.PDF;
+﻿using GestorInventario.Application.Interfaces.Renderer;
+using GestorInventario.Application.Interfaces.Repositories;
+using GestorInventario.Application.Interfaces.Services;
 using GestorInventario.Application.Mappers;
 using GestorInventario.Shared.Utilities;
 

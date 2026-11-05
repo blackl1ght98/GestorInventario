@@ -1,10 +1,9 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
-using GestorInventario.Application.Interfaces.Application.Services.Authentication.Jwt;
-using GestorInventario.Application.Interfaces.Application.Services.Authentication.TokenGeneration.Generators;
-using GestorInventario.Application.Interfaces.Application.Services.Common;
-using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
+using GestorInventario.Application.Interfaces.Authentication;
+using GestorInventario.Application.Interfaces.Caching;
+using GestorInventario.Application.Interfaces.Repositories;
 using GestorInventario.Infrastructure.Interfaces.Middleware;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -24,7 +23,7 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
     private readonly IAdminRepository _adminRepository;
     private readonly IHybridCacheService _cache;
     private readonly IRefreshTokenGenerator _refreshTokenGenerator;
-    private readonly IJwtTokenSettings _tokenClaimsBuilder;
+    private readonly IJwtTokenSettings _jwtTokenSettings;
     private readonly ILogger<DynamicAsymmetricAuthStrategy> _logger;
 
     public DynamicAsymmetricAuthStrategy(
@@ -33,7 +32,7 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
         IAdminRepository adminRepository,
         IHybridCacheService cache,
         IRefreshTokenGenerator refres,
-        IJwtTokenSettings builder,
+        IJwtTokenSettings jwtTokenSettings,
         ILogger<DynamicAsymmetricAuthStrategy> logger)
     {
 
@@ -42,7 +41,7 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
         _cache = cache;
         _logger = logger;
         _refreshTokenGenerator = refres;
-        _tokenClaimsBuilder = builder;
+        _jwtTokenSettings = jwtTokenSettings;
     }
 
     public async Task ProcessAuthentication(HttpContext context, Func<Task> next)
@@ -110,9 +109,9 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
                 IssuerSigningKey = new RsaSecurityKey(publicKeyParams.Value) { KeyId = kid },
                 ValidateIssuer = true,
                 ClockSkew = TimeSpan.FromMinutes(5),
-                ValidIssuer = _tokenClaimsBuilder.ObtenerIssuer(),
+                ValidIssuer = _jwtTokenSettings.ObtenerIssuer(),
                 ValidateAudience = true,
-                ValidAudience = _tokenClaimsBuilder.ObtenerAudience(),
+                ValidAudience = _jwtTokenSettings.ObtenerAudience(),
                 ValidateLifetime = true
             };
 
@@ -171,8 +170,8 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
 
             var newAccessToken = await _tokenGenerator.GenerateTokenAsync(user);
             var newRefresToken = await _refreshTokenGenerator.GenerateTokenAsync(user);
-            var minutos = _tokenClaimsBuilder.ObtenerDuracionAccessTokenMinutos();
-            var horas = _tokenClaimsBuilder.ObtenerDuracionRefreshTokenHoras();
+            var minutos = _jwtTokenSettings.ObtenerDuracionAccessTokenMinutos();
+            var horas = _jwtTokenSettings.ObtenerDuracionRefreshTokenHoras();
             context.Response.Cookies.Append("auth", newAccessToken.Token, new CookieOptions
             {
                 HttpOnly = true,
@@ -219,9 +218,9 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new RsaSecurityKey(publicKeyParams) { KeyId = kid },
                 ValidateIssuer = true,
-                ValidIssuer = _tokenClaimsBuilder.ObtenerIssuer(),
+                ValidIssuer = _jwtTokenSettings.ObtenerIssuer(),
                 ValidateAudience = true,
-                ValidAudience = _tokenClaimsBuilder.ObtenerAudience(),
+                ValidAudience = _jwtTokenSettings.ObtenerAudience(),
                 ValidateLifetime = true
             };
 

@@ -1,5 +1,5 @@
 ﻿using GestorInventario.Application.DTOS.Configuration;
-using GestorInventario.Application.Interfaces.Application.Services.Common;
+using GestorInventario.Application.Interfaces.Services;
 using Microsoft.Extensions.Options;
 
 namespace GestorInventario.Infrastructure.Services

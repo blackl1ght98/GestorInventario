@@ -1,6 +1,6 @@
 ﻿using GestorInventario.Application.DTOS.Supplier;
-using GestorInventario.Application.Interfaces.Application.Services.Provider;
-using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
+using GestorInventario.Application.Interfaces.Repositories;
+using GestorInventario.Application.Interfaces.Services;
 using GestorInventario.Domain.Models;
 using GestorInventario.Shared.Utilities;
 

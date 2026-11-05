@@ -1,8 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using GestorInventario.Application.Interfaces.Application.Services.Authentication.Jwt;
-using GestorInventario.Application.Interfaces.Application.Services.Authentication.TokenGeneration.Generators;
-using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
+using GestorInventario.Application.Interfaces.Authentication;
+using GestorInventario.Application.Interfaces.Repositories;
 using GestorInventario.Infrastructure.Interfaces.Middleware;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -16,16 +15,16 @@ namespace GestorInventario.Infrastructure.Authentication.Middleware
         private readonly ITokenGenerator _tokenGenerator;
         private readonly IAdminRepository _adminRepository;
         private readonly IRefreshTokenGenerator _refreshTokenStrategy;
-        private readonly IJwtTokenSettings _tokenClaimsBuilder;
+        private readonly IJwtTokenSettings _jwtTokenSettings;
         private readonly ILogger<FixedAsymmetricAuthStrategy> _logger;
 
         public FixedAsymmetricAuthStrategy( ITokenGenerator tokenGenerator, IAdminRepository adminRepository, 
-            IRefreshTokenGenerator refreshTokenStrategy, IJwtTokenSettings builder , ILogger<FixedAsymmetricAuthStrategy> logger)
+            IRefreshTokenGenerator refreshTokenStrategy, IJwtTokenSettings jwtTokenSettings , ILogger<FixedAsymmetricAuthStrategy> logger)
         {
             _tokenGenerator = tokenGenerator;
             _adminRepository = adminRepository;
             _refreshTokenStrategy = refreshTokenStrategy;
-            _tokenClaimsBuilder = builder;
+            _jwtTokenSettings = jwtTokenSettings;
             _logger = logger;
         }
 
@@ -80,16 +79,16 @@ namespace GestorInventario.Infrastructure.Authentication.Middleware
                 }
 
                 // El builder ya validó el XML y cachea el RSA. Si falla, lanza InvalidOperationException.
-                var rsa = _tokenClaimsBuilder.ObtenerPublicKeyFixed();
+                var rsa = _jwtTokenSettings.ObtenerPublicKeyFixed();
 
                 var validationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new RsaSecurityKey(rsa.ExportParameters(false)),
                     ValidateIssuer = true,
-                    ValidIssuer = _tokenClaimsBuilder.ObtenerIssuer(),
+                    ValidIssuer = _jwtTokenSettings.ObtenerIssuer(),
                     ValidateAudience = true,
-                    ValidAudience = _tokenClaimsBuilder.ObtenerAudience(),
+                    ValidAudience = _jwtTokenSettings.ObtenerAudience(),
                     ValidateLifetime = true
                 };
 
@@ -156,8 +155,8 @@ namespace GestorInventario.Infrastructure.Authentication.Middleware
 
             var newAccessToken = await _tokenGenerator.GenerateTokenAsync(user);
             var newRefreshToken = await _refreshTokenStrategy.GenerateTokenAsync(user);
-            var minutos = _tokenClaimsBuilder.ObtenerDuracionAccessTokenMinutos();
-            var horas = _tokenClaimsBuilder.ObtenerDuracionRefreshTokenHoras();
+            var minutos = _jwtTokenSettings.ObtenerDuracionAccessTokenMinutos();
+            var horas = _jwtTokenSettings.ObtenerDuracionRefreshTokenHoras();
 
             context.Response.Cookies.Append("auth", newAccessToken.Token, new CookieOptions
             {
@@ -188,16 +187,16 @@ namespace GestorInventario.Infrastructure.Authentication.Middleware
                     return false;
                 }
 
-                var rsa = _tokenClaimsBuilder.ObtenerPublicKeyFixed();
+                var rsa = _jwtTokenSettings.ObtenerPublicKeyFixed();
 
                 var validationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new RsaSecurityKey(rsa.ExportParameters(false)),
                     ValidateIssuer = true,
-                    ValidIssuer = _tokenClaimsBuilder.ObtenerIssuer(),
+                    ValidIssuer = _jwtTokenSettings.ObtenerIssuer(),
                     ValidateAudience = true,
-                    ValidAudience = _tokenClaimsBuilder.ObtenerAudience(),
+                    ValidAudience = _jwtTokenSettings.ObtenerAudience(),
                     ValidateLifetime = true
                 };
 

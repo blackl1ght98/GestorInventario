@@ -1,8 +1,6 @@
-﻿using GestorInventario.Application.Interfaces.Application.Services.Payment;
-using GestorInventario.Application.Interfaces.Application.Services.ShopCart;
-using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
-using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;
-using GestorInventario.Application.Interfaces.MetodosPaginacion;
+﻿using GestorInventario.Application.Interfaces.Repositories;
+using GestorInventario.Application.Interfaces.Resilience;
+using GestorInventario.Application.Interfaces.Services;
 using GestorInventario.Application.Interfaces.Web;
 using GestorInventario.Shared.Utilities;
 using GestorInventario.ViewModels.ShoppingCart;

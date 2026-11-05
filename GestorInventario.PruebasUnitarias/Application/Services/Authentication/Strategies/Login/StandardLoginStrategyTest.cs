@@ -1,7 +1,7 @@
 ﻿using GestorInventario.Application.DTOS.Auth;
-using GestorInventario.Application.Interfaces.Application.Services.Authentication.Services;
-using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;
-using GestorInventario.Application.Services.Authentication.Strategies.Login;
+using GestorInventario.Application.Interfaces.Authentication;
+using GestorInventario.Application.Interfaces.Resilience;
+using GestorInventario.Application.Services.Authentication;
 using GestorInventario.Domain.Models;
 using GestorInventario.Shared.Utilities;
 using Moq;

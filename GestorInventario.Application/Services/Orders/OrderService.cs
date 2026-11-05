@@ -1,9 +1,8 @@
-﻿using GestorInventario.Application.DTOS;
+﻿
 using GestorInventario.Application.DTOS.Paypal;
 using GestorInventario.Application.DTOS.Pedidos;
-using GestorInventario.Application.Interfaces.Application.Services.Orders;
-using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Order;
-using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
+using GestorInventario.Application.Interfaces.Repositories;
+using GestorInventario.Application.Interfaces.Services;
 using GestorInventario.Application.Interfaces.Web;
 using GestorInventario.Domain.Common;
 using GestorInventario.Domain.enums.Pedido;
@@ -70,6 +69,7 @@ public class OrderService : IOrderService
         detalleBD.Description = detalles.Description;
         detalleBD.PayeeMerchantId = detalles.PayeeMerchantId;
         detalleBD.PayeeEmail = detalles.PayeeEmail;
+        detalleBD.AmountTax = detalles.AmountTaxTotal;
 
         // Montos
         detalleBD.AmountTotal = detalles.AmountTotal;
@@ -193,7 +193,6 @@ public class OrderService : IOrderService
                 Amount = refund.Amount,
                 Currency = refund.Currency,
                 NoteToPayer = refund.NoteToPayer,
-
                 CreateTime = refund.CreateTime.ToDateTimeSafe(),
                 UpdateTime = refund.UpdateTime.ToDateTimeSafe(),
                 PedidoId = pedidoId
@@ -264,7 +263,9 @@ public class OrderService : IOrderService
                 AmountShipping = 0,
                 Description = $"Pedido #{pedido.NumeroPedido} - pendiente de sincronización con PayPal",
                 CreateTime = DateTime.UtcNow,
-                UpdateTime = DateTime.UtcNow
+                UpdateTime = DateTime.UtcNow,
+             
+                
             };
             await _paymentRepository.AgregarDetallePagoAsync(paymentDetail);
         }

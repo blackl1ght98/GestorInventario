@@ -2,9 +2,11 @@
 using GestorInventario.Application.DTOS;
 using GestorInventario.Application.DTOS.Paypal;
 using GestorInventario.Application.Exceptions;
-using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi;
-using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Subscriptions;
+using GestorInventario.Application.Interfaces.Infrastructure.Paypal;
+using GestorInventario.Application.Interfaces.Infrastructure.Paypal.Subscriptions;
 using GestorInventario.Infrastructure.ExternalServices;
+using GestorInventario.Infrastructure.ExternalServices.Request;
+using GestorInventario.Infrastructure.ExternalServices.Response;
 using GestorInventario.Infrastructure.Mappers;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;

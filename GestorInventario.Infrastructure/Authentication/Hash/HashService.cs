@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography;
 using GestorInventario.Application.DTOS.Auth;
-using GestorInventario.Application.Interfaces.Application.Services.Authentication.Services;
+using GestorInventario.Application.Interfaces.Authentication;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 
 namespace GestorInventario.Infrastructure.Authentication.Hash

@@ -1,6 +1,6 @@
 ﻿using GestorInventario.Application.DTOS.Paypal;
-using GestorInventario.Application.Interfaces.Application.Services.Paypal.Subscription;
-using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
+using GestorInventario.Application.Interfaces.Repositories;
+using GestorInventario.Application.Interfaces.Services;
 using GestorInventario.Application.Mappers;
 using GestorInventario.Domain.Models;
 using Microsoft.Extensions.Logging;

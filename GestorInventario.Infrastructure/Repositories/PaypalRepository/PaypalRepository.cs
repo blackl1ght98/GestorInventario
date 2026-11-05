@@ -1,4 +1,4 @@
-﻿using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
+﻿using GestorInventario.Application.Interfaces.Repositories;
 using GestorInventario.Domain.enums.Paypal;
 using GestorInventario.Domain.Models;
 using GestorInventario.Infrastructure.Data;
@@ -39,11 +39,7 @@ namespace GestorInventario.Infrastructure.Repositories.PaypalRepository
             return plan;
         }
 
-        public async Task<Rembolso> ObtenRembolsoByIdAsync(int rembolsoId)
-        {
-            var rembolso = await _context.Rembolsos.FirstOrDefaultAsync(x=>x.Id==rembolsoId);
-            return rembolso;
-        }
+       
         public IQueryable<PlanDetail> ObtenerPlanes()
         {
             return _context.PlanDetails

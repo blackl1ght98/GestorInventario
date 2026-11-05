@@ -1,9 +1,8 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using GestorInventario.Application.Interfaces.Application.Services.Authentication.Jwt;
-using GestorInventario.Application.Interfaces.Application.Services.Authentication.TokenGeneration.Generators;
-using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
+using GestorInventario.Application.Interfaces.Authentication;
+using GestorInventario.Application.Interfaces.Repositories;
 using GestorInventario.Infrastructure.Interfaces.Middleware;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -16,20 +15,20 @@ namespace GestorInventario.Infrastructure.Authentication.Middleware
         private readonly ITokenGenerator _tokenGenerator;
         private readonly IAdminRepository _adminRepository;
         private readonly IRefreshTokenGenerator _refreshTokenStrategy;
-        private readonly IJwtTokenSettings _tokenClaimsBuilder;
+        private readonly IJwtTokenSettings _jwtTokenSettings;
         private readonly ILogger<SymmetricAuthStrategy> _logger;
 
         public SymmetricAuthStrategy(
             ITokenGenerator tokenGenerator,
             IAdminRepository adminRepository,
             IRefreshTokenGenerator refreshTokenStrategy,
-            IJwtTokenSettings tokenClaimsBuilder,
+            IJwtTokenSettings jwtTokenSettings,
             ILogger<SymmetricAuthStrategy> logger)
         {
             _tokenGenerator = tokenGenerator;
             _adminRepository=adminRepository;
             _refreshTokenStrategy = refreshTokenStrategy;
-            _tokenClaimsBuilder = tokenClaimsBuilder;
+            _jwtTokenSettings = jwtTokenSettings;
             _logger = logger;
         }
 
@@ -37,7 +36,7 @@ namespace GestorInventario.Infrastructure.Authentication.Middleware
         {
             try
             {
-                var secret = _tokenClaimsBuilder.ObtenerClaveJWT();
+                var secret = _jwtTokenSettings.ObtenerClaveJWT();
                 if (string.IsNullOrEmpty(secret))
                 {
                     throw new InvalidOperationException("La clave JWT es requerida.");
@@ -92,9 +91,9 @@ namespace GestorInventario.Infrastructure.Authentication.Middleware
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
                     ValidateIssuer = true,
-                    ValidIssuer = _tokenClaimsBuilder.ObtenerIssuer(),
+                    ValidIssuer = _jwtTokenSettings.ObtenerIssuer(),
                     ValidateAudience = true,
-                    ValidAudience = _tokenClaimsBuilder.ObtenerAudience(),
+                    ValidAudience = _jwtTokenSettings.ObtenerAudience(),
                     ValidateLifetime = true
                 };
 
@@ -155,8 +154,8 @@ namespace GestorInventario.Infrastructure.Authentication.Middleware
 
             var newAccessToken = await _tokenGenerator.GenerateTokenAsync(user);
             var newRefreshToken = await _refreshTokenStrategy.GenerateTokenAsync(user);
-            var minutos = _tokenClaimsBuilder.ObtenerDuracionAccessTokenMinutos();
-            var horas = _tokenClaimsBuilder.ObtenerDuracionRefreshTokenHoras();
+            var minutos = _jwtTokenSettings.ObtenerDuracionAccessTokenMinutos();
+            var horas = _jwtTokenSettings.ObtenerDuracionRefreshTokenHoras();
 
             context.Response.Cookies.Append("auth", newAccessToken.Token, new CookieOptions
             {
@@ -194,9 +193,9 @@ namespace GestorInventario.Infrastructure.Authentication.Middleware
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
                     ValidateIssuer = true,
-                    ValidIssuer = _tokenClaimsBuilder.ObtenerIssuer(),
+                    ValidIssuer = _jwtTokenSettings.ObtenerIssuer(),
                     ValidateAudience = true,
-                    ValidAudience = _tokenClaimsBuilder.ObtenerAudience(),
+                    ValidAudience = _jwtTokenSettings.ObtenerAudience(),
                     ValidateLifetime = true
                 };
 

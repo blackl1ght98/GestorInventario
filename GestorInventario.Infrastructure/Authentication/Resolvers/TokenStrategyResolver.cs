@@ -1,17 +1,10 @@
-﻿
-
-
-
-using GestorInventario.Application.Interfaces.Application.Services.Authentication.Resolvers;
-using GestorInventario.Application.Interfaces.Application.Services.Authentication.Strategies.AccessToken;
-using GestorInventario.Application.Interfaces.Application.Services.Authentication.Strategies.RefreshToken;
-using GestorInventario.Application.Services.Authentication.Strategies.RefreshToken;
+﻿using GestorInventario.Application.Interfaces.Authentication;
 using GestorInventario.Infrastructure.Authentication.AccessToken;
 using GestorInventario.Infrastructure.Authentication.RefreshToken;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace GestorInventario.Application.Services.Authentication.Resolvers
+namespace GestorInventario.Infrastructure.Authentication.Resolvers
 {
     
     

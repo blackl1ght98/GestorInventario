@@ -1,9 +1,9 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
 using GestorInventario.Application.DTOS.Auth;
-using GestorInventario.Application.Interfaces.Application.Services.Authentication.Jwt;
-using GestorInventario.Application.Interfaces.Application.Services.Common;
-using GestorInventario.Application.Services.Authentication.Strategies.AccessToken;
+using GestorInventario.Application.Interfaces.Authentication;
+using GestorInventario.Application.Interfaces.Caching;
+using GestorInventario.Application.Services.Authentication;
 using GestorInventario.Domain.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -47,11 +47,11 @@ namespace GestorInventario.Infrastructure.Authentication.AccessToken
             var credentials = new SigningCredentials(
                 new RsaSecurityKey(privateKey) { KeyId = usuario.Id.ToString() },
                 SecurityAlgorithms.RsaSha256);
-            var minutos = _claimsBuilder.ObtenerDuracionAccessTokenMinutos();
+            var minutos = _jwtTokenSettings.ObtenerDuracionAccessTokenMinutos();
             var token = new JwtSecurityToken(
-                issuer: _claimsBuilder.ObtenerIssuer(),
-                audience: _claimsBuilder.ObtenerAudience(),
-                claims: _claimsBuilder.CrearClaims(usuario),
+                issuer: _jwtTokenSettings.ObtenerIssuer(),
+                audience: _jwtTokenSettings.ObtenerAudience(),
+                claims: _jwtTokenSettings.CrearClaims(usuario),
                 expires: DateTime.UtcNow.AddMinutes(minutos),
                 signingCredentials: credentials);
 

@@ -2,7 +2,7 @@ using GestorInventario.Domain.Models;
 using Microsoft.Extensions.Configuration;
 using System.Security.Claims;
 using System.Security.Cryptography;
-using GestorInventario.Application.Interfaces.Application.Services.Authentication.Jwt;
+using GestorInventario.Application.Interfaces.Authentication;
 
 namespace GestorInventario.Infrastructure.Authentication.Jwt
 {

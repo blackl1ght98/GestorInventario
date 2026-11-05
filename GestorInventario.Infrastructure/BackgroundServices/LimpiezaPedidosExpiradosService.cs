@@ -1,4 +1,4 @@
-﻿using GestorInventario.Application.Interfaces.Infrastructure.Common;
+﻿using GestorInventario.Application.Interfaces.Data;
 using GestorInventario.Domain.enums.Pedido;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

@@ -1,7 +1,7 @@
 ﻿using GestorInventario.Application.DTOS.Paypal;
-using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Subscriptions;
-using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;
-using GestorInventario.Application.Interfaces.MetodosPaginacion;
+using GestorInventario.Application.Interfaces.Infrastructure.Paypal.Subscriptions;
+using GestorInventario.Application.Interfaces.Resilience;
+using GestorInventario.Application.Interfaces.Services;
 using GestorInventario.Application.Projections;
 using GestorInventario.Shared.Utilities;
 using GestorInventario.ViewModels.Paypal;

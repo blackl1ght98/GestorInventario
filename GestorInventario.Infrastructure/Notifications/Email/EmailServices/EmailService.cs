@@ -1,12 +1,10 @@
 ﻿using System.Security.Cryptography;
 using GestorInventario.Application.DTOS.Email;
 using GestorInventario.Application.DTOS.Products;
-using GestorInventario.Application.Interfaces.Application.Services.Authentication.Services;
-using GestorInventario.Application.Interfaces.Application.Services.Common;
-using GestorInventario.Application.Interfaces.Application.Services.Email;
-using GestorInventario.Application.Interfaces.Application.Services.User;
-using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
-using GestorInventario.Application.Interfaces.Notifications.EmailServices;
+using GestorInventario.Application.Interfaces.Authentication;
+using GestorInventario.Application.Interfaces.EmailServices;
+using GestorInventario.Application.Interfaces.Repositories;
+using GestorInventario.Application.Interfaces.Services;
 using GestorInventario.Domain.enums.Email;
 using GestorInventario.Infrastructure.Notifications.Email.EmailViewmodel;
 using GestorInventario.Shared.Utilities;

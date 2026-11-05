@@ -1,5 +1,4 @@
-﻿using GestorInventario.Application.Interfaces.Application.Services.Authentication.Resolvers;
-using GestorInventario.Infrastructure.Authentication.Middleware;
+﻿using GestorInventario.Infrastructure.Authentication.Middleware;
 using GestorInventario.Infrastructure.Interfaces.Middleware;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

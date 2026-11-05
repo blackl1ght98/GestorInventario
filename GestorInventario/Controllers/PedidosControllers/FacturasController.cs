@@ -1,6 +1,6 @@
 ﻿using GestorInventario.Application.DTOS.Email;
-using GestorInventario.Application.Interfaces.Application.Services.Email;
-using GestorInventario.Application.Interfaces.Application.Services.PDFService;
+using GestorInventario.Application.Interfaces.EmailServices;
+using GestorInventario.Application.Interfaces.Services;
 using GestorInventario.Application.Interfaces.Web;
 
 using Microsoft.AspNetCore.Authorization;

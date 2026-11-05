@@ -1,8 +1,7 @@
 ﻿using GestorInventario.Application.DTOS.User;
-using GestorInventario.Application.Interfaces.Application.Services.User;
-using GestorInventario.Application.Interfaces.Infrastructure.Common;
-using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;
-using GestorInventario.Application.Interfaces.MetodosPaginacion;
+using GestorInventario.Application.Interfaces.Data;
+using GestorInventario.Application.Interfaces.Resilience;
+using GestorInventario.Application.Interfaces.Services;
 using GestorInventario.Application.Interfaces.Web;
 using GestorInventario.Extensions;
 using GestorInventario.Shared.Utilities;

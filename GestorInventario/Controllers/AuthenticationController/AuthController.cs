@@ -1,17 +1,14 @@
 ﻿using GestorInventario.Application.DTOS.Auth;
-using GestorInventario.Application.Interfaces.Application.Services.Authentication.Services;
-using GestorInventario.Application.Interfaces.Application.Services.Authentication.TokenGeneration;
-using GestorInventario.Application.Interfaces.Application.Services.Authentication.TokenGeneration.Generators;
-using GestorInventario.Application.Interfaces.Application.Services.Common;
-using GestorInventario.Application.Interfaces.Application.Services.ShopCart;
-using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;
+using GestorInventario.Application.Interfaces.Authentication;
+using GestorInventario.Application.Interfaces.Resilience;
+using GestorInventario.Application.Interfaces.Services;
 using GestorInventario.Application.Interfaces.Web;
 using GestorInventario.Extensions;
 using GestorInventario.ViewModels.Users;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+
 
 
 namespace GestorInventario.Controllers.AuthenticationController
@@ -25,7 +22,7 @@ namespace GestorInventario.Controllers.AuthenticationController
         private readonly ICurrentUserAccessor _current;
         private readonly IAuthService _authService;
         private readonly ILoginGenerator _loginGenerator;
-
+        private readonly IJwtTokenSettings  _jwtTokenSettings;
         public AuthController(
             ITokenService tokenService,
             ICurrentUserAccessor currentUser,
@@ -33,8 +30,8 @@ namespace GestorInventario.Controllers.AuthenticationController
             IPolicyExecutor policyExecutor,
             IShopCartService carritoService,
             IAuthService authService,
-         
-            ILoginGenerator factory
+            ILoginGenerator loginGenerator,
+            IJwtTokenSettings  jwtTokenSettings
         )
         {
             _tokenService = tokenService;
@@ -43,7 +40,8 @@ namespace GestorInventario.Controllers.AuthenticationController
             _carritoService = carritoService;
             _current = currentUser;
             _authService = authService;
-            _loginGenerator = factory;
+            _loginGenerator = loginGenerator;
+            _jwtTokenSettings = jwtTokenSettings;
         }
 
         [AllowAnonymous]
@@ -156,19 +154,21 @@ namespace GestorInventario.Controllers.AuthenticationController
 
         private void SetAuthCookies(string token, string refreshToken)
         { 
+            var accessTokenMinutos = _jwtTokenSettings.ObtenerDuracionAccessTokenMinutos();
+            var refreshTokenHoras = _jwtTokenSettings.ObtenerDuracionRefreshTokenHoras();
             Response.Cookies.Append("auth", token, new CookieOptions
             {
                 HttpOnly = true,
                 SameSite = SameSiteMode.None,
                 Secure = true,
-                Expires = DateTime.UtcNow.AddMinutes(10)
+                Expires = DateTime.UtcNow.AddMinutes(accessTokenMinutos)
             });
             Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
             {
                 HttpOnly = true,
                 SameSite = SameSiteMode.None,
                 Secure = true,
-                Expires = DateTime.UtcNow.AddHours(24)
+                Expires = DateTime.UtcNow.AddHours(refreshTokenHoras)
             });
             
         }

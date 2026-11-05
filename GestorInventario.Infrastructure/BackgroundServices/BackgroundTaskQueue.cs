@@ -1,5 +1,5 @@
 ﻿using System.Threading.Channels;
-using GestorInventario.Application.Interfaces.Application.Services.BackgroundServices;
+using GestorInventario.Application.Interfaces.BackgroundServices;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 

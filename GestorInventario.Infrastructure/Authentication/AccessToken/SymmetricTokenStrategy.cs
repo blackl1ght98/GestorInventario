@@ -1,8 +1,8 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using GestorInventario.Application.DTOS.Auth;
-using GestorInventario.Application.Interfaces.Application.Services.Authentication.Jwt;
-using GestorInventario.Application.Services.Authentication.Strategies.AccessToken;
+using GestorInventario.Application.Interfaces.Authentication;
+using GestorInventario.Application.Services.Authentication;
 using GestorInventario.Domain.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -16,7 +16,7 @@ namespace GestorInventario.Infrastructure.Authentication.AccessToken
 
         public override Task<LoginResponseDto> GenerateTokenAsync(Usuario usuario)
         {
-            var clave = _claimsBuilder.ObtenerClaveJWT();
+            var clave = _jwtTokenSettings.ObtenerClaveJWT();
 
             if (string.IsNullOrEmpty(clave))
                 throw new InvalidOperationException("La clave JWT no está configurada.");
@@ -27,11 +27,11 @@ namespace GestorInventario.Infrastructure.Authentication.AccessToken
             var credentials = new SigningCredentials(
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(clave)),
                 SecurityAlgorithms.HmacSha256);
-            var minutos = _claimsBuilder.ObtenerDuracionAccessTokenMinutos();
+            var minutos = _jwtTokenSettings.ObtenerDuracionAccessTokenMinutos();
             var token = new JwtSecurityToken(
-                issuer: _claimsBuilder.ObtenerIssuer(),
-                audience: _claimsBuilder.ObtenerAudience(),
-                claims: _claimsBuilder.CrearClaims(usuario),
+                issuer: _jwtTokenSettings.ObtenerIssuer(),
+                audience: _jwtTokenSettings.ObtenerAudience(),
+                claims: _jwtTokenSettings.CrearClaims(usuario),
                 expires: DateTime.UtcNow.AddMinutes(minutos),
                 signingCredentials: credentials);
 

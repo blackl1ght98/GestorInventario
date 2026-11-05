@@ -1,10 +1,7 @@
 ﻿using GestorInventario.Application.DTOS.Paypal;
-using GestorInventario.Application.Interfaces.Application.Services.Orders;
-using GestorInventario.Application.Interfaces.Application.Services.Payment;
-using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Order;
-using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
-using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;
-using GestorInventario.Application.Interfaces.Notifications.InternalNotification;
+using GestorInventario.Application.Interfaces.Repositories;
+using GestorInventario.Application.Interfaces.Resilience;
+using GestorInventario.Application.Interfaces.Services;
 using GestorInventario.Application.Interfaces.Web;
 using GestorInventario.Domain.enums.Notification;
 using GestorInventario.Mappers;
@@ -57,11 +54,12 @@ namespace GestorInventario.Controllers.PaypalControllers
                     .FirstOrDefault()?.CaptureId;
                 var amount = pago.Captures.FirstOrDefault()?.Amount;
                 var currency = pago.Captures.FirstOrDefault()?.Currency;
+               
                 var captured = new PaymentCapturedDto
                 {
                     CaptureId = captureId,
                     Total = (decimal)amount,
-                    Currency = currency
+                    Currency = currency,
                 };
                 var confirmar = await _pedidoService.ConfirmarPagoDelPedidoAsync(captured, paymentId);
                 var result = confirmar.Unwrap();
@@ -136,7 +134,7 @@ namespace GestorInventario.Controllers.PaypalControllers
 
         private async Task<OperationResult<string>> EjecutarSincronizacionAsync(string paymentId, int pedidoId)
         {
-            var currentUser = _currentUserAccessor.GetCurrentUserId();
+          
 
             try
             {

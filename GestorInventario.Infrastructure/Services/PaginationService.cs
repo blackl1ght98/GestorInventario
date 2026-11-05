@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Application.Interfaces.MetodosPaginacion;
+using GestorInventario.Application.Interfaces.Services;
 using GestorInventario.Shared.Utilities;
 using Microsoft.EntityFrameworkCore;
 

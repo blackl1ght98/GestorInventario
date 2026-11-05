@@ -1,8 +1,8 @@
 ﻿using GestorInventario.Shared.Utilities;
 using System.Globalization;
-using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Subscriptions;
-using GestorInventario.Application.Interfaces.Application.Services.Syncs;
-using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
+using GestorInventario.Application.Interfaces.Infrastructure.Paypal.Subscriptions;
+using GestorInventario.Application.Interfaces.Repositories;
+using GestorInventario.Application.Interfaces.Services;
 
 namespace GestorInventario.Application.Services.Syncs
 {

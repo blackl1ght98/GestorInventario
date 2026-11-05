@@ -1,5 +1,5 @@
-﻿using GestorInventario.Application.Interfaces.Application.Services.BackgroundServices;
-using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
+﻿using GestorInventario.Application.Interfaces.BackgroundServices;
+using GestorInventario.Application.Interfaces.Repositories;
 using Microsoft.Extensions.Logging;
 
 namespace GestorInventario.Application.Services.BackgroundServices;

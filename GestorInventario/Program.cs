@@ -12,6 +12,7 @@ using Microsoft.Net.Http.Headers;
 using System.Text.Json.Serialization;
 using GestorInventario.Application.DTOS.Configuration;
 using GestorInventario.Infrastructure.Configuration;
+using GestorInventario.Infrastructure.Extensions;
 using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,11 +42,7 @@ builder.Services.AddCors(options =>
 //Servicios generales
 builder.Services.AddMemoryCache();
 builder.Services.AddMvc();
-using var bootstrapLoggerFactory = LoggerFactory.Create(b =>
-{
-    b.AddConsole();
-    b.AddLog4Net();
-});
+
 builder.Services.AddAntiforgery();
 builder.Services.AddHttpContextAccessor();
 
@@ -64,11 +61,7 @@ PayPalInvoiceRendererBootstrap.Initialize();
 builder.Services.AddPayPalHttpClient(builder.Configuration);
 builder.Services.AddWebOptimizer();
 
-// Si estamos usando Redis lo configuramos
-if (useRedis)
-{
-   builder.Services.ConfigureRedis(builder.Configuration, bootstrapLoggerFactory.CreateLogger("Redis"));
-}
+
 
 builder.Services.AddHybridCacheService(useRedis);
 //Servicios personalizados de autenticacion

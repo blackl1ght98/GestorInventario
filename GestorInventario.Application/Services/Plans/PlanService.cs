@@ -1,8 +1,8 @@
 ﻿using System.Globalization;
 using GestorInventario.Application.DTOS.Paypal;
-using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Subscriptions;
-using GestorInventario.Application.Interfaces.Application.Services.Paypal.Plans;
-using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
+using GestorInventario.Application.Interfaces.Infrastructure.Paypal.Subscriptions;
+using GestorInventario.Application.Interfaces.Repositories;
+using GestorInventario.Application.Interfaces.Services;
 using GestorInventario.Application.Mappers;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;
@@ -50,7 +50,7 @@ namespace GestorInventario.Application.Services.Plans
             }
         }
 
-        public async Task SavePlanPriceUpdateAsync(PlanPriceUpdateResultDto planPriceUpdate)
+        private async Task SavePlanPriceUpdateAsync(PlanPriceUpdateResultDto planPriceUpdate)
         {
             if (planPriceUpdate == null)
                 throw new ArgumentNullException(nameof(planPriceUpdate));

@@ -1,11 +1,10 @@
-﻿using GestorInventario.Application.Services.Authentication.Strategies.AccessToken;
-using GestorInventario.Domain.Models;
+﻿using GestorInventario.Domain.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using System.Security.Claims;
-using GestorInventario.Application.Interfaces.Application.Services.Authentication.Jwt;
-using GestorInventario.Application.Interfaces.Application.Services.Common;
+using GestorInventario.Application.Interfaces.Authentication;
+using GestorInventario.Application.Interfaces.Caching;
 using GestorInventario.Domain.enums.Usuario;
 using GestorInventario.Infrastructure.Authentication.AccessToken;
 

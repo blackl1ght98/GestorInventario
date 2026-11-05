@@ -1,0 +1,32 @@
+﻿using GestorInventario.Application.DTOS.Auth;
+using GestorInventario.Application.Interfaces.Authentication;
+using GestorInventario.Application.Interfaces.Resilience;
+using GestorInventario.Shared.Utilities;
+
+namespace GestorInventario.Application.Services.Authentication
+{
+    public class StandardLoginStrategy : ILoginStrategy
+    {
+        private readonly IAuthService _authService;
+        private readonly IPolicyExecutor _policyExecutor;
+
+        public StandardLoginStrategy(IAuthService authService, IPolicyExecutor policyExecutor)
+        {
+            _authService = authService;
+            _policyExecutor = policyExecutor;
+        }
+
+        public async Task<OperationResult<AuthSessionDetails>> AuthenticateAsync(LoginDto model)
+        {
+            var user = await _policyExecutor.ExecutePolicyAsync(() => _authService.Login(model.Email, model));
+
+            if (!user.Success || user.Data == null)
+            {
+                return OperationResult<AuthSessionDetails>.Fail(user.Message);
+            }
+
+            // Retornamos un OK con los datos de sesión (MFA = false por defecto)
+            return OperationResult<AuthSessionDetails>.Ok( new AuthSessionDetails(user.Data),"Login exitoso");
+        }
+    }
+}

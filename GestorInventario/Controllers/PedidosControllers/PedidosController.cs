@@ -1,10 +1,8 @@
 ﻿using GestorInventario.Application.DTOS;
 using GestorInventario.Application.DTOS.Pedidos;
-using GestorInventario.Application.Interfaces.Application.Services.Orders;
-using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
-using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;
-using GestorInventario.Application.Interfaces.MetodosPaginacion;
-using GestorInventario.Application.Interfaces.Notifications.InternalNotification;
+using GestorInventario.Application.Interfaces.Repositories;
+using GestorInventario.Application.Interfaces.Resilience;
+using GestorInventario.Application.Interfaces.Services;
 using GestorInventario.Application.Interfaces.Web;
 using GestorInventario.Domain.enums.Notification;
 using GestorInventario.Domain.enums.Pedido;

@@ -1,5 +1,5 @@
-﻿using GestorInventario.Application.Interfaces.Infrastructure.Common;
-using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
+﻿using GestorInventario.Application.Interfaces.Data;
+using GestorInventario.Application.Interfaces.Repositories;
 
 namespace GestorInventario.Infrastructure.Data
 {

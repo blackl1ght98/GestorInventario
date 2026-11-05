@@ -1,4 +1,4 @@
-﻿using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
+﻿using GestorInventario.Application.Interfaces.Repositories;
 using GestorInventario.Domain.Models;
 
 namespace GestorInventario.Composition

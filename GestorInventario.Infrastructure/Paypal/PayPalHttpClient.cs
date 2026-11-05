@@ -1,7 +1,8 @@
 ﻿using System.Net.Http.Headers;
 using System.Text;
-using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi;
+using GestorInventario.Application.Interfaces.Infrastructure.Paypal;
 using GestorInventario.Infrastructure.ExternalServices;
+using GestorInventario.Infrastructure.ExternalServices.Response;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 

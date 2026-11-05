@@ -1,12 +1,14 @@
 using System.Globalization;
 using GestorInventario.Application.DTOS;
 using GestorInventario.Application.DTOS.Paypal;
-using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi;
-using GestorInventario.Application.Interfaces.Application.Services.Paypal.PaypalApi.Refunds;
+using GestorInventario.Application.Interfaces.Infrastructure.Paypal;
+using GestorInventario.Application.Interfaces.Infrastructure.Paypal.Refunds;
 using GestorInventario.Application.Services.Common;
 using GestorInventario.Domain.Common;
 using GestorInventario.Infrastructure.ExternalServices;
-using GestorInventario.Infrastructure.Helpers.Formaters;
+using GestorInventario.Infrastructure.ExternalServices.Request;
+using GestorInventario.Infrastructure.ExternalServices.Response;
+using GestorInventario.Infrastructure.Helpers;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;

@@ -1,11 +1,10 @@
 ﻿using GestorInventario.Application.DTOS.Paypal;
 using GestorInventario.Application.DTOS.Rembolso;
-using GestorInventario.Application.Interfaces.Application.Services.BackgroundServices;
-using GestorInventario.Application.Interfaces.Application.Services.Refunds;
-using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
-using GestorInventario.Application.Interfaces.Infrastructure.RetryPolicy;
-using GestorInventario.Application.Interfaces.MetodosPaginacion;
-using GestorInventario.Application.Interfaces.Notifications.SendNotification.Email;
+using GestorInventario.Application.Interfaces.BackgroundServices;
+using GestorInventario.Application.Interfaces.Repositories;
+using GestorInventario.Application.Interfaces.Resilience;
+using GestorInventario.Application.Interfaces.SendNotification.Email;
+using GestorInventario.Application.Interfaces.Services;
 using GestorInventario.Domain.Common;
 using GestorInventario.Extensions;
 using GestorInventario.Shared.Utilities;

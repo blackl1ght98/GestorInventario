@@ -8,9 +8,8 @@ using System;
 using System.Threading.Tasks;
 using GestorInventario.Application.DTOS.Barcode;
 using GestorInventario.Application.DTOS.Products;
-using GestorInventario.Application.Interfaces.Application.Services.Common;
-using GestorInventario.Application.Interfaces.Infrastructure.Repositories;
-using GestorInventario.Application.Interfaces.Renderer.Images;
+using GestorInventario.Application.Interfaces.Repositories;
+using GestorInventario.Application.Interfaces.Services;
 using GestorInventario.Application.Interfaces.Web;
 using Xunit;
 
