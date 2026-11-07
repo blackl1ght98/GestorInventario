@@ -45,7 +45,7 @@ namespace GestorInventario.Infrastructure.Notifications.Email.EmailServices
                 var fileName = Path.GetFileName(view.ToViewName());
                 var templateKey = fileName + ".cshtml";
 
-                Console.WriteLine($"Intentando renderizar: {templateKey} en la raíz {_templatesRoot}");
+              
 
                 // Usamos la clave relativa al root configurado
                 var html = await _razorEngine.CompileRenderAsync(templateKey, model);

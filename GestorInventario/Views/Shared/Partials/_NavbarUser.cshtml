@@ -1,0 +1,79 @@
+﻿@inject GestorInventario.Navigation.INavigationService NavigationService
+
+@{
+    var userItems = NavigationService.ObtenerUserMenuItems();
+    var loginItem = NavigationService.ObtenerLoginItem();
+}
+
+@* --- SI EL USUARIO ESTÁ AUTENTICADO (Muestra opciones de cuenta + Notificaciones) --- *@
+@if (userItems.Any())
+{
+    @if (userItems.Count > 1)
+    {
+        <!-- Dropdown de Notificaciones -->
+        <li class="nav-item dropdown">
+            <a class="nav-link position-relative" href="#" id="notificacionesDropdown"
+               role="button" data-bs-toggle="dropdown" aria-expanded="false"
+               data-bs-toggle="tooltip" title="Notificaciones">
+                <i class="bi bi-bell nav-icon"></i>
+                <span id="notificacionesBadge"
+                      class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                      style="display:none;">
+                    0
+                </span>
+            </a>
+            <div class="dropdown-menu dropdown-menu-end p-0"
+                 aria-labelledby="notificacionesDropdown"
+                 style="min-width: 340px; max-width: 380px;">
+                <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                    <h6 class="m-0">Notificaciones</h6>
+                </div>
+                <div id="notificacionesList" style="max-height: 380px; overflow-y: auto;">
+                    <div class="text-center text-muted py-3">
+                        <span class="spinner-border spinner-border-sm"></span> Cargando…
+                    </div>
+                </div>
+                <div class="border-top text-center py-2">
+                    <a asp-controller="Notification" asp-action="Index" class="text-decoration-none">
+                        Ver todas
+                    </a>
+                </div>
+            </div>
+        </li>
+        <!-- ACCIONES DEL USUARIO: Cerrar sesión, editar perfil.... -->
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+               data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip"
+               title="Opciones de usuario">
+                <i class="bi bi-person-circle nav-icon"></i> @User.Identity!.Name
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                @foreach (var item in userItems)
+                {
+                    <li>
+                        <a asp-controller="@item.Controller" asp-action="@item.Action"
+                           class="dropdown-item">@item.Text</a>
+                    </li>
+                }
+            </ul>
+        </li>
+    }
+    else
+    {
+        var item = userItems[0];
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="@item.Controller" asp-action="@item.Action">
+                <i class="bi bi-person-circle nav-icon"></i> @item.Text
+            </a>
+        </li>
+    }
+}
+@* --- SI EL USUARIO NO ESTA AUTENTICADO (Muestra el botón de Login) --- *@
+else if (loginItem.Any())
+{
+    var item = loginItem[0];
+    <li class="nav-item">
+        <a asp-controller="@item.Controller" asp-action="@item.Action" class="btn btn-primary ms-2"
+           data-bs-toggle="tooltip" title="@item.Title">@item.Text</a>
+    </li>
+}

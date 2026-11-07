@@ -2,7 +2,6 @@
 using GestorInventario.Application.Interfaces.Repositories;
 using GestorInventario.Application.Interfaces.Services;
 using GestorInventario.Domain.enums.Pedido;
-using GestorInventario.Infrastructure.Caching;
 using GestorInventario.Infrastructure.Mappers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

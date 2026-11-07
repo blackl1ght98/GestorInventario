@@ -11,7 +11,7 @@
             '<span class="spinner-border spinner-border-sm"></span> Cargando…' +
             '</div>';
 
-        fetch('/Notification/ListadoParcial')
+        fetch('/Notification/NotificationUser')
             .then(function (r) {
                 if (!r.ok) throw new Error('HTTP ' + r.status);
                 return r.text();

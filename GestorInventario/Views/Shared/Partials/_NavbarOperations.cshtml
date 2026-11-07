@@ -1,0 +1,32 @@
+﻿@inject GestorInventario.Navigation.INavigationService NavigationService
+
+@{
+    var operacionesItems = NavigationService.ObtenerOperacionesPayPalItems();
+}
+
+@if (operacionesItems.Count > 1)
+{
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="operacionesDropdown" role="button"
+           data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip"
+           title="Operaciones PayPal">
+            <i class="bi bi-gear nav-icon"></i> Operaciones
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="operacionesDropdown">
+            @foreach (var item in operacionesItems)
+            {
+                <li><a asp-area="" asp-controller="@item.Controller" asp-action="@item.Action"
+                       class="dropdown-item">@item.Text</a></li>
+            }
+        </ul>
+    </li>
+}
+else if (operacionesItems.Count == 1)
+{
+    var item = operacionesItems[0];
+    <li class="nav-item">
+        <a class="nav-link" asp-area="" asp-controller="@item.Controller" asp-action="@item.Action">
+            <i class="bi bi-gear nav-icon"></i> @item.Text
+        </a>
+    </li>
+}

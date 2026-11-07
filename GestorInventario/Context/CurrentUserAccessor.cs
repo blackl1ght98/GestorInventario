@@ -2,6 +2,8 @@
 using System.Net.Sockets;
 using System.Security.Claims;
 using GestorInventario.Application.Interfaces.Web;
+using GestorInventario.Domain.enums.Usuario;
+using StackExchange.Redis;
 
 namespace GestorInventario.Context
 {
@@ -56,11 +58,24 @@ namespace GestorInventario.Context
             return _contextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Email);
         }
 
-        public bool IsInRole(string role)
+       
+        public bool IsAdmin()
         {
-            return _contextAccessor.HttpContext?.User?.IsInRole(role) ?? false;
+            return _contextAccessor.HttpContext?.User?.IsInRole(Rol.Administrador.ToString()) ?? false;
         }
 
+        public bool IsAdminOrUser()
+        {
+            var user = _contextAccessor.HttpContext?.User;
+
+            if (user == null)
+            {
+                return false;
+            }
+
+            return user.IsInRole(Rol.Administrador.ToString()) || 
+                   user.IsInRole(Rol.Usuario.ToString());
+        }
         public ClaimsPrincipal? GetPrincipal() => _contextAccessor.HttpContext?.User;
         public string GetClientIpAddress()
         {

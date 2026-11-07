@@ -1,4 +1,5 @@
-﻿using GestorInventario.Application.Interfaces.Repositories;
+﻿using GestorInventario.Application.DTOS.Notification;
+using GestorInventario.Application.Interfaces.Repositories;
 using GestorInventario.Application.Interfaces.Resilience;
 using GestorInventario.Application.Interfaces.Services;
 using GestorInventario.Application.Interfaces.Web;
@@ -30,30 +31,59 @@ namespace GestorInventario.Controllers.NotificationController
                    _notificationRepository.ObtenerNotificaciones(usuarioId));
             var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
                      _paginationService.PaginarAsync(queryable, paginacion));
+            var notificationDto = paginationResult.Items.Select(n => new NotificationDtoViewmodel
+            {
+                Id = n.Id,
+                Leida = n.Leida,
+                FechaCreacion = n.FechaCreacion,
+                Mensaje = n.Mensaje,
+                Tipo = n.Tipo,
+                Titulo = n.Titulo,
+
+            }).ToList();
             var viewmodel = new NotificationViewmodel
             {
-                Notificaciones = paginationResult.Items,
+                Notificaciones = notificationDto,
                 Paginas = paginationResult.Paginas.ToList(),
                 PaginaActual = paginationResult.PaginaActual,
                 TotalPaginas = paginationResult.TotalPaginas,
             };
             return View(viewmodel);
         }
-        public async Task<IActionResult> ListadoParcial(Paginacion paginacion)
+        public async Task<IActionResult> NotificationUser(Paginacion paginacion)
         {
-            int usuarioId = _currentUserAccessor.GetCurrentUserId();
-            var queryable = _policyExecutor.ExecutePolicy(() =>
-                   _notificationRepository.ObtenerNotificaciones(usuarioId));
-            var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
-                     _paginationService.PaginarAsync(queryable, paginacion));
-            var viewmodel = new NotificationViewmodel
+            try
             {
-                Notificaciones = paginationResult.Items,
-                Paginas = paginationResult.Paginas.ToList(),
-                PaginaActual = paginationResult.PaginaActual,
-                TotalPaginas = paginationResult.TotalPaginas,
-            };
-            return PartialView("_NotificacionesDropdown", viewmodel);
+                int usuarioId = _currentUserAccessor.GetCurrentUserId();
+                var queryable = _policyExecutor.ExecutePolicy(() =>
+                    _notificationRepository.ObtenerNotificaciones(usuarioId));
+                var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
+                    _paginationService.PaginarAsync(queryable, paginacion));
+                var notificationDto = paginationResult.Items.Select(n => new NotificationDtoViewmodel
+                {
+                    Id = n.Id,
+                    Leida = n.Leida,
+                    FechaCreacion = n.FechaCreacion,
+                    Mensaje = n.Mensaje,
+                    Tipo = n.Tipo,
+                    Titulo = n.Titulo,
+
+                }).ToList();
+                var viewmodel = new NotificationViewmodel
+                {
+                    Notificaciones = notificationDto,
+                    Paginas = paginationResult.Paginas.ToList(),
+                    PaginaActual = paginationResult.PaginaActual,
+                    TotalPaginas = paginationResult.TotalPaginas,
+                };
+                return PartialView("_NotificacionesDropdown", viewmodel);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return RedirectToAction("Error", "Home");
+            }
+           
         }
         [HttpPost]
         public async Task<IActionResult> MarcarLeida(int id)

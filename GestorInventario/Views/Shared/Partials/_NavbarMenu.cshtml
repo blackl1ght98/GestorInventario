@@ -1,0 +1,141 @@
+﻿@inject GestorInventario.Navigation.INavigationService NavigationService
+
+@{
+    var dashboardItems = NavigationService.ObtenerDashboardItem();
+    var gestionUsuariosItems = NavigationService.ObtenerGestionUsuariosItems();
+    var inventarioItems = NavigationService.ObtenerInventarioItems();
+    var productosItems = NavigationService.ObtenerProductosItem();
+    var transaccionesItems = NavigationService.ObtenerTransaccionesItems();
+}
+
+<ul class="navbar-nav me-auto mb-2 mb-sm-0">
+    @* --- DASHBOARD --- *@
+    @if (dashboardItems.Any())
+    {
+        var item = dashboardItems[0];
+        <li class="nav-item">
+            <a class="nav-link" asp-area="" asp-controller="@item.Controller" asp-action="@item.Action"
+               data-bs-toggle="tooltip" title="@item.Title">
+                <i class="bi @item.Icon nav-icon"></i> @item.Text
+            </a>
+        </li>
+    }
+
+    @* --- GESTIÓN DE USUARIOS --- *@
+    @if (gestionUsuariosItems.Any())
+    {
+        @if (gestionUsuariosItems.Count > 1)
+        {
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="gestionUsuariosDropdown" role="button"
+                   data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip"
+                   title="Gestión de usuarios">
+                    <i class="bi bi-person-gear nav-icon"></i> Gestión de Usuarios
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="gestionUsuariosDropdown">
+                    @foreach (var item in gestionUsuariosItems)
+                    {
+                        <li>
+                            <a asp-area="" asp-controller="@item.Controller" asp-action="@item.Action"
+                               class="dropdown-item" data-bs-toggle="tooltip" title="@item.Title">@item.Text</a>
+                        </li>
+                    }
+                </ul>
+            </li>
+        }
+        else
+        {
+            var item = gestionUsuariosItems[0];
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="@item.Controller"
+                   asp-action="@item.Action" data-bs-toggle="tooltip" title="@item.Title">
+                    <i class="bi bi-person-gear nav-icon"></i> @item.Text
+                </a>
+            </li>
+        }
+    }
+
+    @* --- INVENTARIO --- *@
+    @if (inventarioItems.Any())
+    {
+        @if (inventarioItems.Count > 1)
+        {
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="gestionInventarioDropdown"
+                   role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                   data-bs-toggle="tooltip" title="Gestión de inventario">
+                    <i class="bi bi-boxes nav-icon"></i> Inventario
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="gestionInventarioDropdown">
+                    @foreach (var item in inventarioItems)
+                    {
+                        <li>
+                            <a asp-area="" asp-controller="@item.Controller" asp-action="@item.Action"
+                               class="dropdown-item" data-bs-toggle="tooltip" title="@item.Title">
+                                <i class="bi @item.Icon nav-icon"></i> @item.Text
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </li>
+        }
+        else
+        {
+            var item = inventarioItems[0];
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="@item.Controller"
+                   asp-action="@item.Action" data-bs-toggle="tooltip" title="@item.Title">
+                    <i class="bi @item.Icon nav-icon"></i> @item.Text
+                </a>
+            </li>
+        }
+    }
+
+    @* --- PRODUCTOS (Enlace directo controlado por servicio) --- *@
+    @if (productosItems.Any())
+    {
+        var item = productosItems[0];
+        <li class="nav-item">
+            <a class="nav-link" asp-area="" asp-controller="@item.Controller"
+               asp-action="@item.Action" data-bs-toggle="tooltip" title="@item.Title">
+                <i class="bi @item.Icon nav-icon"></i> @item.Text
+            </a>
+        </li>
+    }
+
+    @* --- TRANSACCIONES --- *@
+    @if (transaccionesItems.Any())
+    {
+        @if (transaccionesItems.Count > 1)
+        {
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="transaccionesDropdown" role="button"
+                   data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip"
+                   title="Gestión de transacciones">
+                    <i class="bi bi-wallet nav-icon"></i> Transacciones
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="transaccionesDropdown">
+                    @foreach (var item in transaccionesItems)
+                    {
+                        <li>
+                            <a asp-area="" asp-controller="@item.Controller" asp-action="@item.Action"
+                               class="dropdown-item" data-bs-toggle="tooltip" title="@item.Title">
+                                <i class="bi @item.Icon nav-icon"></i> @item.Text
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </li>
+        }
+        else
+        {
+            var item = transaccionesItems[0];
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="@item.Controller"
+                   asp-action="@item.Action" data-bs-toggle="tooltip" title="@item.Title">
+                    <i class="bi @item.Icon nav-icon"></i> @item.Text
+                </a>
+            </li>
+        }
+    }
+</ul>

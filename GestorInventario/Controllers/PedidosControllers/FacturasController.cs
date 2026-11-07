@@ -2,7 +2,6 @@
 using GestorInventario.Application.Interfaces.EmailServices;
 using GestorInventario.Application.Interfaces.Services;
 using GestorInventario.Application.Interfaces.Web;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

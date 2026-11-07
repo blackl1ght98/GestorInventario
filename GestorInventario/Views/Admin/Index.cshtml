@@ -155,47 +155,7 @@
     }
 </div>
 
-<!-- Modal de Confirmación -->
-<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-3 shadow">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="confirmModalLabel">Confirmación</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p id="confirmMessage" class="mb-0">¿Estás seguro de que deseas realizar esta acción?</p>
-                <p id="loadingMessage" class="d-none text-center text-muted mt-3">
-                    <span class="spinner-border spinner-border-sm me-2"></span>Procesando...
-                </p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="confirmActionBtn">Confirmar</button>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="reasignarModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-3 shadow">
-            <div class="modal-header bg-warning text-dark">
-                <h5 class="modal-title">Reasignar Proveedores</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Reasignar proveedores de <strong id="nombreUsuario"></strong></p>
-                <div id="contenidoModal">
-                    <!-- Se carga dinámicamente via JS -->
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-warning" id="confirmarReasignacion">Reasignar</button>
-            </div>
-        </div>
-    </div>
-</div>
+<partial name="_ModalPartial"/>
 @section Scripts {
     <script src="~/js/alta-baja-usuario.js" asp-append-version="true" defer></script>
     <script src="~/js/reasignarProveedor.js" asp-append-version="true" defer></script>

@@ -17,8 +17,12 @@ namespace GestorInventario.ViewModels.Paypal
         public RefundInfo? Refund { get; init; }
         public decimal TotalReembolsado { get; set; }
         public List<PayPalPaymentItemDto> Items { get; init; } = new();
+        //PROPIEDADES CALCULADAS
+        public bool isRefunded => Refund != null;
+        public bool isPartialRefund => Capture.Status == "PARTIALLY_REFUNDED";
+        public decimal SaldoPendiente => isRefunded ? Amount.Total - TotalReembolsado : 0;
     }
-
+  
     public class PayerInfo
     {
         public string Email { get; init; } = string.Empty;

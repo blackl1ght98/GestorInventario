@@ -17,7 +17,6 @@ namespace GestorInventario.Controllers.PaypalControllers
         private readonly ILogger<PaymentController> _logger;
         private readonly IPaypalOrderService _paypalOrderService;
         private readonly IPolicyExecutor _policyExecutor;
-        private readonly ICurrentUserAccessor _currentUserAccessor;
         private readonly IOrderService _pedidoService;
         private readonly IPaymentService _paymentService;
         private readonly IPaypalRepository _paypalRepository;
@@ -25,22 +24,20 @@ namespace GestorInventario.Controllers.PaypalControllers
 
         public PaymentController(
             ILogger<PaymentController> logger,
-            ICurrentUserAccessor currentUser,
             IPolicyExecutor policyExecutor,
             IPaypalOrderService paypalOrderService,
             IOrderService pedidoService,
             IPaymentService paymentService,
-            IPaypalRepository repo,
-            INotificationService noti)
+            IPaypalRepository paypalRepository,
+            INotificationService notificationService)
         {
             _logger = logger;
             _policyExecutor = policyExecutor;
             _paypalOrderService = paypalOrderService;
-            _currentUserAccessor = currentUser;
             _pedidoService = pedidoService;
             _paymentService = paymentService;
-            _paypalRepository = repo;
-            _notificationService = noti;
+            _paypalRepository = paypalRepository;
+            _notificationService = notificationService;
         }
 
         public async Task<IActionResult> Success(string token)

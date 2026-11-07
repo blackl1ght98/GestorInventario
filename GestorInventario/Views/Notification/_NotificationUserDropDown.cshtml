@@ -1,0 +1,28 @@
+﻿@model GestorInventario.Application.DTOS.Notification.NotificationDtoViewmodel
+
+<div class="dropdown-item-text p-3 border-bottom notificacion-item
+            @(Model.Leida ? "" : "bg-light")"
+     data-id="@Model.Id"
+     style="cursor: pointer; white-space: normal;">
+
+    <div class="d-flex justify-content-between align-items-start mb-1">
+        <span class="badge @Model.BadgeCssClass">
+            @Model.Tipo
+        </span>
+        @if (!Model.Leida)
+        {
+            <span class="badge bg-danger">Nueva</span>
+        }
+    </div>
+
+    <div class="fw-semibold text-truncate" style="max-width: 100%;">
+        @Model.Titulo
+    </div>
+    <div class="small text-muted text-truncate" style="max-width: 100%;">
+        @Model.Mensaje
+    </div>
+    <div class="small text-muted mt-1">
+        <i class="bi bi-clock"></i>
+        @Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")
+    </div>
+</div>

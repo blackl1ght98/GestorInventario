@@ -1,11 +1,9 @@
-﻿using GestorInventario.Application.DTOS;
-using GestorInventario.Application.DTOS.Paypal;
+﻿using GestorInventario.Application.DTOS.Paypal;
 using GestorInventario.Application.Interfaces.Data;
 using GestorInventario.Application.Interfaces.Infrastructure.Paypal.Subscriptions;
 using GestorInventario.Application.Interfaces.Resilience;
 using GestorInventario.Application.Interfaces.Services;
 using GestorInventario.Application.Interfaces.Web;
-using GestorInventario.Domain.Models;
 using GestorInventario.Mappers;
 using GestorInventario.Shared.Utilities;
 using GestorInventario.ViewModels.Paypal;

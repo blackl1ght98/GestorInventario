@@ -11,7 +11,6 @@ using GestorInventario.Application.Interfaces.Renderer;
 using GestorInventario.Application.Interfaces.Renderer.Barcode;
 using GestorInventario.Application.Interfaces.Repositories;
 using GestorInventario.Application.Interfaces.Resilience;
-using GestorInventario.Application.Interfaces.SendNotification;
 using GestorInventario.Application.Interfaces.SendNotification.Email;
 using GestorInventario.Application.Interfaces.Services;
 using GestorInventario.Application.Interfaces.Web;
@@ -62,6 +61,7 @@ using GestorInventario.Infrastructure.Repositories.RoleRepository;
 using GestorInventario.Infrastructure.Repositories.ShopCartRepository;
 using GestorInventario.Infrastructure.Resilience;
 using GestorInventario.Infrastructure.Services;
+using GestorInventario.Navigation;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
@@ -99,13 +99,11 @@ namespace GestorInventario.Composition
             services.AddScoped<ITokenGenerator, TokenGenerator>();
             services.AddScoped<IAuthService, AuthService>();           
             services.AddScoped<IRefreshTokenGenerator, RefreshTokenGenerator>();
-         
             services.AddScoped<ILoginGenerator, LoginGenerator>();
             services.AddScoped<ITokenStrategyResolver, TokenStrategyResolver>();
             services.AddScoped<ILoginStrategyResolver, LoginStrategyResolver>();
             services.AddScoped<IMidlewareResolver, MidlewareResolver>();
            
-            services.AddHttpClient<ICallMeBotService, CallMeBotService>();
             
             // Servicios de Notificaciones y Documentos
             services.AddScoped<IEmailService, EmailService>();
@@ -129,7 +127,8 @@ namespace GestorInventario.Composition
             services.AddScoped<IPlanService, PlanService>();
             services.AddScoped<ISubscriptionService, SubscriptionService>();
             services.AddScoped<ISyncService, SyncService>();
-
+            services.AddScoped<INavigationService, NavigationService>();
+            services.AddHttpClient<ICallMeBotService, CallMeBotService>();
             return services;
         }
 

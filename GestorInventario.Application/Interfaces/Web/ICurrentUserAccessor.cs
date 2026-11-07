@@ -6,10 +6,12 @@ namespace GestorInventario.Application.Interfaces.Web
     {
         int GetCurrentUserId();
         string? GetCurrentUserEmail();
-        bool IsInRole(string role);
+    
         ClaimsPrincipal? GetPrincipal();
         string GetClientIpAddress();
         string GetRequestMethod();
         bool IsAuthenticated();
+        bool IsAdmin();
+        bool IsAdminOrUser();
     }
 }

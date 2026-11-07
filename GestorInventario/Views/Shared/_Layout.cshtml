@@ -1,355 +1,60 @@
-@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery antiforgery
+@inject GestorInventario.Application.Interfaces.Web.ICurrentUserAccessor CurrentUser
 @{
-    var tokens = antiforgery.GetAndStoreTokens(Context);
-
-    // Determinar visibilidad de cada item según rol, para decidir dropdown vs link directo
-    var isAdmin = User.IsInRole("Administrador");
-    var isUser = User.IsInRole("Usuario");
-    var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
-    var isAdminOrUser = isAdmin || isUser;
-
-    // Items por dropdown (se omitirán condicionales que no apliquen al rol)
-    var gestionUsuariosItems = new List<(string Controller, string Action, string Text, string? Icon, string? Title)>
-    {
-        ("Admin", "Index", "Panel de Administración", null, "Panel de administración"),
-        ("Role", "ObtenerRoles", "Roles", null, "Gestionar roles"),
-    };
-
-    var inventarioItems = new List<(string Controller, string Action, string Text, string Icon, string Title)>
-    {
-        ("Pedidos", "Index", "Pedidos", "bi-cart", "Ver pedidos"),
-    };
-    if (isAdmin)
-    {
-        inventarioItems.Insert(0, ("Proveedor", "Index", "Proveedores", "bi-truck", "Gestionar proveedores"));
-        inventarioItems.Insert(1, ("Rembolso", "Index", "Rembolsos", "bi-cart", "Ver pedidos"));
-    }
-
-    var transaccionesItems = new List<(string Controller, string Action, string Text, string Icon, string Title)>
-    {
-        ("Rembolso", "FormularioRembolso", "Formulario rembolso", "bi-cash", "Gestionar reembolsos"),
-        ("Carrito", "Index", "Carrito", "bi-cart3", "Ver carrito"),
-    };
-
-    var operacionesItems = new List<(string Controller, string Action, string Text)>
-    {
-        ("PaypalPlan", "MostrarPlanes", "Planes PayPal"),
-        ("PaypalSubscription", "ObtenerSuscripcionUsuario", "Suscripción Usuario"),
-    };
-    if (isAdmin)
-    {
-        operacionesItems.Insert(0, ("PaypalProduct", "MostrarProductos", "Productos PayPal"));
-        operacionesItems.Insert(1, ("PaypalSubscription", "TodasSuscripciones", "Suscriptores"));
-    }
+    var isAdminOrUser = CurrentUser.IsAdminOrUser();
 }
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="@ViewData["MetaDescription"]" />
-    <title>@ViewData["Title"] - GestorInventario</title>
-
-    <!-- CSRF token para AJAX -->
-    <meta name="csrf-token" content="@tokens.RequestToken" />
-
-    <!-- DNS Prefetch para Google Fonts (mantenido para font files) -->
-    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
-
-    <!-- Bootstrap CSS (CDN) -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0EvHe/X+R7Yk6jvGQkFqnhl5Vn4qFhc7O6gDQ6D7fF0vRJYkR5h2qT+E4qpFZhM" crossorigin="anonymous">
-
-    <!-- Bootstrap Icons (CDN) -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-
-    <!-- Preload de fuentes WOFF2 -->
-    <link rel="preload" href="https://fonts.gstatic.com/s/inter/v13/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7.woff2" as="font" type="font/woff2" crossorigin>
-
-    <!-- Preload de CSS local -->
-    <link rel="preload" href="~/lib/bootstrap/dist/css/bootstrap.min.css" as="style" onload="this.rel='stylesheet'" asp-append-version="true">
-    <link rel="preload" href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css" as="style" onload="this.rel='stylesheet'" asp-append-version="true">
-    <link rel="preload" href="~/css/site.css" as="style" onload="this.rel='stylesheet'" asp-append-version="true">
-
-    <!-- Fallback para navegadores sin JS -->
-    <noscript>
-        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" asp-append-version="true">
-        <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css" asp-append-version="true">
-        <link rel="stylesheet" href="~/css/site.css" asp-append-version="true">
-    </noscript>
+   <partial name="Partials/_Head"/>
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-dark">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index" data-bs-toggle="tooltip" title="Inicio">
-                    <i class="bi bi-box-seam nav-icon"></i> GestorInventario
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarContent">
-                    <ul class="navbar-nav me-auto mb-2 mb-sm-0">
-                        @if (isAdmin)
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="DashBoard" data-bs-toggle="tooltip" title="Página principal">
-                                    <i class="bi bi-house nav-icon"></i> Dashboard
-                                </a>
-                            </li>
+<header>
+    <nav class="navbar navbar-expand-sm navbar-dark">
+        <div class="container-fluid">
+            <!-- 1. Logo  -->
+            <partial name="Partials/_NavbarBrand" />
 
-                            @* Gestión de Usuarios: dropdown si tiene >1 item, link directo si solo 1 *@
-                            @if (gestionUsuariosItems.Count > 1)
-                            {
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle" href="#" id="gestionUsuariosDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip" title="Gestión de usuarios">
-                                        <i class="bi bi-person-gear nav-icon"></i> Gestión de Usuarios
-                                    </a>
-                                    <ul class="dropdown-menu" aria-labelledby="gestionUsuariosDropdown">
-                                        @foreach (var item in gestionUsuariosItems)
-                                        {
-                                            <li>
-                                                <a asp-area="" asp-controller="@item.Controller" asp-action="@item.Action" class="dropdown-item" data-bs-toggle="tooltip" title="@item.Title">@item.Text</a>
-                                            </li>
-                                        }
-                                    </ul>
-                                </li>
-                            }
-                            else if (gestionUsuariosItems.Count == 1)
-                            {
-                                var item = gestionUsuariosItems[0];
-                                <li class="nav-item">
-                                    <a class="nav-link" asp-area="" asp-controller="@item.Controller" asp-action="@item.Action" data-bs-toggle="tooltip" title="@item.Title">
-                                        <i class="bi bi-person-gear nav-icon"></i> @item.Text
-                                    </a>
-                                </li>
-                            }
-                        }
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
+                    aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-                        @if (isAdminOrUser)
-                        {
-                            @* Inventario: dropdown si >1, link directo si solo 1 *@
-                            @if (inventarioItems.Count > 1)
-                            {
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle" href="#" id="gestionInventarioDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip" title="Gestión de inventario">
-                                        <i class="bi bi-boxes nav-icon"></i> Inventario
-                                    </a>
-                                    <ul class="dropdown-menu" aria-labelledby="gestionInventarioDropdown">
-                                        @foreach (var item in inventarioItems)
-                                        {
-                                            <li>
-                                                <a asp-area="" asp-controller="@item.Controller" asp-action="@item.Action" class="dropdown-item" data-bs-toggle="tooltip" title="@item.Title">
-                                                    <i class="bi @item.Icon nav-icon"></i> @item.Text
-                                                </a>
-                                            </li>
-                                        }
-                                    </ul>
-                                </li>
-                            }
-                            else if (inventarioItems.Count == 1)
-                            {
-                                var item = inventarioItems[0];
-                                <li class="nav-item">
-                                    <a class="nav-link" asp-area="" asp-controller="@item.Controller" asp-action="@item.Action" data-bs-toggle="tooltip" title="@item.Title">
-                                        <i class="bi @item.Icon nav-icon"></i> @item.Text
-                                    </a>
-                                </li>
-                            }
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <!-- 2. Menú principal de navegación -->
+                <partial name="Partials/_NavbarMenu" />
 
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Productos" asp-action="Index" data-bs-toggle="tooltip" title="Ver productos">
-                                    <i class="bi bi-box nav-icon"></i> Productos
-                                </a>
-                            </li>
+                <ul class="navbar-nav ms-auto">
+                    <!-- 3. Operaciones PayPal (Si aplica) -->
+                    @if (isAdminOrUser)
+                    {
+                        <partial name="Partials/_NavbarOperations" />
+                    }
 
-                            @* Transacciones: dropdown si >1, link directo si solo 1 *@
-                            @if (transaccionesItems.Count > 1)
-                            {
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle" href="#" id="transaccionesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip" title="Gestión de transacciones">
-                                        <i class="bi bi-wallet nav-icon"></i> Transacciones
-                                    </a>
-                                    <ul class="dropdown-menu" aria-labelledby="transaccionesDropdown">
-                                        @foreach (var item in transaccionesItems)
-                                        {
-                                            <li>
-                                                <a asp-area="" asp-controller="@item.Controller" asp-action="@item.Action" class="dropdown-item" data-bs-toggle="tooltip" title="@item.Title">
-                                                    <i class="bi @item.Icon nav-icon"></i> @item.Text
-                                                </a>
-                                            </li>
-                                        }
-                                    </ul>
-                                </li>
-                            }
-                            else if (transaccionesItems.Count == 1)
-                            {
-                                var item = transaccionesItems[0];
-                                <li class="nav-item">
-                                    <a class="nav-link" asp-area="" asp-controller="@item.Controller" asp-action="@item.Action" data-bs-toggle="tooltip" title="@item.Title">
-                                        <i class="bi @item.Icon nav-icon"></i> @item.Text
-                                    </a>
-                                </li>
-                            }
-                        }
-                    </ul>
-
-                    <ul class="navbar-nav ms-auto">
-                        @if (isAdminOrUser)
-                        {
-                            @* Operaciones PayPal: dropdown si >1, link directo si solo 1 *@
-                            @if (operacionesItems.Count > 1)
-                            {
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle" href="#" id="operacionesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip" title="Operaciones PayPal">
-                                        <i class="bi bi-gear nav-icon"></i> Operaciones
-                                    </a>
-                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="operacionesDropdown">
-                                        @foreach (var item in operacionesItems)
-                                        {
-                                            <li><a asp-area="" asp-controller="@item.Controller" asp-action="@item.Action" class="dropdown-item">@item.Text</a></li>
-                                        }
-                                    </ul>
-                                </li>
-                            }
-                            else if (operacionesItems.Count == 1)
-                            {
-                                var item = operacionesItems[0];
-                                <li class="nav-item">
-                                    <a class="nav-link" asp-area="" asp-controller="@item.Controller" asp-action="@item.Action">
-                                        <i class="bi bi-gear nav-icon"></i> @item.Text
-                                    </a>
-                                </li>
-                            }
-                        }
-
-                        @if (isAuthenticated)
-                        {
-                           
-                            
-                                var userItems = new List<(string Controller, string Action, string Text)>
-                                {
-                                    ("Auth", "Logout", "Cerrar sesión"),
-                                    ("Admin", "Edit", "Actualizar Perfil"),
-                                    ("Auth", "ChangePassword", "Cambiar Contraseña"),
-                                };
-                            
-                            @if (userItems.Count > 1)
-                            {
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip" title="Opciones de usuario">
-                                        <i class="bi bi-person-circle nav-icon"></i> @User.Identity!.Name
-                                    </a>
-                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                        @foreach (var item in userItems)
-                                        {
-                                            <li><a asp-controller="@item.Controller" asp-action="@item.Action" class="dropdown-item">@item.Text</a></li>
-                                        }
-                                    </ul>
-                                </li>
-
-
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link position-relative" href="#" id="notificacionesDropdown"
-                                       role="button" data-bs-toggle="dropdown" aria-expanded="false"
-                                       data-bs-toggle="tooltip" title="Notificaciones">
-                                        <i class="bi bi-bell nav-icon"></i>
-                                        <span id="notificacionesBadge"
-                                              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                                              style="display:none;">
-                                            0
-                                        </span>
-                                    </a>
-                                    <div class="dropdown-menu dropdown-menu-end p-0"
-                                         aria-labelledby="notificacionesDropdown"
-                                         style="min-width: 340px; max-width: 380px;">
-                                        <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
-                                            <h6 class="m-0">Notificaciones</h6>
-                                            <button type="button" id="markAllReadBtn"
-                                                    class="btn btn-link btn-sm p-0 text-decoration-none">
-                                                Marcar todas como leídas
-                                            </button>
-                                        </div>
-                                        <div id="notificacionesList" style="max-height: 380px; overflow-y: auto;">
-                                            <div class="text-center text-muted py-3">
-                                                <span class="spinner-border spinner-border-sm"></span> Cargando…
-                                            </div>
-                                        </div>
-                                        <div class="border-top text-center py-2">
-                                            <a asp-controller="Notification" asp-action="Index" class="text-decoration-none">
-                                                Ver todas
-                                            </a>
-                                        </div>
-                                    </div>
-                                   
-                                </li>
-                            }
-                            else if (userItems.Count == 1)
-                            {
-                                var item = userItems[0];
-                                <li class="nav-item">
-                                    <a class="nav-link" asp-controller="@item.Controller" asp-action="@item.Action">
-                                        <i class="bi bi-person-circle nav-icon"></i> @item.Text
-                                    </a>
-                                </li>
-                            }
-                        }
-                        else
-                        {
-                            <li class="nav-item">
-                                <a asp-controller="Auth" asp-action="Login" class="btn btn-primary ms-2" data-bs-toggle="tooltip" title="Iniciar sesión">Iniciar sesión</a>
-                            </li>
-                        }
-                    </ul>
-                </div>
+                    <!-- 4. Menú de Usuario y Notificaciones -->
+                    <partial name="Partials/_NavbarUser" />
+                </ul>
             </div>
-        </nav>
-    </header>
+        </div>
+    </nav>
+</header>
 
 <main role="main" class="container">
     @RenderBody()
 </main>
 
-    <footer class="footer text-center">
-        <div class="container">
-            © 2025 - GestorInventario - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacidad</a>
-        </div>
-    </footer>
+<footer class="footer text-center">
+    <div class="container">
+        © 2025 - GestorInventario - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacidad</a>
+    </div>
+</footer>
 
-    <!-- Scripts con defer para no bloquear rendering -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoFQmQznMR64s5FjtpVZBjVUXx0f5i5mAGsQcf5D4yH6rZ7" crossorigin="anonymous" defer></script>
-    <script src="~/lib/bootstrap/js/bootstrap.bundle.min.js" asp-append-version="true" defer></script>
-    <script src="~/js/site.js" asp-append-version="true" defer></script>
-    <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        actualizarBadgeNotificaciones();
-        
-        // Polling cada 30 segundos para mantener el badge actualizado en vivo
-        setInterval(actualizarBadgeNotificaciones, 30000);
-    });
-
-    function actualizarBadgeNotificaciones() {
-        fetch('/Notification/ObtenerConteoNoLeidas')
-            .then(response => {
-                if (!response.ok) throw new Error("Error al obtener notificaciones");
-                return response.json();
-            })
-            .then(data => {
-                const badge = document.getElementById("notificacionesBadge");
-                if (!badge) return;
-
-                const nuevoConteo = data.count;
-
-                // Actualizar el número visual en el badge rojo
-                if (nuevoConteo > 0) {
-                    badge.textContent = nuevoConteo > 99 ? "99+" : nuevoConteo;
-                    badge.style.display = "inline-block"; // Muestra el badge
-                } else {
-                    badge.style.display = "none"; // Lo oculta si está a 0
-                }
-            })
-            .catch(error => console.error("Error actualizando badge de notificaciones:", error));
-    }
-</script>
-    @await RenderSectionAsync("Scripts", required: false)
+<!-- Scripts con defer para no bloquear rendering -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ENjdO4Dr2bkBIFxQpeoFQmQznMR64s5FjtpVZBjVUXx0f5i5mAGsQcf5D4yH6rZ7" crossorigin="anonymous"
+        defer></script>
+<script src="~/lib/bootstrap/js/bootstrap.bundle.min.js" asp-append-version="true" defer></script>
+<script src="~/js/site.js" asp-append-version="true" defer></script>
+<script src="~/js/conteo-notificaciones.js" asp-append-version="true" defer></script>
+@await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

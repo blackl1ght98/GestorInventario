@@ -32,6 +32,7 @@ public class LimpiezaPedidosExpiradosService : BackgroundService
                     var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
                    
                     var limiteTiempo = DateTime.UtcNow.AddHours(-24);
+                
                     // Método que busca todos los pedidos en estado Pendiente con más de 24h en todo el sistema
                     var pedidosExpirados = await unitOfWork.OrderRepository.ObtenerTodosLosPendientesAntiguosAsync(limiteTiempo);
 
