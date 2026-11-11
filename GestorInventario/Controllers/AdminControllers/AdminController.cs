@@ -53,10 +53,18 @@ namespace GestorInventario.Controllers.AdminControllers
 
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
                     _paginationService.PaginarAsync(queryable, paginacion));
-
+                var dto = paginationResult.Items.Select(u => new UserDtoViewmodel
+                { 
+                    BajaUsuario = u.BajaUsuario,
+                    Email = u.Email,
+                    FechaRegistro = u.FechaRegistro,
+                    Id = u.Id,
+                    NombreCompleto = u.NombreCompleto,
+                    NombreRol = u.IdRolNavigation.Nombre
+                }).ToList();
                 var viewModel = new UserIndexViewModel
                 {
-                    Usuarios = paginationResult.Items,
+                    Usuarios = dto,
                     Paginas = paginationResult.Paginas.ToList(),
                     TotalPaginas = paginationResult.TotalPaginas,
                     PaginaActual = paginationResult.PaginaActual,

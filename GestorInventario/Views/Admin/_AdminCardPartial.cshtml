@@ -1,0 +1,64 @@
+﻿@model GestorInventario.Application.DTOS.User.UserDtoViewmodel
+
+<div class="col">
+    <div class="card h-100 border-0 shadow-sm hover-card transition-all">
+        <div class="card-body p-4 d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <h5 class="card-title fw-semibold text-primary mb-0">@Model.NombreCompleto</h5>
+                <span class="badge @(Model.BajaUsuario ? "bg-danger" : "bg-success") fs-6">
+                                    @(Model.BajaUsuario ? "Inactivo" : "Activo")
+                                </span>
+            </div>
+
+            <div class="mb-4">
+                <p class="mb-2">
+                    <i class="bi bi-envelope text-muted me-2"></i>
+                    <strong>Email:</strong> @Model.Email
+                </p>
+                <p class="mb-2">
+                    <i class="bi bi-calendar text-muted me-2"></i>
+                    <strong>Registrado:</strong> @Model.FechaRegistro
+                </p>
+                <p class="mb-0">
+                    <i class="bi bi-person-badge text-muted me-2"></i>
+                    <strong>Rol:</strong> @(Model.NombreRol ?? "Sin rol asignado")
+                </p>
+            </div>
+
+            <!-- Acciones -->
+            <div class="mt-auto pt-3 border-top">
+                <div class="d-flex flex-wrap gap-2">
+                    <a asp-action="Edit" asp-route-id="@Model.Id"
+                       class="btn btn-outline-primary flex-fill btn-sm">
+                        <i class="bi bi-pencil me-1"></i>Editar
+                    </a>
+
+                    <button type="button"
+                            class="btn btn-sm flex-fill user-action-button"
+                            data-user-id="@Model.Id"
+                            data-user-action="@(Model.BajaUsuario ? "Alta" : "Baja")"
+                            style="background-color: @(Model.BajaUsuario ? "#198754" : "#dc3545"); color: white;">
+                        <i class="bi @(Model.BajaUsuario ? "bi-arrow-up-circle" : "bi-arrow-down-circle") me-1"></i>
+                        @(Model.BajaUsuario ? "Dar de Alta" : "Dar de Baja")
+                    </button>
+
+                    <a asp-action="Delete" asp-route-id="@Model.Id"
+                       class="btn btn-outline-danger flex-fill btn-sm">
+                        <i class="bi bi-trash me-1"></i>Eliminar
+                    </a>
+
+                    <a asp-action="ResetPassword" asp-controller="Auth" asp-route-email="@Model.Email"
+                       class="btn btn-outline-secondary flex-fill btn-sm">
+                        <i class="bi bi-key me-1"></i>Resetear Contraseña
+                    </a>
+                    <button type="button"
+                            class="btn btn-outline-warning flex-fill btn-sm reasignar-btn"
+                            data-user-id="@Model.Id"
+                            data-user-name="@Model.NombreCompleto">
+                        <i class="bi bi-arrow-left-right me-1"></i>Reasignar Proveedores
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
