@@ -197,7 +197,7 @@ namespace GestorInventario.Application.Services.User
             var usuario = await _adminRepository.ObtenerUsuarioPorId(id);
             if (usuario == null) return OperationResult<string>.Fail();
 
-            usuario.BajaUsuario = !activar; // Lógica de negocio
+            usuario.BajaUsuario = !activar; 
 
             return await _adminRepository.ActualizarUsuarioAsync(usuario);
         }
