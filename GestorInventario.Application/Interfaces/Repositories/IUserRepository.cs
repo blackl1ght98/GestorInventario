@@ -3,7 +3,7 @@ using GestorInventario.Shared.Utilities;
 
 namespace GestorInventario.Application.Interfaces.Repositories
 {
-    public interface IAdminRepository
+    public interface IUserRepository
     {
         //Consulta
  

@@ -78,7 +78,7 @@ namespace GestorInventario.Controllers.ProveedorController
             
 
             // Cargar los usuarios desde la base de datos
-            var usuarios = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.AdminRepository.ObtenerUsuariosAsync());
+            var usuarios = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.UserRepository.ObtenerUsuariosAsync());
 
             var model = new SupplierFormViewModel
             {
@@ -102,7 +102,7 @@ namespace GestorInventario.Controllers.ProveedorController
                
                 if (!ModelState.IsValid)
                 {
-                    var usuarios = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.AdminRepository.ObtenerUsuariosAsync());
+                    var usuarios = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.UserRepository.ObtenerUsuariosAsync());
                     model.Usuarios = usuarios.ToSelectList(
                         u => u.Id,
                         u => u.NombreCompleto,
@@ -200,7 +200,7 @@ namespace GestorInventario.Controllers.ProveedorController
         {
             try
             {
-                var listaUsuarios = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.AdminRepository.ObtenerUsuariosAsync());
+                var listaUsuarios = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.UserRepository.ObtenerUsuariosAsync());
 
                 var usuarios = new SelectList(listaUsuarios, "Id", "NombreCompleto");
 
@@ -234,7 +234,7 @@ namespace GestorInventario.Controllers.ProveedorController
         {
             try
             {
-                var listaUsuarios = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.AdminRepository.ObtenerUsuariosAsync());
+                var listaUsuarios = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.UserRepository.ObtenerUsuariosAsync());
 
                 // Validación del modelo (opcional, pero recomendado)
                 if (!ModelState.IsValid)
@@ -290,7 +290,7 @@ namespace GestorInventario.Controllers.ProveedorController
         public async Task<IActionResult> ObtenerInfoReasignacion(int id)
         {
             var usuario = await _policyExecutor.ExecutePolicyAsync(() =>
-                _unitOfWork.AdminRepository.ObtenerUsuarioConProveedoresYPedidosAsync(id));
+                _unitOfWork.UserRepository.ObtenerUsuarioConProveedoresYPedidosAsync(id));
 
             if (usuario is null)
                 return Json(new { success = false, message = "Usuario no encontrado" });
@@ -298,7 +298,7 @@ namespace GestorInventario.Controllers.ProveedorController
             if (!usuario.Proveedores.Any())
                 return Json(new { success = false, message = "Este usuario no tiene proveedores asignados" });
 
-            var usuarios = _unitOfWork.AdminRepository.ObtenerUsuarios()
+            var usuarios = _unitOfWork.UserRepository.ObtenerUsuarios()
                 .Where(u => u.Id != id)
                 .Select(u => new { u.Id, u.NombreCompleto })
                 .ToList();
@@ -309,7 +309,7 @@ namespace GestorInventario.Controllers.ProveedorController
         public async Task<IActionResult> ReasignarProveedores([FromBody] ReasignarProveedoresDto request)
         {
             var result = await _policyExecutor.ExecutePolicyAsync(() =>
-                _unitOfWork.AdminRepository.ReasignarProveedoresAsync(
+                _unitOfWork.UserRepository.ReasignarProveedoresAsync(
                     request.UsuarioOrigenId, request.UsuarioDestinoId));
 
             return Json(new { success = result.Success, message = result.Message });

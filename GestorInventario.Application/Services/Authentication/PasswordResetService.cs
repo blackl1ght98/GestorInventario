@@ -8,23 +8,23 @@ namespace GestorInventario.Application.Services.Authentication
     public class PasswordResetService: IPasswordResetService
     {
         private readonly IHashService _hashService;
-        private readonly IAdminRepository _adminRepository;
+        private readonly IUserRepository _userRepository;
 
         
-        public PasswordResetService(IHashService hashService, IAdminRepository adminRepository)
+        public PasswordResetService(IHashService hashService, IUserRepository userRepository)
         {
             _hashService = hashService;
-            _adminRepository = adminRepository;
+            _userRepository = userRepository;
         }
 
         public async Task<OperationResult<string > >GenerarPasswordTemporalAsync(string email)
         {
-            var correo = await _adminRepository.ExisteEmailAsync(email);
+            var correo = await _userRepository.ExisteEmailAsync(email);
             if (!correo)
             {
                 return OperationResult<string>.Fail("El correo electronico no existe");
             }
-            var usuario = await _adminRepository.ObtenerEmail(email);
+            var usuario = await _userRepository.ObtenerEmail(email);
             // Lógica de generación y hash aquí
             var contrasenaTemporal = GenerarContrasenaTemporal();
             var resultadoHash = _hashService.Hash(contrasenaTemporal);
@@ -36,7 +36,7 @@ namespace GestorInventario.Application.Services.Authentication
             usuario.FechaExpiracionContrasenaTemporal = fechaExpiracion;
             usuario.ResetTokenUsed = false;
             
-            await _adminRepository.ActualizarUsuarioAsync(usuario);
+            await _userRepository.ActualizarUsuarioAsync(usuario);
 
             return OperationResult<string>.Ok(contrasenaTemporal,"Restablecida");
         }

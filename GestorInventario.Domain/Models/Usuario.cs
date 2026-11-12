@@ -43,6 +43,8 @@ public partial class Usuario
 
     public bool? ResetTokenUsed { get; set; }
 
+    public string? PendingEmail { get; set; }
+
     public virtual Role IdRolNavigation { get; set; } = null!;
 
     public virtual ICollection<Notificacion> Notificacions { get; set; } = new List<Notificacion>();

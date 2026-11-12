@@ -8,12 +8,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 namespace GestorInventario.Infrastructure.Repositories.AdminRepository
 {
-    public class AdminRepository : IAdminRepository
+    public class UserRepository : IUserRepository
     {
         private readonly GestorInventarioContext _context;       
-        private readonly ILogger<AdminRepository> _logger;
+        private readonly ILogger<UserRepository> _logger;
     
-        public AdminRepository(GestorInventarioContext context,   ILogger<AdminRepository> logger)
+        public UserRepository(GestorInventarioContext context,   ILogger<UserRepository> logger)
         {
             _context = context;            
             _logger = logger;     

@@ -43,7 +43,7 @@ namespace GestorInventario.Controllers.AdminControllers
                 var currentUserId = _currentUserAccessor.GetCurrentUserId();
 
                 var queryable = _policyExecutor.ExecutePolicy(() =>
-                    _unitOfWork.AdminRepository.ObtenerUsuarios())
+                    _unitOfWork.UserRepository.ObtenerUsuarios())
                     .Where(u => u.Id != currentUserId); 
 
                 if (!string.IsNullOrEmpty(buscar))
@@ -116,7 +116,7 @@ namespace GestorInventario.Controllers.AdminControllers
                     CodigoPostal = model.CodigoPostal,
                 };
 
-                // El admin puede elegir rol desde el dropdown (que es Id → Nombre).
+                // El user puede elegir rol desde el dropdown (que es Id → Nombre).
                 // Si es auto-registro (sin rol solicitado), el servicio aplica Roles.DefaultRegistro.
                 var rolNombre = User.IsAdministrador()
               ?  _unitOfWork.RoleRepository.ObtenerNombreRolPorId(model.IdRol)
@@ -143,12 +143,31 @@ namespace GestorInventario.Controllers.AdminControllers
             }
         }
         [AllowAnonymous]
-        [HttpGet("admin/confirm-registration/{UserId}/{Token}")]
+        [HttpGet("user/confirm-registration/{UserId}/{Token}")]
         public async Task<IActionResult> ConfirmRegistration(ConfirmRegistrationDto confirmar)
         {
             try
             {               
                 var validar = await _userService.ValidarRegistro(confirmar);
+                if (!validar.Success) {
+                    _logger.LogError(validar.Message); 
+                }
+                return RedirectToAction("Login", "Auth");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al confirmar la cuenta del usuario");
+                return RedirectToAction("Error", "Home");
+            }
+            
+        }
+        [AllowAnonymous]
+        [HttpGet("user/confirm-change-email/{UserId}/{Token}")]
+        public async Task<IActionResult> ConfirmChangeEmail(ConfirmEmail confirmar)
+        {
+            try
+            {               
+                var validar = await _userService.ValidarCorreo(confirmar);
                 if (!validar.Success) {
                     _logger.LogError(validar.Message); 
                 }
@@ -171,7 +190,7 @@ namespace GestorInventario.Controllers.AdminControllers
 
                
                 var usuario = await _policyExecutor.ExecutePolicyAsync(
-                    () => _unitOfWork.AdminRepository.ObtenerUsuarioPorId(usuarioAEditarId));
+                    () => _unitOfWork.UserRepository.ObtenerUsuarioPorId(usuarioAEditarId));
 
                 if ( usuario == null)
                 {
@@ -231,12 +250,12 @@ namespace GestorInventario.Controllers.AdminControllers
                 {
                     return View(userVM);
                 }
-            
+                TempData["SuccessMessage"] = result.Message;
                 if (User.IsAdministrador())
                 {
                     return RedirectToAction(nameof(Index));
                 }
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction(nameof(Edit));
                 
             }
             catch (Exception ex)
@@ -252,7 +271,7 @@ namespace GestorInventario.Controllers.AdminControllers
         {
             try
             {
-                var usuario = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.AdminRepository.ObtenerUsuarioPorId(id));
+                var usuario = await _policyExecutor.ExecutePolicyAsync(() => _unitOfWork.UserRepository.ObtenerUsuarioPorId(id));
                 if (usuario == null)
                 {
                     _logger.LogCritical("Se intento manipular la url por el usuario: " + _currentUserAccessor.GetCurrentUserId());

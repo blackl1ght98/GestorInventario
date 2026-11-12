@@ -7,7 +7,7 @@ namespace GestorInventario.Infrastructure.Data
     {
         private readonly GestorInventarioContext _context;
      
-        public IAdminRepository AdminRepository { get; private set; }
+        public IUserRepository UserRepository { get; private set; }
         public IRoleRepository RoleRepository { get; private set; }
         public IPaypalRepository PaypalRepository { get; private set; }
         public IShopCartRepository ShopCartRepository { get; private set; }
@@ -16,11 +16,11 @@ namespace GestorInventario.Infrastructure.Data
         public IProviderRepository ProviderRepository { get; private set; }
         private bool _disposed = false;
 
-        public UnitOfWork(GestorInventarioContext context, IAdminRepository admin, IRoleRepository role, IPaypalRepository paypal,
+        public UnitOfWork(GestorInventarioContext context, IUserRepository user, IRoleRepository role, IPaypalRepository paypal,
         IShopCartRepository shopCart, IOrderRepository orderRepository, IProductRepository productRepository, IProviderRepository providerRepository)
         {
             _context = context;
-            AdminRepository = admin;
+            UserRepository = user;
             RoleRepository = role;
             PaypalRepository = paypal;
             ShopCartRepository = shopCart;

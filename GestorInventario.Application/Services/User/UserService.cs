@@ -4,6 +4,7 @@ using GestorInventario.Application.Interfaces.Authentication;
 using GestorInventario.Application.Interfaces.EmailServices;
 using GestorInventario.Application.Interfaces.Repositories;
 using GestorInventario.Application.Interfaces.Services;
+using GestorInventario.Application.Mappers;
 using GestorInventario.Domain.Models;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Logging;
@@ -17,48 +18,52 @@ namespace GestorInventario.Application.Services.User
         private readonly IHashService _hashService;
         private readonly IEmailService _emailService;
         private readonly ILogger<UserService> _logger;
-        private readonly IAdminRepository _adminRepository;
+        private readonly IUserRepository _userRepository;
 
         public UserService(
             IRoleRepository roleRepository,
             IHashService hashService,
             IEmailService emailService,
-            IAdminRepository admin,
+            IUserRepository user,
             ILogger<UserService> logger)
         {
             _roleRepository = roleRepository;
             _hashService = hashService;
             _emailService = emailService;
             _logger = logger;
-            _adminRepository = admin;
+            _userRepository = user;
         }
 
         public async Task<OperationResult<string>> CrearUsuarioAsync(RegisterUserDto model,
             string? rolSolicitado = null)
         {
-            if (await _adminRepository.ExisteEmailAsync(model.Email))
+            if (await _userRepository.ExisteEmailAsync(model.Email))
                 return OperationResult<string>.Fail("Ya existe un usuario con este correo electrónico.");
 
-            var esPrimerUsuario = !await _adminRepository.AnyAsync();
+            var esPrimerUsuario = !await _userRepository.AnyAsync();
 
-            // Bootstrap siempre gana: el primer usuario del sistema es admin, sin importar lo que manden
             var nombreRol = esPrimerUsuario
                 ? Roles.Administrador
                 : (rolSolicitado ?? Roles.DefaultRegistro);
 
-            var rol = await _roleRepository.GetRolByNameAsync(nombreRol)
-                      ?? throw new InvalidOperationException(
-                          $"Rol '{nombreRol}' no existe. ¿Se ejecutó el seed?");
+            var rol = await _roleRepository.GetRolByNameAsync(nombreRol);
+            if (rol is null)
+            {
+                _logger.LogCritical("Rol crítico '{Rol}' no encontrado en base de datos. ¿Se ejecutó el seed?",
+                    nombreRol);
+                return OperationResult<string>.Fail(
+                    "Error de configuración en el sistema. Contacte con el administrador.");
+            }
 
             var hash = _hashService.Hash(model.Password);
-            var usuarioEf = CreateUsuarioFromDto(model);
+            var usuarioEf = UserMapper.MapToDto(model);
             usuarioEf.Password = hash.Hash;
             usuarioEf.Salt = hash.Salt;
             usuarioEf.IdRol = rol.Id;
             usuarioEf.FechaRegistro = DateTime.UtcNow;
             usuarioEf.ConfirmacionEmail = esPrimerUsuario;
 
-            var resultadoGuardado = await _adminRepository.AgregarUsuarioAsync(usuarioEf);
+            var resultadoGuardado = await _userRepository.AgregarUsuarioAsync(usuarioEf);
             if (!resultadoGuardado.Success)
                 return OperationResult<string>.Fail(resultadoGuardado.Message);
 
@@ -76,28 +81,38 @@ namespace GestorInventario.Application.Services.User
 
         public async Task<OperationResult<string>> EditarUsuarioAsync(EditUserDto userVm)
         {
-            var resultado = await _adminRepository.ObtenerUsuarioPorId(userVm.Id);
+            var resultado = await _userRepository.ObtenerUsuarioPorId(userVm.Id);
             if (resultado is null)
-                return OperationResult<string>.Fail();
-
+                return OperationResult<string>.Fail("Usuario no encontrado.");
 
             string emailActual = resultado.Email;
+            bool cambioEmail = (emailActual != userVm.Email);
 
+            // Actualizamos los datos generales del DTO (nombre, dirección, etc.)
             UpdateUsuarioFromDto(resultado, userVm);
 
-            if (emailActual != userVm.Email)
+            string mensajeRespuesta = "Edición realizada con éxito.";
+
+            if (cambioEmail)
             {
-                resultado.Email = userVm.Email;
+                // 1. Guardamos el nuevo correo en la columna PENDIENTE, no en la oficial
+                resultado.PendingEmail = userVm.Email; 
+        
+                // 2. REVERTIMOS temporalmente el Email oficial para que siga navegando con el viejo
+                resultado.Email = emailActual; 
+
                 resultado.ConfirmacionEmail = false;
+                mensajeRespuesta = "Edición realizada con éxito. Como has cambiado tu correo electrónico, hemos enviado un enlace de confirmación a tu nueva dirección. Tu correo anterior seguirá activo hasta que verifiques el nuevo.";
             }
 
-            var resultadoEdicion = await _adminRepository.ActualizarUsuarioAsync(resultado);
+            var resultadoEdicion = await _userRepository.ActualizarUsuarioAsync(resultado);
             if (!resultadoEdicion.Success)
                 return OperationResult<string>.Fail(resultadoEdicion.Message);
 
-            if (emailActual != userVm.Email)
+            if (cambioEmail)
             {
-                var correo = await _emailService.SendEmailAsyncRegister(
+                // Pasamos el nuevo correo al servicio de envío de emails
+                var correo = await _emailService.SendEmailAsyncConfirmEmail(
                     new EmailDto { ToEmail = userVm.Email }, resultado.Id);
 
                 if (!correo.Success)
@@ -106,12 +121,12 @@ namespace GestorInventario.Application.Services.User
                     _logger.LogInformation("Correo de confirmación enviado a {Email}", userVm.Email);
             }
 
-            return OperationResult<string>.Ok("Edicion realizada con exito");
+            return OperationResult<string>.Ok(mensajeRespuesta);
         }
 
         public async Task<OperationResult<Usuario>> EliminarUsuarioAsync(int id)
         {
-            var usuario = await _adminRepository.ObtenerUsuarioConProveedoresYPedidosAsync(id);
+            var usuario = await _userRepository.ObtenerUsuarioConProveedoresYPedidosAsync(id);
 
             if (usuario is null)
                 return OperationResult<Usuario>.Fail();
@@ -123,12 +138,12 @@ namespace GestorInventario.Application.Services.User
                 return OperationResult<Usuario>.Fail(
                     "El usuario no se puede eliminar porque tiene proveedores asociados");
 
-            return await _adminRepository.EliminarUsuarioAsync(usuario);
+            return await _userRepository.EliminarUsuarioAsync(usuario);
         }
 
         public async Task<OperationResult<string>> ValidarRegistro(ConfirmRegistrationDto confirmar)
         {
-            var usuarioDb = await _adminRepository.ObtenerUsuarioPorId(confirmar.UserId);
+            var usuarioDb = await _userRepository.ObtenerUsuarioPorId(confirmar.UserId);
 
             if (usuarioDb is null)
             {
@@ -149,38 +164,48 @@ namespace GestorInventario.Application.Services.User
                 return OperationResult<string>.Fail("Ocurrio un error al confirmar el usuario");
             }
 
-            await ConfirmEmail(confirmar.UserId);
-            usuarioDb.EmailVerificationToken = null;
-            await _adminRepository.ActualizarUsuarioAsync(usuarioDb);
+            await ConfirmarEmail(confirmar.UserId);
             return OperationResult<string>.Ok("Validacion exitosa");
         }
-
-        // Crea un Usuario nuevo a partir de un RegisterUserDto.
-        // Los campos sensibles (Password, Salt, IdRol, FechaRegistro, ConfirmacionEmail)
-        // los asigna el caller porque dependen de hash/rol/estado de bootstrap.
-        private static Usuario CreateUsuarioFromDto(RegisterUserDto dto)
+        public async Task<OperationResult<string>> ValidarCorreo(ConfirmEmail confirmar)
         {
-            return new Usuario
-            {
-                Email = dto.Email,
-                NombreCompleto = dto.NombreCompleto,
-                FechaNacimiento = dto.FechaNacimiento ?? default,
-                Telefono = dto.Telefono,
-                Direccion = dto.Direccion,
-                Ciudad = dto.Ciudad,
-                CodigoPostal = int.Parse(dto.CodigoPostal),
-                BajaUsuario = false,
-                ConfirmacionEmail = false,
-                EmailVerificationToken = null,
-                ResetTokenSalt = null,
-                ResetTokenUsed = null,
-                TemporaryPassword = null,
-                FechaExpiracionContrasenaTemporal = null,
-            };
-        }
+            var usuarioDb = await _userRepository.ObtenerUsuarioPorId(confirmar.UserId);
 
-        // Copia los campos editables de EditUserDto sobre una entidad Usuario ya cargada.
-        // NO toca Password, Salt, IdRol, ConfirmacionEmail, FechaRegistro ni Id.
+            if (usuarioDb is null)
+            {
+                _logger.LogWarning("Intento de confirmar un usuario inexistente con ID {UserId}", confirmar.UserId);
+                return OperationResult<string>.Fail("Error al confirmar el usuario. Intentelo de nuevo mas tarde");
+            }
+
+            if (usuarioDb.ConfirmacionEmail && string.IsNullOrEmpty(usuarioDb.PendingEmail))
+            {
+                _logger.LogInformation("El usuario con email {Email} ha intentado confirmar su correo estando confirmado", usuarioDb.Email);
+                return OperationResult<string>.Fail("Usuario ya validado");
+            }
+
+            if (usuarioDb.EmailVerificationToken != confirmar.Token)
+            {
+                _logger.LogCritical("Intento de manipulacion del token por el usuario: {UserId}", usuarioDb.Id);
+                return OperationResult<string>.Fail("Ocurrio un error al confirmar el usuario");
+            }
+
+            // Si hay un correo pendiente de cambio, lo aplicamos oficialmente ahora
+            if (!string.IsNullOrEmpty(usuarioDb.PendingEmail))
+            {
+                usuarioDb.Email = usuarioDb.PendingEmail; 
+                usuarioDb.PendingEmail = null;           
+            }
+
+            // Marcamos como confirmado y limpiamos el token
+            usuarioDb.ConfirmacionEmail = true;
+            usuarioDb.EmailVerificationToken = null; 
+
+            // Guardamos los cambios definitivos
+            await _userRepository.ActualizarUsuarioAsync(usuarioDb); 
+
+            _logger.LogInformation("Correo electrónico actualizado y confirmado con éxito para el usuario {UserId}", usuarioDb.Id);
+            return OperationResult<string>.Ok("Validacion y cambio de correo exitosos");
+        }
         private static void UpdateUsuarioFromDto(Usuario usuario, EditUserDto dto)
         {
             int.TryParse(dto.CodigoPostal, out int cp);
@@ -192,23 +217,25 @@ namespace GestorInventario.Application.Services.User
             usuario.Ciudad = dto.Ciudad;
             usuario.CodigoPostal = cp;
         }
+
         public async Task<OperationResult<string>> CambiarEstadoUsuarioAsync(int id, bool activar)
         {
-            var usuario = await _adminRepository.ObtenerUsuarioPorId(id);
+            var usuario = await _userRepository.ObtenerUsuarioPorId(id);
             if (usuario == null) return OperationResult<string>.Fail();
 
-            usuario.BajaUsuario = !activar; 
+            usuario.BajaUsuario = !activar;
 
-            return await _adminRepository.ActualizarUsuarioAsync(usuario);
+            return await _userRepository.ActualizarUsuarioAsync(usuario);
         }
-    
-        private async Task ConfirmEmail(int userId)
+
+        private async Task ConfirmarEmail(int userId)
         {
-            var usuarioUpdate = await _adminRepository.ObtenerUsuarioPorId(userId);
+            var usuarioUpdate = await _userRepository.ObtenerUsuarioPorId(userId);
             if (usuarioUpdate != null)
             {
                 usuarioUpdate.ConfirmacionEmail = true;
-                await _adminRepository.ActualizarUsuarioAsync(usuarioUpdate);
+                usuarioUpdate.EmailVerificationToken = null;
+                await _userRepository.ActualizarUsuarioAsync(usuarioUpdate);
             }
         }
     }

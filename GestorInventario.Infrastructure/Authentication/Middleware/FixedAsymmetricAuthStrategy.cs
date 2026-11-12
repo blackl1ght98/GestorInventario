@@ -13,16 +13,16 @@ namespace GestorInventario.Infrastructure.Authentication.Middleware
     {
         
         private readonly ITokenGenerator _tokenGenerator;
-        private readonly IAdminRepository _adminRepository;
+        private readonly IUserRepository _userRepository;
         private readonly IRefreshTokenGenerator _refreshTokenStrategy;
         private readonly IJwtTokenSettings _jwtTokenSettings;
         private readonly ILogger<FixedAsymmetricAuthStrategy> _logger;
 
-        public FixedAsymmetricAuthStrategy( ITokenGenerator tokenGenerator, IAdminRepository adminRepository, 
+        public FixedAsymmetricAuthStrategy( ITokenGenerator tokenGenerator, IUserRepository userRepository, 
             IRefreshTokenGenerator refreshTokenStrategy, IJwtTokenSettings jwtTokenSettings , ILogger<FixedAsymmetricAuthStrategy> logger)
         {
             _tokenGenerator = tokenGenerator;
-            _adminRepository = adminRepository;
+            _userRepository = userRepository;
             _refreshTokenStrategy = refreshTokenStrategy;
             _jwtTokenSettings = jwtTokenSettings;
             _logger = logger;
@@ -145,7 +145,7 @@ namespace GestorInventario.Infrastructure.Authentication.Middleware
                 return;
             }
 
-            var user = await _adminRepository.ObtenerUsuarioPorId(userIdParsed);
+            var user = await _userRepository.ObtenerUsuarioPorId(userIdParsed);
             if (user == null)
             {
                 _logger.LogError("Usuario no encontrado");

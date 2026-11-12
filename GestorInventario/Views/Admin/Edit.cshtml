@@ -13,6 +13,14 @@
             <div class="card border-0 shadow-sm" style="border-radius: 1rem;">
                 <div class="card-body p-5">
                     <h3 class="text-center mb-4 fw-bold" style="color: var(--primary);">Editar Usuario</h3>
+                    <!-- Mensaje de éxito o advertencia de cambio de email -->
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
+                            <i class="bi bi-info-circle-fill me-2"></i> @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                        </div>
+                    }
                     <form asp-action="Edit" asp-controller="Admin" method="post">
                        
                         <input type="hidden" asp-for="Id" />

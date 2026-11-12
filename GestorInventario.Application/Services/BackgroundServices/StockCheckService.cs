@@ -13,7 +13,7 @@ namespace GestorInventario.Application.Services.BackgroundServices
     {
         private readonly IProductRepository _productRepository;
         private readonly IEmailService _emailService;
-        private readonly IAdminRepository _adminNotifierRepository;
+        private readonly IUserRepository _userNotifierRepository;
         private readonly ILogger<StockCheckService> _logger;
         private readonly ICallMeBotService _notificationService;
 
@@ -21,7 +21,7 @@ namespace GestorInventario.Application.Services.BackgroundServices
         public StockCheckService(
             IProductRepository productRepository,
             IEmailService emailService,
-            IAdminRepository adminNotifierRepository,
+            IUserRepository userNotifierRepository,
             ILogger<StockCheckService> logger,
             ICallMeBotService no
             
@@ -29,7 +29,7 @@ namespace GestorInventario.Application.Services.BackgroundServices
         {
             _productRepository = productRepository;
             _emailService = emailService;
-            _adminNotifierRepository = adminNotifierRepository;
+            _userNotifierRepository = userNotifierRepository;
             _logger = logger;
            _notificationService = no;
            
@@ -40,7 +40,7 @@ namespace GestorInventario.Application.Services.BackgroundServices
             try
             {
             
-                var adminEmails = await _adminNotifierRepository
+                var adminEmails = await _userNotifierRepository
                     .ObtenerEmailsAdministradoresAsync(stoppingToken);
 
                 if (!adminEmails.Any())

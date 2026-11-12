@@ -25,12 +25,12 @@ namespace GestorInventario.Application.Services.Refunds
         private readonly IPaypalRefundService _paypalRefundService;
         private readonly ILogger<RefundService> _logger;
         private readonly IPaymentService _paymentService;
-        private readonly IAdminRepository _adminRepository;
+        private readonly IUserRepository _userRepository;
 
         public RefundService(IOrderRepository orderRepository, ICurrentUserAccessor currentUserAccesor,
             IPaypalRepository paypalRepository, IPaymentService paymentService,
             IPaypalOrderService paypalOrderService, IPaypalRefundService paypalRefundService,
-            ILogger<RefundService> logger, IAdminRepository adminRepository)
+            ILogger<RefundService> logger, IUserRepository userRepository)
         {
             _orderRepository = orderRepository;
             _currentUserAccesor = currentUserAccesor;
@@ -39,7 +39,7 @@ namespace GestorInventario.Application.Services.Refunds
             _paypalRefundService = paypalRefundService;
             _logger = logger;
             _paymentService = paymentService;
-            _adminRepository = adminRepository;
+            _userRepository = userRepository;
         }
         // ============================================
         // REEMBOLSO PARCIAL

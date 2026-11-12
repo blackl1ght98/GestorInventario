@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net11.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>1e6d9d2a-9d51-467e-b611-b6db2e3b055e</UserSecretsId>
@@ -39,6 +39,8 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+
+
 
   <ProjectExtensions><VisualStudio><UserProperties appsettings_1development_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>
 

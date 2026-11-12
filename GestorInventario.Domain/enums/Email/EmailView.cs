@@ -3,11 +3,12 @@
     public enum EmailView
     {
         RegisterConfirmation,
+        ConfirmEmail,
         PasswordReset,
         LowStock,
         Invoice,
-        RefundRequest,        // ViewRembolso
-        RefundApproved,       // ViewRembolsoAprobado
+        RefundRequest,        
+        RefundApproved,       
         OtpCode
     }
 }

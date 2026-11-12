@@ -13,7 +13,8 @@ namespace GestorInventario.Infrastructure.Notifications.Email.EmailServices
             [EmailView.Invoice] = "ViewsEmailService/ViewDownloadFactura",
             [EmailView.RefundRequest] = "ViewsEmailService/ViewRembolso",
             [EmailView.RefundApproved] = "ViewsEmailService/ViewRembolsoAprobado",
-            [EmailView.OtpCode] = "ViewsEmailService/ViewOtpCode"
+            [EmailView.OtpCode] = "ViewsEmailService/ViewOtpCode",
+            [EmailView.ConfirmEmail] = "ViewsEmailService/ViewConfirmEmail",
         };
 
         public static string ToViewName(this EmailView view)

@@ -127,7 +127,7 @@ namespace GestorInventario.Application.Services.Payment
         private async Task<OperationResult<InfoUsuarioDto>> ValidarUsuarioYObtenerInfo()
         {
             var usuarioId = _currentUserAccessor.GetCurrentUserId();
-            var usuarioActual = await _unitOfWork.AdminRepository.ObtenerUsuarioPorId(usuarioId);
+            var usuarioActual = await _unitOfWork.UserRepository.ObtenerUsuarioPorId(usuarioId);
             if (usuarioActual == null)
             {
                 return OperationResult<InfoUsuarioDto>.Fail();

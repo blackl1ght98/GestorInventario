@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Application.Interfaces.EmailServices;
 using GestorInventario.Domain.enums.Email;
+using MailKit;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Configuration;

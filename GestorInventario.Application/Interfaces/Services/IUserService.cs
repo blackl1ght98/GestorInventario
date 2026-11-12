@@ -11,6 +11,6 @@ namespace GestorInventario.Application.Interfaces.Services
         Task<OperationResult<Usuario>> EliminarUsuarioAsync(int id);
         Task<OperationResult<string>> ValidarRegistro(ConfirmRegistrationDto confirmar);
         Task<OperationResult<string>> CambiarEstadoUsuarioAsync(int id, bool activar);
-
+        Task<OperationResult<string>> ValidarCorreo(ConfirmEmail confirmar);
     }
 }

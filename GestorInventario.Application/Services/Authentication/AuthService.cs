@@ -18,18 +18,18 @@ namespace GestorInventario.Application.Services.Authentication
     {
        
         private readonly IHashService _hashService;
-        private readonly IAdminRepository _adminRepository;
+        private readonly IUserRepository _userRepository;
         private readonly ICurrentUserAccessor _currentUserAccesor;
         private readonly ILogger<AuthService> _logger;
         private readonly IEmailService _emailService;
         private readonly IHybridCacheService _cache;
         
-        public AuthService( IHashService hashService, IAdminRepository adminRepository, ICurrentUserAccessor currentUser, 
+        public AuthService( IHashService hashService, IUserRepository userRepository, ICurrentUserAccessor currentUser, 
             ILogger<AuthService> logger, IEmailService emailService, IHybridCacheService cache  )
         {
           
             _hashService = hashService;
-            _adminRepository = adminRepository;
+            _userRepository = userRepository;
             _currentUserAccesor = currentUser;
             _logger = logger;
             _emailService = emailService;
@@ -38,7 +38,7 @@ namespace GestorInventario.Application.Services.Authentication
 
         public async Task<OperationResult<Usuario>> Login(string email, LoginDto model)
         {
-            var login = await _adminRepository.ObtenerEmail(email);
+            var login = await _userRepository.ObtenerEmail(email);
             if (login == null)
             {
                 return OperationResult<Usuario>.Fail("El email y/o la contraseña son incorrectos. ");
@@ -94,7 +94,7 @@ namespace GestorInventario.Application.Services.Authentication
             usuarioDB.FechaExpiracionContrasenaTemporal = null;
             usuarioDB.ResetTokenUsed = true;
 
-            await _adminRepository.ActualizarUsuarioAsync(usuarioDB);
+            await _userRepository.ActualizarUsuarioAsync(usuarioDB);
             return OperationResult<string>.Ok("Contraseña cambiada con exito");
         }
        
@@ -106,7 +106,7 @@ namespace GestorInventario.Application.Services.Authentication
             if (userId <= 0)
                 return OperationResult<Usuario>.Fail("El usuario no es valido");
 
-            var usuario = await _adminRepository.ObtenerUsuarioPorId(userId);
+            var usuario = await _userRepository.ObtenerUsuarioPorId(userId);
             if (usuario == null)
                 return OperationResult<Usuario>.Fail("El usuario no existe");
 
@@ -123,7 +123,7 @@ namespace GestorInventario.Application.Services.Authentication
                 usuario.FechaExpiracionContrasenaTemporal = null;
                 usuario.TemporaryPassword = null;
                 usuario.EmailVerificationToken = null;
-                await _adminRepository.ActualizarUsuarioAsync(usuario);
+                await _userRepository.ActualizarUsuarioAsync(usuario);
                 return OperationResult<Usuario>.Fail(
                     "El enlace y contraseña temporal han expirado. Solicite una nueva");
             }
@@ -134,7 +134,7 @@ namespace GestorInventario.Application.Services.Authentication
         {
             
                 var usuarioId = _currentUserAccesor.GetCurrentUserId();
-                var usuarioDB = await _adminRepository.ObtenerUsuarioPorId(usuarioId);
+                var usuarioDB = await _userRepository.ObtenerUsuarioPorId(usuarioId);
                 if (usuarioDB == null)
                 {
                     return OperationResult<string>.Fail("Usuario no encontrado");
@@ -147,7 +147,7 @@ namespace GestorInventario.Application.Services.Authentication
                 var actualPassword = _hashService.Hash(passwordActual);
                 usuarioDB.Password = actualPassword.Hash;
                 usuarioDB.Salt = actualPassword.Salt;
-                await _adminRepository.ActualizarUsuarioAsync(usuarioDB);
+                await _userRepository.ActualizarUsuarioAsync(usuarioDB);
 
                 return OperationResult<string>.Ok("Contraseña cambiada con exito");
           
@@ -180,7 +180,7 @@ namespace GestorInventario.Application.Services.Authentication
             if (string.IsNullOrWhiteSpace(email) || !new EmailAddressAttribute().IsValid(email))
                 return OperationResult<string>.Fail("El correo proporcionado no es valido");
 
-            var user = await _adminRepository.ObtenerEmail(email);
+            var user = await _userRepository.ObtenerEmail(email);
 
             if (user == null)
                 return OperationResult<string>.Fail("No existe ningún usuario con ese correo");
@@ -250,7 +250,7 @@ namespace GestorInventario.Application.Services.Authentication
             if (!int.TryParse(userId, out int id))
                 return OperationResult<Usuario>.Fail("Usuario de verificación inválido.");
 
-            var user = await _adminRepository.ObtenerUsuarioPorId(id); 
+            var user = await _userRepository.ObtenerUsuarioPorId(id); 
             if (user == null)
                 return OperationResult<Usuario>.Fail("Usuario no encontrado.");
 

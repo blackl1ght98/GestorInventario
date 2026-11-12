@@ -12,6 +12,7 @@ using Microsoft.Net.Http.Headers;
 using System.Text.Json.Serialization;
 using GestorInventario.Application.DTOS.Configuration;
 using GestorInventario.Infrastructure.Configuration;
+using GestorInventario.Infrastructure.Data.Seeders;
 using GestorInventario.Infrastructure.Extensions;
 using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 
@@ -112,7 +113,7 @@ builder.Services.AddDataProtection()
 
 
 var app = builder.Build();
-await app.SeedInitialRolesAsync();
+await DatabaseSeeder.SeedInitialRolesAsync(app);
 app.UseWebOptimizer();
 if (!app.Environment.IsDevelopment())
 {

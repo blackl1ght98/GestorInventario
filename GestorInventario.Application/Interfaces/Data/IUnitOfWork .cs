@@ -4,7 +4,7 @@ namespace GestorInventario.Application.Interfaces.Data
 {
     public interface IUnitOfWork : IDisposable
     {
-        IAdminRepository AdminRepository { get; }
+        IUserRepository UserRepository { get; }
         IRoleRepository RoleRepository { get; }
         IPaypalRepository PaypalRepository { get; }
         IShopCartRepository ShopCartRepository { get; }

@@ -77,7 +77,7 @@ namespace GestorInventario.Composition
         {
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<IShopCartRepository, ShopCartRepository>();
-            services.AddScoped<IAdminRepository, AdminRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IOrderRepository, OrderRepository>();
             services.AddScoped<IProductRepository, ProductRepository>();
             services.AddScoped<IRefundRepository, RefundRepository>();

@@ -14,7 +14,7 @@ namespace GestorInventario.Application.Interfaces.EmailServices
         Task<OperationResult<string>> EnviarNotificacionReembolsoAsync(EmailReembolsoAprobadoDto correo);
         Task<OperationResult<string>> SendEmailAsyncFactura(EmailDto correo, string id);
         Task<OperationResult<string>> SendMfaCodeEmail(string correo, string codigo);
-
+        Task<OperationResult<string>> SendEmailAsyncConfirmEmail(EmailDto userDataRegister, int usuarioId);
 
     }
 }

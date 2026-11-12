@@ -652,6 +652,9 @@ public partial class GestorInventarioContext : DbContext
             entity.Property(e => e.FechaRegistro).HasColumnType("datetime");
             entity.Property(e => e.NombreCompleto).IsUnicode(false);
             entity.Property(e => e.Password).HasMaxLength(500);
+            entity.Property(e => e.PendingEmail)
+                .HasMaxLength(200)
+                .IsUnicode(false);
             entity.Property(e => e.Telefono)
                 .HasMaxLength(20)
                 .IsUnicode(false);

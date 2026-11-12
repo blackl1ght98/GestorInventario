@@ -58,7 +58,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.Authentication.
             var usuario = new Usuario
             {
                 Id = 5,
-                Email = "admin@test.com",
+                Email = "user@test.com",
                 IdRolNavigation = new Role { Nombre = "Administrador" }
             };
 
@@ -70,7 +70,7 @@ namespace GestorInventario.PruebasUnitarias.Application.Services.Authentication.
 
             // Verificamos que existen los 3 claims esperados con los valores correctos
             Assert.Contains(claims, c =>
-                c.Type == ClaimTypes.Email && c.Value == "admin@test.com");
+                c.Type == ClaimTypes.Email && c.Value == "user@test.com");
 
             Assert.Contains(claims, c =>
                 c.Type == ClaimTypes.Role && c.Value == "Administrador");

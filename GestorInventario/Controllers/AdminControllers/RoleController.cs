@@ -67,7 +67,7 @@ namespace GestorInventario.Controllers.AdminControllers
         {
             try
             {
-                var usuariosQueryable = _policyExecutor.ExecutePolicy(() => _unitOfWork.AdminRepository.ObtenerUsuariosPorRol(id));
+                var usuariosQueryable = _policyExecutor.ExecutePolicy(() => _unitOfWork.UserRepository.ObtenerUsuariosPorRol(id));
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() => _paginationService.PaginarAsync(usuariosQueryable, paginacion));
 
                 var todosLosRoles = _policyExecutor.ExecutePolicy(() => _unitOfWork.RoleRepository.ObtenerRoles());
@@ -115,7 +115,7 @@ namespace GestorInventario.Controllers.AdminControllers
             try
             {
                 var usuario = await _policyExecutor.ExecutePolicyAsync(() =>
-                    _unitOfWork.AdminRepository.ObtenerUsuarioPorId(request.Id));
+                    _unitOfWork.UserRepository.ObtenerUsuarioPorId(request.Id));
 
                 if (usuario == null)
                 {
@@ -148,7 +148,7 @@ namespace GestorInventario.Controllers.AdminControllers
                     return Json(new { success = false, errorMessage = "El usuario ya tiene el rol seleccionado." });
                 }
                 usuario.IdRol = nuevoRol.Id;
-                await _unitOfWork.AdminRepository.ActualizarUsuarioAsync(usuario);
+                await _unitOfWork.UserRepository.ActualizarUsuarioAsync(usuario);
                 
 
                 return Json(new
