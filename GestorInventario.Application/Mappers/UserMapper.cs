@@ -15,7 +15,7 @@ public static class UserMapper
             Telefono = dto.Telefono,
             Direccion = dto.Direccion,
             Ciudad = dto.Ciudad,
-            CodigoPostal = int.Parse(dto.CodigoPostal),
+            CodigoPostal = dto.CodigoPostal,
             BajaUsuario = false,
             ConfirmacionEmail = false,
             EmailVerificationToken = null,
@@ -25,4 +25,19 @@ public static class UserMapper
             FechaExpiracionContrasenaTemporal = null,
         };
     }
+
+   
+    /*
+     *  private static void UpdateUsuarioFromDto(Usuario usuario, EditUserDto dto)
+        {
+            int.TryParse(dto.CodigoPostal, out int cp);
+            usuario.Email = dto.Email;
+            usuario.NombreCompleto = dto.NombreCompleto;
+            usuario.FechaNacimiento = dto.FechaNacimiento ?? default;
+            usuario.Telefono = dto.Telefono ?? string.Empty;
+            usuario.Direccion = dto.Direccion;
+            usuario.Ciudad = dto.Ciudad;
+            usuario.CodigoPostal = cp;
+        }
+     */
 }

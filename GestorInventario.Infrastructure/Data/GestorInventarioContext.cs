@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using GestorInventario.Domain.Models;
 using Microsoft.EntityFrameworkCore;
@@ -639,7 +639,10 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("ciudad");
-            entity.Property(e => e.CodigoPostal).HasColumnName("codigoPostal");
+            entity.Property(e => e.CodigoPostal)
+                .HasMaxLength(5)
+                .IsUnicode(false)
+                .HasColumnName("codigoPostal");
             entity.Property(e => e.Direccion)
                 .HasMaxLength(100)
                 .IsUnicode(false);

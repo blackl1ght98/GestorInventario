@@ -242,7 +242,7 @@ namespace GestorInventario.Controllers.AdminControllers
                     Telefono = userVM.Telefono,
                     Direccion = userVM.Direccion,
                     Ciudad = userVM.Ciudad,
-                    CodigoPostal = userVM.CodigoPostal,
+                    CodigoPostal = userVM.CodigoPostal.ToString(),
                 };
                 var result= await _userService.EditarUsuarioAsync(dto);
                
@@ -251,10 +251,7 @@ namespace GestorInventario.Controllers.AdminControllers
                     return View(userVM);
                 }
                 TempData["SuccessMessage"] = result.Message;
-                if (User.IsAdministrador())
-                {
-                    return RedirectToAction(nameof(Index));
-                }
+              
                 return RedirectToAction(nameof(Edit));
                 
             }

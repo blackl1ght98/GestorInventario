@@ -88,7 +88,7 @@ namespace GestorInventario.Application.Services.User
             string emailActual = resultado.Email;
             bool cambioEmail = (emailActual != userVm.Email);
 
-            // Actualizamos los datos generales del DTO (nombre, dirección, etc.)
+            
             UpdateUsuarioFromDto(resultado, userVm);
 
             string mensajeRespuesta = "Edición realizada con éxito.";
@@ -97,7 +97,6 @@ namespace GestorInventario.Application.Services.User
             {
                 // 1. Guardamos el nuevo correo en la columna PENDIENTE, no en la oficial
                 resultado.PendingEmail = userVm.Email; 
-        
                 // 2. REVERTIMOS temporalmente el Email oficial para que siga navegando con el viejo
                 resultado.Email = emailActual; 
 
@@ -167,6 +166,16 @@ namespace GestorInventario.Application.Services.User
             await ConfirmarEmail(confirmar.UserId);
             return OperationResult<string>.Ok("Validacion exitosa");
         }
+        private async Task ConfirmarEmail(int userId)
+        {
+            var usuarioUpdate = await _userRepository.ObtenerUsuarioPorId(userId);
+            if (usuarioUpdate != null)
+            {
+                usuarioUpdate.ConfirmacionEmail = true;
+                usuarioUpdate.EmailVerificationToken = null;
+                await _userRepository.ActualizarUsuarioAsync(usuarioUpdate);
+            }
+        }
         public async Task<OperationResult<string>> ValidarCorreo(ConfirmEmail confirmar)
         {
             var usuarioDb = await _userRepository.ObtenerUsuarioPorId(confirmar.UserId);
@@ -199,8 +208,7 @@ namespace GestorInventario.Application.Services.User
             // Marcamos como confirmado y limpiamos el token
             usuarioDb.ConfirmacionEmail = true;
             usuarioDb.EmailVerificationToken = null; 
-
-            // Guardamos los cambios definitivos
+            
             await _userRepository.ActualizarUsuarioAsync(usuarioDb); 
 
             _logger.LogInformation("Correo electrónico actualizado y confirmado con éxito para el usuario {UserId}", usuarioDb.Id);
@@ -208,14 +216,14 @@ namespace GestorInventario.Application.Services.User
         }
         private static void UpdateUsuarioFromDto(Usuario usuario, EditUserDto dto)
         {
-            int.TryParse(dto.CodigoPostal, out int cp);
+           
             usuario.Email = dto.Email;
             usuario.NombreCompleto = dto.NombreCompleto;
             usuario.FechaNacimiento = dto.FechaNacimiento ?? default;
             usuario.Telefono = dto.Telefono ?? string.Empty;
             usuario.Direccion = dto.Direccion;
             usuario.Ciudad = dto.Ciudad;
-            usuario.CodigoPostal = cp;
+            usuario.CodigoPostal = dto.CodigoPostal;
         }
 
         public async Task<OperationResult<string>> CambiarEstadoUsuarioAsync(int id, bool activar)
@@ -228,15 +236,6 @@ namespace GestorInventario.Application.Services.User
             return await _userRepository.ActualizarUsuarioAsync(usuario);
         }
 
-        private async Task ConfirmarEmail(int userId)
-        {
-            var usuarioUpdate = await _userRepository.ObtenerUsuarioPorId(userId);
-            if (usuarioUpdate != null)
-            {
-                usuarioUpdate.ConfirmacionEmail = true;
-                usuarioUpdate.EmailVerificationToken = null;
-                await _userRepository.ActualizarUsuarioAsync(usuarioUpdate);
-            }
-        }
+        
     }
 }

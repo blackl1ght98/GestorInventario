@@ -26,6 +26,7 @@ namespace GestorInventario.ViewModels.Users
         public required string Ciudad { get; set; }
         [Required(ErrorMessage = "El codigo postal es requerido")]
         [Display(Name ="Codigo Postal")]
+        [RegularExpression(@"^\d{5}$", ErrorMessage = "El código postal debe tener exactamente 5 dígitos numéricos.")]
         public required string  CodigoPostal { get; set; }
         public bool EsEdicionPropia { get; set; }
 

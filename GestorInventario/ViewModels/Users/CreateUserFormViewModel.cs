@@ -19,6 +19,7 @@ namespace GestorInventario.ViewModels.Users
         [Required(ErrorMessage ="La dirección es requerida")]
         public required string Direccion { get; set; }
         [Required(ErrorMessage ="El codigo postal es requerido")]
+        [RegularExpression(@"^\d{5}$", ErrorMessage = "El código postal debe tener exactamente 5 dígitos numéricos.")]
         public required string CodigoPostal { get; set; }
         [Required(ErrorMessage ="La ciudad es requerida")]
         public required string Ciudad { get; set; }

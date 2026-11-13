@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace GestorInventario.Domain.Models;
@@ -33,7 +33,7 @@ public partial class Usuario
 
     public string? TemporaryPassword { get; set; }
 
-    public int CodigoPostal { get; set; }
+    public string CodigoPostal { get; set; } = null!;
 
     public string Ciudad { get; set; } = null!;
 
