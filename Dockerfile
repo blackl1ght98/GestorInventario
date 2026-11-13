@@ -1,5 +1,5 @@
 # Imagen base con el SDK completo de .NET 10 para compilar, la llamamos 'build'
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:11.0 AS build
 
 # Creamos y establecemos /src como directorio de trabajo dentro del contenedor
 WORKDIR /src
