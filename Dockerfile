@@ -29,7 +29,7 @@ RUN dotnet publish "GestorInventario.csproj" -c Release -o /app/publish
 
 # Imagen final más ligera, solo tiene el runtime de .NET 10, no el SDK completo
 # Esto reduce significativamente el tamaño de la imagen final
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:11.0 AS final
 
 # Directorio de trabajo en la imagen final
 WORKDIR /app
