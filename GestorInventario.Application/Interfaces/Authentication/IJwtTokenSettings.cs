@@ -13,6 +13,7 @@ namespace GestorInventario.Application.Interfaces.Authentication
         int ObtenerDuracionRefreshTokenHoras();
         RSA ObtenerPublicKeyFixed();
         string ObtenerClaveJWT();
+        string ObtenerClavePrivada();
 
     }
 }

@@ -79,7 +79,9 @@ namespace GestorInventario.Infrastructure.Authentication.Jwt
                 }
             }
         }
-        public string ObtenerClaveJWT()=> Environment.GetEnvironmentVariable("ClaveJWT") ?? _configuration["JWT:ClaveJWT"];
+        public string ObtenerClaveJWT()=> Environment.GetEnvironmentVariable("CLAVE_JWT") ?? _configuration["JWT:ClaveJWT"];
+        public string ObtenerClavePrivada()=>Environment.GetEnvironmentVariable("PRIVATE_KEY")
+                                             ?? _configuration["JWT:PrivateKey"];
         private int ResolveInt(string configKey, string envKey, int defaultValue)
         {
             var raw = Environment.GetEnvironmentVariable(envKey) ?? _configuration[configKey];

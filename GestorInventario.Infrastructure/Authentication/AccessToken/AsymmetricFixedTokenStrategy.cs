@@ -16,8 +16,7 @@ namespace GestorInventario.Infrastructure.Authentication.AccessToken
 
         public override Task<LoginResponseDto> GenerateTokenAsync(Usuario usuario)
         {
-            var privateKeyXml = Environment.GetEnvironmentVariable("PRIVATE_KEY")
-                             ?? _configuration["JWT:PrivateKey"];
+            var privateKeyXml = _jwtTokenSettings.ObtenerClavePrivada();
 
             if (string.IsNullOrEmpty(privateKeyXml))
                 throw new InvalidOperationException("La clave privada no está configurada.");
