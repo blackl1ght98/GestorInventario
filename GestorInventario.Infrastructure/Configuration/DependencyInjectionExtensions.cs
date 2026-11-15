@@ -15,10 +15,12 @@ using GestorInventario.Application.Interfaces.SendNotification.Email;
 using GestorInventario.Application.Interfaces.Services;
 using GestorInventario.Application.Interfaces.Web;
 using GestorInventario.Application.PaginationMethods;
+using GestorInventario.Application.Services;
 using GestorInventario.Application.Services.Authentication;
 using GestorInventario.Application.Services.BackgroundServices;
 using GestorInventario.Application.Services.BarcodeService;
 using GestorInventario.Application.Services.Files;
+using GestorInventario.Application.Services.Navigation;
 using GestorInventario.Application.Services.Orders;
 using GestorInventario.Application.Services.Payment;
 using GestorInventario.Application.Services.PDFService;
@@ -30,8 +32,7 @@ using GestorInventario.Application.Services.ShopCart;
 using GestorInventario.Application.Services.Subscription;
 using GestorInventario.Application.Services.Syncs;
 using GestorInventario.Application.Services.User;
-using GestorInventario.Context;
-using GestorInventario.Files;
+
 using GestorInventario.Infrastructure.Authentication.Hash;
 using GestorInventario.Infrastructure.Authentication.Jwt;
 using GestorInventario.Infrastructure.Authentication.Resolvers;
@@ -61,10 +62,10 @@ using GestorInventario.Infrastructure.Repositories.RoleRepository;
 using GestorInventario.Infrastructure.Repositories.ShopCartRepository;
 using GestorInventario.Infrastructure.Resilience;
 using GestorInventario.Infrastructure.Services;
-using GestorInventario.Navigation;
 using GestorInventario.Shared.Utilities;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
 
 
@@ -96,10 +97,10 @@ namespace GestorInventario.Composition
         {
             // Servicios de Auth y Seguridad
             services.AddScoped<ITokenService, TokenService>();
-            services.AddScoped<ITokenGenerator, TokenGenerator>();
+      
             services.AddScoped<IAuthService, AuthService>();           
-            services.AddScoped<IRefreshTokenGenerator, RefreshTokenGenerator>();
-            services.AddScoped<ILoginGenerator, LoginGenerator>();
+            services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+            services.AddScoped<ILoginService, LoginService>();
             services.AddScoped<ITokenStrategyResolver, TokenStrategyResolver>();
             services.AddScoped<ILoginStrategyResolver, LoginStrategyResolver>();
             services.AddScoped<IMidlewareResolver, MidlewareResolver>();

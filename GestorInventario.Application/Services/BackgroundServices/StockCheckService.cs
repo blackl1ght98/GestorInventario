@@ -3,7 +3,6 @@ using GestorInventario.Application.DTOS.Products;
 using GestorInventario.Application.Interfaces.BackgroundServices;
 using GestorInventario.Application.Interfaces.EmailServices;
 using GestorInventario.Application.Interfaces.Repositories;
-using GestorInventario.Application.Interfaces.SendNotification;
 using GestorInventario.Application.Interfaces.Services;
 using Microsoft.Extensions.Logging;
 
@@ -23,7 +22,7 @@ namespace GestorInventario.Application.Services.BackgroundServices
             IEmailService emailService,
             IUserRepository userNotifierRepository,
             ILogger<StockCheckService> logger,
-            ICallMeBotService no
+            ICallMeBotService notificationService
             
           )
         {
@@ -31,7 +30,7 @@ namespace GestorInventario.Application.Services.BackgroundServices
             _emailService = emailService;
             _userNotifierRepository = userNotifierRepository;
             _logger = logger;
-           _notificationService = no;
+           _notificationService = notificationService;
            
         }
 

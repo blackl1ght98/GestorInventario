@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using GestorInventario.Application.Interfaces.Authentication;
+using GestorInventario.Infrastructure.Configuration;
 
 namespace GestorInventario.Infrastructure.Authentication.Jwt
 {
@@ -15,9 +16,12 @@ namespace GestorInventario.Infrastructure.Authentication.Jwt
         private readonly IConfiguration _configuration;
         private RSA? _publicKeyFixedCache;
         private readonly object _publicKeyLock = new();
+        
+        private readonly EnvironmentConfig _environmentConfig;
         public JwtTokenSettings(IConfiguration configuration)
         {
             _configuration = configuration;
+            _environmentConfig = new EnvironmentConfig(configuration);
         }
 
         public IReadOnlyList<Claim> CrearClaims(Usuario usuario)
@@ -36,11 +40,9 @@ namespace GestorInventario.Infrastructure.Authentication.Jwt
             };
         }
 
-        public string ObtenerIssuer() =>
-            Environment.GetEnvironmentVariable("JWT_ISSUER") ?? _configuration["Jwt:Issuer"];
+        public string ObtenerIssuer() => _environmentConfig.Issuer;
 
-        public string ObtenerAudience() =>
-            _configuration["Jwt:Audience"] ?? Environment.GetEnvironmentVariable("JWT_AUDIENCE");
+        public string ObtenerAudience() => _environmentConfig.Audience;
 
         public int ObtenerDuracionAccessTokenMinutos() =>
         ResolveInt("Jwt:AccessTokenMinutes", "ACCESS_TOKEN_MINUTES", defaultValue: 10);
@@ -55,8 +57,7 @@ namespace GestorInventario.Infrastructure.Authentication.Jwt
             {
                 if (_publicKeyFixedCache is not null) return _publicKeyFixedCache;
 
-                var raw = _configuration["Jwt:PublicKey"]
-                          ?? Environment.GetEnvironmentVariable("PUBLIC_KEY");
+                var raw = _environmentConfig.PublicKey;
 
                 if (string.IsNullOrWhiteSpace(raw))
                 {
@@ -79,9 +80,9 @@ namespace GestorInventario.Infrastructure.Authentication.Jwt
                 }
             }
         }
-        public string ObtenerClaveJWT()=> Environment.GetEnvironmentVariable("CLAVE_JWT") ?? _configuration["JWT:ClaveJWT"];
-        public string ObtenerClavePrivada()=>Environment.GetEnvironmentVariable("PRIVATE_KEY")
-                                             ?? _configuration["JWT:PrivateKey"];
+
+        public string ObtenerClaveJWT() => _environmentConfig.ClaveJwt;
+        public string ObtenerClavePrivada() => _environmentConfig.PrivateKey;
         private int ResolveInt(string configKey, string envKey, int defaultValue)
         {
             var raw = Environment.GetEnvironmentVariable(envKey) ?? _configuration[configKey];

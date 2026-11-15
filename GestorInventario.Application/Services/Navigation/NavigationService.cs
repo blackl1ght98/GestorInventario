@@ -1,7 +1,7 @@
 ﻿using GestorInventario.Application.Interfaces.Web;
-using GestorInventario.ViewModels.Navigation;
+using GestorInventario.Application.Navigation;
 
-namespace GestorInventario.Navigation;
+namespace GestorInventario.Application.Services.Navigation;
 
 public class NavigationService : INavigationService
 {
@@ -16,34 +16,34 @@ public class NavigationService : INavigationService
     public bool IsAuthenticated => _currentUserAccessor.IsAuthenticated();
   
 
-    public List<MenuItemViewModel> ObtenerDashboardItem()
+    public List<MenuItemDto> ObtenerDashboardItem()
     {
         if (!IsAdmin) return new();
 
-        return new List<MenuItemViewModel>
+        return new List<MenuItemDto>
         {
             new() { Controller = "Home", Action = "DashBoard", Text = "Dashboard", Title = "Página principal", Icon = "bi-house" }
         };
     }
 
-    public List<MenuItemViewModel> ObtenerGestionUsuariosItems()
+    public List<MenuItemDto> ObtenerGestionUsuariosItems()
     {
         // Solo administradores
         if (!IsAdmin) return new();
 
-        return new List<MenuItemViewModel>
+        return new List<MenuItemDto>
         {
             new() { Controller = "Admin", Action = "Index", Text = "Panel de Administración", Title = "Panel de administración" },
             new() { Controller = "Role", Action = "ObtenerRoles", Text = "Roles", Title = "Gestionar roles" },
         };
     }
 
-    public List<MenuItemViewModel> ObtenerInventarioItems()
+    public List<MenuItemDto> ObtenerInventarioItems()
     {
         // Solo usuarios autenticados (Admin o Usuario)
         if (!IsAuthenticated) return new();
 
-        var items = new List<MenuItemViewModel>
+        var items = new List<MenuItemDto>
         {
             new() { Controller = "Pedidos", Action = "Index", Text = "Pedidos", Icon = "bi-cart", Title = "Ver pedidos" }
         };
@@ -57,34 +57,34 @@ public class NavigationService : INavigationService
         return items;
     }
 
-    public List<MenuItemViewModel> ObtenerProductosItem()
+    public List<MenuItemDto> ObtenerProductosItem()
     {
         // Visible solo para autenticados
         if (!IsAuthenticated) return new();
 
-        return new List<MenuItemViewModel>
+        return new List<MenuItemDto>
         {
             new() { Controller = "Productos", Action = "Index", Text = "Productos", Icon = "bi-box", Title = "Ver productos" }
         };
     }
 
-    public List<MenuItemViewModel> ObtenerTransaccionesItems()
+    public List<MenuItemDto> ObtenerTransaccionesItems()
     {
         // Visible solo para autenticados
         if (!IsAuthenticated) return new();
 
-        return new List<MenuItemViewModel>
+        return new List<MenuItemDto>
         {
             new() { Controller = "Rembolso", Action = "FormularioRembolso", Text = "Formulario rembolso", Icon = "bi-cash", Title = "Gestionar reembolsos" },
             new() { Controller = "Carrito", Action = "Index", Text = "Carrito", Icon = "bi-cart3", Title = "Ver carrito" }
         };
     }
 
-    public List<MenuItemViewModel> ObtenerOperacionesPayPalItems()
+    public List<MenuItemDto> ObtenerOperacionesPayPalItems()
     {
         if (!IsAuthenticated) return new();
 
-        var items = new List<MenuItemViewModel>
+        var items = new List<MenuItemDto>
         {
             new() { Controller = "PaypalPlan", Action = "MostrarPlanes", Text = "Planes PayPal" },
             new() { Controller = "PaypalSubscription", Action = "ObtenerSuscripcionUsuario", Text = "Suscripción Usuario" }
@@ -99,11 +99,11 @@ public class NavigationService : INavigationService
         return items;
     }
 
-    public List<MenuItemViewModel> ObtenerUserMenuItems()
+    public List<MenuItemDto> ObtenerUserMenuItems()
     {
         if (!IsAuthenticated) return new();
 
-        return new List<MenuItemViewModel>
+        return new List<MenuItemDto>
         {
             new() { Controller = "Auth", Action = "Logout", Text = "Cerrar sesión" },
             new() { Controller = "Admin", Action = "Edit", Text = "Actualizar Perfil" },
@@ -111,11 +111,11 @@ public class NavigationService : INavigationService
         };
     }
   
-    public List<MenuItemViewModel> ObtenerLoginItem()
+    public List<MenuItemDto> ObtenerLoginItem()
     {
         if (IsAuthenticated) return new();
 
-        return new List<MenuItemViewModel>
+        return new List<MenuItemDto>
         {
             new() { Controller = "Auth", Action = "Login", Text = "Iniciar sesión", Title = "Iniciar sesión" }
         };

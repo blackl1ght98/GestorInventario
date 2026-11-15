@@ -5,11 +5,11 @@ using GestorInventario.Domain.Models;
 namespace GestorInventario.Application.Services.Authentication
 {
 
-    public class RefreshTokenGenerator : IRefreshTokenGenerator
+    public class RefreshTokenService : IRefreshTokenService
     {
         private readonly ITokenStrategyResolver _resolver;
         private readonly IUserRepository _userRepository;
-        public RefreshTokenGenerator(IUserRepository userRepository, ITokenStrategyResolver resolver)
+        public RefreshTokenService(IUserRepository userRepository, ITokenStrategyResolver resolver)
         {
             _resolver = resolver;
             _userRepository=userRepository;

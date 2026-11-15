@@ -1,8 +1,10 @@
 ﻿using System.Net.Http.Headers;
 using GestorInventario.Application.Interfaces.Infrastructure.Paypal;
 using GestorInventario.Infrastructure.Paypal;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace GestorInventario.Composition
+namespace GestorInventario.Infrastructure.Configuration
 {
     public static class PayPalHttpClientExtensions
     {
@@ -10,7 +12,8 @@ namespace GestorInventario.Composition
         this IServiceCollection services,
         IConfiguration configuration)
         {
-            var baseUrl = configuration["PayPal:BaseUrl"] ?? Environment.GetEnvironmentVariable("PAYPAL_BASEURL");
+            var envConfig = new EnvironmentConfig(configuration);
+            var baseUrl = envConfig.PaypalBaseUrl;
 
             services.AddHttpClient<IPayPalHttpClient, PayPalHttpClient>(client =>
             {

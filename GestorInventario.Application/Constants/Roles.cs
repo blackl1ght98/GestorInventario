@@ -1,7 +1,6 @@
 ﻿using GestorInventario.Domain.enums.Usuario;
 
-
-namespace GestorInventario.Application.Services.User
+namespace GestorInventario.Application.Constants
 {
     public static class Roles
     {

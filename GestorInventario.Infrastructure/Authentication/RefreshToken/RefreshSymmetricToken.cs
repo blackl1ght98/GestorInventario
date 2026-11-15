@@ -3,12 +3,13 @@ using System.Text;
 using GestorInventario.Application.Interfaces.Authentication;
 using GestorInventario.Application.Services.Authentication;
 using GestorInventario.Domain.Models;
+using GestorInventario.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace GestorInventario.Infrastructure.Authentication.RefreshToken
 {
-    public class RefreshSymmetricToken : RefreshBaseStrategy
+    public class RefreshSymmetricToken : BaseRefreshTokenStrategy
     {
         
         private readonly ILogger<RefreshSymmetricToken> _logger;
@@ -22,9 +23,9 @@ namespace GestorInventario.Infrastructure.Authentication.RefreshToken
             _logger = logger;
         }
 
-        public override Task<string> GenerarTokenRefresco(Usuario usuario)
+        protected override Task<SigningCredentials> GetSigningCredentialsAsync(Usuario usuario)
         {
-            var clave = _claimsBuilder.ObtenerClaveJWT();
+            var clave = _jwtTokenSettings.ObtenerClaveJWT();
 
             if (string.IsNullOrEmpty(clave))
             {
@@ -41,15 +42,8 @@ namespace GestorInventario.Infrastructure.Authentication.RefreshToken
             var credentials = new SigningCredentials(
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(clave)),
                 SecurityAlgorithms.HmacSha256);
-            var horas = _claimsBuilder.ObtenerDuracionRefreshTokenHoras();
-            var token = new JwtSecurityToken(
-                issuer: _claimsBuilder.ObtenerIssuer(),
-                audience: _claimsBuilder.ObtenerAudience(),
-                claims: _claimsBuilder.CrearClaims(usuario),
-                expires: DateTime.UtcNow.AddHours(horas),
-                signingCredentials: credentials);
 
-            return Task.FromResult(new JwtSecurityTokenHandler().WriteToken(token));
+            return Task.FromResult(credentials);
         }
     }
 }

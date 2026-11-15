@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using GestorInventario.Infrastructure.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
@@ -13,7 +14,8 @@ namespace GestorInventario.Infrastructure.Extensions
             IConfiguration configuration,
             ILogger logger)
         {
-            string connectionString = ResolveConnectionString(configuration);
+            var envConfig = new EnvironmentConfig(configuration);
+            string connectionString = envConfig.RedisConectionString;
 
             try
             {
@@ -39,11 +41,6 @@ namespace GestorInventario.Infrastructure.Extensions
             }
         }
 
-        private static string ResolveConnectionString(IConfiguration configuration)
-        {
-            return Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING")
-                ?? configuration["Redis:ConnectionString"]
-                ?? throw new InvalidOperationException("No se ha configurado Redis:ConnectionString");
-        }
+        
     }
 }

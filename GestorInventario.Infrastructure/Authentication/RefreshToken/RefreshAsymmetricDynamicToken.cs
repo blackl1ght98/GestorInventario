@@ -2,29 +2,27 @@
 using System.Security.Cryptography;
 using GestorInventario.Application.Interfaces.Authentication;
 using GestorInventario.Application.Interfaces.Caching;
-using GestorInventario.Application.Services.Authentication;
+
 using GestorInventario.Domain.Models;
+using GestorInventario.Infrastructure.Services;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 
 namespace GestorInventario.Infrastructure.Authentication.RefreshToken
 {
-    public class RefreshAsymmetricDynamicToken : RefreshBaseStrategy
+    public class RefreshAsymmetricDynamicToken : BaseRefreshTokenStrategy
     {
-      
         private readonly IHybridCacheService _cache;
 
         public RefreshAsymmetricDynamicToken(
             IJwtTokenSettings claimsBuilder,
-         
             IHybridCacheService cache)
-            :base( claimsBuilder)
+            : base(claimsBuilder)
         {
-          
             _cache = cache;
         }
 
-        public override async Task<string> GenerarTokenRefresco(Usuario usuario)
+        protected override async Task<SigningCredentials> GetSigningCredentialsAsync(Usuario usuario)
         {
             using var rsa = RSA.Create(2048);
             var privateKey = rsa.ExportParameters(true);
@@ -35,18 +33,9 @@ namespace GestorInventario.Infrastructure.Authentication.RefreshToken
                 JsonConvert.SerializeObject(publicKey),
                 TimeSpan.FromDays(30));
 
-            var credentials = new SigningCredentials(
+            return new SigningCredentials(
                 new RsaSecurityKey(privateKey) { KeyId = usuario.Id.ToString() },
                 SecurityAlgorithms.RsaSha256);
-            var horas = _claimsBuilder.ObtenerDuracionRefreshTokenHoras();
-            var token = new JwtSecurityToken(
-                issuer: _claimsBuilder.ObtenerIssuer(),
-                audience: _claimsBuilder.ObtenerAudience(),
-                claims: _claimsBuilder.CrearClaims(usuario),
-                expires: DateTime.UtcNow.AddHours(horas),
-                signingCredentials: credentials);
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }

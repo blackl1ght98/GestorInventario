@@ -1,5 +1,6 @@
 ﻿using GestorInventario.Application.Interfaces.EmailServices;
 using GestorInventario.Domain.enums.Email;
+using GestorInventario.Infrastructure.Configuration;
 using MailKit;
 using MailKit.Net.Smtp;
 using MailKit.Security;
@@ -12,17 +13,18 @@ namespace GestorInventario.Infrastructure.Notifications.Email.EmailServices
 {
     public class BaseEmail: IBaseEmail
     {
-        private readonly IConfiguration _configuration;
+       
         private readonly RazorLightEngine _razorEngine;
         private readonly string _templatesRoot;
+        private EnvironmentConfig _environmentConfig;
 
         public BaseEmail(IConfiguration configuration)
         {
-            _configuration = configuration;
+           
 
             // Apunta a GestorInventario.Notifications/ViewsEmailService/ dentro del output
             _templatesRoot = Path.Combine(AppContext.BaseDirectory, "Notifications", "Email", "ViewsEmailService");
-          
+          _environmentConfig = new EnvironmentConfig(configuration);
             _razorEngine = new RazorLightEngineBuilder()
                 .UseFileSystemProject(_templatesRoot)
                 .UseMemoryCachingProvider()
@@ -32,8 +34,8 @@ namespace GestorInventario.Infrastructure.Notifications.Email.EmailServices
         public async Task<bool> BuildEmail(string correo, string subject, EmailView view, object model)
         {
             var email = new MimeMessage();
-            var username = _configuration["Email:UserName"] ?? Environment.GetEnvironmentVariable("EMAIL_USERNAME");
-            var password = _configuration["Email:PassWord"] ?? Environment.GetEnvironmentVariable("EMAIL_PASSWORD");
+            var username = _environmentConfig.EmailUser;
+            var password = _environmentConfig.EmailPassword;
             email.From.Add(MailboxAddress.Parse(username));
             email.To.Add(MailboxAddress.Parse(correo));
             email.Subject = subject;
@@ -59,8 +61,8 @@ namespace GestorInventario.Infrastructure.Notifications.Email.EmailServices
             }
 
             using var smtp = new SmtpClient();
-            var emailHost = Environment.GetEnvironmentVariable("EMAIL_HOST") ?? _configuration["Email:Host"];
-            var emailPort = int.Parse(Environment.GetEnvironmentVariable("EMAIL_PORT") ?? _configuration["Email:Port"] ?? "587");
+            var emailHost = _environmentConfig.EmailHost;
+            var emailPort = int.Parse(_environmentConfig.EmailPort);
 
             await smtp.ConnectAsync(emailHost, emailPort, SecureSocketOptions.StartTls);
             await smtp.AuthenticateAsync(username, password);

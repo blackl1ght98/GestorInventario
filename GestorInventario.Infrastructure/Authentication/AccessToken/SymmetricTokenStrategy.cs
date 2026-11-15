@@ -1,20 +1,17 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Text;
-using GestorInventario.Application.DTOS.Auth;
+﻿using System.Text;
 using GestorInventario.Application.Interfaces.Authentication;
-using GestorInventario.Application.Services.Authentication;
 using GestorInventario.Domain.Models;
-using Microsoft.Extensions.Configuration;
+using GestorInventario.Infrastructure.Services;
 using Microsoft.IdentityModel.Tokens;
 
 namespace GestorInventario.Infrastructure.Authentication.AccessToken
 {
     public class SymmetricTokenStrategy : BaseTokenStrategy
     {
-        public SymmetricTokenStrategy(IConfiguration configuration, IJwtTokenSettings claimsBuilder)
-            : base(configuration, claimsBuilder) { }
+        public SymmetricTokenStrategy( IJwtTokenSettings claimsBuilder)
+            : base( claimsBuilder) { }
 
-        public override Task<LoginResponseDto> GenerateTokenAsync(Usuario usuario)
+        protected override Task<SigningCredentials> GetSigningCredentialsAsync(Usuario usuario)
         {
             var clave = _jwtTokenSettings.ObtenerClaveJWT();
 
@@ -27,20 +24,8 @@ namespace GestorInventario.Infrastructure.Authentication.AccessToken
             var credentials = new SigningCredentials(
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(clave)),
                 SecurityAlgorithms.HmacSha256);
-            var minutos = _jwtTokenSettings.ObtenerDuracionAccessTokenMinutos();
-            var token = new JwtSecurityToken(
-                issuer: _jwtTokenSettings.ObtenerIssuer(),
-                audience: _jwtTokenSettings.ObtenerAudience(),
-                claims: _jwtTokenSettings.CrearClaims(usuario),
-                expires: DateTime.UtcNow.AddMinutes(minutos),
-                signingCredentials: credentials);
 
-            return Task.FromResult(new LoginResponseDto
-            {
-                Id = usuario.Id,
-                Token = new JwtSecurityTokenHandler().WriteToken(token),
-                Rol = usuario.IdRolNavigation?.Nombre ?? "Usuario"
-            });
+            return Task.FromResult(credentials);
         }
     }
 }

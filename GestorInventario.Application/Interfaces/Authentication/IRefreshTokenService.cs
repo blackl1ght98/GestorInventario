@@ -2,7 +2,7 @@
 
 namespace GestorInventario.Application.Interfaces.Authentication
 {
-    public interface IRefreshTokenGenerator
+    public interface IRefreshTokenService
     {
         Task<string> GenerateTokenAsync(Usuario credencialesUsuario);
     }

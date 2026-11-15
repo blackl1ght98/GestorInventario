@@ -1,12 +1,8 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Cryptography;
-using GestorInventario.Application.DTOS.Auth;
+﻿using System.Security.Cryptography;
 using GestorInventario.Application.Interfaces.Authentication;
 using GestorInventario.Application.Interfaces.Caching;
-using GestorInventario.Application.Services.Authentication;
 using GestorInventario.Domain.Models;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+using GestorInventario.Infrastructure.Services;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 
@@ -15,52 +11,33 @@ namespace GestorInventario.Infrastructure.Authentication.AccessToken
     public class AsymmetricDynamicTokenStrategy : BaseTokenStrategy
     {
         private readonly IHybridCacheService _cache;
-        private readonly ILogger<AsymmetricDynamicTokenStrategy> _logger;
+   
 
         public AsymmetricDynamicTokenStrategy(
-            IConfiguration configuration,
-            IJwtTokenSettings claimsBuilder,
-            IHybridCacheService cache,
-            ILogger<AsymmetricDynamicTokenStrategy> logger)
-            : base(configuration, claimsBuilder)
+            IJwtTokenSettings jwtTokenSettings,
+            IHybridCacheService cache)
+            : base( jwtTokenSettings)
         {
             _cache = cache;
-            _logger = logger;
+           
         }
 
-        public override async Task<LoginResponseDto> GenerateTokenAsync(Usuario usuario)
+        protected override async Task<SigningCredentials> GetSigningCredentialsAsync(Usuario usuario)
         {
-            if (usuario.IdRolNavigation is null)
-            {
-                _logger.LogError("El usuario {UserId} no tiene un rol asignado.", usuario.Id);
-                throw new InvalidOperationException("El usuario no tiene un rol asignado.");
-            }
-
+            // Generación dinámica del par RSA
             using var rsa = RSA.Create(2048);
             var privateKey = rsa.ExportParameters(true);
             var publicKey = rsa.ExportParameters(false);
 
+            // Guardamos la pública en caché de forma asíncrona
             await _cache.SetStringAsync(
                 $"{usuario.Id}PublicKey",
                 JsonConvert.SerializeObject(publicKey));
 
-            var credentials = new SigningCredentials(
+            // Devolvemos las credenciales con la clave privada
+            return new SigningCredentials(
                 new RsaSecurityKey(privateKey) { KeyId = usuario.Id.ToString() },
                 SecurityAlgorithms.RsaSha256);
-            var minutos = _jwtTokenSettings.ObtenerDuracionAccessTokenMinutos();
-            var token = new JwtSecurityToken(
-                issuer: _jwtTokenSettings.ObtenerIssuer(),
-                audience: _jwtTokenSettings.ObtenerAudience(),
-                claims: _jwtTokenSettings.CrearClaims(usuario),
-                expires: DateTime.UtcNow.AddMinutes(minutos),
-                signingCredentials: credentials);
-
-            return new LoginResponseDto
-            {
-                Id = usuario.Id,
-                Token = new JwtSecurityTokenHandler().WriteToken(token),
-                Rol = usuario.IdRolNavigation.Nombre
-            };
         }
 
     }

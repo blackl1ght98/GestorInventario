@@ -4,11 +4,11 @@ using GestorInventario.Shared.Utilities;
 
 namespace GestorInventario.Application.Services.Authentication
 {
-    public class LoginGenerator : ILoginGenerator
+    public class LoginService : ILoginService
     {
         private readonly ILoginStrategyResolver _resolver;
 
-        public LoginGenerator(ILoginStrategyResolver resolver)
+        public LoginService(ILoginStrategyResolver resolver)
         {
             _resolver = resolver;
         }

@@ -1,6 +1,7 @@
 ﻿using System.Net.Http.Headers;
 using System.Text;
 using GestorInventario.Application.Interfaces.Infrastructure.Paypal;
+using GestorInventario.Infrastructure.Configuration;
 using GestorInventario.Infrastructure.ExternalServices;
 using GestorInventario.Infrastructure.ExternalServices.Response;
 using Microsoft.Extensions.Configuration;
@@ -11,12 +12,12 @@ namespace GestorInventario.Infrastructure.Paypal
     public class PayPalHttpClient: IPayPalHttpClient
     {
         private readonly HttpClient _httpClient;
-        private readonly IConfiguration _configuration;
+        private readonly EnvironmentConfig _environmentConfig;
 
         public PayPalHttpClient(HttpClient httpClientFactory, IConfiguration configuration)
         {
             _httpClient = httpClientFactory;
-            _configuration = configuration;
+            _environmentConfig = new EnvironmentConfig(configuration);
         }
 
         public async Task<string> GetAccessTokenAsync(string clientId, string clientSecret)
@@ -46,8 +47,8 @@ namespace GestorInventario.Infrastructure.Paypal
         }
         private (string clientId, string clientSecret) GetPaypalCredentials()
         {
-            var clientId = _configuration["Paypal:ClientId"] ?? Environment.GetEnvironmentVariable("PAYPAL_CLIENTID");
-            var clientSecret = _configuration["Paypal:ClientSecret"] ?? Environment.GetEnvironmentVariable("PAYPAL_CLIENTSECRET");
+            var clientId = _environmentConfig.ClientId;
+            var clientSecret = _environmentConfig.ClientSecret;
             if (clientId == null || clientSecret == null)
             {
                 throw new InvalidOperationException("No se puede obtener el cliente id o secreto de cliente");

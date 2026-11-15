@@ -1,4 +1,5 @@
-﻿using GestorInventario.Application.Interfaces.Repositories;
+﻿using GestorInventario.Application.Constants;
+using GestorInventario.Application.Interfaces.Repositories;
 using GestorInventario.Application.Services.User;
 using GestorInventario.Domain.Models;
 using Microsoft.AspNetCore.Builder;

@@ -1,11 +1,11 @@
-﻿using Microsoft.AspNetCore.Authentication.Cookies;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 using System.Security.Claims;
 using GestorInventario.Application.Interfaces.Web;
 using GestorInventario.Domain.enums.Usuario;
-using StackExchange.Redis;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 
-namespace GestorInventario.Context
+namespace GestorInventario.Infrastructure.Services
 {
     public class CurrentUserAccessor : ICurrentUserAccessor
     {

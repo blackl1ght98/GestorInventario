@@ -1,6 +1,6 @@
-﻿namespace GestorInventario.ViewModels.Navigation;
+﻿namespace GestorInventario.Application.Navigation;
 
-public class MenuItemViewModel
+public class MenuItemDto
 {
     public string Controller { get; set; } = string.Empty;
     public string Action { get; set; } = string.Empty;

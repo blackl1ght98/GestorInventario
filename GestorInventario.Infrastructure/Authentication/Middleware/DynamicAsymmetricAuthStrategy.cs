@@ -19,28 +19,28 @@ namespace GestorInventario.Infrastructure.Authentication.Middleware;
 public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
 {
    
-    private readonly ITokenGenerator _tokenGenerator;
+    private readonly ITokenService _tokenService;
     private readonly IUserRepository _userRepository;
     private readonly IHybridCacheService _cache;
-    private readonly IRefreshTokenGenerator _refreshTokenGenerator;
+    private readonly IRefreshTokenService _refreshTokenService;
     private readonly IJwtTokenSettings _jwtTokenSettings;
     private readonly ILogger<DynamicAsymmetricAuthStrategy> _logger;
 
     public DynamicAsymmetricAuthStrategy(
      
-        ITokenGenerator tokenService,
+        ITokenService tokenService,
         IUserRepository userRepository,
         IHybridCacheService cache,
-        IRefreshTokenGenerator refres,
+        IRefreshTokenService refres,
         IJwtTokenSettings jwtTokenSettings,
         ILogger<DynamicAsymmetricAuthStrategy> logger)
     {
 
-        _tokenGenerator = tokenService;
+        _tokenService = tokenService;
         _userRepository=userRepository;
         _cache = cache;
         _logger = logger;
-        _refreshTokenGenerator = refres;
+        _refreshTokenService = refres;
         _jwtTokenSettings = jwtTokenSettings;
     }
 
@@ -168,8 +168,8 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
                 return;
             }
 
-            var newAccessToken = await _tokenGenerator.GenerateTokenAsync(user);
-            var newRefresToken = await _refreshTokenGenerator.GenerateTokenAsync(user);
+            var newAccessToken = await _tokenService.GenerarToken(user);
+            var newRefresToken = await _refreshTokenService.GenerateTokenAsync(user);
             var minutos = _jwtTokenSettings.ObtenerDuracionAccessTokenMinutos();
             var horas = _jwtTokenSettings.ObtenerDuracionRefreshTokenHoras();
             context.Response.Cookies.Append("auth", newAccessToken.Token, new CookieOptions

@@ -1,5 +1,7 @@
 using GestorInventario.Application.Interfaces.Authentication;
 using GestorInventario.Application.Services.Authentication;
+using GestorInventario.Infrastructure.Authentication.Login;
+using GestorInventario.Infrastructure.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -9,19 +11,20 @@ namespace GestorInventario.Infrastructure.Authentication.Resolvers
 
     public class LoginStrategyResolver:ILoginStrategyResolver
     {
-        private readonly IConfiguration _configuration;
+      
         private readonly IServiceProvider _serviceProvider;
+        private readonly EnvironmentConfig _environmentConfig;
 
         public LoginStrategyResolver(IConfiguration configuration, IServiceProvider serviceProvider)
         {
-            _configuration = configuration;
             _serviceProvider = serviceProvider;
+            _environmentConfig = new EnvironmentConfig(configuration);
         }
 
 
         public ILoginStrategy Resolve()
         {
-            var mode = _configuration["LoginMode"] ?? Environment.GetEnvironmentVariable("LOGIN_MODE");
+            var mode = _environmentConfig.LoginMode;
 
             return mode switch
             {

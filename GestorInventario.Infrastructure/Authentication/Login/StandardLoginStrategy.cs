@@ -3,7 +3,7 @@ using GestorInventario.Application.Interfaces.Authentication;
 using GestorInventario.Application.Interfaces.Resilience;
 using GestorInventario.Shared.Utilities;
 
-namespace GestorInventario.Application.Services.Authentication
+namespace GestorInventario.Infrastructure.Authentication.Login
 {
     public class StandardLoginStrategy : ILoginStrategy
     {

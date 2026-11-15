@@ -1,4 +1,5 @@
-﻿@inject GestorInventario.Navigation.INavigationService NavigationService
+﻿@using GestorInventario.Application.Interfaces.Web
+@inject INavigationService NavigationService
 
 @{
     var dashboardItems = NavigationService.ObtenerDashboardItem();

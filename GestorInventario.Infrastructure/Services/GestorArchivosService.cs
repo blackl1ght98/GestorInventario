@@ -1,6 +1,7 @@
 ﻿using GestorInventario.Application.Interfaces.Web;
+using Microsoft.AspNetCore.Hosting;
 
-namespace GestorInventario.Files
+namespace GestorInventario.Infrastructure.Services
 {
     public class GestorArchivosService : IGestorArchivos
     {

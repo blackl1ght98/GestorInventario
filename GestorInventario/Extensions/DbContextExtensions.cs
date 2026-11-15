@@ -1,4 +1,5 @@
 ﻿
+using GestorInventario.Infrastructure.Configuration;
 using GestorInventario.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,14 +9,15 @@ namespace GestorInventario.Extensions
     public static  class DbContextExtensions
     {
         public static IServiceCollection AddDatabaseContext(
-     this IServiceCollection services,
-     IConfiguration configuration)
+            this IServiceCollection services,
+            IConfiguration configuration)
         {
-            var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER") == "true";
+            // Usamos nuestro gestor centralizado de configuración
+            var envConfig = new EnvironmentConfig(configuration);
 
-            string connectionString = isDocker
-                ? BuildDockerConnectionString(configuration)
-                : BuildLocalConnectionString(configuration);
+            var connectionString = $"Data Source={envConfig.DbHost};Initial Catalog={envConfig.DbName};" +
+                                   $"User ID={envConfig.DbUserName};Password={envConfig.DbPassword};" +
+                                   $"TrustServerCertificate=True";
 
             services.AddDbContext<GestorInventarioContext>(options =>
             {
@@ -24,52 +26,6 @@ namespace GestorInventario.Extensions
             });
 
             return services;
-        }
-
-        private static string BuildDockerConnectionString(IConfiguration configuration)
-        {
-            var dbHost = Environment.GetEnvironmentVariable("DB_HOST")
-                ?? configuration["DataBaseConection:DBHost"];
-            var dbName = Environment.GetEnvironmentVariable("DB_NAME")
-                ?? configuration["DataBaseConection:DBName"];
-            var dbUserName = Environment.GetEnvironmentVariable("DB_SQLUSER")
-                ?? configuration["DataBaseConection:DBUserName"];
-            var dbPassword = Environment.GetEnvironmentVariable("DB_SQLUSER_PASSWORD")
-                ?? configuration["DataBaseConection:DBPassword"];
-
-            if (string.IsNullOrWhiteSpace(dbHost)
-                || string.IsNullOrWhiteSpace(dbName)
-                || string.IsNullOrWhiteSpace(dbUserName)
-                || string.IsNullOrWhiteSpace(dbPassword))
-            {
-                throw new InvalidOperationException(
-                    "Faltan variables de entorno para la conexión Docker (DB_HOST, DB_NAME, DB_SQLUSER, DB_SQLUSER_PASSWORD).");
-            }
-
-            return $"Data Source={dbHost};Initial Catalog={dbName};" +
-                   $"User ID={dbUserName};Password={dbPassword};" +
-                   $"TrustServerCertificate=True";
-        }
-
-        private static string BuildLocalConnectionString(IConfiguration configuration)
-        {
-            var dbHost = Environment.GetEnvironmentVariable("DB_HOST")
-                ?? configuration["DataBaseConection:DBHost"];
-            var dbName = Environment.GetEnvironmentVariable("DB_NAME")
-                ?? configuration["DataBaseConection:DBName"];
-            var dbUserName = Environment.GetEnvironmentVariable("DB_SQLUSER")
-                             ?? configuration["DataBaseConection:DBUserName"];
-            var dbPassword = Environment.GetEnvironmentVariable("DB_SQLUSER_PASSWORD")
-                             ?? configuration["DataBaseConection:DBPassword"];
-            if (string.IsNullOrWhiteSpace(dbHost) || string.IsNullOrWhiteSpace(dbName))
-            {
-                throw new InvalidOperationException(
-                    "Faltan variables de configuración local (DB_HOST, DB_NAME).");
-            }
-
-            return$"Data Source={dbHost};Initial Catalog={dbName};" +
-                  $"User ID={dbUserName};Password={dbPassword};" +
-                  $"TrustServerCertificate=True";
         }
     }
 

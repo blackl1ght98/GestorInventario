@@ -1,8 +1,4 @@
-﻿
-using GestorInventario.Composition;
-using GestorInventario.Configuracion;
-
-using GestorInventario.Extensions;
+﻿using GestorInventario.Extensions;
 
 using GestorInventario.Middlewares;
 using Microsoft.AspNetCore.DataProtection;
@@ -11,6 +7,7 @@ using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationM
 using Microsoft.Net.Http.Headers;
 using System.Text.Json.Serialization;
 using GestorInventario.Application.DTOS.Configuration;
+using GestorInventario.Composition;
 using GestorInventario.Infrastructure.Configuration;
 using GestorInventario.Infrastructure.Data.Seeders;
 using GestorInventario.Infrastructure.Extensions;
@@ -18,12 +15,12 @@ using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
+var envConfig = new EnvironmentConfig(builder.Configuration);
 // Agregar variables de entorno a la configuración
 builder.Configuration.AddEnvironmentVariables();
 
 //Variables compartidas
-bool useRedis = bool.Parse(Environment.GetEnvironmentVariable("USE_REDIS") ?? "false");
+bool useRedis = envConfig.UseRedis;
 
 //Para que no salte una excepcion en consultas que son recursivas
 builder.Services.AddControllersWithViews().AddJsonOptions(options => options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);

@@ -1,4 +1,7 @@
-﻿namespace GestorInventario.Composition
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace GestorInventario.Infrastructure.Configuration
 {
     public static class AntiforgeryExtensions
     {

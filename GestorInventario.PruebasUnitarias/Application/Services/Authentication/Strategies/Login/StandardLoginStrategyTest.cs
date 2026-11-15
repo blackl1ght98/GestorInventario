@@ -3,6 +3,7 @@ using GestorInventario.Application.Interfaces.Authentication;
 using GestorInventario.Application.Interfaces.Resilience;
 using GestorInventario.Application.Services.Authentication;
 using GestorInventario.Domain.Models;
+using GestorInventario.Infrastructure.Authentication.Login;
 using GestorInventario.Shared.Utilities;
 using Moq;
 

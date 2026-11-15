@@ -1,6 +1,7 @@
 ﻿using GestorInventario.Application.Interfaces.Authentication;
 using GestorInventario.Infrastructure.Authentication.AccessToken;
 using GestorInventario.Infrastructure.Authentication.RefreshToken;
+using GestorInventario.Infrastructure.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -10,19 +11,19 @@ namespace GestorInventario.Infrastructure.Authentication.Resolvers
     
     public class TokenStrategyResolver:ITokenStrategyResolver
     {
-        private readonly IConfiguration _configuration;
         private readonly IServiceProvider _serviceProvider;
+        private readonly EnvironmentConfig _environmentConfig;
 
         public TokenStrategyResolver(IConfiguration configuration, IServiceProvider serviceProvider)
         {
-            _configuration = configuration;
             _serviceProvider = serviceProvider;
+            _environmentConfig = new EnvironmentConfig(configuration);
         }
 
        
         public IRefreshTokenStrategy ResolveRefreshToken()
         {
-            var mode = _configuration["AuthMode"] ?? Environment.GetEnvironmentVariable("AUTH_MODE");
+            var mode = _environmentConfig.AuthMode;
           
 
             return mode switch
@@ -39,7 +40,7 @@ namespace GestorInventario.Infrastructure.Authentication.Resolvers
 
         public ITokenStrategy ResolveToken()
         {
-            var mode = _configuration["AuthMode"] ?? Environment.GetEnvironmentVariable("AUTH_MODE");
+            var mode = _environmentConfig.AuthMode;
     
 
             return mode switch

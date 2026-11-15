@@ -12,16 +12,16 @@ namespace GestorInventario.Infrastructure.Authentication.Middleware
     public class FixedAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
     {
         
-        private readonly ITokenGenerator _tokenGenerator;
+        private readonly ITokenService _tokenService;
         private readonly IUserRepository _userRepository;
-        private readonly IRefreshTokenGenerator _refreshTokenStrategy;
+        private readonly IRefreshTokenService _refreshTokenStrategy;
         private readonly IJwtTokenSettings _jwtTokenSettings;
         private readonly ILogger<FixedAsymmetricAuthStrategy> _logger;
 
-        public FixedAsymmetricAuthStrategy( ITokenGenerator tokenGenerator, IUserRepository userRepository, 
-            IRefreshTokenGenerator refreshTokenStrategy, IJwtTokenSettings jwtTokenSettings , ILogger<FixedAsymmetricAuthStrategy> logger)
+        public FixedAsymmetricAuthStrategy( ITokenService tokenService, IUserRepository userRepository, 
+            IRefreshTokenService refreshTokenStrategy, IJwtTokenSettings jwtTokenSettings , ILogger<FixedAsymmetricAuthStrategy> logger)
         {
-            _tokenGenerator = tokenGenerator;
+            _tokenService = tokenService;
             _userRepository = userRepository;
             _refreshTokenStrategy = refreshTokenStrategy;
             _jwtTokenSettings = jwtTokenSettings;
@@ -153,7 +153,7 @@ namespace GestorInventario.Infrastructure.Authentication.Middleware
                 return;
             }
 
-            var newAccessToken = await _tokenGenerator.GenerateTokenAsync(user);
+            var newAccessToken = await _tokenService.GenerarToken(user);
             var newRefreshToken = await _refreshTokenStrategy.GenerateTokenAsync(user);
             var minutos = _jwtTokenSettings.ObtenerDuracionAccessTokenMinutos();
             var horas = _jwtTokenSettings.ObtenerDuracionRefreshTokenHoras();

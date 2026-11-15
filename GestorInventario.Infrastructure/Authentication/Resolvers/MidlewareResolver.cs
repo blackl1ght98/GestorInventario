@@ -1,4 +1,5 @@
 ﻿using GestorInventario.Infrastructure.Authentication.Middleware;
+using GestorInventario.Infrastructure.Configuration;
 using GestorInventario.Infrastructure.Interfaces.Middleware;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,18 +8,19 @@ namespace GestorInventario.Infrastructure.Authentication.Resolvers
 {
     public class MidlewareResolver:IMidlewareResolver
     {
-        private readonly IConfiguration _configuration;
+        
         private readonly IServiceProvider _serviceProvider;
+        private readonly EnvironmentConfig _environmentConfig;
 
         public MidlewareResolver(IConfiguration configuration, IServiceProvider serviceProvider)
         {
-            _configuration = configuration;
             _serviceProvider = serviceProvider;
+            _environmentConfig = new EnvironmentConfig(configuration);
         }
         
         public IAuthenticationMiddlewareStrategy ResolveMiddleware()
         {
-            var mode = _configuration["AuthMode"] ?? Environment.GetEnvironmentVariable("AUTH_MODE");
+            var mode = _environmentConfig.AuthMode;
 
 
             return mode switch

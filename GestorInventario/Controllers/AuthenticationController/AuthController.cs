@@ -21,7 +21,7 @@ namespace GestorInventario.Controllers.AuthenticationController
         private readonly IShopCartService _carritoService;
         private readonly ICurrentUserAccessor _current;
         private readonly IAuthService _authService;
-        private readonly ILoginGenerator _loginGenerator;
+        private readonly ILoginService _loginService;
         private readonly IJwtTokenSettings  _jwtTokenSettings;
         public AuthController(
             ITokenService tokenService,
@@ -30,7 +30,7 @@ namespace GestorInventario.Controllers.AuthenticationController
             IPolicyExecutor policyExecutor,
             IShopCartService carritoService,
             IAuthService authService,
-            ILoginGenerator loginGenerator,
+            ILoginService loginService,
             IJwtTokenSettings  jwtTokenSettings
         )
         {
@@ -40,7 +40,7 @@ namespace GestorInventario.Controllers.AuthenticationController
             _carritoService = carritoService;
             _current = currentUser;
             _authService = authService;
-            _loginGenerator = loginGenerator;
+            _loginService = loginService;
             _jwtTokenSettings = jwtTokenSettings;
         }
 
@@ -72,7 +72,7 @@ namespace GestorInventario.Controllers.AuthenticationController
 
                 var dto = new LoginDto { Email = model.Email, Password = model.Password };
                 // 1. Obtenemos la estrategia según la configuración: MfaLoginStrategy o StandardLoginStrategy
-                var result = await _loginGenerator.AuthenticateAsync(dto);
+                var result = await _loginService.AuthenticateAsync(dto);
 
                 if (!result.Success)
                 {

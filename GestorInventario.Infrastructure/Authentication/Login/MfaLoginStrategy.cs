@@ -5,7 +5,7 @@ using GestorInventario.Application.Interfaces.EmailServices;
 using GestorInventario.Application.Interfaces.Resilience;
 using GestorInventario.Shared.Utilities;
 
-namespace GestorInventario.Application.Services.Authentication
+namespace GestorInventario.Infrastructure.Authentication.Login
 {
     public class MfaLoginStrategy : ILoginStrategy
     {

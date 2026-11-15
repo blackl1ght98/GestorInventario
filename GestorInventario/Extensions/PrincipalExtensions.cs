@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using GestorInventario.Application.Constants;
 using GestorInventario.Application.Services.User;
 
 namespace GestorInventario.Extensions

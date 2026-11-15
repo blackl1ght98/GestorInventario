@@ -12,20 +12,20 @@ namespace GestorInventario.Infrastructure.Authentication.Middleware
 {
     public class SymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
     {
-        private readonly ITokenGenerator _tokenGenerator;
+        private readonly ITokenService _tokenService;
         private readonly IUserRepository _userRepository;
-        private readonly IRefreshTokenGenerator _refreshTokenStrategy;
+        private readonly IRefreshTokenService _refreshTokenStrategy;
         private readonly IJwtTokenSettings _jwtTokenSettings;
         private readonly ILogger<SymmetricAuthStrategy> _logger;
 
         public SymmetricAuthStrategy(
-            ITokenGenerator tokenGenerator,
+            ITokenService tokenService,
             IUserRepository userRepository,
-            IRefreshTokenGenerator refreshTokenStrategy,
+            IRefreshTokenService refreshTokenStrategy,
             IJwtTokenSettings jwtTokenSettings,
             ILogger<SymmetricAuthStrategy> logger)
         {
-            _tokenGenerator = tokenGenerator;
+            _tokenService = tokenService;
             _userRepository=userRepository;
             _refreshTokenStrategy = refreshTokenStrategy;
             _jwtTokenSettings = jwtTokenSettings;
@@ -151,12 +151,10 @@ namespace GestorInventario.Infrastructure.Authentication.Middleware
                 RedirectToLogin(context);
                 return;
             }
-
-            var newAccessToken = await _tokenGenerator.GenerateTokenAsync(user);
+            var newAccessToken = await _tokenService.GenerarToken(user);
             var newRefreshToken = await _refreshTokenStrategy.GenerateTokenAsync(user);
             var minutos = _jwtTokenSettings.ObtenerDuracionAccessTokenMinutos();
             var horas = _jwtTokenSettings.ObtenerDuracionRefreshTokenHoras();
-
             context.Response.Cookies.Append("auth", newAccessToken.Token, new CookieOptions
             {
                 HttpOnly = true,

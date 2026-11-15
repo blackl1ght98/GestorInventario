@@ -1,4 +1,5 @@
-﻿using GestorInventario.Application.DTOS.Email;
+﻿using GestorInventario.Application.Constants;
+using GestorInventario.Application.DTOS.Email;
 using GestorInventario.Application.DTOS.User;
 using GestorInventario.Application.Interfaces.Authentication;
 using GestorInventario.Application.Interfaces.EmailServices;
