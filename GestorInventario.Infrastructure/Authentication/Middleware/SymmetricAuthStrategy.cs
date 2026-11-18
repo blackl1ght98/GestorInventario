@@ -3,19 +3,13 @@ using System.Security.Claims;
 using System.Text;
 using GestorInventario.Application.Interfaces.Authentication;
 using GestorInventario.Application.Interfaces.Repositories;
-using GestorInventario.Infrastructure.Interfaces.Middleware;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace GestorInventario.Infrastructure.Authentication.Middleware
 {
-    public class SymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
+    public class SymmetricAuthStrategy : AuthenticationStrategyBase
     {
-        private readonly ITokenService _tokenService;
-        private readonly IUserRepository _userRepository;
-        private readonly IRefreshTokenService _refreshTokenStrategy;
-        private readonly IJwtTokenSettings _jwtTokenSettings;
         private readonly ILogger<SymmetricAuthStrategy> _logger;
 
         public SymmetricAuthStrategy(
@@ -24,205 +18,56 @@ namespace GestorInventario.Infrastructure.Authentication.Middleware
             IRefreshTokenService refreshTokenStrategy,
             IJwtTokenSettings jwtTokenSettings,
             ILogger<SymmetricAuthStrategy> logger)
+            : base(tokenService, userRepository, refreshTokenStrategy, jwtTokenSettings)
         {
-            _tokenService = tokenService;
-            _userRepository=userRepository;
-            _refreshTokenStrategy = refreshTokenStrategy;
-            _jwtTokenSettings = jwtTokenSettings;
             _logger = logger;
         }
 
-        public async Task ProcessAuthentication(HttpContext context, Func<Task> next)
+        protected override ILogger GetLogger() => _logger;
+
+        protected override async Task<ClaimsPrincipal?> ValidateAccessTokenAsync(string token)
         {
-            try
-            {
-                var secret = _jwtTokenSettings.ObtenerClaveJWT();
-                if (string.IsNullOrEmpty(secret))
-                {
-                    throw new InvalidOperationException("La clave JWT es requerida.");
-                }
+            var secret = _jwtTokenSettings.ObtenerClaveJWT();
+            if (string.IsNullOrEmpty(secret))
+                throw new InvalidOperationException("La clave JWT es requerida.");
 
-                var token = context.Request.Cookies["auth"];
-                var refreshToken = context.Request.Cookies["refreshToken"];
-
-                if (!string.IsNullOrEmpty(token))
-                {
-                    var (jwtToken, principal) = await ValidateToken(token, secret);
-                    if (jwtToken != null && principal != null)
-                    {
-                        context.User = principal;
-                    }
-                    else if (!string.IsNullOrEmpty(refreshToken))
-                    {
-                        await HandleExpiredToken(context, refreshToken, secret);
-                    }
-                }
-                else if (!string.IsNullOrEmpty(refreshToken))
-                {
-                    await HandleExpiredToken(context, refreshToken, secret);
-                }
-                else
-                {
-                    _logger.LogInformation("No se encontraron tokens en las cookies para la ruta {Path}", context.Request.Path);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error en el middleware de autenticación simétrica para la ruta {Path}", context.Request.Path);
-            }
-
-            await next();
+            return ValidateTokenInternal(token, secret);
         }
 
-        private async Task<(JwtSecurityToken?, ClaimsPrincipal?)> ValidateToken(string token, string secret)
+        protected override async Task<bool> ValidateRefreshTokenAsync(string refreshToken)
         {
-            var handler = new JwtSecurityTokenHandler();
+            var secret = _jwtTokenSettings.ObtenerClaveJWT();
+            if (string.IsNullOrEmpty(secret)) return false;
+
             try
             {
-                var jwtToken = handler.ReadJwtToken(token);
-                if (jwtToken.ValidTo < DateTime.UtcNow)
-                {
-                    _logger.LogWarning("Token expirado");
-                    return (null, null);
-                }
-
-                var validationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
-                    ValidateIssuer = true,
-                    ValidIssuer = _jwtTokenSettings.ObtenerIssuer(),
-                    ValidateAudience = true,
-                    ValidAudience = _jwtTokenSettings.ObtenerAudience(),
-                    ValidateLifetime = true
-                };
-
-                var principal = handler.ValidateToken(token, validationParameters, out _);
-
-                _logger.LogInformation("Claims válidos para {Claims}",
-                    string.Join(", ", jwtToken.Claims.Select(c => $"{c.Type}={c.Value}")));
-
-                return (jwtToken, principal);
-            }
-            catch (SecurityTokenException ex)
-            {
-                _logger.LogWarning(ex, "Token inválido");
-                return (null, null);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error inesperado al validar el token");
-                return (null, null);
-            }
-        }
-
-        private async Task HandleExpiredToken(HttpContext context, string refreshToken, string secret)
-        {
-            var refreshTokenValid = await ValidateRefreshToken(refreshToken, secret);
-            if (!refreshTokenValid)
-            {
-                _logger.LogError("Refresh token no válido");
-                RedirectToLogin(context);
-                return;
-            }
-
-            var handler = new JwtSecurityTokenHandler();
-            var token = handler.ReadJwtToken(refreshToken);
-            var userId = token.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(userId))
-            {
-                _logger.LogError("No se encontró userId en el refresh token");
-                RedirectToLogin(context);
-                return;
-            }
-
-            if (!int.TryParse(userId, out var userIdParsed))
-            {
-                _logger.LogError("El userId {UserId} no es válido", userId);
-                RedirectToLogin(context);
-                return;
-            }
-
-            var user = await _userRepository.ObtenerUsuarioPorId(userIdParsed);
-            if (user == null)
-            {
-                _logger.LogError("Usuario {UserId} no encontrado", userIdParsed);
-                RedirectToLogin(context);
-                return;
-            }
-            var newAccessToken = await _tokenService.GenerarToken(user);
-            var newRefreshToken = await _refreshTokenStrategy.GenerateTokenAsync(user);
-            var minutos = _jwtTokenSettings.ObtenerDuracionAccessTokenMinutos();
-            var horas = _jwtTokenSettings.ObtenerDuracionRefreshTokenHoras();
-            context.Response.Cookies.Append("auth", newAccessToken.Token, new CookieOptions
-            {
-                HttpOnly = true,
-                SameSite = SameSiteMode.Lax,
-                Secure = true,
-                Expires = DateTime.UtcNow.AddMinutes(minutos)
-            });
-
-            context.Response.Cookies.Append("refreshToken", newRefreshToken, new CookieOptions
-            {
-                HttpOnly = true,
-                SameSite = SameSiteMode.Lax,
-                Secure = true,
-                Expires = DateTime.UtcNow.AddHours(horas)
-            });
-
-            _logger.LogInformation("Tokens generados con éxito para usuario {UserId}", userIdParsed);
-        }
-
-        private async Task<bool> ValidateRefreshToken(string refreshToken, string secret)
-        {
-            try
-            {
-                var handler = new JwtSecurityTokenHandler();
-                var token = handler.ReadJwtToken(refreshToken);
-                if (token.ValidTo < DateTime.UtcNow)
-                {
-                    _logger.LogWarning("Refresh token expirado");
-                    return false;
-                }
-
-                var validationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
-                    ValidateIssuer = true,
-                    ValidIssuer = _jwtTokenSettings.ObtenerIssuer(),
-                    ValidateAudience = true,
-                    ValidAudience = _jwtTokenSettings.ObtenerAudience(),
-                    ValidateLifetime = true
-                };
-
-                handler.ValidateToken(refreshToken, validationParameters, out _);
+                ValidateTokenInternal(refreshToken, secret);
                 return true;
             }
-            catch (SecurityTokenException ex)
+            catch
             {
-                _logger.LogWarning(ex, "Refresh token inválido");
-                return false;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error inesperado al validar refresh");
                 return false;
             }
         }
 
-        private void RedirectToLogin(HttpContext context)
+        private ClaimsPrincipal? ValidateTokenInternal(string token, string secret)
         {
-            foreach (var cookie in context.Request.Cookies)
-            {
-                context.Response.Cookies.Delete(cookie.Key);
-            }
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(token);
+            if (jwtToken.ValidTo < DateTime.UtcNow) return null;
 
-            if (!context.Request.Path.StartsWithSegments("/Auth/Login"))
+            var validationParameters = new TokenValidationParameters
             {
-                context.Response.Redirect("/Auth/Login");
-            }
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
+                ValidateIssuer = true,
+                ValidIssuer = _jwtTokenSettings.ObtenerIssuer(),
+                ValidateAudience = true,
+                ValidAudience = _jwtTokenSettings.ObtenerAudience(),
+                ValidateLifetime = true
+            };
+
+            return handler.ValidateToken(token, validationParameters, out _);
         }
     }
 }

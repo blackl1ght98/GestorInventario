@@ -28,7 +28,8 @@ namespace GestorInventario.Application.Interfaces.Repositories
      
         Task<OperationResult<Usuario>> AgregarUsuarioAsync(Usuario usuario);
         Task<List<Usuario>> ObtenerUsuariosAsync();
-        
+
+        Task<Usuario> ExisteUsuarioConEmailAsync(string email);
         //Operaciones
 
         

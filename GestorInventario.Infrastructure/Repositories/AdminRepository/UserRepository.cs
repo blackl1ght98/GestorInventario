@@ -98,6 +98,10 @@ namespace GestorInventario.Infrastructure.Repositories.AdminRepository
         {
             return await _context.Usuarios.AnyAsync(x => x.Email == email);
         }
+        public async Task<Usuario> ExisteUsuarioConEmailAsync(string email)
+        {
+            return await _context.Usuarios.Include(x=>x.IdRolNavigation).FirstOrDefaultAsync(x => x.Email == email);
+        }
         public async Task<OperationResult<Usuario>> AgregarUsuarioAsync(Usuario usuario)
         {
             return await _context.ExecuteInTransactionAsync(async () =>

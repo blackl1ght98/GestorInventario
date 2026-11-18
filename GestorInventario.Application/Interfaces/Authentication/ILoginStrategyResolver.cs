@@ -2,5 +2,5 @@
 
 public interface ILoginStrategyResolver
 {
-    ILoginStrategy Resolve();
+    ILoginStrategy Resolve(string? userRole = null);
 }

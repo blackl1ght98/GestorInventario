@@ -1,5 +1,7 @@
+using GestorInventario.Application.Constants;
 using GestorInventario.Application.Interfaces.Authentication;
 using GestorInventario.Application.Services.Authentication;
+using GestorInventario.Domain.enums.Usuario;
 using GestorInventario.Infrastructure.Authentication.Login;
 using GestorInventario.Infrastructure.Configuration;
 using Microsoft.Extensions.Configuration;
@@ -22,7 +24,7 @@ namespace GestorInventario.Infrastructure.Authentication.Resolvers
         }
 
 
-        public ILoginStrategy Resolve()
+        public ILoginStrategy Resolve(string? userRole = null)
         {
             var mode = _environmentConfig.LoginMode;
 
@@ -30,8 +32,18 @@ namespace GestorInventario.Infrastructure.Authentication.Resolvers
             {
                 "StandardLogin" => ActivatorUtilities.CreateInstance<StandardLoginStrategy>(_serviceProvider),
                 "MfaLogin" => ActivatorUtilities.CreateInstance<MfaLoginStrategy>(_serviceProvider),
+                "RoleBasedMfa" => ResolveByRole(userRole),
                 _ => throw new InvalidOperationException($"Modo de login no soportado: {mode}")
             };
+        }
+        private ILoginStrategy ResolveByRole(string? userRole)
+        {
+            
+            bool requiresMfa = string.Equals(userRole, Rol.Administrador.ToString(), StringComparison.OrdinalIgnoreCase);
+
+            return requiresMfa
+                ? ActivatorUtilities.CreateInstance<MfaLoginStrategy>(_serviceProvider)
+                : ActivatorUtilities.CreateInstance<StandardLoginStrategy>(_serviceProvider);
         }
     }
 }

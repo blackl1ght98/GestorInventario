@@ -1,4 +1,5 @@
-﻿using GestorInventario.Application.DTOS.Auth;
+﻿using System.Security.Cryptography;
+using GestorInventario.Application.DTOS.Auth;
 using GestorInventario.Application.Interfaces.Authentication;
 using GestorInventario.Application.Interfaces.Caching;
 using GestorInventario.Application.Interfaces.EmailServices;
@@ -31,7 +32,7 @@ namespace GestorInventario.Infrastructure.Authentication.Login
                 return OperationResult<AuthSessionDetails>.Fail(user.Message);
             }
 
-            string mfaCode = new Random().Next(100000, 999999).ToString();
+            string mfaCode =RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
             await _cache.SetStringAsync($"MFA_{user.Data.Id}", mfaCode, TimeSpan.FromMinutes(5));
             await _emailService.SendMfaCodeEmail(user.Data.Email, mfaCode);
 

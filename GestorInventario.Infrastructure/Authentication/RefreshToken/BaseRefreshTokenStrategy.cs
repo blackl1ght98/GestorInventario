@@ -3,7 +3,7 @@ using GestorInventario.Application.Interfaces.Authentication;
 using GestorInventario.Domain.Models;
 using Microsoft.IdentityModel.Tokens;
 
-namespace GestorInventario.Infrastructure.Services
+namespace GestorInventario.Infrastructure.Authentication.RefreshToken
 {
     public abstract class BaseRefreshTokenStrategy: IRefreshTokenStrategy
     {

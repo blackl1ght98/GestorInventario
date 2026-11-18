@@ -1,6 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Text;
 using GestorInventario.Application.Interfaces.Authentication;
 using GestorInventario.Application.Interfaces.Caching;
 using GestorInventario.Application.Interfaces.Repositories;
@@ -16,93 +17,53 @@ namespace GestorInventario.Infrastructure.Authentication.Middleware;
 /// Estrategia JWT asimétrica con claves RSA dinámicas por usuario.
 /// Las claves viven en caché (Redis/Memory) indexadas por 'kid' del header del token.
 /// </summary>
-public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
+public class DynamicAsymmetricAuthStrategy : AuthenticationStrategyBase
 {
-   
-    private readonly ITokenService _tokenService;
-    private readonly IUserRepository _userRepository;
+    
     private readonly IHybridCacheService _cache;
-    private readonly IRefreshTokenService _refreshTokenService;
-    private readonly IJwtTokenSettings _jwtTokenSettings;
     private readonly ILogger<DynamicAsymmetricAuthStrategy> _logger;
 
     public DynamicAsymmetricAuthStrategy(
      
         ITokenService tokenService,
         IUserRepository userRepository,
-        IHybridCacheService cache,
-        IRefreshTokenService refres,
+        IRefreshTokenService refreshTokenStrategy,
         IJwtTokenSettings jwtTokenSettings,
+        IHybridCacheService cache,
         ILogger<DynamicAsymmetricAuthStrategy> logger)
+    :base(tokenService,userRepository,refreshTokenStrategy,jwtTokenSettings)
     {
 
-        _tokenService = tokenService;
-        _userRepository=userRepository;
+       
         _cache = cache;
         _logger = logger;
-        _refreshTokenService = refres;
-        _jwtTokenSettings = jwtTokenSettings;
+       
     }
+    protected override ILogger GetLogger() => _logger;
 
-    public async Task ProcessAuthentication(HttpContext context, Func<Task> next)
-    {
-        try
-        {
-            var token = context.Request.Cookies["auth"];
-            var refreshToken = context.Request.Cookies["refreshToken"];
-
-            if (!string.IsNullOrEmpty(token))
-            {
-                var principal = await ValidateTokenAsync(token);
-                if (principal is not null)
-                {
-                    context.User = principal;
-                }
-                else if (!string.IsNullOrEmpty(refreshToken))
-                {
-                    await HandleExpiredTokenAsync(context, refreshToken);
-                }
-            }
-            else if (!string.IsNullOrEmpty(refreshToken))
-            {
-                await HandleExpiredTokenAsync(context, refreshToken);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error en el middleware de autenticación dinámica");
-        }
-
-        await next();
-    }
-
-    private async Task<ClaimsPrincipal?> ValidateTokenAsync(string token)
+    protected override async Task<ClaimsPrincipal?> ValidateAccessTokenAsync(string token)
     {
         try
         {
             var handler = new JwtSecurityTokenHandler();
             var jwtToken = handler.ReadJwtToken(token);
-
             if (jwtToken.ValidTo < DateTime.UtcNow)
             {
                 _logger.LogWarning("Token expirado");
                 return null;
             }
-
             var kid = jwtToken.Header["kid"]?.ToString();
             if (string.IsNullOrEmpty(kid))
             {
                 _logger.LogWarning("Token sin 'kid'");
                 return null;
             }
-
             var publicKeyParams = await RetrievePublicKeyAsync($"{kid}PublicKey");
             if (publicKeyParams is null)
             {
                 _logger.LogWarning("Clave pública no encontrada en caché para kid: {Kid}", kid);
                 return null;
             }
-
             var validationParameters = new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
@@ -114,7 +75,6 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
                 ValidAudience = _jwtTokenSettings.ObtenerAudience(),
                 ValidateLifetime = true
             };
-
             return handler.ValidateToken(token, validationParameters, out _);
         }
         catch (Exception ex)
@@ -123,7 +83,6 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
             return null;
         }
     }
-
     private async Task<RSAParameters?> RetrievePublicKeyAsync(string cacheKey)
     {
         var publicKeyJson = await _cache.GetStringAsync(cacheKey);
@@ -139,63 +98,7 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
             return null;
         }
     }
-
-    private async Task HandleExpiredTokenAsync(HttpContext context, string refreshToken)
-    {
-        try
-        {
-            if (!await ValidateRefreshTokenAsync(refreshToken))
-            {
-                RedirectToLogin(context);
-                return;
-            }
-
-            var handler = new JwtSecurityTokenHandler();
-            var token = handler.ReadJwtToken(refreshToken);
-            var userIdClaim = token.Claims
-                .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
-            {
-                RedirectToLogin(context);
-                return;
-            }
-
-            var user = await _userRepository.ObtenerUsuarioPorId(userId);
-            if (user is null)
-            {
-                RedirectToLogin(context);
-                return;
-            }
-
-            var newAccessToken = await _tokenService.GenerarToken(user);
-            var newRefresToken = await _refreshTokenService.GenerateTokenAsync(user);
-            var minutos = _jwtTokenSettings.ObtenerDuracionAccessTokenMinutos();
-            var horas = _jwtTokenSettings.ObtenerDuracionRefreshTokenHoras();
-            context.Response.Cookies.Append("auth", newAccessToken.Token, new CookieOptions
-            {
-                HttpOnly = true,
-                SameSite = SameSiteMode.Lax,
-                Secure = true,
-                Expires = DateTime.UtcNow.AddMinutes(minutos)
-            });
-            context.Response.Cookies.Append("refreshToken", newRefresToken, new CookieOptions
-            {
-                HttpOnly = true,
-                SameSite = SameSiteMode.Lax,
-                Secure = true,
-                Expires = DateTime.UtcNow.AddHours(horas)
-            });
-
-            _logger.LogInformation("Access token regenerado para usuario {UserId}", userId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error al refrescar token");
-        }
-    }
-
-    private async Task<bool> ValidateRefreshTokenAsync(string refreshToken)
+    protected override async Task<bool> ValidateRefreshTokenAsync(string refreshToken)
     {
         try
         {
@@ -233,17 +136,6 @@ public class DynamicAsymmetricAuthStrategy : IAuthenticationMiddlewareStrategy
             return false;
         }
     }
-
-    private void RedirectToLogin(HttpContext context)
-    {
-        foreach (var cookie in context.Request.Cookies)
-        {
-            context.Response.Cookies.Delete(cookie.Key);
-        }
-
-        if (!context.Request.Path.StartsWithSegments("/Auth/Login"))
-        {
-            context.Response.Redirect("/Auth/Login");
-        }
-    }
+   
+    
 }

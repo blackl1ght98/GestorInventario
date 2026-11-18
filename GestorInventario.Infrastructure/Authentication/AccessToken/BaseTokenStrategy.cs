@@ -4,7 +4,7 @@ using GestorInventario.Application.Interfaces.Authentication;
 using GestorInventario.Domain.Models;
 using Microsoft.IdentityModel.Tokens;
 
-namespace GestorInventario.Infrastructure.Services
+namespace GestorInventario.Infrastructure.Authentication.AccessToken
 {
     public abstract class BaseTokenStrategy : ITokenStrategy
     {

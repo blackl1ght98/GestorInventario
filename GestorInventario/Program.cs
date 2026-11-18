@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 using Microsoft.Net.Http.Headers;
 using System.Text.Json.Serialization;
-using GestorInventario.Application.DTOS.Configuration;
 using GestorInventario.Composition;
 using GestorInventario.Infrastructure.Configuration;
 using GestorInventario.Infrastructure.Data.Seeders;
@@ -49,10 +48,7 @@ builder.Services.AddRepositories();
 builder.Services.AddApplicationServices();
 builder.Services.AddSingletonServices();
 builder.Services.AddBackgroundServices();
-//Construccion de la URL 
 
-builder.Services.Configure<AppSettings>(builder.Configuration.GetSection(AppSettings.SectionName));
-builder.Services.Configure<PaypalSettings>(builder.Configuration.GetSection(PaypalSettings.SectionName));
 PayPalInvoiceRendererBootstrap.Initialize();
 
 
