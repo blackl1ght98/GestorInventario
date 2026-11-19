@@ -1,4 +1,5 @@
-﻿using GestorInventario.Domain.Models;
+﻿using GestorInventario.Application.DTOS.Carrito;
+using GestorInventario.Domain.Models;
 using GestorInventario.Shared.Utilities;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -6,7 +7,7 @@ namespace GestorInventario.ViewModels.ShoppingCart
 {
     public class CarritoViewModel
     {
-        public required List<DetallePedido> Productos { get; set; }
+        public required List<CarritoCardViewmodelDto> Productos { get; set; }
         public required SelectList Monedas { get; set; }
         public required List<PaginasModel> Paginas { get; set; }
         public int TotalPaginas { get; set; }

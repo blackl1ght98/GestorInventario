@@ -1,4 +1,5 @@
-﻿using GestorInventario.Application.Interfaces.Repositories;
+﻿using GestorInventario.Application.DTOS.Carrito;
+using GestorInventario.Application.Interfaces.Repositories;
 using GestorInventario.Application.Interfaces.Resilience;
 using GestorInventario.Application.Interfaces.Services;
 using GestorInventario.Application.Interfaces.Web;
@@ -68,9 +69,22 @@ namespace GestorInventario.Controllers.CarritoController
                 var resultadoMonedas = await _policyExecutor.ExecutePolicyAsync(
                     () => _shopCartRepository.ObtenerMoneda()
                 );
+
+                var dto = paginationResult.Items.Select(d => new CarritoCardViewmodelDto
+                {
+                    IdDetallePedido = d.Id,
+                    Cantidad = d.Cantidad,
+                    Descripcion = d.Producto.Descripcion,
+                    Imagen = d.Producto.Imagen,
+                    NombreProducto = d.Producto.NombreProducto,
+                    NombreProveedor = d.Producto.IdProveedorNavigation.NombreProveedor,
+                    Precio = d.Producto.Precio,
+                    Total = d.Cantidad * d.Producto.Precio,
+
+                }).ToList();
                 var viewModel = new CarritoViewModel
                 {
-                    Productos = paginationResult.Items.ToList(),
+                    Productos = dto,
                     Subtotal = subtotal,
                     Impuestos = impuestos,          // ← IVA 
                     Shipping = 0m,
