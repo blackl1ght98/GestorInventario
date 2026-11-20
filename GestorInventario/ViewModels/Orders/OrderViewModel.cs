@@ -1,6 +1,6 @@
-﻿using GestorInventario.Application.DTOS;
+﻿
 using GestorInventario.Application.DTOS.Pedidos;
-using GestorInventario.Domain.Models;
+
 
 using GestorInventario.Shared.Utilities;
 

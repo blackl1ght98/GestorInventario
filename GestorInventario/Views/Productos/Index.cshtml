@@ -76,64 +76,7 @@
     <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-4">
         @foreach (var producto in Model.Productos)
         {
-            <div class="col">
-                <div class="card h-100 border-0 shadow-sm hover-card">
-                    <!-- Imagen responsive -->
-                    <div class="position-relative">
-                        <img src="@producto.Imagen?width=600"
-                             srcset="@producto.Imagen?width=300 300w,
-                                     @producto.Imagen?width=600 600w,
-                                     @producto.Imagen?width=900 900w"
-                             class="card-img-top img-fluid"
-                             style="aspect-ratio: 16 / 9; object-fit: cover;"
-                             alt="@producto.NombreProducto"
-                             loading="lazy" />
-                    </div>
-
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">@producto.NombreProducto</h5>
-                        <p class="card-text flex-grow-1 text-muted small">@producto.Descripcion</p>
-
-                        <div class="mt-auto">
-                            <p class="fw-bold fs-5 mb-1">@producto.Precio.ToString("C")</p>
-                            <p class="text-muted small mb-2">
-                                Stock: <strong>@producto.Cantidad</strong>
-                            </p>
-                            <p class="text-muted small">
-                                Proveedor: @producto.IdProveedorNavigation?.NombreProveedor
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="card-footer bg-white border-0 pt-0">
-                        <form asp-action="Agregar" asp-controller="Carrito" method="post" class="mb-2">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="idProducto" value="@producto.Id" />
-                            <div class="input-group input-group-sm">
-                                <input type="number" name="cantidad" class="form-control" 
-                                       min="1" max="@producto.Cantidad" value="1" />
-                                <button type="submit" class="btn btn-success">
-                                    <i class="bi bi-cart-plus"></i>
-                                </button>
-                            </div>
-                        </form>
-
-                        @if (User.IsInRole("Administrador"))
-                        {
-                            <div class="d-flex gap-2">
-                                <a href="@Url.Action("Edit", new { id = producto.Id })" 
-                                   class="btn btn-outline-primary btn-sm flex-fill">
-                                    <i class="bi bi-pencil"></i> Editar
-                                </a>
-                                <a href="@Url.Action("Delete", new { id = producto.Id })" 
-                                   class="btn btn-outline-danger btn-sm flex-fill">
-                                    <i class="bi bi-trash"></i> Eliminar
-                                </a>
-                            </div>
-                        }
-                    </div>
-                </div>
-            </div>
+            <partial name="_ProductoCardPartial" model="producto"/>
         }
     </div>
 

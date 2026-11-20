@@ -1,0 +1,61 @@
+﻿@using GestorInventario.Domain.enums.Usuario
+@model GestorInventario.Application.DTOS.Products.ProductoCardViewmodelDto
+
+ <div class="col">
+                <div class="card h-100 border-0 shadow-sm hover-card">
+                    <!-- Imagen responsive -->
+                    <div class="position-relative">
+                        <img src="@Model.Imagen?width=600"
+                             srcset="@Model.Imagen?width=300 300w,
+                                     @Model.Imagen?width=600 600w,
+                                     @Model.Imagen?width=900 900w"
+                             class="card-img-top img-fluid"
+                             style="aspect-ratio: 16 / 9; object-fit: cover;"
+                             alt="@Model.NombreProducto"
+                             loading="lazy" />
+                    </div>
+
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">@Model.NombreProducto</h5>
+                        <p class="card-text flex-grow-1 text-muted small">@Model.Descripcion</p>
+
+                        <div class="mt-auto">
+                            <p class="fw-bold fs-5 mb-1">@Model.Precio.ToString("C")</p>
+                            <p class="text-muted small mb-2">
+                                Stock: <strong>@Model.Cantidad</strong>
+                            </p>
+                            <p class="text-muted small">
+                                Proveedor: @Model.NombreProveedor
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="card-footer bg-white border-0 pt-0">
+                        <form asp-action="Agregar" asp-controller="Carrito" method="post" class="mb-2">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="idProducto" value="@Model.Id" />
+                            <div class="input-group input-group-sm">
+                                <input type="number" name="cantidad" class="form-control" 
+                                       min="1" max="@Model.Cantidad" value="1" />
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-cart-plus"></i>
+                                </button>
+                            </div>
+                        </form>
+
+                        @if (User.IsInRole(Rol.Administrador.ToString()))
+                        {
+                            <div class="d-flex gap-2">
+                                <a asp-action="Edit" asp-route-id="@Model.Id"  
+                                   class="btn btn-outline-primary btn-sm flex-fill">
+                                    <i class="bi bi-pencil"></i> Editar
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@Model.Id"  
+                                   class="btn btn-outline-danger btn-sm flex-fill">
+                                    <i class="bi bi-trash"></i> Eliminar
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>

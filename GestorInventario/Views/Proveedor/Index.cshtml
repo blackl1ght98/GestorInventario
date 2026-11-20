@@ -58,51 +58,7 @@
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
             @foreach (var proveedor in Model.Proveedores)
             {
-                <div class="col">
-                    <div class="card h-100 border-0 shadow-sm hover-card transition-all">
-                        <div class="card-body p-4 d-flex flex-column">
-
-                            <!-- Nombre del Proveedor -->
-                            <h5 class="card-title fw-semibold text-primary mb-3">
-                                @proveedor.NombreProveedor
-                            </h5>
-
-                            <!-- Información -->
-                            <div class="mb-4">
-                                <p class="mb-2">
-                                    <i class="bi bi-telephone text-muted me-2"></i>
-                                    <strong>Contacto:</strong> @proveedor.Contacto
-                                </p>
-                                <p class="mb-2">
-                                    <i class="bi bi-geo-alt text-muted me-2"></i>
-                                    <strong>Dirección:</strong> @proveedor.Direccion
-                                </p>
-                                <p class="mb-0">
-                                    <i class="bi bi-person text-muted me-2"></i>
-                                    <strong>Usuario asignado:</strong>
-                                    @(proveedor.IdUsuarioNavigation?.NombreCompleto ?? "<span class='text-muted'>Sin usuario</span>")
-                                </p>
-                            </div>
-
-                            <!-- Acciones (solo Administrador) -->
-                            @if (User.IsInRole("Administrador"))
-                            {
-                                <div class="mt-auto pt-3 border-top">
-                                    <div class="d-flex flex-wrap gap-2">
-                                        <a asp-action="Edit" asp-route-id="@proveedor.Id"
-                                           class="btn btn-outline-primary flex-fill btn-sm">
-                                            <i class="bi bi-pencil me-1"></i> Actualizar
-                                        </a>
-                                        <a asp-action="Delete" asp-route-id="@proveedor.Id"
-                                           class="btn btn-outline-danger flex-fill btn-sm">
-                                            <i class="bi bi-trash me-1"></i> Eliminar
-                                        </a>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    </div>
-                </div>
+                <partial name="_ProveedorCardPartial" model="proveedor"/>
             }
         </div>
     }

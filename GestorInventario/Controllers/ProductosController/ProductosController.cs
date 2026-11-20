@@ -80,11 +80,21 @@ namespace GestorInventario.Controllers.ProductosController
                 var proveedores =
                     await _policyExecutor.ExecutePolicyAsync(() => _productRepository.ObtenerProveedores());
 
+                var dto = paginationResult.Items.Select(p => new ProductoCardViewmodelDto
+                {
+                    Cantidad = p.Cantidad,
+                    Descripcion = p.Descripcion,
+                    Id = p.Id,
+                    NombreProducto = p.NombreProducto,
+                    Imagen = p.Imagen,
+                    NombreProveedor = p.IdProveedorNavigation.NombreProveedor,
+                    Precio = p.Precio
 
+                }).ToList();
                 // Crear el ViewModel
                 var viewModel = new ProductsIndexViewModel
                 {
-                    Productos = paginationResult.Items,
+                    Productos = dto,
                     Paginas = paginationResult.Paginas.ToList(),
                     TotalPaginas = paginationResult.TotalPaginas,
                     PaginaActual = paginacion.Pagina,

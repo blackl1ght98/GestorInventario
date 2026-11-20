@@ -1,6 +1,6 @@
 ﻿using GestorInventario.Application.DTOS.Notification;
 using GestorInventario.Domain.enums.Notification;
-using GestorInventario.Domain.Models;
+
 using GestorInventario.Shared.Utilities;
 
 namespace GestorInventario.ViewModels.Notification

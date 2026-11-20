@@ -111,7 +111,11 @@ namespace GestorInventario.Infrastructure.Authentication.Middleware
                 Secure = true,
                 Expires = DateTime.UtcNow.AddHours(horas)
             });
-
+            var principal = await ValidateAccessTokenAsync(newAccessToken.Token);
+            if (principal != null)
+            {
+                context.User = principal;
+            }
             logger.LogInformation("Tokens regenerados con éxito para usuario {UserId}", userId);
         }
 

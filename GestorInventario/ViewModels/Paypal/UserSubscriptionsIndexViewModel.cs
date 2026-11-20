@@ -1,6 +1,6 @@
-﻿using GestorInventario.Application.DTOS;
+﻿
 using GestorInventario.Application.DTOS.Paypal;
-using GestorInventario.Domain.Models;
+
 using GestorInventario.Shared.Utilities;
 
 namespace GestorInventario.ViewModels.Paypal

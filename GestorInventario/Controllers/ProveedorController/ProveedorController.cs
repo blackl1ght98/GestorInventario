@@ -52,13 +52,22 @@ namespace GestorInventario.Controllers.ProveedorController
                     proveedores = proveedores.Where(s => s.NombreProveedor.Contains(buscar));
                 }
 
-                // 🔹 Usamos el helper directamente
+             
                 var paginationResult = await _policyExecutor.ExecutePolicyAsync(() =>
                     _paginationService.PaginarAsync(proveedores, paginacion)
                 );
+                var dto = paginationResult.Items.Select(p => new ProveedorCardViewmodelDto
+                {
+                    Id =  p.Id,
+                    NombreProveedor = p.NombreProveedor,
+                    Contacto = p.Contacto,
+                    Direccion = p.Direccion,
+                    NombreUsuario = p.IdUsuarioNavigation.NombreCompleto
+
+                }).ToList();
                 var viewModel = new SupplierIndexViewModel
                 {
-                    Proveedores = paginationResult.Items,
+                    Proveedores = dto,
                     Paginas = paginationResult.Paginas.ToList(),
                     TotalPaginas = paginationResult.TotalPaginas,
                     PaginaActual = paginacion.Pagina,

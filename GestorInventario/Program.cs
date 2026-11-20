@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationM
 using Microsoft.Net.Http.Headers;
 using System.Text.Json.Serialization;
 using GestorInventario.Composition;
+using GestorInventario.Domain.enums.Usuario;
 using GestorInventario.Infrastructure.Configuration;
 using GestorInventario.Infrastructure.Data.Seeders;
 using GestorInventario.Infrastructure.Extensions;
@@ -39,7 +40,6 @@ builder.Services.AddCors(options =>
 //Servicios generales
 builder.Services.AddMemoryCache();
 builder.Services.AddMvc();
-
 builder.Services.AddAntiforgery();
 builder.Services.AddHttpContextAccessor();
 
@@ -48,20 +48,16 @@ builder.Services.AddRepositories();
 builder.Services.AddApplicationServices();
 builder.Services.AddSingletonServices();
 builder.Services.AddBackgroundServices();
-
 PayPalInvoiceRendererBootstrap.Initialize();
-
-
+//Peticiones de paypal
 builder.Services.AddPayPalHttpClient(builder.Configuration);
 builder.Services.AddWebOptimizer();
-
-
-
+//Configuracion de la memoria cache
 builder.Services.AddHybridCacheService(useRedis);
-//Servicios personalizados de autenticacion
+//Configuracion de autenticacion
 builder.Services.AddConfigureAuthentication(builder.Configuration);
 
-//Fin de los servicios personalizados de autenticacion 
+
 
 builder.Services.ConfigureAntiforgery();
 
@@ -76,10 +72,10 @@ builder.Services.AddHsts(options =>
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("EsAdministrador", policy =>
-        policy.RequireAssertion(ctx => ctx.User.IsInRole("Administrador")));
+        policy.RequireAssertion(ctx => ctx.User.IsInRole(Rol.Administrador.ToString())));
 
     options.AddPolicy("EsUsuario", policy =>
-        policy.RequireAssertion(ctx => ctx.User.IsInRole("Usuario")));
+        policy.RequireAssertion(ctx => ctx.User.IsInRole(Rol.Usuario.ToString())));
 });
 builder.Services.AddSession(options =>
 {
@@ -92,7 +88,6 @@ builder.Services.AddSession(options =>
     //Cuando el usuario rechaza las cookies esto no se vera afectado
     options.Cookie.IsEssential = true;
     //Cuando el usuario rechaza las cookies esto no se vera afectado
-    // Cambios para túnel
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always; 
     options.Cookie.SameSite = SameSiteMode.None; // permite envío cross-site
 });

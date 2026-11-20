@@ -1,4 +1,5 @@
-﻿using GestorInventario.Domain.Models;
+﻿using GestorInventario.Application.DTOS.Products;
+
 
 using GestorInventario.Shared.Utilities;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -7,7 +8,7 @@ namespace GestorInventario.ViewModels.Products
 {
     public class ProductsIndexViewModel
     {
-        public required List<Producto> Productos { get; set; }
+        public required List<ProductoCardViewmodelDto> Productos { get; set; }
         public required List<PaginasModel> Paginas { get; set; }
         public int TotalPaginas { get; set; }
         public int PaginaActual { get; set; }
