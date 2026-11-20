@@ -137,11 +137,10 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasDefaultValue("PENDING_SYNC");
-            entity.Property(e => e.Status)
+            entity.Property(e => e.StatusCapture)
                 .HasMaxLength(20)
                 .IsUnicode(false)
-                .HasDefaultValue("PENDING_SYNC")
-                .HasColumnName("Status ");
+                .HasDefaultValue("PENDING_SYNC");
             entity.Property(e => e.TransactionFeeAmount).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.TransactionFeeCurrency)
                 .HasMaxLength(100)

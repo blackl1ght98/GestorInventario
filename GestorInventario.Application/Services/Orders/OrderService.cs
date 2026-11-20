@@ -151,7 +151,7 @@ public class OrderService : IOrderService
             {
                 PaymentId = detallePago.Id,
                 CaptureId = capture.CaptureId,
-                Status = capture.Status,
+                StatusCapture = capture.Status,
                 Amount = capture.Amount,
                 Currency = capture.Currency,
                 FinalCapture = capture.FinalCapture,

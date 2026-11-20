@@ -49,7 +49,7 @@ public static class PayPalPaymentMapper
             },
             Capture = ultimoCapture == null ? null : new CaptureInfo {
                 SaleId = ultimoCapture.CaptureId ?? string.Empty,
-                Status = ultimoCapture.Status ?? string.Empty,
+                Status = ultimoCapture.StatusCapture ?? string.Empty,
                 Amount = ultimoCapture.Amount ,
                 Currency = ultimoCapture.Currency ?? string.Empty,
                 ProtectionEligibility = ultimoCapture.ProtectionEligibility ?? string.Empty,

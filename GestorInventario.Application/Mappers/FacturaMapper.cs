@@ -29,7 +29,7 @@ public static class FacturaMapper
                     : "No disponible",
 
                 UltimoCaptureId = ultimoCapture?.CaptureId ?? "N/A",
-                UltimoCaptureStatus = ultimoCapture?.Status ?? "N/A",
+                UltimoCaptureStatus = ultimoCapture?.StatusCapture ?? "N/A",
                 TransaccionFeeAmount = ultimoCapture?.TransactionFeeAmount ?? 0,
                 TransaccionFeeCurrency = ultimoCapture?.TransactionFeeCurrency,
                 ExchangeRate = ultimoCapture?.ExchangeRate ?? 0,
