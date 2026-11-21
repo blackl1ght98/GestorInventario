@@ -1,4 +1,4 @@
-﻿namespace GestorInventario.Application.DTOS.Pedidos;
+﻿namespace GestorInventario.Application.DTOS.Orders;
 //Esto a cada producto
 public class DetallePedidoDto
 {

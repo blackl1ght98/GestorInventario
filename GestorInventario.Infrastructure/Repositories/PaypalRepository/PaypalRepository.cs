@@ -22,25 +22,25 @@ namespace GestorInventario.Infrastructure.Repositories.PaypalRepository
                    
          
         }
-        public async Task<PayPalPaymentDetail> ObtenerDetallePagoPorId(string paymentId)
+        public async Task<PayPalPaymentDetails> ObtenerDetallePagoPorId(string paymentId)
         {
-            var paypal = await _context.PayPalPaymentDetails.Include(x => x.PayPalPaymentCaptures).Include(x => x.PayPalPaymentItems).Include(x => x.PayPalPaymentShippings).Include(x=>x.PayPalPaymentRefunds).FirstOrDefaultAsync(x => x.Id == paymentId);
+            var paypal = await _context.PayPalPaymentDetails.Include(x => x.PayPalPaymentCaptures).Include(x => x.PayPalPaymentItems).Include(x => x.PayPalPaymentShipping).Include(x=>x.PayPalPaymentRefunds).FirstOrDefaultAsync(x => x.Id == paymentId);
             return paypal;
         }
-        public async Task<List<SubscriptionDetail>> ObtenerSuscriptcionesActivas(string planId)
+        public async Task<List<SubscriptionDetails>> ObtenerSuscriptcionesActivas(string planId)
         {
             return await _context.SubscriptionDetails
                 .Where(s => s.PlanId == planId && s.Status != "CANCELLED")
                 .ToListAsync();
         }
-        public async Task<PlanDetail> ObtenerPlanPorIdAsync(string planId)
+        public async Task<PlanDetails> ObtenerPlanPorIdAsync(string planId)
         {
             var plan= await _context.PlanDetails.FirstOrDefaultAsync(p => p.PaypalPlanId == planId);
             return plan;
         }
 
        
-        public IQueryable<PlanDetail> ObtenerPlanes()
+        public IQueryable<PlanDetails> ObtenerPlanes()
         {
             return _context.PlanDetails
                            .OrderBy(s => s.PaypalPlanId)
@@ -48,11 +48,11 @@ namespace GestorInventario.Infrastructure.Repositories.PaypalRepository
         }
         public async Task<List<UserSubscription>> ObtenerSusbcripcionesUsuario(string planId)
         {
-            return await _context.UserSubscriptions
+            return await _context.UserSubscription
                 .Where(us => us.PaypalPlanId == planId)
                 .ToListAsync();
         }
-        public IQueryable<SubscriptionDetail> ObtenerSubscripciones()
+        public IQueryable<SubscriptionDetails> ObtenerSubscripciones()
         {
             return _context.SubscriptionDetails
                            .OrderBy(s => s.SubscriptionId)     
@@ -60,29 +60,29 @@ namespace GestorInventario.Infrastructure.Repositories.PaypalRepository
         }
         public  IQueryable<UserSubscription> ObtenerSubscripcionesUsuario(int usuarioId)
         {
-            var queryable = _context.UserSubscriptions.Include(x=>x.Subscription)
+            var queryable = _context.UserSubscription.Include(x=>x.Subscription)
                    .Include(x => x.User)
                    .Where(x => x.UserId == usuarioId);
             return queryable;
         }
-        public async Task<Rembolso> ObtenRembolsoAsync(string numeroPedido) => await _context.Rembolsos.FirstOrDefaultAsync(x => x.NumeroPedido == numeroPedido);
-        public async Task<SubscriptionDetail> ObtenerSubscriptionIdAsync(string subscriptionId) => await _context.SubscriptionDetails.FirstOrDefaultAsync(s => s.SubscriptionId == subscriptionId);
-        public async Task<UserSubscription> ObtenerSubscricionUsuarioAsync(int userId, string subscriptionId) => await _context.UserSubscriptions.FirstOrDefaultAsync(us => us.UserId == userId && us.SubscriptionId == subscriptionId);
-        public async Task<OperationResult<PlanDetail>> AgregarPlanAsync(PlanDetail plan)
+        public async Task<Rembolso> ObtenRembolsoAsync(string numeroPedido) => await _context.Rembolso.FirstOrDefaultAsync(x => x.NumeroPedido == numeroPedido);
+        public async Task<SubscriptionDetails> ObtenerSubscriptionIdAsync(string subscriptionId) => await _context.SubscriptionDetails.FirstOrDefaultAsync(s => s.SubscriptionId == subscriptionId);
+        public async Task<UserSubscription> ObtenerSubscricionUsuarioAsync(int userId, string subscriptionId) => await _context.UserSubscription.FirstOrDefaultAsync(us => us.UserId == userId && us.SubscriptionId == subscriptionId);
+        public async Task<OperationResult<PlanDetails>> AgregarPlanAsync(PlanDetails plan)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.AddEntityAsync(plan);
-                return OperationResult<PlanDetail>.Ok( plan);
+                return OperationResult<PlanDetails>.Ok( plan);
             });
         }
 
-        public async Task<OperationResult<PlanDetail>> ActualizarPlanAsync(PlanDetail plan)
+        public async Task<OperationResult<PlanDetails>> ActualizarPlanAsync(PlanDetails plan)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.UpdateEntityAsync(plan);
-                return OperationResult<PlanDetail>.Ok( plan);
+                return OperationResult<PlanDetails>.Ok( plan);
             });
         }
         public async Task<OperationResult<Rembolso>> AgregarRembolsoAsync(Rembolso rembolso)
@@ -101,20 +101,20 @@ namespace GestorInventario.Infrastructure.Repositories.PaypalRepository
                 return OperationResult<Rembolso>.Ok(rembolso);
             });
         }
-        public async Task<OperationResult<SubscriptionDetail>> AgregarDetallesSubscripcionAsync(SubscriptionDetail subscripcion)
+        public async Task<OperationResult<SubscriptionDetails>> AgregarDetallesSubscripcionAsync(SubscriptionDetails subscripcion)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.AddEntityAsync(subscripcion);
-                return OperationResult<SubscriptionDetail>.Ok( subscripcion);
+                return OperationResult<SubscriptionDetails>.Ok( subscripcion);
             });
         }
-        public async Task<OperationResult<SubscriptionDetail>> ActualizarDetallesSubscripcionAsync(SubscriptionDetail subscripcion)
+        public async Task<OperationResult<SubscriptionDetails>> ActualizarDetallesSubscripcionAsync(SubscriptionDetails subscripcion)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.UpdateEntityAsync(subscripcion);
-                return OperationResult<SubscriptionDetail>.Ok( subscripcion);
+                return OperationResult<SubscriptionDetails>.Ok( subscripcion);
             });
         }
         public async Task<OperationResult<UserSubscription>> AgregarSubscripcionUsuarioAsync(UserSubscription subscripcion)

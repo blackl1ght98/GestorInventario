@@ -73,7 +73,7 @@ namespace GestorInventario.Application.Services.ShopCart
         }
 
         // Método para crear un shopCart si no existe
-        public async Task<OperationResult<Pedido>> CrearCarritoUsuario(int userId)
+        public async Task<OperationResult<Pedidos>> CrearCarritoUsuario(int userId)
         {
             try
             {
@@ -81,7 +81,7 @@ namespace GestorInventario.Application.Services.ShopCart
 
                 if (carrito == null)
                 {
-                    carrito = new Pedido
+                    carrito = new Pedidos
                     {
                         IdUsuario = userId,
                         NumeroPedido = GenerarNumPedido.GenerarNumeroPedido(),
@@ -93,12 +93,12 @@ namespace GestorInventario.Application.Services.ShopCart
                     await _orderRepository.AgregarPedidoAsync(carrito);
                 }
 
-                return OperationResult<Pedido>.Ok(carrito);
+                return OperationResult<Pedidos>.Ok(carrito);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Ocurrio un error inesperado");
-                return OperationResult<Pedido>.Fail("Error al crear el carrito");
+                return OperationResult<Pedidos>.Fail("Error al crear el carrito");
             }
         }
 

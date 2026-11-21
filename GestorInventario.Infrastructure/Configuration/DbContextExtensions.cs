@@ -1,10 +1,9 @@
-﻿
-using GestorInventario.Infrastructure.Configuration;
-using GestorInventario.Infrastructure.Data;
+﻿using GestorInventario.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
-
-namespace GestorInventario.Extensions
+namespace GestorInventario.Infrastructure.Configuration
 {
     public static  class DbContextExtensions
     {

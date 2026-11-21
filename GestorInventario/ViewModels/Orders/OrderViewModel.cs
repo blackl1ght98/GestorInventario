@@ -1,7 +1,4 @@
-﻿
-using GestorInventario.Application.DTOS.Pedidos;
-
-
+﻿using GestorInventario.Application.DTOS.Orders;
 using GestorInventario.Shared.Utilities;
 
 namespace GestorInventario.ViewModels.Orders

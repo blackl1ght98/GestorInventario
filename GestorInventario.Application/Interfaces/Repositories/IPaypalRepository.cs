@@ -6,28 +6,28 @@ namespace GestorInventario.Application.Interfaces.Repositories
     public interface IPaypalRepository
     {
         //Consultas
-        Task<List<SubscriptionDetail>> ObtenerSuscriptcionesActivas(string planId);
-        IQueryable<SubscriptionDetail> ObtenerSubscripciones();
+        Task<List<SubscriptionDetails>> ObtenerSuscriptcionesActivas(string planId);
+        IQueryable<SubscriptionDetails> ObtenerSubscripciones();
         IQueryable<UserSubscription> ObtenerSubscripcionesUsuario(int usuarioId);
-        Task<PlanDetail> ObtenerPlanPorIdAsync(string planId);
-        Task<SubscriptionDetail> ObtenerSubscriptionIdAsync(string subscriptionId);
+        Task<PlanDetails> ObtenerPlanPorIdAsync(string planId);
+        Task<SubscriptionDetails> ObtenerSubscriptionIdAsync(string subscriptionId);
         Task<Rembolso> ObtenRembolsoAsync(string numeroPedido);
         Task<UserSubscription> ObtenerSubscricionUsuarioAsync(int userId, string subscriptionId);
         Task<List<UserSubscription>> ObtenerSusbcripcionesUsuario(string planId);
-        IQueryable<PlanDetail> ObtenerPlanes();
+        IQueryable<PlanDetails> ObtenerPlanes();
 
     
         //Operaciones
-        Task<OperationResult<PlanDetail>> AgregarPlanAsync(PlanDetail plan);
+        Task<OperationResult<PlanDetails>> AgregarPlanAsync(PlanDetails plan);
         Task<OperationResult<Rembolso>> AgregarRembolsoAsync(Rembolso rembolso);
         Task<OperationResult<Rembolso>> ActualizarRembolsoAsync(Rembolso rembolso);     
-        Task<OperationResult<SubscriptionDetail>> AgregarDetallesSubscripcionAsync(SubscriptionDetail subscripcion);
-        Task<OperationResult<SubscriptionDetail>> ActualizarDetallesSubscripcionAsync(SubscriptionDetail subscripcion);
-        Task<OperationResult<PlanDetail>> ActualizarPlanAsync(PlanDetail plan);
+        Task<OperationResult<SubscriptionDetails>> AgregarDetallesSubscripcionAsync(SubscriptionDetails subscripcion);
+        Task<OperationResult<SubscriptionDetails>> ActualizarDetallesSubscripcionAsync(SubscriptionDetails subscripcion);
+        Task<OperationResult<PlanDetails>> ActualizarPlanAsync(PlanDetails plan);
         Task<OperationResult<UserSubscription>> AgregarSubscripcionUsuarioAsync(UserSubscription subscripcion);
       
         List<string> GetCategoriesFromEnum();
-        Task<PayPalPaymentDetail> ObtenerDetallePagoPorId(string paymentId);
+        Task<PayPalPaymentDetails> ObtenerDetallePagoPorId(string paymentId);
         
             
     }

@@ -11,7 +11,7 @@ namespace GestorInventario.Infrastructure.Authentication.AccessToken
         public AsymmetricFixedTokenStrategy(IJwtTokenSettings jwtTokenSettings)
             : base( jwtTokenSettings) { }
 
-        protected override Task<SigningCredentials> GetSigningCredentialsAsync(Usuario usuario)
+        protected override Task<SigningCredentials> GetSigningCredentialsAsync(Usuarios usuario)
         {
             var privateKeyXml = _jwtTokenSettings.ObtenerClavePrivada();
 

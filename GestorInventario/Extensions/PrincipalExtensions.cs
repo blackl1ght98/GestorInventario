@@ -1,13 +1,14 @@
 using System.Security.Claims;
-using GestorInventario.Application.Constants;
-using GestorInventario.Application.Services.User;
+
+using GestorInventario.Domain.enums.Usuario;
+
 
 namespace GestorInventario.Extensions
 {
     public static class PrincipalExtensions
     {
      
-        private const string AdministradorRole = Roles.Administrador;
+        private static string AdministradorRole =Rol.Administrador.ToString();
 
         public static bool IsAdministrador(this ClaimsPrincipal user)
             => user.IsInRole(AdministradorRole);

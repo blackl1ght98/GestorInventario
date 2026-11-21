@@ -1,5 +1,5 @@
 ﻿using GestorInventario.Application.DTOS;
-using GestorInventario.Application.DTOS.Pedidos;
+using GestorInventario.Application.DTOS.Orders;
 using GestorInventario.ViewModels.Orders;
 
 namespace GestorInventario.Mappers;

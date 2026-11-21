@@ -18,9 +18,9 @@ namespace GestorInventario.Infrastructure.Authentication.AccessToken
         }
 
         // Cada estrategia hija solo se encarga de proveer las credenciales de firma
-        protected abstract Task<SigningCredentials> GetSigningCredentialsAsync(Usuario usuario);
+        protected abstract Task<SigningCredentials> GetSigningCredentialsAsync(Usuarios usuario);
 
-        public virtual async Task<LoginResponseDto> GenerateTokenAsync(Usuario usuario)
+        public virtual async Task<LoginResponseDto> GenerateTokenAsync(Usuarios usuario)
         {
             if (usuario.IdRolNavigation is null)
             {

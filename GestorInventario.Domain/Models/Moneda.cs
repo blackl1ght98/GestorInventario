@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace GestorInventario.Domain.Models;
 
-public partial class Monedum
+public partial class Moneda
 {
     public int Id { get; set; }
 

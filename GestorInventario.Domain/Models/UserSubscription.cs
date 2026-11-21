@@ -15,7 +15,7 @@ public partial class UserSubscription
 
     public string? PaypalPlanId { get; set; }
 
-    public virtual SubscriptionDetail Subscription { get; set; } = null!;
+    public virtual SubscriptionDetails Subscription { get; set; } = null!;
 
-    public virtual Usuario? User { get; set; }
+    public virtual Usuarios? User { get; set; }
 }

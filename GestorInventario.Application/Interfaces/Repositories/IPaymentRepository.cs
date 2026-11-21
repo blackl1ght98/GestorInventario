@@ -9,18 +9,18 @@ namespace GestorInventario.Application.Interfaces.Repositories
 
         //Consultas
        
-        Task<PayPalPaymentDetail> ObtenerDetallesPago(string id);
+        Task<PayPalPaymentDetails> ObtenerDetallesPago(string id);
      
-        Task<PayPalPaymentDetail> ObtenerDetallesPagoPorIDAsync(string pagoId);
+        Task<PayPalPaymentDetails> ObtenerDetallesPagoPorIDAsync(string pagoId);
      
         //Operaciones
-        Task<OperationResult<PayPalPaymentDetail>> AgregarDetallePagoAsync(PayPalPaymentDetail detalle);
-        Task<OperationResult<PayPalPaymentItem>> AgregarPagoItemAsync(PayPalPaymentItem detalle);
-        Task<OperationResult<string>> EliminarDetallesPagoAsync(PayPalPaymentDetail pago);
+        Task<OperationResult<PayPalPaymentDetails>> AgregarDetallePagoAsync(PayPalPaymentDetails detalle);
+        Task<OperationResult<PayPalPaymentItems>> AgregarPagoItemAsync(PayPalPaymentItems detalle);
+        Task<OperationResult<string>> EliminarDetallesPagoAsync(PayPalPaymentDetails pago);
         Task<OperationResult<PayPalPaymentShipping>> AgregarInfoEnvioAsync(PayPalPaymentShipping detalle);
-        Task<OperationResult<PayPalPaymentCapture>> AgregarCaptureAsync(PayPalPaymentCapture detalle);
+        Task<OperationResult<PayPalPaymentCaptures>> AgregarCaptureAsync(PayPalPaymentCaptures detalle);
 
-        Task<OperationResult<PayPalPaymentRefund>> AgregarRefundAsync(PayPalPaymentRefund refund);
+        Task<OperationResult<PayPalPaymentRefunds>> AgregarRefundAsync(PayPalPaymentRefunds refund);
 
     }
 }

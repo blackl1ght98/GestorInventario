@@ -23,7 +23,7 @@ namespace GestorInventario.Infrastructure.Authentication.RefreshToken
             _logger = logger;
         }
 
-        protected override Task<SigningCredentials> GetSigningCredentialsAsync(Usuario usuario)
+        protected override Task<SigningCredentials> GetSigningCredentialsAsync(Usuarios usuario)
         {
             var clave = _jwtTokenSettings.ObtenerClaveJWT();
 

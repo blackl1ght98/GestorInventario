@@ -21,5 +21,5 @@ public partial class PayPalPaymentShipping
 
     public string CountryCode { get; set; } = null!;
 
-    public virtual PayPalPaymentDetail Payment { get; set; } = null!;
+    public virtual PayPalPaymentDetails Payment { get; set; } = null!;
 }

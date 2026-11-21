@@ -22,7 +22,7 @@ namespace GestorInventario.Infrastructure.Authentication.RefreshToken
             _cache = cache;
         }
 
-        protected override async Task<SigningCredentials> GetSigningCredentialsAsync(Usuario usuario)
+        protected override async Task<SigningCredentials> GetSigningCredentialsAsync(Usuarios usuario)
         {
             using var rsa = RSA.Create(2048);
             var privateKey = rsa.ExportParameters(true);

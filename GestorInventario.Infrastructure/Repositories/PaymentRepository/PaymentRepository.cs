@@ -19,28 +19,28 @@ namespace GestorInventario.Infrastructure.Repositories.PaymentRepository
          
         }
     
-        public async Task<PayPalPaymentDetail> ObtenerDetallesPagoPorIDAsync(string pagoId)=> await _context.PayPalPaymentDetails
+        public async Task<PayPalPaymentDetails> ObtenerDetallesPagoPorIDAsync(string pagoId)=> await _context.PayPalPaymentDetails
                 .Include(d => d.PayPalPaymentItems)
                 .Include(d => d.PayPalPaymentCaptures)
-                .Include(d => d.PayPalPaymentShippings)
+                .Include(d => d.PayPalPaymentShipping)
                 .FirstOrDefaultAsync(d => d.Id == pagoId);
       
-        public async Task<PayPalPaymentDetail> ObtenerDetallesPago(string id) => await _context.PayPalPaymentDetails.Include(d => d.PayPalPaymentItems).Include(x => x.PayPalPaymentShippings).Include(x => x.PayPalPaymentCaptures).Include(x=>x.PayPalPaymentRefunds).FirstOrDefaultAsync(x => x.Id == id);
+        public async Task<PayPalPaymentDetails> ObtenerDetallesPago(string id) => await _context.PayPalPaymentDetails.Include(d => d.PayPalPaymentItems).Include(x => x.PayPalPaymentShipping).Include(x => x.PayPalPaymentCaptures).Include(x=>x.PayPalPaymentRefunds).FirstOrDefaultAsync(x => x.Id == id);
        
-        public async Task<OperationResult<PayPalPaymentDetail>> AgregarDetallePagoAsync(PayPalPaymentDetail detalle)
+        public async Task<OperationResult<PayPalPaymentDetails>> AgregarDetallePagoAsync(PayPalPaymentDetails detalle)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.AddEntityAsync(detalle);
-                return OperationResult<PayPalPaymentDetail>.Ok( detalle);
+                return OperationResult<PayPalPaymentDetails>.Ok( detalle);
             });
         }
-        public async Task<OperationResult<PayPalPaymentItem>> AgregarPagoItemAsync(PayPalPaymentItem detalle)
+        public async Task<OperationResult<PayPalPaymentItems>> AgregarPagoItemAsync(PayPalPaymentItems detalle)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.AddEntityAsync(detalle);
-                return OperationResult<PayPalPaymentItem>.Ok( detalle);
+                return OperationResult<PayPalPaymentItems>.Ok( detalle);
             });
         }
      
@@ -52,30 +52,30 @@ namespace GestorInventario.Infrastructure.Repositories.PaymentRepository
                 return OperationResult<PayPalPaymentShipping>.Ok(detalle);
             });
         }
-        public async Task<OperationResult<PayPalPaymentCapture>> AgregarCaptureAsync(PayPalPaymentCapture detalle)
+        public async Task<OperationResult<PayPalPaymentCaptures>> AgregarCaptureAsync(PayPalPaymentCaptures detalle)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.AddEntityAsync(detalle);
-                return OperationResult<PayPalPaymentCapture>.Ok( detalle);
+                return OperationResult<PayPalPaymentCaptures>.Ok( detalle);
             });
         }
         
-        public async Task<OperationResult<PayPalPaymentRefund>> AgregarRefundAsync(PayPalPaymentRefund refund)
+        public async Task<OperationResult<PayPalPaymentRefunds>> AgregarRefundAsync(PayPalPaymentRefunds refund)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.AddEntityAsync(refund);
-                return OperationResult<PayPalPaymentRefund>.Ok( refund);
+                return OperationResult<PayPalPaymentRefunds>.Ok( refund);
             });
         }
-        public async Task<OperationResult<string>> EliminarDetallesPagoAsync(PayPalPaymentDetail pago)
+        public async Task<OperationResult<string>> EliminarDetallesPagoAsync(PayPalPaymentDetails pago)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.DeleteRangeEntityAsync(pago.PayPalPaymentItems);
                 await _context.DeleteRangeEntityAsync(pago.PayPalPaymentCaptures);
-                await _context.DeleteRangeEntityAsync(pago.PayPalPaymentShippings);
+                await _context.DeleteRangeEntityAsync(pago.PayPalPaymentShipping);
                 await _context.DeleteRangeEntityAsync(pago.PayPalPaymentRefunds);
 
 

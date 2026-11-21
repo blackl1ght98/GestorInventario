@@ -24,7 +24,7 @@ public class ProviderService : IProviderService
             return OperationResult<string>.Fail("Ya existe un proveedor registrado con ese nombre");
         }
 
-        var proveedor = new Proveedore()
+        var proveedor = new Proveedores()
         {
             NombreProveedor = model.NombreProveedor,
             Contacto = model.Contacto,
@@ -53,7 +53,7 @@ public class ProviderService : IProviderService
         return OperationResult<string>.Ok("Proveedor editado con éxito");
     }
 
-    private async Task ActualizarProveedor(Proveedore proveedor, EditarProveedorDto model)
+    private async Task ActualizarProveedor(Proveedores proveedor, EditarProveedorDto model)
     {
         proveedor.NombreProveedor = model.NombreProveedor;
         proveedor.Contacto = model.Contacto;

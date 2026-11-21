@@ -6,7 +6,7 @@ namespace GestorInventario.Application.Interfaces.Services
     public interface IShopCartService
     {
         Task EliminarCarritoActivoAsync();
-        Task<OperationResult<Pedido>> CrearCarritoUsuario(int userId);
+        Task<OperationResult<Pedidos>> CrearCarritoUsuario(int userId);
         Task<OperationResult<string>> Incremento(int id);
         Task<OperationResult<string>> AgregarProductoAlCarrito(int idProducto, int cantidad, int usuarioId);
         Task<OperationResult<string>> Decremento(int id);

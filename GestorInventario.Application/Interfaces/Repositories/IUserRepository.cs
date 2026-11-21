@@ -8,14 +8,14 @@ namespace GestorInventario.Application.Interfaces.Repositories
         //Consulta
  
       
-        IQueryable<Usuario> ObtenerUsuarios();
-        IQueryable<Usuario> ObtenerUsuariosPorRol(int rolId);
-        Task<Usuario> ObtenerUsuarioConProveedoresYPedidosAsync(int id);
+        IQueryable<Usuarios> ObtenerUsuarios();
+        IQueryable<Usuarios> ObtenerUsuariosPorRol(int rolId);
+        Task<Usuarios> ObtenerUsuarioConProveedoresYPedidosAsync(int id);
         Task<List<string>> ObtenerEmailsAdministradoresAsync(CancellationToken stoppingToken = default);
 
-        Task<Usuario> ObtenerUsuarioPorId(int id);
+        Task<Usuarios> ObtenerUsuarioPorId(int id);
 
-        Task<Usuario> ObtenerEmail(string email);
+        Task<Usuarios> ObtenerEmail(string email);
 
         Task<bool> AnyAsync();
 
@@ -23,17 +23,17 @@ namespace GestorInventario.Application.Interfaces.Repositories
 
         Task<bool> ExisteEmailAsync(string email);
 
-        Task<OperationResult<Usuario>> EliminarUsuarioAsync(Usuario usuario);
+        Task<OperationResult<Usuarios>> EliminarUsuarioAsync(Usuarios usuario);
 
      
-        Task<OperationResult<Usuario>> AgregarUsuarioAsync(Usuario usuario);
-        Task<List<Usuario>> ObtenerUsuariosAsync();
+        Task<OperationResult<Usuarios>> AgregarUsuarioAsync(Usuarios usuario);
+        Task<List<Usuarios>> ObtenerUsuariosAsync();
 
-        Task<Usuario> ExisteUsuarioConEmailAsync(string email);
+        Task<Usuarios> ExisteUsuarioConEmailAsync(string email);
         //Operaciones
 
         
-        Task<OperationResult<string>> ActualizarUsuarioAsync(Usuario usuario);
+        Task<OperationResult<string>> ActualizarUsuarioAsync(Usuarios usuario);
         Task<OperationResult<string>> ReasignarProveedoresAsync(int usuarioOrigenId, int usuarioDestinoId);
   
 

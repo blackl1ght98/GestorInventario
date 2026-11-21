@@ -15,8 +15,8 @@ namespace GestorInventario.Application.Mappers
         /// Si son idénticos, devuelve false sin tocar nada.
         /// </summary>
         public static bool TryUpdateFromPayPal(
-            SubscriptionDetail existing,
-            SubscriptionDetail incoming)
+            SubscriptionDetails existing,
+            SubscriptionDetails incoming)
         {
             bool hasChanges = !AreEqual(existing, incoming);
 
@@ -49,7 +49,7 @@ namespace GestorInventario.Application.Mappers
             return true;
         }
 
-        private static bool AreEqual(SubscriptionDetail a, SubscriptionDetail b)
+        private static bool AreEqual(SubscriptionDetails a, SubscriptionDetails b)
         {
             return a.PlanId == b.PlanId
                 && a.Status == b.Status
@@ -73,13 +73,13 @@ namespace GestorInventario.Application.Mappers
                 && a.TrialTotalCycles == b.TrialTotalCycles
                 && a.TrialFixedPrice == b.TrialFixedPrice;
         }
-        public static SubscriptionDetail MapPayPalSubscriptionToEntity(
+        public static SubscriptionDetails MapPayPalSubscriptionToEntity(
         PaypalSubscriptionDto paypalResponse,
-        PlanDetail? plan)
+        PlanDetails? plan)
         {
             var billingInfo = paypalResponse.BillingInfo;
 
-            var entity = new SubscriptionDetail
+            var entity = new SubscriptionDetails
             {
                 // ── Identificación ──
                 SubscriptionId = paypalResponse.Id ?? string.Empty,
@@ -154,7 +154,7 @@ namespace GestorInventario.Application.Mappers
             return cycles?.FirstOrDefault() != null ? selector(cycles.First()) : 0;
         }
 
-        private static DateTime CalculateFinalPaymentTime(BillingInfoDto? billingInfo, PlanDetail? plan)
+        private static DateTime CalculateFinalPaymentTime(BillingInfoDto? billingInfo, PlanDetails? plan)
         {
             // Si PayPal envía fecha final explícita, usarla
             if (billingInfo?.FinalPaymentTime != null)

@@ -20,7 +20,7 @@ namespace GestorInventario.Infrastructure.Repositories.RembolsoRepository
 
         public Task<IQueryable<Rembolso>> ObtenerRembolsos()
         {
-             return Task.FromResult(_context.Rembolsos
+             return Task.FromResult(_context.Rembolso
             .Include(x => x.Pedido)  
             .AsQueryable());
         }
@@ -28,7 +28,7 @@ namespace GestorInventario.Infrastructure.Repositories.RembolsoRepository
         {
             return await _context.ExecuteInTransactionAsync(async () =>
             {
-                var rembolso = await _context.Rembolsos.FindAsync(id);
+                var rembolso = await _context.Rembolso.FindAsync(id);
                 if (rembolso == null)
                 {
                     return OperationResult<string>.Fail();

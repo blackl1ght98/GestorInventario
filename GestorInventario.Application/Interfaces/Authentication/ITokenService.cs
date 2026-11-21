@@ -5,6 +5,6 @@ namespace GestorInventario.Application.Interfaces.Authentication
 {
     public interface ITokenService
     {
-        Task<LoginResponseDto> GenerarToken(Usuario credencialesUsuario);
+        Task<LoginResponseDto> GenerarToken(Usuarios credencialesUsuario);
     }
 }

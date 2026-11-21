@@ -5,7 +5,7 @@ namespace GestorInventario.Application.Mappers;
 
 public static class FacturaMapper
     {
-        public static FacturaPdfDto ToDto(PayPalPaymentDetail data)
+        public static FacturaPdfDto ToDto(PayPalPaymentDetails data)
         {
             if (data == null) return null;
 
@@ -13,7 +13,7 @@ public static class FacturaMapper
                 .OrderByDescending(c => c.Id)
                 .FirstOrDefault();
 
-            var primerEnvio = data.PayPalPaymentShippings?.FirstOrDefault();
+            var primerEnvio = data.PayPalPaymentShipping?.FirstOrDefault();
 
             return new FacturaPdfDto
             {

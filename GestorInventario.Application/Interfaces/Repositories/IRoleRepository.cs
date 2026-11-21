@@ -6,15 +6,15 @@ namespace GestorInventario.Application.Interfaces.Repositories
     public interface IRoleRepository
     {
         
-        IQueryable<Role> ObtenerRoles();
+        IQueryable<Roles> ObtenerRoles();
       
-        Task<List<Role>> GetAllAsync();
+        Task<List<Roles>> GetAllAsync();
 
-        Task<Role?> GetRolByNameAsync(string nombre);
-        Task<Role?> GetByIdRolAsync(int idRol);
+        Task<Roles?> GetRolByNameAsync(string nombre);
+        Task<Roles?> GetByIdRolAsync(int idRol);
 
         string? ObtenerNombreRolPorId(int idRol);
         //Operaciones
-        Task<OperationResult<Role>> AddAsync(Role rol);
+        Task<OperationResult<Roles>> AddAsync(Roles rol);
     }
 }

@@ -12,39 +12,39 @@ public partial class GestorInventarioContext : DbContext
     {
     }
 
-    public virtual DbSet<DetallePedido> DetallePedidos { get; set; }
+    public virtual DbSet<DetallePedido> DetallePedido { get; set; }
 
-    public virtual DbSet<Monedum> Moneda { get; set; }
+    public virtual DbSet<Moneda> Moneda { get; set; }
 
-    public virtual DbSet<Notificacion> Notificacions { get; set; }
+    public virtual DbSet<Notificacion> Notificacion { get; set; }
 
-    public virtual DbSet<PayPalPaymentCapture> PayPalPaymentCaptures { get; set; }
+    public virtual DbSet<PayPalPaymentCaptures> PayPalPaymentCaptures { get; set; }
 
-    public virtual DbSet<PayPalPaymentDetail> PayPalPaymentDetails { get; set; }
+    public virtual DbSet<PayPalPaymentDetails> PayPalPaymentDetails { get; set; }
 
-    public virtual DbSet<PayPalPaymentItem> PayPalPaymentItems { get; set; }
+    public virtual DbSet<PayPalPaymentItems> PayPalPaymentItems { get; set; }
 
-    public virtual DbSet<PayPalPaymentRefund> PayPalPaymentRefunds { get; set; }
+    public virtual DbSet<PayPalPaymentRefunds> PayPalPaymentRefunds { get; set; }
 
-    public virtual DbSet<PayPalPaymentShipping> PayPalPaymentShippings { get; set; }
+    public virtual DbSet<PayPalPaymentShipping> PayPalPaymentShipping { get; set; }
 
-    public virtual DbSet<Pedido> Pedidos { get; set; }
+    public virtual DbSet<Pedidos> Pedidos { get; set; }
 
-    public virtual DbSet<PlanDetail> PlanDetails { get; set; }
+    public virtual DbSet<PlanDetails> PlanDetails { get; set; }
 
-    public virtual DbSet<Producto> Productos { get; set; }
+    public virtual DbSet<Productos> Productos { get; set; }
 
-    public virtual DbSet<Proveedore> Proveedores { get; set; }
+    public virtual DbSet<Proveedores> Proveedores { get; set; }
 
-    public virtual DbSet<Rembolso> Rembolsos { get; set; }
+    public virtual DbSet<Rembolso> Rembolso { get; set; }
 
-    public virtual DbSet<Role> Roles { get; set; }
+    public virtual DbSet<Roles> Roles { get; set; }
 
-    public virtual DbSet<SubscriptionDetail> SubscriptionDetails { get; set; }
+    public virtual DbSet<SubscriptionDetails> SubscriptionDetails { get; set; }
 
-    public virtual DbSet<UserSubscription> UserSubscriptions { get; set; }
+    public virtual DbSet<UserSubscription> UserSubscription { get; set; }
 
-    public virtual DbSet<Usuario> Usuarios { get; set; }
+    public virtual DbSet<Usuarios> Usuarios { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -52,24 +52,22 @@ public partial class GestorInventarioContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__DetalleP__3214EC07A64B3C50");
 
-            entity.ToTable("DetallePedido");
-
             entity.HasIndex(e => e.PedidoId, "IX_DetallePedido_PedidoId");
 
             entity.HasIndex(e => e.ProductoId, "IX_DetallePedido_ProductoId");
 
-            entity.HasOne(d => d.Pedido).WithMany(p => p.DetallePedidos)
+            entity.HasOne(d => d.Pedido).WithMany(p => p.DetallePedido)
                 .HasForeignKey(d => d.PedidoId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__DetallePe__Pedid__3CDEFCE5");
 
-            entity.HasOne(d => d.Producto).WithMany(p => p.DetallePedidos)
+            entity.HasOne(d => d.Producto).WithMany(p => p.DetallePedido)
                 .HasForeignKey(d => d.ProductoId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__DetallePe__Produ__65370702");
         });
 
-        modelBuilder.Entity<Monedum>(entity =>
+        modelBuilder.Entity<Moneda>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Moneda__3214EC0783509138");
 
@@ -85,8 +83,6 @@ public partial class GestorInventarioContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC077EE9AF45");
 
-            entity.ToTable("Notificacion");
-
             entity.Property(e => e.FechaCreacion).HasColumnType("datetime");
             entity.Property(e => e.Mensaje)
                 .HasMaxLength(100)
@@ -98,13 +94,13 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false);
 
-            entity.HasOne(d => d.Usuario).WithMany(p => p.Notificacions)
+            entity.HasOne(d => d.Usuario).WithMany(p => p.Notificacion)
                 .HasForeignKey(d => d.UsuarioId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_UsuarioId");
         });
 
-        modelBuilder.Entity<PayPalPaymentCapture>(entity =>
+        modelBuilder.Entity<PayPalPaymentCaptures>(entity =>
         {
             entity.HasIndex(e => e.PaymentId, "IX_PayPalPaymentCaptures_PaymentId");
 
@@ -161,7 +157,7 @@ public partial class GestorInventarioContext : DbContext
                 .HasConstraintName("FK_PayPalPaymentCaptures_Pedido");
         });
 
-        modelBuilder.Entity<PayPalPaymentDetail>(entity =>
+        modelBuilder.Entity<PayPalPaymentDetails>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3213E83F4A2A9234");
 
@@ -238,7 +234,7 @@ public partial class GestorInventarioContext : DbContext
                 .HasColumnName("update_time");
         });
 
-        modelBuilder.Entity<PayPalPaymentItem>(entity =>
+        modelBuilder.Entity<PayPalPaymentItems>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__PayPalPa__3213E83F77BE0112");
 
@@ -275,7 +271,7 @@ public partial class GestorInventarioContext : DbContext
                 .HasConstraintName("FK__PayPalPay__payPa__6BCEF5F8");
         });
 
-        modelBuilder.Entity<PayPalPaymentRefund>(entity =>
+        modelBuilder.Entity<PayPalPaymentRefunds>(entity =>
         {
             entity.HasIndex(e => e.PaymentId, "IX_PayPalPaymentRefunds_PaymentId");
 
@@ -317,8 +313,6 @@ public partial class GestorInventarioContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__PayPalPa__3214EC0749B7B91D");
 
-            entity.ToTable("PayPalPaymentShipping");
-
             entity.HasIndex(e => e.PaymentId, "IX_PayPalPaymentShipping_PaymentId");
 
             entity.Property(e => e.AddressLine1)
@@ -343,13 +337,13 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false);
 
-            entity.HasOne(d => d.Payment).WithMany(p => p.PayPalPaymentShippings)
+            entity.HasOne(d => d.Payment).WithMany(p => p.PayPalPaymentShipping)
                 .HasForeignKey(d => d.PaymentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_PayPalPaymentShipping_Payment");
         });
 
-        modelBuilder.Entity<Pedido>(entity =>
+        modelBuilder.Entity<Pedidos>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC07480D2CCE");
 
@@ -386,7 +380,7 @@ public partial class GestorInventarioContext : DbContext
                 .HasConstraintName("FK_IdUsuario");
         });
 
-        modelBuilder.Entity<PlanDetail>(entity =>
+        modelBuilder.Entity<PlanDetails>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC0750705EBA");
 
@@ -430,7 +424,7 @@ public partial class GestorInventarioContext : DbContext
                 .IsUnicode(false);
         });
 
-        modelBuilder.Entity<Producto>(entity =>
+        modelBuilder.Entity<Productos>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC074C62FFC1");
 
@@ -466,7 +460,7 @@ public partial class GestorInventarioContext : DbContext
                 .HasConstraintName("FK_IdProveedor");
         });
 
-        modelBuilder.Entity<Proveedore>(entity =>
+        modelBuilder.Entity<Proveedores>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Proveedo__3214EC075BCA4372");
 
@@ -525,18 +519,18 @@ public partial class GestorInventarioContext : DbContext
                 .HasMaxLength(20)
                 .IsUnicode(false);
 
-            entity.HasOne(d => d.Pedido).WithMany(p => p.Rembolsos)
+            entity.HasOne(d => d.Pedido).WithMany(p => p.Rembolso)
                 .HasForeignKey(d => d.PedidoId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_PedidoId");
 
-            entity.HasOne(d => d.Usuario).WithMany(p => p.Rembolsos)
+            entity.HasOne(d => d.Usuario).WithMany(p => p.Rembolso)
                 .HasForeignKey(d => d.UsuarioId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_rembolso");
         });
 
-        modelBuilder.Entity<Role>(entity =>
+        modelBuilder.Entity<Roles>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Roles__3214EC077E50CB8D");
 
@@ -545,7 +539,7 @@ public partial class GestorInventarioContext : DbContext
                 .IsUnicode(false);
         });
 
-        modelBuilder.Entity<SubscriptionDetail>(entity =>
+        modelBuilder.Entity<SubscriptionDetails>(entity =>
         {
             entity.HasKey(e => e.SubscriptionId).HasName("PK__tmp_ms_x__9A2B24BD32070402");
 
@@ -601,8 +595,6 @@ public partial class GestorInventarioContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC077E0B3350");
 
-            entity.ToTable("UserSubscription");
-
             entity.HasIndex(e => e.SubscriptionId, "IX_UserSubscription_SubscriptionID");
 
             entity.HasIndex(e => e.UserId, "IX_UserSubscription_UserId");
@@ -618,17 +610,17 @@ public partial class GestorInventarioContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("SubscriptionID");
 
-            entity.HasOne(d => d.Subscription).WithMany(p => p.UserSubscriptions)
+            entity.HasOne(d => d.Subscription).WithMany(p => p.UserSubscription)
                 .HasForeignKey(d => d.SubscriptionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_SuscriptionID");
 
-            entity.HasOne(d => d.User).WithMany(p => p.UserSubscriptions)
+            entity.HasOne(d => d.User).WithMany(p => p.UserSubscription)
                 .HasForeignKey(d => d.UserId)
                 .HasConstraintName("FK_UserId");
         });
 
-        modelBuilder.Entity<Usuario>(entity =>
+        modelBuilder.Entity<Usuarios>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__tmp_ms_x__3214EC075EC55856");
 

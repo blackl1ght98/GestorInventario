@@ -11,7 +11,7 @@ namespace GestorInventario.Infrastructure.Authentication.AccessToken
         public SymmetricTokenStrategy( IJwtTokenSettings claimsBuilder)
             : base( claimsBuilder) { }
 
-        protected override Task<SigningCredentials> GetSigningCredentialsAsync(Usuario usuario)
+        protected override Task<SigningCredentials> GetSigningCredentialsAsync(Usuarios usuario)
         {
             var clave = _jwtTokenSettings.ObtenerClaveJWT();
 

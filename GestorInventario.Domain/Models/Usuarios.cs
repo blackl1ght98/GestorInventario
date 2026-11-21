@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace GestorInventario.Domain.Models;
 
-public partial class Usuario
+public partial class Usuarios
 {
     public int Id { get; set; }
 
@@ -45,15 +45,15 @@ public partial class Usuario
 
     public string? PendingEmail { get; set; }
 
-    public virtual Role IdRolNavigation { get; set; } = null!;
+    public virtual Roles IdRolNavigation { get; set; } = null!;
 
-    public virtual ICollection<Notificacion> Notificacions { get; set; } = new List<Notificacion>();
+    public virtual ICollection<Notificacion> Notificacion { get; set; } = new List<Notificacion>();
 
-    public virtual ICollection<Pedido> Pedidos { get; set; } = new List<Pedido>();
+    public virtual ICollection<Pedidos> Pedidos { get; set; } = new List<Pedidos>();
 
-    public virtual ICollection<Proveedore> Proveedores { get; set; } = new List<Proveedore>();
+    public virtual ICollection<Proveedores> Proveedores { get; set; } = new List<Proveedores>();
 
-    public virtual ICollection<Rembolso> Rembolsos { get; set; } = new List<Rembolso>();
+    public virtual ICollection<Rembolso> Rembolso { get; set; } = new List<Rembolso>();
 
-    public virtual ICollection<UserSubscription> UserSubscriptions { get; set; } = new List<UserSubscription>();
+    public virtual ICollection<UserSubscription> UserSubscription { get; set; } = new List<UserSubscription>();
 }

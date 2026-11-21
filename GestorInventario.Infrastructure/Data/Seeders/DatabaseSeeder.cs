@@ -1,6 +1,7 @@
 ﻿using GestorInventario.Application.Constants;
 using GestorInventario.Application.Interfaces.Repositories;
 using GestorInventario.Application.Services.User;
+using GestorInventario.Domain.enums.Usuario;
 using GestorInventario.Domain.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,8 +33,8 @@ public static class DatabaseSeeder
 
             logger.LogInformation("No roles found. Seeding initial roles...");
 
-            var admin = new Role { Nombre = Roles.Administrador };
-            var user = new Role { Nombre = Roles.Usuario };
+            var admin = new Roles { Nombre = Rol.Administrador.ToString() };
+            var user = new Roles { Nombre = Rol.Usuario.ToString() };
 
             await rolesRepo.AddAsync(admin);
             await rolesRepo.AddAsync(user);

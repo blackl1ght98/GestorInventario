@@ -29,7 +29,7 @@ namespace GestorInventario.Infrastructure.Repositories.NotificacionRepository
        
         public IQueryable<Notificacion> ObtenerNotificaciones(int usuarioId)
         {
-            var notificaciones = _context.Notificacions.Include(x => x.Usuario).Where(u=>u.UsuarioId==usuarioId).OrderByDescending(x=>x.FechaCreacion).AsQueryable();
+            var notificaciones = _context.Notificacion.Include(x => x.Usuario).Where(u=>u.UsuarioId==usuarioId).OrderByDescending(x=>x.FechaCreacion).AsQueryable();
             return notificaciones;
         }
         public async Task<OperationResult<string>> MarcarNotificacionComoLeida(int id)
@@ -37,7 +37,7 @@ namespace GestorInventario.Infrastructure.Repositories.NotificacionRepository
 
             return await _context.ExecuteInTransactionAsync(async () =>
             {
-                var notificacion = await _context.Notificacions.FindAsync(id);
+                var notificacion = await _context.Notificacion.FindAsync(id);
                 if (notificacion is null)
                 {
                     return OperationResult<string>.Fail();
@@ -56,7 +56,7 @@ namespace GestorInventario.Infrastructure.Repositories.NotificacionRepository
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 // Una sola query SQL: UPDATE Notificacions SET Leida = 1 WHERE UsuarioId = @p0 AND Leida = 0
-                int filasAfectadas = await _context.Notificacions
+                int filasAfectadas = await _context.Notificacion
                     .Where(n => n.UsuarioId == usuarioId && !n.Leida)
                     .ExecuteUpdateAsync(s => s
                         .SetProperty(n => n.Leida, true));
@@ -68,19 +68,19 @@ namespace GestorInventario.Infrastructure.Repositories.NotificacionRepository
         }
         public async Task<int> EliminarNotificacionesAntiguas(DateTime cutoff)
         {
-            return await _context.Notificacions
+            return await _context.Notificacion
                 .Where(n => n.FechaCreacion < cutoff)
                 .ExecuteDeleteAsync();
         }
         public async Task<int> ContarNoLeidasAsync(int usuarioId)
         {
-            return await _context.Notificacions
+            return await _context.Notificacion
                 .Where(n => n.UsuarioId == usuarioId && !n.Leida)
                 .CountAsync();
         }
         public async Task<Notificacion?> ObtenerUltimaNotificacionNoLeidaAsync(int usuarioId)
         {
-            return await _context.Notificacions
+            return await _context.Notificacion
                 .Where(n => n.UsuarioId == usuarioId && !n.Leida)
                 .OrderByDescending(n => n.FechaCreacion)
                 .FirstOrDefaultAsync();

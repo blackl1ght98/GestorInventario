@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace GestorInventario.Domain.Models;
 
-public partial class Proveedore
+public partial class Proveedores
 {
     public int Id { get; set; }
 
@@ -15,7 +15,7 @@ public partial class Proveedore
 
     public int IdUsuario { get; set; }
 
-    public virtual Usuario IdUsuarioNavigation { get; set; } = null!;
+    public virtual Usuarios IdUsuarioNavigation { get; set; } = null!;
 
-    public virtual ICollection<Producto> Productos { get; set; } = new List<Producto>();
+    public virtual ICollection<Productos> Productos { get; set; } = new List<Productos>();
 }

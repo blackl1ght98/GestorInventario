@@ -41,7 +41,7 @@ public class LimpiezaPedidosExpiradosService : BackgroundService
                         pedido.EstadoPedido = EstadoPedido.Cancelado.ToString();
                         await unitOfWork.OrderRepository.ActualizarPedidoAsync(pedido);
 
-                        foreach (var detalle in pedido.DetallePedidos)
+                        foreach (var detalle in pedido.DetallePedido)
                         {
                             var producto = await unitOfWork.ProductRepository.ObtenerProductoPorIdAsync(detalle.ProductoId);
                             if (producto != null)

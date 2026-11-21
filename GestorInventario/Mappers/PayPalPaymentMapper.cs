@@ -6,12 +6,12 @@ namespace GestorInventario.Mappers;
 
 public static class PayPalPaymentMapper
 {
-    public static PayPalPaymentDetailViewModel ToViewModel(PayPalPaymentDetail entity)
+    public static PayPalPaymentDetailViewModel ToViewModel(PayPalPaymentDetails entity)
     {
         if (entity == null) return null;
 
         var ultimoCapture = entity.PayPalPaymentCaptures?.OrderByDescending(c => c.Id).FirstOrDefault();
-        var ultimaInfoEnvio = entity.PayPalPaymentShippings?.OrderByDescending(c => c.Id).FirstOrDefault();
+        var ultimaInfoEnvio = entity.PayPalPaymentShipping?.OrderByDescending(c => c.Id).FirstOrDefault();
         var ultimoRefund = entity.PayPalPaymentRefunds?.OrderByDescending(r => r.CreateTime).FirstOrDefault();
         var totalReembolsado = entity.PayPalPaymentRefunds?.Sum(r => r.Amount) ?? 0m;
 

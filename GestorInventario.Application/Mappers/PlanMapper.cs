@@ -7,7 +7,7 @@ namespace GestorInventario.Application.Mappers
 {
     public static class PlanMapper
     {
-        public static PlanPaypalDto ToPlanProjection(this PlanDetail detail)
+        public static PlanPaypalDto ToPlanProjection(this PlanDetails detail)
         {
             var billingCycles = new List<CatalogPlanBillingCycleDto>();
 
@@ -78,9 +78,9 @@ namespace GestorInventario.Application.Mappers
             };
 
         }
-        public static PlanDetail MapPayPalPlanToEntity(string planId, PlanDetailsDto planDetails)
+        public static PlanDetails MapPayPalPlanToEntity(string planId, PlanDetailsDto planDetails)
         {
-            var planDetail = new PlanDetail
+            var planDetail = new PlanDetails
             {
                 Id = Guid.NewGuid().ToString(),
                 PaypalPlanId = planId,

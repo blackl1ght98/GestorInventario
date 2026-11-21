@@ -50,7 +50,7 @@ namespace GestorInventario.Controllers.PedidosControllers
                 }
 
                 // 2. Transformar la VERDAD de la BD al formato de PayPal
-                var paypalItems = pedido.DetallePedidos
+                var paypalItems = pedido.DetallePedido
                     .Select(d => d.ToDto())
                     .ToList();
     

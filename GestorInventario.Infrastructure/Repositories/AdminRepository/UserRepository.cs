@@ -20,7 +20,7 @@ namespace GestorInventario.Infrastructure.Repositories.AdminRepository
          
         }
         
-        public IQueryable<Usuario> ObtenerUsuariosPorRol(int rolId)
+        public IQueryable<Usuarios> ObtenerUsuariosPorRol(int rolId)
         {
             return _context.Usuarios
                 .Where(u => u.IdRol == rolId)
@@ -36,7 +36,7 @@ namespace GestorInventario.Infrastructure.Repositories.AdminRepository
                 .Distinct()
                 .ToListAsync(stoppingToken);
         }
-        public IQueryable<Usuario> ObtenerUsuarios()
+        public IQueryable<Usuarios> ObtenerUsuarios()
         {
             return _context.Usuarios
                 .Include(u => u.IdRolNavigation)
@@ -56,7 +56,7 @@ namespace GestorInventario.Infrastructure.Repositories.AdminRepository
                     $"Proveedores reasignados correctamente ({filasAfectadas} actualizados)");
             });
         }
-        public async Task<Usuario> ObtenerUsuarioConProveedoresYPedidosAsync(int id)
+        public async Task<Usuarios> ObtenerUsuarioConProveedoresYPedidosAsync(int id)
         {
             var usuario = await _context.Usuarios
                 .Include(u => u.Pedidos)
@@ -66,21 +66,21 @@ namespace GestorInventario.Infrastructure.Repositories.AdminRepository
             return usuario;
         }
     
-        public async Task<Usuario> ObtenerUsuarioPorId(int id)
+        public async Task<Usuarios> ObtenerUsuarioPorId(int id)
         {
             var usuario = await _context.Usuarios.AsTracking()
                 .Include(x => x.IdRolNavigation)
                 .FirstOrDefaultAsync(x => x.Id == id);
             return usuario;
         }  
-        public async Task<Usuario> ObtenerEmail(string email)
+        public async Task<Usuarios> ObtenerEmail(string email)
         {
             var correo = await _context.Usuarios.Include(x => x.IdRolNavigation).FirstOrDefaultAsync(u => u.Email == email); 
             return  correo;
 
         }
         public async Task<bool> AnyAsync() => await _context.Usuarios.AnyAsync();
-          public async Task<List<Usuario>> ObtenerUsuariosAsync() 
+          public async Task<List<Usuarios>> ObtenerUsuariosAsync() 
         { 
             var listaUsuarios= await _context.Usuarios.Include(u => u.IdRolNavigation).ToListAsync();
             return listaUsuarios;
@@ -98,27 +98,27 @@ namespace GestorInventario.Infrastructure.Repositories.AdminRepository
         {
             return await _context.Usuarios.AnyAsync(x => x.Email == email);
         }
-        public async Task<Usuario> ExisteUsuarioConEmailAsync(string email)
+        public async Task<Usuarios> ExisteUsuarioConEmailAsync(string email)
         {
             return await _context.Usuarios.Include(x=>x.IdRolNavigation).FirstOrDefaultAsync(x => x.Email == email);
         }
-        public async Task<OperationResult<Usuario>> AgregarUsuarioAsync(Usuario usuario)
+        public async Task<OperationResult<Usuarios>> AgregarUsuarioAsync(Usuarios usuario)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.AddEntityAsync(usuario);
-                return OperationResult<Usuario>.Ok( usuario,"Usuario guardado");
+                return OperationResult<Usuarios>.Ok( usuario,"Usuario guardado");
             });
         }
-        public async Task<OperationResult<Usuario>> EliminarUsuarioAsync(Usuario usuario)
+        public async Task<OperationResult<Usuarios>> EliminarUsuarioAsync(Usuarios usuario)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.DeleteEntityAsync(usuario);
-                return OperationResult<Usuario>.Ok( usuario);
+                return OperationResult<Usuarios>.Ok( usuario);
             });
         }
-        public async Task<OperationResult<string>> ActualizarUsuarioAsync(Usuario usuario)
+        public async Task<OperationResult<string>> ActualizarUsuarioAsync(Usuarios usuario)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
             {

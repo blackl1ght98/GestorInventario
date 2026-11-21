@@ -8,7 +8,7 @@ namespace GestorInventario.Application.Interfaces.Services
     {
         Task<OperationResult<string>> CrearUsuarioAsync(RegisterUserDto model, string? rolSolicitado = null);
         Task<OperationResult<string>> EditarUsuarioAsync(EditUserDto userVm);
-        Task<OperationResult<Usuario>> EliminarUsuarioAsync(int id);
+        Task<OperationResult<Usuarios>> EliminarUsuarioAsync(int id);
         Task<OperationResult<string>> ValidarRegistro(ConfirmRegistrationDto confirmar);
         Task<OperationResult<string>> CambiarEstadoUsuarioAsync(int id, bool activar);
         Task<OperationResult<string>> ValidarCorreo(ConfirmEmail confirmar);

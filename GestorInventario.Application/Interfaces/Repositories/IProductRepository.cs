@@ -6,17 +6,17 @@ namespace GestorInventario.Application.Interfaces.Repositories
     public interface IProductRepository
     {
         //Consultas
-        IQueryable<Producto> ObtenerTodosLosProductos();
-        Task<List<Proveedore>> ObtenerProveedores();
-        Task<Producto> ObtenerProductoPorIdAsync(int id);
+        IQueryable<Productos> ObtenerTodosLosProductos();
+        Task<List<Proveedores>> ObtenerProveedores();
+        Task<Productos> ObtenerProductoPorIdAsync(int id);
         Task<bool> ObtenerCodigoUPC(string code);
         Task<DetallePedido> ObtenerDetallesCarrito(int idCarrito, int idProducto);
-        Task<Producto> ObtenerProductoCompletoAsync(int Id);
+        Task<Productos> ObtenerProductoCompletoAsync(int Id);
         Task<bool> ExisteNombreProductoAsync(string nombre);
         //Operaciones
-        Task<OperationResult<Producto>> AgregarProductoAsync(Producto producto);
-        Task<OperationResult<Producto>> ActualizarProductoAsync(Producto producto);
-        Task<OperationResult<Producto>> EliminarProductoAsync(Producto producto);
+        Task<OperationResult<Productos>> AgregarProductoAsync(Productos producto);
+        Task<OperationResult<Productos>> ActualizarProductoAsync(Productos producto);
+        Task<OperationResult<Productos>> EliminarProductoAsync(Productos producto);
       
     }
 }

@@ -23,10 +23,10 @@ public class EnvironmentConfig
 
     #region Base de Datos
 
-    public string DbHost     => GetOrThrow("DB_HOST", "DataBaseConection:DBHost");
-    public string DbName     => GetOrThrow("DB_NAME", "DataBaseConection:DBName");
-    public string DbUserName => GetOrThrow("DB_SQLUSER", "DataBaseConection:DBUserName");
-    public string DbPassword => GetOrThrow("DB_SQLUSER_PASSWORD", "DataBaseConection:DBPassword");
+    public string DbHost     => GetOrThrow("DB_HOST", "DatabaseSettings:DBHost");
+    public string DbName     => GetOrThrow("DB_NAME", "DatabaseSettings:DBName");
+    public string DbUserName => GetOrThrow("DB_SQLUSER", "DatabaseSettings:DBUserName");
+    public string DbPassword => GetOrThrow("DB_SQLUSER_PASSWORD", "DatabaseSettings :DBPassword");
 
     #endregion
 

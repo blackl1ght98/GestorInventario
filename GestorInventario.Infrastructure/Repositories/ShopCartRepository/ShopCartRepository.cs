@@ -20,22 +20,22 @@ namespace GestorInventario.Infrastructure.Repositories.ShopCartRepository
         }
 
         // Obtener el shopCart del usuario (Pedidos con EsCarrito = 1)
-        public async Task<Pedido> ObtenerCarritoUsuario(int userId)
+        public async Task<Pedidos> ObtenerCarritoUsuario(int userId)
         {
             var carrito = await _context.Pedidos
                 .FirstOrDefaultAsync(x => x.IdUsuario == userId && x.EsCarrito);
             return carrito;
             
         }
-        public async Task<List<Pedido>> ObtenerCarritosActivosAsync(int userId)=> await _context.Pedidos
-               .Include(p => p.DetallePedidos)
+        public async Task<List<Pedidos>> ObtenerCarritosActivosAsync(int userId)=> await _context.Pedidos
+               .Include(p => p.DetallePedido)
                .Where(p => p.IdUsuario == userId && p.EsCarrito)
                .ToListAsync();
 
         // Obtener ítems del shopCart (DetallePedido para un Pedido con EsCarrito = 1)
         public async Task<List<DetallePedido>> ObtenerItemsDelCarritoUsuario(int pedidoId)
         {
-            var detallePedido = await _context.DetallePedidos
+            var detallePedido = await _context.DetallePedido
                 .Where(i => i.PedidoId == pedidoId)
                 .ToListAsync();
             return  detallePedido;
@@ -44,7 +44,7 @@ namespace GestorInventario.Infrastructure.Repositories.ShopCartRepository
         // Obtener un ítem específico del shopCart por ID
         public async Task<DetallePedido> ItemsDelCarrito(int id)
         {
-            var item = await _context.DetallePedidos
+            var item = await _context.DetallePedido
                 .FirstOrDefaultAsync(x => x.Id == id);
             return item;
         }
@@ -53,7 +53,7 @@ namespace GestorInventario.Infrastructure.Repositories.ShopCartRepository
         // Obtener ítems con datos relacionados (product y proveedor)
         public IQueryable<DetallePedido> ObtenerItemsConDetalles(int pedidoId)
         {
-            var detalle = _context.DetallePedidos
+            var detalle = _context.DetallePedido
                 .Include(i => i.Producto)
                 .Include(i => i.Producto.IdProveedorNavigation)
                 .Where(i => i.PedidoId == pedidoId);
@@ -61,12 +61,12 @@ namespace GestorInventario.Infrastructure.Repositories.ShopCartRepository
         }
 
         // Obtener monedas disponibles
-        public async Task<List<Monedum>> ObtenerMoneda()
+        public async Task<List<Moneda>> ObtenerMoneda()
         {
             var monedas = await _context.Moneda.ToListAsync();
             return monedas;
         }    
-        public async Task<List<Pedido>> ObtenerCarritosAbandonadosAsync(DateTime cutoff)
+        public async Task<List<Pedidos>> ObtenerCarritosAbandonadosAsync(DateTime cutoff)
         {
             return await _context.Pedidos
                 .Where(p => p.EsCarrito && p.FechaPedido < cutoff)

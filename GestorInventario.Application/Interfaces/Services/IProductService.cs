@@ -6,7 +6,7 @@ namespace GestorInventario.Application.Interfaces.Services
 {
     public interface IProductService
     {
-        Task<OperationResult<Producto>> CrearProducto(ProductoDto model);
+        Task<OperationResult<Productos>> CrearProducto(ProductoDto model);
         Task<OperationResult<string>> EditarProducto(EditarProductoDto model, int usuarioId);
 
         Task<OperationResult<string>> EliminarProducto(int Id);

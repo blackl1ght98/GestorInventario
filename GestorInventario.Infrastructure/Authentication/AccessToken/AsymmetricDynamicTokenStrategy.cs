@@ -22,7 +22,7 @@ namespace GestorInventario.Infrastructure.Authentication.AccessToken
            
         }
 
-        protected override async Task<SigningCredentials> GetSigningCredentialsAsync(Usuario usuario)
+        protected override async Task<SigningCredentials> GetSigningCredentialsAsync(Usuarios usuario)
         {
             // Generación dinámica del par RSA
             using var rsa = RSA.Create(2048);

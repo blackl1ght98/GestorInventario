@@ -19,12 +19,12 @@ namespace GestorInventario.Infrastructure.Repositories.OrderRepository
                   
          
         }
-        public async Task<Pedido> ObtenerNumeroPedido(string numPedido)
+        public async Task<Pedidos> ObtenerNumeroPedido(string numPedido)
         {
             var numeroPedido = await _context.Pedidos.Include(x=>x.PayPalPaymentCaptures).FirstOrDefaultAsync(p => p.NumeroPedido == numPedido);    
             return  numeroPedido;
         }
-        public async Task<Pedido?> ObtenerPedidoPendienteUsuarioAsync(int usuarioId)
+        public async Task<Pedidos?> ObtenerPedidoPendienteUsuarioAsync(int usuarioId)
         {
             return await _context.Pedidos
                 .Where(p => p.IdUsuario == usuarioId &&
@@ -35,40 +35,36 @@ namespace GestorInventario.Infrastructure.Repositories.OrderRepository
         }
         public async Task<List<DetallePedido>> ObtenerDetallesPedidoAsync(int pedidoId)
         {
-            return await _context.DetallePedidos
+            return await _context.DetallePedido
                 .Where(d => d.PedidoId == pedidoId)
                 .Include(d => d.Producto)  
                 .ToListAsync();
         }
-        public IQueryable<Pedido> ObtenerPedidos()=>
-            from p in _context.Pedidos.Include(dp => dp.DetallePedidos).ThenInclude(p => p.Producto).Include(u => u.IdUsuarioNavigation).Include(x=>x.PayPalPaymentCaptures)
+        public IQueryable<Pedidos> ObtenerPedidos()=>
+            from p in _context.Pedidos.Include(dp => dp.DetallePedido).ThenInclude(p => p.Producto).Include(u => u.IdUsuarioNavigation).Include(x=>x.PayPalPaymentCaptures)
             select p;
       
-        public IQueryable<Pedido> ObtenerPedidoUsuario(int userId)=>_context.Pedidos.Where(p => p.IdUsuario == userId).Include(dp => dp.DetallePedidos).ThenInclude(p => p.Producto).Include(u => u.IdUsuarioNavigation).Include(x=>x.PayPalPaymentCaptures);
+        public IQueryable<Pedidos> ObtenerPedidoUsuario(int userId)=>_context.Pedidos.Where(p => p.IdUsuario == userId).Include(dp => dp.DetallePedido).ThenInclude(p => p.Producto).Include(u => u.IdUsuarioNavigation).Include(x=>x.PayPalPaymentCaptures);
 
         public async Task<DetallePedido> ObtenerDetallePorIdAsync(int id)
         {
-            var detalle = await _context.DetallePedidos.FirstOrDefaultAsync(x => x.Id == id);
+            var detalle = await _context.DetallePedido.FirstOrDefaultAsync(x => x.Id == id);
             return detalle;
         }
        
-        public async Task<Pedido> ObtenerPedidoConDetallesAsync(int id) =>
+        public async Task<Pedidos> ObtenerPedidoConDetallesAsync(int id) =>
           await _context.Pedidos
-              .Include(p => p.DetallePedidos)
+              .Include(p => p.DetallePedido)
                   .ThenInclude(dp => dp.Producto)
               .Include(p => p.IdUsuarioNavigation)
                .Include(p=>p.PayPalPaymentCaptures)           
               .FirstOrDefaultAsync(m => m.Id == id);
-        public async Task<Pedido> ObtenerPedidoPorIdAsync(int id) => await _context.Pedidos.FirstOrDefaultAsync(x => x.Id == id);
-        public async Task<Pedido> ObtenerPedidoConCapturasAsync(int id) => await _context.Pedidos.Include(x=>x.PayPalPaymentCaptures).FirstOrDefaultAsync(x => x.Id == id);
+        public async Task<Pedidos> ObtenerPedidoPorIdAsync(int id) => await _context.Pedidos.FirstOrDefaultAsync(x => x.Id == id);
+        public async Task<Pedidos> ObtenerPedidoConCapturasAsync(int id) => await _context.Pedidos.Include(x=>x.PayPalPaymentCaptures).FirstOrDefaultAsync(x => x.Id == id);
        
         public async Task<DetallePedido> ObtenerDetalleParaReembolsoAsync(int detallePedidoId)
         {     
-            
-            
-            
-            
-                var detalle = await _context.DetallePedidos
+                var detalle = await _context.DetallePedido
                     .Include(dp => dp.Producto)
                     .Include(dp => dp.Pedido)
                     
@@ -78,20 +74,20 @@ namespace GestorInventario.Infrastructure.Repositories.OrderRepository
                 return detalle;
          
         }
-        public async Task<OperationResult<Pedido>> AgregarPedidoAsync(Pedido pedido)
+        public async Task<OperationResult<Pedidos>> AgregarPedidoAsync(Pedidos pedido)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.AddEntityAsync(pedido);
-                return OperationResult<Pedido>.Ok( pedido);
+                return OperationResult<Pedidos>.Ok( pedido);
             });
         }
-        public async Task<OperationResult<Pedido>> ActualizarPedidoAsync(Pedido pedido)
+        public async Task<OperationResult<Pedidos>> ActualizarPedidoAsync(Pedidos pedido)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.UpdateEntityAsync(pedido);
-                return OperationResult<Pedido>.Ok( pedido);
+                return OperationResult<Pedidos>.Ok( pedido);
             });
         }
         public async Task<OperationResult<DetallePedido>> ActualizarDetallePedidoAsync(DetallePedido pedido)
@@ -118,24 +114,24 @@ namespace GestorInventario.Infrastructure.Repositories.OrderRepository
                 return OperationResult<DetallePedido>.Ok( pedido);
             });
         }
-        public async Task<OperationResult<string>> EliminarCarritoAsync(Pedido pedido)
+        public async Task<OperationResult<string>> EliminarCarritoAsync(Pedidos pedido)
         {
             // Si los detalles no vienen cargados, los buscamos primero
-            if (pedido.DetallePedidos == null || !pedido.DetallePedidos.Any())
+            if (pedido.DetallePedido == null || !pedido.DetallePedido.Any())
             {
-                pedido.DetallePedidos = await _context.DetallePedidos
+                pedido.DetallePedido = await _context.DetallePedido
                     .Where(dp => dp.PedidoId == pedido.Id)
                     .ToListAsync();
             }
             
-            await _context.DeleteWithChildrenAsync(pedido, pedido.DetallePedidos);
+            await _context.DeleteWithChildrenAsync(pedido, pedido.DetallePedido);
 
             return OperationResult<string>.Ok("Pedido eliminado con exito");
         }
-        public async Task<List<Pedido>> ObtenerTodosLosPendientesAntiguosAsync(DateTime limiteTiempo)
+        public async Task<List<Pedidos>> ObtenerTodosLosPendientesAntiguosAsync(DateTime limiteTiempo)
         {
             return await _context.Pedidos
-                .Include(p => p.DetallePedidos) 
+                .Include(p => p.DetallePedido) 
                 .Where(p => p.EstadoPedido == EstadoPedido.Pendiente.ToString() 
                             && p.FechaPedido <= limiteTiempo)
                 .ToListAsync();

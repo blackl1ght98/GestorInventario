@@ -21,7 +21,7 @@ namespace GestorInventario.Application.Services.Authentication
             _refreshTokenService = refreshTokenService;
         }
 
-        public async Task<LoginResponseDto> GenerarToken(Usuario credencialesUsuario)
+        public async Task<LoginResponseDto> GenerarToken(Usuarios credencialesUsuario)
         {
             // 1. Obtener el usuario fresco de la base de datos
             var usuarioDB = await _userRepository.ObtenerUsuarioPorId(credencialesUsuario.Id);

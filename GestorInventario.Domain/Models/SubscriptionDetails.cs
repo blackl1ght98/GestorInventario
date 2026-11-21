@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace GestorInventario.Domain.Models;
 
-public partial class SubscriptionDetail
+public partial class SubscriptionDetails
 {
     public string SubscriptionId { get; set; } = null!;
 
@@ -53,7 +53,7 @@ public partial class SubscriptionDetail
 
     public decimal? TrialFixedPrice { get; set; }
 
-    public virtual PlanDetail Plan { get; set; } = null!;
+    public virtual PlanDetails Plan { get; set; } = null!;
 
-    public virtual ICollection<UserSubscription> UserSubscriptions { get; set; } = new List<UserSubscription>();
+    public virtual ICollection<UserSubscription> UserSubscription { get; set; } = new List<UserSubscription>();
 }

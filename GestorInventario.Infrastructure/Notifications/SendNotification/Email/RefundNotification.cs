@@ -44,7 +44,7 @@ namespace GestorInventario.Infrastructure.Notifications.SendNotification.Email
                 var nombreCliente = pedido.IdUsuarioNavigation?.NombreCompleto ?? "Cliente";
 
                 // Solo las líneas que realmente se reembolsaron en ESTA operación
-                var detallesReembolsados = pedido.DetallePedidos
+                var detallesReembolsados = pedido.DetallePedido
                     .Where(d => detalleIdsReembolsados.Contains(d.Id))
                     .ToList();
 
@@ -76,7 +76,7 @@ namespace GestorInventario.Infrastructure.Notifications.SendNotification.Email
                     CantidadADevolver = montoReembolsado,
                     MotivoRembolso = motivo,
                     Productos = productos,
-                    EsReembolsoTotal = detallesReembolsados.Count == pedido.DetallePedidos.Count
+                    EsReembolsoTotal = detallesReembolsados.Count == pedido.DetallePedido.Count
                 };
 
                 await _emailService.EnviarNotificacionReembolsoAsync(correo);

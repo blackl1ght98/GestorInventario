@@ -5,9 +5,9 @@ namespace GestorInventario.Application.Mappers;
 
 public static class UserMapper
 {
-    public static Usuario MapToDto(RegisterUserDto dto)
+    public static Usuarios MapToDto(RegisterUserDto dto)
     {
-        return new Usuario
+        return new Usuarios
         {
             Email = dto.Email,
             NombreCompleto = dto.NombreCompleto,

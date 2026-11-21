@@ -36,33 +36,33 @@ namespace GestorInventario.Application.Services.Authentication
             _cache = cache;
         }
 
-        public async Task<OperationResult<Usuario>> Login(string email, LoginDto model)
+        public async Task<OperationResult<Usuarios>> Login(string email, LoginDto model)
         {
             var login = await _userRepository.ObtenerEmail(email);
             if (login == null)
             {
-                return OperationResult<Usuario>.Fail("El email y/o la contraseña son incorrectos. ");
+                return OperationResult<Usuarios>.Fail("El email y/o la contraseña son incorrectos. ");
             }
             if (!login.ConfirmacionEmail)
             {
-                return OperationResult<Usuario>.Fail("Por favor, confirma tu correo electrónico antes de iniciar sesión.");
+                return OperationResult<Usuarios>.Fail("Por favor, confirma tu correo electrónico antes de iniciar sesión.");
 
 
             }
             // Verificar si el usuario está dado de baja
             if (login.BajaUsuario)
             {
-                return OperationResult<Usuario>.Fail("Su usuario ha sido dado de baja, contacte con el administrador.");
+                return OperationResult<Usuarios>.Fail("Su usuario ha sido dado de baja, contacte con el administrador.");
 
 
             }
             var resultadoHash = _hashService.Hash(model.Password, login.Salt);
             if (login.Password != resultadoHash.Hash)
             {
-                return OperationResult<Usuario>.Fail("El email y/o la contraseña son incorrectos.");
+                return OperationResult<Usuarios>.Fail("El email y/o la contraseña son incorrectos.");
 
             }
-            return OperationResult<Usuario>.Ok( login);
+            return OperationResult<Usuarios>.Ok( login);
         }
       
         public async Task<OperationResult<string>> SetNewPasswordAsync(SetNewPasswordDto cambio)
@@ -98,24 +98,24 @@ namespace GestorInventario.Application.Services.Authentication
             return OperationResult<string>.Ok("Contraseña cambiada con exito");
         }
        
-        private async Task<OperationResult<Usuario>> ValidarTokenAsync(int userId, string token)
+        private async Task<OperationResult<Usuarios>> ValidarTokenAsync(int userId, string token)
         {
             if (string.IsNullOrWhiteSpace(token))
-                return OperationResult<Usuario>.Fail("El token no es valido");
+                return OperationResult<Usuarios>.Fail("El token no es valido");
 
             if (userId <= 0)
-                return OperationResult<Usuario>.Fail("El usuario no es valido");
+                return OperationResult<Usuarios>.Fail("El usuario no es valido");
 
             var usuario = await _userRepository.ObtenerUsuarioPorId(userId);
             if (usuario == null)
-                return OperationResult<Usuario>.Fail("El usuario no existe");
+                return OperationResult<Usuarios>.Fail("El usuario no existe");
 
             if (string.IsNullOrEmpty(usuario.EmailVerificationToken) ||
                 !CryptographicOperations.FixedTimeEquals(
                     Encoding.UTF8.GetBytes(usuario.EmailVerificationToken),
                     Encoding.UTF8.GetBytes(token)))
             {
-                return OperationResult<Usuario>.Fail("El token no es valido");
+                return OperationResult<Usuarios>.Fail("El token no es valido");
             }
 
             if (usuario.FechaExpiracionContrasenaTemporal < DateTime.UtcNow)
@@ -124,11 +124,11 @@ namespace GestorInventario.Application.Services.Authentication
                 usuario.TemporaryPassword = null;
                 usuario.EmailVerificationToken = null;
                 await _userRepository.ActualizarUsuarioAsync(usuario);
-                return OperationResult<Usuario>.Fail(
+                return OperationResult<Usuarios>.Fail(
                     "El enlace y contraseña temporal han expirado. Solicite una nueva");
             }
 
-            return OperationResult<Usuario>.Ok(usuario);
+            return OperationResult<Usuarios>.Ok(usuario);
         }
         public async Task<OperationResult<string>> ChangePassword(string passwordAnterior, string passwordActual)
         {
@@ -198,12 +198,12 @@ namespace GestorInventario.Application.Services.Authentication
             return OperationResult<string>.Ok("Email enviado");
         }
 
-        public async Task<OperationResult<Usuario>> CompletarMfaAsync(string userId, string codigo)
+        public async Task<OperationResult<Usuarios>> CompletarMfaAsync(string userId, string codigo)
         {
             // Ajusta Usuario al tipo que use GenerarToken (entidad o DTO)
 
             if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(codigo))
-                return OperationResult<Usuario>.Fail("Datos de verificación inválidos.");
+                return OperationResult<Usuarios>.Fail("Datos de verificación inválidos.");
 
             const int MaxAttempts = 3;
 
@@ -218,7 +218,7 @@ namespace GestorInventario.Application.Services.Authentication
             {
                 await _cache.RemoveAsync(codeKey);
                 await _cache.RemoveAsync(attemptsKey);
-                return OperationResult<Usuario>.Fail(
+                return OperationResult<Usuarios>.Fail(
                     "Número de intentos superado. Haga login de nuevo.");
             }
 
@@ -234,12 +234,12 @@ namespace GestorInventario.Application.Services.Authentication
                 {
                     await _cache.RemoveAsync(codeKey);
                     await _cache.RemoveAsync(attemptsKey);
-                    return OperationResult<Usuario>.Fail(
+                    return OperationResult<Usuarios>.Fail(
                         "Número de intentos superado. Haga login de nuevo.");
                 }
 
                 int restantes = MaxAttempts - attempts;
-                return OperationResult<Usuario>.Fail(
+                return OperationResult<Usuarios>.Fail(
                     $"Código incorrecto. Le quedan {restantes} intento(s).");
             }
 
@@ -248,13 +248,13 @@ namespace GestorInventario.Application.Services.Authentication
             await _cache.RemoveAsync(codeKey);
 
             if (!int.TryParse(userId, out int id))
-                return OperationResult<Usuario>.Fail("Usuario de verificación inválido.");
+                return OperationResult<Usuarios>.Fail("Usuario de verificación inválido.");
 
             var user = await _userRepository.ObtenerUsuarioPorId(id); 
             if (user == null)
-                return OperationResult<Usuario>.Fail("Usuario no encontrado.");
+                return OperationResult<Usuarios>.Fail("Usuario no encontrado.");
 
-            return OperationResult<Usuario>.Ok(user, "MFA verificado correctamente.");
+            return OperationResult<Usuarios>.Ok(user, "MFA verificado correctamente.");
         }
         
     }

@@ -182,7 +182,7 @@ Agregar el JSON de configuración (ver `appsettings.json` o el archivo `.env` ge
 #### 3. Sincronización de Modelos (Scaffold)
 Si la base de datos cambia, ejecutar en la **Consola del Administrador de Paquetes**:
 ```powershell
-Scaffold-DbContext "Data Source=localhost\SQLEXPRESS;Initial Catalog=GestorInventario;User ID=sa;Password=SQL#1234;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -ContextDir ../GestorInventario.Infrastructure/Data -ContextNamespace "GestorInventario.Infrastructure.Data" -Namespace "GestorInventario.Domain.Models" -force -Project GestorInventario.Domain -NoOnConfiguring
+Scaffold-DbContext "Data Source=localhost\SQLEXPRESS;Initial Catalog=GestorInventario;User ID=sa;Password=SQL#1234;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -ContextDir ../GestorInventario.Infrastructure/Data -ContextNamespace "GestorInventario.Infrastructure.Data" -Namespace "GestorInventario.Domain.Models" -force -Project GestorInventario.Domain -NoOnConfiguring -StartupProject GestorInventario.Infrastructure -NoPluralize
 ```
 
 ---

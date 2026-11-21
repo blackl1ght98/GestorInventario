@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace GestorInventario.Domain.Models;
 
-public partial class Producto
+public partial class Productos
 {
     public int Id { get; set; }
 
@@ -29,7 +29,7 @@ public partial class Producto
 
     public string CodigoBarrasImagen { get; set; } = null!;
 
-    public virtual ICollection<DetallePedido> DetallePedidos { get; set; } = new List<DetallePedido>();
+    public virtual ICollection<DetallePedido> DetallePedido { get; set; } = new List<DetallePedido>();
 
-    public virtual Proveedore IdProveedorNavigation { get; set; } = null!;
+    public virtual Proveedores IdProveedorNavigation { get; set; } = null!;
 }

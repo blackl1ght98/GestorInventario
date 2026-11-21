@@ -8,7 +8,7 @@ namespace GestorInventario.Application.Interfaces.Services
     {
         Task<OperationResult<string>> Pagar(string moneda, int userId);
 
-        Task<OperationResult<PayPalPaymentItem>> ProcesarRembolso(
+        Task<OperationResult<PayPalPaymentItems>> ProcesarRembolso(
             PayPalOrderDetailsDto detalles,
             int usuarioActual,
             RefundDto form,

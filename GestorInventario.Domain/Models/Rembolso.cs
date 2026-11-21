@@ -33,7 +33,7 @@ public partial class Rembolso
 
     public string? TipoRembolso { get; set; }
 
-    public virtual Pedido Pedido { get; set; } = null!;
+    public virtual Pedidos Pedido { get; set; } = null!;
 
-    public virtual Usuario Usuario { get; set; } = null!;
+    public virtual Usuarios Usuario { get; set; } = null!;
 }

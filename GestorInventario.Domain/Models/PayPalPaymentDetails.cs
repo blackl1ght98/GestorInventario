@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace GestorInventario.Domain.Models;
 
-public partial class PayPalPaymentDetail
+public partial class PayPalPaymentDetails
 {
     public string Id { get; set; } = null!;
 
@@ -39,11 +39,11 @@ public partial class PayPalPaymentDetail
 
     public decimal AmountTax { get; set; }
 
-    public virtual ICollection<PayPalPaymentCapture> PayPalPaymentCaptures { get; set; } = new List<PayPalPaymentCapture>();
+    public virtual ICollection<PayPalPaymentCaptures> PayPalPaymentCaptures { get; set; } = new List<PayPalPaymentCaptures>();
 
-    public virtual ICollection<PayPalPaymentItem> PayPalPaymentItems { get; set; } = new List<PayPalPaymentItem>();
+    public virtual ICollection<PayPalPaymentItems> PayPalPaymentItems { get; set; } = new List<PayPalPaymentItems>();
 
-    public virtual ICollection<PayPalPaymentRefund> PayPalPaymentRefunds { get; set; } = new List<PayPalPaymentRefund>();
+    public virtual ICollection<PayPalPaymentRefunds> PayPalPaymentRefunds { get; set; } = new List<PayPalPaymentRefunds>();
 
-    public virtual ICollection<PayPalPaymentShipping> PayPalPaymentShippings { get; set; } = new List<PayPalPaymentShipping>();
+    public virtual ICollection<PayPalPaymentShipping> PayPalPaymentShipping { get; set; } = new List<PayPalPaymentShipping>();
 }

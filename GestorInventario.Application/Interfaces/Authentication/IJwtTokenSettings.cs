@@ -6,7 +6,7 @@ namespace GestorInventario.Application.Interfaces.Authentication
 {
     public interface IJwtTokenSettings
     {
-        IReadOnlyList<Claim> CrearClaims(Usuario usuario);
+        IReadOnlyList<Claim> CrearClaims(Usuarios usuario);
         string ObtenerIssuer();
         string ObtenerAudience();
         int ObtenerDuracionAccessTokenMinutos();

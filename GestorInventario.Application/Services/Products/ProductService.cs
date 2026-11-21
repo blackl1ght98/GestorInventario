@@ -28,12 +28,12 @@ namespace GestorInventario.Application.Services.Products
             _imageOptimizerService = image;
         }
 
-        public async Task<OperationResult<Producto>> CrearProducto(ProductoDto model)
+        public async Task<OperationResult<Productos>> CrearProducto(ProductoDto model)
         {
             var barcodeResult = await _barCodeService.GenerateUniqueBarCodeAsync(
                 BarcodeType.EAN_13, "", true);
 
-            var producto = new Producto
+            var producto = new Productos
             {
                 NombreProducto = model.NombreProducto,
                 Descripcion = model.Descripcion,
@@ -70,7 +70,7 @@ namespace GestorInventario.Application.Services.Products
             var existeProducto = await _productRepository
                 .ExisteNombreProductoAsync(producto.NombreProducto);
             if (existeProducto)
-                return OperationResult<Producto>.Fail(
+                return OperationResult<Productos>.Fail(
                     "Ya hay un product con ese nombre, proporcione otro nombre");
 
             await _productRepository.AgregarProductoAsync(producto);
@@ -78,7 +78,7 @@ namespace GestorInventario.Application.Services.Products
                 "Producto creado exitosamente: {NombreProducto}, UpcCode: {UpcCode}",
                 producto.NombreProducto, producto.CodigoBarras);
 
-            return OperationResult<Producto>.Ok(producto);
+            return OperationResult<Productos>.Ok(producto);
         }
 
         public async Task<OperationResult<string>> EditarProducto(EditarProductoDto model, int usuarioId)

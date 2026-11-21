@@ -18,7 +18,7 @@ namespace GestorInventario.Application.Services.Subscription
             _logger = logger;
         }
 
-        public async Task<SubscriptionDetail> CreateSubscriptionDetailAsync(PaypalSubscriptionDto subscriptionDetails,
+        public async Task<SubscriptionDetails> CreateSubscriptionDetailAsync(PaypalSubscriptionDto subscriptionDetails,
             string planId)
         {
             try
@@ -40,7 +40,7 @@ namespace GestorInventario.Application.Services.Subscription
             }
         }
 
-        private async Task SaveOrUpdateSubscriptionDetailsAsync(SubscriptionDetail subscriptionDetails)
+        private async Task SaveOrUpdateSubscriptionDetailsAsync(SubscriptionDetails subscriptionDetails)
         {
             var existingSubscription = await _paypalRepository
                 .ObtenerSubscriptionIdAsync(subscriptionDetails.SubscriptionId);

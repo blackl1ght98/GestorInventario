@@ -1,6 +1,6 @@
 ﻿
+using GestorInventario.Application.DTOS.Orders;
 using GestorInventario.Application.DTOS.Paypal;
-using GestorInventario.Application.DTOS.Pedidos;
 using GestorInventario.Application.Interfaces.Repositories;
 using GestorInventario.Application.Interfaces.Services;
 using GestorInventario.Application.Interfaces.Web;
@@ -47,13 +47,13 @@ public class OrderService : IOrderService
         return OperationResult<string>.Fail("No se puede eliminar un order con historial");
     }
 
-    public async Task<OperationResult<PayPalPaymentDetail>> SincronizarDetallePagoAsync(
+    public async Task<OperationResult<PayPalPaymentDetails>> SincronizarDetallePagoAsync(
         string id, int pedidoId)
     {
         var detallesPayPal = await _paypalOrderService.ObtenerDetallesPagoEjecutadoAsync(id);
 
         if (!detallesPayPal.Success)
-            return OperationResult<PayPalPaymentDetail>.Fail(detallesPayPal.Message);
+            return OperationResult<PayPalPaymentDetails>.Fail(detallesPayPal.Message);
 
         var detalles = detallesPayPal.Unwrap();
 
@@ -82,14 +82,14 @@ public class OrderService : IOrderService
         await ProcesarRefundsAsync(detalles, detalleBD, pedidoId);
         await ProcesarItemsAsync(detalles, detalleBD);
 
-        return OperationResult<PayPalPaymentDetail>.Ok(detalleBD);
+        return OperationResult<PayPalPaymentDetails>.Ok(detalleBD);
     }
     /// <summary>
     ///     Busca el detalle en BD. Si no existe, lo crea.
     ///     Si existe, lo elimina y reutiliza la instancia.
     /// </summary>
     
-    private async Task<PayPalPaymentDetail> ObtenerOCrearDetallePagoAsync(
+    private async Task<PayPalPaymentDetails> ObtenerOCrearDetallePagoAsync(
         string id, PayPalOrderDetailsDto detalles)
     {
 
@@ -97,7 +97,7 @@ public class OrderService : IOrderService
 
         if (existente == null)
         {
-            var nuevo = new PayPalPaymentDetail { Id = detalles.OrderId };
+            var nuevo = new PayPalPaymentDetails { Id = detalles.OrderId };
             await _paymentRepository.AgregarDetallePagoAsync(nuevo);
             _logger.LogInformation("Detalle de pago {Id} creado en BD", id);
             return nuevo;
@@ -113,7 +113,7 @@ public class OrderService : IOrderService
     ///     Crea el registro de información de envío.
     /// </summary>
     private async Task ProcesarShippingAsync(
-        PayPalOrderDetailsDto detalles, PayPalPaymentDetail detallePago)
+        PayPalOrderDetailsDto detalles, PayPalPaymentDetails detallePago)
     {
         if (detalles.Shipping == null)
             return;
@@ -139,7 +139,7 @@ public class OrderService : IOrderService
     /// </summary>
     private async Task ProcesarCapturesAsync(
         PayPalOrderDetailsDto detalles,
-        PayPalPaymentDetail detallePago,
+        PayPalPaymentDetails detallePago,
         int pedidoId)
     {
         if (detalles.Captures == null || !detalles.Captures.Any())
@@ -147,7 +147,7 @@ public class OrderService : IOrderService
 
         foreach (var capture in detalles.Captures)
         {
-            var paypalCapture = new PayPalPaymentCapture
+            var paypalCapture = new PayPalPaymentCaptures
             {
                 PaymentId = detallePago.Id,
                 CaptureId = capture.CaptureId,
@@ -177,7 +177,7 @@ public class OrderService : IOrderService
     /// </summary>
     private async Task ProcesarRefundsAsync(
         PayPalOrderDetailsDto detalles,
-        PayPalPaymentDetail detallePago,
+        PayPalPaymentDetails detallePago,
         int pedidoId)
     {
         if (detalles.Refunds == null || !detalles.Refunds.Any())
@@ -185,7 +185,7 @@ public class OrderService : IOrderService
 
         foreach (var refund in detalles.Refunds)
         {
-            var paypalRefund = new PayPalPaymentRefund // o el nombre real de tu entidad
+            var paypalRefund = new PayPalPaymentRefunds 
             {
                 PaymentId = detallePago.Id,
                 RefundId = refund.RefundId,
@@ -206,14 +206,14 @@ public class OrderService : IOrderService
     ///     Procesa los items del order.
     /// </summary>
     private async Task ProcesarItemsAsync(
-        PayPalOrderDetailsDto detalles, PayPalPaymentDetail detallePago)
+        PayPalOrderDetailsDto detalles, PayPalPaymentDetails detallePago)
     {
         if (detalles.Items == null || !detalles.Items.Any())
             return;
 
         foreach (var item in detalles.Items)
         {
-            var paymentItem = new PayPalPaymentItem
+            var paymentItem = new PayPalPaymentItems
             {
                 PayPalId = detallePago.Id,
                 ItemName = item.Name,
@@ -227,7 +227,7 @@ public class OrderService : IOrderService
             await _paymentRepository.AgregarPagoItemAsync(paymentItem);
         }
     }
- public async Task<OperationResult<Pedido>> ConfirmarPagoDelPedidoAsync(
+ public async Task<OperationResult<Pedidos>> ConfirmarPagoDelPedidoAsync(
         PaymentCapturedDto capture,
         string paymentId)
     {
@@ -236,7 +236,7 @@ public class OrderService : IOrderService
             string.IsNullOrWhiteSpace(paymentId))
         {
             _logger.LogWarning("Parámetros inválidos al confirmar pago: captureId, currency u paymentId vacíos");
-            return OperationResult<Pedido>.Fail();
+            return OperationResult<Pedidos>.Fail();
         }
 
         int userId = _currentUserAccessor.GetCurrentUserId();
@@ -245,7 +245,7 @@ public class OrderService : IOrderService
         if (pedido == null)
         {
             _logger.LogWarning("No se encontró order pendiente para el usuario {UsuarioId}", userId);
-            return OperationResult<Pedido>.Fail();
+            return OperationResult<Pedidos>.Fail();
         }
 
 
@@ -253,7 +253,7 @@ public class OrderService : IOrderService
 
         if (paymentDetail == null)
         {
-            paymentDetail = new PayPalPaymentDetail
+            paymentDetail = new PayPalPaymentDetails
             {
                 Id = paymentId,
                 Intent = "CAPTURE",
@@ -271,7 +271,7 @@ public class OrderService : IOrderService
         }
 
 
-        var capturePayment = new PayPalPaymentCapture
+        var capturePayment = new PayPalPaymentCaptures
         {
             PaymentId = paymentId,
             CaptureId = capture.CaptureId,
@@ -295,7 +295,7 @@ public class OrderService : IOrderService
 
         await _orderRepository.ActualizarPedidoAsync(pedido);
 
-        return OperationResult<Pedido>.Ok(pedido, "Pago confirmado. Pendiente de sincronización con PayPal.");
+        return OperationResult<Pedidos>.Ok(pedido, "Pago confirmado. Pendiente de sincronización con PayPal.");
     }
 
     public async Task AddInfoTrackingOrder(int pedidoId, string tracking, string carrier)
@@ -317,7 +317,7 @@ public class OrderService : IOrderService
             return OperationResult<DetalleOrdenDto>.Fail();
         }
 
-        var detalles = pedido.DetallePedidos?.ToList() ?? new List<DetallePedido>();
+        var detalles = pedido.DetallePedido?.ToList() ?? new List<DetallePedido>();
         if (pedido.EsCarrito && !detalles.Any())
         {
             return OperationResult<DetalleOrdenDto>.Fail("El carrito está vacío.");

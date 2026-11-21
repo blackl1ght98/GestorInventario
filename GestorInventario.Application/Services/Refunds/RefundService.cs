@@ -155,7 +155,7 @@ namespace GestorInventario.Application.Services.Refunds
             await _orderRepository.ActualizarDetallePedidoAsync(detallePedido);
 
             // C. Evaluar si todos los detalles están reembolsados para actualizar el estado global del pedido
-            bool todosReembolsados = pedidoCompleto.DetallePedidos.All(d => d.Rembolsado);
+            bool todosReembolsados = pedidoCompleto.DetallePedido.All(d => d.Rembolsado);
             pedidoCompleto.EstadoPedido = todosReembolsados
                 ? EstadoPedido.Rembolsado.ToString()
                 : EstadoPedido.RembolsoParcial.ToString();
@@ -176,7 +176,7 @@ namespace GestorInventario.Application.Services.Refunds
             if (pedido == null)
                 return OperationResult<RembolsoTotal>.Fail();
 
-            var reembolsoPrevio = pedido.Rembolsos?
+            var reembolsoPrevio = pedido.Rembolso?
                 .FirstOrDefault(r => r.ReembolsoCompletado == true);
 
             if (reembolsoPrevio != null)
@@ -193,7 +193,7 @@ namespace GestorInventario.Application.Services.Refunds
             //    aún no reembolsadas, según BD, con su cantidad real)
             // ============================================
 
-            var detallesPendientes = pedido.DetallePedidos
+            var detallesPendientes = pedido.DetallePedido
                 .Where(d => !(d.Rembolsado))
                 .ToList();
 
@@ -261,9 +261,9 @@ namespace GestorInventario.Application.Services.Refunds
 
             pedido.EstadoPedido = EstadoPedido.Rembolsado.ToString();
 
-            if (pedido.DetallePedidos != null)
+            if (pedido.DetallePedido != null)
             {
-                foreach (var detalle in pedido.DetallePedidos)
+                foreach (var detalle in pedido.DetallePedido)
                 {
                     detalle.Rembolsado = true;
                 }

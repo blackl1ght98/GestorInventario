@@ -15,9 +15,9 @@ namespace GestorInventario.Infrastructure.Authentication.RefreshToken
             _jwtTokenSettings = jwtTokenSettings;
             
         }
-        protected abstract Task<SigningCredentials> GetSigningCredentialsAsync(Usuario credencialesUsuario);
+        protected abstract Task<SigningCredentials> GetSigningCredentialsAsync(Usuarios credencialesUsuario);
 
-        public virtual async Task<string> GenerarTokenRefresco(Usuario credencialesUsuario)
+        public virtual async Task<string> GenerarTokenRefresco(Usuarios credencialesUsuario)
         {
             if (credencialesUsuario.IdRolNavigation is null)
             {

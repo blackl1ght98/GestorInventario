@@ -173,7 +173,7 @@ namespace GestorInventario.Application.Services.Payment
         }
 
 
-        private async Task ConvertirCarritoAPedido(Pedido carrito, CheckoutDto checkout)
+        private async Task ConvertirCarritoAPedido(Pedidos carrito, CheckoutDto checkout)
         {
             if (checkout == null)
                 throw new ArgumentNullException(nameof(checkout));
@@ -314,7 +314,7 @@ namespace GestorInventario.Application.Services.Payment
             var carritosActivos = await _unitOfWork.ShopCartRepository.ObtenerCarritosActivosAsync(userId);
             foreach (var carritoActivo in carritosActivos)
             {
-                if (!carritoActivo.DetallePedidos.Any())
+                if (!carritoActivo.DetallePedido.Any())
                 {
                     await _unitOfWork.OrderRepository.EliminarCarritoAsync(carritoActivo);
                     _logger.LogInformation($"Carrito vacío eliminado para el usuario {userId}, ID: {carritoActivo.Id}");
@@ -322,7 +322,7 @@ namespace GestorInventario.Application.Services.Payment
             }
         }
 
-        public async Task<OperationResult<PayPalPaymentItem>> ProcesarRembolso(
+        public async Task<OperationResult<PayPalPaymentItems>> ProcesarRembolso(
             PayPalOrderDetailsDto detalles,
             int usuarioActual,
             RefundDto form,
@@ -330,13 +330,13 @@ namespace GestorInventario.Application.Services.Payment
             string emailCliente)
         {
             // Lista para almacenar los ítems de PayPal
-            var paypalItems = new List<PayPalPaymentItem>();
+            var paypalItems = new List<PayPalPaymentItems>();
             if (paypalItems == null || !paypalItems.Any())
-                return OperationResult<PayPalPaymentItem>.Fail("No hay ítems para el seguimiento");
+                return OperationResult<PayPalPaymentItems>.Fail("No hay ítems para el seguimiento");
             // Procesar items
             foreach (var item in detalles.Items)
             {
-                paypalItems.Add(new PayPalPaymentItem
+                paypalItems.Add(new PayPalPaymentItems
                 {
                     PayPalId = detalles.OrderId,
                     ItemName = item.Name,
@@ -391,10 +391,10 @@ namespace GestorInventario.Application.Services.Payment
             {
                 _logger.LogError(
                     $"No se encontraron ítems en PurchaseUnits para el reembolso del order {form.NumeroPedido}.");
-                return OperationResult<PayPalPaymentItem>.Fail("No se puede procesar el rembolso sin items asociados");
+                return OperationResult<PayPalPaymentItems>.Fail("No se puede procesar el rembolso sin items asociados");
             }
 
-            return OperationResult<PayPalPaymentItem>.Ok(paypalItems.First());
+            return OperationResult<PayPalPaymentItems>.Ok(paypalItems.First());
         }
     }
 }

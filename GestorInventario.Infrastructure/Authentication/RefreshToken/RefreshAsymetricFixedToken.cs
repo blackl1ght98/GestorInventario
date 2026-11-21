@@ -19,7 +19,7 @@ namespace GestorInventario.Infrastructure.Authentication.RefreshToken
        
         }
 
-        protected override Task<SigningCredentials> GetSigningCredentialsAsync(Usuario usuario)
+        protected override Task<SigningCredentials> GetSigningCredentialsAsync(Usuarios usuario)
         {
             var privateKeyXml = _jwtTokenSettings.ObtenerClavePrivada();
 

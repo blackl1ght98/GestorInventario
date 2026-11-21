@@ -44,8 +44,8 @@ namespace GestorInventario.Application.Services.User
             var esPrimerUsuario = !await _userRepository.AnyAsync();
 
             var nombreRol = esPrimerUsuario
-                ? Roles.Administrador
-                : (rolSolicitado ?? Roles.DefaultRegistro);
+                ? RolesConstants.Administrador
+                : (rolSolicitado ?? RolesConstants.DefaultRegistro);
 
             var rol = await _roleRepository.GetRolByNameAsync(nombreRol);
             if (rol is null)
@@ -124,18 +124,18 @@ namespace GestorInventario.Application.Services.User
             return OperationResult<string>.Ok(mensajeRespuesta);
         }
 
-        public async Task<OperationResult<Usuario>> EliminarUsuarioAsync(int id)
+        public async Task<OperationResult<Usuarios>> EliminarUsuarioAsync(int id)
         {
             var usuario = await _userRepository.ObtenerUsuarioConProveedoresYPedidosAsync(id);
 
             if (usuario is null)
-                return OperationResult<Usuario>.Fail();
+                return OperationResult<Usuarios>.Fail();
 
             if (usuario.Pedidos.Any())
-                return OperationResult<Usuario>.Fail("El usuario no se puede eliminar porque tiene pedidos asociados");
+                return OperationResult<Usuarios>.Fail("El usuario no se puede eliminar porque tiene pedidos asociados");
 
             if (usuario.Proveedores.Any())
-                return OperationResult<Usuario>.Fail(
+                return OperationResult<Usuarios>.Fail(
                     "El usuario no se puede eliminar porque tiene proveedores asociados");
 
             return await _userRepository.EliminarUsuarioAsync(usuario);
@@ -215,7 +215,7 @@ namespace GestorInventario.Application.Services.User
             _logger.LogInformation("Correo electrónico actualizado y confirmado con éxito para el usuario {UserId}", usuarioDb.Id);
             return OperationResult<string>.Ok("Validacion y cambio de correo exitosos");
         }
-        private static void UpdateUsuarioFromDto(Usuario usuario, EditUserDto dto)
+        private static void UpdateUsuarioFromDto(Usuarios usuario, EditUserDto dto)
         {
            
             usuario.Email = dto.Email;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace GestorInventario.Domain.Models;
 
-public partial class PlanDetail
+public partial class PlanDetails
 {
     public string Id { get; set; } = null!;
 
@@ -47,5 +47,5 @@ public partial class PlanDetail
 
     public string CurrencyCode { get; set; } = null!;
 
-    public virtual ICollection<SubscriptionDetail> SubscriptionDetails { get; set; } = new List<SubscriptionDetail>();
+    public virtual ICollection<SubscriptionDetails> SubscriptionDetails { get; set; } = new List<SubscriptionDetails>();
 }

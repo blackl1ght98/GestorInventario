@@ -24,7 +24,7 @@ namespace GestorInventario.Infrastructure.Authentication.Jwt
             _environmentConfig = new EnvironmentConfig(configuration);
         }
 
-        public IReadOnlyList<Claim> CrearClaims(Usuario usuario)
+        public IReadOnlyList<Claim> CrearClaims(Usuarios usuario)
         {
             if (usuario.IdRolNavigation is null)
             {

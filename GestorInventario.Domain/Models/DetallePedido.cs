@@ -15,7 +15,7 @@ public partial class DetallePedido
 
     public bool Rembolsado { get; set; }
 
-    public virtual Pedido Pedido { get; set; } = null!;
+    public virtual Pedidos Pedido { get; set; } = null!;
 
-    public virtual Producto Producto { get; set; } = null!;
+    public virtual Productos Producto { get; set; } = null!;
 }

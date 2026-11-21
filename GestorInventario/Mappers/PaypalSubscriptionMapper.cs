@@ -5,7 +5,7 @@ namespace GestorInventario.Mappers;
 
 public class PaypalSubscriptionMapper
 {
-    public static SubcriptionDetailViewModel ToViewModel(SubscriptionDetail details)
+    public static SubcriptionDetailViewModel ToViewModel(SubscriptionDetails details)
     {
         if (details == null) return null;
 

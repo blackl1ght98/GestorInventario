@@ -3,7 +3,7 @@
 namespace GestorInventario.Application.DTOS.Auth
 {
     public record AuthSessionDetails(
-     Usuario User,
+     Usuarios User,
      bool RequiresMfa = false
  );
 }

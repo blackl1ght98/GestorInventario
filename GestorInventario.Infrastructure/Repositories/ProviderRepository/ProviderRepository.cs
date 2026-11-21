@@ -19,48 +19,48 @@ namespace GestorInventario.Infrastructure.Repositories.ProviderRepository
            
         }
 
-        public IQueryable<Proveedore> ObtenerProveedores()
+        public IQueryable<Proveedores> ObtenerProveedores()
         {
             return _context.Proveedores
                 .Include(p => p.IdUsuarioNavigation); 
         }
-        public async Task<Proveedore> ObtenerProveedorId(int id)
+        public async Task<Proveedores> ObtenerProveedorId(int id)
         {
             var proveedor = await _context.Proveedores.FirstOrDefaultAsync(m => m.Id == id);         
             return  proveedor;
         }
-        public async Task<Proveedore> ObtenerProveedorNombre(string nombreProveedor)
+        public async Task<Proveedores> ObtenerProveedorNombre(string nombreProveedor)
         {
             var proveedor = await _context.Proveedores.FirstOrDefaultAsync(m => m.NombreProveedor == nombreProveedor);         
             return  proveedor;
         }
-        public async Task<Proveedore> ObtenerProveedoresConProductos(int Id)
+        public async Task<Proveedores> ObtenerProveedoresConProductos(int Id)
         {
             var proveedor = await _context.Proveedores.Include(p => p.Productos).FirstOrDefaultAsync(m => m.Id == Id);         
             return  proveedor;
         }
-        public async Task<OperationResult<Proveedore>> AddAsync(Proveedore proveedore)
+        public async Task<OperationResult<Proveedores>> AddAsync(Proveedores proveedore)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.AddEntityAsync(proveedore);
-                return OperationResult<Proveedore>.Ok(proveedore);
+                return OperationResult<Proveedores>.Ok(proveedore);
             });
         }
-        public async Task<OperationResult<Proveedore>> UpdateAsync(Proveedore proveedore)
+        public async Task<OperationResult<Proveedores>> UpdateAsync(Proveedores proveedore)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.UpdateEntityAsync(proveedore);
-                return OperationResult<Proveedore>.Ok(proveedore);
+                return OperationResult<Proveedores>.Ok(proveedore);
             });
         }
-        public async Task<OperationResult<Proveedore>> DeleteAsync(Proveedore proveedore)
+        public async Task<OperationResult<Proveedores>> DeleteAsync(Proveedores proveedore)
         {
             return await _context.ExecuteInTransactionAsync(async () =>
             {
                 await _context.DeleteEntityAsync(proveedore);
-                return OperationResult<Proveedore>.Ok(proveedore);
+                return OperationResult<Proveedores>.Ok(proveedore);
             });
         }
       

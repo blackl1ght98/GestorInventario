@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace GestorInventario.Domain.Models;
 
-public partial class PayPalPaymentCapture
+public partial class PayPalPaymentCaptures
 {
     public int Id { get; set; }
 
@@ -39,7 +39,7 @@ public partial class PayPalPaymentCapture
 
     public DateTime UpdateTime { get; set; }
 
-    public virtual PayPalPaymentDetail Payment { get; set; } = null!;
+    public virtual PayPalPaymentDetails Payment { get; set; } = null!;
 
-    public virtual Pedido Pedido { get; set; } = null!;
+    public virtual Pedidos Pedido { get; set; } = null!;
 }

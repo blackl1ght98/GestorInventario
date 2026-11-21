@@ -1,7 +1,7 @@
 ﻿using GestorInventario.Domain.Models;
 using EstadoPedidoEnum = GestorInventario.Domain.enums.Pedido.EstadoPedido;
 
-namespace GestorInventario.Application.DTOS.Pedidos;
+namespace GestorInventario.Application.DTOS.Orders;
 
 public class PedidoDtoViewModel
 {
@@ -13,7 +13,7 @@ public class PedidoDtoViewModel
     public string TrackingNumber { get; set; } = string.Empty;
     public string? Transportista { get; set; }
     public List<DetallePedido> DetallePedidos { get; set; } = new();
-    public List<PayPalPaymentCapture> PalPaymentCaptures { get; set; } = new();
+    public List<PayPalPaymentCaptures> PalPaymentCaptures { get; set; } = new();
     public bool EsCarrito { get; set; }
     public string Currency { get; set; } = string.Empty;
     public required List<string> Carrier { get; set; } 

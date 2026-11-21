@@ -6,16 +6,16 @@ namespace GestorInventario.Application.Interfaces.Repositories
     public interface IProviderRepository
     {
         //Consultas
-        IQueryable<Proveedore> ObtenerProveedores();
-        Task<Proveedore> ObtenerProveedorId(int id);
-        Task<Proveedore> ObtenerProveedoresConProductos(int Id);
-        Task<Proveedore> ObtenerProveedorNombre(string nombreProveedor);
+        IQueryable<Proveedores> ObtenerProveedores();
+        Task<Proveedores> ObtenerProveedorId(int id);
+        Task<Proveedores> ObtenerProveedoresConProductos(int Id);
+        Task<Proveedores> ObtenerProveedorNombre(string nombreProveedor);
         //Operaciones
  
     
-        Task<OperationResult<Proveedore>> AddAsync(Proveedore proveedore);
-        Task<OperationResult<Proveedore>> UpdateAsync(Proveedore proveedore);
-        Task<OperationResult<Proveedore>> DeleteAsync(Proveedore proveedore);
+        Task<OperationResult<Proveedores>> AddAsync(Proveedores proveedore);
+        Task<OperationResult<Proveedores>> UpdateAsync(Proveedores proveedore);
+        Task<OperationResult<Proveedores>> DeleteAsync(Proveedores proveedore);
 
 
     }

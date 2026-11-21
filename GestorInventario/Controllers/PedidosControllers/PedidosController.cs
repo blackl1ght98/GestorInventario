@@ -1,5 +1,4 @@
-﻿
-using GestorInventario.Application.DTOS.Pedidos;
+﻿using GestorInventario.Application.DTOS.Orders;
 using GestorInventario.Application.Interfaces.Repositories;
 using GestorInventario.Application.Interfaces.Resilience;
 using GestorInventario.Application.Interfaces.Services;
@@ -91,7 +90,7 @@ namespace GestorInventario.Controllers.PedidosControllers
                     NombreCompleto = p.IdUsuarioNavigation?.NombreCompleto,
                     TrackingNumber = p.TrackingNumber,
                     Transportista = p.Transportista,
-                    DetallePedidos = p.DetallePedidos.ToList(),
+                    DetallePedidos = p.DetallePedido.ToList(),
                     PalPaymentCaptures = p.PayPalPaymentCaptures.ToList(),
                     EsCarrito = p.EsCarrito,
                     Currency = p.Currency,
